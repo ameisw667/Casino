@@ -35,7 +35,8 @@ export default function CrashPage() {
     crashHistory,
     addCrashHistory,
     provablyFairSettings,
-    setProvablyFairSettings
+    setProvablyFairSettings,
+    addToast
   } = useCasinoStore();
 
   const [betAmount, setBetAmount] = useState(10);
@@ -71,16 +72,31 @@ export default function CrashPage() {
 
   // Initialize Audio
   useEffect(() => {
-    // Placeholder for loading audio files
-    // audioRefs.current.engine = new Audio('/sounds/engine.mp3');
-    // audioRefs.current.cashout = new Audio('/sounds/cashout.mp3');
-    // audioRefs.current.crash = new Audio('/sounds/crash.mp3');
+    const sounds = {
+      engine: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3', // Rocket launch
+      cashout: 'https://assets.mixkit.co/active_storage/sfx/2017/2017-preview.mp3', // Ding
+      crash: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'   // Explosion
+    };
+
+    Object.entries(sounds).forEach(([name, url]) => {
+      const audio = new Audio(url);
+      audio.volume = 0.4;
+      audioRefs.current[name] = audio;
+    });
+
+    return () => {
+      Object.values(audioRefs.current).forEach(a => {
+        a.pause();
+        a.src = '';
+      });
+    };
   }, []);
 
   const playSound = (name: string) => {
-    if (audioRefs.current[name]) {
-      audioRefs.current[name].currentTime = 0;
-      audioRefs.current[name].play().catch(() => {});
+    const audio = audioRefs.current[name];
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play().catch(e => console.warn('Audio playback failed:', e));
     }
   };
 
@@ -204,11 +220,14 @@ export default function CrashPage() {
 
           const canvas = canvasRef.current;
           if (canvas) {
-            const scaleX = canvas.width / Math.max(100, pointsRef.current.length);
-            const scaleY = canvas.height / Math.max(5, next + 1);
+            const dpr = window.devicePixelRatio || 1;
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            const scaleX = width / Math.max(100, pointsRef.current.length);
+            const scaleY = height / Math.max(5, next + 1);
             createExplosion(
               pointsRef.current.length * scaleX,
-              canvas.height - (next - 1) * scaleY
+              height - (next - 1) * scaleY
             );
           }
           return next;
@@ -286,15 +305,15 @@ export default function CrashPage() {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     
-    const gradient = ctx.createLinearGradient(0, canvas.height, canvas.width, 0);
+    const gradient = ctx.createLinearGradient(0, height, width, 0);
     gradient.addColorStop(0, 'hsl(180, 100%, 50%)');
     gradient.addColorStop(1, status === 'CRASHED' ? 'hsl(0, 85%, 60%)' : multiplier > 5 ? 'hsl(300, 100%, 65%)' : 'hsl(200, 100%, 60%)');
     ctx.strokeStyle = gradient;
 
-    ctx.moveTo(0, canvas.height - (pointsRef.current[0].y - 1) * scaleY);
+    ctx.moveTo(0, height - (pointsRef.current[0].y - 1) * scaleY);
     pointsRef.current.forEach((p, i) => {
       const x = i * scaleX;
-      const y = canvas.height - (p.y - 1) * scaleY;
+      const y = height - (p.y - 1) * scaleY;
       ctx.lineTo(x, y);
       if (status === 'RUNNING' && i === pointsRef.current.length - 1) createTail(x, y);
     });
@@ -304,7 +323,7 @@ export default function CrashPage() {
     if (status === 'RUNNING') {
       const last = pointsRef.current[pointsRef.current.length - 1];
       const rocketX = pointsRef.current.length * scaleX;
-      const rocketY = canvas.height - (last.y - 1) * scaleY;
+      const rocketY = height - (last.y - 1) * scaleY;
       ctx.save();
       ctx.translate(rocketX, rocketY);
       ctx.rotate(-Math.atan2(scaleY, scaleX) * 1.5);
@@ -318,6 +337,7 @@ export default function CrashPage() {
     }
 
     updateParticles(ctx);
+    ctx.restore();
   };
 
   useEffect(() => {
@@ -341,6 +361,7 @@ export default function CrashPage() {
       setBigWin(null);
     } else {
       setIsAutoBetting(false);
+      addToast('Insufficient balance!', 'error');
     }
   };
 

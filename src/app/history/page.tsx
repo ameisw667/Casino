@@ -3,6 +3,8 @@
 import { History, TrendingUp, TrendingDown, User, Zap, CircleDollarSign, Target } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 
+import Image from 'next/image';
+
 export default function HistoryPage() {
   const { bets } = useCasinoStore();
 
@@ -13,10 +15,34 @@ export default function HistoryPage() {
   const winRate = bets.length > 0 ? (winCount / bets.length * 100).toFixed(1) : '0.0';
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-      <header style={{ marginBottom: '40px' }}>
-        <h1 className="text-gradient" style={{ fontSize: '3rem' }}>Betting History</h1>
-        <p style={{ color: 'hsl(var(--text-muted))' }}>Track your performance and analytics over time.</p>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '40px' }}>
+      <header style={{ 
+        position: 'relative', 
+        height: '300px', 
+        borderRadius: '24px', 
+        overflow: 'hidden', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center', 
+        padding: '60px',
+        border: '1px solid hsla(0,0%,100%,0.05)',
+        marginTop: '20px'
+      }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: -1 }}>
+          <Image 
+            src="/images/history-hero.png" 
+            alt="History Hero" 
+            fill 
+            style={{ objectFit: 'cover', opacity: 0.4 }}
+          />
+          <div style={{ 
+            position: 'absolute', 
+            inset: 0, 
+            background: 'linear-gradient(to right, hsl(var(--bg-color)) 0%, transparent 100%)' 
+          }} />
+        </div>
+        <h1 className="text-gradient" style={{ fontSize: '4rem', fontWeight: 900, lineHeight: 1 }}>Betting <br /> History</h1>
+        <p style={{ color: 'hsl(var(--text-muted))', fontSize: '1.2rem', maxWidth: '500px', marginTop: '12px' }}>Track your performance and analytics over time.</p>
       </header>
 
       {/* Stats Dashboard */}

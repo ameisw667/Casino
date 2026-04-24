@@ -369,3 +369,26 @@ tr:hover td {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-5px); }
 }
+
+/* Theme Accents */
+.theme-neon .glass-card {
+  box-shadow: 0 0 20px hsla(320, 100%, 60%, 0.1);
+  border-color: hsla(320, 100%, 60%, 0.2) !important;
+}
+
+.theme-gold .glass-card {
+  border-color: hsla(45, 100%, 50%, 0.3) !important;
+  background: linear-gradient(135deg, hsla(45, 100%, 50%, 0.05), transparent 50%);
+}
+
+.theme-neon .text-gradient {
+  background: linear-gradient(to right, #fff, hsl(320 100% 60%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.theme-gold .text-gradient {
+  background: linear-gradient(to right, #fff, #ffd700, #ff8c00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

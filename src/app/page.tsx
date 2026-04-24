@@ -1,17 +1,30 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { TrendingUp, RotateCcw, CircleDollarSign, Trophy, Users, ShieldCheck, Zap, ArrowRight, Play, ExternalLink } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 
 export default function Home() {
+  const { shareWinToChat, friends } = useCasinoStore();
+  const [liveStats, setLiveStats] = useState({ wagered: 124802119.50, players: 142042 });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLiveStats(prev => ({
+        wagered: prev.wagered + (Math.random() * 50),
+        players: prev.players + (Math.random() > 0.5 ? 1 : -1)
+      }));
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
   const featuredGames = [
     { 
       id: 'crash', 
       name: 'CRASH', 
-      image: '/images/game-crash.png', 
+      image: '/images/game-crash-new.png', 
       path: '/games/crash', 
       color: 'hsl(var(--primary))', 
       players: 142,
@@ -20,7 +33,7 @@ export default function Home() {
     { 
       id: 'dice', 
       name: 'DICE', 
-      image: '/images/game-dice.png', 
+      image: '/images/game-dice-new.png', 
       path: '/games/dice', 
       color: 'hsl(var(--secondary))', 
       players: 85,
@@ -29,15 +42,13 @@ export default function Home() {
     { 
       id: 'roulette', 
       name: 'ROULETTE', 
-      image: '/images/game-roulette.png', 
+      image: '/images/game-roulette-new.png', 
       path: '/games/roulette', 
       color: 'hsl(var(--accent))', 
       players: 42,
       description: 'High-stakes European roulette reinvented.'
     },
   ];
-
-  const { shareWinToChat, friends } = useCasinoStore();
 
   const recentWins = [
     { user: 'VibeCoder', game: 'Crash', amount: '0.42 BTC', multiplier: '12.5x', time: '2m ago' },
@@ -61,7 +72,7 @@ export default function Home() {
         {/* Background Image with Overlays */}
         <div style={{ position: 'absolute', inset: 0, zIndex: -1 }}>
           <Image 
-            src="/images/hero-banner.png" 
+            src="/images/hero-banner-new.png" 
             alt="Hero Banner" 
             fill 
             style={{ objectFit: 'cover', opacity: 0.6 }}
@@ -250,18 +261,54 @@ export default function Home() {
             Our open-source verification system ensures that every single outcome is mathematically generated and verifiable by you. No house manipulation, ever.
           </p>
           <div style={{ display: 'flex', gap: '12px' }}>
-            <button className="btn btn-secondary" style={{ borderRadius: '12px' }}>VERIFY A BET</button>
-            <button className="btn btn-ghost" style={{ borderRadius: '12px' }}>READ WHITEPAPER</button>
+            <Link href="/games/crash?verify=true" className="btn btn-secondary" style={{ borderRadius: '12px' }}>VERIFY A BET</Link>
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="btn btn-ghost" style={{ borderRadius: '12px' }}>READ WHITEPAPER</a>
           </div>
+        </div>
+      </section>
+
+      {/* Weekly Promotions Banner */}
+      <section className="glass" style={{ 
+        borderRadius: '32px', 
+        minHeight: '350px', 
+        display: 'flex', 
+        alignItems: 'center', 
+        position: 'relative', 
+        overflow: 'hidden',
+        border: '1px solid hsla(var(--primary), 0.2)'
+      }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: -1 }}>
+          <Image 
+            src="/images/promotion-banner.png" 
+            alt="Promotions" 
+            fill 
+            style={{ objectFit: 'cover', opacity: 0.7 }}
+          />
+          <div style={{ 
+            position: 'absolute', 
+            inset: 0, 
+            background: 'linear-gradient(to right, hsla(var(--bg-color), 1) 0%, hsla(var(--bg-color), 0.4) 100%)' 
+          }} />
+        </div>
+        
+        <div style={{ padding: '60px', maxWidth: '600px' }}>
+          <div style={{ display: 'inline-block', padding: '6px 12px', background: 'hsl(var(--primary))', color: 'black', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 900, marginBottom: '20px' }}>LIMITED TIME</div>
+          <h2 style={{ fontSize: '3rem', fontWeight: 900, lineHeight: 1, marginBottom: '16px', fontFamily: "'Outfit', sans-serif" }}>WEEKLY <br /> REWARD DROP</h2>
+          <p style={{ color: '#fff', fontSize: '1.1rem', marginBottom: '32px', opacity: 0.9 }}>
+            Wager $500 or more this week to enter the $10,000 Grand Prize draw. Every bet counts towards your entry!
+          </p>
+          <button className="btn btn-primary" style={{ height: '56px', padding: '0 32px', borderRadius: '12px' }}>
+            LEARN MORE
+          </button>
         </div>
       </section>
 
       {/* Stats Section */}
       <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px', marginBottom: '80px' }}>
         {[
-          { label: 'TOTAL WAGERED', value: '$124.8M+', icon: <Zap />, color: 'var(--primary)' },
+          { label: 'TOTAL WAGERED', value: `$${(liveStats.wagered / 1000000).toFixed(1)}M+`, icon: <Zap />, color: 'var(--primary)' },
           { label: 'CRYPTO VERIFIED', value: '100% FAIR', icon: <ShieldCheck />, color: 'var(--success)' },
-          { label: 'ACTIVE PLAYERS', value: '142,042', icon: <Users />, color: 'var(--secondary)' },
+          { label: 'ACTIVE PLAYERS', value: liveStats.players.toLocaleString(), icon: <Users />, color: 'var(--secondary)' },
         ].map((stat, i) => (
           <div key={i} className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '24px', padding: '40px' }}>
             <div style={{ 

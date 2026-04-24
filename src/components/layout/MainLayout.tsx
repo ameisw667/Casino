@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import ChatSidebar from './ChatSidebar';
@@ -24,7 +24,12 @@ import {
   Gift,
   Star,
   Target,
-  Zap
+  Zap,
+  CheckCircle2,
+  AlertCircle,
+  Info as InfoIcon,
+  X,
+  ShieldCheck
 } from 'lucide-react';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -36,7 +41,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const [bigWin, setBigWin] = useState<{amount: number, multiplier: number} | null>(null);
   const [dailyReward, setDailyReward] = useState<number | null>(null);
   const [unlockedAchievement, setUnlockedAchievement] = useState<any>(null);
-  const { balance, level, xp, rank, achievements, streak, claimDailyReward, addChatMessage, triggerTrivia, bets, theme } = useCasinoStore();
+  const { balance, level, xp, rank, achievements, streak, claimDailyReward, addChatMessage, triggerTrivia, bets, theme, toasts, removeToast, addToast } = useCasinoStore();
 
   // Theme application
   React.useEffect(() => {
@@ -132,11 +137,23 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     return () => clearTimeout(initialTimer);
   }, []);
 
+  const [showLevelUp, setShowLevelUp] = useState<number | null>(null);
+
+  useEffect(() => {
+    const handleLevelUp = (e: any) => {
+      setShowLevelUp(e.detail.level);
+      setTimeout(() => setShowLevelUp(null), 6000);
+    };
+    window.addEventListener('level-up', handleLevelUp);
+    return () => window.removeEventListener('level-up', handleLevelUp);
+  }, []);
+
   const handleClaimDaily = () => {
     const reward = claimDailyReward();
     if (reward) {
       setDailyReward(reward);
       setShowDailyModal(true);
+      addToast(`Claimed $${reward} daily reward!`, 'success');
       
       addChatMessage({
         user: 'System',
@@ -144,7 +161,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         vipTier: 100
       });
     } else {
-      alert('You already claimed your reward today!');
+      addToast('You already claimed your reward today!', 'error');
     }
   };
 
@@ -160,7 +177,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'hsl(var(--bg-color))', overflow: 'hidden' }}>
+    <div className={`theme-${theme}`} style={{ display: 'flex', minHeight: '100vh', background: 'hsl(var(--bg-color))', overflow: 'hidden' }}>
       {/* Sidebar */}
       <aside className="glass" style={{ 
         width: sidebarOpen ? '240px' : '80px', 
@@ -390,6 +407,78 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           onClose={() => setBigWin(null)} 
         />
       )}
+      {/* Level Up Celebration */}
+      {showLevelUp && (
+        <div style={{ 
+          position: 'fixed', 
+          inset: 0, 
+          zIndex: 9999, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          background: 'rgba(0,0,0,0.9)',
+          backdropFilter: 'blur(20px)'
+        }}>
+          <div className="animate-slide-up" style={{ textAlign: 'center' }}>
+            <div style={{ position: 'relative', display: 'inline-block', marginBottom: '40px' }}>
+              <Star size={160} color="hsl(var(--primary))" fill="hsla(var(--primary), 0.1)" className="animate-pulse" />
+              <div style={{ 
+                position: 'absolute', 
+                inset: 0, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                fontSize: '4rem',
+                fontWeight: 900,
+                color: 'hsl(var(--primary))',
+                textShadow: '0 0 20px hsla(var(--primary), 0.5)'
+              }}>
+                {showLevelUp}
+              </div>
+            </div>
+            <h2 style={{ fontSize: '3.5rem', fontWeight: 900, fontFamily: "'Outfit', sans-serif", letterSpacing: '-0.04em', marginBottom: '12px' }}>LEVEL UP!</h2>
+            <p style={{ color: 'hsl(var(--text-muted))', fontSize: '1.2rem', marginBottom: '40px' }}>You've reached a new milestone on your journey.</p>
+            
+            <div className="glass" style={{ padding: '24px 48px', borderRadius: '24px', display: 'inline-flex', alignItems: 'center', gap: '16px', border: '1px solid hsla(var(--success), 0.3)' }}>
+              <Gift size={32} color="hsl(var(--success))" />
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>REWARD UNLOCKED</div>
+                <div style={{ fontSize: '0.8rem', color: 'hsl(var(--text-muted))' }}>1x Premium Loot-Box added to Vault</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Container */}
+      <div style={{ position: 'fixed', top: '88px', right: '24px', display: 'flex', flexDirection: 'column', gap: '12px', zIndex: 10000, pointerEvents: 'none' }}>
+        {toasts.map((toast) => (
+          <div key={toast.id} className="glass animate-slide-in-right" style={{ 
+            padding: '16px 20px', 
+            borderRadius: '16px', 
+            minWidth: '300px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            background: toast.type === 'error' ? 'hsla(var(--error), 0.15)' : toast.type === 'success' ? 'hsla(var(--success), 0.15)' : 'hsla(var(--bg-color), 0.8)',
+            border: `1px solid ${toast.type === 'error' ? 'hsl(var(--error))' : toast.type === 'success' ? 'hsl(var(--success))' : 'var(--glass-border)'}`,
+            backdropFilter: 'blur(10px)',
+            pointerEvents: 'auto',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+          }}>
+            {toast.type === 'success' && <CheckCircle2 size={20} color="hsl(var(--success))" />}
+            {toast.type === 'error' && <AlertCircle size={20} color="hsl(var(--error))" />}
+            {(toast.type === 'info' || !toast.type) && <InfoIcon size={20} color="hsl(var(--primary))" />}
+            {toast.type === 'win' && <Trophy size={20} color="hsl(var(--primary))" />}
+            
+            <div style={{ flex: 1, fontSize: '0.9rem', fontWeight: 600 }}>{toast.message}</div>
+            
+            <button onClick={() => removeToast(toast.id)} style={{ color: 'hsl(var(--text-muted))', padding: '4px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+              <X size={16} />
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

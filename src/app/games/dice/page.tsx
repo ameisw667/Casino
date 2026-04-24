@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { RotateCcw, ShieldCheck, TrendingUp, AlertCircle, Info, Zap, ChevronRight } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { ProvablyFairEngine } from '@/lib/casino/provably-fair';
 
 export default function DicePage() {
-  const { balance, removeBalance, addBalance, addBet, calculateXp, provablyFairSettings, setProvablyFairSettings } = useCasinoStore();
+  const { balance, removeBalance, addBalance, addBet, calculateXp, provablyFairSettings, setProvablyFairSettings, addToast } = useCasinoStore();
+  const sliderRef = useRef<HTMLDivElement>(null);
   const [betAmount, setBetAmount] = useState(10);
   const [multiplier, setMultiplier] = useState(2.00);
   const [loading, setLoading] = useState(false);
@@ -64,14 +65,34 @@ export default function DicePage() {
 
   const profitOnWin = betAmount * (multiplier - 1);
 
-  // Sound Helpers
-  const playSound = (type: 'roll' | 'win' | 'loss') => {
-    try {
-      const audio = new Audio(`/sounds/${type}.mp3`);
+  const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
+
+  useEffect(() => {
+    const sounds = {
+      roll: 'https://assets.mixkit.co/active_storage/sfx/2048/2048-preview.mp3', // Dice roll
+      win: 'https://assets.mixkit.co/active_storage/sfx/2017/2017-preview.mp3',  // Success
+      loss: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'  // Thud
+    };
+
+    Object.entries(sounds).forEach(([name, url]) => {
+      const audio = new Audio(url);
       audio.volume = 0.3;
-      audio.play();
-    } catch (e) {
-      console.warn("Audio play failed", e);
+      audioRefs.current[name] = audio;
+    });
+
+    return () => {
+      Object.values(audioRefs.current).forEach(a => {
+        a.pause();
+        a.src = '';
+      });
+    };
+  }, []);
+
+  const playSound = (name: 'roll' | 'win' | 'loss') => {
+    const audio = audioRefs.current[name];
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
     }
   };
 
@@ -122,9 +143,30 @@ export default function DicePage() {
     setTargetPoint(100 - targetPoint);
   };
 
+  const handleSliderDrag = (e: React.MouseEvent | MouseEvent) => {
+    if (!sliderRef.current) return;
+    const rect = sliderRef.current.getBoundingClientRect();
+    const x = 'touches' in e ? (e as any).touches[0].clientX : (e as MouseEvent).clientX;
+    const position = ((x - rect.left) / rect.width) * 100;
+    const clamped = Math.max(2, Math.min(98, position));
+    updateFromTarget(parseFloat(clamped.toFixed(2)));
+  };
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    handleSliderDrag(e);
+    const onMouseMove = (moveEvent: MouseEvent) => handleSliderDrag(moveEvent);
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  };
+
   const handleRoll = async () => {
     if (betAmount > balance) {
       setAutoRunning(false);
+      addToast('Insufficient balance!', 'error');
       return;
     }
     
@@ -146,64 +188,63 @@ export default function DicePage() {
     setWinning(isWin);
 
     if (removeBalance(betAmount)) {
-        if (isWin) {
-          playSound('win');
-          const winAmount = betAmount * multiplier;
-          addBalance(winAmount);
-          if (multiplier >= 10) spawnConfetti();
-          addBet({
-            id: Math.random().toString(36),
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            game: 'DICE',
-            user: 'You',
-            amount: betAmount,
-            multiplier: multiplier,
-            payout: winAmount,
-            win: true
-          });
-          if (isAutoMode && autoSettings.onWin > 0) {
-            setBetAmount(prev => prev + (prev * (autoSettings.onWin / 100)));
-          }
-        } else {
-          playSound('loss');
-          addBet({
-            id: Math.random().toString(36),
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            game: 'DICE',
-            user: 'You',
-            amount: betAmount,
-            multiplier: multiplier,
-            payout: 0,
-            win: false
-          });
-          if (isAutoMode && autoSettings.onLoss > 0) {
-            setBetAmount(prev => prev + (prev * (autoSettings.onLoss / 100)));
-          }
+      if (isWin) {
+        playSound('win');
+        const winAmount = betAmount * multiplier;
+        addBalance(winAmount);
+        if (multiplier >= 10) spawnConfetti();
+        addBet({
+          id: Math.random().toString(36),
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          game: 'DICE',
+          user: 'You',
+          amount: betAmount,
+          multiplier: multiplier,
+          payout: winAmount,
+          win: true
+        });
+        if (isAutoMode && autoSettings.onWin > 0) {
+          setBetAmount(prev => prev + (prev * (autoSettings.onWin / 100)));
         }
-        calculateXp(betAmount);
+      } else {
+        playSound('loss');
+        addBet({
+          id: Math.random().toString(36),
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          game: 'DICE',
+          user: 'You',
+          amount: betAmount,
+          multiplier: multiplier,
+          payout: 0,
+          win: false
+        });
+        if (isAutoMode && autoSettings.onLoss > 0) {
+          setBetAmount(prev => prev + (prev * (autoSettings.onLoss / 100)));
+        }
       }
-      const outcomeResult = { roll, win: isWin };
-      setLastResult(outcomeResult);
-      setHistory(prev => [outcomeResult, ...prev].slice(0, 10));
+      calculateXp(betAmount);
+    }
+    const outcomeResult = { roll, win: isWin };
+    setLastResult(outcomeResult);
+    setHistory(prev => [outcomeResult, ...prev].slice(0, 10));
+    
+    setSessionStats(prev => {
+      const isWinResult = isWin;
+      const profitChange = isWinResult ? (betAmount * (multiplier - 1)) : -betAmount;
+      const newProfit = prev.profit + profitChange;
+      const newStreak = isWinResult ? (prev.currentStreak > 0 ? prev.currentStreak + 1 : 1) : (prev.currentStreak < 0 ? prev.currentStreak - 1 : -1);
       
-      setSessionStats(prev => {
-        const isWinResult = isWin;
-        const profitChange = isWinResult ? (betAmount * (multiplier - 1)) : -betAmount;
-        const newProfit = prev.profit + profitChange;
-        const newStreak = isWinResult ? (prev.currentStreak > 0 ? prev.currentStreak + 1 : 1) : (prev.currentStreak < 0 ? prev.currentStreak - 1 : -1);
-        
-        return {
-          totalBets: prev.totalBets + 1,
-          wins: isWinResult ? prev.wins + 1 : prev.wins,
-          losses: isWinResult ? prev.losses : prev.losses + 1,
-          profit: newProfit,
-          currentStreak: newStreak,
-          maxStreak: Math.max(prev.maxStreak, Math.abs(newStreak))
-        };
-      });
+      return {
+        totalBets: prev.totalBets + 1,
+        wins: isWinResult ? prev.wins + 1 : prev.wins,
+        losses: isWinResult ? prev.losses : prev.losses + 1,
+        profit: newProfit,
+        currentStreak: newStreak,
+        maxStreak: Math.max(prev.maxStreak, Math.abs(newStreak))
+      };
+    });
 
-      setLoading(false);
-    }, 400);
+    setLoading(false);
   };
 
   // Auto-Bet Logic
@@ -436,7 +477,11 @@ export default function DicePage() {
         </div>
 
         {/* Dice Slider */}
-        <div style={{ position: 'relative', padding: '40px 0' }}>
+        <div 
+          ref={sliderRef}
+          onMouseDown={onMouseDown}
+          style={{ position: 'relative', padding: '40px 0', cursor: 'pointer' }}
+        >
           <div style={{ 
             height: '12px', 
             width: '100%', 
@@ -510,7 +555,7 @@ export default function DicePage() {
               alignItems: 'center',
               justifyContent: 'center',
               zIndex: 20,
-              transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+              transition: 'none' // Remove transition during drag for smoothness
             }}
           >
             <div style={{ width: '2px', height: '16px', background: '#2f4553', margin: '0 2px' }} />

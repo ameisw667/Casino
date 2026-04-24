@@ -11,6 +11,8 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   '🚀': <Rocket size={32} />,
 };
 
+import Image from 'next/image';
+
 export default function VaultPage() {
   const { achievements, level, rank, rakebackPool, inventory, claimRakeback, openCase } = useCasinoStore();
   const [opening, setOpening] = React.useState(false);
@@ -47,15 +49,36 @@ export default function VaultPage() {
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '48px' }}>
       {/* Header Stats */}
-      <section className="glass" style={{ borderRadius: '32px', padding: '60px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '300px', height: '300px', background: 'hsla(var(--primary), 0.1)', filter: 'blur(100px)', borderRadius: '50%' }} />
+      <section className="glass" style={{ 
+        borderRadius: '32px', 
+        padding: '60px', 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        position: 'relative', 
+        overflow: 'hidden',
+        border: '1px solid hsla(0,0%,100%,0.05)'
+      }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: -1 }}>
+          <Image 
+            src="/images/vault-hero.png" 
+            alt="Vault Hero" 
+            fill 
+            style={{ objectFit: 'cover', opacity: 0.4 }}
+          />
+          <div style={{ 
+            position: 'absolute', 
+            inset: 0, 
+            background: 'linear-gradient(to right, hsl(var(--bg-color)) 0%, transparent 100%)' 
+          }} />
+        </div>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <h1 style={{ fontSize: '4rem', fontFamily: "'Outfit', sans-serif", fontWeight: 900, letterSpacing: '-0.04em' }}>THE REWARD HUB</h1>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative', zIndex: 1 }}>
+          <h1 style={{ fontSize: '4rem', fontFamily: "'Outfit', sans-serif", fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1 }}>THE <br /> REWARD HUB</h1>
           <p style={{ color: 'hsl(var(--text-muted))', fontSize: '1.2rem', maxWidth: '500px' }}>Your home for rakeback, loot-boxes, and your legendary achievements.</p>
         </div>
 
-        <div style={{ display: 'flex', gap: '40px' }}>
+        <div style={{ display: 'flex', gap: '40px', position: 'relative', zIndex: 1 }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '3rem', fontWeight: 900, color: 'hsl(var(--primary))' }}>{unlockedCount}/{totalCount}</div>
             <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'hsl(var(--text-muted))', textTransform: 'uppercase' }}>Unlocked</div>
@@ -99,16 +122,7 @@ export default function VaultPage() {
         </div>
 
         {/* Loot-Box Card */}
-        <div className="glass-card" style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '24px', border: '1px solid hsla(var(--accent), 0.2)', position: 'relative' }}>
-          {opening && (
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '24px' }}>
-              <div className="animate-pulse" style={{ textAlign: 'center' }}>
-                <Rocket size={64} color="hsl(var(--accent))" style={{ marginBottom: '16px' }} />
-                <div style={{ fontWeight: 900, fontSize: '1.5rem' }}>OPENING CASE...</div>
-              </div>
-            </div>
-          )}
-          
+        <div className="glass-card" style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '24px', border: '1px solid hsla(var(--accent), 0.2)', position: 'relative', minHeight: '400px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{ padding: '12px', background: 'hsla(var(--accent), 0.1)', color: 'hsl(var(--accent))', borderRadius: '16px' }}>
               <Gift size={32} />
@@ -119,26 +133,52 @@ export default function VaultPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
-            <div style={{ fontSize: '3.5rem', fontWeight: 900, fontFamily: "'Outfit', sans-serif" }}>
-              {inventory.cases}
-            </div>
-            <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'hsl(var(--text-muted))', marginBottom: '12px' }}>CASES AVAILABLE</div>
-          </div>
+          <div style={{ 
+            flex: 1,
+            background: 'hsla(0,0%,100%,0.02)', 
+            borderRadius: '24px', 
+            border: '1px solid var(--glass-border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+            margin: '12px 0'
+          }}>
+            {animationPhase === 'idle' && (
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '4rem', fontWeight: 900 }}>{inventory.cases}</div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'hsl(var(--text-muted))' }}>CASES READY</div>
+              </div>
+            )}
 
-          {reward && (
-            <div className="animate-slide-up" style={{ padding: '12px', background: 'hsla(var(--success), 0.1)', color: 'hsl(var(--success))', borderRadius: '12px', textAlign: 'center', fontWeight: 800 }}>
-              WIN: {reward.type === 'balance' ? '$' : '+'}{reward.reward} {reward.type.toUpperCase()}!
-            </div>
-          )}
+            {animationPhase === 'spinning' && (
+              <div style={{ textAlign: 'center' }}>
+                <div className="animate-spin" style={{ marginBottom: '16px' }}>
+                  <Gift size={64} color="hsl(var(--primary))" />
+                </div>
+                <div style={{ fontWeight: 800, letterSpacing: '0.2em' }} className="animate-pulse">OPENING...</div>
+              </div>
+            )}
+
+            {animationPhase === 'reveal' && reward && (
+              <div className="animate-slide-up" style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 900, color: 'hsl(var(--primary))', marginBottom: '8px' }}>YOU UNLOCKED</div>
+                <div style={{ fontSize: '4rem', fontWeight: 900, color: '#fff', textShadow: '0 0 30px hsla(var(--primary), 0.5)' }}>
+                  {reward.type === 'balance' ? '$' : '+'}{reward.reward}
+                </div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'hsl(var(--text-muted))' }}>{reward.type.toUpperCase()}</div>
+              </div>
+            )}
+          </div>
 
           <button 
             disabled={inventory.cases <= 0 || opening}
             onClick={handleOpenCase}
-            className="btn btn-secondary" 
-            style={{ height: '56px', borderRadius: '16px', fontSize: '1.1rem', background: 'hsla(var(--accent), 0.1)', borderColor: 'hsla(var(--accent), 0.2)', color: 'hsl(var(--accent))' }}
+            className="btn btn-primary" 
+            style={{ height: '64px', borderRadius: '16px', fontSize: '1.1rem' }}
           >
-            OPEN CASE
+            {opening ? 'PLEASE WAIT...' : 'OPEN LOOT-BOX'}
           </button>
         </div>
       </section>
@@ -164,9 +204,25 @@ export default function VaultPage() {
         })}
       </section>
 
+      {/* Global Progress Header */}
+      <section className="glass" style={{ padding: '32px 48px', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid hsla(var(--primary), 0.1)' }}>
+        <div>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 900, fontFamily: "'Outfit', sans-serif" }}>BADGE GALLERY</h2>
+          <p style={{ color: 'hsl(var(--text-muted))', fontSize: '0.9rem' }}>Collect all legendary badges to unlock the Diamond Case.</p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: 900 }}>{Math.round((achievements.filter(a => a.unlocked).length / achievements.length) * 100)}%</div>
+            <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'hsl(var(--text-muted))', textTransform: 'uppercase' }}>Completion</div>
+          </div>
+          <div style={{ width: '200px', height: '12px', background: 'hsla(0,0%,100%,0.05)', borderRadius: '6px', overflow: 'hidden' }}>
+            <div style={{ width: `${(achievements.filter(a => a.unlocked).length / achievements.length) * 100}%`, height: '100%', background: 'hsl(var(--primary))', boxShadow: '0 0 15px hsla(var(--primary), 0.5)' }} />
+          </div>
+        </div>
+      </section>
+
       {/* Achievement Grid */}
       <section>
-        <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '32px', fontFamily: "'Outfit', sans-serif" }}>ACHIEVEMENTS</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '24px' }}>
           {achievements.map((ach) => {
             const progressPercent = (ach.progress / ach.total) * 100;
@@ -214,4 +270,16 @@ export default function VaultPage() {
                       width: `${progressPercent}%`, 
                       height: '100%', 
                       background: ach.unlocked ? 'hsl(var(--success))' : 'hsl(var(--primary))', 
-                      borderRa
+                      borderRadius: '4px',
+                      transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)'
+                    }} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    </div>
+  );
+}

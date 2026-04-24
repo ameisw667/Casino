@@ -3,19 +3,25 @@
 import React, { useState } from 'react';
 import { ShieldCheck, RotateCcw, Copy, ExternalLink, Info, CheckCircle2 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
+import { ProvablyFairEngine } from '@/lib/casino/provably-fair';
+
+import Image from 'next/image';
 
 export default function FairnessPage() {
-  const { provablyFairSettings, setProvablyFairSettings } = useCasinoStore();
+  const { provablyFairSettings, setProvablyFairSettings, addToast } = useCasinoStore();
   const [copied, setCopied] = useState(false);
 
-  const rotateSeeds = () => {
+  const rotateSeeds = async () => {
     const newClientSeed = Math.random().toString(36).substring(2, 15);
-    // In a real app, server seed would be hashed on client, real one revealed after rotation
+    const { seed, hash } = await ProvablyFairEngine.generateServerSeed();
+    
     setProvablyFairSettings({
-      ...provablyFairSettings,
       clientSeed: newClientSeed,
+      serverSeedHash: hash,
       nonce: 0
     });
+    
+    addToast('Seeds rotated successfully!', 'success');
   };
 
   const copyToClipboard = (text: string) => {
@@ -25,14 +31,47 @@ export default function FairnessPage() {
   };
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '40px auto', padding: '0 20px' }}>
-      <header style={{ marginBottom: '48px', textAlign: 'center' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', padding: '12px 24px', background: 'hsla(var(--success), 0.1)', borderRadius: 'var(--radius-full)', color: 'hsl(var(--success))', marginBottom: '24px', border: '1px solid hsla(var(--success), 0.2)' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+      <header style={{ 
+        position: 'relative', 
+        height: '400px', 
+        borderRadius: '32px', 
+        overflow: 'hidden', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        textAlign: 'center',
+        padding: '60px',
+        marginBottom: '60px',
+        marginTop: '20px',
+        border: '1px solid hsla(0,0%,100%,0.05)'
+      }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: -1 }}>
+          <Image 
+            src="/images/fairness-hero.png" 
+            alt="Fairness Hero" 
+            fill 
+            style={{ objectFit: 'cover', opacity: 0.5 }}
+          />
+          <div style={{ 
+            position: 'absolute', 
+            inset: 0, 
+            background: 'radial-gradient(circle, transparent 0%, hsl(var(--bg-color)) 100%)' 
+          }} />
+          <div style={{ 
+            position: 'absolute', 
+            inset: 0, 
+            background: 'linear-gradient(to top, hsl(var(--bg-color)) 0%, transparent 100%)' 
+          }} />
+        </div>
+
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', padding: '12px 24px', background: 'hsla(var(--success), 0.1)', backdropFilter: 'blur(10px)', borderRadius: 'var(--radius-full)', color: 'hsl(var(--success))', marginBottom: '24px', border: '1px solid hsla(var(--success), 0.2)' }}>
           <ShieldCheck size={24} />
           <span style={{ fontWeight: 800, fontSize: '1.1rem' }}>100% PROVABLY FAIR</span>
         </div>
-        <h1 style={{ fontSize: '3.5rem', fontWeight: 900, marginBottom: '16px', fontFamily: "'Outfit', sans-serif" }}>Transparency by Design.</h1>
-        <p style={{ fontSize: '1.2rem', color: 'hsl(var(--text-muted))', maxWidth: '600px', margin: '0 auto' }}>
+        <h1 style={{ fontSize: '4.5rem', fontWeight: 900, marginBottom: '16px', fontFamily: "'Outfit', sans-serif", lineHeight: 1 }}>Transparency <br /> by Design.</h1>
+        <p style={{ fontSize: '1.25rem', color: 'hsl(var(--text-muted))', maxWidth: '650px', margin: '0 auto' }}>
           We use industry-standard cryptographic algorithms to ensure that neither the house nor the player can manipulate game outcomes.
         </p>
       </header>
@@ -63,13 +102,13 @@ export default function FairnessPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-muted))', letterSpacing: '0.1em' }}>SERVER SEED (HASHED)</label>
               <div style={{ display: 'flex', gap: '12px', background: 'hsla(0,0%,100%,0.03)', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--glass-border)', alignItems: 'center' }}>
-                <span style={{ fontFamily: 'monospace', fontSize: '0.9rem', flex: 1, color: 'hsl(var(--text-muted))' }}>{provablyFairSettings.serverSeed}</span>
-                <button onClick={() => copyToClipboard(provablyFairSettings.serverSeed)} style={{ background: 'none', border: 'none', color: 'hsl(var(--primary))', cursor: 'pointer' }}>
+                <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', flex: 1, color: 'hsl(var(--text-muted))', wordBreak: 'break-all' }}>{provablyFairSettings.serverSeedHash || 'Pending rotation...'}</span>
+                <button onClick={() => copyToClipboard(provablyFairSettings.serverSeedHash)} style={{ background: 'none', border: 'none', color: 'hsl(var(--primary))', cursor: 'pointer' }}>
                   {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
                 </button>
               </div>
               <p style={{ fontSize: '0.75rem', color: 'hsl(var(--text-muted))' }}>
-                The server seed is revealed only after you rotate it, proving we haven't changed it during your session.
+                The server seed hash is shown before you play. After rotation, you can verify the original seed against this hash.
               </p>
             </div>
 

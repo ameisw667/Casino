@@ -47,6 +47,13 @@ export interface TriviaQuestion {
   reward: number;
 }
 
+export interface Toast {
+  id: string;
+  type: 'info' | 'success' | 'error' | 'win';
+  message: string;
+  duration?: number;
+}
+
 export interface CasinoState {
   balance: number;
   xp: number;
@@ -79,6 +86,7 @@ export interface CasinoState {
     serverSeedHash: string;
     nonce: number;
   };
+  toasts: Toast[];
   
   // Actions
   addBalance: (amount: number) => void;
@@ -101,6 +109,8 @@ export interface CasinoState {
   addFriend: (username: string) => void;
   sendDirectMessage: (to: string, text: string) => void;
   setTheme: (theme: 'default' | 'neon' | 'gold') => void;
+  addToast: (msg: string, type?: Toast['type'], duration?: number) => void;
+  removeToast: (id: string) => void;
 }
 
 export const RANKS = [
@@ -151,6 +161,7 @@ export const useCasinoStore = create<CasinoState>()(
         serverSeedHash: '',
         nonce: 0
       },
+      toasts: [],
 
       addBalance: (amount) => set((state) => ({ balance: state.balance + amount })),
 
@@ -205,6 +216,9 @@ export const useCasinoStore = create<CasinoState>()(
           inventoryUpdate = { 
             inventory: { ...state.inventory, cases: state.inventory.cases + (newLevel - state.level) } 
           };
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('level-up', { detail: { level: newLevel } }));
+          }
         }
         
         // Correctly find the rank
@@ -380,6 +394,21 @@ export const useCasinoStore = create<CasinoState>()(
       }),
 
       setTheme: (theme) => set({ theme }),
+
+      addToast: (message, type = 'info', duration = 4000) => set((state) => {
+        const id = Math.random().toString(36).substr(2, 9);
+        const newToast = { id, message, type, duration };
+        
+        setTimeout(() => {
+          get().removeToast(id);
+        }, duration);
+
+        return { toasts: [...state.toasts, newToast] };
+      }),
+
+      removeToast: (id) => set((state) => ({
+        toasts: state.toasts.filter(t => t.id !== id)
+      })),
     }),
     {
       name: 'casino-storage',

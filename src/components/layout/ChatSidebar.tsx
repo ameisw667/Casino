@@ -170,13 +170,14 @@ export default function ChatSidebar() {
                     <span style={{ 
                       fontSize: '0.6rem', 
                       fontWeight: 900, 
-                      color: 'white',
-                      background: 'hsl(var(--primary))',
+                      color: 'black',
+                      background: (msg.vipTier || 1) >= 100 ? '#b9f2ff' : (msg.vipTier || 1) >= 50 ? '#e5e4e2' : (msg.vipTier || 1) >= 25 ? '#ffd700' : (msg.vipTier || 1) >= 10 ? '#c0c0c0' : '#cd7f32',
                       padding: '1px 5px',
                       borderRadius: '4px',
-                      textTransform: 'uppercase'
+                      textTransform: 'uppercase',
+                      boxShadow: (msg.vipTier || 1) >= 25 ? '0 0 10px rgba(255, 215, 0, 0.3)' : 'none'
                     }}>
-                      Lvl {msg.vipTier || 1}
+                      {(msg.vipTier || 1) >= 100 ? '💎' : (msg.vipTier || 1) >= 50 ? '🥈' : (msg.vipTier || 1) >= 25 ? '🥇' : '⭐'} {(msg.vipTier || 1)}
                     </span>
                   )}
                   <span 

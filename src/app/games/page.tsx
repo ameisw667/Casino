@@ -4,6 +4,8 @@ import React from 'react';
 import { Gamepad2, TrendingUp, CircleDollarSign, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 
+import Image from 'next/image';
+
 export default function GamesPage() {
   const games = [
     { id: 'crash', name: 'Crash', icon: <TrendingUp size={32} />, desc: 'Watch the multiplier grow and cash out before it crashes.', path: '/games/crash', color: 'hsl(var(--primary))' },
@@ -12,10 +14,34 @@ export default function GamesPage() {
   ];
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-      <header style={{ marginBottom: '40px' }}>
-        <h1 className="text-gradient" style={{ fontSize: '3rem' }}>All Games</h1>
-        <p style={{ color: 'hsl(var(--text-muted))' }}>Fair, fast, and high-fidelity gambling experiences.</p>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '40px' }}>
+      <header style={{ 
+        position: 'relative', 
+        height: '350px', 
+        borderRadius: '24px', 
+        overflow: 'hidden', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center', 
+        padding: '60px',
+        border: '1px solid hsla(0,0%,100%,0.05)',
+        marginTop: '20px'
+      }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: -1 }}>
+          <Image 
+            src="/images/hero-banner-new.png" 
+            alt="Games Hero" 
+            fill 
+            style={{ objectFit: 'cover', opacity: 0.4 }}
+          />
+          <div style={{ 
+            position: 'absolute', 
+            inset: 0, 
+            background: 'linear-gradient(to right, hsl(var(--bg-color)) 0%, transparent 100%)' 
+          }} />
+        </div>
+        <h1 className="text-gradient" style={{ fontSize: '4.5rem', fontWeight: 900, lineHeight: 1, fontFamily: "'Outfit', sans-serif" }}>THE <br /> COLLECTION</h1>
+        <p style={{ color: 'hsl(var(--text-muted))', fontSize: '1.25rem', maxWidth: '500px', marginTop: '12px' }}>Explore our suite of provably fair, high-fidelity gaming experiences.</p>
       </header>
 
       <div className="grid-cols-auto">

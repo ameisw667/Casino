@@ -83,32 +83,41 @@ const Chip = ({ amount, size = 32, onClick, active, stacked = false, index = 0, 
     return '#ecf0f1'; 
   };
 
+  const stackCount = stacked ? 1 : Math.min(6, Math.max(1, Math.floor(Math.log10(amount / 5 + 1)) + 1));
+
   return (
-    <button 
-      onClick={onClick}
-      className={`chip-button ${active ? 'active' : ''}`}
-      style={{ 
-        width: size, height: size, borderRadius: '50%', background: getChipColor(amount),
-        border: `3px dashed rgba(0,0,0,0.2)`,
-        boxShadow: active ? `0 0 20px ${getChipColor(amount)}, inset 0 0 5px rgba(0,0,0,0.5)` : '0 4px 6px rgba(0,0,0,0.3), inset 0 0 5px rgba(0,0,0,0.3)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: amount >= 100 && amount < 1000 ? '#fff' : '#000',
-        fontSize: size * 0.35, fontWeight: 900, cursor: 'pointer',
-        transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-        transform: stacked ? `translateY(${-index * 2}px) scale(${1 - index * 0.05})` : (active ? 'scale(1.1) translateY(-4px)' : 'scale(1)'),
-        position: stacked ? 'absolute' : 'relative',
-        zIndex: 50 - index,
-        pointerEvents: stacked ? 'none' : 'auto'
-      }}
-    >
-      <div style={{ position: 'absolute', inset: '2px', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '50%' }} />
-      {amount >= 1000 ? `${amount/1000}k` : amount}
-    </button>
+    <div style={{ position: 'relative', width: size, height: size, zIndex: stacked ? 50 - index : 10 }}>
+      {[...Array(stackCount)].map((_, i) => (
+        <button 
+          key={i}
+          onClick={i === stackCount - 1 ? onClick : undefined}
+          className={`chip-button ${active ? 'active' : ''}`}
+          style={{ 
+            width: size, height: size, borderRadius: '50%', background: getChipColor(amount),
+            border: `3px dashed rgba(0,0,0,0.2)`,
+            boxShadow: active ? `0 0 20px ${getChipColor(amount)}, inset 0 0 5px rgba(0,0,0,0.5)` : '0 4px 6px rgba(0,0,0,0.3), inset 0 0 5px rgba(0,0,0,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: amount >= 100 && amount < 1000 ? '#fff' : '#000',
+            fontSize: size * 0.35, fontWeight: 900, cursor: 'pointer',
+            transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            transform: `translateY(${-i * 2}px) ${active ? 'scale(1.1) translateY(-4px)' : (stacked ? `translateY(${-index * 2}px) scale(${1 - index * 0.05})` : 'scale(1)')}`,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            zIndex: i,
+            pointerEvents: i === stackCount - 1 ? 'auto' : 'none'
+          }}
+        >
+          <div style={{ position: 'absolute', inset: '2px', border: '1px solid rgba(0,0,0,0.1)', borderRadius: '50%' }} />
+          {i === stackCount - 1 && (amount >= 1000 ? `${amount/1000}k` : amount)}
+        </button>
+      ))}
+    </div>
   );
 };
 
 export default function RoulettePage() {
-  const { balance, removeBalance, addBalance, addBet, calculateXp, level, xp } = useCasinoStore();
+  const { balance, removeBalance, addBalance, addBet, calculateXp, level, xp, provablyFairSettings, setProvablyFairSettings } = useCasinoStore();
   
   const [currentBets, setCurrentBets] = useState<BetPlacement[]>([]);
   const [lastBets, setLastBets] = useState<BetPlacement[]>([]);
@@ -209,14 +218,18 @@ export default function RoulettePage() {
     setBetHistory([]);
   };
 
-  const handleSpin = () => {
+  const handleSpin = async () => {
     if (spinning || currentBets.length === 0) return;
     setSpinning(true);
     setWinningNumber(null);
     setLastBets([...currentBets]);
 
-    const randomIndex = Math.floor(Math.random() * WHEEL_ORDER.length);
-    const result = WHEEL_ORDER[randomIndex];
+    const { seed, hash } = await ProvablyFairEngine.generateServerSeed();
+    const nonce = provablyFairSettings.nonce + 1;
+    const resultNum = await ProvablyFairEngine.getRouletteNumber(seed, provablyFairSettings.clientSeed, nonce);
+    setProvablyFairSettings({ serverSeedHash: hash, nonce });
+
+    const result = ROULETTE_NUMBERS.find(n => n.n === resultNum)!;
 
     const duration = turboMode ? 1000 : 6000;
     const spins = turboMode ? 2 : 5;
@@ -353,29 +366,36 @@ export default function RoulettePage() {
           )}
 
           {/* Corrected 3D Wheel */}
-          <div style={{ width: '400px', height: '400px', position: 'relative', transform: 'rotateX(40deg)', transformStyle: 'preserve-3d' }}>
-            <div style={{ position: 'absolute', inset: '-25px', borderRadius: '50%', border: '12px solid #222', background: '#111', boxShadow: '0 30px 60px rgba(0,0,0,0.8)' }} />
+          <div style={{ width: '450px', height: '450px', position: 'relative', transform: 'rotateX(45deg) rotateZ(0deg)', transformStyle: 'preserve-3d', filter: 'drop-shadow(0 50px 100px rgba(0,0,0,0.8))' }}>
+            {/* Outer Rim */}
+            <div style={{ position: 'absolute', inset: '-30px', borderRadius: '50%', border: '15px solid #2a2a2a', background: 'linear-gradient(135deg, #333, #000)', boxShadow: 'inset 0 0 40px rgba(0,0,0,1), 0 10px 0 #111', transform: 'translateZ(-10px)' }} />
             
-            <div style={{ width: '100%', height: '100%', borderRadius: '50%', position: 'relative', transition: `transform ${turboMode ? 1 : 6}s cubic-bezier(0.1, 0, 0.1, 1)`, transform: `rotate(${wheelRotation}deg)`, background: '#000' }}>
+            {/* Spinning Parts */}
+            <div style={{ width: '100%', height: '100%', borderRadius: '50%', position: 'relative', transition: `transform ${turboMode ? 1 : 6}s cubic-bezier(0.1, 0, 0.1, 1)`, transform: `rotate(${wheelRotation}deg)`, background: '#000', transformStyle: 'preserve-3d' }}>
               {WHEEL_ORDER.map((num, i) => (
                 <div key={i} className="wheel-pocket" style={{ 
-                  position: 'absolute', top: '0', left: '50%', width: '36px', height: '50%',
+                  position: 'absolute', top: '0', left: '50%', width: '40px', height: '50%',
                   transform: `translateX(-50%) rotate(${(i * 360/37)}deg)`,
                   background: num.c === 'RED' ? 'hsl(var(--error))' : num.c === 'BLACK' ? '#111' : 'hsl(var(--success))',
-                  display: 'flex', justifyContent: 'center', paddingTop: '15px'
+                  display: 'flex', justifyContent: 'center', paddingTop: '15px',
+                  boxShadow: 'inset 0 0 10px rgba(0,0,0,0.5)',
+                  border: '0.5px solid rgba(255,255,255,0.05)'
                 }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 900, color: '#fff', transform: 'rotate(180deg)' }}>{num.n}</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 900, color: '#fff', transform: 'rotate(180deg)', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{num.n}</span>
                 </div>
               ))}
-              <div style={{ position: 'absolute', inset: '80px', borderRadius: '50%', background: '#111', border: '4px solid #222' }} />
+              {/* Inner Bowl */}
+              <div style={{ position: 'absolute', inset: '80px', borderRadius: '50%', background: 'radial-gradient(circle at center, #222 0%, #000 100%)', border: '8px solid #111', boxShadow: 'inset 0 20px 40px rgba(0,0,0,0.5)' }} />
             </div>
 
-            <div style={{ position: 'absolute', inset: '0', transition: `transform ${turboMode ? 1 : 6}s cubic-bezier(0.1, 0, 0.2, 1)`, transform: `rotate(${ballRotation}deg)` }}>
-              <div style={{ position: 'absolute', top: '35px', left: '50%', width: '14px', height: '14px', borderRadius: '50%', background: '#fff', boxShadow: '0 0 15px #fff' }} />
+            {/* Ball Track */}
+            <div style={{ position: 'absolute', inset: '0', transition: `transform ${turboMode ? 1 : 6}s cubic-bezier(0.1, 0, 0.2, 1)`, transform: `rotate(${ballRotation}deg)`, transformStyle: 'preserve-3d' }}>
+              <div style={{ position: 'absolute', top: '35px', left: '50%', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', boxShadow: '0 0 20px #fff, inset -2px -2px 5px rgba(0,0,0,0.2)', transform: 'translateZ(10px)' }} />
             </div>
             
-            <div style={{ position: 'absolute', top: '50%', left: '50%', width: '100px', height: '100px', transform: 'translate(-50%, -50%) translateZ(20px)', background: '#1a1a1a', borderRadius: '50%', border: '2px solid #333', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Dices size={40} className="text-primary" />
+            {/* Center Piece */}
+            <div style={{ position: 'absolute', top: '50%', left: '50%', width: '120px', height: '120px', transform: 'translate(-50%, -50%) translateZ(30px)', background: 'linear-gradient(135deg, #333, #111)', borderRadius: '50%', border: '4px solid #444', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.8)' }}>
+              <Dices size={48} className="text-primary" style={{ filter: 'drop-shadow(0 0 10px hsla(var(--primary), 0.5))' }} />
             </div>
           </div>
         </div>

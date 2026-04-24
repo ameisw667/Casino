@@ -1,14 +1,34 @@
-'use client';
-
-import React from 'react';
-import { CircleDollarSign, Users, TrendingUp, Copy } from 'lucide-react';
+import Image from 'next/image';
 
 export default function AffiliatePage() {
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-      <header style={{ marginBottom: '40px' }}>
-        <h1 className="text-gradient" style={{ fontSize: '3rem' }}>Affiliate Program</h1>
-        <p style={{ color: 'hsl(var(--text-muted))' }}>Invite your friends and earn a percentage of every bet they place.</p>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '40px' }}>
+      <header style={{ 
+        position: 'relative', 
+        height: '350px', 
+        borderRadius: '24px', 
+        overflow: 'hidden', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center', 
+        padding: '60px',
+        border: '1px solid hsla(0,0%,100%,0.05)'
+      }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: -1 }}>
+          <Image 
+            src="/images/affiliate-hero.png" 
+            alt="Affiliate Hero" 
+            fill 
+            style={{ objectFit: 'cover', opacity: 0.5 }}
+          />
+          <div style={{ 
+            position: 'absolute', 
+            inset: 0, 
+            background: 'linear-gradient(to right, hsl(var(--bg-color)) 0%, transparent 100%)' 
+          }} />
+        </div>
+        <h1 className="text-gradient" style={{ fontSize: '4rem', fontWeight: 900, lineHeight: 1 }}>Affiliate <br /> Program</h1>
+        <p style={{ color: 'hsl(var(--text-muted))', fontSize: '1.2rem', maxWidth: '500px', marginTop: '12px' }}>Invite your friends and build your gaming empire. Earn passive income on every wager.</p>
       </header>
 
       <div className="grid-cols-auto" style={{ marginBottom: '40px' }}>

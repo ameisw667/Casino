@@ -9,6 +9,8 @@ const RANK_COLORS: Record<number, string> = {
   3: '#CD7F32',
 };
 
+import Image from 'next/image';
+
 export default function LeaderboardPage() {
   const players = [
     { rank: 1, user: 'VibeKing', wagered: '$1,240,000', wins: 1420, profit: '+$240k', level: 92, rankName: 'Diamond' },
@@ -20,14 +22,43 @@ export default function LeaderboardPage() {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '48px' }}>
-      <header className="glass" style={{ padding: '60px', borderRadius: '32px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: '-100px', left: '50%', transform: 'translateX(-50%)', width: '400px', height: '400px', background: 'hsla(var(--primary), 0.1)', filter: 'blur(100px)', borderRadius: '50%' }} />
+      <header className="glass" style={{ 
+        padding: '80px 60px', 
+        borderRadius: '32px', 
+        textAlign: 'center', 
+        position: 'relative', 
+        overflow: 'hidden',
+        border: '1px solid hsla(0,0%,100%,0.05)',
+        marginTop: '20px'
+      }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: -1 }}>
+          <Image 
+            src="/images/leaderboard-hero.png" 
+            alt="Leaderboard Hero" 
+            fill 
+            style={{ objectFit: 'cover', opacity: 0.4 }}
+          />
+          <div style={{ 
+            position: 'absolute', 
+            inset: 0, 
+            background: 'radial-gradient(circle, transparent 0%, hsl(var(--bg-color)) 100%)' 
+          }} />
+          <div style={{ 
+            position: 'absolute', 
+            inset: 0, 
+            background: 'linear-gradient(to top, hsl(var(--bg-color)) 0%, transparent 100%)' 
+          }} />
+        </div>
         
-        <Trophy size={64} color="hsl(var(--primary))" style={{ marginBottom: '24px', position: 'relative' }} />
-        <h1 className="text-gradient" style={{ fontSize: '4.5rem', lineHeight: 1, marginBottom: '16px', fontFamily: "'Outfit', sans-serif", fontWeight: 900 }}>HALL OF FAME</h1>
-        <p style={{ color: 'hsl(var(--text-muted))', fontSize: '1.25rem', maxWidth: '600px', margin: '0 auto' }}>
-          Behold the legends of the ecosystem. The top performers by wager, profit, and pure dedication.
-        </p>
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '80px', height: '80px', borderRadius: '24px', background: 'hsla(var(--primary), 0.1)', color: 'hsl(var(--primary))', marginBottom: '32px', border: '1px solid hsla(var(--primary), 0.2)' }}>
+            <Trophy size={40} />
+          </div>
+          <h1 className="text-gradient" style={{ fontSize: '5rem', lineHeight: 1, marginBottom: '16px', fontFamily: "'Outfit', sans-serif", fontWeight: 900, letterSpacing: '-0.04em' }}>HALL OF FAME</h1>
+          <p style={{ color: 'hsl(var(--text-muted))', fontSize: '1.4rem', maxWidth: '650px', margin: '0 auto', fontWeight: 500 }}>
+            Behold the legends of the ecosystem. The top performers by wager, profit, and pure dedication.
+          </p>
+        </div>
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px' }}>
