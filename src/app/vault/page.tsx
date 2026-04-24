@@ -12,9 +12,10 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 };
 
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function VaultPage() {
-  const { achievements, level, rank, rakebackPool, inventory, claimRakeback, openCase } = useCasinoStore();
+  const { achievements, level, rank, rakebackPool, inventory, claimRakeback, openCase, isMobile } = useCasinoStore();
   const [opening, setOpening] = React.useState(false);
   const [reward, setReward] = React.useState<{reward: number, type: 'balance' | 'xp'} | null>(null);
   const [animationPhase, setAnimationPhase] = React.useState<'idle' | 'spinning' | 'reveal'>('idle');
@@ -47,17 +48,27 @@ export default function VaultPage() {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '48px' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '40px' }}>
+      {/* Breadcrumbs */}
+      <nav style={{ display: 'flex', gap: '12px', fontSize: '0.8rem', fontWeight: 700, color: 'hsl(var(--text-muted))', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '12px' }}>
+        <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }} className="hover:text-white transition-colors">HOME</Link>
+        <span>/</span>
+        <span style={{ color: 'hsl(var(--primary))' }}>VAULT</span>
+      </nav>
+
       {/* Header Stats */}
       <section className="glass" style={{ 
         borderRadius: '32px', 
-        padding: '60px', 
+        padding: isMobile ? '40px 24px' : '60px', 
         display: 'flex', 
+        flexDirection: isMobile ? 'column' : 'row',
         justifyContent: 'space-between', 
-        alignItems: 'center', 
+        alignItems: isMobile ? 'flex-start' : 'center', 
+        gap: isMobile ? '32px' : '40px',
         position: 'relative', 
         overflow: 'hidden',
-        border: '1px solid hsla(0,0%,100%,0.05)'
+        border: '1px solid hsla(0,0%,100%,0.05)',
+        marginTop: isMobile ? '10px' : '0'
       }}>
         <div style={{ position: 'absolute', inset: 0, zIndex: -1 }}>
           <Image 
@@ -69,29 +80,31 @@ export default function VaultPage() {
           <div style={{ 
             position: 'absolute', 
             inset: 0, 
-            background: 'linear-gradient(to right, hsl(var(--bg-color)) 0%, transparent 100%)' 
+            background: isMobile 
+              ? 'radial-gradient(circle at center, transparent 0%, hsl(var(--bg-color)) 100%), linear-gradient(to top, hsl(var(--bg-color)) 0%, transparent 100%)'
+              : 'linear-gradient(to right, hsl(var(--bg-color)) 0%, transparent 100%)' 
           }} />
         </div>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative', zIndex: 1 }}>
-          <h1 style={{ fontSize: '4rem', fontFamily: "'Outfit', sans-serif", fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1 }}>THE <br /> REWARD HUB</h1>
-          <p style={{ color: 'hsl(var(--text-muted))', fontSize: '1.2rem', maxWidth: '500px' }}>Your home for rakeback, loot-boxes, and your legendary achievements.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', position: 'relative', zIndex: 1, textAlign: isMobile ? 'center' : 'left', width: isMobile ? '100%' : 'auto' }}>
+          <h1 style={{ fontSize: isMobile ? '2.5rem' : '4rem', fontFamily: "'Outfit', sans-serif", fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1 }}>THE <br /> REWARD HUB</h1>
+          <p style={{ color: 'hsl(var(--text-muted))', fontSize: isMobile ? '1rem' : '1.2rem', maxWidth: '500px' }}>Your home for rakeback and legendary achievements.</p>
         </div>
 
-        <div style={{ display: 'flex', gap: '40px', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', gap: isMobile ? '24px' : '40px', position: 'relative', zIndex: 1, width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'center' : 'flex-end' }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '3rem', fontWeight: 900, color: 'hsl(var(--primary))' }}>{unlockedCount}/{totalCount}</div>
-            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'hsl(var(--text-muted))', textTransform: 'uppercase' }}>Unlocked</div>
+            <div style={{ fontSize: isMobile ? '2rem' : '3rem', fontWeight: 900, color: 'hsl(var(--primary))' }}>{unlockedCount}/{totalCount}</div>
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'hsl(var(--text-muted))', textTransform: 'uppercase' }}>Unlocked</div>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '3rem', fontWeight: 900, color: 'hsl(var(--accent))' }}>{level}</div>
-            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'hsl(var(--text-muted))', textTransform: 'uppercase' }}>Level</div>
+            <div style={{ fontSize: isMobile ? '2rem' : '3rem', fontWeight: 900, color: 'hsl(var(--accent))' }}>{level}</div>
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'hsl(var(--text-muted))', textTransform: 'uppercase' }}>Level</div>
           </div>
         </div>
       </section>
 
       {/* Rewards Row (Rakeback & Cases) */}
-      <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+      <section style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '16px' : '32px' }}>
         {/* Rakeback Card */}
         <div className="glass-card" style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '24px', border: '1px solid hsla(var(--primary), 0.2)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -222,8 +235,8 @@ export default function VaultPage() {
       </section>
 
       {/* Achievement Grid */}
-      <section>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '24px' }}>
+      <section style={{ marginBottom: '40px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(350px, 1fr))', gap: isMobile ? '16px' : '24px' }}>
           {achievements.map((ach) => {
             const progressPercent = (ach.progress / ach.total) * 100;
             

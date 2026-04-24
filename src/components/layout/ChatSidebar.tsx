@@ -6,7 +6,7 @@ import { useCasinoStore } from '@/store/useCasinoStore';
 import PlayerProfileModal from '@/components/casino/PlayerProfileModal';
 
 export default function ChatSidebar() {
-  const { chatMessages, addChatMessage, level, rank, answerTrivia, friends, directMessages, sendDirectMessage } = useCasinoStore();
+  const { chatMessages, addChatMessage, level, rank, answerTrivia, friends, directMessages, sendDirectMessage, isMobile } = useCasinoStore();
   const [inputText, setInputText] = useState('');
   const [activeTab, setActiveTab] = useState<'global' | 'direct'>('global');
   const [activeConversation, setActiveConversation] = useState<string | null>(null);
@@ -54,19 +54,19 @@ export default function ChatSidebar() {
   const EMOTES = ['🔥', '🚀', '🎰', '💎', '🍀', '🐋', '🤑', '📉', '📈', '💀'];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: isMobile ? 'hsl(var(--bg-color))' : 'transparent' }}>
       {/* Tab Switcher */}
-      <div style={{ display: 'flex', background: 'hsla(0,0%,100%,0.03)', padding: '4px', margin: '16px 16px 0', borderRadius: '12px' }}>
+      <div style={{ display: 'flex', background: 'hsla(0,0%,100%,0.03)', padding: '4px', margin: isMobile ? '8px 8px 0' : '16px 16px 0', borderRadius: '12px' }}>
         <button 
           onClick={() => setActiveTab('global')}
           style={{ 
             flex: 1, 
-            padding: '8px', 
+            padding: isMobile ? '10px' : '8px', 
             borderRadius: '8px', 
             border: 'none', 
             background: activeTab === 'global' ? 'hsla(0,0%,100%,0.07)' : 'transparent',
             color: activeTab === 'global' ? 'white' : 'hsl(var(--text-muted))',
-            fontSize: '0.75rem',
+            fontSize: isMobile ? '0.7rem' : '0.75rem',
             fontWeight: 700,
             cursor: 'pointer',
             display: 'flex',
@@ -81,12 +81,12 @@ export default function ChatSidebar() {
           onClick={() => setActiveTab('direct')}
           style={{ 
             flex: 1, 
-            padding: '8px', 
+            padding: isMobile ? '10px' : '8px', 
             borderRadius: '8px', 
             border: 'none', 
             background: activeTab === 'direct' ? 'hsla(0,0%,100%,0.07)' : 'transparent',
             color: activeTab === 'direct' ? 'white' : 'hsl(var(--text-muted))',
-            fontSize: '0.75rem',
+            fontSize: isMobile ? '0.7rem' : '0.75rem',
             fontWeight: 700,
             cursor: 'pointer',
             display: 'flex',
@@ -115,18 +115,18 @@ export default function ChatSidebar() {
         </div>
       )}
 
-      <header style={{ padding: '20px', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <header style={{ padding: isMobile ? '12px 16px' : '20px', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {activeTab === 'global' ? (
             <>
-              <MessageSquare size={18} color="hsl(var(--primary))" />
-              <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>LIVE CHAT</span>
+              <MessageSquare size={16} color="hsl(var(--primary))" />
+              <span style={{ fontWeight: 700, fontSize: isMobile ? '0.8rem' : '0.9rem' }}>LIVE CHAT</span>
             </>
           ) : (
             <>
-              <MessageCircle size={18} color="hsl(var(--accent))" />
-              <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>
-                {activeConversation ? activeConversation.toUpperCase() : 'MESSAGES'}
+              <MessageCircle size={16} color="hsl(var(--accent))" />
+              <span style={{ fontWeight: 700, fontSize: isMobile ? '0.8rem' : '0.9rem' }}>
+                {activeConversation ? activeConversation : 'MESSAGES'}
               </span>
             </>
           )}
@@ -250,19 +250,19 @@ export default function ChatSidebar() {
         )}
       </div>
 
-      <div style={{ padding: '16px', borderTop: '1px solid var(--glass-border)' }}>
+      <div style={{ padding: isMobile ? '12px' : '16px', borderTop: '1px solid var(--glass-border)', paddingBottom: isMobile ? '24px' : '16px' }}>
         <div style={{ display: 'flex', gap: '8px' }}>
           <input 
             className="input" 
-            placeholder={activeTab === 'direct' && !activeConversation ? "Select a friend to message..." : "Type a message..."}
+            placeholder={activeTab === 'direct' && !activeConversation ? "Select friend..." : "Message..."}
             disabled={activeTab === 'direct' && !activeConversation}
-            style={{ fontSize: '0.8rem', padding: '8px 12px' }}
+            style={{ fontSize: '0.9rem', height: isMobile ? '48px' : '44px' }}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && (activeTab === 'global' ? handleSend() : handleSendDirect())}
           />
-          <button className="btn btn-primary" style={{ padding: '8px' }} onClick={activeTab === 'global' ? handleSend : handleSendDirect}>
-            <Send size={16} />
+          <button className="btn btn-primary" style={{ padding: '0 16px', height: isMobile ? '48px' : '44px' }} onClick={activeTab === 'global' ? handleSend : handleSendDirect}>
+            <Send size={18} />
           </button>
         </div>
       </div>

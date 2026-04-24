@@ -6,7 +6,7 @@ import { useCasinoStore } from '@/store/useCasinoStore';
 import { ProvablyFairEngine } from '@/lib/casino/provably-fair';
 
 export default function DicePage() {
-  const { balance, removeBalance, addBalance, addBet, calculateXp, provablyFairSettings, setProvablyFairSettings, addToast } = useCasinoStore();
+  const { isMobile, balance, removeBalance, addBalance, addBet, calculateXp, provablyFairSettings, setProvablyFairSettings, addToast } = useCasinoStore();
   const sliderRef = useRef<HTMLDivElement>(null);
   const [betAmount, setBetAmount] = useState(10);
   const [multiplier, setMultiplier] = useState(2.00);
@@ -69,9 +69,9 @@ export default function DicePage() {
 
   useEffect(() => {
     const sounds = {
-      roll: 'https://assets.mixkit.co/active_storage/sfx/2048/2048-preview.mp3', // Dice roll
-      win: 'https://assets.mixkit.co/active_storage/sfx/2017/2017-preview.mp3',  // Success
-      loss: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'  // Thud
+      roll: '/sounds/dice-roll.mp3', // Dice roll
+      win: '/sounds/win.mp3',  // Success
+      loss: '/sounds/loss.mp3'  // Thud
     };
 
     Object.entries(sounds).forEach(([name, url]) => {
@@ -143,7 +143,7 @@ export default function DicePage() {
     setTargetPoint(100 - targetPoint);
   };
 
-  const handleSliderDrag = (e: React.MouseEvent | MouseEvent) => {
+  const handleSliderDrag = (e: React.MouseEvent | MouseEvent | React.TouchEvent | TouchEvent) => {
     if (!sliderRef.current) return;
     const rect = sliderRef.current.getBoundingClientRect();
     const x = 'touches' in e ? (e as any).touches[0].clientX : (e as MouseEvent).clientX;
@@ -161,6 +161,17 @@ export default function DicePage() {
     };
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    handleSliderDrag(e);
+    const onTouchMove = (moveEvent: TouchEvent) => handleSliderDrag(moveEvent);
+    const onTouchEnd = () => {
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onTouchEnd);
+    };
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd);
   };
 
   const handleRoll = async () => {
@@ -314,15 +325,31 @@ export default function DicePage() {
   }, [betAmount, multiplier, targetPoint, loading, balance]);
 
   return (
-    <div className="dice-container" style={{ maxWidth: '1600px', margin: '0 auto', display: 'grid', gridTemplateColumns: '320px 1fr 300px', gap: '2px', padding: '20px', background: '#0f212e', minHeight: '80vh', borderRadius: '16px', overflow: 'hidden' }}>
+    <div className="dice-container" style={{ 
+      maxWidth: '1600px', 
+      margin: '0 auto', 
+      display: 'grid', 
+      gap: '2px', 
+      background: '#0f212e', 
+      minHeight: isMobile ? 'auto' : 'min(800px, 85vh)', 
+      borderRadius: '16px', 
+      overflow: 'hidden' 
+    }}>
       
-      <div className="dice-sidebar" style={{ background: '#1a2c38', padding: '20px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div className="dice-sidebar" style={{ 
+        background: '#1a2c38', 
+        padding: isMobile ? '16px' : '20px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: isMobile ? '16px' : '24px',
+        order: isMobile ? 2 : 1
+      }}>
         <div style={{ display: 'flex', background: '#0f212e', padding: '4px', borderRadius: '8px' }}>
           <button 
             onClick={() => setIsAutoMode(false)}
             style={{ 
               flex: 1, 
-              padding: '10px', 
+              padding: isMobile ? '12px' : '10px', 
               borderRadius: '6px', 
               fontSize: '0.75rem', 
               fontWeight: 800,
@@ -338,7 +365,7 @@ export default function DicePage() {
             onClick={() => setIsAutoMode(true)}
             style={{ 
               flex: 1, 
-              padding: '10px', 
+              padding: isMobile ? '12px' : '10px', 
               borderRadius: '6px', 
               fontSize: '0.75rem', 
               fontWeight: 800,
@@ -357,24 +384,24 @@ export default function DicePage() {
             <label style={{ fontSize: '0.7rem', fontWeight: 800, color: '#b1bad3' }}>Bet Amount</label>
             <span style={{ fontSize: '0.7rem', color: '#b1bad3' }}>${balance.toFixed(2)}</span>
           </div>
-          <div style={{ display: 'flex', gap: '2px', background: '#2f4553', borderRadius: '6px', overflow: 'hidden', border: '2px solid #2f4553' }}>
+          <div style={{ display: 'flex', gap: '2px', background: '#2f4553', borderRadius: '8px', overflow: 'hidden', border: '2px solid #2f4553' }}>
             <input 
               type="number" 
               className="mono" 
               value={betAmount} 
-              style={{ flex: 1, background: '#0f212e', border: 'none', color: '#fff', padding: '10px', fontSize: '0.9rem', fontWeight: 700, outline: 'none' }}
+              style={{ flex: 1, background: '#0f212e', border: 'none', color: '#fff', padding: '12px', fontSize: '1rem', fontWeight: 700, outline: 'none' }}
               onChange={(e) => setBetAmount(Math.max(0, parseFloat(e.target.value) || 0))} 
             />
-            <button style={{ background: '#2f4553', color: '#fff', border: 'none', padding: '0 12px', fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer' }} onClick={() => setBetAmount(betAmount / 2)}>1/2</button>
-            <button style={{ background: '#2f4553', color: '#fff', border: 'none', padding: '0 12px', fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer' }} onClick={() => setBetAmount(betAmount * 2)}>2x</button>
+            <button style={{ background: '#2f4553', color: '#fff', border: 'none', padding: '0 16px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }} onClick={() => setBetAmount(betAmount / 2)}>1/2</button>
+            <button style={{ background: '#2f4553', color: '#fff', border: 'none', padding: '0 16px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }} onClick={() => setBetAmount(betAmount * 2)}>2x</button>
           </div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <label style={{ fontSize: '0.7rem', fontWeight: 800, color: '#b1bad3' }}>Profit on Win</label>
-          <div style={{ background: '#0f212e', borderRadius: '6px', padding: '10px', display: 'flex', alignItems: 'center', border: '2px solid #2f4553' }}>
-            <span className="mono" style={{ color: '#fff', fontWeight: 700 }}>${profitOnWin.toFixed(2)}</span>
-            <Zap size={14} style={{ marginLeft: 'auto', color: '#b1bad3' }} />
+          <div style={{ background: '#0f212e', borderRadius: '8px', padding: '12px', display: 'flex', alignItems: 'center', border: '2px solid #2f4553' }}>
+            <span className="mono" style={{ color: '#fff', fontWeight: 700, fontSize: '1rem' }}>${profitOnWin.toFixed(2)}</span>
+            <Zap size={16} style={{ marginLeft: 'auto', color: '#b1bad3' }} />
           </div>
         </div>
 
@@ -386,36 +413,36 @@ export default function DicePage() {
                 type="number" 
                 value={autoSettings.numberOfBets}
                 onChange={(e) => setAutoSettings(prev => ({ ...prev, numberOfBets: Number(e.target.value) }))}
-                style={{ width: '100%', background: '#0f212e', border: '2px solid #2f4553', color: '#fff', padding: '10px', borderRadius: '6px', fontSize: '0.9rem' }} 
+                style={{ width: '100%', background: '#0f212e', border: '2px solid #2f4553', color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '1rem' }} 
                 placeholder="∞" 
               />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               <div>
-                <label style={{ fontSize: '0.6rem', color: '#b1bad3', display: 'block', marginBottom: '4px' }}>Stop on Profit</label>
+                <label style={{ fontSize: '0.65rem', color: '#b1bad3', display: 'block', marginBottom: '4px' }}>On Profit</label>
                 <input 
                   type="number" 
                   value={autoSettings.stopOnProfit}
                   onChange={(e) => setAutoSettings(prev => ({ ...prev, stopOnProfit: Number(e.target.value) }))}
-                  style={{ width: '100%', background: '#0f212e', border: '2px solid #2f4553', color: '#fff', padding: '6px', borderRadius: '4px', fontSize: '0.8rem' }} 
+                  style={{ width: '100%', background: '#0f212e', border: '2px solid #2f4553', color: '#fff', padding: '10px', borderRadius: '6px', fontSize: '0.9rem' }} 
                 />
               </div>
               <div>
-                <label style={{ fontSize: '0.6rem', color: '#b1bad3', display: 'block', marginBottom: '4px' }}>Stop on Loss</label>
+                <label style={{ fontSize: '0.65rem', color: '#b1bad3', display: 'block', marginBottom: '4px' }}>On Loss</label>
                 <input 
                   type="number" 
                   value={autoSettings.stopOnLoss}
                   onChange={(e) => setAutoSettings(prev => ({ ...prev, stopOnLoss: Number(e.target.value) }))}
-                  style={{ width: '100%', background: '#0f212e', border: '2px solid #2f4553', color: '#fff', padding: '6px', borderRadius: '4px', fontSize: '0.8rem' }} 
+                  style={{ width: '100%', background: '#0f212e', border: '2px solid #2f4553', color: '#fff', padding: '10px', borderRadius: '6px', fontSize: '0.9rem' }} 
                 />
               </div>
             </div>
           </div>
         )}
 
-        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ marginTop: isMobile ? '8px' : 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: '#b1bad3' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: '#b1bad3' }}>
               <Zap size={14} color="#00e701" /> Instant Settlement
             </div>
             <button 
@@ -424,10 +451,6 @@ export default function DicePage() {
             >
               Reset Stats
             </button>
-          </div>
-          <div className="glass" style={{ padding: '16px', borderRadius: '12px', background: 'rgba(47, 69, 83, 0.2)' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 800, marginBottom: '4px', color: '#fff' }}>HOUSE EDGE: 1%</div>
-            <div style={{ fontSize: '0.7rem', color: '#b1bad3' }}>Highest player return in the market.</div>
           </div>
         </div>
 
@@ -438,19 +461,27 @@ export default function DicePage() {
             background: isAutoMode && autoRunning ? '#2f4553' : '#00e701', 
             color: isAutoMode && autoRunning ? '#fff' : '#000', 
             border: 'none', 
-            padding: '16px', 
-            borderRadius: '6px', 
+            padding: isMobile ? '16px' : 'clamp(12px, 3vw, 16px)', 
+            borderRadius: '8px', 
             fontSize: '1rem', 
             fontWeight: 800, 
             cursor: 'pointer',
-            transition: 'transform 0.1s active'
+            marginTop: isMobile ? '8px' : '0'
           }}
         >
           {loading ? 'Rolling...' : isAutoMode ? (autoRunning ? 'Stop Autobet' : 'Start Autobet') : 'Bet'}
         </button>
       </div>
 
-      <div className="dice-main" style={{ background: '#0f212e', padding: '40px', display: 'flex', flexDirection: 'column', gap: '40px', position: 'relative' }}>
+      <div className="dice-main" style={{ 
+        background: '#0f212e', 
+        padding: isMobile ? '24px 16px' : 'clamp(20px, 5vw, 40px)', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: isMobile ? '24px' : 'clamp(20px, 5vw, 40px)', 
+        position: 'relative',
+        order: isMobile ? 1 : 2
+      }}>
         <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
           {history.map((h, i) => (
             <div key={i} style={{ 
@@ -463,10 +494,10 @@ export default function DicePage() {
           ))}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px', position: 'relative' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: isMobile ? '150px' : 'clamp(150px, 30vh, 300px)', position: 'relative' }}>
            {lastResult && (
             <div className={`animate-slide-up`} style={{ 
-              fontSize: '10rem', 
+              fontSize: isMobile ? '5rem' : 'clamp(4rem, 20vw, 10rem)', 
               fontWeight: 900, 
               color: lastResult.win ? '#00e701' : '#ff4444',
               filter: `drop-shadow(0 0 40px ${lastResult.win ? 'rgba(0,231,1,0.2)' : 'rgba(255,68,68,0.2)'})`
@@ -480,13 +511,14 @@ export default function DicePage() {
         <div 
           ref={sliderRef}
           onMouseDown={onMouseDown}
-          style={{ position: 'relative', padding: '40px 0', cursor: 'pointer' }}
+          onTouchStart={onTouchStart}
+          style={{ position: 'relative', padding: isMobile ? '40px 0' : '30px 0', cursor: 'pointer', touchAction: 'none' }}
         >
           <div style={{ 
-            height: '12px', 
+            height: isMobile ? '16px' : '12px', 
             width: '100%', 
             background: '#2f4553', 
-            borderRadius: '6px', 
+            borderRadius: '8px', 
             position: 'relative',
             overflow: 'hidden'
           }}>
@@ -497,15 +529,15 @@ export default function DicePage() {
                 left: `${visualResult !== null ? visualResult : 50}%`, 
                 top: '50%',
                 transform: 'translate(-50%, -50%)',
-                width: '60px',
-                height: '60px',
+                width: isMobile ? '52px' : '60px',
+                height: isMobile ? '52px' : '60px',
                 background: visualResult !== null ? (winning ? '#00e701' : '#ff4444') : '#fff',
                 borderRadius: '12px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 900,
-                fontSize: '1.2rem',
+                fontSize: isMobile ? '1.1rem' : '1.2rem',
                 color: '#000',
                 boxShadow: '0 0 30px rgba(0,0,0,0.5)',
                 zIndex: 10,
@@ -545,25 +577,25 @@ export default function DicePage() {
               top: '50%', 
               left: `${targetPoint}%`, 
               transform: 'translate(-50%, -50%)',
-              width: '40px',
-              height: '40px',
+              width: isMobile ? '48px' : '40px',
+              height: isMobile ? '48px' : '40px',
               background: '#fff',
-              borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+              borderRadius: '10px',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.6)',
               cursor: 'grab',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               zIndex: 20,
-              transition: 'none' // Remove transition during drag for smoothness
+              transition: 'none'
             }}
           >
-            <div style={{ width: '2px', height: '16px', background: '#2f4553', margin: '0 2px' }} />
-            <div style={{ width: '2px', height: '16px', background: '#2f4553', margin: '0 2px' }} />
+            <div style={{ width: '3px', height: '20px', background: '#2f4553', margin: '0 2px', borderRadius: '2px' }} />
+            <div style={{ width: '3px', height: '20px', background: '#2f4553', margin: '0 2px', borderRadius: '2px' }} />
           </div>
 
           {/* Scale */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px', color: '#b1bad3', fontSize: '0.8rem', fontWeight: 700 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px', color: '#b1bad3', fontSize: '0.75rem', fontWeight: 700 }}>
             <span>0</span>
             <span>25</span>
             <span>50</span>
@@ -573,39 +605,39 @@ export default function DicePage() {
         </div>
 
         {/* Target Inputs (Bottom Row) */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', background: '#1a2c38', padding: '16px', borderRadius: '8px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontSize: '0.7rem', fontWeight: 800, color: '#b1bad3' }}>Multiplier</label>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)', gap: '12px', background: '#1a2c38', padding: '12px', borderRadius: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{ fontSize: '0.65rem', fontWeight: 800, color: '#b1bad3' }}>Multiplier</label>
             <input 
               type="number" 
               className="mono" 
               value={multiplier} 
-              style={{ background: '#0f212e', border: '2px solid #2f4553', color: '#fff', padding: '8px', borderRadius: '4px', outline: 'none' }}
+              style={{ background: '#0f212e', border: '2px solid #2f4553', color: '#fff', padding: '10px', borderRadius: '6px', outline: 'none', fontSize: '0.9rem' }}
               onChange={(e) => updateFromMultiplier(parseFloat(e.target.value))}
             />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontSize: '0.7rem', fontWeight: 800, color: '#b1bad3' }}>Roll Over</label>
-            <div style={{ display: 'flex', gap: '4px', background: '#0f212e', border: '2px solid #2f4553', borderRadius: '4px', padding: '4px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{ fontSize: '0.65rem', fontWeight: 800, color: '#b1bad3' }}>{isRollOver ? 'Roll Over' : 'Roll Under'}</label>
+            <div style={{ display: 'flex', gap: '4px', background: '#0f212e', border: '2px solid #2f4553', borderRadius: '6px', padding: '4px' }}>
               <input 
                 type="number" 
                 className="mono" 
                 value={targetPoint} 
-                style={{ flex: 1, background: 'transparent', border: 'none', color: '#fff', outline: 'none' }}
+                style={{ flex: 1, background: 'transparent', border: 'none', color: '#fff', outline: 'none', fontSize: '0.9rem', width: '40px', paddingLeft: '8px' }}
                 onChange={(e) => updateFromTarget(parseFloat(e.target.value))}
               />
-              <button onClick={toggleRollMode} style={{ background: '#2f4553', border: 'none', color: '#fff', padding: '4px 8px', borderRadius: '2px', cursor: 'pointer' }}>
-                <RotateCcw size={14} />
+              <button onClick={toggleRollMode} style={{ background: '#2f4553', border: 'none', color: '#fff', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer' }}>
+                <RotateCcw size={16} />
               </button>
             </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontSize: '0.7rem', fontWeight: 800, color: '#b1bad3' }}>Win Chance</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', gridColumn: isMobile ? 'span 2' : 'auto' }}>
+            <label style={{ fontSize: '0.65rem', fontWeight: 800, color: '#b1bad3' }}>Win Chance</label>
             <input 
               type="number" 
               className="mono" 
               value={winChance} 
-              style={{ background: '#0f212e', border: '2px solid #2f4553', color: '#fff', padding: '8px', borderRadius: '4px', outline: 'none' }}
+              style={{ background: '#0f212e', border: '2px solid #2f4553', color: '#fff', padding: '10px', borderRadius: '6px', outline: 'none', fontSize: '0.9rem' }}
               onChange={(e) => updateFromWinChance(parseFloat(e.target.value))}
             />
           </div>
@@ -613,7 +645,7 @@ export default function DicePage() {
       </div>
 
       {/* Live Bets Sidebar (Right) */}
-      <div style={{ background: '#1a2c38', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div className="live-bets-sidebar" style={{ background: '#1a2c38', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <h3 style={{ fontSize: '0.8rem', fontWeight: 800, color: '#b1bad3' }}>Live Bets</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {liveBets.map((bet, i) => (
@@ -630,7 +662,6 @@ export default function DicePage() {
           ))}
         </div>
       </div>
-
-      </div>
+    </div>
   );
 }

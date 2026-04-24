@@ -87,8 +87,10 @@ export interface CasinoState {
     nonce: number;
   };
   toasts: Toast[];
+  isMobile: boolean;
   
   // Actions
+  setIsMobile: (isMobile: boolean) => void;
   addBalance: (amount: number) => void;
   removeBalance: (amount: number) => boolean;
   addBet: (bet: Bet) => void;
@@ -162,6 +164,9 @@ export const useCasinoStore = create<CasinoState>()(
         nonce: 0
       },
       toasts: [],
+      isMobile: false,
+
+      setIsMobile: (isMobile) => set({ isMobile }),
 
       addBalance: (amount) => set((state) => ({ balance: state.balance + amount })),
 

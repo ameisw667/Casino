@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Coins, Star, Trophy } from 'lucide-react';
+import { useCasinoStore } from '@/store/useCasinoStore';
 
 interface BigWinOverlayProps {
   amount: number;
@@ -11,6 +12,7 @@ interface BigWinOverlayProps {
 }
 
 export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: BigWinOverlayProps) {
+  const { isMobile } = useCasinoStore();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: B
     <div style={{ 
       position: 'fixed', 
       inset: 0, 
-      zIndex: 5000, 
+      zIndex: 9999, 
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center',
@@ -39,12 +41,11 @@ export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: B
       transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
       pointerEvents: show ? 'auto' : 'none'
     }}>
-      {/* Particles (CSS Animation) */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Particles */}
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
         {[...Array(30)].map((_, i) => (
           <div 
             key={i}
-            className="animate-float"
             style={{ 
               position: 'absolute',
               top: `${Math.random() * 100}%`,
@@ -55,7 +56,6 @@ export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: B
               borderRadius: '50%',
               filter: 'blur(4px)',
               opacity: show ? 0.6 : 0,
-              animationDelay: `${Math.random() * 5}s`,
               transition: 'opacity 1s ease'
             }}
           />
@@ -73,14 +73,13 @@ export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: B
             position: 'absolute', 
             inset: '-40px', 
             background: 'radial-gradient(circle, hsla(var(--primary), 0.3) 0%, transparent 70%)',
-            filter: 'blur(20px)',
-            animation: 'pulse 2s infinite'
+            filter: 'blur(20px)'
           }} />
-          <Trophy size={120} color="hsl(var(--primary))" style={{ position: 'relative', marginBottom: '24px' }} />
+          <Trophy size={isMobile ? 80 : 120} color="hsl(var(--primary))" style={{ position: 'relative', marginBottom: '24px' }} />
         </div>
 
         <h2 style={{ 
-          fontSize: '5rem', 
+          fontSize: isMobile ? '3rem' : '5rem', 
           fontWeight: 900, 
           fontFamily: "'Outfit', sans-serif", 
           background: 'linear-gradient(to bottom, #fff, hsl(var(--primary)))',
@@ -92,12 +91,12 @@ export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: B
         }}>
           BIG WIN!
         </h2>
-        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'hsl(var(--text-muted))', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '32px' }}>
+        <div style={{ fontSize: isMobile ? '1.2rem' : '1.5rem', fontWeight: 700, color: 'hsl(var(--text-muted))', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '32px' }}>
           {multiplier}X MULTIPLIER
         </div>
 
         <div style={{ 
-          fontSize: '4.5rem', 
+          fontSize: isMobile ? '2.5rem' : '4.5rem', 
           fontWeight: 900, 
           fontFamily: "'Outfit', sans-serif",
           color: '#fff',
@@ -108,7 +107,7 @@ export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: B
 
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '40px' }}>
           {[...Array(5)].map((_, i) => (
-            <Star key={i} size={24} fill="hsl(var(--primary))" color="hsl(var(--primary))" className="animate-pulse" style={{ animationDelay: `${i * 0.2}s` }} />
+            <Star key={i} size={24} fill="hsl(var(--primary))" color="hsl(var(--primary))" />
           ))}
         </div>
       </div>

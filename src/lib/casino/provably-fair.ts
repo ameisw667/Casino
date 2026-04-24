@@ -66,4 +66,16 @@ export class ProvablyFairEngine {
     const outcome = await this.calculateOutcome(serverSeed, clientSeed, nonce);
     return Math.floor(outcome * 37); // Returns 0 to 36
   }
+
+  /**
+   * Specifically for Slots (Indices for each reel)
+   */
+  static async getSlotsResult(serverSeed: string, clientSeed: string, nonce: number, reelCount: number = 5, symbolsPerReel: number = 12): Promise<number[]> {
+    const results: number[] = [];
+    for (let i = 0; i < reelCount; i++) {
+      const outcome = await this.calculateOutcome(serverSeed, clientSeed, nonce + i);
+      results.push(Math.floor(outcome * symbolsPerReel));
+    }
+    return results;
+  }
 }

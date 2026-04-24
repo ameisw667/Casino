@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Gift, Star, Zap, CheckCircle2 } from 'lucide-react';
+import { useCasinoStore } from '@/store/useCasinoStore';
 
 interface DailyRewardModalProps {
   isOpen: boolean;
@@ -11,23 +12,26 @@ interface DailyRewardModalProps {
 }
 
 export default function DailyRewardModal({ isOpen, onClose, rewardAmount, streak }: DailyRewardModalProps) {
+  const { isMobile } = useCasinoStore();
+  
   if (!isOpen) return null;
 
   return (
     <div style={{ 
       position: 'fixed', 
       inset: 0, 
-      zIndex: 2000, 
+      zIndex: 5000, 
       display: 'flex', 
-      alignItems: 'center', 
+      alignItems: isMobile ? 'flex-end' : 'center', 
       justifyContent: 'center',
       background: 'rgba(0,0,0,0.8)',
-      backdropFilter: 'blur(10px)'
+      backdropFilter: 'blur(10px)',
+      padding: isMobile ? '0' : '20px'
     }}>
       <div className="glass animate-slide-up" style={{ 
-        width: '450px', 
-        padding: '48px', 
-        borderRadius: '32px', 
+        width: isMobile ? '100%' : 'min(95vw, 450px)', 
+        padding: isMobile ? '40px 24px' : 'clamp(24px, 5vw, 48px)', 
+        borderRadius: isMobile ? '32px 32px 0 0' : '32px', 
         textAlign: 'center',
         border: '1px solid hsla(var(--primary), 0.3)',
         boxShadow: '0 0 100px hsla(var(--primary), 0.15)',
@@ -51,13 +55,13 @@ export default function DailyRewardModal({ isOpen, onClose, rewardAmount, streak
           <Gift size={40} />
         </div>
 
-        <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '8px', fontFamily: "'Outfit', sans-serif" }}>DAILY BONUS</h2>
+        <h2 style={{ fontSize: 'clamp(1.5rem, 8vw, 2.5rem)', fontWeight: 900, marginBottom: '8px', fontFamily: "'Outfit', sans-serif" }}>DAILY BONUS</h2>
         <p style={{ color: 'hsl(var(--text-muted))', marginBottom: '32px' }}>Welcome back! Here is your daily login reward.</p>
 
         <div className="glass-card" style={{ padding: '32px', marginBottom: '32px', border: '1px solid hsla(var(--success), 0.2)' }}>
           <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'hsl(var(--success))', textTransform: 'uppercase', marginBottom: '8px' }}>You Received</div>
-          <div style={{ fontSize: '3rem', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-            <Zap size={32} fill="hsl(var(--primary))" color="hsl(var(--primary))" />
+          <div style={{ fontSize: 'clamp(2rem, 10vw, 3rem)', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+            <Zap size={24} fill="hsl(var(--primary))" color="hsl(var(--primary))" />
             ${rewardAmount || 0}
           </div>
         </div>

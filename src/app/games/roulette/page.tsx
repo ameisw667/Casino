@@ -118,7 +118,7 @@ const Chip = ({ amount, size = 32, onClick, active, stacked = false, index = 0, 
 };
 
 export default function RoulettePage() {
-  const { balance, removeBalance, addBalance, addBet, calculateXp, level, xp, provablyFairSettings, setProvablyFairSettings } = useCasinoStore();
+  const { isMobile, balance, removeBalance, addBalance, addBet, calculateXp, level, xp, provablyFairSettings, setProvablyFairSettings } = useCasinoStore();
   
   const [currentBets, setCurrentBets] = useState<BetPlacement[]>([]);
   const [lastBets, setLastBets] = useState<BetPlacement[]>([]);
@@ -314,60 +314,79 @@ export default function RoulettePage() {
   };
 
   return (
-    <div className="roulette-page" style={{ maxWidth: '1800px', margin: '0 auto', padding: '20px', display: 'grid', gridTemplateColumns: '1fr', gap: '40px' }}>
+    <div className="roulette-page" style={{ 
+      maxWidth: '1800px', 
+      margin: '0 auto', 
+      padding: isMobile ? '12px' : '16px', 
+      display: 'grid', 
+      gridTemplateColumns: '1fr', 
+      gap: isMobile ? '16px' : '32px' 
+    }}>
       <style jsx global>{`
         @media (min-width: 1400px) { .roulette-page { grid-template-columns: 350px 1fr 400px !important; padding: 40px !important; } }
+        @media (max-width: 1399px) and (min-width: 900px) { .roulette-page { grid-template-columns: 300px 1fr !important; } .right-sidebar { grid-column: 1 / 3; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; } }
+        @media (max-width: 899px) { 
+          .right-sidebar { order: 2; } 
+          .main-game { order: 1; } 
+          .left-sidebar { order: 3; } 
+          .roulette-page { grid-template-columns: 1fr !important; }
+        }
         .roulette-tile.highlight { box-shadow: inset 0 0 15px #fff; filter: brightness(1.4); z-index: 5; }
         .roulette-tile.winner { animation: winner-glow-anim 0.6s infinite alternate; z-index: 10; border: 2px solid #fff !important; }
         @keyframes winner-glow-anim { from { filter: brightness(1.2); transform: scale(1); } to { filter: brightness(1.8); transform: scale(1.05); } }
         .wheel-pocket { clip-path: polygon(50% 100%, 0 0, 100% 0); transform-origin: bottom center; }
+        .roulette-board-container { overflow-x: auto; padding-bottom: 12px; -webkit-overflow-scrolling: touch; }
+        .roulette-board-container::-webkit-scrollbar { height: 6px; }
+        .roulette-board-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); borderRadius: 3px; }
       `}</style>
 
       {/* Left Sidebar */}
-      <div className="glass-card" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 900 }}>
+      <div className="left-sidebar glass-card" style={{ padding: isMobile ? '16px' : '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 900 }}>
             <span>VIP LVL {level}</span>
             <span>{Math.round((xp / (Math.pow(level, 2) * 100)) * 100)}%</span>
           </div>
-          <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+          <div style={{ height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
             <div style={{ width: `${(xp / (Math.pow(level, 2) * 100)) * 100}%`, height: '100%', background: 'hsl(var(--primary))' }} />
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <h3 style={{ fontSize: '0.8rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '8px' }}><History size={14} className="text-primary" /> LAST RESULTS</h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {history.slice(0, 15).map((h, i) => (
-              <div key={i} style={{ width: '32px', height: '32px', borderRadius: '50%', background: h.c === 'RED' ? 'hsl(var(--error))' : h.c === 'BLACK' ? '#222' : 'hsl(var(--success))', fontSize: '0.75rem', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>{h.n}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <h3 style={{ fontSize: '0.75rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '8px' }}><History size={14} className="text-primary" /> HISTORY</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            {history.slice(0, 10).map((h, i) => (
+              <div key={i} style={{ width: '28px', height: '28px', borderRadius: '50%', background: h.c === 'RED' ? 'hsl(var(--error))' : h.c === 'BLACK' ? '#222' : 'hsl(var(--success))', fontSize: '0.7rem', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>{h.n}</div>
             ))}
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <h3 style={{ fontSize: '0.8rem', fontWeight: 900 }}>FRENCH BETS</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {(['VOISINS', 'TIERS', 'ORPHELINS'] as const).map(f => (
-              <button key={f} onClick={() => handlePlaceBet({ type: 'FRENCH', value: f })} onMouseEnter={() => setHoveredArea({ type: 'FRENCH', value: f })} onMouseLeave={() => setHoveredArea(null)} className="btn btn-secondary" style={{ fontSize: '0.7rem', fontWeight: 900 }}>{f} DU CYLINDRE</button>
-            ))}
+        {!isMobile && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <h3 style={{ fontSize: '0.8rem', fontWeight: 900 }}>FRENCH BETS</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {(['VOISINS', 'TIERS', 'ORPHELINS'] as const).map(f => (
+                <button key={f} onClick={() => handlePlaceBet({ type: 'FRENCH', value: f })} onMouseEnter={() => setHoveredArea({ type: 'FRENCH', value: f })} onMouseLeave={() => setHoveredArea(null)} className="btn btn-secondary" style={{ fontSize: '0.7rem', fontWeight: 900 }}>{f}</button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Main Game */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
-        <div className="glass-card flex-center" style={{ height: '480px', background: 'radial-gradient(circle at center, #1a1a1a 0%, #000 100%)', perspective: '1500px', overflow: 'hidden' }}>
+      <div className="main-game" style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '20px' : '32px' }}>
+        <div className="glass-card flex-center" style={{ height: isMobile ? '300px' : 'clamp(350px, 60vh, 480px)', background: 'radial-gradient(circle at center, #1a1a1a 0%, #000 100%)', perspective: '1500px', overflow: 'hidden', padding: isMobile ? '10px' : '20px' }}>
           
           {/* Result Overlay */}
           {winningNumber && !spinning && (
-            <div style={{ position: 'absolute', zIndex: 100, textAlign: 'center', background: 'rgba(0,0,0,0.85)', padding: '60px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}>
-              <div style={{ fontSize: '7rem', fontWeight: 900, color: winningNumber.c === 'RED' ? 'hsl(var(--error))' : winningNumber.c === 'GREEN' ? 'hsl(var(--success))' : '#fff' }}>{winningNumber.n}</div>
-              {lastWin !== null && lastWin > 0 && <div className="text-gradient" style={{ fontSize: '2rem', fontWeight: 900 }}>+${lastWin.toLocaleString()}</div>}
+            <div style={{ position: 'absolute', zIndex: 100, textAlign: 'center', background: 'rgba(0,0,0,0.85)', padding: isMobile ? '40px' : '60px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}>
+              <div style={{ fontSize: isMobile ? '4rem' : '7rem', fontWeight: 900, color: winningNumber.c === 'RED' ? 'hsl(var(--error))' : winningNumber.c === 'GREEN' ? 'hsl(var(--success))' : '#fff' }}>{winningNumber.n}</div>
+              {lastWin !== null && lastWin > 0 && <div className="text-gradient" style={{ fontSize: isMobile ? '1.25rem' : '2rem', fontWeight: 900 }}>+${lastWin.toLocaleString()}</div>}
             </div>
           )}
 
           {/* Corrected 3D Wheel */}
-          <div style={{ width: '450px', height: '450px', position: 'relative', transform: 'rotateX(45deg) rotateZ(0deg)', transformStyle: 'preserve-3d', filter: 'drop-shadow(0 50px 100px rgba(0,0,0,0.8))' }}>
+          <div style={{ width: isMobile ? '260px' : 'min(450px, 90vw)', height: isMobile ? '260px' : 'min(450px, 90vw)', position: 'relative', transform: 'rotateX(45deg) rotateZ(0deg)', transformStyle: 'preserve-3d', filter: 'drop-shadow(0 50px 100px rgba(0,0,0,0.8))' }}>
             {/* Outer Rim */}
             <div style={{ position: 'absolute', inset: '-30px', borderRadius: '50%', border: '15px solid #2a2a2a', background: 'linear-gradient(135deg, #333, #000)', boxShadow: 'inset 0 0 40px rgba(0,0,0,1), 0 10px 0 #111', transform: 'translateZ(-10px)' }} />
             
@@ -375,38 +394,38 @@ export default function RoulettePage() {
             <div style={{ width: '100%', height: '100%', borderRadius: '50%', position: 'relative', transition: `transform ${turboMode ? 1 : 6}s cubic-bezier(0.1, 0, 0.1, 1)`, transform: `rotate(${wheelRotation}deg)`, background: '#000', transformStyle: 'preserve-3d' }}>
               {WHEEL_ORDER.map((num, i) => (
                 <div key={i} className="wheel-pocket" style={{ 
-                  position: 'absolute', top: '0', left: '50%', width: '40px', height: '50%',
+                  position: 'absolute', top: '0', left: '50%', width: 'clamp(15px, 4vw, 40px)', height: '50%',
                   transform: `translateX(-50%) rotate(${(i * 360/37)}deg)`,
                   background: num.c === 'RED' ? 'hsl(var(--error))' : num.c === 'BLACK' ? '#111' : 'hsl(var(--success))',
                   display: 'flex', justifyContent: 'center', paddingTop: '15px',
                   boxShadow: 'inset 0 0 10px rgba(0,0,0,0.5)',
                   border: '0.5px solid rgba(255,255,255,0.05)'
                 }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 900, color: '#fff', transform: 'rotate(180deg)', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{num.n}</span>
+                  <span style={{ fontSize: 'clamp(0.5rem, 1.5vw, 0.85rem)', fontWeight: 900, color: '#fff', transform: 'rotate(180deg)', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{num.n}</span>
                 </div>
               ))}
               {/* Inner Bowl */}
-              <div style={{ position: 'absolute', inset: '80px', borderRadius: '50%', background: 'radial-gradient(circle at center, #222 0%, #000 100%)', border: '8px solid #111', boxShadow: 'inset 0 20px 40px rgba(0,0,0,0.5)' }} />
+              <div style={{ position: 'absolute', inset: 'clamp(30px, 15vw, 80px)', borderRadius: '50%', background: 'radial-gradient(circle at center, #222 0%, #000 100%)', border: '8px solid #111', boxShadow: 'inset 0 20px 40px rgba(0,0,0,0.5)' }} />
             </div>
 
             {/* Ball Track */}
             <div style={{ position: 'absolute', inset: '0', transition: `transform ${turboMode ? 1 : 6}s cubic-bezier(0.1, 0, 0.2, 1)`, transform: `rotate(${ballRotation}deg)`, transformStyle: 'preserve-3d' }}>
-              <div style={{ position: 'absolute', top: '35px', left: '50%', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', boxShadow: '0 0 20px #fff, inset -2px -2px 5px rgba(0,0,0,0.2)', transform: 'translateZ(10px)' }} />
+              <div style={{ position: 'absolute', top: '15px', left: '50%', width: 'clamp(8px, 2vw, 16px)', height: 'clamp(8px, 2vw, 16px)', borderRadius: '50%', background: '#fff', boxShadow: '0 0 20px #fff, inset -2px -2px 5px rgba(0,0,0,0.2)', transform: 'translateZ(10px)' }} />
             </div>
             
             {/* Center Piece */}
-            <div style={{ position: 'absolute', top: '50%', left: '50%', width: '120px', height: '120px', transform: 'translate(-50%, -50%) translateZ(30px)', background: 'linear-gradient(135deg, #333, #111)', borderRadius: '50%', border: '4px solid #444', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.8)' }}>
-              <Dices size={48} className="text-primary" style={{ filter: 'drop-shadow(0 0 10px hsla(var(--primary), 0.5))' }} />
+            <div style={{ position: 'absolute', top: '50%', left: '50%', width: 'clamp(50px, 20vw, 120px)', height: 'clamp(50px, 20vw, 120px)', transform: 'translate(-50%, -50%) translateZ(30px)', background: 'linear-gradient(135deg, #333, #111)', borderRadius: '50%', border: '4px solid #444', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.8)' }}>
+              <Dices size={24} className="text-primary" style={{ filter: 'drop-shadow(0 0 10px hsla(var(--primary), 0.5))' }} />
             </div>
           </div>
         </div>
 
         {/* Board */}
-        <div className="glass-card" style={{ padding: '24px', background: 'rgba(0,0,0,0.4)' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 100px', gap: '2px', background: 'rgba(255,255,255,0.05)', padding: '2px', borderRadius: '8px' }}>
-            <div onClick={() => handlePlaceBet({ type: 'STRAIGHT', value: 0 })} onMouseEnter={() => setHoveredArea({ type: 'STRAIGHT', value: 0 })} onMouseLeave={() => setHoveredArea(null)} className={`roulette-tile ${hoveredArea?.type === 'STRAIGHT' && hoveredArea.value === 0 ? 'highlight' : ''}`} style={{ gridRow: '1/4', background: 'hsl(var(--success))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 900, color: '#fff', cursor: 'pointer', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px' }}>
+        <div className="glass-card roulette-board-container" style={{ padding: isMobile ? '12px' : '20px', background: 'rgba(0,0,0,0.4)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 60px', gap: '2px', background: 'rgba(255,255,255,0.05)', padding: '2px', borderRadius: '8px', minWidth: isMobile ? '600px' : '800px' }}>
+            <div onClick={() => handlePlaceBet({ type: 'STRAIGHT', value: 0 })} onMouseEnter={() => setHoveredArea({ type: 'STRAIGHT', value: 0 })} onMouseLeave={() => setHoveredArea(null)} className={`roulette-tile ${hoveredArea?.type === 'STRAIGHT' && hoveredArea.value === 0 ? 'highlight' : ''}`} style={{ gridRow: '1/4', background: 'hsl(var(--success))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? '1.5rem' : '2.5rem', fontWeight: 900, color: '#fff', cursor: 'pointer', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px' }}>
               0
-              {currentBets.filter(b => b.type.type === 'STRAIGHT' && b.type.value === 0).map((b, i) => <Chip key={i} amount={b.amount} stacked index={i} />)}
+              {currentBets.filter(b => b.type.type === 'STRAIGHT' && b.type.value === 0).map((b, i) => <Chip key={i} amount={b.amount} stacked index={i} size={isMobile ? 24 : 32} />)}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '2px' }}>
               {[3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36].map(renderNumber)}
@@ -414,14 +433,14 @@ export default function RoulettePage() {
               {[1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34].map(renderNumber)}
             </div>
             <div style={{ display: 'grid', gridTemplateRows: 'repeat(3, 1fr)', gap: '2px' }}>
-              {[1, 2, 3].map(c => <div key={c} onClick={() => handlePlaceBet({ type: 'COLUMN', value: c as any })} onMouseEnter={() => setHoveredArea({ type: 'COLUMN', value: c as any })} onMouseLeave={() => setHoveredArea(null)} className="glass flex-center hover-glow" style={{ cursor: 'pointer', fontWeight: 900 }}>2:1</div>)}
+              {[1, 2, 3].map(c => <div key={c} onClick={() => handlePlaceBet({ type: 'COLUMN', value: c as any })} onMouseEnter={() => setHoveredArea({ type: 'COLUMN', value: c as any })} onMouseLeave={() => setHoveredArea(null)} className="glass flex-center hover-glow" style={{ cursor: 'pointer', fontWeight: 900, fontSize: isMobile ? '0.7rem' : '0.9rem' }}>2:1</div>)}
             </div>
             <div style={{ gridColumn: '2/3', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px', marginTop: '2px' }}>
-              {[1, 2, 3].map(d => <div key={d} onClick={() => handlePlaceBet({ type: 'DOZEN', value: d as any })} onMouseEnter={() => setHoveredArea({ type: 'DOZEN', value: d as any })} onMouseLeave={() => setHoveredArea(null)} className="glass flex-center hover-glow" style={{ height: '40px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 900 }}>{d === 1 ? '1ST' : d === 2 ? '2ND' : '3RD'} 12</div>)}
+              {[1, 2, 3].map(d => <div key={d} onClick={() => handlePlaceBet({ type: 'DOZEN', value: d as any })} onMouseEnter={() => setHoveredArea({ type: 'DOZEN', value: d as any })} onMouseLeave={() => setHoveredArea(null)} className="glass flex-center hover-glow" style={{ height: isMobile ? '32px' : '40px', cursor: 'pointer', fontSize: isMobile ? '0.7rem' : '0.8rem', fontWeight: 900 }}>{d === 1 ? '1ST' : d === 2 ? '2ND' : '3RD'} 12</div>)}
             </div>
             <div style={{ gridColumn: '2/3', display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '2px', marginTop: '2px' }}>
               {[{ l: '1-18', t: 'RANGE', v: '1-18' }, { l: 'EVEN', t: 'EVEN_ODD', v: 'EVEN' }, { l: 'RED', t: 'COLOR', v: 'RED', c: 'hsl(var(--error))' }, { l: 'BLACK', t: 'COLOR', v: 'BLACK', c: '#000' }, { l: 'ODD', t: 'EVEN_ODD', v: 'ODD' }, { l: '19-36', t: 'RANGE', v: '19-36' }].map((b, i) => (
-                <div key={i} onClick={() => handlePlaceBet({ type: b.t as any, value: b.v as any })} onMouseEnter={() => setHoveredArea({ type: b.t as any, value: b.v as any })} onMouseLeave={() => setHoveredArea(null)} className="glass flex-center hover-glow" style={{ height: '40px', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 900, background: b.c || 'rgba(255,255,255,0.02)' }}>{b.l}</div>
+                <div key={i} onClick={() => handlePlaceBet({ type: b.t as any, value: b.v as any })} onMouseEnter={() => setHoveredArea({ type: b.t as any, value: b.v as any })} onMouseLeave={() => setHoveredArea(null)} className="glass flex-center hover-glow" style={{ height: isMobile ? '32px' : '40px', cursor: 'pointer', fontSize: isMobile ? '0.65rem' : '0.7rem', fontWeight: 900, background: b.c || 'rgba(255,255,255,0.02)' }}>{b.l}</div>
               ))}
             </div>
           </div>
@@ -429,29 +448,29 @@ export default function RoulettePage() {
       </div>
 
       {/* Right Sidebar */}
-      <div className="glass-card" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      <div className="right-sidebar glass-card" style={{ padding: isMobile ? '20px' : '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '12px' }}><Settings size={20} className="text-primary" /> CONTROLS</h2>
+          <h2 style={{ fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '12px' }}><Settings size={20} className="text-primary" /> CONTROLS</h2>
           <button onClick={() => setTurboMode(!turboMode)} style={{ color: turboMode ? 'hsl(var(--primary))' : '#555' }}><FastForward size={20} /></button>
         </div>
 
         <div>
-          <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'hsl(var(--text-muted))', display: 'block', marginBottom: '16px' }}>CHIP VALUE</label>
+          <label style={{ fontSize: '0.65rem', fontWeight: 800, color: 'hsl(var(--text-muted))', display: 'block', marginBottom: '12px' }}>CHIP VALUE</label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-            {CHIPS.map(c => <Chip key={c} amount={c} active={selectedChip === c} onClick={() => setSelectedChip(c)} />)}
+            {CHIPS.map(c => <Chip key={c} amount={c} active={selectedChip === c} onClick={() => setSelectedChip(c)} size={isMobile ? 32 : 36} />)}
           </div>
         </div>
 
-        <div className="glass" style={{ padding: '24px', borderRadius: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.8rem', color: 'hsl(var(--text-muted))' }}><span>EST. PROFIT</span><span className="text-primary" style={{ fontWeight: 900 }}>+${estProfit.toLocaleString()}</span></div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'hsl(var(--text-muted))' }}><span>TOTAL BET</span><span style={{ color: '#fff', fontWeight: 900 }}>${totalWagered.toLocaleString()}</span></div>
+        <div className="glass" style={{ padding: isMobile ? '16px' : '24px', borderRadius: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.75rem', color: 'hsl(var(--text-muted))' }}><span>EST. PROFIT</span><span className="text-primary" style={{ fontWeight: 900 }}>+${estProfit.toLocaleString()}</span></div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'hsl(var(--text-muted))' }}><span>TOTAL BET</span><span style={{ color: '#fff', fontWeight: 900 }}>${totalWagered.toLocaleString()}</span></div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <button className="btn btn-primary" style={{ height: '72px', fontSize: '1.5rem', fontWeight: 900, borderRadius: '20px' }} onClick={handleSpin} disabled={spinning || currentBets.length === 0}>{spinning ? <RotateCcw className="animate-spin" /> : 'PLACE BET'}</button>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <button className="btn btn-secondary" style={{ height: '50px' }} onClick={handleClearBets} disabled={spinning}><Trash2 size={18} /></button>
-            <button className="btn btn-secondary" style={{ height: '50px' }} onClick={() => { if (spinning || betHistory.length === 0) return; setCurrentBets(betHistory[betHistory.length-1]); setBetHistory(betHistory.slice(0, -1)); }} disabled={spinning}><Undo2 size={18} /></button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <button className="btn btn-primary" style={{ height: isMobile ? '60px' : '72px', fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 900, borderRadius: '16px' }} onClick={handleSpin} disabled={spinning || currentBets.length === 0}>{spinning ? <RotateCcw className="animate-spin" /> : 'PLACE BET'}</button>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <button className="btn btn-secondary" style={{ height: '48px' }} onClick={handleClearBets} disabled={spinning}><Trash2 size={18} /></button>
+            <button className="btn btn-secondary" style={{ height: '48px' }} onClick={() => { if (spinning || betHistory.length === 0) return; setCurrentBets(betHistory[betHistory.length-1]); setBetHistory(betHistory.slice(0, -1)); }} disabled={spinning}><Undo2 size={18} /></button>
           </div>
         </div>
       </div>
