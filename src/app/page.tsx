@@ -306,30 +306,33 @@ export default function Home() {
       {/* Stats Section */}
       <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px', marginBottom: '80px' }}>
         {[
-          { label: 'TOTAL WAGERED', value: `$${(liveStats.wagered / 1000000).toFixed(1)}M+`, icon: <Zap />, color: 'var(--primary)' },
-          { label: 'CRYPTO VERIFIED', value: '100% FAIR', icon: <ShieldCheck />, color: 'var(--success)' },
-          { label: 'ACTIVE PLAYERS', value: liveStats.players.toLocaleString(), icon: <Users />, color: 'var(--secondary)' },
-        ].map((stat, i) => (
-          <div key={i} className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '24px', padding: '40px' }}>
-            <div style={{ 
-              width: '64px', 
-              height: '64px', 
-              borderRadius: '20px', 
-              background: `hsla(${stat.color}, 0.1)`, 
-              color: `hsl(${stat.color})`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: `1px solid hsla(${stat.color}, 0.2)`
-            }}>
-              {React.cloneElement(stat.icon as React.ReactElement, { size: 32 })}
+          { label: 'TOTAL WAGERED', value: `$${(liveStats.wagered / 1000000).toFixed(1)}M+`, icon: Zap, color: 'var(--primary)' },
+          { label: 'CRYPTO VERIFIED', value: '100% FAIR', icon: ShieldCheck, color: 'var(--success)' },
+          { label: 'ACTIVE PLAYERS', value: liveStats.players.toLocaleString(), icon: Users, color: 'var(--secondary)' },
+        ].map((stat, i) => {
+          const Icon = stat.icon;
+          return (
+            <div key={i} className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '24px', padding: '40px' }}>
+              <div style={{ 
+                width: '64px', 
+                height: '64px', 
+                borderRadius: '20px', 
+                background: `hsla(${stat.color}, 0.1)`, 
+                color: `hsl(${stat.color})`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: `1px solid hsla(${stat.color}, 0.2)`
+              }}>
+                <Icon size={32} />
+              </div>
+              <div>
+                <div style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: "'Outfit', sans-serif", lineHeight: 1 }}>{stat.value}</div>
+                <div style={{ fontSize: '0.9rem', color: 'hsl(var(--text-muted))', fontWeight: 700, letterSpacing: '0.1em', marginTop: '4px' }}>{stat.label}</div>
+              </div>
             </div>
-            <div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: "'Outfit', sans-serif", lineHeight: 1 }}>{stat.value}</div>
-              <div style={{ fontSize: '0.9rem', color: 'hsl(var(--text-muted))', fontWeight: 700, letterSpacing: '0.1em', marginTop: '4px' }}>{stat.label}</div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </section>
     </div>
   );

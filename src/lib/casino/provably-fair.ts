@@ -58,4 +58,12 @@ export class ProvablyFairEngine {
     const multiplier = (100 * (1 - 0.03)) / (1 - outcome);
     return Math.max(1.00, Math.floor(multiplier) / 100);
   }
+
+  /**
+   * Specifically for Roulette (0-36)
+   */
+  static async getRouletteNumber(serverSeed: string, clientSeed: string, nonce: number): Promise<number> {
+    const outcome = await this.calculateOutcome(serverSeed, clientSeed, nonce);
+    return Math.floor(outcome * 37); // Returns 0 to 36
+  }
 }

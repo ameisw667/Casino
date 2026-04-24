@@ -9,10 +9,21 @@ export default function ProvablyFairTool() {
   const [clientSeed, setClientSeed] = useState('my-lucky-seed');
   const [nonce, setNonce] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [results, setResults] = useState({ dice: '0.00', crash: '1.00' });
 
-  const outcome = ProvablyFairEngine.calculateOutcome(serverSeed, clientSeed, nonce);
-  const diceResult = (outcome * 100).toFixed(2);
-  const crashResult = ProvablyFairEngine.getCrashMultiplier(serverSeed, clientSeed, nonce).toFixed(2);
+  React.useEffect(() => {
+    const calculate = async () => {
+      try {
+        const outcome = await ProvablyFairEngine.calculateOutcome(serverSeed, clientSeed, nonce);
+        const dice = (outcome * 100).toFixed(2);
+        const crash = (await ProvablyFairEngine.getCrashMultiplier(serverSeed, clientSeed, nonce)).toFixed(2);
+        setResults({ dice, crash });
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    calculate();
+  }, [serverSeed, clientSeed, nonce]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -74,11 +85,11 @@ export default function ProvablyFairTool() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div className="card" style={{ padding: '12px' }}>
               <div style={{ fontSize: '0.7rem', color: 'hsl(var(--text-muted))' }}>DICE</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800 }} className="text-gradient">{diceResult}</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800 }} className="text-gradient">{results.dice}</div>
             </div>
             <div className="card" style={{ padding: '12px' }}>
               <div style={{ fontSize: '0.7rem', color: 'hsl(var(--text-muted))' }}>CRASH</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800 }} className="text-gradient">{crashResult}x</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800 }} className="text-gradient">{results.crash}x</div>
             </div>
           </div>
         </div>

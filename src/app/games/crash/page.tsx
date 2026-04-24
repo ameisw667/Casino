@@ -57,7 +57,7 @@ export default function CrashPage() {
   const baseBetRef = useRef(10);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | null>(null);
   const particlesRef = useRef<Particle[]>([]);
   const lastUpdateRef = useRef<number>(0);
   const pointsRef = useRef<{x: number, y: number}[]>([]);

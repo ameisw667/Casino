@@ -23,6 +23,7 @@ import {
   Star
 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
+import { ProvablyFairEngine } from '@/lib/casino/provably-fair';
 
 // --- Constants & Types ---
 

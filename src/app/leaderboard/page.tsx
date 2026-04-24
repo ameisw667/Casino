@@ -63,18 +63,21 @@ export default function LeaderboardPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px' }}>
         {[
-          { label: 'WEEKLY VOLUME', value: '$8.42M', icon: <TrendingUp />, color: 'hsl(var(--primary))' },
-          { label: 'TOP MULTIPLIER', value: '4,204x', icon: <Zap />, color: 'hsl(var(--accent))' },
-          { label: 'ACTIVE LEGENDS', value: '142', icon: <Star />, color: 'hsl(var(--warning))' },
-        ].map((stat, i) => (
-          <div key={i} className="glass-card" style={{ textAlign: 'center', padding: '40px' }}>
-            <div style={{ color: stat.color, marginBottom: '12px', display: 'flex', justifyContent: 'center' }}>
-              {React.cloneElement(stat.icon as React.ReactElement, { size: 32 })}
+          { label: 'WEEKLY VOLUME', value: '$8.42M', icon: TrendingUp, color: 'hsl(var(--primary))' },
+          { label: 'TOP MULTIPLIER', value: '4,204x', icon: Zap, color: 'hsl(var(--accent))' },
+          { label: 'ACTIVE LEGENDS', value: '142', icon: Star, color: 'hsl(var(--warning))' },
+        ].map((stat, i) => {
+          const Icon = stat.icon;
+          return (
+            <div key={i} className="glass-card" style={{ textAlign: 'center', padding: '40px' }}>
+              <div style={{ color: stat.color, marginBottom: '12px', display: 'flex', justifyContent: 'center' }}>
+                <Icon size={32} />
+              </div>
+              <div style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: "'Outfit', sans-serif" }}>{stat.value}</div>
+              <div style={{ fontSize: '0.8rem', color: 'hsl(var(--text-muted))', fontWeight: 700, letterSpacing: '0.1em' }}>{stat.label}</div>
             </div>
-            <div style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: "'Outfit', sans-serif" }}>{stat.value}</div>
-            <div style={{ fontSize: '0.8rem', color: 'hsl(var(--text-muted))', fontWeight: 700, letterSpacing: '0.1em' }}>{stat.label}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="table-container" style={{ border: '1px solid hsla(0,0%,100%,0.05)', background: 'hsla(0,0%,100%,0.02)' }}>
