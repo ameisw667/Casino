@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { User, Trophy, Zap, Calendar, TrendingUp, Star, UserPlus, Check, X } from 'lucide-react';
+import { User, Trophy, Zap, Calendar, TrendingUp, Star, Check, X } from 'lucide-react';
 import { useCasinoStore, RANKS } from '@/store/useCasinoStore';
 
 interface PlayerProfileModalProps {
@@ -13,13 +13,11 @@ interface PlayerProfileModalProps {
 }
 
 export default function PlayerProfileModal({ isOpen, onClose, username: propUsername, level: propLevel, rank: propRank }: PlayerProfileModalProps) {
-  const { isMobile, friends, addFriend, level: storeLevel, rank: storeRank } = useCasinoStore();
+  const { isMobile, level: storeLevel, rank: storeRank } = useCasinoStore();
   
   const username = propUsername || 'You';
   const level = propLevel || storeLevel;
   const rank = propRank || storeRank;
-  
-  const isFriend = friends.includes(username);
 
   if (!isOpen) return null;
 
@@ -129,19 +127,17 @@ export default function PlayerProfileModal({ isOpen, onClose, username: propUser
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', flexDirection: isMobile ? 'column' : 'row' }}>
-            <button className="btn btn-secondary" style={{ flex: 1, height: '52px', borderRadius: '16px' }}>SEND TIP</button>
+          <div style={{ display: 'flex', gap: '12px' }}>
             <button 
-              onClick={() => addFriend(username)}
-              className={isFriend ? "btn btn-ghost" : "btn btn-primary"} 
+              onClick={onClose}
+              className="btn btn-primary" 
               style={{ 
                 flex: 1, 
                 height: '52px', 
                 borderRadius: '16px',
-                color: isFriend ? 'hsl(var(--success))' : 'black'
               }}
             >
-              {isFriend ? <><Check size={16} /> FOLLOWING</> : <><UserPlus size={16} /> FOLLOW</>}
+              CLOSE PROFILE
             </button>
           </div>
         </div>

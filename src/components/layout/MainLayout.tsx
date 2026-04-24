@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import ChatSidebar from './ChatSidebar';
 import MobileNav from './MobileNav';
 import DailyRewardModal from '@/components/casino/DailyRewardModal';
 import ChallengesModal from '@/components/casino/ChallengesModal';
@@ -21,10 +20,8 @@ import {
   Wallet, 
   User, 
   Settings, 
-  MessageSquare,
   ChevronLeft,
   ChevronRight,
-  TrendingUp,
   CircleDollarSign,
   Gift,
   Star,
@@ -41,7 +38,6 @@ import {
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [chatOpen, setChatOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [showDailyModal, setShowDailyModal] = useState(false);
   const [showChallengesModal, setShowChallengesModal] = useState(false);
@@ -52,7 +48,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const [showSettings, setShowSettings] = useState(false);
   const [showRankInfo, setShowRankInfo] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const { balance, level, xp, rank, achievements, streak, claimDailyReward, addChatMessage, triggerTrivia, bets, theme, toasts, removeToast, addToast, isMobile, setIsMobile } = useCasinoStore();
+  const { balance, level, xp, rank, achievements, streak, claimDailyReward, bets, toasts, removeToast, addToast, isMobile, setIsMobile } = useCasinoStore();
 
   // Mobile detection
   useEffect(() => {
@@ -61,10 +57,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       setIsMobile(mobile);
       if (mobile) {
         setSidebarOpen(false);
-        setChatOpen(false);
       } else {
         setSidebarOpen(true);
-        setChatOpen(true);
       }
     };
     checkMobile();
@@ -72,24 +66,13 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     return () => window.removeEventListener('resize', checkMobile);
   }, [setIsMobile]);
 
-  // Theme application
+  // Theme application (Locked to Gold)
   React.useEffect(() => {
     const root = document.documentElement;
-    if (theme === 'neon') {
-      root.style.setProperty('--primary', '320 100% 60%'); // Neon Pink
-      root.style.setProperty('--accent', '180 100% 50%');   // Cyan
-      root.style.setProperty('--bg-color', '260 30% 5%');  // Deep Purple Black
-    } else if (theme === 'gold') {
-      root.style.setProperty('--primary', '45 100% 50%');  // Gold
-      root.style.setProperty('--accent', '0 0% 100%');     // White
-      root.style.setProperty('--bg-color', '0 0% 2%');     // Pure Black
-    } else {
-      // Default
-      root.style.setProperty('--primary', '262 80% 50%');
-      root.style.setProperty('--accent', '262 80% 50%');
-      root.style.setProperty('--bg-color', '240 10% 4%');
-    }
-  }, [theme]);
+    root.style.setProperty('--primary', '45 100% 50%');  // Gold
+    root.style.setProperty('--accent', '0 0% 100%');     // White
+    root.style.setProperty('--bg-color', '0 0% 2%');     // Pure Black
+  }, []);
 
   const nextLevelXp = Math.pow(level, 2) * 100;
   const progress = Math.min(100, (xp / nextLevelXp) * 100);
@@ -112,16 +95,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   // Level up detection
   React.useEffect(() => {
-    const prevLevel = localStorage.getItem('last_known_level');
-    if (prevLevel && parseInt(prevLevel) < level) {
-      addChatMessage({
-        user: 'System',
-        text: `🚀 Level Up! You've reached Level ${level} and are now rank ${rank}!`,
-        vipTier: 100
-      });
-    }
     localStorage.setItem('last_known_level', level.toString());
-  }, [level, rank, addChatMessage]);
+  }, [level]);
 
   // Achievement unlock detection
   React.useEffect(() => {
@@ -130,41 +105,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       setUnlockedAchievement(newlyUnlocked);
       localStorage.setItem(`ach_notified_${newlyUnlocked.id}`, 'true');
       
-      addChatMessage({
-        user: 'System',
-        text: `🏆 Achievement Unlocked: ${newlyUnlocked.title}!`,
-        vipTier: 100
-      });
-
       const timer = setTimeout(() => setUnlockedAchievement(null), 5000);
       return () => clearTimeout(timer);
     }
-  }, [achievements, addChatMessage]);
-
-  // Trivia Bot Interval
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() > 0.7) { // 30% chance every 2 minutes
-        triggerTrivia();
-      }
-    }, 120000);
-    return () => clearInterval(interval);
-  }, [triggerTrivia]);
-
-  // Automated Rain Events
-  React.useEffect(() => {
-    const triggerRain = () => {
-      const amount = Math.floor(Math.random() * 200) + 50;
-      useCasinoStore.getState().triggerRain(amount);
-      
-      // Schedule next rain (between 30 and 60 minutes)
-      const nextRain = (Math.random() * 30 + 30) * 60000;
-      setTimeout(triggerRain, nextRain);
-    };
-
-    const initialTimer = setTimeout(triggerRain, 15 * 60000); // First rain after 15 mins
-    return () => clearTimeout(initialTimer);
-  }, []);
+  }, [achievements]);
 
   const [showLevelUp, setShowLevelUp] = useState<number | null>(null);
 
@@ -183,12 +127,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       setDailyReward(reward);
       setShowDailyModal(true);
       addToast(`Claimed $${reward} daily reward!`, 'success');
-      
-      addChatMessage({
-        user: 'System',
-        text: `🎁 You've claimed your daily reward of $${reward}! Come back tomorrow for more.`,
-        vipTier: 100
-      });
     } else {
       addToast('You already claimed your reward today!', 'error');
     }
@@ -207,7 +145,62 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   ];
 
   return (
-    <div className={`theme-${theme}`} style={{ display: 'flex', minHeight: '100vh', background: 'hsl(var(--bg-color))', overflow: 'hidden', position: 'relative' }}>
+    <div className="theme-gold" style={{ display: 'flex', minHeight: '100vh', background: 'hsl(var(--bg-color))', overflow: 'hidden', position: 'relative' }}>
+      {/* Global Live Ticker */}
+      <div style={{ 
+        position: 'fixed', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        height: '32px', 
+        background: 'black', 
+        borderBottom: '1px solid hsla(var(--primary), 0.2)',
+        zIndex: 1000,
+        display: 'flex',
+        alignItems: 'center',
+        overflow: 'hidden'
+      }}>
+        <div className="ticker-track" style={{ display: 'flex', whiteSpace: 'nowrap', gap: '40px', padding: '0 20px' }}>
+          {[
+            { user: 'Bochmann88', action: 'withdrew', amount: '$182.00', via: 'PayPal' },
+            { user: 'Neon_Sniper', action: 'claimed', amount: '$5.00', via: 'Daily Ladder' },
+            { user: 'CryptoKing', action: 'withdrew', amount: '$1,200.00', via: 'Bitcoin' },
+            { user: 'SarahSlot', action: 'won', amount: '$450.00', via: 'Crash' },
+            { user: 'VibeGamer', action: 'claimed', amount: '$10.00', via: 'Quest' },
+            { user: 'LazyJoe', action: 'withdrew', amount: '$25.00', via: 'Litecoin' },
+          ].map((item, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.7rem', fontWeight: 700 }}>
+              <span style={{ color: 'hsl(var(--text-muted))' }}>{item.user}</span>
+              <span style={{ color: '#fff' }}>{item.action}</span>
+              <span style={{ color: 'hsl(var(--primary))' }}>{item.amount}</span>
+              <span style={{ color: 'hsl(var(--text-dim))' }}>via {item.via}</span>
+            </div>
+          ))}
+          {/* Duplicate for seamless loop */}
+          {[
+            { user: 'Bochmann88', action: 'withdrew', amount: '$182.00', via: 'PayPal' },
+            { user: 'Neon_Sniper', action: 'claimed', amount: '$5.00', via: 'Daily Ladder' },
+            { user: 'CryptoKing', action: 'withdrew', amount: '$1,200.00', via: 'Bitcoin' },
+          ].map((item, i) => (
+            <div key={`d-${i}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.7rem', fontWeight: 700 }}>
+              <span style={{ color: 'hsl(var(--text-muted))' }}>{item.user}</span>
+              <span style={{ color: '#fff' }}>{item.action}</span>
+              <span style={{ color: 'hsl(var(--primary))' }}>{item.amount}</span>
+              <span style={{ color: 'hsl(var(--text-dim))' }}>via {item.via}</span>
+            </div>
+          ))}
+        </div>
+        <style>{`
+          @keyframes ticker {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .ticker-track {
+            animation: ticker 30s linear infinite;
+          }
+        `}</style>
+      </div>
+
       {/* Mobile Drawer Overlay */}
       {mobileSidebarOpen && (
         <div 
@@ -224,10 +217,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         flexDirection: 'column',
         borderRight: '1px solid var(--glass-border)',
         zIndex: 150,
-        height: '100vh',
+        height: 'calc(100vh - 32px)',
         position: isMobile ? 'fixed' : 'sticky',
         left: 0,
-        top: 0,
+        top: '32px',
         overflow: 'hidden',
         background: 'hsl(var(--bg-color))'
       }}>
@@ -305,31 +298,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             {sidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
           </button>
         )}
-
-        {/* Theme Switcher */}
-        {sidebarOpen && (
-          <div style={{ marginTop: 'auto', padding: '20px 0', borderTop: '1px solid var(--glass-border)' }}>
-            <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'hsl(var(--text-muted))', letterSpacing: '0.1em', marginBottom: '12px', padding: '0 16px' }}>THEME</div>
-            <div style={{ display: 'flex', gap: '8px', padding: '0 16px' }}>
-              {['default', 'neon', 'gold'].map((t) => (
-                <button 
-                  key={t}
-                  onClick={() => useCasinoStore.getState().setTheme(t as any)}
-                  style={{ 
-                    width: '32px', 
-                    height: '32px', 
-                    borderRadius: '8px', 
-                    border: theme === t ? '2px solid hsl(var(--primary))' : '1px solid var(--glass-border)',
-                    background: t === 'neon' ? 'hsl(320 100% 60%)' : t === 'gold' ? 'hsl(45 100% 50%)' : 'hsl(262 80% 50%)',
-                    cursor: 'pointer',
-                    padding: '0'
-                  }}
-                  title={t.toUpperCase()}
-                />
-              ))}
-            </div>
-          </div>
-        )}
       </aside>
 
       {/* Main Content */}
@@ -344,7 +312,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           borderBottom: '1px solid var(--glass-border)',
           flexShrink: 0,
           position: 'sticky',
-          top: 0,
+          top: '32px',
           zIndex: 40,
           background: 'hsla(var(--bg-color), 0.8)',
           backdropFilter: 'blur(20px)'
@@ -390,9 +358,22 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px' }}>
             <div className="glass-card" style={{ padding: isMobile ? '6px 10px' : '8px 16px', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '12px' }}>
-              <Wallet size={isMobile ? 16 : 18} color="hsl(var(--primary))" />
-              <span className="mono" style={{ fontWeight: 700, fontSize: isMobile ? '0.85rem' : '1rem' }}>${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-              {!isMobile && <button onClick={() => setShowWallet(true)} className="btn btn-primary" style={{ padding: '4px 12px', fontSize: '0.8rem' }}>Deposit</button>}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Wallet size={isMobile ? 14 : 16} color="hsl(var(--primary))" />
+                  <span className="mono" style={{ fontWeight: 800, fontSize: isMobile ? '0.85rem' : '1rem' }}>${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </div>
+                {!isMobile && (
+                  <div style={{ display: 'flex', gap: '6px', marginTop: '2px', opacity: 0.8 }}>
+                    <span style={{ fontSize: '0.6rem', fontWeight: 900, color: 'hsl(var(--success))' }}>INSTANT CASHOUT</span>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <div style={{ width: '10px', height: '10px', background: '#0070ba', borderRadius: '2px', fontSize: '6px', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>P</div>
+                      <div style={{ width: '10px', height: '10px', background: '#f7931a', borderRadius: '2px', fontSize: '6px', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>B</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {!isMobile && <button onClick={() => setShowWallet(true)} className="btn btn-primary" style={{ padding: '6px 16px', fontSize: '0.85rem', fontWeight: 800 }}>Deposit</button>}
             </div>
             
             {!isMobile && (
@@ -402,16 +383,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 style={{ padding: '8px' }}
               >
                 <User size={20} />
-              </button>
-            )}
-
-            {!isMobile && (
-              <button 
-                onClick={() => setChatOpen(!chatOpen)}
-                className="btn btn-ghost" 
-                style={{ padding: '8px', color: chatOpen ? 'hsl(var(--primary))' : 'inherit' }}
-              >
-                <MessageSquare size={20} />
               </button>
             )}
           </div>
@@ -543,30 +514,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         )}
       </main>
 
-      {/* Chat Sidebar (Responsive) */}
-      <aside className="glass" style={{ 
-        width: isMobile ? '100%' : '320px', 
-        borderLeft: isMobile ? 'none' : '1px solid var(--glass-border)',
-        height: '100vh',
-        position: isMobile ? 'fixed' : 'sticky',
-        top: 0,
-        right: isMobile ? (chatOpen ? 0 : '-100%') : 0,
-        zIndex: 200,
-        transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        background: 'hsl(var(--bg-color))'
-      }}>
-        {isMobile && (
-          <div style={{ padding: '16px', display: 'flex', justifyContent: 'flex-end', borderBottom: '1px solid var(--glass-border)' }}>
-            <button onClick={() => setChatOpen(false)} className="btn btn-ghost">
-              <X size={24} />
-            </button>
-          </div>
-        )}
-        <ChatSidebar />
-      </aside>
-
       {/* Mobile Navigation */}
-      <MobileNav onChatToggle={() => setChatOpen(!chatOpen)} isChatOpen={chatOpen} />
+      <MobileNav />
 
       {/* Daily Reward Modal */}
       <DailyRewardModal 

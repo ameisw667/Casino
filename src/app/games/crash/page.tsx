@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { TrendingUp, ShieldCheck, Info, RotateCcw, Zap, Rocket, AlertTriangle, History, Target, Users, ArrowUpRight, Coins, MessageSquare, Send, Keyboard } from 'lucide-react';
+import { TrendingUp, ShieldCheck, Info, RotateCcw, Zap, Rocket, AlertTriangle, History, Target, Users, ArrowUpRight, Coins, Keyboard } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { ProvablyFairEngine } from '@/lib/casino/provably-fair';
 
@@ -31,8 +31,6 @@ export default function CrashPage() {
     addBalance, 
     addBet, 
     calculateXp, 
-    chatMessages, 
-    addChatMessage,
     crashHistory,
     addCrashHistory,
     provablyFairSettings,
@@ -47,7 +45,6 @@ export default function CrashPage() {
   const [autoCashout, setAutoCashout] = useState<number>(2.00);
   const [isAutoCashoutEnabled, setIsAutoCashoutEnabled] = useState(false);
   const [liveBets, setLiveBets] = useState<LiveBet[]>([]);
-  const [message, setMessage] = useState('');
   const [showTutorial, setShowTutorial] = useState(false);
   const [bigWin, setBigWin] = useState<{ amount: number, multiplier: number } | null>(null);
   
@@ -396,36 +393,23 @@ export default function CrashPage() {
     }
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!message.trim()) return;
-    addChatMessage({ user: 'You', text: message });
-    setMessage('');
-  };
-
   return (
     <div className="crash-container" style={{ 
-      maxWidth: '1600px', 
+      maxWidth: '1200px', 
       margin: '0 auto', 
       display: 'grid', 
-      gridTemplateColumns: isMobile ? '1fr' : '350px 1fr 350px',
+      gridTemplateColumns: isMobile ? '1fr' : '350px 1fr',
       gap: isMobile ? '16px' : '24px',
       padding: isMobile ? '12px' : '24px'
     }}>
       <style>{`
         .crash-container {
-          max-width: 1600px;
+          max-width: 1200px;
           margin: 0 auto;
           display: grid;
-          grid-template-columns: 350px 1fr 350px;
+          grid-template-columns: 350px 1fr;
           gap: 24px;
           padding: clamp(12px, 3vw, 24px);
-        }
-        @media (max-width: 1400px) {
-          .crash-container {
-            grid-template-columns: 300px 1fr;
-          }
-          .sidebar-right { display: none; }
         }
         @media (max-width: 900px) {
           .crash-container {
@@ -651,39 +635,29 @@ export default function CrashPage() {
             </table>
           </div>
         </div>
-      </div>
 
-      {/* Sidebar Right: Chat & Social */}
-      <div className="sidebar-right glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '20px', borderRadius: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <MessageSquare size={20} color="hsl(var(--primary))" />
-          <h3 style={{ margin: 0, fontSize: '1rem' }}>CHAT</h3>
-        </div>
-
-        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', paddingRight: '4px' }}>
-          {chatMessages.map((msg, i) => (
-            <div key={i} style={{ fontSize: '0.85rem' }}>
-              <span style={{ fontWeight: 800, color: msg.vipTier ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))', marginRight: '6px' }}>{msg.user}:</span>
-              <span style={{ color: '#fff' }}>{msg.text}</span>
+        {/* Provably Fair Info in Game Area */}
+        <div className="glass-card" style={{ padding: '16px', borderRadius: '16px', marginTop: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'hsl(var(--text-muted))' }}>PROVABLY FAIR</div>
+            <ShieldCheck size={16} color="hsl(var(--primary))" />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
+            <div>
+              <div style={{ fontSize: '0.6rem', color: 'hsl(var(--text-dim))', marginBottom: '4px' }}>CLIENT SEED</div>
+              <input 
+                className="input mono" 
+                value={provablyFairSettings.clientSeed}
+                onChange={(e) => setProvablyFairSettings({ clientSeed: e.target.value })}
+                style={{ fontSize: '0.75rem', padding: '8px' }}
+              />
             </div>
-          ))}
-        </div>
-
-        <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '8px' }}>
-          <input className="input" placeholder="Say something..." value={message} onChange={e => setMessage(e.target.value)} style={{ fontSize: '0.85rem' }} />
-          <button className="btn btn-primary" style={{ padding: '0 12px' }}><Send size={16} /></button>
-        </form>
-
-        <div className="card" style={{ padding: '16px', borderRadius: '16px' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'hsl(var(--text-muted))', marginBottom: '8px' }}>CLIENT SEED</div>
-          <input 
-            className="input mono" 
-            value={provablyFairSettings.clientSeed}
-            onChange={(e) => setProvablyFairSettings({ clientSeed: e.target.value })}
-            style={{ fontSize: '0.75rem' }}
-          />
-          <div style={{ fontSize: '0.6rem', color: 'hsl(var(--text-dim))', marginTop: '8px', wordBreak: 'break-all' }}>
-            Hash: {provablyFairSettings.serverSeedHash || 'Pending next round...'}
+            <div>
+              <div style={{ fontSize: '0.6rem', color: 'hsl(var(--text-dim))', marginBottom: '4px' }}>SERVER SEED HASH</div>
+              <div className="mono" style={{ fontSize: '0.7rem', color: '#fff', wordBreak: 'break-all', background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                {provablyFairSettings.serverSeedHash || 'Pending next round...'}
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -3,21 +3,15 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Gamepad2, Trophy, MessageSquare, User } from 'lucide-react';
+import { Home, Gamepad2, Trophy, User } from 'lucide-react';
 
-interface MobileNavProps {
-  onChatToggle: () => void;
-  isChatOpen: boolean;
-}
-
-export default function MobileNav({ onChatToggle, isChatOpen }: MobileNavProps) {
+export default function MobileNav() {
   const pathname = usePathname();
 
   const navItems = [
     { icon: <Home size={24} />, label: 'Lobby', path: '/' },
     { icon: <Gamepad2 size={24} />, label: 'Games', path: '/games' },
     { icon: <Trophy size={24} />, label: 'Leaderboard', path: '/leaderboard' },
-    { icon: <MessageSquare size={24} />, label: 'Chat', onClick: onChatToggle, active: isChatOpen },
     { icon: <User size={24} />, label: 'Profile', path: '/vault' },
   ];
 
@@ -38,7 +32,7 @@ export default function MobileNav({ onChatToggle, isChatOpen }: MobileNavProps) 
       padding: '0 10px',
     }}>
       {navItems.map((item, index) => {
-        const active = item.path ? pathname === item.path : item.active;
+        const active = pathname === item.path;
         const content = (
           <div style={{
             display: 'flex',
@@ -53,20 +47,8 @@ export default function MobileNav({ onChatToggle, isChatOpen }: MobileNavProps) 
           </div>
         );
 
-        if (item.onClick) {
-          return (
-            <button 
-              key={index} 
-              onClick={item.onClick}
-              style={{ background: 'none', border: 'none', padding: '8px', cursor: 'pointer' }}
-            >
-              {content}
-            </button>
-          );
-        }
-
         return (
-          <Link key={index} href={item.path || '#'} style={{ textDecoration: 'none', padding: '8px' }}>
+          <Link key={index} href={item.path} style={{ textDecoration: 'none', padding: '8px' }}>
             {content}
           </Link>
         );

@@ -12,14 +12,6 @@ export interface Bet {
   win: boolean;
 }
 
-export interface ChatMessage {
-  id: string;
-  user: string;
-  text: string;
-  time: string;
-  vipTier?: number;
-}
-
 export interface Achievement {
   id: string;
   title: string;
@@ -41,12 +33,6 @@ export interface Challenge {
   type: 'wager' | 'wins' | 'multiplier';
 }
 
-export interface TriviaQuestion {
-  question: string;
-  answer: string;
-  reward: number;
-}
-
 export interface Toast {
   id: string;
   type: 'info' | 'success' | 'error' | 'win';
@@ -60,27 +46,16 @@ export interface CasinoState {
   level: number;
   rank: string;
   bets: Bet[];
-  chatMessages: ChatMessage[];
   crashHistory: number[];
   achievements: Achievement[];
   challenges: Challenge[];
-  currentTrivia: TriviaQuestion | null;
   rakebackPool: number;
   inventory: {
     cases: number;
   };
   dailyRewardLastClaimed: string | null;
   streak: number;
-  friends: string[];
-  theme: 'default' | 'neon' | 'gold';
-  directMessages: {
-    [username: string]: {
-      id: string;
-      text: string;
-      user: string;
-      time: string;
-    }[];
-  };
+  theme: 'gold';
   provablyFairSettings: {
     clientSeed: string;
     serverSeedHash: string;
@@ -88,29 +63,24 @@ export interface CasinoState {
   };
   toasts: Toast[];
   isMobile: boolean;
+  onboardingStep: 'NONE' | 'WELCOME' | 'LOGIN' | 'TOUR_VAULT' | 'OPEN_CASE' | 'COMPLETED';
   
   // Actions
   setIsMobile: (isMobile: boolean) => void;
+  startOnboarding: () => void;
+  setOnboardingStep: (step: 'NONE' | 'WELCOME' | 'LOGIN' | 'TOUR_VAULT' | 'OPEN_CASE' | 'COMPLETED') => void;
   addBalance: (amount: number) => void;
   removeBalance: (amount: number) => boolean;
   addBet: (bet: Bet) => void;
-  addChatMessage: (msg: Omit<ChatMessage, 'id' | 'time'>) => void;
   calculateXp: (wager: number) => void;
   addCrashHistory: (multiplier: number) => void;
   setProvablyFairSettings: (settings: Partial<CasinoState['provablyFairSettings']>) => void;
   unlockAchievement: (id: string) => void;
   claimDailyReward: () => number | null;
-  triggerRain: (amount: number) => void;
-  shareWinToChat: (winAmount: number, multiplier: number, game: string) => void;
   updateChallenge: (type: Challenge['type'], value: number) => void;
   claimChallenge: (id: string) => void;
-  triggerTrivia: () => void;
-  answerTrivia: (answer: string) => boolean;
   claimRakeback: () => number;
   openCase: () => { reward: number, type: 'balance' | 'xp' };
-  addFriend: (username: string) => void;
-  sendDirectMessage: (to: string, text: string) => void;
-  setTheme: (theme: 'default' | 'neon' | 'gold') => void;
   addToast: (msg: string, type?: Toast['type'], duration?: number) => void;
   removeToast: (id: string) => void;
 }
@@ -118,7 +88,7 @@ export interface CasinoState {
 export const RANKS = [
   { name: 'Bronze', minLevel: 1, color: '#CD7F32', rakeback: 0.01, perks: ['Daily Missions', 'Basic Rakeback'] },
   { name: 'Silver', minLevel: 10, color: '#C0C0C0', rakeback: 0.012, perks: ['Priority Support', 'Enhanced Rakeback'] },
-  { name: 'Gold', minLevel: 25, color: '#FFD700', rakeback: 0.015, perks: ['Private Chat', 'Weekly Bonuses'] },
+  { name: 'Gold', minLevel: 25, color: '#FFD700', rakeback: 0.015, perks: ['Private Access', 'Weekly Bonuses'] },
   { name: 'Platinum', minLevel: 50, color: '#E5E4E2', rakeback: 0.018, perks: ['VIP Manager', 'Custom Cases'] },
   { name: 'Diamond', minLevel: 100, color: '#B9F2FF', rakeback: 0.02, perks: ['Instant Withdrawals', 'Global Recognition'] },
 ];
@@ -138,9 +108,6 @@ export const useCasinoStore = create<CasinoState>()(
       level: 1,
       rank: 'Bronze',
       bets: [],
-      chatMessages: [
-        { id: '1', user: 'System', text: 'Welcome to the High Fidelity Casino! 🎰', time: '19:42', vipTier: 100 },
-      ],
       crashHistory: [1.24, 5.52, 1.05, 12.43, 2.11, 1.88, 4.20],
       achievements: INITIAL_ACHIEVEMENTS,
       challenges: [
@@ -148,16 +115,13 @@ export const useCasinoStore = create<CasinoState>()(
         { id: '2', title: 'Lucky Streak', description: 'Win 10 bets in any game', target: 10, current: 0, reward: 25, isClaimed: false, type: 'wins' },
         { id: '3', title: 'Moon Shot', description: 'Hit a 10x multiplier', target: 10, current: 0, reward: 100, isClaimed: false, type: 'multiplier' },
       ],
-      currentTrivia: null,
       rakebackPool: 0,
       inventory: {
         cases: 1,
       },
       dailyRewardLastClaimed: null,
       streak: 0,
-      friends: ['VibeCoder', 'HighRoller123'],
-      theme: 'default',
-      directMessages: {},
+      theme: 'gold',
       provablyFairSettings: {
         clientSeed: 'vibe-coder-default',
         serverSeedHash: '',
@@ -165,8 +129,13 @@ export const useCasinoStore = create<CasinoState>()(
       },
       toasts: [],
       isMobile: false,
+      onboardingStep: 'NONE',
 
       setIsMobile: (isMobile) => set({ isMobile }),
+      
+      startOnboarding: () => set({ onboardingStep: 'WELCOME' }),
+      
+      setOnboardingStep: (step) => set({ onboardingStep: step }),
 
       addBalance: (amount) => set((state) => ({ balance: state.balance + amount })),
 
@@ -204,13 +173,6 @@ export const useCasinoStore = create<CasinoState>()(
         const rakebackRate = currentRank.rakeback;
         set((state) => ({ rakebackPool: state.rakebackPool + bet.amount * rakebackRate }));
       },
-
-      addChatMessage: (msg) => set((state) => ({
-        chatMessages: [
-          ...state.chatMessages,
-          { ...msg, id: Math.random().toString(36).substr(2, 9), time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
-        ].slice(-50)
-      })),
 
       calculateXp: (wager) => set((state) => {
         const newXp = state.xp + wager * 10;
@@ -280,23 +242,6 @@ export const useCasinoStore = create<CasinoState>()(
         return reward;
       },
 
-      triggerRain: (amount) => {
-        get().addChatMessage({
-          user: 'System',
-          text: `🌧 RAIN EVENT! $${amount} is being distributed to active players! 🍀`,
-          vipTier: 100
-        });
-        get().addBalance(amount / 10); // Simple mock: you get 10% of the rain
-      },
-
-      shareWinToChat: (winAmount, multiplier, game) => {
-        get().addChatMessage({
-          user: 'You',
-          text: `🔥 JUST WON $${winAmount.toLocaleString()} (${multiplier}x) ON ${game.toUpperCase()}! 🚀`,
-          vipTier: get().level
-        });
-      },
-
       updateChallenge: (type, value) => {
         set((state) => ({
           challenges: state.challenges.map((c) => {
@@ -318,41 +263,7 @@ export const useCasinoStore = create<CasinoState>()(
               c.id === id ? { ...c, isClaimed: true } : c
             ),
           }));
-          get().addChatMessage({
-            user: 'System',
-            text: `🎯 Challenge Completed: ${challenge.title}! Reward: $${challenge.reward} 💰`,
-            vipTier: 100
-          });
         }
-      },
-
-      triggerTrivia: () => {
-        const questions: TriviaQuestion[] = [
-          { question: "What is the largest planet in our solar system?", answer: "Jupiter", reward: 10 },
-          { question: "Which game has the highest house edge?", answer: "Slots", reward: 5 },
-          { question: "Who founded the first casino in Las Vegas?", answer: "Bugsy Siegel", reward: 15 },
-        ];
-        const randomQ = questions[Math.floor(Math.random() * questions.length)];
-        set({ currentTrivia: randomQ });
-        get().addChatMessage({
-          user: 'Trivia Bot',
-          text: `🧠 TRIVIA TIME! Q: ${randomQ.question} (Type your answer in chat!)`,
-          vipTier: 50
-        });
-      },
-
-      answerTrivia: (answer) => {
-        const trivia = get().currentTrivia;
-        if (trivia && answer.toLowerCase() === trivia.answer.toLowerCase()) {
-          set({ balance: get().balance + trivia.reward, currentTrivia: null });
-          get().addChatMessage({
-            user: 'Trivia Bot',
-            text: `🎉 Correct! The answer was ${trivia.answer}. Reward: $${trivia.reward} 💰`,
-            vipTier: 50
-          });
-          return true;
-        }
-        return false;
       },
 
       claimRakeback: () => {
@@ -379,26 +290,6 @@ export const useCasinoStore = create<CasinoState>()(
 
         return { reward, type: isXp ? 'xp' : 'balance' };
       },
-
-      addFriend: (username) => set((state) => {
-        if (state.friends.includes(username)) return state;
-        return { friends: [...state.friends, username] };
-      }),
-
-      sendDirectMessage: (to, text) => set((state) => {
-        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const newMessage = { id: Math.random().toString(36).substr(2, 9), text, user: 'You', time };
-        const currentMsgs = state.directMessages[to] || [];
-        
-        return {
-          directMessages: {
-            ...state.directMessages,
-            [to]: [...currentMsgs, newMessage]
-          }
-        };
-      }),
-
-      setTheme: (theme) => set({ theme }),
 
       addToast: (message, type = 'info', duration = 4000) => set((state) => {
         const id = Math.random().toString(36).substr(2, 9);

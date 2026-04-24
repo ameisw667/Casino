@@ -203,9 +203,30 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'hsl(var(--text-muted))', marginBottom: '8px', display: 'block' }}>WITHDRAWAL ADDRESS</label>
+                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'hsl(var(--text-muted))', marginBottom: '12px', display: 'block' }}>SELECT WITHDRAWAL METHOD</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                  {[
+                    { id: 'paypal', label: 'PayPal', color: '#0070ba' },
+                    { id: 'btc', label: 'Bitcoin', color: '#f7931a' },
+                    { id: 'ltc', label: 'Litecoin', color: '#345d9d' },
+                  ].map(m => (
+                    <button key={m.id} className="btn btn-secondary" style={{ 
+                      flexDirection: 'column', 
+                      height: '70px', 
+                      gap: '4px',
+                      border: m.id === 'paypal' ? '2px solid hsl(var(--primary))' : '1px solid var(--glass-border)'
+                    }}>
+                      <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: m.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: 'white', fontWeight: 900 }}>{m.label[0]}</div>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 800 }}>{m.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'hsl(var(--text-muted))', marginBottom: '8px', display: 'block' }}>WITHDRAWAL ADDRESS / EMAIL</label>
                 <input 
-                  placeholder="Enter your BTC address..." 
+                  placeholder="Enter your address..." 
                   className="input"
                   style={{ height: '56px' }}
                 />
@@ -232,15 +253,16 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 </div>
               </div>
 
-              <div className="glass" style={{ padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid hsla(var(--error), 0.2)' }}>
-                <Info size={24} color="hsl(var(--error))" style={{ flexShrink: 0 }} />
-                <div style={{ fontSize: '0.75rem', color: 'hsl(var(--text-muted))', lineHeight: 1.4 }}>
-                  Withdrawals are processed within 24 hours for security reasons.
+              <div className="glass" style={{ padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid hsla(var(--success), 0.2)', background: 'hsla(var(--success), 0.05)' }}>
+                <Zap size={24} color="hsl(var(--success))" style={{ flexShrink: 0 }} />
+                <div style={{ fontSize: '0.75rem', color: 'hsl(var(--text-main))', lineHeight: 1.4 }}>
+                  <div style={{ fontWeight: 900, color: 'hsl(var(--success))' }}>INSTANT WITHDRAWAL ENABLED</div>
+                  Your funds will be sent immediately to your chosen address.
                 </div>
               </div>
 
-              <button onClick={handleWithdraw} className="btn btn-primary" style={{ width: '100%', height: '56px', fontSize: '1.1rem', borderRadius: '16px' }}>
-                REQUEST WITHDRAWAL
+              <button onClick={handleWithdraw} className="btn btn-primary" style={{ width: '100%', height: '56px', fontSize: '1.1rem', borderRadius: '16px', fontWeight: 900 }}>
+                WITHDRAW INSTANTLY
               </button>
             </div>
           )}

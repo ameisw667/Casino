@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, Settings, Volume2, Shield, Eye, EyeOff, Layout, Palette } from 'lucide-react';
+import { X, Settings, Volume2, Shield, Eye, EyeOff, Layout } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 
 interface SettingsModalProps {
@@ -10,7 +10,7 @@ interface SettingsModalProps {
 }
 
 export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
-  const { isMobile, theme, setTheme } = useCasinoStore();
+  const { isMobile } = useCasinoStore();
 
   if (!isOpen) return null;
 
@@ -56,42 +56,6 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         </div>
 
         <div style={{ padding: isMobile ? '24px' : '32px', display: 'flex', flexDirection: 'column', gap: isMobile ? '24px' : '32px' }}>
-          {/* Appearance Section */}
-          <section>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-              <Palette size={18} color="hsl(var(--primary))" />
-              <h3 style={{ fontSize: '0.9rem', fontWeight: 800, margin: 0 }}>APPEARANCE</h3>
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-              {[
-                { id: 'default', label: 'Default', color: 'hsl(262 80% 50%)' },
-                { id: 'neon', label: 'Neon', color: 'hsl(320 100% 60%)' },
-                { id: 'gold', label: 'Gold', color: 'hsl(45 100% 50%)' },
-              ].map(t => (
-                <button 
-                  key={t.id}
-                  onClick={() => setTheme(t.id as any)}
-                  style={{ 
-                    padding: isMobile ? '12px 8px' : '16px', 
-                    borderRadius: '16px', 
-                    background: theme === t.id ? 'hsla(0,0%,100%,0.05)' : 'transparent',
-                    border: `2px solid ${theme === t.id ? t.color : 'hsla(0,0%,100%,0.05)'}`,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '10px',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: t.color }} />
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: theme === t.id ? 'white' : 'hsl(var(--text-muted))' }}>{t.label}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-
           {/* Privacy Section */}
           <section>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
