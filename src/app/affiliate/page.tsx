@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { CircleDollarSign, Users, TrendingUp, Copy } from 'lucide-react';
 
 export default function AffiliatePage() {
   return (
