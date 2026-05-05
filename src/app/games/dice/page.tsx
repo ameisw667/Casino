@@ -338,17 +338,24 @@ export default function DicePage() {
       <div className="dice-container" style={{ 
         maxWidth: '1600px', 
         margin: '0 auto', 
-        display: 'grid', 
-        gridTemplateColumns: isMobile ? '1fr' : '350px 1fr 300px',
+        display: 'flex',
+        flexWrap: 'wrap',
         gap: '1px', 
         background: 'hsla(var(--border-color), 0.5)', 
-        minHeight: isMobile ? 'auto' : 'min(850px, 90vh)', 
+        minHeight: 'min(850px, 90vh)', 
         borderRadius: 'var(--radius-xl)', 
         overflow: 'hidden',
         backdropFilter: 'var(--glass-blur)',
         border: '1px solid var(--glass-border)',
         boxShadow: 'var(--shadow-lg)'
       }}>
+        <style jsx>{`
+          @media (max-width: 1024px) {
+            .dice-container { flex-direction: column !important; min-height: auto !important; }
+            .dice-sidebar { width: 100% !important; order: 2 !important; border-right: none !important; border-top: 1px solid var(--glass-border) !important; }
+            .dice-main { order: 1 !important; padding: var(--space-md) !important; }
+          }
+        `}</style>
 
       
       <div className="dice-sidebar" style={{ 
@@ -357,9 +364,10 @@ export default function DicePage() {
         display: 'flex', 
         flexDirection: 'column', 
         gap: 'var(--space-md)',
-        order: isMobile ? 2 : 1,
+        width: '350px',
+        flexShrink: 0,
         backdropFilter: 'blur(10px)',
-        borderRight: isMobile ? 'none' : '1px solid var(--glass-border)'
+        borderRight: '1px solid var(--glass-border)'
       }}>
 
         <div style={{ display: 'flex', background: 'hsla(var(--bg-color), 0.5)', padding: '4px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--glass-border)' }}>
@@ -507,10 +515,11 @@ export default function DicePage() {
         background: 'hsl(var(--bg-color))', 
         padding: 'var(--space-lg)', 
         display: 'flex', 
+        flex: 1,
         flexDirection: 'column', 
         gap: 'var(--space-lg)', 
         position: 'relative',
-        order: isMobile ? 1 : 2
+        minWidth: 0
       }}>
         {/* Lucky 777 Backdrop */}
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', opacity: 0.1, zIndex: 0 }}>

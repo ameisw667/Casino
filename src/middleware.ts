@@ -12,6 +12,7 @@ const isPublicRoute = createRouteMatcher([
   '/leaderboard(.*)',
   '/vault(.*)',
   '/affiliate(.*)',
+  '/admin(.*)',
   '/api/(.*)'
 ]);
 

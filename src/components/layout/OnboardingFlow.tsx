@@ -27,10 +27,10 @@ export default function OnboardingFlow() {
     return () => { document.body.style.overflow = 'unset'; };
   }, [onboardingStep]);
 
-  // 7 & 30. Skip Login if already signed in
+  // 7 & 30. Skip entire onboarding if already signed in
   useEffect(() => {
-    if (isLoaded && isSignedIn && (onboardingStep === 'LOGIN' || onboardingStep === 'WELCOME')) {
-      setOnboardingStep('TOUR_VAULT');
+    if (isLoaded && isSignedIn && onboardingStep !== 'NONE' && onboardingStep !== 'COMPLETED') {
+      setOnboardingStep('COMPLETED');
     }
   }, [isLoaded, isSignedIn, onboardingStep, setOnboardingStep]);
 

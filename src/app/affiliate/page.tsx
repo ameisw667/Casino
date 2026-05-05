@@ -43,8 +43,8 @@ export default function AffiliatePage() {
 
   return (
 
-    <div className="vibe-mesh" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: '32px', padding: '0 24px 100px' }}>
-      <div style={{ maxWidth: '1400px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+    <div className="vibe-mesh" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '32px', padding: isMobile ? '0 12px 100px' : '0 24px 100px' }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '32px' }}>
         
         {/* 25. Monthly Contest Banner */}
         <VibeMotion variant="reveal" delay={0.1}>
@@ -107,25 +107,31 @@ export default function AffiliatePage() {
               </div>
               {/* 1. Multi-Tier Dashboard Stats */}
               <div style={{ position: 'relative' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', position: 'relative', zIndex: 1 }}>
+                <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
                   {[
-                    { label: 'TOTAL EARNED', value: stats.totalEarned, color: 'hsl(var(--primary))' },
-                    { label: 'AVAILABLE TO CLAIM', value: stats.available, color: 'hsl(var(--success))' },
-                    { label: 'TOTAL CLICKS', value: stats.clicks, color: '#fff' },
-                    { label: 'ACTIVE REFERRALS', value: stats.activeRefs, color: '#fff' },
-                  ].map((s, i) => (
-                    <div key={i} className="glass vibe-spring hover:border-white/20" style={{ padding: '24px', borderRadius: '24px', border: '1px solid hsla(0,0%,100%,0.05)' }}>
-                      <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'hsl(var(--text-dim))', letterSpacing: '0.1em', marginBottom: '8px' }}>{s.label}</div>
-                      <div style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 950, color: s.color }}>{s.value}</div>
+                    { l: 'TOTAL CLICKS', v: stats.clicks, i: <TrendingUp size={14} /> },
+                    { l: 'SIGNUPS', v: stats.signups, i: <CheckCircle2 size={14} /> },
+                    { l: 'ACTIVE REFS', v: stats.activeRefs, i: <Users size={14} /> },
+                    { l: 'AVAILABLE', v: stats.available, i: <CircleDollarSign size={14} /> }
+                  ].map((s, idx) => (
+                    <div key={idx} style={{ background: 'hsla(0,0%,100%,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid hsla(0,0%,100%,0.05)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.65rem', fontWeight: 900, color: 'hsl(var(--text-dim))', marginBottom: '8px' }}>{s.i} {s.l}</div>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 950, color: '#fff' }}>{s.v}</div>
                     </div>
                   ))}
-                  
-                  <Magnetic strength={0.2} style={{ gridColumn: '1 / -1' }}>
-                    <button className="btn btn-primary" style={{ width: '100%', height: '56px', borderRadius: '16px', fontWeight: 950, boxShadow: 'var(--neon-glow-primary)' }}>
-                      CLAIM $1,240.50 TO VAULT
-                    </button>
-                  </Magnetic>
                 </div>
+                <style jsx>{`
+                  @media (max-width: 768px) {
+                    .stats-grid { grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+                    .stats-grid > div { padding: 12px !important; }
+                    .stats-grid > div div:last-child { font-size: 1rem !important; }
+                  }
+                `}</style>
+                <Magnetic strength={0.2} style={{ gridColumn: '1 / -1' }}>
+                  <button className="btn btn-primary" style={{ marginTop: '20px', width: '100%', height: '56px', borderRadius: '16px', fontWeight: 950, boxShadow: 'var(--neon-glow-primary)' }}>
+                    CLAIM $1,240.50 TO VAULT
+                  </button>
+                </Magnetic>
               </div>
             </div>
           </header>

@@ -82,8 +82,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   } = useCasinoStore();
   // 3. All Effect Hooks (Always called, never conditional)
   useEffect(() => {
-    if (authLoaded && isSignedIn && (onboardingStep === 'WELCOME' || onboardingStep === 'LOGIN')) {
-      setOnboardingStep('TOUR_VAULT');
+    if (authLoaded && isSignedIn && onboardingStep !== 'NONE' && onboardingStep !== 'COMPLETED') {
+      setOnboardingStep('COMPLETED');
     }
   }, [isSignedIn, authLoaded, onboardingStep, setOnboardingStep]);
   useEffect(() => {

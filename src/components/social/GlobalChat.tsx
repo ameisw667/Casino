@@ -10,7 +10,7 @@ export function GlobalChat() {
   const isMobile = useCasinoStore(state => state.isMobile);
   const chatMessages = useCasinoStore(state => state.chatMessages);
   const addChatMessage = useCasinoStore(state => state.addChatMessage);
-  const [isOpen, setIsOpen] = useState(!isMobile);
+  const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -19,8 +19,11 @@ export function GlobalChat() {
     return () => ChatBotService.stop();
   }, []);
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsOpen(!isMobile);
+    // Close chat when switching to mobile
+    if (isMobile) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsOpen(false);
+    }
   }, [isMobile]);
   useEffect(() => {
     if (scrollRef.current) {
@@ -49,20 +52,28 @@ export function GlobalChat() {
   if (!isOpen && !isMobile) {
     return (
       <motion.button 
-        whileHover={{ scale: 1.1, x: -5 }}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        whileHover={{ scale: 1.05, x: -3 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(true)}
-      style={{
-          position: 'fixed', right: '0', top: '100px', width: '48px', height: '48px',
-          background: 'hsla(var(--bg-color), 0.8)', border: '1px solid var(--glass-border)',
-          borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px',
-          cursor: 'pointer', zIndex: 1000, boxShadow: '-5px 0 20px rgba(0,0,0,0.3)',
-          backdropFilter: 'blur(10px)', color: 'hsl(var(--text-main))'
+        style={{
+          position: 'fixed', right: '0', top: '50%', transform: 'translateY(-50%)',
+          width: '28px', height: '72px',
+          background: 'hsla(var(--bg-color), 0.6)', border: '1px solid hsla(0,0%,100%,0.06)',
+          borderLeft: '1px solid hsla(var(--primary), 0.15)',
+          borderTopLeftRadius: '10px', borderBottomLeftRadius: '10px',
+          borderRight: 'none',
+          cursor: 'pointer', zIndex: 50,
+          backdropFilter: 'blur(8px)', color: 'hsla(var(--text-main), 0.4)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'color 0.2s ease, border-color 0.2s ease'
         }}
+        onMouseEnter={(e) => { e.currentTarget.style.color = 'hsl(var(--primary))'; e.currentTarget.style.borderLeftColor = 'hsla(var(--primary), 0.4)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.color = 'hsla(var(--text-main), 0.4)'; e.currentTarget.style.borderLeftColor = 'hsla(var(--primary), 0.15)'; }}
       >
-        <ChevronLeft size={20} />
+        <MessageSquare size={14} />
       </motion.button>
-
     );
   }
   return (
@@ -71,17 +82,17 @@ export function GlobalChat() {
       animate={isMobile ? { y: isOpen ? 0 : '100%' } : { x: 0 }}
       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
       style={{
-        position: isMobile ? 'fixed' : 'relative',
-        right: 0, top: isMobile ? 'auto' : 0, bottom: isMobile ? 'calc(72px + env(safe-area-inset-bottom))' : 0,
-        width: isMobile ? '100%' : '320px',
+        position: isMobile ? 'fixed' : 'fixed',
+        right: 0, top: isMobile ? 'auto' : '32px', bottom: isMobile ? 'calc(72px + env(safe-area-inset-bottom))' : 0,
+        width: isMobile ? '100%' : '280px',
         height: isMobile ? '50vh' : 'auto',
-        background: 'hsla(var(--bg-color), 0.9)',
-        backdropFilter: 'blur(20px)',
-        borderLeft: isMobile ? 'none' : '1px solid var(--glass-border)',
+        background: 'hsla(var(--bg-color), 0.85)',
+        backdropFilter: 'blur(16px)',
+        borderLeft: isMobile ? 'none' : '1px solid hsla(0,0%,100%,0.04)',
         borderTop: isMobile ? '1px solid var(--glass-border)' : 'none',
         display: 'flex', flexDirection: 'column',
-        zIndex: 1100,
-        boxShadow: '-10px 0 30px rgba(0,0,0,0.5)',
+        zIndex: 45,
+        boxShadow: '-4px 0 16px rgba(0,0,0,0.2)',
         color: 'hsl(var(--text-main))'
       }}
 
