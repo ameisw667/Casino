@@ -6,6 +6,8 @@ interface HeroSectionProps {
   startOnboarding: () => void;
   liveWithdrawals: any[]; /* eslint-disable-line @typescript-eslint/no-explicit-any */
 }
+import { Magnetic } from '@/components/ui/Magnetic';
+
 export const HeroSection: React.FC<HeroSectionProps> = ({ 
   isMobile = false, 
   startOnboarding, 
@@ -40,20 +42,22 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           GET PAID FOR <br />
           <span className="text-gradient">PLAYING GAMES.</span>
         </h1>
-        <p style={{ fontSize: isMobile ? '1rem' : 'var(--font-lg)', color: 'hsl(var(--text-muted))', lineHeight: 1.6, marginBottom: 'var(--space-md)', maxWidth: '580px', textWrap: 'balance' as any /* eslint-disable-line @typescript-eslint/no-explicit-any */ }}>
+        <p style={{ fontSize: isMobile ? '1rem' : 'var(--font-lg)', color: 'hsl(var(--text-muted))', lineHeight: 1.6, marginBottom: 'var(--space-md)', maxWidth: '580px', textWrap: 'balance' as any }}>
           Join the #1 provably fair gaming platform. Earn coins and cash out instantly.
         </p>
 
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
           <div style={{ display: 'flex', gap: '16px', flexDirection: isMobile ? 'column' : 'row' }}>
-            <button 
-              onClick={startOnboarding}
-              className="btn btn-primary" 
-              style={{ height: '72px', padding: '0 48px', fontSize: '1.25rem', borderRadius: 'var(--radius-xl)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.02em' }}
-            >
-              OPEN $10.00 FREE CASE
-            </button>
+            <Magnetic>
+              <button 
+                onClick={startOnboarding}
+                className="btn btn-primary" 
+                style={{ height: '72px', padding: '0 48px', fontSize: '1.25rem', borderRadius: 'var(--radius-xl)', fontWeight: 950, textTransform: 'uppercase', letterSpacing: '0.02em', boxShadow: 'var(--neon-glow-primary)' }}
+              >
+                OPEN $10.00 FREE CASE
+              </button>
+            </Magnetic>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '0 24px' }}>
               <div style={{ display: 'flex', marginLeft: '-12px' }}>

@@ -8,6 +8,9 @@ import {
   Code, HelpCircle, Star, Crown, X, Send, Phone, ArrowUpRight
 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
+import { VibeMotion } from '@/components/ui/VibeMotion';
+import { Magnetic } from '@/components/ui/Magnetic';
+
 export default function AffiliatePage() {
   const { isMobile } = useCasinoStore();
   const [mounted, setMounted] = React.useState(false);
@@ -40,225 +43,235 @@ export default function AffiliatePage() {
 
   return (
 
-    <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px', padding: '0 24px 100px' }}>
-      
-      {/* 25. Monthly Contest Banner */}
-      <div style={{ marginTop: '20px', padding: '16px', background: 'linear-gradient(90deg, hsla(var(--primary), 0.2), hsla(var(--accent), 0.2))', borderRadius: '16px', border: '1px solid hsla(var(--primary), 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Trophy color="hsl(var(--primary))" />
-          <span style={{ fontWeight: 900, fontSize: '0.9rem' }}>$50,000 MONTHLY AFFILIATE RACE ACTIVE</span>
-        </div>
-        <button className="btn btn-primary" style={{ padding: '6px 16px', fontSize: '0.75rem' }}>VIEW LEADERBOARD</button>
-      </div>
-      <header style={{ 
-        position: 'relative', 
-        borderRadius: '32px', 
-        overflow: 'hidden', 
-        padding: isMobile ? '32px 20px' : '48px',
-        border: '1px solid hsla(var(--primary), 0.2)',
-        background: 'linear-gradient(135deg, hsla(var(--bg-color), 0.9), hsla(var(--primary), 0.05))',
-      }}>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '40px', alignItems: 'flex-start' }}>
-          
-          <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 12px', background: 'hsla(var(--primary), 0.1)', borderRadius: '8px', color: 'hsl(var(--primary))', fontSize: '0.75rem', fontWeight: 900, marginBottom: '16px' }}>
-              <Users size={14} /> PARTNER DASHBOARD
+    <div className="vibe-mesh" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: '32px', padding: '0 24px 100px' }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        
+        {/* 25. Monthly Contest Banner */}
+        <VibeMotion variant="reveal" delay={0.1}>
+          <div style={{ marginTop: '20px', padding: '16px', background: 'var(--glass-bg)', backdropFilter: 'var(--glass-blur-sm)', borderRadius: '16px', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', boxShadow: 'var(--neon-glow-primary)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Trophy color="hsl(var(--primary))" filter="drop-shadow(var(--neon-glow-primary))" />
+              <span style={{ fontWeight: 900, fontSize: '0.9rem', color: 'white' }}>$50,000 MONTHLY AFFILIATE RACE ACTIVE</span>
             </div>
-            <h1 style={{ fontSize: 'clamp(2.5rem, 4vw, 3.5rem)', fontWeight: 950, fontFamily: "'Outfit', sans-serif", lineHeight: 1, marginBottom: '16px' }}>
-              BUILD YOUR <br /><span className="text-gradient">EMPIRE.</span>
-            </h1>
-            <p style={{ color: 'hsl(var(--text-muted))', fontSize: '1.1rem', marginBottom: '32px', maxWidth: '500px' }}>
-              You are currently a Gold Partner. Earn up to 25% revenue share on every referred player, instantly paid out.
-            </p>
-            {/* 3. Tiered Commission Bar & 11. Partner Level Icons */}
-            <div style={{ background: 'hsla(0,0%,0%,0.2)', padding: '24px', borderRadius: '24px', border: '1px solid hsla(0,0%,100%,0.05)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'hsla(45, 100%, 50%, 0.1)', border: '2px solid hsl(45, 100%, 50%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>🥇</div>
-                  <div>
-                    <div style={{ fontSize: '1rem', fontWeight: 900, color: 'hsl(45, 100%, 50%)' }}>GOLD PARTNER</div>
-                    <div style={{ fontSize: '0.7rem', color: 'hsl(var(--text-dim))', fontWeight: 800 }}>15% REVENUE SHARE</div>
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'hsl(var(--text-dim))' }}>NEXT TIER: PLATINUM</div>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 900, color: '#fff' }}>20% SHARE</div>
-                </div>
-              </div>
-              <div style={{ height: '8px', background: 'hsla(0,0%,100%,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ width: '65%', height: '100%', background: 'linear-gradient(90deg, hsl(45, 100%, 50%), #b9f2ff)' }} />
-              </div>
-              <div style={{ fontSize: isMobile ? '0.6rem' : '0.65rem', fontWeight: 800, color: 'hsl(var(--text-dim))', marginTop: '8px', textAlign: 'right' }}>
-                $6,500 / $10,000 MONTHLY REVENUE
-              </div>
-            </div>
+            <Magnetic>
+              <button className="btn btn-primary" style={{ padding: '6px 16px', fontSize: '0.75rem', fontWeight: 900 }}>VIEW LEADERBOARD</button>
+            </Magnetic>
           </div>
-          {/* 1. Multi-Tier Dashboard Stats */}
-          <div style={{ position: 'relative' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', position: 'relative', zIndex: 1 }}>
-              {[
-                { label: 'TOTAL EARNED', value: stats.totalEarned, color: 'hsl(var(--primary))' },
-                { label: 'AVAILABLE TO CLAIM', value: stats.available, color: 'hsl(var(--success))' },
-                { label: 'TOTAL CLICKS', value: stats.clicks, color: '#fff' },
-                { label: 'ACTIVE REFERRALS', value: stats.activeRefs, color: '#fff' },
-              ].map((s, i) => (
-                <div key={i} className="glass" style={{ padding: '24px', borderRadius: '24px', border: '1px solid hsla(0,0%,100%,0.05)' }}>
-                  <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'hsl(var(--text-dim))', letterSpacing: '0.1em', marginBottom: '8px' }}>{s.label}</div>
-                  <div style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 950, color: s.color }}>{s.value}</div>
-                </div>
-              ))}
+        </VibeMotion>
+
+        <VibeMotion variant="reveal" delay={0.2}>
+          <header style={{ 
+            position: 'relative', 
+            borderRadius: 'var(--radius-xl)', 
+            overflow: 'hidden', 
+            padding: isMobile ? '32px 20px' : '48px',
+            border: '1px solid var(--glass-border)',
+            background: 'var(--glass-bg)',
+            backdropFilter: 'var(--glass-blur-lg)',
+            boxShadow: 'var(--shadow-lg)'
+          }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '40px', alignItems: 'flex-start' }}>
               
-              <button className="btn btn-primary" style={{ gridColumn: '1 / -1', height: '56px', borderRadius: '16px', fontWeight: 900 }}>
-                CLAIM $1,240.50 TO VAULT
-              </button>
-            </div>
-            {/* Decorative 3D Asset */}
-            {!isMobile && (
-              <div style={{ 
-                position: 'absolute', 
-                top: '-40px', 
-                right: '-60px', 
-                width: '240px', 
-                height: '240px', 
-                opacity: 0.4, 
-                filter: 'blur(2px)', 
-                pointerEvents: 'none',
-                zIndex: 0
-              }}>
-                <Image src="/images/affiliate-network-3d.png" alt="Affiliate Network" fill style={{ objectFit: 'contain' }} className="animate-float" />
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
-        {['OVERVIEW', 'CAMPAIGNS', 'TOOLS & API', 'FAQ & SUPPORT'].map(tab => (
-          <button 
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            style={{ 
-              padding: '14px 28px', 
-              borderRadius: '16px', 
-              background: activeTab === tab ? 'white' : 'hsla(0,0%,100%,0.03)',
-              color: activeTab === tab ? 'black' : 'white',
-              border: 'none',
-              fontWeight: 900,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-      {/* TAB CONTENT: OVERVIEW */}
-      {activeTab === 'OVERVIEW' && (
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: '32px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            
-            {/* 14. Conversion Graph */}
-            <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '12px' }}><BarChart3 color="hsl(var(--primary))" /> CONVERSION ANALYTICS</h3>
-                <div style={{ fontSize: '0.75rem', fontWeight: 800, padding: '6px 12px', background: 'hsla(0,0%,100%,0.05)', borderRadius: '8px' }}>LAST 7 DAYS</div>
-              </div>
-              <div style={{ height: '200px', display: 'flex', alignItems: 'flex-end', gap: '12px', paddingBottom: '20px' }}>
-                {/* SVG Graph Simulation */}
-                <svg width="100%" height="100%" viewBox="0 0 500 150" preserveAspectRatio="none">
-                  <path d="M0,150 L0,80 C50,90 100,20 150,50 C200,80 250,10 300,40 C350,70 400,20 450,10 L500,30 L500,150 Z" fill="hsla(var(--primary), 0.1)" />
-                  <path d="M0,80 C50,90 100,20 150,50 C200,80 250,10 300,40 C350,70 400,20 450,10 L500,30" fill="none" stroke="hsl(var(--primary))" strokeWidth="3" />
-                  <path d="M0,100 C100,120 200,50 300,80 C400,110 500,60 500,60" fill="none" stroke="hsl(var(--success))" strokeWidth="3" />
-                </svg>
-              </div>
-              <div style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', fontWeight: 800 }}><div style={{ width: '12px', height: '12px', background: 'hsl(var(--primary))', borderRadius: '3px' }} /> CLICKS</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', fontWeight: 800 }}><div style={{ width: '12px', height: '12px', background: 'hsl(var(--success))', borderRadius: '3px' }} /> SIGNUPS</div>
-              </div>
-            </section>
-            {/* 7. Active Referrals List & 16. Sub-Affiliate Support */}
-            <section className="glass-card" style={{ padding: '0', borderRadius: '32px', overflow: 'hidden' }}>
-              <div style={{ padding: '32px 32px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '12px' }}><Users color="hsl(var(--accent))" /> ACTIVE REFERRALS</h3>
-                <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'hsl(var(--success))' }}>+ {stats.subRefs} TIER-2 REFS</div>
-              </div>
-              <div style={{ overflowX: 'auto', padding: '24px' }}>
-                <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr style={{ color: 'hsl(var(--text-dim))', fontSize: '0.7rem', fontWeight: 900 }}>
-                      <th style={{ padding: '16px' }}>USER</th>
-                      <th style={{ padding: '16px' }}>JOINED</th>
-                      <th style={{ padding: '16px' }}>WAGERED</th>
-                      <th style={{ padding: '16px' }}>REVENUE GENERATED</th>
-                      <th style={{ padding: '16px' }}>STATUS</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { user: 'GamerDude', date: 'Today', wagered: '$4,200', rev: '$63.00', status: 'Online' },
-                      { user: 'CryptoMax', date: '2d ago', wagered: '$12,400', rev: '$186.00', status: 'Online' },
-                      { user: 'Sarah21', date: '1w ago', wagered: '$800', rev: '$12.00', status: 'Offline' },
-                    ].map((r, i) => (
-                      <tr key={i} style={{ borderBottom: '1px solid hsla(0,0%,100%,0.05)' }}>
-                        <td style={{ padding: '16px', fontWeight: 900 }}>{r.user}</td>
-                        <td style={{ padding: '16px', fontSize: '0.8rem', color: 'hsl(var(--text-muted))' }}>{r.date}</td>
-                        <td style={{ padding: '16px', fontWeight: 800 }}>{r.wagered}</td>
-                        <td style={{ padding: '16px', fontWeight: 900, color: 'hsl(var(--success))' }}>{r.rev}</td>
-                        <td style={{ padding: '16px' }}>
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.65rem', fontWeight: 900, color: r.status === 'Online' ? 'hsl(var(--success))' : 'hsl(var(--text-dim))' }}>
-                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }} /> {r.status}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            {/* 4. Live Commission Feed & 17. Granular History */}
-            <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}><Activity color="hsl(var(--success))" /> LIVE COMMISSIONS</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {[
-                  { game: 'CRASH', user: 'GamerDude', amount: '+$0.45', time: 'Just now' },
-                  { game: 'SLOTS', user: 'CryptoMax', amount: '+$1.20', time: '1m ago' },
-                  { game: 'DICE', user: 'User_99', amount: '+$0.15', time: '3m ago' },
-                  { game: 'ROULETTE', user: 'CryptoMax', amount: '+$4.50', time: '5m ago' },
-                ].map((c, i) => (
-                  <div key={i} className="animate-fade-in" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'hsla(0,0%,100%,0.02)', borderRadius: '16px', border: '1px solid hsla(0,0%,100%,0.05)' }}>
-                    <div>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 900 }}>{c.user} wagered on {c.game}</div>
-                      <div style={{ fontSize: '0.65rem', color: 'hsl(var(--text-dim))', fontWeight: 800, marginTop: '4px' }}>{c.time}</div>
+              <div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 12px', background: 'hsla(var(--primary), 0.1)', borderRadius: '8px', color: 'hsl(var(--primary))', fontSize: '0.75rem', fontWeight: 900, marginBottom: '16px', border: '1px solid hsla(var(--primary), 0.2)' }}>
+                  <Users size={14} /> PARTNER DASHBOARD
+                </div>
+                <h1 style={{ fontSize: 'clamp(2.5rem, 4vw, 3.5rem)', fontWeight: 950, fontFamily: "'Outfit', sans-serif", lineHeight: 1, marginBottom: '16px' }}>
+                  BUILD YOUR <br /><span className="text-gradient">EMPIRE.</span>
+                </h1>
+                <p style={{ color: 'hsl(var(--text-muted))', fontSize: '1.1rem', marginBottom: '32px', maxWidth: '500px' }}>
+                  You are currently a Gold Partner. Earn up to 25% revenue share on every referred player, instantly paid out.
+                </p>
+                {/* 3. Tiered Commission Bar & 11. Partner Level Icons */}
+                <div style={{ background: 'hsla(0,0%,0%,0.2)', padding: '24px', borderRadius: '24px', border: '1px solid hsla(0,0%,100%,0.05)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'hsla(45, 100%, 50%, 0.1)', border: '2px solid hsl(45, 100%, 50%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', boxShadow: '0 0 20px hsla(45, 100%, 50%, 0.2)' }}>🥇</div>
+                      <div>
+                        <div style={{ fontSize: '1rem', fontWeight: 900, color: 'hsl(45, 100%, 50%)' }}>GOLD PARTNER</div>
+                        <div style={{ fontSize: '0.7rem', color: 'hsl(var(--text-dim))', fontWeight: 800 }}>15% REVENUE SHARE</div>
+                      </div>
                     </div>
-                    <div style={{ fontWeight: 950, color: 'hsl(var(--success))' }}>{c.amount}</div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'hsl(var(--text-dim))' }}>NEXT TIER: PLATINUM</div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 900, color: '#fff' }}>20% SHARE</div>
+                    </div>
                   </div>
-                ))}
+                  <div style={{ height: '8px', background: 'hsla(0,0%,100%,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div className="animate-shimmer" style={{ width: '65%', height: '100%', background: 'linear-gradient(90deg, hsl(45, 100%, 50%), #b9f2ff)' }} />
+                  </div>
+                  <div style={{ fontSize: isMobile ? '0.6rem' : '0.65rem', fontWeight: 800, color: 'hsl(var(--text-dim))', marginTop: '8px', textAlign: 'right' }}>
+                    $6,500 / $10,000 MONTHLY REVENUE
+                  </div>
+                </div>
               </div>
-            </section>
-            {/* 22. Milestone Rewards */}
-            <section className="glass-card" style={{ padding: '32px', borderRadius: '32px', border: '1px solid hsla(var(--primary), 0.3)', background: 'linear-gradient(135deg, hsla(var(--bg-color), 0.9), hsla(var(--primary), 0.05))' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '12px' }}><Gift color="hsl(var(--primary))" /> NEXT MILESTONE</h3>
+              {/* 1. Multi-Tier Dashboard Stats */}
+              <div style={{ position: 'relative' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', position: 'relative', zIndex: 1 }}>
+                  {[
+                    { label: 'TOTAL EARNED', value: stats.totalEarned, color: 'hsl(var(--primary))' },
+                    { label: 'AVAILABLE TO CLAIM', value: stats.available, color: 'hsl(var(--success))' },
+                    { label: 'TOTAL CLICKS', value: stats.clicks, color: '#fff' },
+                    { label: 'ACTIVE REFERRALS', value: stats.activeRefs, color: '#fff' },
+                  ].map((s, i) => (
+                    <div key={i} className="glass vibe-spring hover:border-white/20" style={{ padding: '24px', borderRadius: '24px', border: '1px solid hsla(0,0%,100%,0.05)' }}>
+                      <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'hsl(var(--text-dim))', letterSpacing: '0.1em', marginBottom: '8px' }}>{s.label}</div>
+                      <div style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 950, color: s.color }}>{s.value}</div>
+                    </div>
+                  ))}
+                  
+                  <Magnetic strength={0.2} style={{ gridColumn: '1 / -1' }}>
+                    <button className="btn btn-primary" style={{ width: '100%', height: '56px', borderRadius: '16px', fontWeight: 950, boxShadow: 'var(--neon-glow-primary)' }}>
+                      CLAIM $1,240.50 TO VAULT
+                    </button>
+                  </Magnetic>
+                </div>
               </div>
-              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                <div style={{ fontSize: isMobile ? '2.5rem' : '3rem', fontWeight: 950, color: 'hsl(var(--primary))', lineHeight: 1 }}>$500</div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-muted))', marginTop: '8px' }}>BONUS REWARD</div>
-              </div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 800, display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span>{stats.activeRefs} USERS</span>
-                <span>2,000 REFS NEEDED</span>
-              </div>
-              <div style={{ height: '8px', background: 'hsla(0,0%,100%,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ width: '60%', height: '100%', background: 'hsl(var(--primary))', boxShadow: '0 0 10px hsla(var(--primary), 0.5)' }} />
-              </div>
-            </section>
+            </div>
+          </header>
+        </VibeMotion>
+
+        {/* Tabs */}
+        <VibeMotion variant="reveal" delay={0.3} style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
+          {['OVERVIEW', 'CAMPAIGNS', 'TOOLS & API', 'FAQ & SUPPORT'].map(tab => (
+            <button 
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className="vibe-spring"
+              style={{ 
+                padding: '14px 28px', 
+                borderRadius: '16px', 
+                background: activeTab === tab ? 'white' : 'var(--glass-bg)',
+                color: activeTab === tab ? 'black' : 'white',
+                border: activeTab === tab ? 'none' : '1px solid var(--glass-border)',
+                fontWeight: 950,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.3s var(--spring-physics)'
+              }}
+            >
+              {tab}
+            </button>
+          ))}
+        </VibeMotion>
+
+        {/* TAB CONTENT: OVERVIEW */}
+        {activeTab === 'OVERVIEW' && (
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: '32px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              
+              {/* 14. Conversion Graph */}
+              <VibeMotion variant="card">
+                <section className="glass-card" style={{ padding: '32px', borderRadius: '32px', background: 'var(--glass-bg)', backdropFilter: 'var(--glass-blur-md)', border: '1px solid var(--glass-border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '12px' }}><BarChart3 color="hsl(var(--primary))" /> CONVERSION ANALYTICS</h3>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 800, padding: '6px 12px', background: 'hsla(0,0%,100%,0.05)', borderRadius: '8px' }}>LAST 7 DAYS</div>
+                  </div>
+                  <div style={{ height: '200px', display: 'flex', alignItems: 'flex-end', gap: '12px', paddingBottom: '20px' }}>
+                    {/* SVG Graph Simulation */}
+                    <svg width="100%" height="100%" viewBox="0 0 500 150" preserveAspectRatio="none">
+                      <path d="M0,150 L0,80 C50,90 100,20 150,50 C200,80 250,10 300,40 C350,70 400,20 450,10 L500,30 L500,150 Z" fill="hsla(var(--primary), 0.1)" />
+                      <path d="M0,80 C50,90 100,20 150,50 C200,80 250,10 300,40 C350,70 400,20 450,10 L500,30" fill="none" stroke="hsl(var(--primary))" strokeWidth="3" />
+                      <path d="M0,100 C100,120 200,50 300,80 C400,110 500,60 500,60" fill="none" stroke="hsl(var(--success))" strokeWidth="3" />
+                    </svg>
+                  </div>
+                  <div style={{ display: 'flex', gap: '24px', marginTop: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', fontWeight: 800 }}><div style={{ width: '12px', height: '12px', background: 'hsl(var(--primary))', borderRadius: '3px' }} /> CLICKS</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', fontWeight: 800 }}><div style={{ width: '12px', height: '12px', background: 'hsl(var(--success))', borderRadius: '3px' }} /> SIGNUPS</div>
+                  </div>
+                </section>
+              </VibeMotion>
+
+              {/* 7. Active Referrals List & 16. Sub-Affiliate Support */}
+              <VibeMotion variant="card">
+                <section className="glass-card" style={{ padding: '0', borderRadius: '32px', overflow: 'hidden', background: 'var(--glass-bg)', backdropFilter: 'var(--glass-blur-md)', border: '1px solid var(--glass-border)' }}>
+                  <div style={{ padding: '32px 32px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '12px' }}><Users color="hsl(var(--accent))" /> ACTIVE REFERRALS</h3>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'hsl(var(--success))' }}>+ {stats.subRefs} TIER-2 REFS</div>
+                  </div>
+                  <div style={{ overflowX: 'auto', padding: '24px' }}>
+                    <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr style={{ color: 'hsl(var(--text-dim))', fontSize: '0.7rem', fontWeight: 900, borderBottom: '1px solid var(--glass-border)' }}>
+                          <th style={{ padding: '16px' }}>USER</th>
+                          <th style={{ padding: '16px' }}>JOINED</th>
+                          <th style={{ padding: '16px' }}>WAGERED</th>
+                          <th style={{ padding: '16px' }}>REVENUE GENERATED</th>
+                          <th style={{ padding: '16px' }}>STATUS</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          { user: 'GamerDude', date: 'Today', wagered: '$4,200', rev: '$63.00', status: 'Online' },
+                          { user: 'CryptoMax', date: '2d ago', wagered: '$12,400', rev: '$186.00', status: 'Online' },
+                          { user: 'Sarah21', date: '1w ago', wagered: '$800', rev: '$12.00', status: 'Offline' },
+                        ].map((r, i) => (
+                          <tr key={i} className="vibe-spring hover:bg-white/5" style={{ borderBottom: '1px solid hsla(0,0%,100%,0.05)' }}>
+                            <td style={{ padding: '16px', fontWeight: 900 }}>{r.user}</td>
+                            <td style={{ padding: '16px', fontSize: '0.8rem', color: 'hsl(var(--text-muted))' }}>{r.date}</td>
+                            <td style={{ padding: '16px', fontWeight: 800 }}>{r.wagered}</td>
+                            <td style={{ padding: '16px', fontWeight: 900, color: 'hsl(var(--success))' }}>{r.rev}</td>
+                            <td style={{ padding: '16px' }}>
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.65rem', fontWeight: 900, color: r.status === 'Online' ? 'hsl(var(--success))' : 'hsl(var(--text-dim))' }}>
+                                <div className={r.status === 'Online' ? 'dot dot-success animate-pulse' : 'dot'} style={{ width: '6px', height: '6px' }} /> {r.status}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              </VibeMotion>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              {/* 4. Live Commission Feed & 17. Granular History */}
+              <VibeMotion variant="card">
+                <section className="glass-card" style={{ padding: '32px', borderRadius: '32px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' }}>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}><Activity color="hsl(var(--success))" /> LIVE COMMISSIONS</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {[
+                      { game: 'CRASH', user: 'GamerDude', amount: '+$0.45', time: 'Just now' },
+                      { game: 'SLOTS', user: 'CryptoMax', amount: '+$1.20', time: '1m ago' },
+                      { game: 'DICE', user: 'User_99', amount: '+$0.15', time: '3m ago' },
+                      { game: 'ROULETTE', user: 'CryptoMax', amount: '+$4.50', time: '5m ago' },
+                    ].map((c, i) => (
+                      <div key={i} className="vibe-spring" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'hsla(0,0%,100%,0.02)', borderRadius: '16px', border: '1px solid hsla(0,0%,100%,0.05)' }}>
+                        <div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 900 }}>{c.user} wagered on {c.game}</div>
+                          <div style={{ fontSize: '0.65rem', color: 'hsl(var(--text-dim))', fontWeight: 800, marginTop: '4px' }}>{c.time}</div>
+                        </div>
+                        <div style={{ fontWeight: 950, color: 'hsl(var(--success))' }}>{c.amount}</div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </VibeMotion>
+
+              {/* 22. Milestone Rewards */}
+              <VibeMotion variant="card">
+                <section className="glass-card" style={{ padding: '32px', borderRadius: '32px', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', boxShadow: 'var(--neon-glow-primary)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '12px' }}><Gift color="hsl(var(--primary))" /> NEXT MILESTONE</h3>
+                  </div>
+                  <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                    <div style={{ fontSize: isMobile ? '2.5rem' : '3rem', fontWeight: 950, color: 'hsl(var(--primary))', lineHeight: 1, textShadow: 'var(--neon-glow-primary)' }}>$500</div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-muted))', marginTop: '8px' }}>BONUS REWARD</div>
+                  </div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 800, display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span>{stats.activeRefs} USERS</span>
+                    <span>2,000 REFS NEEDED</span>
+                  </div>
+                  <div style={{ height: '8px', background: 'hsla(0,0%,100%,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div className="animate-shimmer" style={{ width: '60%', height: '100%', background: 'hsl(var(--primary))', boxShadow: '0 0 10px hsla(var(--primary), 0.5)' }} />
+                  </div>
+                </section>
+              </VibeMotion>
+            </div>
           </div>
-        </div>
-      )}
+        )}
       {/* TAB CONTENT: CAMPAIGNS */}
       {activeTab === 'CAMPAIGNS' && (
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '32px' }}>
@@ -503,5 +516,6 @@ export default function AffiliatePage() {
         </div>
       )}
     </div>
+  </div>
   );
 }

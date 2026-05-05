@@ -52,6 +52,8 @@ const FEATURED_GAMES = [
     difficulty: 'Legendary'
   }
 ];
+import { VibeMotion } from '@/components/ui/VibeMotion';
+
 export function HomeClient() {
   const { startOnboarding, isMobile, allBets } = useCasinoStore();
 
@@ -67,79 +69,95 @@ export function HomeClient() {
     <motion.main 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="container"
-      style={{ paddingBottom: '100px' }}
+      className="container vibe-mesh"
+      style={{ paddingBottom: '100px', minHeight: '100vh' }}
     >
-      <HeroSection 
-        startOnboarding={startOnboarding}
-        isMobile={isMobile}
-        liveWithdrawals={allBets.filter(b => b.isWin).slice(0, 5).map(b => ({ user: b.user, amount: b.payout }))}
-      />
+      <VibeMotion variant="reveal" delay={0.1}>
+        <HeroSection 
+          startOnboarding={startOnboarding}
+          isMobile={isMobile}
+          liveWithdrawals={allBets.filter(b => b.isWin).slice(0, 5).map(b => ({ user: b.user, amount: b.payout }))}
+        />
+      </VibeMotion>
 
-      
-      <TrustBar totalPaid={2500000} timeToReward="2.5m" />
-      <FeaturedOffers featuredGames={FEATURED_GAMES} />
+      <VibeMotion variant="reveal" delay={0.2}>
+        <TrustBar totalPaid={2500000} timeToReward="2.5m" />
+      </VibeMotion>
+
+      <VibeMotion variant="reveal" delay={0.3}>
+        <FeaturedOffers featuredGames={FEATURED_GAMES} />
+      </VibeMotion>
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 500px), 1fr))', gap: '32px', marginTop: '64px' }}>
-        <DailyBonusLadder isMobile={isMobile} startOnboarding={startOnboarding} ladderSteps={[]} />
-        <WeeklyRewards />
+        <VibeMotion variant="card">
+          <DailyBonusLadder isMobile={isMobile} startOnboarding={startOnboarding} ladderSteps={[]} />
+        </VibeMotion>
+        <VibeMotion variant="card">
+          <WeeklyRewards />
+        </VibeMotion>
       </div>
-      <div style={{ marginTop: '64px' }}>
+
+      <VibeMotion variant="reveal" delay={0.4} style={{ marginTop: '64px' }}>
         <GoldenPath isMobile={isMobile} lastPayoutTime={lastPayoutTime} />
-      </div>
-      <div style={{ marginTop: '64px' }}>
+      </VibeMotion>
+
+      <VibeMotion variant="reveal" delay={0.5} style={{ marginTop: '64px' }}>
         <LiveActivityFeed />
-      </div>
+      </VibeMotion>
       
       {/* Trust Badges */}
-      <section style={{ 
-        marginTop: 'clamp(64px, 10vw, 120px)', 
-        padding: 'clamp(24px, 5vw, 64px)', 
-        background: 'hsla(var(--bg-card), 0.5)', 
-        borderRadius: 'clamp(24px, 4vw, 48px)',
-        border: '1px solid hsla(var(--primary), 0.1)',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-        gap: 'clamp(32px, 5vw, 64px)',
-        textAlign: 'center',
-        backdropFilter: 'blur(20px)'
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-          <div style={{ padding: '16px', borderRadius: '50%', background: 'hsla(var(--success), 0.1)', border: '1px solid hsla(var(--success), 0.2)' }}>
-            <ShieldCheck size={32} color="hsl(var(--success))" />
+      <VibeMotion variant="popup" delay={0.6}>
+        <section style={{ 
+          marginTop: 'clamp(64px, 10vw, 120px)', 
+          padding: 'clamp(24px, 5vw, 64px)', 
+          background: 'var(--glass-bg)', 
+          borderRadius: 'var(--radius-xl)',
+          border: '1px solid var(--glass-border)',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: 'clamp(32px, 5vw, 64px)',
+          textAlign: 'center',
+          backdropFilter: 'var(--glass-blur-lg)',
+          boxShadow: 'var(--shadow-lg)'
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+            <div style={{ padding: '16px', borderRadius: '50%', background: 'hsla(var(--success), 0.1)', border: '1px solid hsla(var(--success), 0.2)', boxShadow: '0 0 20px hsla(var(--success), 0.1)' }}>
+              <ShieldCheck size={32} color="hsl(var(--success))" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 900, fontSize: '1.1rem', letterSpacing: '0.05em', marginBottom: '8px', color: 'white' }}>PROVABLY FAIR</div>
+              <div style={{ fontSize: '0.85rem', color: 'hsl(var(--text-muted))', lineHeight: 1.6 }}>100% Verifiable Outcomes via Cryptographic Seeds</div>
+            </div>
           </div>
-          <div>
-            <div style={{ fontWeight: 900, fontSize: '1.1rem', letterSpacing: '0.05em', marginBottom: '8px' }}>PROVABLY FAIR</div>
-            <div style={{ fontSize: '0.85rem', color: 'hsl(var(--text-muted))', lineHeight: 1.6 }}>100% Verifiable Outcomes via Cryptographic Seeds</div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+            <div style={{ padding: '16px', borderRadius: '50%', background: 'hsla(var(--primary), 0.1)', border: '1px solid hsla(var(--primary), 0.2)', boxShadow: '0 0 20px hsla(var(--primary), 0.1)' }}>
+              <Zap size={32} color="hsl(var(--primary))" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 900, fontSize: '1.1rem', letterSpacing: '0.05em', marginBottom: '8px', color: 'white' }}>INSTANT PAYOUTS</div>
+              <div style={{ fontSize: '0.85rem', color: 'hsl(var(--text-muted))', lineHeight: 1.6 }}>Lightning-Fast Withdrawals directly to your Vault</div>
+            </div>
           </div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-          <div style={{ padding: '16px', borderRadius: '50%', background: 'hsla(var(--primary), 0.1)', border: '1px solid hsla(var(--primary), 0.2)' }}>
-            <Zap size={32} color="hsl(var(--primary))" />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+            <div style={{ padding: '16px', borderRadius: '50%', background: 'hsla(var(--secondary), 0.1)', border: '1px solid hsla(var(--secondary), 0.2)', boxShadow: '0 0 20px hsla(var(--secondary), 0.1)' }}>
+              <Users size={32} color="hsl(var(--secondary))" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 900, fontSize: '1.1rem', letterSpacing: '0.05em', marginBottom: '8px', color: 'white' }}>24/7 SUPPORT</div>
+              <div style={{ fontSize: '0.85rem', color: 'hsl(var(--text-muted))', lineHeight: 1.6 }}>Professional Assistance whenever you need help</div>
+            </div>
           </div>
-          <div>
-            <div style={{ fontWeight: 900, fontSize: '1.1rem', letterSpacing: '0.05em', marginBottom: '8px' }}>INSTANT PAYOUTS</div>
-            <div style={{ fontSize: '0.85rem', color: 'hsl(var(--text-muted))', lineHeight: 1.6 }}>Lightning-Fast Withdrawals directly to your Vault</div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+            <div style={{ padding: '16px', borderRadius: '50%', background: 'hsla(var(--accent), 0.1)', border: '1px solid hsla(var(--accent), 0.2)', boxShadow: '0 0 20px hsla(var(--accent), 0.1)' }}>
+              <Target size={32} color="hsl(var(--accent))" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 900, fontSize: '1.1rem', letterSpacing: '0.05em', marginBottom: '8px', color: 'white' }}>VIP PROGRAM</div>
+              <div style={{ fontSize: '0.85rem', color: 'hsl(var(--text-muted))', lineHeight: 1.6 }}>Exclusive Perks, Rakeback & Personal Managers</div>
+            </div>
           </div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-          <div style={{ padding: '16px', borderRadius: '50%', background: 'hsla(var(--secondary), 0.1)', border: '1px solid hsla(var(--secondary), 0.2)' }}>
-            <Users size={32} color="hsl(var(--secondary))" />
-          </div>
-          <div>
-            <div style={{ fontWeight: 900, fontSize: '1.1rem', letterSpacing: '0.05em', marginBottom: '8px' }}>24/7 SUPPORT</div>
-            <div style={{ fontSize: '0.85rem', color: 'hsl(var(--text-muted))', lineHeight: 1.6 }}>Professional Assistance whenever you need help</div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-          <div style={{ padding: '16px', borderRadius: '50%', background: 'hsla(var(--accent), 0.1)', border: '1px solid hsla(var(--accent), 0.2)' }}>
-            <Target size={32} color="hsl(var(--accent))" />
-          </div>
-          <div>
-            <div style={{ fontWeight: 900, fontSize: '1.1rem', letterSpacing: '0.05em', marginBottom: '8px' }}>VIP PROGRAM</div>
-            <div style={{ fontSize: '0.85rem', color: 'hsl(var(--text-muted))', lineHeight: 1.6 }}>Exclusive Perks, Rakeback & Personal Managers</div>
-          </div>
-        </div>
-      </section>
+        </section>
+      </VibeMotion>
 
     </motion.main>
   );

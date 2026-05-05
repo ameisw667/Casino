@@ -20,10 +20,13 @@
   --warning: 45 100% 50%;
   --error: 0 85% 60%;
   
-  /* Glassmorphism */
+  /* Glassmorphism Refined */
   --glass-bg: hsla(0, 0%, 100%, 0.03);
   --glass-border: hsla(0, 0%, 100%, 0.1);
-  --glass-blur: blur(12px);
+  --glass-blur-sm: blur(4px);
+  --glass-blur-md: blur(12px);
+  --glass-blur-lg: blur(24px);
+  --glass-blur: var(--glass-blur-md);
   
   /* Radii */
   --radius-sm: 4px;
@@ -31,12 +34,20 @@
   --radius-lg: 12px;
   --radius-xl: 20px;
   
-  /* Shadows & Glows */
+  /* Shadows & Glows Refined */
   --shadow-sm: 0 2px 4px rgba(0,0,0,0.5);
   --shadow-md: 0 8px 16px rgba(0,0,0,0.6);
   --shadow-lg: 0 16px 32px rgba(0,0,0,0.7);
-  --glow-primary: 0 0 20px hsla(45, 100%, 50%, 0.2);
-  --glow-secondary: 0 0 20px hsla(280, 100%, 65%, 0.2);
+  --glow-primary: 0 0 20px hsla(var(--primary), 0.2);
+  --glow-secondary: 0 0 20px hsla(var(--secondary), 0.2);
+  --neon-glow-primary: 0 0 30px hsla(var(--primary), 0.3);
+  --neon-glow-secondary: 0 0 30px hsla(var(--secondary), 0.3);
+
+  /* Physics */
+  --spring-physics: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --mesh-gradient: radial-gradient(at 0% 0%, hsla(var(--primary), 0.15) 0, transparent 50%), 
+                   radial-gradient(at 100% 0%, hsla(var(--secondary), 0.1) 0, transparent 50%),
+                   radial-gradient(at 50% 100%, hsla(var(--accent), 0.05) 0, transparent 50%);
 
   /* Responsive Breakpoints */
   --screen-sm: 640px;
@@ -141,6 +152,19 @@ p { font-size: clamp(0.875rem, 1vw + 0.5rem, 1.125rem); line-height: 1.6; }
   transform: translateX(-100%);
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
   animation: shimmer 1.5s infinite;
+}
+
+.vibe-mesh {
+  background: var(--mesh-gradient);
+  background-attachment: fixed;
+}
+
+.vibe-glow {
+  box-shadow: var(--neon-glow-primary);
+}
+
+.vibe-spring {
+  transition: all 0.4s var(--spring-physics);
 }
 
 /* Responsive Display Utilities */
