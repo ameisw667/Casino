@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { 
   Gamepad2, 
@@ -19,15 +18,12 @@ import {
   ZapOff
 } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useCasinoStore } from '@/store/useCasinoStore';
-
 export default function GamesPage() {
   const { isMobile, balance } = useCasinoStore();
   const [activeTab, setActiveTab] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [liveHeat, setLiveStats] = useState({ game: 'CRASH', multiplier: '142x', user: 'VibeCoder' });
-
   useEffect(() => {
     const interval = setInterval(() => {
       const games = ['CRASH', 'DICE', 'ROULETTE', 'SLOTS'];
@@ -40,7 +36,6 @@ export default function GamesPage() {
     }, 4000);
     return () => clearInterval(interval);
   }, []);
-
   const games = [
     { 
       id: 'crash', 
@@ -103,11 +98,9 @@ export default function GamesPage() {
       recommend: true
     },
   ];
-
   const filteredGames = games
     .filter(g => activeTab === 'ALL' || g.category === activeTab)
     .filter(g => g.name.toLowerCase().includes(searchQuery.toLowerCase()));
-
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px', padding: '0 24px 100px' }}>
       
@@ -149,7 +142,6 @@ export default function GamesPage() {
               />
             </div>
           </div>
-
           {!isMobile && (
             <div className="glass" style={{ padding: '32px', borderRadius: '24px', border: '1px solid hsla(var(--primary), 0.2)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
@@ -169,7 +161,6 @@ export default function GamesPage() {
           )}
         </div>
       </header>
-
       {/* Filter Tabs & Stats */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
@@ -207,7 +198,6 @@ export default function GamesPage() {
           </div>
         )}
       </div>
-
       {/* Optimized Game Cards */}
       <div style={{ 
         display: 'grid', 
@@ -215,7 +205,7 @@ export default function GamesPage() {
         gap: '24px' 
       }}>
         {filteredGames.map((game) => (
-          <Link key={game.id} href={game.path} className="glass-card group hover:scale-[1.02] transition-all duration-300" style={{ 
+          <div key={game.id} className="glass-card group hover:scale-[1.02] transition-all duration-300" style={{ 
             textDecoration: 'none', 
             color: 'inherit',
             display: 'flex',
@@ -223,7 +213,8 @@ export default function GamesPage() {
             overflow: 'hidden',
             borderRadius: '32px',
             border: '1px solid hsla(0,0%,100%,0.05)',
-            position: 'relative'
+            position: 'relative',
+            cursor: 'default'
           }}>
             {/* Recommend Badge */}
             {game.recommend && (
@@ -231,14 +222,12 @@ export default function GamesPage() {
                 RECOMMENDED FOR YOU
               </div>
             )}
-
             <div style={{ padding: '24px 24px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'hsl(var(--text-dim))', letterSpacing: '0.1em' }}>{game.studio}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 800, color: 'hsl(45, 100%, 50%)' }}>
                 <Star size={14} fill="currentColor" /> {game.rating}
               </div>
             </div>
-
             <div style={{ padding: '0 24px 24px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
               <div style={{ 
                 width: '120px', 
@@ -271,21 +260,21 @@ export default function GamesPage() {
                   <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#fff' }}>{game.hourly}</div>
                 </div>
               </div>
-
-              <button className="btn btn-primary" style={{ width: '100%', height: '64px', borderRadius: '18px', fontWeight: 950, fontSize: '1.2rem', boxShadow: `0 10px 25px ${game.color}33`, position: 'relative', overflow: 'hidden' }}>
-                <span style={{ position: 'relative', zIndex: 2 }}>START EARNING</span>
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)', transform: 'translateX(-100%)', animation: 'shimmer 2s infinite' }} />
-              </button>
+              <Link href={game.path} style={{ width: '100%', textDecoration: 'none' }}>
+                <button className="btn btn-primary" style={{ width: '100%', height: '64px', borderRadius: '18px', fontWeight: 950, fontSize: '1.2rem', boxShadow: `0 10px 25px ${game.color}33`, position: 'relative', overflow: 'hidden' }}>
+                  <span style={{ position: 'relative', zIndex: 2 }}>START EARNING</span>
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)', transform: 'translateX(-100%)', animation: 'shimmer 2s infinite' }} />
+                </button>
+              </Link>
               
               <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
                 <ShieldCheck size={14} color="hsl(var(--success))" />
                 <span style={{ fontSize: '0.65rem', fontWeight: 900, color: 'hsl(var(--text-dim))' }}>INSTANT PAYOUT VERIFIED</span>
               </div>
             </div>
-          </Link>
+          </div>
         ))}
       </div>
-
       <style>{`
         @keyframes shimmer {
           100% { transform: translateX(100%); }

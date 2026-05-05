@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { 
   X, 
@@ -14,33 +13,33 @@ import {
   Zap
 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
-
 interface WalletModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
 export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
   const { isMobile, balance, addBalance, removeBalance, addToast } = useCasinoStore();
   const [activeTab, setActiveTab] = useState<'deposit' | 'withdraw'>('deposit');
   const [amount, setAmount] = useState('');
+  const [withdrawAddress, setWithdrawAddress] = useState('');
   const [copied, setCopied] = useState(false);
-
   if (!isOpen) return null;
-
-  const cryptoAddress = 'bc1qxy2kg26gr06p74z685r8u85v9j697gh626u0nk';
-
+  // Ideally this would come from an environment variable or server config
+  const CRYPTO_CONFIG = {
+    DEPOSIT_ADDR: process.env.NEXT_PUBLIC_DEPOSIT_ADDRESS || 'bc1qxy2kg26gr06p74z685r8u85v9j697gh626u0nk',
+    WITHDRAW_MIN: 1.00,
+    DEPOSIT_MIN: 0.01
+  };
   const handleCopy = () => {
-    navigator.clipboard.writeText(cryptoAddress);
+    navigator.clipboard.writeText(CRYPTO_CONFIG.DEPOSIT_ADDR);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
     addToast('Address copied to clipboard!', 'info');
   };
-
   const handleDeposit = () => {
     const val = parseFloat(amount);
-    if (isNaN(val) || val <= 0) {
-      addToast('Please enter a valid amount', 'error');
+    if (isNaN(val) || val < 0.01) {
+      addToast('Minimum deposit is $0.01', 'error');
       return;
     }
     addBalance(val);
@@ -48,23 +47,39 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
     setAmount('');
     onClose();
   };
-
   const handleWithdraw = () => {
     const val = parseFloat(amount);
-    if (isNaN(val) || val <= 0) {
-      addToast('Please enter a valid amount', 'error');
+    if (isNaN(val) || val < 1.00) {
+      addToast('Minimum withdrawal is $1.00', 'error');
       return;
     }
+    if (val > balance) {
+      addToast('Insufficient balance!', 'error');
+      return;
+    }
+    // Lever 13: Enhanced Validation
+    const paypalRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const btcRegex = /^(?:[13][a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[ac-hj-np-z02-9]{11,71})$/;
+    const ltcRegex = /^[LM][a-km-zA-HJ-NP-Z1-9]{26,33}$/;
+
+    const isPayPal = paypalRegex.test(withdrawAddress);
+    const isCrypto = btcRegex.test(withdrawAddress) || ltcRegex.test(withdrawAddress);
+
+    if (!isPayPal && !isCrypto) {
+      addToast('Please enter a valid Crypto address or PayPal email', 'error');
+      return;
+    }
+
     const success = removeBalance(val);
     if (success) {
-      addToast(`Withdrawal of $${val.toLocaleString()} initiated!`, 'success');
+      addToast(`Withdrawal of $${val.toLocaleString()} initiated to ${withdrawAddress}!`, 'success');
       setAmount('');
+      setWithdrawAddress('');
       onClose();
     } else {
       addToast('Insufficient balance!', 'error');
     }
   };
-
   return (
     <div style={{ 
       position: 'fixed', 
@@ -105,7 +120,6 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
             <X size={24} />
           </button>
         </div>
-
         {/* Balance Display */}
         <div style={{ padding: isMobile ? '16px 24px' : '24px 32px', textAlign: 'center', background: 'hsla(var(--primary), 0.05)' }}>
           <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'hsl(var(--text-muted))', letterSpacing: '0.1em', marginBottom: '4px' }}>AVAILABLE BALANCE</div>
@@ -113,7 +127,6 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
             ${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </div>
         </div>
-
         {/* Tabs */}
         <div style={{ display: 'flex', padding: isMobile ? '12px 24px' : '12px 32px', gap: '8px' }}>
           <button 
@@ -159,7 +172,6 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
             <ArrowUpRight size={18} /> WITHDRAW
           </button>
         </div>
-
         <div style={{ padding: isMobile ? '24px' : '32px' }}>
           {activeTab === 'deposit' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -167,16 +179,14 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'hsl(var(--text-muted))', marginBottom: '8px', display: 'block' }}>CRYPTO DEPOSIT ADDRESS</label>
                 <div className="glass" style={{ padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '12px', border: '1px solid hsla(0,0%,100%,0.1)' }}>
                   <div className="mono" style={{ flex: 1, fontSize: '0.8rem', wordBreak: 'break-all', color: 'hsl(var(--text-main))' }}>
-                    {cryptoAddress}
+                    {CRYPTO_CONFIG.DEPOSIT_ADDR}
                   </div>
                   <button onClick={handleCopy} className="btn btn-secondary" style={{ padding: '8px', width: '44px', height: '44px', borderRadius: '10px', flexShrink: 0 }}>
                     {copied ? <Check size={18} color="hsl(var(--success))" /> : <Copy size={18} />}
                   </button>
                 </div>
               </div>
-
               <div style={{ height: '1px', background: 'var(--glass-border)' }} />
-
               <div>
                 <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'hsl(var(--text-muted))', marginBottom: '12px', display: 'block' }}>QUICK DEPOSIT</label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '16px' }}>
@@ -222,16 +232,16 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                   ))}
                 </div>
               </div>
-
               <div>
                 <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'hsl(var(--text-muted))', marginBottom: '8px', display: 'block' }}>WITHDRAWAL ADDRESS / EMAIL</label>
                 <input 
                   placeholder="Enter your address..." 
                   className="input"
                   style={{ height: '56px' }}
+                  value={withdrawAddress}
+                  onChange={(e) => setWithdrawAddress(e.target.value)}
                 />
               </div>
-
               <div>
                 <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'hsl(var(--text-muted))', marginBottom: '8px', display: 'block' }}>AMOUNT TO WITHDRAW</label>
                 <div style={{ position: 'relative' }}>
@@ -252,7 +262,6 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                   </button>
                 </div>
               </div>
-
               <div className="glass" style={{ padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid hsla(var(--success), 0.2)', background: 'hsla(var(--success), 0.05)' }}>
                 <Zap size={24} color="hsl(var(--success))" style={{ flexShrink: 0 }} />
                 <div style={{ fontSize: '0.75rem', color: 'hsl(var(--text-main))', lineHeight: 1.4 }}>
@@ -260,7 +269,6 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                   Your funds will be sent immediately to your chosen address.
                 </div>
               </div>
-
               <button onClick={handleWithdraw} className="btn btn-primary" style={{ width: '100%', height: '56px', fontSize: '1.1rem', borderRadius: '16px', fontWeight: 900 }}>
                 WITHDRAW INSTANTLY
               </button>

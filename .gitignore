@@ -39,3 +39,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temp logs
+*.txt
+*.json
+*.mjs
+scratch/
+errors/
+database/
+PRE_PUSH_TEST_PLAN.md
+CASINO_DEBUDGING_CHECKLIST.md
+CASINO_COMMUNITY_CHECKLIST.md
+CASINO_ULTIMATE_MASTER_PLAN.md
+

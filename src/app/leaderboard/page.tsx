@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { 
   Trophy, 
@@ -17,21 +16,17 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
-import Image from 'next/image';
 import Link from 'next/link';
-
 export default function LeaderboardPage() {
   const { isMobile, rank: myRankName, level: myLevel } = useCasinoStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [timeLeft, setTimeLeft] = useState(3600 * 24 * 3 + 42 * 60 + 12); // 3d 42m 12s
-
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(timer);
   }, []);
-
   const formatTime = (seconds: number) => {
     const d = Math.floor(seconds / (3600 * 24));
     const h = Math.floor((seconds % (3600 * 24)) / 3600);
@@ -39,7 +34,6 @@ export default function LeaderboardPage() {
     const s = seconds % 60;
     return `${d}d ${h}h ${m}m ${s}s`;
   };
-
   const leaders = [
     { rank: 1, user: 'VibeCoder', points: '1,240,502', prize: '$2,500', trend: 'up', level: 124, tier: 'Diamond' },
     { rank: 2, user: 'HighRoller', points: '982,110', prize: '$1,200', trend: 'stable', level: 98, tier: 'Platinum' },
@@ -50,7 +44,6 @@ export default function LeaderboardPage() {
     { rank: 7, user: 'Bochmann88', points: '420,100', prize: '$150', trend: 'stable', level: 42, tier: 'Bronze' },
     { rank: 8, user: 'GamerX', points: '310,500', prize: '$100', trend: 'up', level: 31, tier: 'Bronze' },
   ];
-
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px', padding: '0 24px 120px' }}>
       
@@ -91,7 +84,6 @@ export default function LeaderboardPage() {
         <div style={{ position: 'absolute', top: '20px', left: '20px', opacity: 0.05, transform: 'rotate(-15deg)' }}><Crown size={160} /></div>
         <div style={{ position: 'absolute', bottom: '20px', right: '20px', opacity: 0.05, transform: 'rotate(15deg)' }}><Star size={160} /></div>
       </header>
-
       {/* Top 3 Podium */}
       {!isMobile && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1fr', gap: '24px', alignItems: 'flex-end', maxWidth: '1000px', margin: '0 auto 40px', width: '100%' }}>
@@ -126,7 +118,6 @@ export default function LeaderboardPage() {
           </div>
         </div>
       )}
-
       {/* Search and Filters */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', width: isMobile ? '100%' : '400px' }}>
@@ -144,75 +135,75 @@ export default function LeaderboardPage() {
           <span style={{ fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--success))' }}>RANKINGS UPDATE IN REAL-TIME</span>
         </div>
       </div>
-
       {/* Main Rankings Table */}
       <div className="glass-card" style={{ padding: '0', borderRadius: '32px', overflow: 'hidden', border: '1px solid hsla(0,0%,100%,0.05)' }}>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ background: 'hsla(0,0%,100%,0.02)', borderBottom: '1px solid hsla(0,0%,100%,0.05)' }}>
-                <th style={{ padding: '24px', fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-dim))' }}>RANK</th>
-                <th style={{ padding: '24px', fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-dim))' }}>USER</th>
-                <th style={{ padding: '24px', fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-dim))' }}>WAGERED</th>
-                <th style={{ padding: '24px', fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-dim))' }}>PRIZE</th>
-                <th style={{ padding: '24px', fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-dim))' }}>LEVEL</th>
+                <th style={{ padding: isMobile ? '16px' : '24px', fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-dim))' }}>RANK</th>
+                <th style={{ padding: isMobile ? '16px' : '24px', fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-dim))' }}>USER</th>
+                <th style={{ padding: isMobile ? '16px' : '24px', fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-dim))' }}>WAGERED</th>
+                {!isMobile && <th style={{ padding: '24px', fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-dim))' }}>PRIZE</th>}
+                {!isMobile && <th style={{ padding: '24px', fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-dim))' }}>LEVEL</th>}
               </tr>
             </thead>
             <tbody>
               {leaders.map((p) => (
                 <tr key={p.rank} style={{ borderBottom: '1px solid hsla(0,0%,100%,0.03)' }} className="hover:bg-white/5 transition-colors">
-                  <td style={{ padding: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontWeight: 950, fontSize: '1.2rem', width: '24px', color: p.rank <= 3 ? 'hsl(var(--primary))' : 'inherit' }}>{p.rank}</span>
-                      {p.trend === 'up' && <TrendingUp size={14} color="hsl(var(--success))" />}
-                      {p.trend === 'down' && <TrendingDown size={14} color="hsl(var(--error))" />}
+                  <td style={{ padding: isMobile ? '16px' : '24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontWeight: 950, fontSize: isMobile ? '1rem' : '1.2rem', width: '20px', color: p.rank <= 3 ? 'hsl(var(--primary))' : 'inherit' }}>{p.rank}</span>
+                      {p.trend === 'up' && <TrendingUp size={12} color="hsl(var(--success))" />}
                     </div>
                   </td>
-                  <td style={{ padding: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <div style={{ width: '40px', height: '40px', borderRadius: '12px', overflow: 'hidden', background: 'hsla(0,0%,100%,0.05)' }}>
+                  <td style={{ padding: isMobile ? '16px' : '24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '16px' }}>
+                      <div style={{ width: isMobile ? '32px' : '40px', height: isMobile ? '32px' : '40px', borderRadius: '10px', overflow: 'hidden', background: 'hsla(0,0%,100%,0.05)' }}>
                         <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${p.user}`} alt="avatar" />
                       </div>
                       <div>
-                        <div style={{ fontWeight: 900, fontSize: '1rem' }}>{p.user}</div>
-                        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'hsl(var(--primary))', textTransform: 'uppercase' }}>{p.tier} TIER</div>
+                        <div style={{ fontWeight: 900, fontSize: isMobile ? '0.9rem' : '1rem' }}>{p.user}</div>
+                        {!isMobile && <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'hsl(var(--primary))', textTransform: 'uppercase' }}>{p.tier} TIER</div>}
                       </div>
                     </div>
                   </td>
-                  <td style={{ padding: '24px', fontWeight: 800, fontSize: '1.1rem' }}>${p.points}</td>
-                  <td style={{ padding: '24px' }}>
-                    <div style={{ fontWeight: 950, fontSize: '1.1rem', color: 'hsl(var(--success))' }}>{p.prize}</div>
-                  </td>
-                  <td style={{ padding: '24px' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'hsla(0,0%,100%,0.05)', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 900 }}>
-                      LVL {p.level}
-                    </div>
-                  </td>
+                  <td style={{ padding: isMobile ? '16px' : '24px', fontWeight: 800, fontSize: isMobile ? '0.95rem' : '1.1rem' }}>${p.points}</td>
+                  {!isMobile && (
+                    <>
+                      <td style={{ padding: '24px' }}>
+                        <div style={{ fontWeight: 950, fontSize: '1.1rem', color: 'hsl(var(--success))' }}>{p.prize}</div>
+                      </td>
+                      <td style={{ padding: '24px' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'hsla(0,0%,100%,0.05)', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 900 }}>
+                          LVL {p.level}
+                        </div>
+                      </td>
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </div>
-
       {/* Sticky My Rank Bar */}
       <div style={{ 
         position: 'fixed', 
-        bottom: '24px', 
-        left: '50%', 
-        transform: 'translateX(-50%)', 
-        width: 'calc(100% - 48px)', 
-        maxWidth: '1200px', 
-        height: '80px', 
-        background: 'hsl(var(--bg-color))', 
-        borderRadius: '24px', 
-        border: '2px solid hsl(var(--primary))', 
+        bottom: isMobile ? '72px' : '24px', 
+        left: '0', 
+        width: '100%', 
+        background: 'hsla(var(--bg-color), 0.95)', 
+        backdropFilter: 'blur(20px)',
+        borderTop: '2px solid hsl(var(--primary))', 
         zIndex: 500,
-        boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+        boxShadow: '0 -10px 40px rgba(0,0,0,0.5)',
         display: 'flex',
         alignItems: 'center',
-        padding: '0 32px',
-        justifyContent: 'space-between'
+        padding: isMobile ? '12px 16px' : '0 32px',
+        justifyContent: 'space-between',
+        flexDirection: isMobile ? 'row' : 'row',
+        gap: '12px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div style={{ textAlign: 'center' }}>
@@ -232,7 +223,6 @@ export default function LeaderboardPage() {
           </Link>
         </div>
       </div>
-
     </div>
   );
 }

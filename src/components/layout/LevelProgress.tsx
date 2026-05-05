@@ -1,13 +1,10 @@
 'use client';
-
 import React from 'react';
 import { useCasinoStore, RANKS } from '@/store/useCasinoStore';
-import { Star, Shield, Crown, Zap } from 'lucide-react';
-
+import {  Shield, Crown, Zap } from 'lucide-react';
 interface LevelProgressProps {
   isMobile?: boolean;
 }
-
 export default function LevelProgress({ isMobile }: LevelProgressProps) {
   const { level, xp, rank } = useCasinoStore();
   
@@ -20,7 +17,6 @@ export default function LevelProgress({ isMobile }: LevelProgressProps) {
   const progress = Math.min(100, Math.max(0, (xpInCurrentLevel / xpRequiredForNextLevel) * 100));
   
   const currentRank = RANKS.find(r => r.name === rank) || RANKS[0];
-
   return (
     <div 
       className="glass-card hover-lift" 
@@ -71,7 +67,6 @@ export default function LevelProgress({ isMobile }: LevelProgressProps) {
           {level}
         </div>
       </div>
-
       {!isMobile && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '120px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

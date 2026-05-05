@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { 
   ShieldCheck, 
@@ -18,17 +17,52 @@ import {
   Award
 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
-
 export default function FairnessPage() {
   const { provablyFairSettings, setProvablyFairSettings, isMobile } = useCasinoStore();
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState('VERIFIER');
+  const [verificationResult, setVerificationResult] = useState<{ result: number, hash: string } | null>(null);
+
+
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifyNonce, setVerifyNonce] = useState(provablyFairSettings.nonce);
+  const [plainServerSeed, setPlainServerSeed] = useState('');
+
+
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
 
   const copyToClipboard = (text: string) => {
+
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handleVerify = async () => {
+    if (!plainServerSeed) {
+      alert('Please enter the revealed Server Seed (Plain) to verify.');
+      return;
+    }
+    setIsVerifying(true);
+    try {
+      await new Promise(r => setTimeout(r, 800));
+      const { ProvablyFairEngine } = await import('@/lib/casino/provably-fair');
+      
+      const result = await ProvablyFairEngine.calculateOutcome(plainServerSeed, provablyFairSettings.clientSeed, verifyNonce);
+      const hash = await ProvablyFairEngine.generateHMAC(plainServerSeed, `${provablyFairSettings.clientSeed}-${verifyNonce}`);
+      
+      setVerificationResult({ ...result, hash });
+
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
 
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '40px', padding: '0 24px 100px' }}>
@@ -39,25 +73,30 @@ export default function FairnessPage() {
         padding: isMobile ? '48px 24px' : '80px 48px',
         borderRadius: '40px',
         background: 'linear-gradient(135deg, hsla(var(--bg-color), 0.9), hsla(var(--primary), 0.05))',
+        backgroundImage: 'url(/images/fairness-seal-3d.png)',
+        backgroundSize: isMobile ? '50%' : '30%',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: isMobile ? 'bottom -20px right -20px' : 'right 10% center',
         border: '1px solid hsla(var(--primary), 0.2)',
-        textAlign: 'center',
+        textAlign: isMobile ? 'center' : 'left',
         position: 'relative',
         overflow: 'hidden'
       }}>
-        <div style={{ position: 'relative', zIndex: 2 }}>
+        {/* Mobile Overlay */}
+        <div style={{ position: 'absolute', inset: 0, background: isMobile ? 'linear-gradient(to top, hsla(var(--bg-color), 1), transparent)' : 'linear-gradient(to right, hsla(var(--bg-color), 1) 40%, transparent)', zIndex: 1 }} />
+        <div style={{ position: 'relative', zIndex: 2, maxWidth: '800px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'hsla(var(--primary), 0.1)', borderRadius: '12px', color: 'hsl(var(--primary))', fontSize: '0.85rem', fontWeight: 900, marginBottom: '24px' }}>
             <ShieldCheck size={16} /> 100% PROVABLY FAIR
           </div>
           <h1 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 950, lineHeight: 1, fontFamily: "'Outfit', sans-serif", marginBottom: '20px' }}>
-            DON'T TRUST US. <br />
+            DON&apos;T TRUST US. <br />
             <span className="text-gradient">VERIFY US.</span>
           </h1>
-          <p style={{ color: 'hsl(var(--text-muted))', fontSize: '1.2rem', maxWidth: '600px', margin: '0 auto' }}>
+          <p style={{ color: 'hsl(var(--text-muted))', fontSize: '1.2rem', maxWidth: '600px', margin: isMobile ? '0 auto' : '0' }}>
             Our provably fair system uses cryptographic algorithms to ensure that every outcome is pre-determined and unalterable.
           </p>
         </div>
       </header>
-
       {/* Fairness Tool Tabs */}
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
         {['VERIFIER', 'SEEDS', 'WHITEPAPER'].map(t => (
@@ -80,7 +119,6 @@ export default function FairnessPage() {
           </button>
         ))}
       </div>
-
       {/* Main Content Area */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: '40px' }}>
         
@@ -101,9 +139,17 @@ export default function FairnessPage() {
                     <button onClick={() => copyToClipboard(provablyFairSettings.serverSeedHash)} className="btn btn-secondary" style={{ padding: '0 16px' }}><Copy size={18} /></button>
                   </div>
                 </div>
-
                 <div>
-                  <label style={{ fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-dim))', marginBottom: '8px', display: 'block' }}>CLIENT SEED (USER PROVIDED)</label>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-dim))', marginBottom: '8px', display: 'block' }}>SERVER SEED (PLAIN - FROM HISTORY)</label>
+                  <input 
+                    className="input mono" 
+                    placeholder="Enter revealed server seed..."
+                    value={plainServerSeed}
+                    onChange={(e) => setPlainServerSeed(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-dim))', marginBottom: '8px', display: 'block' }}>CLIENT SEED</label>
                   <input 
                     className="input mono" 
                     value={provablyFairSettings.clientSeed} 
@@ -114,10 +160,22 @@ export default function FairnessPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                   <div>
                     <label style={{ fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-dim))', marginBottom: '8px', display: 'block' }}>NONCE</label>
-                    <input className="input mono" readOnly value={provablyFairSettings.nonce} />
+                    <input 
+                      className="input mono" 
+                      type="number"
+                      value={verifyNonce}
+                      onChange={(e) => setVerifyNonce(Number(e.target.value))}
+                    />
                   </div>
-                  <div style={{ textAlign: 'right', display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
-                    <button className="btn btn-primary" style={{ height: '56px', padding: '0 40px', borderRadius: '16px', fontWeight: 950 }}>VERIFY RESULT</button>
+                  <div style={{ textAlign: isMobile ? 'center' : 'right', display: 'flex', alignItems: 'flex-end', justifyContent: isMobile ? 'center' : 'flex-end', gridColumn: isMobile ? 'span 2' : 'auto' }}>
+                    <button 
+                      onClick={handleVerify}
+                      disabled={isVerifying}
+                      className="btn btn-primary" 
+                      style={{ height: '56px', width: isMobile ? '100%' : 'auto', padding: '0 40px', borderRadius: '16px', fontWeight: 950 }}
+                    >
+                      {isVerifying ? 'CALCULATING...' : 'VERIFY RESULT'}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -144,7 +202,33 @@ export default function FairnessPage() {
             </section>
           )}
 
+          {activeTab === 'VERIFIER' && verificationResult && (
+            <section className="glass-card animate-slide-up" style={{ padding: '40px', borderRadius: '40px', border: '1px solid hsla(var(--success), 0.3)', background: 'hsla(var(--success), 0.05)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: 'hsl(var(--success))' }}>VERIFICATION SUCCESSFUL</h3>
+                <CheckCircle2 color="hsl(var(--success))" size={24} />
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '16px' : '32px' }}>
+                <div>
+                  <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'hsl(var(--text-dim))', marginBottom: '8px' }}>DERIVED NUMBER</div>
+                  <div style={{ fontSize: isMobile ? '2rem' : '2.5rem', fontWeight: 950 }}>{verificationResult.result.toFixed(2)}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'hsl(var(--text-dim))', marginBottom: '8px' }}>DERIVED HMAC HASH</div>
+                  <div style={{ fontSize: '0.7rem', fontFamily: 'monospace', color: 'hsl(var(--primary))', wordBreak: 'break-all', maxHeight: isMobile ? '60px' : 'none', overflowY: 'auto' }}>
+                    {verificationResult.hash}
+                  </div>
+                </div>
+              </div>
+              
+              <div style={{ marginTop: '32px', padding: '20px', background: 'rgba(0,0,0,0.2)', borderRadius: '16px', fontSize: '0.85rem' }}>
+                <p>This result was calculated using: <code>HMAC_SHA256(ServerSeed, ClientSeed-Nonce)</code>. The resulting hex was then converted to a number between 0 and 100.</p>
+              </div>
+            </section>
+          )}
           {activeTab === 'SEEDS' && (
+
             <section className="glass-card" style={{ padding: '40px', borderRadius: '40px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                 <h3 style={{ fontSize: '1.5rem', fontWeight: 900 }}>SEED MANAGEMENT</h3>
@@ -163,7 +247,6 @@ export default function FairnessPage() {
             </section>
           )}
         </div>
-
         {/* Right Column: Trust Signals */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           
@@ -186,7 +269,6 @@ export default function FairnessPage() {
               ))}
             </div>
           </section>
-
           {/* Quick Stats */}
           <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
             <h3 style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '24px' }}>FAIRNESS STATS</h3>
@@ -201,7 +283,6 @@ export default function FairnessPage() {
               </div>
             </div>
           </section>
-
           {/* Guarantee Certificate */}
           <div style={{ padding: '32px', borderRadius: '32px', background: 'linear-gradient(135deg, #ffd70033, transparent)', border: '1px solid #ffd70044', textAlign: 'center' }}>
             <Award size={48} color="#ffd700" style={{ margin: '0 auto 16px' }} />
@@ -209,9 +290,7 @@ export default function FairnessPage() {
             <p style={{ fontSize: '0.75rem', color: 'hsl(var(--text-muted))', marginTop: '8px' }}>Mathematically guaranteed to be random and transparent since Day 1.</p>
           </div>
         </div>
-
       </div>
-
       {/* FAQ Section */}
       <section style={{ padding: '60px 0', borderTop: '1px solid hsla(0,0%,100%,0.05)' }}>
         <h3 style={{ fontSize: '2rem', fontWeight: 950, textAlign: 'center', marginBottom: '48px' }}>FREQUENTLY ASKED QUESTIONS</h3>
@@ -229,7 +308,6 @@ export default function FairnessPage() {
           ))}
         </div>
       </section>
-
     </div>
   );
 }

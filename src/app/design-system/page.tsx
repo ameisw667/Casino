@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { 
   Play, 
@@ -20,22 +19,18 @@ import {
 } from 'lucide-react';
 import ProvablyFairTool from '@/components/casino/ProvablyFairTool';
 import { useCasinoStore } from '@/store/useCasinoStore';
-
 export default function DesignSystemPage() {
   const { isMobile } = useCasinoStore();
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
-
   const triggerLoading = () => {
     setLoading(true);
     setTimeout(() => setLoading(false), 2000);
   };
-
   const triggerToast = () => {
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
-
   return (
     <div style={{ padding: isMobile ? '24px 16px' : '40px', maxWidth: '1200px', margin: '0 auto', minHeight: '100vh' }}>
       {showToast && (
@@ -60,14 +55,12 @@ export default function DesignSystemPage() {
           </div>
         </div>
       )}
-
       <header style={{ marginBottom: isMobile ? '40px' : '60px', textAlign: 'center' }}>
-        <h1 className="text-gradient" style={{ fontSize: isMobile ? '2.5rem' : '4rem', marginBottom: '12px', lineHeight: 1 }}>Casino Design System</h1>
+        <h1 className="text-gradient" style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', marginBottom: '12px', lineHeight: 1 }}>Casino Design System</h1>
         <p style={{ color: 'hsl(var(--text-muted))', fontSize: isMobile ? '1rem' : '1.25rem', maxWidth: '600px', margin: '0 auto' }}>
           A premium UI framework built for high-stakes digital experiences.
         </p>
       </header>
-
       <section style={{ marginBottom: isMobile ? '40px' : '80px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
           <h2 style={{ margin: 0, fontSize: isMobile ? '1.25rem' : '1.5rem' }}>1. Brand & Live States</h2>
@@ -88,7 +81,6 @@ export default function DesignSystemPage() {
           ))}
         </div>
       </section>
-
       <section style={{ marginBottom: isMobile ? '40px' : '80px' }}>
         <h2 style={{ marginBottom: '24px', fontSize: isMobile ? '1.25rem' : '1.5rem' }}>2. Interactive Controls</h2>
         <div className="glass-card" style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? '12px' : '20px', alignItems: 'center' }}>
@@ -101,14 +93,12 @@ export default function DesignSystemPage() {
             <Bell size={18} />
             Show Notification
           </button>
-
           <button className="btn btn-ghost" style={{ flex: isMobile ? '1 1 100%' : 'none' }}>
             <Settings size={18} />
             Settings
           </button>
         </div>
       </section>
-
       <section style={{ marginBottom: isMobile ? '40px' : '80px' }}>
         <h2 style={{ marginBottom: '24px', fontSize: isMobile ? '1.25rem' : '1.5rem' }}>3. Data Display & History</h2>
         <div className="responsive-table-container">
@@ -144,14 +134,12 @@ export default function DesignSystemPage() {
           </table>
         </div>
       </section>
-
       <section style={{ marginBottom: isMobile ? '40px' : '80px' }}>
         <h2 style={{ marginBottom: '24px', fontSize: isMobile ? '1.25rem' : '1.5rem' }}>4. Casino Core Modules</h2>
         <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
           <ProvablyFairTool />
         </div>
       </section>
-
       <section style={{ marginBottom: isMobile ? '40px' : '80px' }}>
         <h2 style={{ marginBottom: '24px', fontSize: isMobile ? '1.25rem' : '1.5rem' }}>5. Navigation Primitives</h2>
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '240px 1fr', gap: '24px' }}>
@@ -179,7 +167,6 @@ export default function DesignSystemPage() {
           </div>
         </div>
       </section>
-
       <section style={{ marginBottom: isMobile ? '60px' : '80px' }}>
         <h2 style={{ marginBottom: '24px', fontSize: isMobile ? '1.25rem' : '1.5rem' }}>6. Gamification</h2>
         <div className="grid-cols-auto">
@@ -198,7 +185,6 @@ export default function DesignSystemPage() {
               </div>
             </div>
           </div>
-
           <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ fontWeight: 800, color: 'hsl(var(--accent))', fontSize: '0.75rem' }}>ACHIEVEMENT</div>
             <div className="glass-card" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid hsla(var(--accent), 0.2)' }}>
@@ -213,7 +199,6 @@ export default function DesignSystemPage() {
           </div>
         </div>
       </section>
-
       <footer style={{ marginTop: isMobile ? '40px' : '80px', textAlign: 'center', borderTop: '1px solid var(--glass-border)', paddingTop: '40px', paddingBottom: isMobile ? '80px' : '40px' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: isMobile ? '16px' : '24px', color: 'hsl(var(--text-dim))', fontSize: '0.85rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><ShieldCheck size={16}/> Certified Fair</div>

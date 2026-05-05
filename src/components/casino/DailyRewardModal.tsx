@@ -1,21 +1,17 @@
 'use client';
-
 import React from 'react';
-import { Gift, Star, Zap, CheckCircle2 } from 'lucide-react';
+import { Gift, Zap } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
-
 interface DailyRewardModalProps {
   isOpen: boolean;
   onClose: () => void;
   rewardAmount: number | null;
   streak: number;
 }
-
 export default function DailyRewardModal({ isOpen, onClose, rewardAmount, streak }: DailyRewardModalProps) {
   const { isMobile } = useCasinoStore();
   
   if (!isOpen) return null;
-
   return (
     <div style={{ 
       position: 'fixed', 
@@ -54,10 +50,8 @@ export default function DailyRewardModal({ isOpen, onClose, rewardAmount, streak
         }}>
           <Gift size={40} />
         </div>
-
         <h2 style={{ fontSize: 'clamp(1.5rem, 8vw, 2.5rem)', fontWeight: 900, marginBottom: '8px', fontFamily: "'Outfit', sans-serif" }}>DAILY BONUS</h2>
         <p style={{ color: 'hsl(var(--text-muted))', marginBottom: '32px' }}>Welcome back! Here is your daily login reward.</p>
-
         <div className="glass-card" style={{ padding: '32px', marginBottom: '32px', border: '1px solid hsla(var(--success), 0.2)' }}>
           <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'hsl(var(--success))', textTransform: 'uppercase', marginBottom: '8px' }}>You Received</div>
           <div style={{ fontSize: 'clamp(2rem, 10vw, 3rem)', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
@@ -65,7 +59,6 @@ export default function DailyRewardModal({ isOpen, onClose, rewardAmount, streak
             ${rewardAmount || 0}
           </div>
         </div>
-
         <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginBottom: '40px' }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '1.25rem', fontWeight: 800 }}>{streak} Days</div>
@@ -77,7 +70,6 @@ export default function DailyRewardModal({ isOpen, onClose, rewardAmount, streak
             <div style={{ fontSize: '0.7rem', color: 'hsl(var(--text-muted))', textTransform: 'uppercase' }}>Streak Multiplier</div>
           </div>
         </div>
-
         <button onClick={onClose} className="btn btn-primary" style={{ width: '100%', height: '56px', fontSize: '1.1rem', borderRadius: '16px' }}>
           COLLECT REWARD
         </button>

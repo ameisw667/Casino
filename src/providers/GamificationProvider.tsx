@@ -1,8 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { useCasinoStore } from '@/store/useCasinoStore';
-import { Trophy, Star, Zap } from 'lucide-react';
 
 interface GamificationContextType {
   lastLevelUp: number | null;
@@ -13,15 +12,16 @@ const GamificationContext = createContext<GamificationContextType | undefined>(u
 export function GamificationProvider({ children }: { children: React.ReactNode }) {
   const { level, addToast } = useCasinoStore();
   const [lastLevelUp, setLastLevelUp] = useState<number | null>(null);
-  const [isFirstRender, setIsFirstRender] = useState(true);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
-    if (isFirstRender) {
-      setIsFirstRender(false);
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
       return;
     }
 
     if (level > 1) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLastLevelUp(level);
       addToast(`LEVEL UP! You are now Level ${level} 🚀`, 'success', 5000);
       
@@ -30,7 +30,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
         window.dispatchEvent(new CustomEvent('celebrate-level-up', { detail: { level } }));
       }
     }
-  }, [level]);
+  }, [level, addToast]);
 
   return (
     <GamificationContext.Provider value={{ lastLevelUp }}>

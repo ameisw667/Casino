@@ -1,9 +1,7 @@
 'use client';
-
 import React from 'react';
-import { User, Trophy, Zap, Calendar, TrendingUp, Star, Check, X } from 'lucide-react';
+import { User, Zap, TrendingUp, Star, X } from 'lucide-react';
 import { useCasinoStore, RANKS } from '@/store/useCasinoStore';
-
 interface PlayerProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -11,16 +9,13 @@ interface PlayerProfileModalProps {
   level?: number;
   rank?: string;
 }
-
 export default function PlayerProfileModal({ isOpen, onClose, username: propUsername, level: propLevel, rank: propRank }: PlayerProfileModalProps) {
   const { isMobile, level: storeLevel, rank: storeRank } = useCasinoStore();
   
   const username = propUsername || 'You';
   const level = propLevel || storeLevel;
   const rank = propRank || storeRank;
-
   if (!isOpen) return null;
-
   const mockStats = {
     joinDate: 'Jan 2024',
     totalWagered: '$124,500',
@@ -28,7 +23,6 @@ export default function PlayerProfileModal({ isOpen, onClose, username: propUser
     favoriteGame: 'Crash',
     totalWins: 1420
   };
-
   return (
     <div style={{ 
       position: 'fixed', 
@@ -71,7 +65,6 @@ export default function PlayerProfileModal({ isOpen, onClose, username: propUser
             <X size={24} />
           </button>
         </div>
-
         {/* Profile Info */}
         <div style={{ padding: isMobile ? '0 24px 32px' : '0 40px 40px', marginTop: '-40px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: isMobile ? '16px' : '24px', marginBottom: '32px' }}>
@@ -97,7 +90,6 @@ export default function PlayerProfileModal({ isOpen, onClose, username: propUser
               </div>
             </div>
           </div>
-
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: isMobile ? '12px' : '20px', marginBottom: '32px' }}>
             <div className="glass" style={{ padding: isMobile ? '16px' : '20px', borderRadius: '20px' }}>
               <div style={{ color: 'hsl(var(--text-muted))', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
@@ -112,7 +104,6 @@ export default function PlayerProfileModal({ isOpen, onClose, username: propUser
               <div style={{ fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 900, color: 'hsl(var(--success))' }}>{mockStats.highestWin}</div>
             </div>
           </div>
-
           {/* Perks Section */}
           <div className="glass" style={{ padding: '20px', borderRadius: '24px', marginBottom: '32px', background: 'hsla(var(--primary), 0.05)', border: '1px solid hsla(var(--primary), 0.1)' }}>
             <h4 style={{ fontSize: '0.7rem', fontWeight: 900, color: 'hsl(var(--primary))', letterSpacing: '0.1em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -126,7 +117,6 @@ export default function PlayerProfileModal({ isOpen, onClose, username: propUser
               ))}
             </div>
           </div>
-
           <div style={{ display: 'flex', gap: '12px' }}>
             <button 
               onClick={onClose}

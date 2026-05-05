@@ -1,19 +1,14 @@
 'use client';
-
 import React from 'react';
-import { Target, CheckCircle2, Zap, Trophy } from 'lucide-react';
-import { useCasinoStore, Challenge } from '@/store/useCasinoStore';
-
+import { Target, CheckCircle2, Zap } from 'lucide-react';
+import { useCasinoStore } from '@/store/useCasinoStore';
 interface ChallengesModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
 export default function ChallengesModal({ isOpen, onClose }: ChallengesModalProps) {
   const { isMobile, challenges, claimChallenge } = useCasinoStore();
-
   if (!isOpen) return null;
-
   return (
     <div style={{ 
       position: 'fixed', 
@@ -42,7 +37,6 @@ export default function ChallengesModal({ isOpen, onClose }: ChallengesModalProp
         >
           ✕
         </button>
-
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
           <div style={{ padding: '10px', background: 'hsla(var(--primary), 0.1)', color: 'hsl(var(--primary))', borderRadius: '12px' }}>
             <Target size={28} />
@@ -52,12 +46,10 @@ export default function ChallengesModal({ isOpen, onClose }: ChallengesModalProp
             <p style={{ color: 'hsl(var(--text-muted))', fontSize: '0.75rem' }}>Complete tasks to earn rewards!</p>
           </div>
         </div>
-
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {challenges.map((challenge) => {
             const isComplete = challenge.current >= challenge.target;
             const progress = (challenge.current / challenge.target) * 100;
-
             return (
               <div key={challenge.id} className="glass-card" style={{ 
                 padding: isMobile ? '16px' : '24px', 
@@ -73,7 +65,6 @@ export default function ChallengesModal({ isOpen, onClose }: ChallengesModalProp
                     <Zap size={14} fill="currentColor" /> ${challenge.reward}
                   </div>
                 </div>
-
                 <div style={{ marginBottom: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', fontWeight: 700, marginBottom: '6px' }}>
                     <span style={{ color: isComplete ? 'hsl(var(--success))' : 'hsl(var(--text-muted))' }}>
@@ -90,7 +81,6 @@ export default function ChallengesModal({ isOpen, onClose }: ChallengesModalProp
                     }} />
                   </div>
                 </div>
-
                 {!challenge.isClaimed && (
                   <button 
                     disabled={!isComplete}

@@ -1,10 +1,8 @@
 'use client';
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { TrendingUp, ShieldCheck, Info, RotateCcw, Zap, Rocket, AlertTriangle, History, Target, Users, ArrowUpRight, Coins, Keyboard } from 'lucide-react';
+import { ShieldCheck, Info, Zap, Users } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
-import { ProvablyFairEngine } from '@/lib/casino/provably-fair';
-
+import { GameErrorBoundary } from '@/components/casino/GameErrorBoundary';
 // Types for the particle system
 interface Particle {
   x: number;
@@ -15,29 +13,24 @@ interface Particle {
   color: string;
   size: number;
 }
-
 interface LiveBet {
   user: string;
   amount: number;
   multiplier: number | null;
   payout: number | null;
 }
-
+// Metadata moved to layout or server component
 export default function CrashPage() {
-  const { 
-    isMobile,
-    balance, 
-    removeBalance, 
-    addBalance, 
-    addBet, 
-    calculateXp, 
-    crashHistory,
-    addCrashHistory,
-    provablyFairSettings,
-    setProvablyFairSettings,
-    addToast
-  } = useCasinoStore();
-
+  const isMobile = useCasinoStore(state => state.isMobile);
+  const balance = useCasinoStore(state => state.balance);
+  const crashHistory = useCasinoStore(state => state.crashHistory);
+  const provablyFairSettings = useCasinoStore(state => state.provablyFairSettings);
+  const setProvablyFairSettings = useCasinoStore(state => state.setProvablyFairSettings);
+  const processGameResult = useCasinoStore(state => state.processGameResult);
+  const removeBalance = useCasinoStore(state => state.removeBalance);
+  const addToast = useCasinoStore(state => state.addToast);
+  const isProcessing = useCasinoStore(state => state.isProcessing);
+  const setIsProcessing = useCasinoStore(state => state.setIsProcessing);
   const [betAmount, setBetAmount] = useState(10);
   const [multiplier, setMultiplier] = useState(1.00);
   const [status, setStatus] = useState<'IDLE' | 'RUNNING' | 'CRASHED'>('IDLE');
@@ -50,24 +43,27 @@ export default function CrashPage() {
   
   // Auto-betting state
   const [isAutoBetting, setIsAutoBetting] = useState(false);
-  const [onLoss, setOnLoss] = useState<'RESET' | 'DOUBLE'>('RESET');
-  const [onWin, setOnWin] = useState<'RESET' | 'DOUBLE'>('RESET');
-  const baseBetRef = useRef(10);
-
+  const autoBetSettings = useCasinoStore(state => state.autoBetSettings.crash);
+  const setAutoBetSettings = useCasinoStore(state => state.setAutoBetSettings);
+  const updateAutoSettings = (updater: Partial<typeof autoBetSettings> | ((prev: typeof autoBetSettings) => typeof autoBetSettings)) => {
+    const newSettings = typeof updater === 'function' ? updater(autoBetSettings) : { ...autoBetSettings, ...updater };
+    setAutoBetSettings('crash', newSettings);
+  };
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
   const particlesRef = useRef<Particle[]>([]);
   const lastUpdateRef = useRef<number>(0);
   const pointsRef = useRef<{x: number, y: number}[]>([]);
+  const autoCountRef = useRef<number>(0);
   const crashPointRef = useRef<number>(2.00);
+  const multiplierDisplayRef = useRef<HTMLHeadingElement>(null);
+  const multiplierRef = useRef<number>(1.00);
   
   // Audio Refs (Infrastructure for Lever 13)
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
-
   // Game constants
   const GROWTH_FACTOR = 0.0006; 
   const MAX_POINTS = 500;
-
   // Initialize Audio
   useEffect(() => {
     const sounds = {
@@ -75,13 +71,11 @@ export default function CrashPage() {
       cashout: '/sounds/win.mp3', // Ding
       crash: '/sounds/loss.mp3'   // Explosion
     };
-
     Object.entries(sounds).forEach(([name, url]) => {
       const audio = new Audio(url);
       audio.volume = 0.4;
       audioRefs.current[name] = audio;
     });
-
     return () => {
       Object.values(audioRefs.current).forEach(a => {
         a.pause();
@@ -89,7 +83,6 @@ export default function CrashPage() {
       });
     };
   }, []);
-
   const playSound = (name: string) => {
     const audio = audioRefs.current[name];
     if (audio) {
@@ -97,6 +90,98 @@ export default function CrashPage() {
       audio.play().catch(e => console.warn('Audio playback failed:', e));
     }
   };
+
+  const handleCashout = useCallback((specificMultiplier?: number) => {
+    if (status === 'RUNNING' && !cashoutAt) {
+      const m = specificMultiplier || multiplierRef.current;
+      setCashoutAt(m);
+      setMultiplier(m);
+      const winAmount = betAmount * m;
+      
+      setIsProcessing(true);
+      processGameResult({
+        game: 'CRASH',
+        amount: betAmount,
+        multiplier: m,
+        payout: winAmount,
+        win: true,
+        resultId: Math.random().toString(36),
+        crashMultiplier: m
+      });
+      playSound('cashout');
+      if (m >= 5) {
+        setBigWin({ amount: winAmount, multiplier: m });
+      }
+      if (isAutoBetting) {
+        setBetAmount(autoBetSettings.amount);
+      }
+    }
+  }, [status, cashoutAt, betAmount, processGameResult, isAutoBetting, autoBetSettings.amount]);
+
+  const handleStart = useCallback(async () => {
+    if (status !== 'IDLE') return;
+    
+    if (betAmount < 0.1 || betAmount > 10000) {
+      addToast('Bet amount must be between $0.10 and $10,000!', 'error');
+      return;
+    }
+    
+    // Set status immediately to prevent multiple clicks during async calls
+    setStatus('RUNNING');
+    setIsProcessing(true);
+    
+    if (balance >= betAmount) {
+      const deducted = removeBalance(betAmount);
+      if (!deducted) {
+        setStatus('IDLE');
+        setIsProcessing(false);
+        addToast('Insufficient balance!', 'error');
+        return;
+      }
+      try {
+        const response = await fetch('/api/casino/bet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'START_CRASH',
+            clientSeed: provablyFairSettings.clientSeed,
+            currentNonce: provablyFairSettings.nonce
+          })
+        });
+        if (!response.ok) throw new Error('API failed');
+        const data = await response.json();
+        
+        setProvablyFairSettings({ serverSeedHash: data.hash, nonce: data.nonce });
+        crashPointRef.current = data.crashPoint;
+        multiplierRef.current = 1.00;
+        if (multiplierDisplayRef.current) multiplierDisplayRef.current.innerText = '1.00x';
+        pointsRef.current = [{x: 0, y: 1}];
+        particlesRef.current = [];
+        setCashoutAt(null);
+        setBigWin(null);
+        
+        // Generate initial fake bets
+        const users = ['LuckyShark', 'MoonWalker', 'DegenKing', 'WhaleWatcher', 'CryptoAce', 'VibeCoder', 'AlphaWhale', 'BetMaster'];
+        const initialBets = users.map(u => ({
+          user: u,
+          amount: Math.floor(Math.random() * 500) + 10,
+          multiplier: null,
+          payout: null
+        }));
+        setLiveBets(initialBets);
+        playSound('engine');
+      } catch (error: unknown) {
+        console.error("Crash start error:", error);
+        setStatus('IDLE');
+        setIsProcessing(false);
+        addToast('Failed to start game', 'error');
+      }
+    } else {
+      setStatus('IDLE');
+      setIsAutoBetting(false);
+      addToast('Insufficient balance!', 'error');
+    }
+  }, [status, betAmount, balance, provablyFairSettings, addToast, removeBalance, setIsProcessing, setProvablyFairSettings]);
 
   // Hotkeys
   useEffect(() => {
@@ -111,30 +196,35 @@ export default function CrashPage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [status, betAmount, isAutoBetting]);
-
-  // Generate fake live bets
+  // Handle auto-restart or auto-betting logic
   useEffect(() => {
-    if (status === 'RUNNING') {
-      const users = ['LuckyShark', 'MoonWalker', 'DegenKing', 'WhaleWatcher', 'CryptoAce', 'VibeCoder', 'AlphaWhale', 'BetMaster'];
-      const initialBets = users.map(u => ({
-        user: u,
-        amount: Math.floor(Math.random() * 500) + 10,
-        multiplier: null,
-        payout: null
-      }));
-      setLiveBets(initialBets);
-      playSound('engine');
-    } else if (status === 'IDLE') {
-      setLiveBets([]);
+    if (status === 'IDLE') {
       if (isAutoBetting) {
-        if (balance >= betAmount) {
-          setTimeout(handleStart, 1500);
-        } else {
+        if (autoCountRef.current >= 500) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setIsAutoBetting(false);
+          addToast('Auto-bet stopped: Reached 500 bet limit', 'info');
+          return;
         }
+        if (balance >= betAmount) {
+          autoCountRef.current += 1;
+          setTimeout(handleStart, 2000);
+        } else {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setIsAutoBetting(false);
+          addToast('Auto-bet stopped: Insufficient balance', 'error');
+        }
+      } else {
+        autoCountRef.current = 0; // Reset when disabled
       }
+    } else if (status === 'CRASHED') {
+      const timer = setTimeout(() => {
+        setStatus('IDLE');
+        setLiveBets([]); // Clear live bets on restart
+      }, 3000);
+      return () => clearTimeout(timer);
     }
-  }, [status, isAutoBetting]);
+  }, [status, isAutoBetting, balance, betAmount, addToast, handleStart]);
 
   // Update live bets during game
   useEffect(() => {
@@ -151,35 +241,42 @@ export default function CrashPage() {
     }
   }, [status, multiplier]);
 
+
   // Particle System Logic
   const createExplosion = (x: number, y: number) => {
     const colors = ['#ff4d4d', '#ff944d', '#ffcc00', '#fff', '#ff0000'];
-    for (let i = 0; i < 100; i++) {
+    const MAX_PARTICLES = 200;
+    
+    // Limit existing particles to make room for the explosion
+    if (particlesRef.current.length > MAX_PARTICLES - 50) {
+      particlesRef.current = particlesRef.current.slice(- (MAX_PARTICLES - 50));
+    }
+    for (let i = 0; i < 50; i++) {
       particlesRef.current.push({
         x,
         y,
-        vx: (Math.random() - 0.5) * 25,
-        vy: (Math.random() - 0.5) * 25,
+        vx: (Math.random() - 0.5) * 20,
+        vy: (Math.random() - 0.5) * 20,
         life: 1,
         color: colors[Math.floor(Math.random() * colors.length)],
-        size: Math.random() * 6 + 2
+        size: Math.random() * 5 + 2
       });
     }
     playSound('crash');
   };
-
   const createTail = (x: number, y: number) => {
+    if (particlesRef.current.length > 250) return; // Strict global cap
+    
     particlesRef.current.push({
       x,
       y,
-      vx: -4 - Math.random() * 4,
-      vy: (Math.random() - 0.5) * 4,
-      life: 1,
+      vx: -3 - Math.random() * 3,
+      vy: (Math.random() - 0.5) * 2,
+      life: 0.8,
       color: multiplier > 5 ? 'hsla(280, 100%, 70%, 0.6)' : 'hsla(180, 100%, 50%, 0.4)',
-      size: Math.random() * 5 + 1
+      size: Math.random() * 4 + 1
     });
   };
-
   const updateParticles = (ctx: CanvasRenderingContext2D) => {
     particlesRef.current = particlesRef.current.filter(p => p.life > 0);
     particlesRef.current.forEach(p => {
@@ -194,61 +291,11 @@ export default function CrashPage() {
     });
     ctx.globalAlpha = 1.0;
   };
-
-  const gameLoop = useCallback((timestamp: number) => {
-    if (!lastUpdateRef.current) lastUpdateRef.current = timestamp;
-    const deltaTime = timestamp - lastUpdateRef.current;
-
-    if (status === 'RUNNING') {
-      setMultiplier(prev => {
-        const next = prev + prev * GROWTH_FACTOR * (deltaTime / 16);
-        
-        if (isAutoCashoutEnabled && !cashoutAt && next >= autoCashout) {
-          handleCashout(next);
-        }
-
-        if (next >= crashPointRef.current) {
-          setStatus('CRASHED');
-          addCrashHistory(parseFloat(next.toFixed(2)));
-          
-          if (isAutoBetting && !cashoutAt) {
-            if (onLoss === 'DOUBLE') setBetAmount(b => b * 2);
-            else setBetAmount(baseBetRef.current);
-          }
-
-          const canvas = canvasRef.current;
-          if (canvas) {
-            const dpr = window.devicePixelRatio || 1;
-            const width = canvas.clientWidth;
-            const height = canvas.clientHeight;
-            const scaleX = width / Math.max(100, pointsRef.current.length);
-            const scaleY = height / Math.max(5, next + 1);
-            createExplosion(
-              pointsRef.current.length * scaleX,
-              height - (next - 1) * scaleY
-            );
-          }
-          return next;
-        }
-
-        pointsRef.current.push({ x: pointsRef.current.length, y: next });
-        if (pointsRef.current.length > MAX_POINTS) pointsRef.current.shift();
-        
-        return next;
-      });
-    }
-
-    draw();
-    lastUpdateRef.current = timestamp;
-    animationRef.current = requestAnimationFrame(gameLoop);
-  }, [status, isAutoCashoutEnabled, autoCashout, cashoutAt, isAutoBetting, onLoss, addCrashHistory]);
-
-  const draw = () => {
+  const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
     const dpr = window.devicePixelRatio || 1;
     const displayWidth = canvas.clientWidth;
     const displayHeight = canvas.clientHeight;
@@ -262,7 +309,6 @@ export default function CrashPage() {
     ctx.scale(dpr, dpr);
     const width = displayWidth;
     const height = displayHeight;
-
     ctx.clearRect(0, 0, width, height);
     
     // Draw grid
@@ -274,16 +320,13 @@ export default function CrashPage() {
       const x = (width / 10) * i;
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
     }
-
     if (pointsRef.current.length < 2) {
       updateParticles(ctx);
       ctx.restore();
       return;
     }
-
     const scaleX = width / Math.max(100, pointsRef.current.length);
-    const scaleY = height / Math.max(5, multiplier + 1);
-
+    const scaleY = height / Math.max(5, (multiplierRef.current || 1) + 1);
     // Area
     ctx.beginPath();
     ctx.moveTo(0, height);
@@ -296,7 +339,6 @@ export default function CrashPage() {
     areaGradient.addColorStop(1, 'transparent');
     ctx.fillStyle = areaGradient;
     ctx.fill();
-
     // Main line
     ctx.beginPath();
     ctx.lineWidth = 5;
@@ -305,9 +347,9 @@ export default function CrashPage() {
     
     const gradient = ctx.createLinearGradient(0, height, width, 0);
     gradient.addColorStop(0, 'hsl(180, 100%, 50%)');
-    gradient.addColorStop(1, status === 'CRASHED' ? 'hsl(0, 85%, 60%)' : multiplier > 5 ? 'hsl(300, 100%, 65%)' : 'hsl(200, 100%, 60%)');
+    const m = multiplierRef.current;
+    gradient.addColorStop(1, status === 'CRASHED' ? 'hsl(0, 85%, 60%)' : m > 5 ? 'hsl(300, 100%, 65%)' : 'hsl(200, 100%, 60%)');
     ctx.strokeStyle = gradient;
-
     ctx.moveTo(0, height - (pointsRef.current[0].y - 1) * scaleY);
     pointsRef.current.forEach((p, i) => {
       const x = i * scaleX;
@@ -316,7 +358,6 @@ export default function CrashPage() {
       if (status === 'RUNNING' && i === pointsRef.current.length - 1) createTail(x, y);
     });
     ctx.stroke();
-
     // Rocket
     if (status === 'RUNNING') {
       const last = pointsRef.current[pointsRef.current.length - 1];
@@ -326,82 +367,113 @@ export default function CrashPage() {
       ctx.translate(rocketX, rocketY);
       ctx.rotate(-Math.atan2(scaleY, scaleX) * 1.5);
       ctx.shadowBlur = 30;
-      ctx.shadowColor = multiplier > 5 ? 'magenta' : 'cyan';
+      ctx.shadowColor = multiplierRef.current > 5 ? 'magenta' : 'cyan';
       ctx.fillStyle = '#fff';
       ctx.beginPath(); ctx.ellipse(0, 0, 15, 8, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = 'orange';
       ctx.beginPath(); ctx.moveTo(-15, 0); ctx.lineTo(-28, -6); ctx.lineTo(-22, 0); ctx.lineTo(-28, 6); ctx.closePath(); ctx.fill();
       ctx.restore();
     }
-
     updateParticles(ctx);
     ctx.restore();
-  };
+  }, [multiplier, status]);
+
+  const gameLoopRef = useRef<((ts: number) => void) | null>(null);
+
+  const gameLoop = useCallback((timestamp: number) => {
+
+    if (!lastUpdateRef.current) lastUpdateRef.current = timestamp;
+    const deltaTime = timestamp - lastUpdateRef.current;
+    if (status === 'RUNNING') {
+      const next = multiplierRef.current + multiplierRef.current * GROWTH_FACTOR * (deltaTime / 16);
+      multiplierRef.current = next;
+      // Update UI Ref directly for 60fps performance without re-rendering entire component
+      if (multiplierDisplayRef.current) {
+        multiplierDisplayRef.current.innerText = next.toFixed(2) + 'x';
+        multiplierDisplayRef.current.style.color = next > 5 ? 'hsl(300, 100%, 65%)' : '#fff';
+      }
+      
+      if (isAutoCashoutEnabled && !cashoutAt && next >= autoBetSettings.cashoutAt) {
+        handleCashout(next);
+      }
+      if (next >= crashPointRef.current) {
+        setStatus('CRASHED');
+        setMultiplier(next); // Sync to state once at the end
+        
+        // Use processGameResult for the loss if not cashed out
+        if (!cashoutAt) {
+          processGameResult({
+            game: 'CRASH',
+            amount: betAmount,
+            multiplier: 0,
+            payout: 0,
+            win: false,
+            resultId: Math.random().toString(36),
+            crashMultiplier: parseFloat(next.toFixed(2))
+          });
+          if (isAutoBetting) {
+            if (autoBetSettings.onLoss === 'DOUBLE') setBetAmount(b => b * 2);
+            else setBetAmount(autoBetSettings.amount);
+          }
+        } else {
+          // Just update history for everyone
+          useCasinoStore.getState().processGameResult({
+            game: 'CRASH',
+            amount: 0, 
+            multiplier: 0,
+            payout: 0,
+            win: false,
+            resultId: 'crash-sync',
+            crashMultiplier: parseFloat(next.toFixed(2))
+          });
+        }
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const width = canvas.clientWidth;
+          const height = canvas.clientHeight;
+          const scaleX = width / Math.max(100, pointsRef.current.length);
+          const scaleY = height / Math.max(5, next + 1);
+          createExplosion(
+            pointsRef.current.length * scaleX,
+            height - (next - 1) * scaleY
+          );
+        }
+        return;
+      }
+      pointsRef.current.push({ x: pointsRef.current.length, y: next });
+      if (pointsRef.current.length > MAX_POINTS) pointsRef.current.shift();
+    }
+    draw();
+    lastUpdateRef.current = timestamp;
+    if (gameLoopRef.current) {
+      animationRef.current = requestAnimationFrame(gameLoopRef.current);
+    }
+
+  }, [status, isAutoCashoutEnabled, autoCashout, cashoutAt, isAutoBetting, draw, handleCashout, autoBetSettings, betAmount, processGameResult]);
+
+  useEffect(() => {
+    gameLoopRef.current = gameLoop;
+  }, [gameLoop]);
+
 
   useEffect(() => {
     animationRef.current = requestAnimationFrame(gameLoop);
     return () => { if (animationRef.current) cancelAnimationFrame(animationRef.current); };
   }, [gameLoop]);
 
-  const handleStart = async () => {
-    if (removeBalance(betAmount)) {
-      const { seed, hash } = await ProvablyFairEngine.generateServerSeed();
-      const nonce = provablyFairSettings.nonce + 1;
-      const crashPoint = await ProvablyFairEngine.getCrashMultiplier(seed, provablyFairSettings.clientSeed, nonce);
-      
-      setProvablyFairSettings({ serverSeedHash: hash, nonce });
-      crashPointRef.current = crashPoint;
-      setMultiplier(1.00);
-      pointsRef.current = [{x: 0, y: 1}];
-      particlesRef.current = [];
-      setStatus('RUNNING');
-      setCashoutAt(null);
-      setBigWin(null);
-    } else {
-      setIsAutoBetting(false);
-      addToast('Insufficient balance!', 'error');
-    }
-  };
 
-  const handleCashout = (specificMultiplier?: number) => {
-    if (status === 'RUNNING' && !cashoutAt) {
-      const m = specificMultiplier || multiplier;
-      setCashoutAt(m);
-      const winAmount = betAmount * m;
-      addBalance(winAmount);
-      addBet({
-        id: Math.random().toString(36),
-        time: new Date().toLocaleTimeString(),
-        game: 'CRASH',
-        user: 'You',
-        amount: betAmount,
-        multiplier: m,
-        payout: winAmount,
-        win: true
-      });
-      calculateXp(betAmount);
-      playSound('cashout');
 
-      if (m >= 5) {
-        setBigWin({ amount: winAmount, multiplier: m });
-      }
-
-      if (isAutoBetting) {
-        if (onWin === 'DOUBLE') setBetAmount(b => b * 2);
-        else setBetAmount(baseBetRef.current);
-      }
-    }
-  };
 
   return (
-    <div className="crash-container" style={{ 
-      maxWidth: '1200px', 
-      margin: '0 auto', 
-      display: 'grid', 
-      gridTemplateColumns: isMobile ? '1fr' : '350px 1fr',
-      gap: isMobile ? '16px' : '24px',
-      padding: isMobile ? '12px' : '24px'
-    }}>
+    <GameErrorBoundary gameName="Crash">
+      <div className="crash-container" style={{ 
+        maxWidth: '1200px', 
+        margin: '0 auto', 
+        display: 'grid', 
+        gridTemplateColumns: isMobile ? '1fr' : '350px 1fr',
+        gap: isMobile ? '16px' : '24px',
+        padding: isMobile ? '12px' : '24px'
+      }}>
       <style>{`
         .crash-container {
           max-width: 1200px;
@@ -432,7 +504,6 @@ export default function CrashPage() {
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
       `}</style>
-
       {/* Tutorial Modal */}
       {showTutorial && (
         <div className="big-win-overlay" onClick={() => setShowTutorial(false)}>
@@ -449,7 +520,6 @@ export default function CrashPage() {
           </div>
         </div>
       )}
-
       {/* Big Win Celebration */}
       {bigWin && (
         <div className="big-win-overlay" onClick={() => setBigWin(null)}>
@@ -479,7 +549,28 @@ export default function CrashPage() {
             <Info size={16} />
           </button>
         </div>
-
+        <div style={{ display: 'flex', background: '#0f212e', padding: '4px', borderRadius: '8px' }}>
+          <button 
+            onClick={() => setIsAutoBetting(false)}
+            style={{ 
+              flex: 1, padding: '10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 800,
+              background: !isAutoBetting ? '#2f4553' : 'transparent',
+              color: !isAutoBetting ? '#fff' : '#b1bad3', border: 'none', cursor: 'pointer'
+            }}
+          >
+            Manual
+          </button>
+          <button 
+            onClick={() => setIsAutoBetting(true)}
+            style={{ 
+              flex: 1, padding: '10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 800,
+              background: isAutoBetting ? '#2f4553' : 'transparent',
+              color: isAutoBetting ? '#fff' : '#b1bad3', border: 'none', cursor: 'pointer'
+            }}
+          >
+            Auto
+          </button>
+        </div>
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
             <label style={{ fontSize: '0.65rem', fontWeight: 700, color: 'hsl(var(--text-muted))', letterSpacing: '1px' }}>BET AMOUNT</label>
@@ -495,7 +586,7 @@ export default function CrashPage() {
                 onChange={(e) => {
                   const val = parseFloat(e.target.value) || 0;
                   setBetAmount(val);
-                  if (!isAutoBetting) baseBetRef.current = val;
+                  updateAutoSettings({ amount: val });
                 }} 
               />
               {!isMobile && (
@@ -505,45 +596,49 @@ export default function CrashPage() {
                 </>
               )}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
-              <button className="btn btn-secondary" style={{ fontSize: '0.7rem', minHeight: '36px' }} onClick={() => setBetAmount(prev => prev / 2)}>1/2</button>
-              <button className="btn btn-secondary" style={{ fontSize: '0.7rem', minHeight: '36px' }} onClick={() => setBetAmount(prev => prev * 2)}>2x</button>
-              {[10, 50].map(val => (
-                <button key={val} className="btn btn-secondary" style={{ fontSize: '0.7rem', minHeight: '36px' }} onClick={() => setBetAmount(prev => prev + val)}>+{val}</button>
-              ))}
+          </div>
+        </div>
+        {/* Auto Settings */}
+        {isAutoBetting && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+             <div className="glass" style={{ padding: '12px', borderRadius: '12px' }}>
+              <label style={{ fontSize: '0.65rem', fontWeight: 700, color: 'hsl(var(--text-muted))', display: 'block', marginBottom: '8px' }}>AUTO CASHOUT</label>
+              <input 
+                type="number" 
+                className="input mono" 
+                value={autoBetSettings.cashoutAt} 
+                step="0.1"
+                style={{ fontSize: '0.9rem', width: '100%', minHeight: '40px' }}
+                onChange={(e) => updateAutoSettings({ cashoutAt: parseFloat(e.target.value) || 1.1 })} 
+              />
+            </div>
+            
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button 
+                className="btn btn-secondary" 
+                style={{ flex: 1, fontSize: '0.65rem', background: autoBetSettings.onLoss === 'RESET' ? '#2f4553' : 'transparent' }}
+                onClick={() => updateAutoSettings({ onLoss: 'RESET' })}
+              >
+                ON LOSS: RESET
+              </button>
+              <button 
+                className="btn btn-secondary" 
+                style={{ flex: 1, fontSize: '0.65rem', background: autoBetSettings.onLoss === 'DOUBLE' ? '#2f4553' : 'transparent' }}
+                onClick={() => updateAutoSettings({ onLoss: 'DOUBLE' })}
+              >
+                ON LOSS: 2X
+              </button>
             </div>
           </div>
-        </div>
-
-        {/* Auto Cashout */}
-        <div className="glass" style={{ padding: isMobile ? '12px' : '16px', borderRadius: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '0.7rem', fontWeight: 700, color: isAutoCashoutEnabled ? '#fff' : 'hsl(var(--text-muted))' }}>AUTO CASHOUT</span>
-            <input 
-              type="checkbox" 
-              checked={isAutoCashoutEnabled} 
-              onChange={(e) => setIsAutoCashoutEnabled(e.target.checked)}
-              style={{ width: '18px', height: '18px' }}
-            />
-          </div>
-          <input 
-            type="number" 
-            className="input mono" 
-            disabled={!isAutoCashoutEnabled}
-            value={autoCashout} 
-            step="0.1"
-            style={{ fontSize: '0.9rem', width: '100%', opacity: isAutoCashoutEnabled ? 1 : 0.5, minHeight: '44px' }}
-            onChange={(e) => setAutoCashout(parseFloat(e.target.value) || 1.1)} 
-          />
-        </div>
-
+        )}
         {status !== 'RUNNING' ? (
           <button 
             className="btn btn-primary" 
             style={{ width: '100%', height: isMobile ? '60px' : '70px', fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 900, borderRadius: '20px' }} 
             onClick={handleStart}
+            disabled={isProcessing}
           >
-            {isAutoBetting ? 'AUTO ON' : 'BET'}
+            {isProcessing ? 'PROCESSING...' : isAutoBetting ? 'AUTO ON' : 'BET'}
           </button>
         ) : (
           <button 
@@ -554,17 +649,16 @@ export default function CrashPage() {
               fontSize: isMobile ? '1.25rem' : '1.5rem', 
               fontWeight: 900, 
               borderRadius: '20px',
-              background: cashoutAt ? 'rgba(255,255,255,0.05)' : 'hsl(var(--success))', 
-              boxShadow: cashoutAt ? 'none' : '0 10px 40px hsla(145, 80%, 50%, 0.4)',
+              background: (cashoutAt || isProcessing) ? 'rgba(255,255,255,0.05)' : 'hsl(var(--success))', 
+              boxShadow: (cashoutAt || isProcessing) ? 'none' : '0 10px 40px hsla(145, 80%, 50%, 0.4)',
             }} 
             onClick={() => handleCashout()}
-            disabled={!!cashoutAt}
+            disabled={!!cashoutAt || isProcessing}
           >
-            {cashoutAt ? `WIN $${(betAmount * cashoutAt).toFixed(2)}` : `CASHOUT`}
+            {isProcessing ? 'WAIT...' : cashoutAt ? `WIN $${(betAmount * cashoutAt).toFixed(2)}` : `CASHOUT`}
           </button>
         )}
       </div>
-
       {/* Main Center: Game Area */}
       <div className="game-area" style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '20px', order: isMobile ? 1 : 2 }}>
         <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
@@ -579,7 +673,6 @@ export default function CrashPage() {
             </div>
           ))}
         </div>
-
         <div className="glass-card" style={{ 
           position: 'relative', flex: 1, minHeight: isMobile ? '300px' : 'clamp(300px, 50vh, 550px)', padding: 0, overflow: 'hidden',
           background: 'radial-gradient(circle at 10% 90%, #1a1a1a 0%, #000 100%)',
@@ -589,23 +682,23 @@ export default function CrashPage() {
             position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', 
             textAlign: 'center', zIndex: 10, pointerEvents: 'none', width: '100%'
           }}>
-            <h1 style={{ 
-              fontSize: isMobile ? '4.5rem' : 'min(10rem, 20vw)', fontWeight: 900, color: status === 'CRASHED' ? 'hsl(var(--error))' : '#fff',
-              textShadow: status === 'CRASHED' ? '0 0 80px rgba(231, 76, 60, 0.4)' : '0 0 80px rgba(0, 255, 255, 0.2)',
-              margin: 0, fontFamily: 'Outfit', fontVariantNumeric: 'tabular-nums', lineHeight: 1
-            }}>
+            <h1 
+              ref={multiplierDisplayRef}
+              style={{ 
+                fontSize: isMobile ? '4.5rem' : 'min(10rem, 20vw)', fontWeight: 900, color: status === 'CRASHED' ? 'hsl(var(--error))' : '#fff',
+                textShadow: status === 'CRASHED' ? '0 0 80px rgba(231, 76, 60, 0.4)' : '0 0 80px rgba(0, 255, 255, 0.2)',
+                margin: 0, fontFamily: 'Outfit', fontVariantNumeric: 'tabular-nums', lineHeight: 1
+              }}>
               {multiplier.toFixed(2)}x
             </h1>
             {status === 'CRASHED' && (
-              <div className="animate-slide-up" style={{ fontSize: isMobile ? '1rem' : '1.5rem', fontWeight: 800, color: 'hsl(var(--error))', letterSpacing: isMobile ? '4px' : '8px' }}>
+              <div className="animate-slide-up" style={{ fontSize: isMobile ? '0.85rem' : '1.5rem', fontWeight: 800, color: 'hsl(var(--error))', letterSpacing: isMobile ? '2px' : '8px' }}>
                 CRASHED
               </div>
             )}
           </div>
-
           <canvas ref={canvasRef} width={1200} height={800} style={{ width: '100%', height: '100%', display: 'block' }} />
         </div>
-
         {/* Live Bets */}
         <div className="glass-card" style={{ padding: isMobile ? '16px' : '20px', borderRadius: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
@@ -635,7 +728,6 @@ export default function CrashPage() {
             </table>
           </div>
         </div>
-
         {/* Provably Fair Info in Game Area */}
         <div className="glass-card" style={{ padding: '16px', borderRadius: '16px', marginTop: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -654,13 +746,14 @@ export default function CrashPage() {
             </div>
             <div>
               <div style={{ fontSize: '0.6rem', color: 'hsl(var(--text-dim))', marginBottom: '4px' }}>SERVER SEED HASH</div>
-              <div className="mono" style={{ fontSize: '0.7rem', color: '#fff', wordBreak: 'break-all', background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div className="mono" style={{ fontSize: '0.65rem', color: '#fff', wordBreak: 'break-all', background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', maxHeight: isMobile ? '60px' : 'none', overflowY: 'auto' }}>
                 {provablyFairSettings.serverSeedHash || 'Pending next round...'}
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </GameErrorBoundary>
   );
 }

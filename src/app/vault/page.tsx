@@ -1,6 +1,6 @@
 'use client';
-
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { useRouter } from 'next/navigation';
 import { 
@@ -31,7 +31,6 @@ import {
   CircleDollarSign
 } from 'lucide-react';
 import Link from 'next/link';
-
 export default function VaultPage() {
   const { 
     balance, 
@@ -49,26 +48,28 @@ export default function VaultPage() {
     setOnboardingStep,
     addToast
   } = useCasinoStore();
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
 
   const router = useRouter();
-
   const [opening, setOpening] = useState(false);
   const [reward, setReward] = useState<{reward: number, type: 'balance' | 'xp'} | null>(null);
   const [animationPhase, setAnimationPhase] = useState<'idle' | 'spinning' | 'reveal'>('idle');
-
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isMobile) return;
+    const { clientX, clientY } = e;
+    const moveX = (clientX - window.innerWidth / 2) / 50;
+    const moveY = (clientY - window.innerHeight / 2) / 50;
+    setMousePos({ x: moveX, y: moveY });
+  };
   // Progress Calculation
   const nextLevelXp = Math.pow(level, 2) * 100;
   const progress = Math.min(100, (xp / nextLevelXp) * 100);
-
-  // 4. Auto-trigger Case Opening for Onboarding
-  React.useEffect(() => {
-    if (onboardingStep === 'OPEN_CASE' && inventory.cases > 0 && !opening) {
-      setTimeout(() => {
-        handleOpenCase();
-      }, 1000);
-    }
-  }, [onboardingStep]);
-
   const handleOpenCase = () => {
     setOpening(true);
     setAnimationPhase('spinning');
@@ -92,8 +93,23 @@ export default function VaultPage() {
     }, 3000);
   };
 
+  // 4. Auto-trigger Case Opening for Onboarding
+  React.useEffect(() => {
+    if (onboardingStep === 'OPEN_CASE' && inventory.cases > 0 && !opening) {
+      setTimeout(() => {
+        handleOpenCase();
+      }, 1000);
+    }
+  }, [onboardingStep]);
+
+  if (!mounted) return null;
+
   return (
-    <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px', padding: '0 24px 120px' }}>
+
+    <div 
+      onMouseMove={handleMouseMove}
+      style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px', padding: '0 24px 120px' }}
+    >
       
       {/* Header Profile Dashboard */}
       <header style={{ 
@@ -101,20 +117,24 @@ export default function VaultPage() {
         padding: isMobile ? '32px 20px' : '48px',
         borderRadius: '32px',
         background: 'linear-gradient(135deg, hsla(var(--bg-color), 0.9), hsla(var(--primary), 0.05))',
+        backgroundImage: 'url(/images/vault-door-v2.png)',
+        backgroundSize: '110%',
+        backgroundPosition: `${50 + mousePos.x}% ${50 + mousePos.y}%`,
         border: '1px solid hsla(var(--primary), 0.2)',
-        position: 'relative'
+        position: 'relative',
+        overflow: 'hidden',
+        transition: 'background-position 0.2s ease-out'
       }}>
+        {/* Overlay for readability */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, hsla(var(--bg-color), 1) 20%, transparent 80%)', zIndex: 1 }} />
         {/* Pro Badge */}
         <div style={{ position: 'absolute', top: '24px', right: '24px', padding: '6px 16px', background: 'hsl(var(--primary))', color: 'black', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 950, boxShadow: '0 0 20px hsla(var(--primary), 0.4)' }}>
           PRO ROYALE MEMBER
         </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 2fr', gap: '48px', alignItems: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 2fr', gap: '48px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
           {/* Avatar & XP Hub */}
           <div style={{ textAlign: 'center', position: 'relative' }}>
-            <div style={{ width: '220px', height: '220px', margin: '0 auto', position: 'relative' }}>
-              {/* Circular Progress */}
-              <svg width="220" height="220" viewBox="0 0 100 100" style={{ position: 'absolute', inset: 0 }}>
+              <svg width={isMobile ? "160" : "220"} height={isMobile ? "160" : "220"} viewBox="0 0 100 100" style={{ position: 'absolute', inset: 0 }}>
                 <circle cx="50" cy="50" r="46" fill="none" stroke="hsla(0,0%,100%,0.05)" strokeWidth="4" />
                 <circle cx="50" cy="50" r="46" fill="none" stroke="hsl(var(--primary))" strokeWidth="4" strokeDasharray={`${progress * 2.89} 289`} transform="rotate(-90 50 50)" style={{ transition: 'stroke-dasharray 1s ease' }} />
               </svg>
@@ -126,7 +146,6 @@ export default function VaultPage() {
                   <Camera size={16} color="white" />
                 </div>
               </div>
-
               {/* Level Badge */}
               <div style={{ position: 'absolute', bottom: '10px', right: '10px', width: '48px', height: '48px', borderRadius: '16px', background: 'hsl(var(--primary))', color: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 950, fontSize: '1.2rem', boxShadow: '0 5px 15px rgba(0,0,0,0.3)', border: '4px solid hsl(var(--bg-color))' }}>
                 {level}
@@ -138,7 +157,6 @@ export default function VaultPage() {
               <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'hsl(var(--primary))', marginTop: '4px' }}>GLOBAL RANK: #4,124</div>
             </div>
           </div>
-
           {/* User Stats Dashboard */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
@@ -158,8 +176,7 @@ export default function VaultPage() {
                 <button className="btn btn-primary" style={{ padding: '0 24px', height: '48px', borderRadius: '14px', fontWeight: 900 }}>WITHDRAW</button>
               </div>
             </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: '16px' }}>
               {[
                 { label: 'TOTAL BALANCE', value: `$${balance.toLocaleString()}`, color: 'hsl(var(--primary))', icon: Wallet },
                 { label: 'RAKEBACK', value: `$${rakebackPool.toFixed(2)}`, color: 'hsl(var(--success))', icon: TrendingUp },
@@ -176,8 +193,8 @@ export default function VaultPage() {
               ))}
             </div>
           </div>
-        </div>
       </header>
+
 
       {/* Main Content Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.5fr 1fr', gap: '32px' }}>
@@ -186,15 +203,15 @@ export default function VaultPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           
           {/* Level Roadmap */}
-          <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <section className="glass-card" style={{ padding: 'clamp(24px, 5vw, 32px)', borderRadius: '32px' }}>
+            <h3 style={{ fontSize: 'clamp(1rem, 2.5vw, 1.2rem)', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <TrendingUp color="hsl(var(--primary))" /> LEVEL REWARDS ROADMAP
             </h3>
-            <div style={{ position: 'relative', padding: '20px 0' }}>
+            <div style={{ position: 'relative', padding: '20px 0', overflowX: isMobile ? 'auto' : 'visible', WebkitOverflowScrolling: 'touch' }}>
               <div style={{ position: 'absolute', top: '50%', left: '0', right: '0', height: '4px', background: 'hsla(0,0%,100%,0.05)', borderRadius: '2px' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
                 {[level, level+1, level+2, level+3, level+4].map((l, i) => (
-                  <div key={l} style={{ textAlign: 'center' }}>
+                  <div key={l} style={{ textAlign: 'center', minWidth: isMobile ? '80px' : 'auto' }}>
                     <div style={{ 
                       width: '40px', 
                       height: '40px', 
@@ -218,7 +235,6 @@ export default function VaultPage() {
               </div>
             </div>
           </section>
-
           {/* Quick Actions & Inventory */}
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '32px' }}>
             <div className="glass-card" style={{ padding: '24px', borderRadius: '24px' }}>
@@ -238,7 +254,6 @@ export default function VaultPage() {
                 </div>
               </div>
             </div>
-
             <div className="glass-card" style={{ padding: '24px', borderRadius: '24px' }}>
               <h4 style={{ fontSize: '1rem', fontWeight: 900, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <ShieldCheck size={18} color="hsl(var(--success))" /> SECURITY
@@ -255,7 +270,6 @@ export default function VaultPage() {
               </div>
             </div>
           </div>
-
           {/* Achievement Showroom */}
           <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -265,17 +279,31 @@ export default function VaultPage() {
               <Link href="/history" style={{ fontSize: '0.75rem', fontWeight: 800, color: 'hsl(var(--primary))', textDecoration: 'none' }}>VIEW ALL</Link>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-              {achievements.slice(0, 3).map((ach) => (
-                <div key={ach.id} style={{ padding: '24px', background: 'hsla(0,0%,100%,0.02)', borderRadius: '24px', border: '1px solid hsla(0,0%,100%,0.05)', textAlign: 'center', position: 'relative' }}>
-                  <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>{ach.unlocked ? '🏆' : '🔒'}</div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>{ach.title}</div>
+              {achievements.filter(a => a.id === 'high_roller' || a.id === 'lucky_streak' || a.id === 'moon_shot').map((ach) => (
+                <div key={ach.id} style={{ 
+                  padding: '24px', 
+                  background: ach.unlocked ? 'linear-gradient(135deg, hsla(var(--primary), 0.1), transparent)' : 'hsla(0,0%,100%,0.02)', 
+                  borderRadius: '24px', 
+                  border: `1px solid ${ach.unlocked ? 'hsla(var(--primary), 0.3)' : 'hsla(0,0%,100%,0.05)'}`, 
+                  textAlign: 'center', 
+                  position: 'relative',
+                  opacity: ach.unlocked ? 1 : 0.5
+                }}>
+                  <div style={{ width: '80px', height: '80px', margin: '0 auto 16px', position: 'relative', filter: ach.unlocked ? 'none' : 'grayscale(1) brightness(0.5)' }}>
+                    {ach.icon.startsWith('/') ? (
+                      <Image src={ach.icon} alt={ach.title} fill style={{ objectFit: 'contain' }} />
+                    ) : (
+                      <div style={{ fontSize: '2.5rem' }}>{ach.icon}</div>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 900, color: ach.unlocked ? 'white' : 'hsl(var(--text-dim))' }}>{ach.title}</div>
                   <div style={{ fontSize: '0.65rem', color: 'hsl(var(--text-dim))', marginTop: '4px' }}>{ach.description}</div>
+                  {!ach.unlocked && <Lock size={12} style={{ position: 'absolute', top: '12px', right: '12px', opacity: 0.5 }} />}
                 </div>
               ))}
             </div>
           </section>
         </div>
-
         {/* Right Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           
@@ -293,7 +321,6 @@ export default function VaultPage() {
               <span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
             </div>
           </section>
-
           {/* Quick Withdrawal Hub */}
           <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
             <h3 style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '24px' }}>QUICK CASHOUT</h3>
@@ -309,7 +336,6 @@ export default function VaultPage() {
               ))}
             </div>
           </section>
-
           {/* Settings & Preferences */}
           <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
             <h3 style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '24px' }}>PREFERENCES</h3>
@@ -333,9 +359,7 @@ export default function VaultPage() {
             </div>
           </section>
         </div>
-
       </div>
-
       {/* Opening Animation Overlay */}
       {opening && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

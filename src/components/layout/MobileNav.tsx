@@ -29,7 +29,9 @@ export default function MobileNav() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-around',
-      padding: '0 10px',
+      padding: '0 10px env(safe-area-inset-bottom) 10px',
+      paddingBottom: 'calc(8px + env(safe-area-inset-bottom))',
+
     }}>
       {navItems.map((item, index) => {
         const active = pathname === item.path;

@@ -1,17 +1,21 @@
 import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Inter, Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import MainLayout from "@/components/layout/MainLayout";
-import OnboardingFlow from "@/components/layout/OnboardingFlow";
+import { ClerkProvider } from '@clerk/nextjs';
+import { dark } from '@clerk/themes';
+import ClientShell from "@/components/layout/ClientShell";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
+const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://casino-royale.vibe'),
   title: {
     default: "Casino Royale | Premium Provably Fair Gaming",
     template: "%s | Casino Royale"
   },
+
   description: "The world's most transparent gaming ecosystem. Powered by deep-learning security and the fastest crypto rails in existence. Provably fair, instant payouts, and premium 3D gaming.",
   keywords: ["casino", "crypto", "gambling", "provably fair", "next.js", "premium gaming"],
   authors: [{ name: "Antigravity Team" }],
@@ -52,13 +56,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
-      <body style={{ fontFamily: 'var(--font-inter), sans-serif' }}>
-        <MainLayout>
-          {children}
-        </MainLayout>
-        <OnboardingFlow />
-      </body>
-    </html>
+    <ClerkProvider appearance={{
+      baseTheme: dark,
+      variables: { 
+        colorPrimary: '#FFD700',
+        colorBackground: '#050505',
+        colorText: '#ffffff'
+      },
+      elements: {
+        card: { borderRadius: '24px', border: '1px solid hsla(45, 100%, 50%, 0.2)' },
+        formButtonPrimary: { borderRadius: '12px', textTransform: 'uppercase', fontWeight: 'bold' }
+      }
+    }}>
+      <html lang="en" className={`${inter.variable} ${outfit.variable} ${jetbrains.variable}`} data-scroll-behavior="smooth">
+        <body style={{ fontFamily: 'var(--font-inter), sans-serif', background: '#000' }}>
+          <ClientShell>
+            {children}
+          </ClientShell>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

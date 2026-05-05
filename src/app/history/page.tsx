@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { 
   History, 
@@ -18,19 +17,15 @@ import {
 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import Link from 'next/link';
-
 export default function HistoryPage() {
   const { isMobile, bets } = useCasinoStore();
   const [activeFilter, setActiveFilter] = useState('ALL');
-
   const totalWagered = bets.reduce((acc, bet) => acc + bet.amount, 0);
   const totalPayout = bets.reduce((acc, bet) => acc + bet.payout, 0);
   const netProfit = totalPayout - totalWagered;
   const winCount = bets.filter(b => b.win).length;
   const winRate = bets.length > 0 ? (winCount / bets.length * 100).toFixed(1) : '0.0';
-
   const filters = ['ALL', 'WINS', 'BONUSES', 'CASHOUTS'];
-
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px', padding: '0 24px 100px' }}>
       
@@ -52,8 +47,7 @@ export default function HistoryPage() {
             <Download size={18} /> EXPORT REPORT
           </button>
         </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: '20px' }}>
           {[
             { label: 'TOTAL EARNED', value: `$${totalPayout.toLocaleString()}`, icon: CircleDollarSign, color: 'hsl(var(--primary))' },
             { label: 'NET PROFIT', value: `${netProfit >= 0 ? '+' : '-'}$${Math.abs(netProfit).toLocaleString()}`, icon: TrendingUp, color: netProfit >= 0 ? 'hsl(var(--success))' : 'hsl(var(--error))' },
@@ -72,7 +66,6 @@ export default function HistoryPage() {
           ))}
         </div>
       </header>
-
       {/* Filter Tabs */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none' }}>
@@ -100,7 +93,6 @@ export default function HistoryPage() {
           <Filter size={14} /> FILTERING BY: {activeFilter}
         </div>
       </div>
-
       {bets.length === 0 ? (
         <div className="glass-card flex-center" style={{ minHeight: '400px', flexDirection: 'column', gap: '24px', borderRadius: '40px' }}>
           <div style={{ width: '100px', height: '100px', borderRadius: '32px', background: 'hsla(var(--primary), 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'hsl(var(--text-dim))' }}>
@@ -161,7 +153,6 @@ export default function HistoryPage() {
           </div>
         </div>
       )}
-
       {/* Global Payout Verification Section */}
       <div style={{ 
         padding: '32px', 

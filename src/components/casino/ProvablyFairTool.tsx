@@ -16,11 +16,12 @@ export default function ProvablyFairTool() {
   React.useEffect(() => {
     const calculate = async () => {
       try {
-        const outcome = await ProvablyFairEngine.calculateOutcome(serverSeed, clientSeed, nonce);
-        const dice = (outcome * 100).toFixed(2);
+        const { result } = await ProvablyFairEngine.calculateOutcome(serverSeed, clientSeed, nonce);
+        const dice = (result * 100).toFixed(2);
         const crash = (await ProvablyFairEngine.getCrashMultiplier(serverSeed, clientSeed, nonce)).toFixed(2);
         const slots = await ProvablyFairEngine.getSlotsResult(serverSeed, clientSeed, nonce, 5, 12);
         setResults({ dice, crash, slots });
+
       } catch (e) {
         console.error(e);
       }

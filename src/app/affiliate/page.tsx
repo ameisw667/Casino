@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { 
@@ -9,20 +8,24 @@ import {
   Code, HelpCircle, Star, Crown, X, Send, Phone, ArrowUpRight
 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
-import Link from 'next/link';
-
 export default function AffiliatePage() {
   const { isMobile } = useCasinoStore();
-  const [activeTab, setActiveTab] = useState('OVERVIEW');
-  const [forecastWager, setForecastWager] = useState(10000);
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
+
+  const [activeTab, setActiveTab] = useState('OVERVIEW');
+
+  const [forecastWager, setForecastWager] = useState(10000);
   // Simulated state for inputs
   const [customLink, setCustomLink] = useState('vibe');
   const [landingPage, setLandingPage] = useState('home');
   const [promoCode, setPromoCode] = useState('');
   const [webhookUrl, setWebhookUrl] = useState('');
   const [autoWithdraw, setAutoWithdraw] = useState(true);
-
   // 1. Multi-Tier Dashboard Data
   const stats = {
     clicks: '12,450',
@@ -33,7 +36,10 @@ export default function AffiliatePage() {
     available: '$1,240.50'
   };
 
+  if (!mounted) return null;
+
   return (
+
     <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px', padding: '0 24px 100px' }}>
       
       {/* 25. Monthly Contest Banner */}
@@ -44,7 +50,6 @@ export default function AffiliatePage() {
         </div>
         <button className="btn btn-primary" style={{ padding: '6px 16px', fontSize: '0.75rem' }}>VIEW LEADERBOARD</button>
       </div>
-
       <header style={{ 
         position: 'relative', 
         borderRadius: '32px', 
@@ -65,7 +70,6 @@ export default function AffiliatePage() {
             <p style={{ color: 'hsl(var(--text-muted))', fontSize: '1.1rem', marginBottom: '32px', maxWidth: '500px' }}>
               You are currently a Gold Partner. Earn up to 25% revenue share on every referred player, instantly paid out.
             </p>
-
             {/* 3. Tiered Commission Bar & 11. Partner Level Icons */}
             <div style={{ background: 'hsla(0,0%,0%,0.2)', padding: '24px', borderRadius: '24px', border: '1px solid hsla(0,0%,100%,0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -84,33 +88,49 @@ export default function AffiliatePage() {
               <div style={{ height: '8px', background: 'hsla(0,0%,100%,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{ width: '65%', height: '100%', background: 'linear-gradient(90deg, hsl(45, 100%, 50%), #b9f2ff)' }} />
               </div>
-              <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'hsl(var(--text-dim))', marginTop: '8px', textAlign: 'right' }}>
+              <div style={{ fontSize: isMobile ? '0.6rem' : '0.65rem', fontWeight: 800, color: 'hsl(var(--text-dim))', marginTop: '8px', textAlign: 'right' }}>
                 $6,500 / $10,000 MONTHLY REVENUE
               </div>
             </div>
           </div>
-
           {/* 1. Multi-Tier Dashboard Stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            {[
-              { label: 'TOTAL EARNED', value: stats.totalEarned, color: 'hsl(var(--primary))' },
-              { label: 'AVAILABLE TO CLAIM', value: stats.available, color: 'hsl(var(--success))' },
-              { label: 'TOTAL CLICKS', value: stats.clicks, color: '#fff' },
-              { label: 'ACTIVE REFERRALS', value: stats.activeRefs, color: '#fff' },
-            ].map((s, i) => (
-              <div key={i} className="glass" style={{ padding: '24px', borderRadius: '24px', border: '1px solid hsla(0,0%,100%,0.05)' }}>
-                <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'hsl(var(--text-dim))', letterSpacing: '0.1em', marginBottom: '8px' }}>{s.label}</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 950, color: s.color }}>{s.value}</div>
+          <div style={{ position: 'relative' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', position: 'relative', zIndex: 1 }}>
+              {[
+                { label: 'TOTAL EARNED', value: stats.totalEarned, color: 'hsl(var(--primary))' },
+                { label: 'AVAILABLE TO CLAIM', value: stats.available, color: 'hsl(var(--success))' },
+                { label: 'TOTAL CLICKS', value: stats.clicks, color: '#fff' },
+                { label: 'ACTIVE REFERRALS', value: stats.activeRefs, color: '#fff' },
+              ].map((s, i) => (
+                <div key={i} className="glass" style={{ padding: '24px', borderRadius: '24px', border: '1px solid hsla(0,0%,100%,0.05)' }}>
+                  <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'hsl(var(--text-dim))', letterSpacing: '0.1em', marginBottom: '8px' }}>{s.label}</div>
+                  <div style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 950, color: s.color }}>{s.value}</div>
+                </div>
+              ))}
+              
+              <button className="btn btn-primary" style={{ gridColumn: '1 / -1', height: '56px', borderRadius: '16px', fontWeight: 900 }}>
+                CLAIM $1,240.50 TO VAULT
+              </button>
+            </div>
+            {/* Decorative 3D Asset */}
+            {!isMobile && (
+              <div style={{ 
+                position: 'absolute', 
+                top: '-40px', 
+                right: '-60px', 
+                width: '240px', 
+                height: '240px', 
+                opacity: 0.4, 
+                filter: 'blur(2px)', 
+                pointerEvents: 'none',
+                zIndex: 0
+              }}>
+                <Image src="/images/affiliate-network-3d.png" alt="Affiliate Network" fill style={{ objectFit: 'contain' }} className="animate-float" />
               </div>
-            ))}
-            
-            <button className="btn btn-primary" style={{ gridColumn: '1 / -1', height: '56px', borderRadius: '16px', fontWeight: 900 }}>
-              CLAIM $1,240.50 TO VAULT
-            </button>
+            )}
           </div>
         </div>
       </header>
-
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
         {['OVERVIEW', 'CAMPAIGNS', 'TOOLS & API', 'FAQ & SUPPORT'].map(tab => (
@@ -134,7 +154,6 @@ export default function AffiliatePage() {
           </button>
         ))}
       </div>
-
       {/* TAB CONTENT: OVERVIEW */}
       {activeTab === 'OVERVIEW' && (
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: '32px' }}>
@@ -159,7 +178,6 @@ export default function AffiliatePage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', fontWeight: 800 }}><div style={{ width: '12px', height: '12px', background: 'hsl(var(--success))', borderRadius: '3px' }} /> SIGNUPS</div>
               </div>
             </section>
-
             {/* 7. Active Referrals List & 16. Sub-Affiliate Support */}
             <section className="glass-card" style={{ padding: '0', borderRadius: '32px', overflow: 'hidden' }}>
               <div style={{ padding: '32px 32px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -200,7 +218,6 @@ export default function AffiliatePage() {
               </div>
             </section>
           </div>
-
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
             {/* 4. Live Commission Feed & 17. Granular History */}
             <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
@@ -222,14 +239,13 @@ export default function AffiliatePage() {
                 ))}
               </div>
             </section>
-
             {/* 22. Milestone Rewards */}
             <section className="glass-card" style={{ padding: '32px', borderRadius: '32px', border: '1px solid hsla(var(--primary), 0.3)', background: 'linear-gradient(135deg, hsla(var(--bg-color), 0.9), hsla(var(--primary), 0.05))' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '12px' }}><Gift color="hsl(var(--primary))" /> NEXT MILESTONE</h3>
               </div>
               <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                <div style={{ fontSize: '3rem', fontWeight: 950, color: 'hsl(var(--primary))', lineHeight: 1 }}>$500</div>
+                <div style={{ fontSize: isMobile ? '2.5rem' : '3rem', fontWeight: 950, color: 'hsl(var(--primary))', lineHeight: 1 }}>$500</div>
                 <div style={{ fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-muted))', marginTop: '8px' }}>BONUS REWARD</div>
               </div>
               <div style={{ fontSize: '0.85rem', fontWeight: 800, display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -243,7 +259,6 @@ export default function AffiliatePage() {
           </div>
         </div>
       )}
-
       {/* TAB CONTENT: CAMPAIGNS */}
       {activeTab === 'CAMPAIGNS' && (
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '32px' }}>
@@ -277,7 +292,6 @@ export default function AffiliatePage() {
                 </div>
               </div>
             </section>
-
             {/* 13. Custom Promo Codes */}
             <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}><Gift color="hsl(var(--accent))" /> CREATE PROMO CODE</h3>
@@ -288,7 +302,6 @@ export default function AffiliatePage() {
               </div>
             </section>
           </div>
-
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
             {/* 6. Campaign Tracking */}
             <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
@@ -310,7 +323,6 @@ export default function AffiliatePage() {
                 ))}
               </div>
             </section>
-
             {/* 8. Earning Forecast */}
             <section className="glass-card" style={{ padding: '32px', borderRadius: '32px', background: 'linear-gradient(135deg, hsla(var(--secondary), 0.1), transparent)' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}><TrendingUp color="hsl(var(--secondary))" /> EARNING FORECAST</h3>
@@ -333,7 +345,6 @@ export default function AffiliatePage() {
           </div>
         </div>
       )}
-
       {/* TAB CONTENT: TOOLS & API */}
       {activeTab === 'TOOLS & API' && (
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '32px' }}>
@@ -354,7 +365,6 @@ export default function AffiliatePage() {
                 </button>
               </div>
             </section>
-
             {/* 18. Official Partner Badge */}
             <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}><ShieldCheck color="hsl(var(--success))" /> PARTNER BADGE EMBED</h3>
@@ -371,7 +381,6 @@ export default function AffiliatePage() {
               />
             </section>
           </div>
-
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
             {/* 21. Professional Webhooks */}
             <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
@@ -382,7 +391,6 @@ export default function AffiliatePage() {
                 <button className="btn btn-secondary" style={{ height: '48px', borderRadius: '12px', fontWeight: 900 }}>TEST PAYLOAD</button>
               </div>
             </section>
-
             {/* 10. Auto-Withdraw Settings */}
             <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}><Settings color="hsl(var(--text-dim))" /> AUTO-WITHDRAW</h3>
@@ -399,7 +407,6 @@ export default function AffiliatePage() {
                 </button>
               </div>
             </section>
-
             {/* 19. Referral Messaging */}
             <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}><Send color="hsl(var(--primary))" /> BROADCAST MESSAGE</h3>
@@ -410,7 +417,6 @@ export default function AffiliatePage() {
           </div>
         </div>
       )}
-
       {/* TAB CONTENT: FAQ & SUPPORT */}
       {activeTab === 'FAQ & SUPPORT' && (
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '32px' }}>
@@ -433,7 +439,6 @@ export default function AffiliatePage() {
                 ))}
               </div>
             </section>
-
             {/* 24. Program Comparison */}
             <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}><ShieldCheck color="hsl(var(--success))" /> WHY CHOOSE US</h3>
@@ -462,7 +467,6 @@ export default function AffiliatePage() {
               </table>
             </section>
           </div>
-
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
             {/* 23. Affiliate Manager Contact */}
             <section className="glass-card" style={{ padding: '32px', borderRadius: '32px', background: 'linear-gradient(135deg, hsla(var(--accent), 0.1), transparent)', border: '1px solid hsla(var(--accent), 0.2)' }}>
@@ -479,7 +483,6 @@ export default function AffiliatePage() {
                 <button className="btn btn-secondary" style={{ flex: 1, borderRadius: '12px', fontWeight: 900 }}>EMAIL</button>
               </div>
             </section>
-
             {/* 15. Affiliate FAQ */}
             <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}><HelpCircle color="hsl(var(--text-dim))" /> PARTNER FAQ</h3>
@@ -499,7 +502,6 @@ export default function AffiliatePage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

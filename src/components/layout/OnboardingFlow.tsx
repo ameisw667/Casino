@@ -2,19 +2,39 @@
 
 import React, { useState, useEffect } from 'react';
 import { useCasinoStore } from '@/store/useCasinoStore';
-import { Gift, ArrowRight, ShieldCheck, Zap, Rocket, Users, ChevronRight, X } from 'lucide-react';
+import { Gift, ArrowRight, ShieldCheck, Zap, Users, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { SignInButton, SignUpButton, useAuth } from '@clerk/nextjs';
 
 export default function OnboardingFlow() {
   const { onboardingStep, setOnboardingStep, isMobile } = useCasinoStore();
+  const { isSignedIn, isLoaded } = useAuth();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
-  if (!mounted || onboardingStep === 'NONE' || onboardingStep === 'COMPLETED') return null;
+  // 8. Background Scroll Lock implementation
+  useEffect(() => {
+    if (onboardingStep !== 'NONE' && onboardingStep !== 'COMPLETED') {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [onboardingStep]);
+
+  // 7 & 30. Skip Login if already signed in
+  useEffect(() => {
+    if (isLoaded && isSignedIn && (onboardingStep === 'LOGIN' || onboardingStep === 'WELCOME')) {
+      setOnboardingStep('TOUR_VAULT');
+    }
+  }, [isLoaded, isSignedIn, onboardingStep, setOnboardingStep]);
+
+  if (!mounted || !isLoaded || onboardingStep === 'NONE' || onboardingStep === 'COMPLETED') return null;
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, pointerEvents: 'none' }}>
@@ -33,41 +53,69 @@ export default function OnboardingFlow() {
       {/* Phase 1: WELCOME */}
       {onboardingStep === 'WELCOME' && (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', pointerEvents: 'auto' }}>
-          <div className="glass-card animate-slide-up" style={{ maxWidth: '500px', width: '100%', textAlign: 'center', padding: '48px 32px', border: '2px solid hsl(var(--primary))', boxShadow: '0 0 50px hsla(var(--primary), 0.3)' }}>
+          <div className="glass-card animate-slide-up" style={{ maxWidth: '500px', width: '100%', textAlign: 'center', padding: '48px 32px', border: '2px solid hsl(var(--primary))', boxShadow: '0 0 50px hsla(var(--primary), 0.3)', position: 'relative' }}>
+            <button 
+              onClick={() => setOnboardingStep('NONE')}
+              style={{ position: 'absolute', top: '20px', right: '20px', background: 'transparent', border: 'none', color: 'hsl(var(--text-dim))', cursor: 'pointer', zIndex: 10 }}
+              className="hover:text-white transition-colors"
+            >
+              <X size={24} />
+            </button>
             <div className="case-bounce" style={{ marginBottom: '32px' }}>
               <div style={{ position: 'relative', display: 'inline-block' }}>
                 <Gift size={120} color="hsl(var(--primary))" />
                 <div style={{ position: 'absolute', top: '-10px', right: '-20px', background: '#fff', color: 'black', padding: '8px 16px', borderRadius: '12px', fontWeight: 950, transform: 'rotate(15deg)', border: '2px solid hsl(var(--primary))' }}>$10.00 FREE</div>
               </div>
             </div>
-            <h2 style={{ fontSize: '2.5rem', fontWeight: 950, marginBottom: '16px', fontFamily: "'Outfit', sans-serif" }}>IT'S RESERVED!</h2>
-            <p style={{ color: 'hsl(var(--text-muted))', fontSize: '1.1rem', marginBottom: '32px' }}>We've reserved your $10.00 Welcome Case. Claim it now and start building your empire.</p>
-            <button 
-              onClick={() => setOnboardingStep('LOGIN')}
-              className="btn btn-primary" 
-              style={{ width: '100%', height: '64px', borderRadius: '16px', fontWeight: 950, fontSize: '1.2rem', gap: '12px' }}
-            >
-              CLAIM MY CASE NOW <ArrowRight size={24} />
-            </button>
+            <h2 style={{ fontSize: '2.5rem', fontWeight: 950, marginBottom: '16px', fontFamily: "'Outfit', sans-serif" }}>IT&apos;S RESERVED!</h2>
+            <p style={{ color: 'hsl(var(--text-muted))', fontSize: '1.1rem', marginBottom: '32px' }}>We&apos;ve reserved your $10.00 Welcome Case. Claim it now and start building your empire.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button 
+                onClick={() => setOnboardingStep('LOGIN')}
+                className="btn btn-primary" 
+                style={{ width: '100%', height: '64px', borderRadius: '16px', fontWeight: 950, fontSize: '1.2rem', gap: '12px' }}
+              >
+                CLAIM MY CASE NOW <ArrowRight size={24} />
+              </button>
+              <button 
+                onClick={() => setOnboardingStep('NONE')}
+                style={{ background: 'transparent', border: 'none', color: 'hsl(var(--text-dim))', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: '8px' }}
+                className="hover:text-white transition-colors"
+              >
+                I DON&apos;T WANT FREE MONEY, SKIP THIS
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Phase 2: LOGIN (Simulated) */}
+      {/* Phase 2: LOGIN (Real Auth) */}
       {onboardingStep === 'LOGIN' && (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', pointerEvents: 'auto' }}>
-          <div className="glass-card animate-scale-in" style={{ maxWidth: '450px', width: '100%', padding: '40px', textAlign: 'center' }}>
+          <div className="glass-card animate-scale-in" style={{ maxWidth: '450px', width: '100%', padding: '40px', textAlign: 'center', position: 'relative' }}>
+            <button 
+              onClick={() => setOnboardingStep('NONE')}
+              style={{ position: 'absolute', top: '20px', right: '20px', background: 'transparent', border: 'none', color: 'hsl(var(--text-dim))', cursor: 'pointer', zIndex: 10 }}
+              className="hover:text-white transition-colors"
+            >
+              <X size={24} />
+            </button>
             <h3 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '32px' }}>ONE-CLICK CLAIM</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <button onClick={() => setOnboardingStep('TOUR_VAULT')} className="btn btn-secondary" style={{ height: '60px', borderRadius: '16px', background: '#fff', color: 'black', border: 'none', fontWeight: 800 }}>
-                <img src="https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png" alt="Google" style={{ width: '20px', marginRight: '12px' }} /> SIGN UP WITH GOOGLE
-              </button>
-              <button onClick={() => setOnboardingStep('TOUR_VAULT')} className="btn btn-secondary" style={{ height: '60px', borderRadius: '16px', background: '#5865F2', color: 'white', border: 'none', fontWeight: 800 }}>
-                <Users size={20} style={{ marginRight: '12px' }} /> SIGN UP WITH DISCORD
-              </button>
+              <SignInButton mode="modal">
+                <button className="btn btn-secondary" style={{ height: '60px', borderRadius: '16px', background: '#fff', color: 'black', border: 'none', fontWeight: 800 }}>
+                  <img src="https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png" alt="Google" style={{ width: '20px', marginRight: '12px' }} /> SIGN UP WITH GOOGLE
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="btn btn-secondary" style={{ height: '60px', borderRadius: '16px', background: '#5865F2', color: 'white', border: 'none', fontWeight: 800 }}>
+                  <Users size={20} style={{ marginRight: '12px' }} /> SIGN UP WITH DISCORD
+                </button>
+              </SignUpButton>
               <div style={{ margin: '8px 0', fontSize: '0.7rem', color: 'hsl(var(--text-dim))', fontWeight: 800 }}>OR USE YOUR EMAIL</div>
-              <input className="input" placeholder="Enter email address" style={{ height: '56px', borderRadius: '16px' }} />
-              <button onClick={() => setOnboardingStep('TOUR_VAULT')} className="btn btn-primary" style={{ height: '56px', borderRadius: '16px', fontWeight: 900 }}>CREATE FREE ACCOUNT</button>
+              <SignUpButton mode="modal">
+                <button className="btn btn-primary" style={{ height: '56px', borderRadius: '16px', fontWeight: 900 }}>CREATE FREE ACCOUNT</button>
+              </SignUpButton>
             </div>
             <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'center', gap: '16px', opacity: 0.6 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.65rem', fontWeight: 800 }}><ShieldCheck size={14} /> NO KYC</div>
@@ -135,4 +183,4 @@ export default function OnboardingFlow() {
       `}</style>
     </div>
   );
-}
+}

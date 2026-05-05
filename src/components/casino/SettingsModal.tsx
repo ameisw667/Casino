@@ -1,19 +1,14 @@
 'use client';
-
 import React from 'react';
-import { X, Settings, Volume2, Shield, Eye, EyeOff, Layout } from 'lucide-react';
+import { X, Settings, Shield, EyeOff, Layout } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
-
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
 export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { isMobile } = useCasinoStore();
-
   if (!isOpen) return null;
-
   return (
     <div style={{ 
       position: 'fixed', 
@@ -54,7 +49,6 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             <X size={24} />
           </button>
         </div>
-
         <div style={{ padding: isMobile ? '24px' : '32px', display: 'flex', flexDirection: 'column', gap: isMobile ? '24px' : '32px' }}>
           {/* Privacy Section */}
           <section>
@@ -85,7 +79,6 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               </div>
             </div>
           </section>
-
           {/* Localization Section */}
           <section>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
@@ -113,7 +106,6 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </div>
           </section>
         </div>
-
         <div style={{ padding: isMobile ? '24px' : '32px', background: 'hsla(0,0%,100%,0.02)', borderTop: '1px solid var(--glass-border)', textAlign: 'center' }}>
           <button onClick={onClose} className="btn btn-primary" style={{ width: '100%', height: '56px', borderRadius: '16px', fontSize: '1.1rem' }}>
             SAVE CHANGES

@@ -1,25 +1,19 @@
 'use client';
-
 import React from 'react';
-import { X, Trophy, Star, Zap, Gift, ShieldCheck, TrendingUp, Info } from 'lucide-react';
+import { X, Trophy, Star, Info } from 'lucide-react';
 import { useCasinoStore, RANKS } from '@/store/useCasinoStore';
-
 interface RankBenefitsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
 export default function RankBenefitsModal({ isOpen, onClose }: RankBenefitsModalProps) {
   const { isMobile, level, xp, rank } = useCasinoStore();
-
   if (!isOpen) return null;
-
   const currentRankIndex = RANKS.findIndex(r => r.name === rank);
   const nextRank = RANKS[currentRankIndex + 1];
   
   const nextLevelXp = Math.pow(level, 2) * 100;
   const progress = Math.min(100, (xp / nextLevelXp) * 100);
-
   return (
     <div style={{ 
       position: 'fixed', 
@@ -60,7 +54,6 @@ export default function RankBenefitsModal({ isOpen, onClose }: RankBenefitsModal
             <X size={24} />
           </button>
         </div>
-
         <div style={{ padding: isMobile ? '24px' : '32px', display: 'flex', flexDirection: 'column', gap: isMobile ? '24px' : '32px' }}>
           {/* Current Status */}
           <div className="glass-card" style={{ padding: isMobile ? '24px' : '32px', display: 'flex', flexDirection: 'column', gap: '20px', border: '1px solid hsla(var(--primary), 0.2)', position: 'relative', overflow: 'hidden' }}>
@@ -79,11 +72,9 @@ export default function RankBenefitsModal({ isOpen, onClose }: RankBenefitsModal
                 <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'hsl(var(--text-muted))' }}>TO NEXT RANK</div>
               </div>
             </div>
-
             <div style={{ width: '100%', height: '10px', background: 'hsla(0,0%,100%,0.05)', borderRadius: '5px', overflow: 'hidden', position: 'relative', zIndex: 1 }}>
               <div style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(var(--secondary)))', borderRadius: '5px', boxShadow: '0 0 20px hsla(var(--primary), 0.5)' }} />
             </div>
-
             {nextRank && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'hsl(var(--text-dim))', position: 'relative', zIndex: 1 }}>
                 <Info size={14} />
@@ -91,7 +82,6 @@ export default function RankBenefitsModal({ isOpen, onClose }: RankBenefitsModal
               </div>
             )}
           </div>
-
           {/* Rank Tiers Grid */}
           <section>
             <div style={{ fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-muted))', letterSpacing: '0.1em', marginBottom: '16px' }}>VIP PRIVILEGES</div>
@@ -137,7 +127,6 @@ export default function RankBenefitsModal({ isOpen, onClose }: RankBenefitsModal
             </div>
           </section>
         </div>
-
         <div style={{ padding: isMobile ? '24px' : '32px', background: 'hsla(0,0%,100%,0.02)', borderTop: '1px solid var(--glass-border)', textAlign: 'center' }}>
           <button onClick={onClose} className="btn btn-primary" style={{ width: '100%', height: '56px', borderRadius: '16px', fontSize: '1.1rem' }}>
             BACK TO CASINO

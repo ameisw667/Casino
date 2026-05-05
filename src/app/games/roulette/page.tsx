@@ -1,39 +1,24 @@
 'use client';
-
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  CircleDollarSign, 
-  ShieldCheck, 
   RotateCcw, 
-  Zap, 
   History, 
-  TrendingUp, 
-  Info,
-  ChevronRight,
   Dices,
   Trash2,
   Undo2,
-  Trophy,
-  Activity,
-  BarChart3,
   Settings,
-  Volume2,
-  VolumeX,
-  FastForward,
-  Star
+  FastForward
 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
-import { ProvablyFairEngine } from '@/lib/casino/provably-fair';
-
+import { CasinoCore } from '@/lib/casino/casino-core';
+import { GameErrorBoundary } from '@/components/casino/GameErrorBoundary';
+import { soundManager } from '@/lib/casino/sound-manager';
 // --- Constants & Types ---
-
 type Color = 'RED' | 'BLACK' | 'GREEN';
-
 interface RouletteNumber {
   n: number;
   c: Color;
 }
-
 const ROULETTE_NUMBERS: RouletteNumber[] = [
   { n: 0, c: 'GREEN' }, { n: 32, c: 'RED' }, { n: 15, c: 'BLACK' }, { n: 19, c: 'RED' }, { n: 4, c: 'BLACK' },
   { n: 21, c: 'RED' }, { n: 2, c: 'BLACK' }, { n: 25, c: 'RED' }, { n: 17, c: 'BLACK' }, { n: 34, c: 'RED' },
@@ -44,9 +29,7 @@ const ROULETTE_NUMBERS: RouletteNumber[] = [
   { n: 29, c: 'BLACK' }, { n: 7, c: 'RED' }, { n: 28, c: 'BLACK' }, { n: 12, c: 'RED' }, { n: 35, c: 'BLACK' },
   { n: 3, c: 'RED' }, { n: 26, c: 'BLACK' }
 ];
-
 const WHEEL_ORDER = [...ROULETTE_NUMBERS];
-
 type BetType = 
   | { type: 'STRAIGHT', value: number }
   | { type: 'COLOR', value: Color }
@@ -55,23 +38,18 @@ type BetType =
   | { type: 'DOZEN', value: 1 | 2 | 3 }
   | { type: 'COLUMN', value: 1 | 2 | 3 }
   | { type: 'FRENCH', value: 'VOISINS' | 'TIERS' | 'ORPHELINS' };
-
 interface BetPlacement {
   id: string;
   type: BetType;
   amount: number;
 }
-
 const CHIPS = [1, 5, 10, 50, 100, 500, 1000];
-
 const FRENCH_BETS_MAP = {
   VOISINS: [22, 18, 29, 7, 28, 12, 35, 3, 26, 0, 32, 15, 19, 4, 21, 2, 25],
   TIERS: [27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33],
   ORPHELINS: [1, 20, 14, 31, 9, 17, 34, 6]
 };
-
 // --- Helper Components ---
-
 const Chip = ({ amount, size = 32, onClick, active, stacked = false, index = 0, vipLevel = 1 }: { 
   amount: number, size?: number, onClick?: () => void, active?: boolean, stacked?: boolean, index?: number, vipLevel?: number 
 }) => {
@@ -83,9 +61,7 @@ const Chip = ({ amount, size = 32, onClick, active, stacked = false, index = 0, 
     if (amt >= 10) return '#e74c3c'; 
     return '#ecf0f1'; 
   };
-
   const stackCount = stacked ? 1 : Math.min(6, Math.max(1, Math.floor(Math.log10(amount / 5 + 1)) + 1));
-
   return (
     <div style={{ position: 'relative', width: size, height: size, zIndex: stacked ? 50 - index : 10 }}>
       {[...Array(stackCount)].map((_, i) => (
@@ -116,12 +92,22 @@ const Chip = ({ amount, size = 32, onClick, active, stacked = false, index = 0, 
     </div>
   );
 };
-
+// Metadata moved to layout or server component
 export default function RoulettePage() {
-  const { isMobile, balance, removeBalance, addBalance, addBet, calculateXp, level, xp, provablyFairSettings, setProvablyFairSettings } = useCasinoStore();
+  const isMobile = useCasinoStore(state => state.isMobile);
+  const balance = useCasinoStore(state => state.balance);
+  const provablyFairSettings = useCasinoStore(state => state.provablyFairSettings);
+  const setProvablyFairSettings = useCasinoStore(state => state.setProvablyFairSettings);
+  const processGameResult = useCasinoStore(state => state.processGameResult);
+  const removeBalance = useCasinoStore(state => state.removeBalance);
+  const addToast = useCasinoStore(state => state.addToast);
+  const level = useCasinoStore(state => state.level);
+  const xp = useCasinoStore(state => state.xp);
+  const isProcessing = useCasinoStore(state => state.isProcessing);
+  const setIsProcessing = useCasinoStore(state => state.setIsProcessing);
   
   const [currentBets, setCurrentBets] = useState<BetPlacement[]>([]);
-  const [lastBets, setLastBets] = useState<BetPlacement[]>([]);
+  const [hoveredArea, setHoveredArea] = useState<BetType | null>(null);
   const [betHistory, setBetHistory] = useState<BetPlacement[][]>([]);
   const [selectedChip, setSelectedChip] = useState(10);
   const [spinning, setSpinning] = useState(false);
@@ -131,12 +117,6 @@ export default function RoulettePage() {
   const [wheelRotation, setWheelRotation] = useState(0);
   const [ballRotation, setBallRotation] = useState(0);
   const [lastWin, setLastWin] = useState<number | null>(null);
-  const [hoveredArea, setHoveredArea] = useState<BetType | null>(null);
-  const [nextSeedHash, setNextSeedHash] = useState(Math.random().toString(36).substring(2, 15));
-
-  const [sessionWagered, setSessionWagered] = useState(0);
-  const [sessionWins, setSessionWins] = useState(0);
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (spinning) return;
@@ -146,153 +126,144 @@ export default function RoulettePage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [spinning, currentBets]);
-
   const totalWagered = useMemo(() => currentBets.reduce((acc, bet) => acc + bet.amount, 0), [currentBets]);
-
   const estProfit = useMemo(() => {
     let maxWin = 0;
     for (let i = 0; i <= 36; i++) {
       let currentNumWin = 0;
       currentBets.forEach(bet => {
-        if (isWinForNumber(bet.type, i)) {
-          currentNumWin += bet.amount * getMultiplier(bet.type);
+        if (CasinoCore.isRouletteWin(bet.type, i)) {
+          currentNumWin += bet.amount * CasinoCore.getRouletteMultiplier(bet.type);
         }
       });
       if (currentNumWin > maxWin) maxWin = currentNumWin;
     }
     return maxWin;
   }, [currentBets]);
-
-  function isWinForNumber(bet: BetType, n: number): boolean {
-    const numData = ROULETTE_NUMBERS.find(rn => rn.n === n)!;
-    switch (bet.type) {
-      case 'STRAIGHT': return n === bet.value;
-      case 'COLOR': return numData.c === bet.value;
-      case 'EVEN_ODD': return n === 0 ? false : (bet.value === 'EVEN' ? n % 2 === 0 : n % 2 !== 0);
-      case 'RANGE': return n === 0 ? false : (bet.value === '1-18' ? (n >= 1 && n <= 18) : (n >= 19 && n <= 36));
-      case 'DOZEN': return n === 0 ? false : Math.ceil(n / 12) === bet.value;
-      case 'COLUMN': return n === 0 ? false : ((n - 1) % 3) + 1 === bet.value;
-      case 'FRENCH': return FRENCH_BETS_MAP[bet.value].includes(n);
-    }
-    return false;
-  }
-
-  function getMultiplier(bet: BetType): number {
-    switch (bet.type) {
-      case 'STRAIGHT': return 36;
-      case 'COLOR': return 2;
-      case 'EVEN_ODD': return 2;
-      case 'RANGE': return 2;
-      case 'DOZEN': return 3;
-      case 'COLUMN': return 3;
-      case 'FRENCH': {
-        const count = FRENCH_BETS_MAP[bet.value].length;
-        return 36 / count;
-      }
-    }
-    return 0;
-  }
-
   const handlePlaceBet = (type: BetType) => {
     if (spinning) return;
     if (balance < selectedChip) return;
-
-    if (removeBalance(selectedChip)) {
-      setBetHistory([...betHistory, [...currentBets]]);
-      const existingBetIndex = currentBets.findIndex(b => JSON.stringify(b.type) === JSON.stringify(type));
-      if (existingBetIndex > -1) {
-        const newBets = [...currentBets];
-        newBets[existingBetIndex].amount += selectedChip;
-        setCurrentBets(newBets);
-      } else {
-        setCurrentBets([...currentBets, { id: Math.random().toString(36), type, amount: selectedChip }]);
-      }
-      calculateXp(selectedChip);
-      setSessionWagered(prev => prev + selectedChip);
+    setBetHistory([...betHistory, [...currentBets]]);
+    const existingBetIndex = currentBets.findIndex(b => JSON.stringify(b.type) === JSON.stringify(type));
+    if (existingBetIndex > -1) {
+      const newBets = [...currentBets];
+      newBets[existingBetIndex].amount += selectedChip;
+      setCurrentBets(newBets);
+    } else {
+      setCurrentBets([...currentBets, { id: Math.random().toString(36), type, amount: selectedChip }]);
     }
   };
-
-  const handleClearBets = () => {
+  const spawnConfetti = () => {
+    const main = document.querySelector('.roulette-page');
+    if (!main) return;
+    for (let i = 0; i < 40; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.position = 'absolute';
+      c.style.left = Math.random() * 100 + '%';
+      c.style.top = '20%';
+      c.style.backgroundColor = ['#00e701', '#ffd700', '#fff'][Math.floor(Math.random() * 3)];
+      c.style.width = Math.random() * 10 + 5 + 'px';
+      c.style.height = c.style.width;
+      main.appendChild(c);
+      setTimeout(() => c.remove(), 2000);
+    }
+  };
+  function handleClearBets() {
     if (spinning || currentBets.length === 0) return;
-    addBalance(totalWagered);
     setCurrentBets([]);
     setBetHistory([]);
-  };
-
-  const handleSpin = async () => {
+  }
+  async function handleSpin() {
     if (spinning || currentBets.length === 0) return;
+    
+    if (totalWagered < 0.1 || totalWagered > 10000) {
+      addToast('Total bet must be between $0.10 and $10,000!', 'error');
+      return;
+    }
+    setIsProcessing(true);
+    
+    const deducted = removeBalance(totalWagered);
+    if (!deducted) {
+      setIsProcessing(false);
+      addToast('Insufficient balance!', 'error');
+      return;
+    }
     setSpinning(true);
     setWinningNumber(null);
-    setLastBets([...currentBets]);
-
-    const { seed, hash } = await ProvablyFairEngine.generateServerSeed();
-    const nonce = provablyFairSettings.nonce + 1;
-    const resultNum = await ProvablyFairEngine.getRouletteNumber(seed, provablyFairSettings.clientSeed, nonce);
-    setProvablyFairSettings({ serverSeedHash: hash, nonce });
-
-    const result = ROULETTE_NUMBERS.find(n => n.n === resultNum)!;
-
-    const duration = turboMode ? 1000 : 6000;
-    const spins = turboMode ? 2 : 5;
-    const extraRotation = Math.random() * 360;
-    const targetWheelRotation = wheelRotation + (spins * 360) + extraRotation;
-    const pocketDegrees = 360 / 37;
-    const pocketIndex = WHEEL_ORDER.findIndex(n => n.n === result.n);
-    const ballSpins = turboMode ? 3 : 8;
-    const targetBallRotation = ballRotation - (ballSpins * 360) + (extraRotation + pocketIndex * pocketDegrees);
-
-    setWheelRotation(targetWheelRotation);
-    setBallRotation(targetBallRotation);
-
-    setTimeout(() => {
-      processResult(result);
-      setNextSeedHash(Math.random().toString(36).substring(2, 15));
-    }, duration);
-  };
-
-  const processResult = (result: RouletteNumber) => {
-    setWinningNumber(result);
-    setSpinning(false);
-    setHistory(prev => [result, ...prev].slice(0, 30));
-
-    let totalWin = 0;
-    currentBets.forEach(bet => {
-      if (isWinForNumber(bet.type, result.n)) {
-        totalWin += bet.amount * getMultiplier(bet.type);
-      }
-    });
-
-    if (totalWin > 0) {
-      setLastWin(totalWin);
-      setSessionWins(prev => prev + totalWin);
-      addBalance(Math.round(totalWin * 100) / 100);
-    } else {
-      setLastWin(0);
+    try {
+      const response = await fetch('/api/casino/bet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          gameType: 'ROULETTE',
+          amount: totalWagered,
+          bets: currentBets,
+          clientSeed: provablyFairSettings.clientSeed,
+          currentNonce: provablyFairSettings.nonce
+        })
+      });
+      if (!response.ok) throw new Error('API failed');
+      const result = await response.json();
+      setProvablyFairSettings({ 
+        serverSeedHash: result.serverSeedHash,
+        nonce: result.nonce 
+      });
+      const winningNumObj = ROULETTE_NUMBERS.find(n => n.n === result.roll)!;
+      const duration = turboMode ? 1000 : 6000;
+      const spins = turboMode ? 2 : 5;
+      const extraRotation = Math.random() * 360;
+      const targetWheelRotation = wheelRotation + (spins * 360) + extraRotation;
+      const pocketDegrees = 360 / 37;
+      const pocketIndex = WHEEL_ORDER.findIndex(n => n.n === winningNumObj.n);
+      const ballSpins = turboMode ? 3 : 8;
+      const targetBallRotation = ballRotation - (ballSpins * 360) + (extraRotation + pocketIndex * pocketDegrees);
+      setWheelRotation(targetWheelRotation);
+      setBallRotation(targetBallRotation);
+      setTimeout(() => {
+        // Pass the server result to ensure client-side state matches perfectly
+        setWinningNumber(winningNumObj);
+        setSpinning(false);
+        setIsProcessing(false);
+        setHistory(prev => [winningNumObj, ...prev].slice(0, 30));
+        
+        if (result.win) {
+          setLastWin(result.payout);
+        } else {
+          setLastWin(0);
+        }
+        setTimeout(() => {
+          setCurrentBets([]);
+          setWinningNumber(null);
+          setLastWin(null);
+        }, 4000);
+        
+        processGameResult({
+          game: 'ROULETTE',
+          amount: totalWagered,
+          multiplier: result.payout / totalWagered,
+          payout: result.payout,
+          win: result.win,
+          resultId: result.id
+        });
+        if (result.win) {
+          soundManager.play('win');
+          if (result.payout >= totalWagered * 5) spawnConfetti();
+        } else {
+          soundManager.play('loss');
+        }
+      }, duration);
+    } catch (error) {
+      console.error("Roulette spin error:", error);
+      setSpinning(false);
+      setIsProcessing(false);
+      addToast('Failed to spin', 'error');
     }
-
-    addBet({
-      id: Math.random().toString(36),
-      time: new Date().toLocaleTimeString(),
-      game: 'ROULETTE',
-      user: 'You',
-      amount: totalWagered,
-      multiplier: totalWin > 0 ? Math.round((totalWin / totalWagered) * 100) / 100 : 0,
-      payout: totalWin,
-      win: totalWin > 0
-    });
-
-    setTimeout(() => {
-      setCurrentBets([]);
-      setWinningNumber(null);
-      setLastWin(null);
-    }, 4000);
-  };
-
+  }
   const renderNumber = (num: number) => {
     const data = ROULETTE_NUMBERS.find(n => n.n === num)!;
     const bet = currentBets.find(b => b.type.type === 'STRAIGHT' && b.type.value === num);
-    const isHighlighted = hoveredArea ? isWinForNumber(hoveredArea, num) : false;
-
+    const isHighlighted = hoveredArea ? CasinoCore.isRouletteWin(hoveredArea, num) : false;
     return (
       <div 
         key={num}
@@ -312,16 +283,16 @@ export default function RoulettePage() {
       </div>
     );
   };
-
   return (
-    <div className="roulette-page" style={{ 
-      maxWidth: '1800px', 
-      margin: '0 auto', 
-      padding: isMobile ? '12px' : '16px', 
-      display: 'grid', 
-      gridTemplateColumns: '1fr', 
-      gap: isMobile ? '16px' : '32px' 
-    }}>
+    <GameErrorBoundary gameName="Roulette">
+      <div className="roulette-page" style={{ 
+        maxWidth: '1800px', 
+        margin: '0 auto', 
+        padding: isMobile ? '12px' : '16px', 
+        display: 'grid', 
+        gridTemplateColumns: '1fr', 
+        gap: isMobile ? '16px' : '32px' 
+      }}>
       <style jsx global>{`
         @media (min-width: 1400px) { .roulette-page { grid-template-columns: 350px 1fr 400px !important; padding: 40px !important; } }
         @media (max-width: 1399px) and (min-width: 900px) { .roulette-page { grid-template-columns: 300px 1fr !important; } .right-sidebar { grid-column: 1 / 3; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; } }
@@ -339,9 +310,8 @@ export default function RoulettePage() {
         .roulette-board-container::-webkit-scrollbar { height: 6px; }
         .roulette-board-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); borderRadius: 3px; }
       `}</style>
-
       {/* Left Sidebar */}
-      <div className="left-sidebar glass-card" style={{ padding: isMobile ? '16px' : '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div className="left-sidebar glass-card" style={{ padding: isMobile ? '16px' : 'clamp(16px, 3vw, 24px)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 900 }}>
             <span>VIP LVL {level}</span>
@@ -351,7 +321,6 @@ export default function RoulettePage() {
             <div style={{ width: `${(xp / (Math.pow(level, 2) * 100)) * 100}%`, height: '100%', background: 'hsl(var(--primary))' }} />
           </div>
         </div>
-
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <h3 style={{ fontSize: '0.75rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '8px' }}><History size={14} className="text-primary" /> HISTORY</h3>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -360,7 +329,6 @@ export default function RoulettePage() {
             ))}
           </div>
         </div>
-
         {!isMobile && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <h3 style={{ fontSize: '0.8rem', fontWeight: 900 }}>FRENCH BETS</h3>
@@ -372,7 +340,6 @@ export default function RoulettePage() {
           </div>
         )}
       </div>
-
       {/* Main Game */}
       <div className="main-game" style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '20px' : '32px' }}>
         <div className="glass-card flex-center" style={{ height: isMobile ? '300px' : 'clamp(350px, 60vh, 480px)', background: 'radial-gradient(circle at center, #1a1a1a 0%, #000 100%)', perspective: '1500px', overflow: 'hidden', padding: isMobile ? '10px' : '20px' }}>
@@ -384,14 +351,18 @@ export default function RoulettePage() {
               {lastWin !== null && lastWin > 0 && <div className="text-gradient" style={{ fontSize: isMobile ? '1.25rem' : '2rem', fontWeight: 900 }}>+${lastWin.toLocaleString()}</div>}
             </div>
           )}
-
           {/* Corrected 3D Wheel */}
-          <div style={{ width: isMobile ? '260px' : 'min(450px, 90vw)', height: isMobile ? '260px' : 'min(450px, 90vw)', position: 'relative', transform: 'rotateX(45deg) rotateZ(0deg)', transformStyle: 'preserve-3d', filter: 'drop-shadow(0 50px 100px rgba(0,0,0,0.8))' }}>
+          <div style={{ width: '100%', maxWidth: isMobile ? '280px' : '450px', aspectRatio: '1/1', position: 'relative', transform: 'rotateX(45deg) rotateZ(0deg)', transformStyle: 'preserve-3d', filter: 'drop-shadow(0 50px 100px rgba(0,0,0,0.8))' }}>
             {/* Outer Rim */}
             <div style={{ position: 'absolute', inset: '-30px', borderRadius: '50%', border: '15px solid #2a2a2a', background: 'linear-gradient(135deg, #333, #000)', boxShadow: 'inset 0 0 40px rgba(0,0,0,1), 0 10px 0 #111', transform: 'translateZ(-10px)' }} />
             
             {/* Spinning Parts */}
-            <div style={{ width: '100%', height: '100%', borderRadius: '50%', position: 'relative', transition: `transform ${turboMode ? 1 : 6}s cubic-bezier(0.1, 0, 0.1, 1)`, transform: `rotate(${wheelRotation}deg)`, background: '#000', transformStyle: 'preserve-3d' }}>
+            <div style={{ 
+              width: '100%', height: '100%', borderRadius: '50%', position: 'relative',
+              transition: `transform ${turboMode ? 1.2 : 6.2}s cubic-bezier(0.1, 0, 0.15, 1)`,
+              willChange: 'transform',
+              filter: 'drop-shadow(0 0 30px rgba(0,0,0,0.5))',
+              transform: `rotate(${wheelRotation}deg)`, background: '#000', transformStyle: 'preserve-3d' }}>
               {WHEEL_ORDER.map((num, i) => (
                 <div key={i} className="wheel-pocket" style={{ 
                   position: 'absolute', top: '0', left: '50%', width: 'clamp(15px, 4vw, 40px)', height: '50%',
@@ -407,7 +378,6 @@ export default function RoulettePage() {
               {/* Inner Bowl */}
               <div style={{ position: 'absolute', inset: 'clamp(30px, 15vw, 80px)', borderRadius: '50%', background: 'radial-gradient(circle at center, #222 0%, #000 100%)', border: '8px solid #111', boxShadow: 'inset 0 20px 40px rgba(0,0,0,0.5)' }} />
             </div>
-
             {/* Ball Track */}
             <div style={{ position: 'absolute', inset: '0', transition: `transform ${turboMode ? 1 : 6}s cubic-bezier(0.1, 0, 0.2, 1)`, transform: `rotate(${ballRotation}deg)`, transformStyle: 'preserve-3d' }}>
               <div style={{ position: 'absolute', top: '15px', left: '50%', width: 'clamp(8px, 2vw, 16px)', height: 'clamp(8px, 2vw, 16px)', borderRadius: '50%', background: '#fff', boxShadow: '0 0 20px #fff, inset -2px -2px 5px rgba(0,0,0,0.2)', transform: 'translateZ(10px)' }} />
@@ -419,10 +389,10 @@ export default function RoulettePage() {
             </div>
           </div>
         </div>
-
         {/* Board */}
-        <div className="glass-card roulette-board-container" style={{ padding: isMobile ? '12px' : '20px', background: 'rgba(0,0,0,0.4)' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 60px', gap: '2px', background: 'rgba(255,255,255,0.05)', padding: '2px', borderRadius: '8px', minWidth: isMobile ? '600px' : '800px' }}>
+        <div className="glass-card" style={{ padding: isMobile ? '12px' : '20px', background: 'rgba(0,0,0,0.4)', overflow: 'hidden' }}>
+          <div className="roulette-board-container">
+            <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr 60px', gap: '2px', background: 'rgba(255,255,255,0.05)', padding: '2px', borderRadius: '8px', minWidth: isMobile ? '700px' : '800px' }}>
             <div onClick={() => handlePlaceBet({ type: 'STRAIGHT', value: 0 })} onMouseEnter={() => setHoveredArea({ type: 'STRAIGHT', value: 0 })} onMouseLeave={() => setHoveredArea(null)} className={`roulette-tile ${hoveredArea?.type === 'STRAIGHT' && hoveredArea.value === 0 ? 'highlight' : ''}`} style={{ gridRow: '1/4', background: 'hsl(var(--success))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? '1.5rem' : '2.5rem', fontWeight: 900, color: '#fff', cursor: 'pointer', borderTopLeftRadius: '8px', borderBottomLeftRadius: '8px' }}>
               0
               {currentBets.filter(b => b.type.type === 'STRAIGHT' && b.type.value === 0).map((b, i) => <Chip key={i} amount={b.amount} stacked index={i} size={isMobile ? 24 : 32} />)}
@@ -433,41 +403,45 @@ export default function RoulettePage() {
               {[1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34].map(renderNumber)}
             </div>
             <div style={{ display: 'grid', gridTemplateRows: 'repeat(3, 1fr)', gap: '2px' }}>
-              {[1, 2, 3].map(c => <div key={c} onClick={() => handlePlaceBet({ type: 'COLUMN', value: c as any })} onMouseEnter={() => setHoveredArea({ type: 'COLUMN', value: c as any })} onMouseLeave={() => setHoveredArea(null)} className="glass flex-center hover-glow" style={{ cursor: 'pointer', fontWeight: 900, fontSize: isMobile ? '0.7rem' : '0.9rem' }}>2:1</div>)}
+              {[1, 2, 3].map(c => <div key={c} onClick={() => handlePlaceBet({ type: 'COLUMN', value: c as any /* eslint-disable-line @typescript-eslint/no-explicit-any */ })} onMouseEnter={() => setHoveredArea({ type: 'COLUMN', value: c as any /* eslint-disable-line @typescript-eslint/no-explicit-any */ })} onMouseLeave={() => setHoveredArea(null)} className="glass flex-center hover-glow" style={{ cursor: 'pointer', fontWeight: 900, fontSize: isMobile ? '0.7rem' : '0.9rem' }}>2:1</div>)}
             </div>
             <div style={{ gridColumn: '2/3', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px', marginTop: '2px' }}>
-              {[1, 2, 3].map(d => <div key={d} onClick={() => handlePlaceBet({ type: 'DOZEN', value: d as any })} onMouseEnter={() => setHoveredArea({ type: 'DOZEN', value: d as any })} onMouseLeave={() => setHoveredArea(null)} className="glass flex-center hover-glow" style={{ height: isMobile ? '32px' : '40px', cursor: 'pointer', fontSize: isMobile ? '0.7rem' : '0.8rem', fontWeight: 900 }}>{d === 1 ? '1ST' : d === 2 ? '2ND' : '3RD'} 12</div>)}
+              {[1, 2, 3].map(d => <div key={d} onClick={() => handlePlaceBet({ type: 'DOZEN', value: d as any /* eslint-disable-line @typescript-eslint/no-explicit-any */ })} onMouseEnter={() => setHoveredArea({ type: 'DOZEN', value: d as any /* eslint-disable-line @typescript-eslint/no-explicit-any */ })} onMouseLeave={() => setHoveredArea(null)} className="glass flex-center hover-glow" style={{ height: isMobile ? '32px' : '40px', cursor: 'pointer', fontSize: isMobile ? '0.7rem' : '0.8rem', fontWeight: 900 }}>{d === 1 ? '1ST' : d === 2 ? '2ND' : '3RD'} 12</div>)}
             </div>
             <div style={{ gridColumn: '2/3', display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '2px', marginTop: '2px' }}>
               {[{ l: '1-18', t: 'RANGE', v: '1-18' }, { l: 'EVEN', t: 'EVEN_ODD', v: 'EVEN' }, { l: 'RED', t: 'COLOR', v: 'RED', c: 'hsl(var(--error))' }, { l: 'BLACK', t: 'COLOR', v: 'BLACK', c: '#000' }, { l: 'ODD', t: 'EVEN_ODD', v: 'ODD' }, { l: '19-36', t: 'RANGE', v: '19-36' }].map((b, i) => (
-                <div key={i} onClick={() => handlePlaceBet({ type: b.t as any, value: b.v as any })} onMouseEnter={() => setHoveredArea({ type: b.t as any, value: b.v as any })} onMouseLeave={() => setHoveredArea(null)} className="glass flex-center hover-glow" style={{ height: isMobile ? '32px' : '40px', cursor: 'pointer', fontSize: isMobile ? '0.65rem' : '0.7rem', fontWeight: 900, background: b.c || 'rgba(255,255,255,0.02)' }}>{b.l}</div>
+                <div key={i} onClick={() => handlePlaceBet({ type: b.t as any /* eslint-disable-line @typescript-eslint/no-explicit-any */, value: b.v as any /* eslint-disable-line @typescript-eslint/no-explicit-any */ })} onMouseEnter={() => setHoveredArea({ type: b.t as any /* eslint-disable-line @typescript-eslint/no-explicit-any */, value: b.v as any /* eslint-disable-line @typescript-eslint/no-explicit-any */ })} onMouseLeave={() => setHoveredArea(null)} className="glass flex-center hover-glow" style={{ height: isMobile ? '32px' : '40px', cursor: 'pointer', fontSize: isMobile ? '0.65rem' : '0.7rem', fontWeight: 900, background: b.c || 'rgba(255,255,255,0.02)' }}>{b.l}</div>
               ))}
             </div>
           </div>
         </div>
       </div>
-
+      </div>
       {/* Right Sidebar */}
       <div className="right-sidebar glass-card" style={{ padding: isMobile ? '20px' : '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '12px' }}><Settings size={20} className="text-primary" /> CONTROLS</h2>
           <button onClick={() => setTurboMode(!turboMode)} style={{ color: turboMode ? 'hsl(var(--primary))' : '#555' }}><FastForward size={20} /></button>
         </div>
-
         <div>
           <label style={{ fontSize: '0.65rem', fontWeight: 800, color: 'hsl(var(--text-muted))', display: 'block', marginBottom: '12px' }}>CHIP VALUE</label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
             {CHIPS.map(c => <Chip key={c} amount={c} active={selectedChip === c} onClick={() => setSelectedChip(c)} size={isMobile ? 32 : 36} />)}
           </div>
         </div>
-
         <div className="glass" style={{ padding: isMobile ? '16px' : '24px', borderRadius: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.75rem', color: 'hsl(var(--text-muted))' }}><span>EST. PROFIT</span><span className="text-primary" style={{ fontWeight: 900 }}>+${estProfit.toLocaleString()}</span></div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'hsl(var(--text-muted))' }}><span>TOTAL BET</span><span style={{ color: '#fff', fontWeight: 900 }}>${totalWagered.toLocaleString()}</span></div>
         </div>
-
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <button className="btn btn-primary" style={{ height: isMobile ? '60px' : '72px', fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 900, borderRadius: '16px' }} onClick={handleSpin} disabled={spinning || currentBets.length === 0}>{spinning ? <RotateCcw className="animate-spin" /> : 'PLACE BET'}</button>
+          <button 
+            className="btn btn-primary" 
+            style={{ height: isMobile ? '60px' : '72px', fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 900, borderRadius: '16px' }} 
+            onClick={handleSpin} 
+            disabled={spinning || isProcessing || currentBets.length === 0}
+          >
+            {spinning || isProcessing ? <RotateCcw className="animate-spin" /> : 'PLACE BET'}
+          </button>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <button className="btn btn-secondary" style={{ height: '48px' }} onClick={handleClearBets} disabled={spinning}><Trash2 size={18} /></button>
             <button className="btn btn-secondary" style={{ height: '48px' }} onClick={() => { if (spinning || betHistory.length === 0) return; setCurrentBets(betHistory[betHistory.length-1]); setBetHistory(betHistory.slice(0, -1)); }} disabled={spinning}><Undo2 size={18} /></button>
@@ -475,5 +449,6 @@ export default function RoulettePage() {
         </div>
       </div>
     </div>
-  );
+  </GameErrorBoundary>
+);
 }
