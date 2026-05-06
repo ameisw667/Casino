@@ -44,7 +44,7 @@ export default function DicePage() {
       const isWin = Math.random() > 0.5;
       const newBet = {
         user: users[Math.floor(Math.random() * users.length)],
-        resultId: Math.random().toString(36).substring(7),
+        resultId: Math.random().toString(36).slice(2, 11),
         win: isWin,
       };
       

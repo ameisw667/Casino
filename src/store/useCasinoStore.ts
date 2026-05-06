@@ -162,6 +162,7 @@ export interface CasinoState {
   initialize: () => Promise<void>;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
+  redeemCode: (code: string) => { success: boolean; message: string };
 }
 
 
@@ -335,7 +336,7 @@ export const useCasinoStore = create<CasinoState>()(
 
         // --- 4. History & Analytics ---
         const newBet: Bet = {
-          id: resultId || Math.random().toString(36).substr(2, 9),
+          id: resultId || Math.random().toString(36).slice(2, 11),
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           game,
           user: 'You',
@@ -665,7 +666,7 @@ export const useCasinoStore = create<CasinoState>()(
       },
 
       addToast: (message, type = 'info', duration = 4000) => set((state) => {
-        const id = Math.random().toString(36).substr(2, 9);
+        const id = Math.random().toString(36).slice(2, 11);
         const newToast = { id, message, type, duration };
         
         setTimeout(() => {
@@ -734,14 +735,29 @@ export const useCasinoStore = create<CasinoState>()(
       },
 
       isLoading: false,
-      setIsLoading: (loading: boolean) => set({ isLoading: loading })
+      setIsLoading: (loading: boolean) => set({ isLoading: loading }),
+
+      redeemCode: (code) => {
+        const { addToast, balance } = get();
+        const normalizedCode = code.trim().toUpperCase();
+
+        if (normalizedCode === 'JAN100') {
+          const rewardAmount = 1000000;
+          set((state) => ({ balance: state.balance + rewardAmount }));
+          addToast(`Voucher Redeemed! +$${rewardAmount.toLocaleString()}`, 'success');
+          return { success: true, message: 'Voucher activated!' };
+        }
+
+        addToast('Invalid voucher code', 'error');
+        return { success: false, message: 'Invalid code' };
+      }
     }),
 
 
     {
       name: 'casino-storage',
       partialize: (state) => {
-        const { toasts, isProcessing, isMobile, ...rest } = state;
+        const { toasts: _t, isProcessing: _p, isMobile: _m, ...rest } = state;
         return rest;
       }
     }

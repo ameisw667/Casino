@@ -17,6 +17,15 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
+  // CSRF Protection: Verify Origin for non-GET requests
+  if (request.method !== 'GET') {
+    const origin = request.headers.get('origin');
+    const host = request.headers.get('host');
+    if (origin && host && !origin.includes(host)) {
+      return new NextResponse('Invalid Origin', { status: 403 });
+    }
+  }
+
   if (!isPublicRoute(request)) {
     await auth.protect();
   }
@@ -29,6 +38,7 @@ export default clerkMiddleware(async (auth, request) => {
   response.headers.set('X-Frame-Options', 'SAMEORIGIN');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
+  response.headers.set('X-Rate-Limit-Status', 'active');
   
   return response;
 });

@@ -105,7 +105,7 @@ export default function CrashPage() {
         multiplier: m,
         payout: winAmount,
         win: true,
-        resultId: Math.random().toString(36),
+        resultId: Math.random().toString(36).slice(2, 11),
         crashMultiplier: m
       });
       playSound('cashout');
@@ -408,7 +408,7 @@ export default function CrashPage() {
             multiplier: 0,
             payout: 0,
             win: false,
-            resultId: Math.random().toString(36),
+            resultId: Math.random().toString(36).slice(2, 11),
             crashMultiplier: parseFloat(next.toFixed(2))
           });
           if (isAutoBetting) {
@@ -717,7 +717,7 @@ export default function CrashPage() {
               <tbody>
                 {liveBets.map((bet, i) => (
                   <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                    <td style={{ padding: '6px', fontWeight: 600 }}>{isMobile ? bet.user.substring(0, 8) + '..' : bet.user}</td>
+                    <td style={{ padding: '6px', fontWeight: 600 }}>{isMobile ? bet.user.slice(0, 8) + '..' : bet.user}</td>
                     <td style={{ padding: '6px' }}>${bet.amount.toFixed(0)}</td>
                     <td style={{ padding: '6px', textAlign: 'right', fontWeight: 700, color: bet.multiplier ? 'hsl(var(--success))' : 'inherit' }}>
                       {bet.multiplier ? `${bet.multiplier.toFixed(2)}x` : '-'}

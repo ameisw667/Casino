@@ -2,10 +2,16 @@
 import React from 'react';
 import { TrendingUp, Lock } from 'lucide-react';
 import Image from 'next/image';
+interface LadderStep {
+  day: number;
+  amount: number;
+  tier: 'Bronze' | 'Silver' | 'Gold' | 'Diamond' | string;
+}
+
 interface DailyBonusLadderProps {
   isMobile: boolean;
   startOnboarding: () => void;
-  ladderSteps: any[]; /* eslint-disable-line @typescript-eslint/no-explicit-any */
+  ladderSteps: LadderStep[];
 }
 export const DailyBonusLadder: React.FC<DailyBonusLadderProps> = ({ 
   isMobile = false, 

@@ -46,9 +46,12 @@ export default function VaultPage() {
     streak,
     onboardingStep,
     setOnboardingStep,
-    addToast
+    addToast,
+    redeemCode
   } = useCasinoStore();
   const [mounted, setMounted] = React.useState(false);
+  const [voucherCode, setVoucherCode] = useState('');
+  const [isRedeeming, setIsRedeeming] = useState(false);
   React.useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
     return () => clearTimeout(timer);
@@ -125,57 +128,95 @@ export default function VaultPage() {
         overflow: 'hidden',
         transition: 'background-position 0.2s ease-out'
       }}>
-        {/* Overlay for readability */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, hsla(var(--bg-color), 1) 20%, transparent 80%)', zIndex: 1 }} />
+        {/* Overlay for readability - Darkened and extended to ensure all text is legible */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, hsla(var(--bg-color), 0.95) 0%, hsla(var(--bg-color), 0.4) 60%, hsla(var(--bg-color), 0.8) 100%)', zIndex: 1 }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 0 }} />
         {/* Pro Badge */}
         <div style={{ position: 'absolute', top: '24px', right: '24px', padding: '6px 16px', background: 'hsl(var(--primary))', color: 'black', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 950, boxShadow: '0 0 20px hsla(var(--primary), 0.4)' }}>
           PRO ROYALE MEMBER
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 2fr', gap: '48px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'auto 1fr auto', gap: '48px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
           {/* Avatar & XP Hub */}
-          <div style={{ textAlign: 'center', position: 'relative' }}>
-              <svg width={isMobile ? "160" : "220"} height={isMobile ? "160" : "220"} viewBox="0 0 100 100" style={{ position: 'absolute', inset: 0 }}>
-                <circle cx="50" cy="50" r="46" fill="none" stroke="hsla(0,0%,100%,0.05)" strokeWidth="4" />
-                <circle cx="50" cy="50" r="46" fill="none" stroke="hsl(var(--primary))" strokeWidth="4" strokeDasharray={`${progress * 2.89} 289`} transform="rotate(-90 50 50)" style={{ transition: 'stroke-dasharray 1s ease' }} />
-              </svg>
-              
-              {/* Avatar Image */}
-              <div style={{ position: 'absolute', inset: '10px', borderRadius: '50%', overflow: 'hidden', border: '4px solid hsl(var(--bg-color))', background: 'hsla(0,0%,100%,0.02)' }}>
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Vibe" alt="avatar" style={{ width: '100%', height: '100%' }} />
-                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '30%', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} className="hover:bg-black/80 transition-colors">
-                  <Camera size={16} color="white" />
-                </div>
-              </div>
-              {/* Level Badge */}
-              <div style={{ position: 'absolute', bottom: '10px', right: '10px', width: '48px', height: '48px', borderRadius: '16px', background: 'hsl(var(--primary))', color: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 950, fontSize: '1.2rem', boxShadow: '0 5px 15px rgba(0,0,0,0.3)', border: '4px solid hsl(var(--bg-color))' }}>
-                {level}
+          <div style={{ 
+            width: isMobile ? '160px' : '220px', 
+            height: isMobile ? '160px' : '220px', 
+            position: 'relative', 
+            margin: isMobile ? '0 auto' : '0' 
+          }}>
+            <svg width="100%" height="100%" viewBox="0 0 100 100" style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }}>
+              <circle cx="50" cy="50" r="46" fill="none" stroke="hsla(0,0%,100%,0.05)" strokeWidth="4" />
+              <circle 
+                cx="50" cy="50" r="46" 
+                fill="none" 
+                stroke="hsl(var(--primary))" 
+                strokeWidth="4" 
+                strokeDasharray={`${progress * 2.89} 289`} 
+                style={{ transition: 'stroke-dasharray 1s ease', filter: 'drop-shadow(0 0 8px hsla(var(--primary), 0.4))' }} 
+              />
+            </svg>
+            
+            {/* Avatar Image */}
+            <div style={{ 
+              position: 'absolute', 
+              inset: '8px', 
+              borderRadius: '50%', 
+              overflow: 'hidden', 
+              border: '4px solid hsl(var(--bg-color))', 
+              background: 'hsla(var(--bg-color), 0.8)',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Vibe" alt="avatar" style={{ width: '100%', height: '100%' }} />
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '30%', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} className="hover:bg-black/80 transition-colors">
+                <Camera size={16} color="white" />
               </div>
             </div>
-            
-            <div style={{ marginTop: '24px' }}>
-              <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#fff' }}>VibeCoder_Royale</div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'hsl(var(--primary))', marginTop: '4px' }}>GLOBAL RANK: #4,124</div>
+            {/* Level Badge */}
+            <div style={{ position: 'absolute', bottom: '5%', right: '5%', width: '48px', height: '48px', borderRadius: '16px', background: 'hsl(var(--primary))', color: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 950, fontSize: '1.2rem', boxShadow: '0 5px 15px rgba(0,0,0,0.3)', border: '4px solid hsl(var(--bg-color))', zIndex: 3 }}>
+              {level}
             </div>
           </div>
-          {/* User Stats Dashboard */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
-              <div style={{ display: 'flex', gap: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'hsl(var(--success))', fontSize: '0.85rem', fontWeight: 800 }}>
-                  <ShieldCheck size={18} /> VERIFIED
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ff5722', fontSize: '0.85rem', fontWeight: 800 }}>
-                  <Flame size={18} /> {streak} DAY STREAK
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#2196f3', fontSize: '0.85rem', fontWeight: 800 }}>
-                  <Users size={18} /> 12 REFS
-                </div>
+          
+          <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
+            <div style={{ fontSize: '2.5rem', fontWeight: 950, color: '#fff', textShadow: '0 2px 20px rgba(0,0,0,0.8)', letterSpacing: '-0.02em' }}>VibeCoder_Royale</div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 16px', background: 'hsla(var(--primary), 0.1)', borderRadius: '100px', border: '1px solid hsla(var(--primary), 0.2)', marginTop: '12px' }}>
+              <Star size={14} color="hsl(var(--primary))" fill="hsl(var(--primary))" />
+              <div style={{ fontSize: '0.85rem', fontWeight: 900, color: 'hsl(var(--primary))' }}>GLOBAL RANK: #4,124</div>
+            </div>
+            
+            {/* Status Badges Row - Wrapped in glass for visibility */}
+            <div style={{ 
+              display: 'flex', 
+              gap: '16px', 
+              marginTop: '24px', 
+              padding: '12px 20px', 
+              background: 'hsla(var(--bg-color), 0.6)', 
+              backdropFilter: 'blur(12px)', 
+              borderRadius: '16px', 
+              width: 'fit-content',
+              border: '1px solid hsla(0,0%,100%,0.05)',
+              margin: isMobile ? '24px auto 0' : '24px 0 0'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'hsl(var(--success))', fontSize: '0.8rem', fontWeight: 900 }}>
+                <ShieldCheck size={16} /> VERIFIED
               </div>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button className="btn btn-secondary" style={{ width: '48px', height: '48px', padding: 0 }}><Settings size={20} /></button>
-                <button className="btn btn-primary" style={{ padding: '0 24px', height: '48px', borderRadius: '14px', fontWeight: 900 }}>WITHDRAW</button>
+              <div style={{ width: '1px', height: '16px', background: 'hsla(0,0%,100%,0.1)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ff5722', fontSize: '0.8rem', fontWeight: 900 }}>
+                <Flame size={16} /> {streak} DAY STREAK
+              </div>
+              <div style={{ width: '1px', height: '16px', background: 'hsla(0,0%,100%,0.1)' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#2196f3', fontSize: '0.8rem', fontWeight: 900 }}>
+                <Users size={16} /> 12 REFS
               </div>
             </div>
+          </div>
+
+          {!isMobile && (
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button className="btn btn-secondary" style={{ width: '56px', height: '56px', padding: 0, borderRadius: '16px' }}><Settings size={24} /></button>
+              <button className="btn btn-primary" style={{ padding: '0 32px', height: '56px', borderRadius: '16px', fontWeight: 950, fontSize: '1rem', boxShadow: '0 10px 30px hsla(var(--primary), 0.3)' }}>WITHDRAW</button>
+            </div>
+          )}
+        </div>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: '16px' }}>
               {[
                 { label: 'TOTAL BALANCE', value: `$${balance.toLocaleString()}`, color: 'hsl(var(--primary))', icon: Wallet },
@@ -183,16 +224,22 @@ export default function VaultPage() {
                 { label: 'TOTAL EARNED', value: '$12,420', color: '#fff', icon: CircleDollarSign },
                 { label: 'WAGERED', value: '$45,820', color: '#fff', icon: Activity },
               ].map((s, i) => (
-                <div key={i} className="glass" style={{ padding: '20px', borderRadius: '20px', border: '1px solid hsla(0,0%,100%,0.05)' }}>
+                <div key={i} className="glass" style={{ 
+                  padding: '20px', 
+                  borderRadius: '20px', 
+                  border: '1px solid hsla(var(--primary), 0.1)',
+                  background: 'hsla(var(--bg-color), 0.7)',
+                  backdropFilter: 'blur(16px)',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+                }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <s.icon size={14} color="hsl(var(--text-dim))" />
-                    <span style={{ fontSize: '0.6rem', fontWeight: 900, color: 'hsl(var(--text-dim))', letterSpacing: '0.1em' }}>{s.label}</span>
+                    <s.icon size={14} color="hsl(var(--text-muted))" />
+                    <span style={{ fontSize: '0.65rem', fontWeight: 900, color: 'hsl(var(--text-muted))', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{s.label}</span>
                   </div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: s.color }}>{s.value}</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 950, color: s.color, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{s.value}</div>
                 </div>
               ))}
             </div>
-          </div>
       </header>
 
 
@@ -336,7 +383,6 @@ export default function VaultPage() {
               ))}
             </div>
           </section>
-          {/* Settings & Preferences */}
           <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
             <h3 style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '24px' }}>PREFERENCES</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -352,9 +398,54 @@ export default function VaultPage() {
                   <Bell size={18} color="hsl(var(--text-dim))" />
                   <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>Notifications</span>
                 </div>
-                <div style={{ width: '36px', height: '20px', background: 'hsl(var(--primary))', borderRadius: '10px', position: 'relative' }}>
+                <div style={{ width: '36px', height: '20px', background: 'hsl(var(--primary))', borderRadius: '100px', position: 'relative' }}>
                   <div style={{ position: 'absolute', right: '2px', top: '2px', width: '16px', height: '16px', background: 'white', borderRadius: '50%' }} />
                 </div>
+              </div>
+            </div>
+
+            {/* Voucher Section */}
+            <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid hsla(0,0%,100%,0.05)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                <Gift size={18} color="hsl(var(--primary))" />
+                <span style={{ fontSize: '0.85rem', fontWeight: 900 }}>REDEEM VOUCHER</span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="text" 
+                  value={voucherCode}
+                  onChange={(e) => setVoucherCode(e.target.value)}
+                  placeholder="Enter code (e.g. JAN100)"
+                  style={{ 
+                    flex: 1, 
+                    height: '48px', 
+                    background: 'hsla(0,0%,100%,0.03)', 
+                    border: '1px solid hsla(0,0%,100%,0.1)', 
+                    borderRadius: '12px',
+                    padding: '0 16px',
+                    color: 'white',
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    outline: 'none'
+                  }}
+                  className="focus:border-primary transition-colors"
+                />
+                <button 
+                  onClick={async () => {
+                    if (!voucherCode.trim()) return;
+                    setIsRedeeming(true);
+                    // Artificial delay for premium feel
+                    await new Promise(r => setTimeout(r, 1000));
+                    redeemCode(voucherCode);
+                    setVoucherCode('');
+                    setIsRedeeming(false);
+                  }}
+                  disabled={isRedeeming || !voucherCode.trim()}
+                  className="btn btn-primary" 
+                  style={{ padding: '0 20px', height: '48px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 950 }}
+                >
+                  {isRedeeming ? '...' : 'REDEEM'}
+                </button>
               </div>
             </div>
           </section>

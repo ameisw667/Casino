@@ -69,7 +69,7 @@ export function HomeClient() {
     <motion.main 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="container vibe-mesh"
+      className="vibe-mesh"
       style={{ paddingBottom: '100px', minHeight: '100vh' }}
     >
       <VibeMotion variant="reveal" delay={0.1}>
@@ -80,13 +80,14 @@ export function HomeClient() {
         />
       </VibeMotion>
 
-      <VibeMotion variant="reveal" delay={0.2}>
-        <TrustBar totalPaid={2500000} timeToReward="2.5m" />
-      </VibeMotion>
+      <div className="container">
+        <VibeMotion variant="reveal" delay={0.2}>
+          <TrustBar totalPaid={2500000} timeToReward="2.5m" />
+        </VibeMotion>
 
-      <VibeMotion variant="reveal" delay={0.3}>
-        <FeaturedOffers featuredGames={FEATURED_GAMES} />
-      </VibeMotion>
+        <VibeMotion variant="reveal" delay={0.3}>
+          <FeaturedOffers featuredGames={FEATURED_GAMES} />
+        </VibeMotion>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 500px), 1fr))', gap: '32px', marginTop: '64px' }}>
         <VibeMotion variant="card">
@@ -158,7 +159,7 @@ export function HomeClient() {
           </div>
         </section>
       </VibeMotion>
-
+      </div>
     </motion.main>
   );
 }
