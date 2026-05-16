@@ -16,7 +16,6 @@ export default defineConfig({
       // actual fix. Per-file thresholds enforce the 80% rule on new code.
       include: ['src/lib/casino/casino-core.ts'],
       exclude: ['src/lib/casino/__tests__/**'],
-      perFile: true,
       thresholds: {
         // casino-core.ts: only calculateDicePayout + MAX_BET are tested
         // (placeBet/roulette/crash/slots need integration tests with mocked

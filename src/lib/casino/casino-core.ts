@@ -1,6 +1,17 @@
 import { ProvablyFairEngine } from './provably-fair';
 import { CasinoLogger } from './logger';
 
+export const MAX_BET = 100_000_000;
+
+export function calculateDicePayout(bet: number, multiplier: number, win: boolean): number {
+  if (bet < 0 || multiplier < 0) throw new RangeError('Bet and multiplier must be non-negative');
+  if (bet > MAX_BET) throw new RangeError(`Bet ${bet} exceeds maximum allowed bet of ${MAX_BET}`);
+  if (!win || bet === 0 || multiplier === 0) return 0;
+  // Use integer arithmetic to avoid IEEE 754 drift on large numbers
+  const payout = Math.round(bet * multiplier * 100) / 100;
+  return payout;
+}
+
 export interface BetResult {
   id: string;
   roll: number;

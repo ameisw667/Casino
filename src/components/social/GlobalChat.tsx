@@ -140,7 +140,7 @@ export function GlobalChat() {
                 display: 'flex', 
                 flexDirection: 'column', 
                 gap: '4px',
-                opacity: (msg.isUser && anonymousBetting) ? 0.8 : 1
+                opacity: (msg.user === 'You' && anonymousBetting) ? 0.8 : 1
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px' }}>
                   {msg.isSystem ? (
@@ -161,7 +161,7 @@ export function GlobalChat() {
                     style={{ 
                       fontSize: '0.75rem', 
                       fontWeight: 950, 
-                      color: msg.isUser ? 'hsl(var(--primary))' : msg.isSystem ? 'hsl(var(--primary))' : '#fff', 
+                      color: msg.user === 'You' ? 'hsl(var(--primary))' : msg.isSystem ? 'hsl(var(--primary))' : '#fff',
                       cursor: 'pointer' 
                     }}
                   >

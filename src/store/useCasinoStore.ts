@@ -74,12 +74,33 @@ export interface CasinoState {
   toasts: Toast[];
   isMobile: boolean;
   isProcessing: boolean;
+  isChatOpen: boolean;
+  soundVolume: number;
+  hideBalance: boolean;
+  anonymousBetting: boolean;
+  language: string;
+  oddsFormat: string;
+  analytics?: {
+    totalWagered: number;
+    totalPayout: number;
+    winRate: number;
+    totalSessionTime: number;
+    activityHeatmap: Record<string, number>;
+  };
+  responsibleGaming?: {
+    sessionDuration: number;
+    sessionLoss: number;
+    martingaleDetected: boolean;
+    lossLimit?: number;
+    winLimit?: number;
+  };
   gameStats: {
     [key: string]: {
       totalBets: number;
       wins: number;
       losses: number;
       profit: number;
+      peakWinMultiplier?: number;
     }
   };
   chatMessages: {
@@ -120,12 +141,6 @@ export interface CasinoState {
       cashoutAt: number;
       onLoss: 'RESET' | 'DOUBLE';
     };
-    blackjack: {
-      amount: number;
-      numberOfBets: number;
-      stopOnProfit: number;
-      stopOnLoss: number;
-    };
   };
   communityGoalReached: boolean;
   
@@ -140,6 +155,9 @@ export interface CasinoState {
   }) => void;
   
   // Actions
+  setIsChatOpen: (open: boolean) => void;
+  updateSettings: (settings: Partial<Pick<CasinoState, 'soundVolume' | 'hideBalance' | 'anonymousBetting' | 'language' | 'oddsFormat' | 'soundEnabled'>>) => void;
+  updateSessionTime: () => () => void;
   setIsProcessing: (isProcessing: boolean) => void;
   resetGameStats: (game?: string) => void;
   setIsMobile: (isMobile: boolean) => void;
@@ -162,7 +180,7 @@ export interface CasinoState {
   openCase: () => { reward: number, type: 'balance' | 'xp' };
   addToast: (msg: string, type?: Toast['type'], duration?: number) => void;
   removeToast: (id: string) => void;
-  setAutoBetSettings: (game: 'dice' | 'crash' | 'blackjack', settings: Partial<CasinoState['autoBetSettings']['dice'] | CasinoState['autoBetSettings']['crash'] | CasinoState['autoBetSettings']['blackjack']>) => void;
+  setAutoBetSettings: (game: 'dice' | 'crash', settings: Partial<CasinoState['autoBetSettings']['dice'] | CasinoState['autoBetSettings']['crash']>) => void;
   syncBalance: (newBalance: number) => void;
   startActivitySimulator: () => (() => void);
   initialize: () => Promise<void>;
@@ -231,12 +249,17 @@ export const useCasinoStore = create<CasinoState>()(
       toasts: [],
       isMobile: false,
       isProcessing: false,
+      isChatOpen: false,
+      soundVolume: 0.5,
+      hideBalance: false,
+      anonymousBetting: false,
+      language: 'en',
+      oddsFormat: 'decimal',
       gameStats: {
         DICE: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
         CRASH: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
         ROULETTE: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
-        SLOTS: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
-        BLACKJACK: { totalBets: 0, wins: 0, losses: 0, profit: 0 }
+        SLOTS: { totalBets: 0, wins: 0, losses: 0, profit: 0 }
       },
       chatMessages: [
         { id: '1', user: 'System', rank: 'MOD', message: 'Welcome to Casino Royale! Play fair, win big.', time: '10:00 AM', isSystem: true }
@@ -261,12 +284,6 @@ export const useCasinoStore = create<CasinoState>()(
           amount: 1,
           cashoutAt: 2.00,
           onLoss: 'RESET',
-        },
-        blackjack: {
-          amount: 1,
-          numberOfBets: 0,
-          stopOnProfit: 0,
-          stopOnLoss: 0,
         },
       },
 
@@ -446,6 +463,22 @@ export const useCasinoStore = create<CasinoState>()(
       });
     },
 
+      setIsChatOpen: (open) => set({ isChatOpen: open }),
+      updateSettings: (settings) => set((state) => ({ ...state, ...settings })),
+      updateSessionTime: () => {
+        const interval = setInterval(() => {
+          set((state) => ({
+            analytics: {
+              totalWagered: state.analytics?.totalWagered ?? 0,
+              totalPayout: state.analytics?.totalPayout ?? 0,
+              winRate: state.analytics?.winRate ?? 0,
+              totalSessionTime: (state.analytics?.totalSessionTime ?? 0) + 1000,
+              activityHeatmap: state.analytics?.activityHeatmap ?? {},
+            }
+          }));
+        }, 1000);
+        return () => clearInterval(interval);
+      },
       setIsProcessing: (isProcessing) => set({ isProcessing }),
       resetGameStats: (game) => set((state) => {
         if (game) {
@@ -461,8 +494,7 @@ export const useCasinoStore = create<CasinoState>()(
             DICE: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
             CRASH: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
             ROULETTE: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
-            SLOTS: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
-            BLACKJACK: { totalBets: 0, wins: 0, losses: 0, profit: 0 }
+            SLOTS: { totalBets: 0, wins: 0, losses: 0, profit: 0 }
           }
         };
       }),
@@ -706,7 +738,7 @@ export const useCasinoStore = create<CasinoState>()(
       startActivitySimulator: () => {
         if (typeof window === 'undefined') return () => {};
         
-        const games = ['CRASH', 'DICE', 'ROULETTE', 'SLOTS', 'BLACKJACK'];
+        const games = ['CRASH', 'DICE', 'ROULETTE', 'SLOTS'];
         const users = ['Satoshi', 'Vitalik', 'Elon', 'CZ', 'VibeCoder', 'Neon_Sniper', 'SarahSlot', 'LazyJoe', 'Bochmann88', 'Alpha_Wolf', 'Diamond_Hands'];
         
         const interval = setInterval(() => {

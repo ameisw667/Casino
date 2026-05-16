@@ -60,8 +60,8 @@ export default function HistoryPage() {
 
   const highRoller = totalWagered / (bets.length || 1) > 100;
   const precisionStriker = parseFloat(winRate) > 60 && bets.length > 10;
-  
-  const heatmap = analytics.activityHeatmap || {};
+
+  const heatmap = analytics?.activityHeatmap || {};
   const earlyMorningBets = Object.entries(heatmap)
     .filter(([hour]) => parseInt(hour) < 9)
     .reduce((acc, [_hour, count]) => acc + count, 0);
@@ -175,7 +175,7 @@ export default function HistoryPage() {
                   <td style={{ padding: '16px 8px', fontWeight: 900, color: stats.profit >= 0 ? 'hsl(var(--success))' : 'hsl(var(--error))' }}>
                     {stats.profit >= 0 ? '+' : ''}${stats.profit.toLocaleString()}
                   </td>
-                  <td style={{ padding: '16px 8px', fontWeight: 700 }}>{stats.peakWinMultiplier.toFixed(2)}x</td>
+                  <td style={{ padding: '16px 8px', fontWeight: 700 }}>{(stats.peakWinMultiplier || 0).toFixed(2)}x</td>
                 </tr>
               ))}
             </tbody>
@@ -192,25 +192,25 @@ export default function HistoryPage() {
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '20px' }}>
           <div style={{ padding: '20px', borderRadius: '20px', background: 'hsla(0,0%,0%,0.3)', border: '1px solid hsla(0,0%,100%,0.05)' }}>
             <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'hsl(var(--text-dim))', marginBottom: '8px' }}>LOSS LIMIT</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 950 }}>${responsibleGaming.sessionLoss.toFixed(2)} <span style={{ fontSize: '0.9rem', color: 'hsl(var(--text-muted))' }}>/ ${responsibleGaming.lossLimit}</span></div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 950 }}>${(responsibleGaming?.sessionLoss || 0).toFixed(2)} <span style={{ fontSize: '0.9rem', color: 'hsl(var(--text-muted))' }}>/ ${responsibleGaming?.lossLimit}</span></div>
             <div style={{ width: '100%', height: '6px', background: 'hsla(0,0%,100%,0.05)', borderRadius: '3px', marginTop: '12px', overflow: 'hidden' }}>
-              <motion.div 
+              <motion.div
                 style={{ height: '100%', background: 'hsl(var(--error))' }}
                 initial={{ width: 0 }}
-                animate={{ width: `${Math.min((responsibleGaming.sessionLoss / (responsibleGaming.lossLimit || 1)) * 100, 100)}%` }}
+                animate={{ width: `${Math.min(((responsibleGaming?.sessionLoss || 0) / (responsibleGaming?.lossLimit || 1)) * 100, 100)}%` }}
               />
             </div>
           </div>
           <div style={{ padding: '20px', borderRadius: '20px', background: 'hsla(0,0%,0%,0.3)', border: '1px solid hsla(0,0%,100%,0.05)' }}>
             <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'hsl(var(--text-dim))', marginBottom: '8px' }}>PATTERN ANALYSIS</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: responsibleGaming.martingaleDetected ? 'hsl(var(--error))' : 'hsl(var(--success))' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: responsibleGaming?.martingaleDetected ? 'hsl(var(--error))' : 'hsl(var(--success))' }}>
               <Zap size={18} />
-              <div style={{ fontSize: '1.1rem', fontWeight: '950' }}>{responsibleGaming.martingaleDetected ? 'AGGRESSIVE DETECTED' : 'SAFE BEHAVIOR'}</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: '950' }}>{responsibleGaming?.martingaleDetected ? 'AGGRESSIVE DETECTED' : 'SAFE BEHAVIOR'}</div>
             </div>
           </div>
           <div style={{ padding: '20px', borderRadius: '20px', background: 'hsla(0,0%,0%,0.3)', border: '1px solid hsla(0,0%,100%,0.05)' }}>
             <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'hsl(var(--text-dim))', marginBottom: '8px' }}>SESSION TIME</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 950 }}>{Math.floor(analytics.totalSessionTime / 60000)} <span style={{ fontSize: '0.9rem', color: 'hsl(var(--text-muted))' }}>MINUTES</span></div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 950 }}>{Math.floor((analytics?.totalSessionTime ?? 0) / 60000)} <span style={{ fontSize: '0.9rem', color: 'hsl(var(--text-muted))' }}>MINUTES</span></div>
           </div>
         </div>
       </div>
