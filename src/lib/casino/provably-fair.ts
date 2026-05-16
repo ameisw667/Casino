@@ -124,4 +124,23 @@ export class ProvablyFairEngine {
     return results;
   }
 
+  /**
+   * Specifically for Blackjack (Fisher-Yates shuffle indices for 6-deck shoe)
+   * Returns swap indices for each position in the deck (312 cards = 6 decks * 52)
+   * Each index represents the position to swap with for that iteration
+   */
+  static async getBlackjackDeal(serverSeed: string, clientSeed: string, nonce: number, deckSize: number = 312): Promise<number[]> {
+    const swapIndices: number[] = [];
+
+    // Fisher-Yates: for each position i, generate a random swap index j where i <= j < deckSize
+    for (let i = 0; i < deckSize; i++) {
+      const { result } = await this.calculateOutcome(serverSeed, clientSeed, nonce + i);
+      // Map [0, 1) to [i, deckSize) to get valid swap index
+      const jIndex = i + Math.floor(result * (deckSize - i));
+      swapIndices.push(jIndex);
+    }
+
+    return swapIndices;
+  }
+
 }

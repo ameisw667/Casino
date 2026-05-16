@@ -106,7 +106,7 @@ export const DailyBonusLadder: React.FC<DailyBonusLadderProps> = ({
         }}>
           {!isMobile && (
             <div style={{ width: '120px', height: '120px', position: 'relative' }}>
-              <Image src="/images/daily-lootbox-3d.png" alt="Daily Lootbox" fill style={{ objectFit: 'contain' }} className="animate-float" />
+              <Image src="/images/daily-lootbox-3d.png" alt="Daily Lootbox" fill sizes="(max-width: 768px) 100vw, 50vw" style={{ objectFit: 'contain' }} className="animate-float" />
             </div>
           )}
           <button 

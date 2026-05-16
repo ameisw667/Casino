@@ -60,12 +60,82 @@ export default function RootLayout({
       baseTheme: dark,
       variables: { 
         colorPrimary: '#FFD700',
-        colorBackground: '#050505',
-        colorText: '#ffffff'
+        colorBackground: '#0a0a0a',
+        colorText: '#ffffff',
+        colorTextSecondary: '#ffffff',
+        colorInputBackground: 'rgba(255, 255, 255, 0.05)',
+        colorInputText: '#ffffff',
+        borderRadius: '16px',
       },
       elements: {
-        card: { borderRadius: '24px', border: '1px solid hsla(45, 100%, 50%, 0.2)' },
-        formButtonPrimary: { borderRadius: '12px', textTransform: 'uppercase', fontWeight: 'bold' }
+        card: { 
+          borderRadius: '24px', 
+          border: '1px solid hsla(45, 100%, 50%, 0.2)',
+          background: 'rgba(10, 10, 10, 0.95)',
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)'
+        },
+        userButtonPopoverCard: {
+          borderRadius: '20px',
+          border: '1px solid rgba(0, 0, 0, 0.1)',
+          background: '#ffffff',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          overflow: 'hidden'
+        },
+        userButtonPopoverMain: {
+          background: '#ffffff',
+        },
+        userButtonPopoverScrollBox: {
+          background: '#ffffff',
+        },
+        userButtonPopoverActionButton: {
+          padding: '14px 16px',
+          transition: 'all 0.2s ease',
+          background: '#ffffff',
+          '&:hover': {
+            background: 'rgba(0, 0, 0, 0.05)',
+          }
+        },
+        userButtonPopoverActionButtonIcon: {
+          color: '#000000',
+        },
+        userButtonPopoverActionButtonText: {
+          fontWeight: '600',
+          fontSize: '0.95rem',
+          color: '#000000'
+        },
+        userButtonPopoverFooter: {
+          background: '#ffffff',
+          borderTop: '1px solid rgba(0, 0, 0, 0.05)',
+          padding: '12px'
+        },
+        userPreviewMainIdentifier: {
+          fontWeight: '700',
+          color: '#000000'
+        },
+        userPreviewSecondaryIdentifier: {
+          color: '#6b7280',
+          opacity: 1,
+          fontWeight: '500'
+        },
+        formButtonPrimary: { 
+          borderRadius: '12px', 
+          textTransform: 'uppercase', 
+          fontWeight: '900',
+          letterSpacing: '0.1em',
+          background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+          color: '#000',
+          border: 'none',
+          boxShadow: '0 4px 15px rgba(255, 215, 0, 0.3)',
+          '&:hover': {
+            background: 'linear-gradient(135deg, #FFA500 0%, #FFD700 100%)',
+            transform: 'translateY(-2px)',
+            boxShadow: '0 8px 25px rgba(255, 215, 0, 0.5)'
+          },
+          '&:active': {
+            transform: 'translateY(0)'
+          }
+        }
       }
     }}>
       <html lang="en" className={`${inter.variable} ${outfit.variable} ${jetbrains.variable}`} data-scroll-behavior="smooth">

@@ -3,16 +3,16 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { 
   CircleDollarSign, Users, TrendingUp, Copy, Link as LinkIcon, Activity, 
-  Share2, Download, BarChart3, Settings, ShieldCheck, Mail, Trophy, 
-  Zap, Gift, FileText, CheckCircle2, ChevronRight, MessageSquare, 
-  Code, HelpCircle, Star, Crown, X, Send, Phone, ArrowUpRight
+  Share2, Download, BarChart3, Settings, ShieldCheck, Trophy, 
+  Gift, CheckCircle2, 
+  Code, HelpCircle, X, Send, Phone
 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { VibeMotion } from '@/components/ui/VibeMotion';
 import { Magnetic } from '@/components/ui/Magnetic';
 
 export default function AffiliatePage() {
-  const { isMobile } = useCasinoStore();
+  const isMobile = useCasinoStore(s => s.isMobile);
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
@@ -491,7 +491,14 @@ export default function AffiliatePage() {
             <section className="glass-card" style={{ padding: '32px', borderRadius: '32px', background: 'linear-gradient(135deg, hsla(var(--accent), 0.1), transparent)', border: '1px solid hsla(var(--accent), 0.2)' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}><Phone color="hsl(var(--accent))" /> VIP MANAGER</h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Manager" alt="manager" style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'hsla(0,0%,0%,0.5)' }} />
+                <Image 
+                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=Manager" 
+                  alt="manager" 
+                  width={64}
+                  height={64}
+                  unoptimized
+                  style={{ borderRadius: '50%', background: 'hsla(0,0%,0%,0.5)' }} 
+                />
                 <div>
                   <div style={{ fontSize: '1.2rem', fontWeight: 900 }}>Elena R.</div>
                   <div style={{ fontSize: '0.8rem', color: 'hsl(var(--accent))', fontWeight: 800 }}>DEDICATED SUPPORT</div>

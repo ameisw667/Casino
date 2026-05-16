@@ -10,7 +10,8 @@ interface GamificationContextType {
 const GamificationContext = createContext<GamificationContextType | undefined>(undefined);
 
 export function GamificationProvider({ children }: { children: React.ReactNode }) {
-  const { level, addToast } = useCasinoStore();
+  const level = useCasinoStore(s => s.level);
+  const addToast = useCasinoStore(s => s.addToast);
   const [lastLevelUp, setLastLevelUp] = useState<number | null>(null);
   const isFirstRender = useRef(true);
 

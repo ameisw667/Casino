@@ -7,7 +7,10 @@ interface RankBenefitsModalProps {
   onClose: () => void;
 }
 export default function RankBenefitsModal({ isOpen, onClose }: RankBenefitsModalProps) {
-  const { isMobile, level, xp, rank } = useCasinoStore();
+  const isMobile = useCasinoStore(s => s.isMobile);
+  const level = useCasinoStore(s => s.level);
+  const xp = useCasinoStore(s => s.xp);
+  const rank = useCasinoStore(s => s.rank);
   if (!isOpen) return null;
   const currentRankIndex = RANKS.findIndex(r => r.name === rank);
   const nextRank = RANKS[currentRankIndex + 1];

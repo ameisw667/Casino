@@ -2,12 +2,18 @@
 import React from 'react';
 import { Target, CheckCircle2, Zap } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
+import { useModalKeyboard } from '@/hooks/useModalKeyboard';
 interface ChallengesModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 export default function ChallengesModal({ isOpen, onClose }: ChallengesModalProps) {
-  const { isMobile, challenges, claimChallenge } = useCasinoStore();
+  const isMobile = useCasinoStore(s => s.isMobile);
+  const challenges = useCasinoStore(s => s.challenges);
+  const claimChallenge = useCasinoStore(s => s.claimChallenge);
+
+  // Universal ESC-key handling
+  useModalKeyboard(onClose, isOpen);
   if (!isOpen) return null;
   return (
     <div style={{ 

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Gift, Zap } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
+import { useModalKeyboard } from '@/hooks/useModalKeyboard';
 interface DailyRewardModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -9,7 +10,10 @@ interface DailyRewardModalProps {
   streak: number;
 }
 export default function DailyRewardModal({ isOpen, onClose, rewardAmount, streak }: DailyRewardModalProps) {
-  const { isMobile } = useCasinoStore();
+  const isMobile = useCasinoStore(s => s.isMobile);
+  
+  // Universal ESC-key handling
+  useModalKeyboard(onClose, isOpen);
   
   if (!isOpen) return null;
   return (

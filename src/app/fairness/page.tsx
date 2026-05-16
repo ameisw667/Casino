@@ -2,24 +2,18 @@
 import React, { useState } from 'react';
 import { 
   ShieldCheck, 
-  RotateCcw, 
-  Lock, 
   ChevronRight, 
   Copy, 
   CheckCircle2, 
-  Info, 
   Zap, 
-  History,
-  ExternalLink,
-  Code,
-  Eye,
   RefreshCw,
   Award
 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 export default function FairnessPage() {
-  const { provablyFairSettings, setProvablyFairSettings, isMobile } = useCasinoStore();
-  const [copied, setCopied] = useState(false);
+  const provablyFairSettings = useCasinoStore(s => s.provablyFairSettings);
+  const setProvablyFairSettings = useCasinoStore(s => s.setProvablyFairSettings);
+  const isMobile = useCasinoStore(s => s.isMobile);
   const [activeTab, setActiveTab] = useState('VERIFIER');
   const [verificationResult, setVerificationResult] = useState<{ result: number, hash: string } | null>(null);
 
@@ -29,19 +23,13 @@ export default function FairnessPage() {
   const [plainServerSeed, setPlainServerSeed] = useState('');
 
 
-  const [mounted, setMounted] = React.useState(false);
-  React.useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
-
-
   const copyToClipboard = (text: string) => {
 
     navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    addToast('Copied to clipboard!', 'success');
   };
+
+  const addToast = useCasinoStore(s => s.addToast);
 
   const handleVerify = async () => {
     if (!plainServerSeed) {

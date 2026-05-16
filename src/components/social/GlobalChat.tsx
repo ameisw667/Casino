@@ -1,35 +1,35 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Send, ChevronRight, ChevronLeft } from 'lucide-react';
+import { MessageSquare, Send, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { ChatBotService } from '@/lib/casino/chat-bot';
 import { PlayerProfileModal } from './PlayerProfileModal';
 import Image from 'next/image';
+
 export function GlobalChat() {
+  const isChatOpen = useCasinoStore(state => state.isChatOpen);
+  const setIsChatOpen = useCasinoStore(state => state.setIsChatOpen);
   const isMobile = useCasinoStore(state => state.isMobile);
   const chatMessages = useCasinoStore(state => state.chatMessages);
   const addChatMessage = useCasinoStore(state => state.addChatMessage);
-  const [isOpen, setIsOpen] = useState(false);
+  const anonymousBetting = useCasinoStore(state => state.anonymousBetting);
+
   const [message, setMessage] = useState('');
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     ChatBotService.start();
     return () => ChatBotService.stop();
   }, []);
-  useEffect(() => {
-    // Close chat when switching to mobile
-    if (isMobile) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsOpen(false);
-    }
-  }, [isMobile]);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [chatMessages, isOpen]);
+  }, [chatMessages, isChatOpen]);
+
   const handleSend = () => {
     if (!message.trim()) return;
     
@@ -49,14 +49,15 @@ export function GlobalChat() {
     });
     setMessage('');
   };
-  if (!isOpen && !isMobile) {
+
+  if (!isChatOpen && !isMobile) {
     return (
       <motion.button 
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         whileHover={{ scale: 1.05, x: -3 }}
         whileTap={{ scale: 0.95 }}
-        onClick={() => setIsOpen(true)}
+        onClick={() => setIsChatOpen(true)}
         style={{
           position: 'fixed', right: '0', top: '50%', transform: 'translateY(-50%)',
           width: '28px', height: '72px',
@@ -76,13 +77,14 @@ export function GlobalChat() {
       </motion.button>
     );
   }
+
   return (
     <motion.div 
       initial={isMobile ? { y: '100%' } : { x: '100%' }}
-      animate={isMobile ? { y: isOpen ? 0 : '100%' } : { x: 0 }}
+      animate={isMobile ? { y: isChatOpen ? 0 : '100%' } : { x: 0 }}
       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
       style={{
-        position: isMobile ? 'fixed' : 'fixed',
+        position: 'fixed',
         right: 0, top: isMobile ? 'auto' : '32px', bottom: isMobile ? 'calc(72px + env(safe-area-inset-bottom))' : 0,
         width: isMobile ? '100%' : '280px',
         height: isMobile ? '50vh' : 'auto',
@@ -95,7 +97,6 @@ export function GlobalChat() {
         boxShadow: '-4px 0 16px rgba(0,0,0,0.2)',
         color: 'hsl(var(--text-main))'
       }}
-
     >
       {/* Chat Header */}
       <div style={{ 
@@ -113,10 +114,11 @@ export function GlobalChat() {
             1,284
           </div>
         </div>
-          <button onClick={() => setIsOpen(false)} style={{ background: 'transparent', border: 'none', color: '#b1bad3', cursor: 'pointer' }}>
-            <ChevronRight size={20} />
-          </button>
+        <button onClick={() => setIsChatOpen(false)} style={{ background: 'transparent', border: 'none', color: '#b1bad3', cursor: 'pointer' }}>
+          <ChevronRight size={20} />
+        </button>
       </div>
+
       {/* Messages Area */}
       <div 
         ref={scrollRef}
@@ -133,53 +135,61 @@ export function GlobalChat() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-              style={{ 
-                display: 'flex', flexDirection: 'column', gap: '4px'
-              }}
             >
-            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px', paddingRight: isMobile ? '8px' : '0' }}>
-              {msg.isSystem ? (
-                <div style={{ width: '20px', height: '20px', position: 'relative', borderRadius: '50%', overflow: 'hidden', background: 'hsl(var(--primary))' }}>
-                  <Image src="/images/system-bot-3d.png" alt="ROY" fill style={{ objectFit: 'contain' }} />
-                  <div style={{ position: 'absolute', inset: 0, boxShadow: 'inset 0 0 5px rgba(0,0,0,0.5)' }} />
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '4px',
+                opacity: (msg.isUser && anonymousBetting) ? 0.8 : 1
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px' }}>
+                  {msg.isSystem ? (
+                    <div style={{ width: '20px', height: '20px', position: 'relative', borderRadius: '50%', overflow: 'hidden', background: 'hsl(var(--primary))' }}>
+                      <Image src="/images/system-bot-3d.png" alt="ROY" fill sizes="50px" style={{ objectFit: 'contain' }} />
+                    </div>
+                  ) : (
+                    <span style={{ 
+                      fontSize: '0.6rem', fontWeight: 900, padding: '2px 6px', borderRadius: '4px',
+                      background: msg.rank === 'MOD' ? 'rgba(255, 0, 0, 0.1)' : msg.rank === 'VIP' ? 'rgba(255, 215, 0, 0.1)' : 'rgba(255,255,255,0.05)',
+                      color: msg.rank === 'MOD' ? '#ff4d4d' : msg.rank === 'VIP' ? '#ffd700' : '#b1bad3'
+                    }}>
+                      {msg.rank}
+                    </span>
+                  )}
+                  <span 
+                    onClick={() => setSelectedUser(msg.user)}
+                    style={{ 
+                      fontSize: '0.75rem', 
+                      fontWeight: 950, 
+                      color: msg.isUser ? 'hsl(var(--primary))' : msg.isSystem ? 'hsl(var(--primary))' : '#fff', 
+                      cursor: 'pointer' 
+                    }}
+                  >
+                    {msg.user}
+                  </span>
+                  <span style={{ fontSize: '0.6rem', color: '#556773', marginLeft: 'auto' }}>{msg.time}</span>
                 </div>
-              ) : (
-                <span style={{ 
-                  fontSize: '0.6rem', fontWeight: 900, padding: '2px 6px', borderRadius: '4px',
-                  background: msg.rank === 'MOD' ? 'rgba(255, 0, 0, 0.1)' : msg.rank === 'VIP' ? 'rgba(255, 215, 0, 0.1)' : 'rgba(255,255,255,0.05)',
-                  color: msg.rank === 'MOD' ? '#ff4d4d' : msg.rank === 'VIP' ? '#ffd700' : '#b1bad3'
+                <div style={{ 
+                  fontSize: '0.85rem', color: msg.isSystem ? 'hsl(var(--primary))' : '#b1bad3',
+                  lineHeight: '1.4', padding: msg.isWin ? '8px' : '0',
+                  background: msg.isWin ? 'rgba(0,231,1,0.05)' : 'transparent',
+                  borderRadius: '8px', border: msg.isWin ? '1px solid rgba(0,231,1,0.1)' : 'none',
+                  fontWeight: msg.isWin ? 700 : 400
                 }}>
-                  {msg.rank}
-                </span>
-              )}
-              <span 
-                onClick={() => setSelectedUser(msg.user)}
-                style={{ fontSize: '0.75rem', fontWeight: 800, color: msg.isSystem ? 'hsl(var(--primary))' : '#fff', cursor: 'pointer' }}
-              >
-                {msg.user}
-              </span>
-              <span style={{ fontSize: '0.6rem', color: '#556773', marginLeft: 'auto' }}>{msg.time}</span>
-            </div>
-            <div style={{ 
-              fontSize: '0.85rem', color: msg.isSystem ? 'hsl(var(--primary))' : '#b1bad3',
-              lineHeight: '1.4', padding: msg.isWin ? '8px' : '0',
-              background: msg.isWin ? 'rgba(0,231,1,0.05)' : 'transparent',
-              borderRadius: '8px', border: msg.isWin ? '1px solid rgba(0,231,1,0.1)' : 'none',
-              fontWeight: msg.isWin ? 700 : 400
-            }}>
-              {msg.message}
-            </div>
-          </motion.div>
-        ))}
+                  {msg.message}
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </AnimatePresence>
       </div>
+
       {/* Input Area */}
       <div style={{ padding: '16px', background: 'hsla(var(--bg-color), 0.5)', borderTop: '1px solid var(--glass-border)' }}>
         <div style={{ 
           display: 'flex', gap: '8px', background: 'hsla(0,0%,100%,0.03)', padding: '4px', 
           borderRadius: '12px', border: '1px solid var(--glass-border)'
         }}>
-
           <input 
             type="text"
             value={message}

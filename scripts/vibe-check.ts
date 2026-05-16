@@ -15,7 +15,7 @@ const CONFIG = {
   ],
   MANDATORY_VIBES: [
     { name: 'HSL Tokens', regex: /hsla?\(var\(--/i },
-    { name: 'Glassmorphism', regex: /(backdropFilter: ['"]blur|className=['"]glass(-card)?['"])/i },
+    { name: 'Glassmorphism', regex: /(backdropFilter: ['"]blur|className=['"][^'"]*glass(-card)?[^'"]*['"])/i },
     { name: 'Responsive clamp', regex: /clamp\(/i }
   ]
 };

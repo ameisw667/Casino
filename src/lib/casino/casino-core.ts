@@ -10,7 +10,7 @@ export interface BetResult {
   nonce: number;
 }
 
-export type GameType = 'CRASH' | 'DICE' | 'ROULETTE' | 'SLOTS';
+export type GameType = 'CRASH' | 'DICE' | 'ROULETTE' | 'SLOTS' | 'BLACKJACK';
 
 export interface RouletteBetType {
   type: 'STRAIGHT' | 'COLOR' | 'EVEN_ODD' | 'RANGE' | 'DOZEN' | 'COLUMN' | 'FRENCH';
@@ -33,6 +33,8 @@ export class CasinoCore {
     target?: number;
     condition?: 'OVER' | 'UNDER';
     bets?: RouletteBet[]; // For Roulette
+    payout?: number; // For Blackjack (direct settlement from client)
+    win?: boolean; // For Blackjack (direct settlement from client)
     clientSeed: string;
     currentNonce: number;
   }): Promise<BetResult> {
@@ -79,7 +81,31 @@ export class CasinoCore {
             nonce: nonce + 5
           };
         }
-        
+
+        case 'BLACKJACK': {
+          // Blackjack settlement from client (all logic runs client-side)
+          // This case just validates and registers the result
+          if (params.payout === undefined || params.win === undefined) {
+            throw new Error('Blackjack requires payout and win parameters');
+          }
+          // Anti-cheat: payout must not exceed 2.5x bet (max blackjack multiplier)
+          if (params.payout > params.amount * 2.5) {
+            throw new Error('Invalid payout: exceeds maximum multiplier');
+          }
+          roll = 0;
+          win = params.win;
+          payout = params.payout;
+          // Blackjack uses 312 nonces per round (6-deck shuffle)
+          return {
+            id: Math.random().toString(36).substring(2, 11),
+            roll: 0,
+            win,
+            payout,
+            serverSeedHash: hash,
+            nonce: nonce + 312
+          };
+        }
+
         default:
           throw new Error(`Unsupported game type: ${params.gameType}`);
       }
@@ -165,8 +191,35 @@ export class CasinoCore {
     }
   }
 
-  static calculateXpGain(wager: number): number {
-    return wager * 10;
+  /**
+   * Maximum XP that can be awarded per single bet.
+   * This cap prevents integer overflow when wager or level values are extreme.
+   */
+  static readonly MAX_XP_PER_BET = 10_000;
+
+  /**
+   * Calculate XP earned from a single bet.
+   *
+   * Formula: floor(wager * 10 * levelMultiplier), capped at MAX_XP_PER_BET.
+   * Level multiplier = 1 + floor(level / 100), hard-capped at 5x.
+   *
+   * Safe invariants (guaranteed regardless of input):
+   *   - Result is always a non-negative finite integer
+   *   - Result never exceeds MAX_XP_PER_BET (10 000)
+   *   - Non-positive or non-finite wager returns 0 XP
+   *
+   * @param wager - Bet amount (negative values return 0)
+   * @param level - Current player level (optional, defaults to 1)
+   */
+  static calculateXpGain(wager: number, level: number = 1): number {
+    if (!Number.isFinite(wager) || wager <= 0) return 0;
+
+    const safeLevel = Math.max(1, Math.floor(level));
+    // Multiplier grows by 1 per 100 levels, hard-capped at 5x to prevent overflow.
+    const levelMultiplier = Math.min(5, 1 + Math.floor(safeLevel / 100));
+
+    const raw = Math.floor(wager * 10 * levelMultiplier);
+    return Math.min(raw, CasinoCore.MAX_XP_PER_BET);
   }
 
   static calculateLevel(totalXp: number): number {

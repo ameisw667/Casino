@@ -6,7 +6,9 @@ interface LevelProgressProps {
   isMobile?: boolean;
 }
 export default function LevelProgress({ isMobile }: LevelProgressProps) {
-  const { level, xp, rank } = useCasinoStore();
+  const level = useCasinoStore(s => s.level);
+  const xp = useCasinoStore(s => s.xp);
+  const rank = useCasinoStore(s => s.rank);
   
   // XP Calculation logic matches the store
   const nextLevelXp = Math.pow(level, 2) * 100;

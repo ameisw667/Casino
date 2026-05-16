@@ -13,23 +13,36 @@ const isPublicRoute = createRouteMatcher([
   '/vault(.*)',
   '/affiliate(.*)',
   '/admin(.*)',
-  '/api/(.*)'
+  '/api/public/(.*)',
+  '/api/webhooks/clerk(.*)',
+  '/sounds/(.*)',
+  '/images/(.*)'
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
   try {
-    // 1. CSRF Protection for non-GET requests
-    if (req.method !== 'GET') {
+    // 1. CSRF Protection
+    if (req.method !== 'GET' && !req.nextUrl.pathname.startsWith('/api/public')) {
       const origin = req.headers.get('origin');
       const host = req.headers.get('host');
-      if (origin && host && !origin.includes(host)) {
+      const isAllowedOrigin = origin && (
+        origin.includes(host || '') || 
+        origin.includes('localhost') || 
+        origin.includes('127.0.0.1')
+      );
+      if (origin && !isAllowedOrigin) {
+        console.warn(`[Middleware] CSRF Blocked: origin=${origin}, host=${host}`);
         return new NextResponse('Invalid Origin', { status: 403 });
       }
     }
-
+    
+    const isPublic = isPublicRoute(req);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[Middleware] Request: ${req.method} ${req.nextUrl.pathname}, Public: ${isPublic}`);
+    }
+    
     // 2. Auth Protection
-    // Note: Most routes are public in this casino, auth is handled at the component level
-    if (!isPublicRoute(req)) {
+    if (!isPublic) {
       await auth.protect();
     }
 
@@ -44,7 +57,6 @@ export default clerkMiddleware(async (auth, req) => {
     
     return response;
   } catch (error) {
-    // Prevent 500 error if Clerk fails (e.g. missing API keys in production)
     console.error('[Middleware Error]:', error);
     return NextResponse.next();
   }
@@ -53,7 +65,7 @@ export default clerkMiddleware(async (auth, req) => {
 export const config = {
   matcher: [
     // Skip Next.js internals and all static files, unless found in search params
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest|mp3)).*)',
     // Always run for API routes
     '/(api|trpc)(.*)',
   ],

@@ -1,0 +1,52 @@
+<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f3460;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cardGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8d4b8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d4af37;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Main background -->
+  <rect width="400" height="300" fill="url(#bgGradient)"/>
+
+  <!-- Decorative blur circles -->
+  <circle cx="80" cy="60" r="60" fill="#d4af37" opacity="0.1"/>
+  <circle cx="320" cy="240" r="80" fill="#d4af37" opacity="0.1"/>
+
+  <!-- Playing card container -->
+  <rect x="100" y="50" width="200" height="200" rx="12" fill="url(#cardGradient)" stroke="#8b7355" stroke-width="2"/>
+
+  <!-- Card inner shadow -->
+  <rect x="105" y="55" width="190" height="190" rx="10" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.3"/>
+
+  <!-- Spades symbol (top-left) -->
+  <g transform="translate(130, 85)">
+    <!-- Spade symbol -->
+    <path d="M 0 -8 L 5 0 L 3 3 Q 0 5 -3 3 L -5 0 Z" fill="#000000"/>
+    <!-- Stem -->
+    <rect x="-1" y="3" width="2" height="4" fill="#000000"/>
+  </g>
+
+  <!-- Spades symbol (bottom-right, rotated) -->
+  <g transform="translate(270, 215) rotate(180)">
+    <!-- Spade symbol -->
+    <path d="M 0 -8 L 5 0 L 3 3 Q 0 5 -3 3 L -5 0 Z" fill="#000000"/>
+    <!-- Stem -->
+    <rect x="-1" y="3" width="2" height="4" fill="#000000"/>
+  </g>
+
+  <!-- Blackjack text -->
+  <text x="200" y="160" font-family="'Outfit', sans-serif" font-size="32" font-weight="700" text-anchor="middle" fill="#000000" opacity="0.8">
+    21
+  </text>
+
+  <!-- Game title -->
+  <text x="200" y="280" font-family="'Outfit', sans-serif" font-size="20" font-weight="700" text-anchor="middle" fill="#d4af37">
+    BLACKJACK
+  </text>
+</svg>

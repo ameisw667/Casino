@@ -14,7 +14,7 @@ export function LiveActivityFeed() {
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
   const filteredBets = allBets.filter(bet => {
-    if (activeTab === 'MINE') return bet.user === 'You';
+    if (activeTab === 'MINE') return bet.user === 'You' || bet.isUser;
     if (activeTab === 'BIG') return bet.multiplier >= 10 || bet.amount >= 50;
     return true;
   });
@@ -67,11 +67,10 @@ export function LiveActivityFeed() {
             </tr>
           </thead>
           <tbody>
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence>
               {filteredBets.length > 0 ? (
                 filteredBets.map((bet) => (
                   <motion.tr 
-                    layout
                     key={bet.id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -79,7 +78,7 @@ export function LiveActivityFeed() {
                     transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                     style={{ 
                       borderBottom: '1px solid hsla(0,0%,100%,0.02)', 
-                      background: bet.user === 'You' ? 'hsla(var(--primary), 0.05)' : 'transparent'
+                      background: (bet.user === 'You' || bet.isUser) ? 'hsla(var(--primary), 0.05)' : 'transparent'
                     }}
                   >
                   <td data-label="Game" style={{ padding: '16px' }}>
@@ -107,7 +106,7 @@ export function LiveActivityFeed() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 900, color: bet.isWin ? '#00e701' : '#b1bad3' }}>
                       ${bet.payout.toFixed(2)}
                       {bet.isWin && bet.multiplier >= 10 && <Trophy size={14} />}
-                      {bet.user === 'You' && (
+                      {(bet.user === 'You' || bet.isUser) && (
                         <motion.button
                           whileHover={{ scale: 1.1, color: '#fff' }}
                           whileTap={{ scale: 0.9 }}

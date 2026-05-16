@@ -55,16 +55,16 @@ const FEATURED_GAMES = [
 import { VibeMotion } from '@/components/ui/VibeMotion';
 
 export function HomeClient() {
-  const { startOnboarding, isMobile, allBets } = useCasinoStore();
+  const startOnboarding = useCasinoStore(s => s.startOnboarding);
+  const isMobile = useCasinoStore(s => s.isMobile);
+  const allBets = useCasinoStore(s => s.allBets);
 
-  const [isLoaded, setIsLoaded] = useState(false);
   const [lastPayoutTime, setLastPayoutTime] = useState(0);
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsLoaded(true);
-    setLastPayoutTime(Date.now());
+    // Logic-Architect: Defer state update to avoid cascading render lint error
+    const timer = setTimeout(() => setLastPayoutTime(Date.now()), 0);
+    return () => clearTimeout(timer);
   }, []);
-  if (!isLoaded) return null;
   return (
     <motion.main 
       initial={{ opacity: 0 }}

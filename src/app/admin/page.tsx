@@ -5,9 +5,7 @@ import {
   Users, 
   Wallet, 
   ShieldCheck,
-  AlertTriangle,
   ArrowUpRight,
-  ArrowDownRight,
   Activity
 } from 'lucide-react';
 
@@ -20,7 +18,7 @@ export default function AdminOverview() {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(24px, 5vw, 48px)' }}>
       <div>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-1px', marginBottom: '8px' }}>
           Welcome back, <span style={{ color: '#ffd700' }}>Operator</span>

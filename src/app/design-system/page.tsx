@@ -3,16 +3,12 @@ import React, { useState } from 'react';
 import { 
   Play, 
   Settings, 
-  User, 
   ShieldCheck, 
   Wallet, 
   History, 
   Trophy, 
-  MessageSquare, 
   TrendingUp,
-  AlertCircle,
   CheckCircle2,
-  Info,
   Loader2,
   Bell,
   Star
@@ -20,7 +16,7 @@ import {
 import ProvablyFairTool from '@/components/casino/ProvablyFairTool';
 import { useCasinoStore } from '@/store/useCasinoStore';
 export default function DesignSystemPage() {
-  const { isMobile } = useCasinoStore();
+  const isMobile = useCasinoStore(s => s.isMobile);
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const triggerLoading = () => {

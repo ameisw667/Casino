@@ -1,21 +1,22 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { 
-  Gamepad2, 
-  TrendingUp, 
-  CircleDollarSign, 
-  RotateCcw, 
-  Zap, 
-  Trophy, 
-  Star, 
-  Clock, 
-  ChevronRight, 
+import {
+  Gamepad2,
+  TrendingUp,
+  CircleDollarSign,
+  RotateCcw,
+  Zap,
+  Trophy,
+  Star,
+  Clock,
+  ChevronRight,
   ArrowUpRight,
   Flame,
   Search,
   Download,
   ShieldCheck,
-  ZapOff
+  ZapOff,
+  Spade
 } from 'lucide-react';
 import Link from 'next/link';
 import { useCasinoStore } from '@/store/useCasinoStore';
@@ -26,7 +27,7 @@ export default function GamesPage() {
   const [liveHeat, setLiveStats] = useState({ game: 'CRASH', multiplier: '142x', user: 'VibeCoder' });
   useEffect(() => {
     const interval = setInterval(() => {
-      const games = ['CRASH', 'DICE', 'ROULETTE', 'SLOTS'];
+      const games = ['CRASH', 'DICE', 'ROULETTE', 'SLOTS', 'BLACKJACK'];
       const users = ['MaxWin', 'LuckyLady', 'CryptoKing', 'NeonSniper'];
       setLiveStats({
         game: games[Math.floor(Math.random() * games.length)],
@@ -82,12 +83,12 @@ export default function GamesPage() {
       studio: 'ROYALE ORIGINALS',
       recommend: true
     },
-    { 
-      id: 'slots', 
-      name: 'Slots', 
-      icon: Zap, 
-      desc: 'Infinite reels and legendary jackpots waiting to be hit.', 
-      path: '/games/slots', 
+    {
+      id: 'slots',
+      name: 'Slots',
+      icon: Zap,
+      desc: 'Infinite reels and legendary jackpots waiting to be hit.',
+      path: '/games/slots',
       color: 'hsl(var(--primary))',
       reward: '$5,000.00',
       difficulty: 'Easy',
@@ -95,6 +96,21 @@ export default function GamesPage() {
       category: 'JACKPOT',
       hourly: '~$120/hr',
       studio: 'VIBE PRIME',
+      recommend: true
+    },
+    {
+      id: 'blackjack',
+      name: 'Blackjack',
+      icon: Spade,
+      desc: 'Beat the dealer to 21. Provably fair Blackjack with Hit, Stand, Double & Split.',
+      path: '/games/blackjack',
+      color: 'hsl(var(--secondary))',
+      reward: '$10,000.00',
+      difficulty: 'Medium',
+      rating: 4.8,
+      category: 'HOT',
+      hourly: '~$60/hr',
+      studio: 'ROYALE ORIGINALS',
       recommend: true
     },
   ];

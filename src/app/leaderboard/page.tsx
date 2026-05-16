@@ -4,24 +4,18 @@ import {
   Trophy, 
   Crown, 
   TrendingUp, 
-  TrendingDown, 
   Search, 
-  Clock, 
-  ChevronRight, 
-  Star, 
-  Zap, 
-  Users, 
-  ShieldCheck,
-  Target,
-  ArrowUpRight
+  Star
 } from 'lucide-react';
 import { VibeMotion } from '@/components/ui/VibeMotion';
 import { Magnetic } from '@/components/ui/Magnetic';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import Link from 'next/link';
 
+import Image from 'next/image';
+
 export default function LeaderboardPage() {
-  const { isMobile, rank: myRankName, level: myLevel } = useCasinoStore();
+  const isMobile = useCasinoStore(s => s.isMobile);
   const [searchQuery, setSearchQuery] = useState('');
   const [timeLeft, setTimeLeft] = useState(3600 * 24 * 3 + 42 * 60 + 12); // 3d 42m 12s
   useEffect(() => {
@@ -100,7 +94,7 @@ export default function LeaderboardPage() {
             <VibeMotion variant="card" delay={0.2} style={{ height: '280px' }}>
               <div className="glass-card" style={{ padding: '32px', borderRadius: '32px', textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', background: 'var(--glass-bg)', backdropFilter: 'var(--glass-blur-md)', border: '1px solid var(--glass-border)' }}>
                 <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: '4px solid #c0c0c0', margin: '0 auto 16px', position: 'relative' }}>
-                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=High" alt="2" style={{ borderRadius: '50%' }} />
+                  <Image src="https://api.dicebear.com/7.x/avataaars/svg?seed=High" alt="2" fill style={{ borderRadius: '50%' }} />
                   <div style={{ position: 'absolute', bottom: '-10px', left: '50%', transform: 'translateX(-50%)', background: '#c0c0c0', color: 'black', width: '28px', height: '28px', borderRadius: '50%', fontWeight: 900, fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>2</div>
                 </div>
                 <h4 style={{ fontWeight: 900 }}>{leaders[1].user}</h4>
@@ -113,7 +107,7 @@ export default function LeaderboardPage() {
               <div className="glass-card" style={{ padding: '40px', borderRadius: '40px', textAlign: 'center', height: '100%', border: '2px solid hsl(var(--primary))', position: 'relative', background: 'var(--glass-bg)', backdropFilter: 'var(--glass-blur-lg)', boxShadow: 'var(--neon-glow-primary)' }}>
                 <div style={{ position: 'absolute', top: '-25px', left: '50%', transform: 'translateX(-50%)', color: 'hsl(var(--primary))', filter: 'drop-shadow(var(--neon-glow-primary))' }}><Crown size={48} /></div>
                 <div style={{ width: '100px', height: '100px', borderRadius: '50%', border: '4px solid #ffd700', margin: '0 auto 20px', position: 'relative' }}>
-                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Vibe" alt="1" style={{ borderRadius: '50%' }} />
+                  <Image src="https://api.dicebear.com/7.x/avataaars/svg?seed=Vibe" alt="1" fill style={{ borderRadius: '50%' }} />
                   <div style={{ position: 'absolute', bottom: '-12px', left: '50%', transform: 'translateX(-50%)', background: '#ffd700', color: 'black', width: '32px', height: '32px', borderRadius: '50%', fontWeight: 900, fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>1</div>
                 </div>
                 <h3 style={{ fontSize: '1.5rem', fontWeight: 950 }}>{leaders[0].user}</h3>
@@ -126,7 +120,7 @@ export default function LeaderboardPage() {
             <VibeMotion variant="card" delay={0.3} style={{ height: '240px' }}>
               <div className="glass-card" style={{ padding: '32px', borderRadius: '32px', textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', background: 'var(--glass-bg)', backdropFilter: 'var(--glass-blur-md)', border: '1px solid var(--glass-border)' }}>
                 <div style={{ width: '70px', height: '70px', borderRadius: '50%', border: '4px solid #cd7f32', margin: '0 auto 16px', position: 'relative' }}>
-                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=King" alt="3" style={{ borderRadius: '50%' }} />
+                  <Image src="https://api.dicebear.com/7.x/avataaars/svg?seed=King" alt="3" fill style={{ borderRadius: '50%' }} />
                   <div style={{ position: 'absolute', bottom: '-10px', left: '50%', transform: 'translateX(-50%)', background: '#cd7f32', color: 'black', width: '24px', height: '24px', borderRadius: '50%', fontWeight: 900, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>3</div>
                 </div>
                 <h4 style={{ fontWeight: 900 }}>{leaders[2].user}</h4>
@@ -169,7 +163,7 @@ export default function LeaderboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {leaders.map((p, idx) => (
+                  {leaders.map((p) => (
                     <tr key={p.rank} style={{ borderBottom: '1px solid hsla(0,0%,100%,0.03)' }} className="vibe-spring hover:bg-white/5">
                       <td style={{ padding: isMobile ? '16px' : '24px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -179,8 +173,8 @@ export default function LeaderboardPage() {
                       </td>
                       <td style={{ padding: isMobile ? '16px' : '24px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '16px' }}>
-                          <div style={{ width: isMobile ? '32px' : '40px', height: isMobile ? '32px' : '40px', borderRadius: '10px', overflow: 'hidden', background: 'hsla(0,0%,100%,0.05)' }}>
-                            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${p.user}`} alt="avatar" />
+                          <div style={{ width: isMobile ? '32px' : '40px', height: isMobile ? '32px' : '40px', borderRadius: '10px', overflow: 'hidden', background: 'hsla(0,0%,100%,0.05)', position: 'relative' }}>
+                            <Image src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${p.user}`} alt="avatar" fill style={{ objectFit: 'cover' }} />
                           </div>
                           <div>
                             <div style={{ fontWeight: 900, fontSize: isMobile ? '0.9rem' : '1rem' }}>{p.user}</div>

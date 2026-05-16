@@ -6,7 +6,7 @@ import { ProvablyFairEngine } from '@/lib/casino/provably-fair';
 import { useCasinoStore } from '@/store/useCasinoStore';
 
 export default function ProvablyFairTool() {
-  const { isMobile } = useCasinoStore();
+  const isMobile = useCasinoStore(s => s.isMobile);
   const [serverSeed, setServerSeed] = useState('0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef');
   const [clientSeed, setClientSeed] = useState('my-lucky-seed');
   const [nonce, setNonce] = useState(0);

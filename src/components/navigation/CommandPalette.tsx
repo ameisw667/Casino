@@ -8,7 +8,8 @@ export function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const router = useRouter();
-  const { soundEnabled, toggleSound } = useCasinoStore();
+  const soundEnabled = useCasinoStore(s => s.soundEnabled);
+  const toggleSound = useCasinoStore(s => s.toggleSound);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {

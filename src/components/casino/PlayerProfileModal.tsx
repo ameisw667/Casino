@@ -10,7 +10,9 @@ interface PlayerProfileModalProps {
   rank?: string;
 }
 export default function PlayerProfileModal({ isOpen, onClose, username: propUsername, level: propLevel, rank: propRank }: PlayerProfileModalProps) {
-  const { isMobile, level: storeLevel, rank: storeRank } = useCasinoStore();
+  const isMobile = useCasinoStore(s => s.isMobile);
+  const storeLevel = useCasinoStore(s => s.level);
+  const storeRank = useCasinoStore(s => s.rank);
   
   const username = propUsername || 'You';
   const level = propLevel || storeLevel;

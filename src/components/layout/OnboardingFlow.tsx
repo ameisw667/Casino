@@ -6,8 +6,12 @@ import { Gift, ArrowRight, ShieldCheck, Zap, Users, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { SignInButton, SignUpButton, useAuth } from '@clerk/nextjs';
 
+import Image from 'next/image';
+
 export default function OnboardingFlow() {
-  const { onboardingStep, setOnboardingStep, isMobile } = useCasinoStore();
+  const onboardingStep = useCasinoStore(s => s.onboardingStep);
+  const setOnboardingStep = useCasinoStore(s => s.setOnboardingStep);
+  const isMobile = useCasinoStore(s => s.isMobile);
   const { isSignedIn, isLoaded } = useAuth();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -104,7 +108,7 @@ export default function OnboardingFlow() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <SignInButton mode="modal">
                 <button className="btn btn-secondary" style={{ height: '60px', borderRadius: '16px', background: '#fff', color: 'black', border: 'none', fontWeight: 800 }}>
-                  <img src="https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png" alt="Google" style={{ width: '20px', marginRight: '12px' }} /> SIGN UP WITH GOOGLE
+                  <Image src="https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png" alt="Google" width={20} height={20} style={{ marginRight: '12px' }} /> SIGN UP WITH GOOGLE
                 </button>
               </SignInButton>
               <SignUpButton mode="modal">

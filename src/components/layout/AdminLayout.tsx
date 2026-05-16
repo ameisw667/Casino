@@ -1,9 +1,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { UserButton, useUser } from '@clerk/nextjs';
+import { UserButton } from '@clerk/nextjs';
 import { 
   LayoutDashboard, 
   ShieldCheck, 
@@ -13,15 +12,12 @@ import {
   ChevronLeft, 
   ChevronRight,
   Terminal,
-  Activity,
-  BarChart3,
-  Lock
+  Activity
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isLoaded } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
 
@@ -56,7 +52,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }}>
         <div style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: '32px', height: '32px', position: 'relative' }}>
-            <Image src="/images/brand-medallion-3d.png" alt="Logo" fill style={{ objectFit: 'contain' }} />
+            <Image src="/images/brand-medallion-3d.png" alt="Logo" fill sizes="100px" style={{ objectFit: 'contain' }} />
           </div>
           {sidebarOpen && (
             <div style={{ display: 'flex', flexDirection: 'column' }}>

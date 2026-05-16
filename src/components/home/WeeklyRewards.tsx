@@ -19,6 +19,7 @@ export const WeeklyRewards: React.FC = () => {
             src="/images/weekly-rewards-v2.png" 
             alt="Weekly Rewards" 
             fill 
+            sizes="100vw"
             style={{ objectFit: 'cover', opacity: 0.6 }} 
           />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, hsla(var(--bg-color), 1) 30%, transparent 80%)' }} />

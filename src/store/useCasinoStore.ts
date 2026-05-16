@@ -120,6 +120,12 @@ export interface CasinoState {
       cashoutAt: number;
       onLoss: 'RESET' | 'DOUBLE';
     };
+    blackjack: {
+      amount: number;
+      numberOfBets: number;
+      stopOnProfit: number;
+      stopOnLoss: number;
+    };
   };
   communityGoalReached: boolean;
   
@@ -156,7 +162,7 @@ export interface CasinoState {
   openCase: () => { reward: number, type: 'balance' | 'xp' };
   addToast: (msg: string, type?: Toast['type'], duration?: number) => void;
   removeToast: (id: string) => void;
-  setAutoBetSettings: (game: 'dice' | 'crash', settings: Partial<CasinoState['autoBetSettings']['dice'] | CasinoState['autoBetSettings']['crash']>) => void;
+  setAutoBetSettings: (game: 'dice' | 'crash' | 'blackjack', settings: Partial<CasinoState['autoBetSettings']['dice'] | CasinoState['autoBetSettings']['crash'] | CasinoState['autoBetSettings']['blackjack']>) => void;
   syncBalance: (newBalance: number) => void;
   startActivitySimulator: () => (() => void);
   initialize: () => Promise<void>;
@@ -229,7 +235,8 @@ export const useCasinoStore = create<CasinoState>()(
         DICE: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
         CRASH: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
         ROULETTE: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
-        SLOTS: { totalBets: 0, wins: 0, losses: 0, profit: 0 }
+        SLOTS: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
+        BLACKJACK: { totalBets: 0, wins: 0, losses: 0, profit: 0 }
       },
       chatMessages: [
         { id: '1', user: 'System', rank: 'MOD', message: 'Welcome to Casino Royale! Play fair, win big.', time: '10:00 AM', isSystem: true }
@@ -254,6 +261,12 @@ export const useCasinoStore = create<CasinoState>()(
           amount: 1,
           cashoutAt: 2.00,
           onLoss: 'RESET',
+        },
+        blackjack: {
+          amount: 1,
+          numberOfBets: 0,
+          stopOnProfit: 0,
+          stopOnLoss: 0,
         },
       },
 
@@ -448,7 +461,8 @@ export const useCasinoStore = create<CasinoState>()(
             DICE: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
             CRASH: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
             ROULETTE: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
-            SLOTS: { totalBets: 0, wins: 0, losses: 0, profit: 0 }
+            SLOTS: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
+            BLACKJACK: { totalBets: 0, wins: 0, losses: 0, profit: 0 }
           }
         };
       }),
@@ -692,7 +706,7 @@ export const useCasinoStore = create<CasinoState>()(
       startActivitySimulator: () => {
         if (typeof window === 'undefined') return () => {};
         
-        const games = ['CRASH', 'DICE', 'ROULETTE', 'SLOTS'];
+        const games = ['CRASH', 'DICE', 'ROULETTE', 'SLOTS', 'BLACKJACK'];
         const users = ['Satoshi', 'Vitalik', 'Elon', 'CZ', 'VibeCoder', 'Neon_Sniper', 'SarahSlot', 'LazyJoe', 'Bochmann88', 'Alpha_Wolf', 'Diamond_Hands'];
         
         const interval = setInterval(() => {

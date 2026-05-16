@@ -11,7 +11,7 @@ interface BigWinOverlayProps {
   onClose: () => void;
 }
 export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: BigWinOverlayProps) {
-  const { isMobile } = useCasinoStore();
+  const isMobile = useCasinoStore(s => s.isMobile);
   const [show, setShow] = useState(false);
   const [particles, setParticles] = useState<{left1: number, left2: number, duration: number, delay: number}[]>([]);
 
@@ -102,7 +102,7 @@ export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: B
           >
             {/* Background Texture */}
             <div style={{ position: 'absolute', inset: 0, zIndex: 0, opacity: 0.3 }}>
-              <Image src="/images/social-win-bg.png" alt="Win Background" fill style={{ objectFit: 'cover' }} />
+              <Image src="/images/social-win-bg.png" alt="Win Background" fill sizes="100vw" style={{ objectFit: 'cover' }} />
             </div>
             <div style={{ position: 'relative', zIndex: 1 }}>
               <motion.div 

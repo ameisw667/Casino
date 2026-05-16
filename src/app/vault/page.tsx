@@ -4,24 +4,15 @@ import Image from 'next/image';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { useRouter } from 'next/navigation';
 import { 
-  Trophy, 
   Lock, 
-  CheckCircle2, 
   Star, 
-  Zap, 
-  Target, 
   Flame, 
   Rocket, 
   TrendingUp, 
   Gift, 
   Wallet, 
-  ArrowUpRight, 
   ShieldCheck,
-  ChevronRight,
   Users,
-  Copy,
-  Info,
-  Calendar,
   Settings,
   Bell,
   Globe,
@@ -32,23 +23,19 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 export default function VaultPage() {
-  const { 
-    balance, 
-    xp, 
-    level, 
-    rank, 
-    achievements, 
-    rakebackPool, 
-    inventory, 
-    claimRakeback, 
-    openCase, 
-    isMobile,
-    streak,
-    onboardingStep,
-    setOnboardingStep,
-    addToast,
-    redeemCode
-  } = useCasinoStore();
+  const balance = useCasinoStore(s => s.balance);
+  const xp = useCasinoStore(s => s.xp);
+  const level = useCasinoStore(s => s.level);
+  const achievements = useCasinoStore(s => s.achievements);
+  const rakebackPool = useCasinoStore(s => s.rakebackPool);
+  const inventory = useCasinoStore(s => s.inventory);
+  const openCase = useCasinoStore(s => s.openCase);
+  const isMobile = useCasinoStore(s => s.isMobile);
+  const streak = useCasinoStore(s => s.streak);
+  const onboardingStep = useCasinoStore(s => s.onboardingStep);
+  const setOnboardingStep = useCasinoStore(s => s.setOnboardingStep);
+  const addToast = useCasinoStore(s => s.addToast);
+  const redeemCode = useCasinoStore(s => s.redeemCode);
   const [mounted, setMounted] = React.useState(false);
   const [voucherCode, setVoucherCode] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(false);
@@ -89,7 +76,7 @@ export default function VaultPage() {
           setAnimationPhase('idle');
           setReward(null);
         }, 4000);
-      } catch (e) {
+      } catch {
         setOpening(false);
         setAnimationPhase('idle');
       }
@@ -156,17 +143,17 @@ export default function VaultPage() {
             </svg>
             
             {/* Avatar Image */}
-            <div style={{ 
-              position: 'absolute', 
-              inset: '8px', 
-              borderRadius: '50%', 
-              overflow: 'hidden', 
-              border: '4px solid hsl(var(--bg-color))', 
+            <div style={{
+              position: 'absolute',
+              inset: '8px',
+              borderRadius: '50%',
+              overflow: 'hidden',
+              border: '4px solid hsl(var(--bg-color))',
               background: 'hsla(var(--bg-color), 0.8)',
-              backdropFilter: 'blur(10px)'
+              backdropFilter: 'blur(10px)',
             }}>
-              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Vibe" alt="avatar" style={{ width: '100%', height: '100%' }} />
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '30%', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} className="hover:bg-black/80 transition-colors">
+              <Image src="https://api.dicebear.com/7.x/avataaars/svg?seed=Vibe" alt="avatar" fill style={{ objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '30%', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 2 }} className="hover:bg-black/80 transition-colors">
                 <Camera size={16} color="white" />
               </div>
             </div>
@@ -338,7 +325,7 @@ export default function VaultPage() {
                 }}>
                   <div style={{ width: '80px', height: '80px', margin: '0 auto 16px', position: 'relative', filter: ach.unlocked ? 'none' : 'grayscale(1) brightness(0.5)' }}>
                     {ach.icon.startsWith('/') ? (
-                      <Image src={ach.icon} alt={ach.title} fill style={{ objectFit: 'contain' }} />
+                      <Image src={ach.icon} alt={ach.title} fill sizes="100px" style={{ objectFit: 'contain' }} />
                     ) : (
                       <div style={{ fontSize: '2.5rem' }}>{ach.icon}</div>
                     )}
@@ -415,7 +402,7 @@ export default function VaultPage() {
                   type="text" 
                   value={voucherCode}
                   onChange={(e) => setVoucherCode(e.target.value)}
-                  placeholder="Enter code (e.g. JAN100)"
+                  placeholder="Enter promo code"
                   style={{ 
                     flex: 1, 
                     height: '48px', 

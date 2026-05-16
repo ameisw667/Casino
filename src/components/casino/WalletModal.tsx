@@ -6,19 +6,25 @@ import {
   ArrowUpRight, 
   ArrowDownLeft, 
   Copy, 
-  Check, 
-  Info,
-  CreditCard,
+  Check,
   CircleDollarSign,
   Zap
 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
+import { useModalKeyboard } from '@/hooks/useModalKeyboard';
 interface WalletModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
-  const { isMobile, balance, addBalance, removeBalance, addToast } = useCasinoStore();
+  const isMobile = useCasinoStore(s => s.isMobile);
+  const balance = useCasinoStore(s => s.balance);
+  const addBalance = useCasinoStore(s => s.addBalance);
+  const removeBalance = useCasinoStore(s => s.removeBalance);
+  const addToast = useCasinoStore(s => s.addToast);
+  
+  // Universal ESC-key handling
+  useModalKeyboard(onClose, isOpen);
   const [activeTab, setActiveTab] = useState<'deposit' | 'withdraw'>('deposit');
   const [amount, setAmount] = useState('');
   const [withdrawAddress, setWithdrawAddress] = useState('');
