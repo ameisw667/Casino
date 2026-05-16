@@ -186,7 +186,8 @@ export class BlackjackEngine {
       if (state.phase === 'PLAYER_TURN' && state.playerHand2) {
         newState.phase = 'PLAYER_TURN_HAND2'
         newState.activeHandIndex = 1
-      } else if (state.phase === 'PLAYER_TURN_HAND2') {
+      } else {
+        // Single-hand bust OR bust on hand 2 → dealer plays
         newState.phase = 'DEALER_TURN'
       }
     }
