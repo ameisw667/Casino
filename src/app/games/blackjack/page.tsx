@@ -3,34 +3,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCasinoStore } from '@/store/useCasinoStore'
-// TODO: Phase 2 - Import BlackjackEngine, BlackjackGameState from '@/lib/games/blackjack'
-// TODO: Phase 2 - Import BlackjackTable, BlackjackActions components
+import { BlackjackEngine, BlackjackGameState } from '@/lib/games/blackjack'
+import BlackjackTable from '@/components/casino/games/blackjack/BlackjackTable'
+import BlackjackActions from '@/components/casino/games/blackjack/BlackjackActions'
 import { ProvablyFairEngine } from '@/lib/casino/provably-fair'
 import { soundManager } from '@/lib/casino/sound-manager'
-
-// Placeholder types for Phase 2 component integration
-interface BlackjackGameState {
-  phase: 'IDLE' | 'DEALING' | 'PLAYER_TURN' | 'PLAYER_TURN_HAND2' | 'DEALER_TURN' | 'SETTLEMENT'
-  playerHand: { score: number; cards: any[] }
-  playerHand2?: { score: number; cards: any[] }
-  dealerHand: { score: number; cards: any[] }
-  canDouble: boolean
-  canSplit: boolean
-  payout: number
-  payoutMultiplier: number
-}
-
-class BlackjackEngine {
-  static createDeck(numDecks?: number) { return [] }
-  static shuffleDeck(deck: any[], seeds: number[]) { return deck }
-  static deal(deck: any[]) { return {} as BlackjackGameState }
-  static hit(state: BlackjackGameState) { return state }
-  static stand(state: BlackjackGameState) { return state }
-  static double(state: BlackjackGameState) { return state }
-  static split(state: BlackjackGameState) { return state }
-  static playDealerHand(state: BlackjackGameState) { return state }
-  static settleGame(state: BlackjackGameState) { return state }
-}
 
 export default function BlackjackPage() {
   // Store selectors
@@ -81,9 +58,13 @@ export default function BlackjackPage() {
         .replace(/[^a-zA-Z0-9]/g, '')
         .slice(0, 32)
 
-      // TODO: Phase 1.2 - Add getBlackjackDeal() to ProvablyFairEngine
-      // For now, generate random seed indices as placeholder
-      const seedIndices = Array.from({ length: 312 }, (_, i) => i)
+      // Provably fair shuffle indices
+      const seedIndices = await ProvablyFairEngine.getBlackjackDeal(
+        sanitizedSeed,
+        sanitizedSeed,
+        provablyFairSettings.nonce,
+        312
+      )
 
       // Shuffle deck with provably fair seeds
       const deck = BlackjackEngine.shuffleDeck(
@@ -122,21 +103,18 @@ export default function BlackjackPage() {
 
   // handleHit: add card to active hand
   const handleHit = useCallback(() => {
-    if (!gameState || gameState.phase !== 'PLAYER_TURN') return
+    if (!gameState) return
+    if (gameState.phase !== 'PLAYER_TURN' && gameState.phase !== 'PLAYER_TURN_HAND2') return
 
     const next = BlackjackEngine.hit(gameState)
     setGameState(next)
     soundManager.play('click')
-
-    // Check if bust → move to dealer
-    if (next.phase === 'DEALER_TURN' || next.phase === 'SETTLEMENT') {
-      // Will settle after dealer plays
-    }
   }, [gameState])
 
   // handleStand: dealer plays then settle
   const handleStand = useCallback(() => {
-    if (!gameState || gameState.phase !== 'PLAYER_TURN') return
+    if (!gameState) return
+    if (gameState.phase !== 'PLAYER_TURN' && gameState.phase !== 'PLAYER_TURN_HAND2') return
 
     const afterStand = BlackjackEngine.stand(gameState)
     const withDealer = BlackjackEngine.playDealerHand(afterStand)
@@ -471,28 +449,35 @@ export default function BlackjackPage() {
       {/* Main Game Area */}
       <div className="blackjack-main">
         <div className="game-wrapper">
-          {gameState && (
-            <div style={{ textAlign: 'center', color: 'hsla(var(--text-color), 0.7)' }}>
-              {/* TODO: Phase 2 - Add BlackjackTable component */}
-              <p style={{ fontSize: '1.125rem', marginBottom: '20px' }}>Blackjack Table (Phase 2)</p>
-              <p style={{ fontSize: '0.875rem' }}>Player Score: {gameState.playerHand.score} | Dealer Score: {gameState.dealerHand.score}</p>
+          {gameState ? (
+            <div className="w-full flex flex-col gap-6 items-center">
+              <BlackjackTable
+                dealerHand={gameState.dealerHand}
+                playerHand={gameState.playerHand}
+                playerHand2={gameState.playerHand2}
+                activeHandIndex={gameState.activeHandIndex}
+                betAmount={betAmount}
+                result={gameState.result}
+                result2={gameState.result2}
+                payout={gameState.payout * betAmount}
+                isProcessing={isProcessing}
+              />
+              <BlackjackActions
+                phase={gameState.phase}
+                canDouble={gameState.canDouble && betAmount * 2 <= balance}
+                canSplit={gameState.canSplit}
+                onHit={handleHit}
+                onStand={handleStand}
+                onDouble={handleDouble}
+                onSplit={handleSplit}
+              />
             </div>
-          )}
-
-          {gameState && (
-            <div style={{ display: 'flex', gap: '12px', marginTop: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              {/* TODO: Phase 2 - Add BlackjackActions component */}
-              <button onClick={handleHit} style={{ padding: '12px 24px', background: 'hsla(var(--primary), 0.3)', border: '1px solid hsla(var(--primary), 0.5)', borderRadius: '8px', color: 'hsl(var(--primary))', cursor: 'pointer', fontWeight: '600' }}>HIT</button>
-              <button onClick={handleStand} style={{ padding: '12px 24px', background: 'hsla(var(--secondary), 0.3)', border: '1px solid hsla(var(--secondary), 0.5)', borderRadius: '8px', color: 'hsl(var(--secondary))', cursor: 'pointer', fontWeight: '600' }}>STAND</button>
-              <button onClick={handleDouble} disabled={!gameState.canDouble || betAmount * 2 > balance} style={{ padding: '12px 24px', background: gameState.canDouble && betAmount * 2 <= balance ? 'hsla(var(--success), 0.3)' : 'hsla(var(--text-dim), 0.1)', border: '1px solid hsla(var(--success), 0.3)', borderRadius: '8px', color: 'hsl(var(--success))', cursor: 'pointer', fontWeight: '600', opacity: gameState.canDouble && betAmount * 2 <= balance ? 1 : 0.5 }}>DOUBLE</button>
-              <button onClick={handleSplit} disabled={!gameState.canSplit} style={{ padding: '12px 24px', background: gameState.canSplit ? 'hsla(var(--accent), 0.3)' : 'hsla(var(--text-dim), 0.1)', border: '1px solid hsla(var(--accent), 0.3)', borderRadius: '8px', color: 'hsl(var(--accent))', cursor: 'pointer', fontWeight: '600', opacity: gameState.canSplit ? 1 : 0.5 }}>SPLIT</button>
-            </div>
-          )}
-
-          {!gameState && !isProcessing && (
-            <div className="empty-state">
-              <p>Place your bet and click DEAL to start</p>
-            </div>
+          ) : (
+            !isProcessing && (
+              <div className="empty-state">
+                <p>Place your bet and click DEAL to start</p>
+              </div>
+            )
           )}
         </div>
 
