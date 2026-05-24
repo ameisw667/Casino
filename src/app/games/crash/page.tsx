@@ -139,15 +139,24 @@ export default function CrashPage() {
         return;
       }
       try {
-        const response = await fetch('/api/casino/bet', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'START_CRASH',
-            clientSeed: provablyFairSettings.clientSeed,
-            currentNonce: provablyFairSettings.nonce
-          })
-        });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        let response: Response;
+        try {
+          response = await fetch('/api/casino/bet', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'START_CRASH',
+              amount: betAmount,
+              clientSeed: (provablyFairSettings.clientSeed ?? '').replace(/[^a-zA-Z0-9]/g, '').slice(0, 32) || 'default',
+              currentNonce: provablyFairSettings.nonce
+            }),
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeoutId);
+        }
         if (!response.ok) throw new Error('API failed');
         const data = await response.json();
         

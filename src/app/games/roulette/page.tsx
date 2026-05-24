@@ -192,17 +192,25 @@ export default function RoulettePage() {
     setSpinning(true);
     setWinningNumber(null);
     try {
-      const response = await fetch('/api/casino/bet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          gameType: 'ROULETTE',
-          amount: totalWagered,
-          bets: currentBets,
-          clientSeed: provablyFairSettings.clientSeed,
-          currentNonce: provablyFairSettings.nonce
-        })
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      let response: Response;
+      try {
+        response = await fetch('/api/casino/bet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            gameType: 'ROULETTE',
+            amount: totalWagered,
+            bets: currentBets,
+            clientSeed: (provablyFairSettings.clientSeed ?? '').replace(/[^a-zA-Z0-9]/g, '').slice(0, 32) || 'default',
+            currentNonce: provablyFairSettings.nonce
+          }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
       if (!response.ok) throw new Error('API failed');
       const result = await response.json();
       setProvablyFairSettings({ 
