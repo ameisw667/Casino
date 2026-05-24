@@ -12,17 +12,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm run dev          # Start dev server (Next.js, port 3000)
 npm run build        # Production build
 npm run lint         # ESLint (next lint config)
+npm run test         # Vitest (run once)
+npm run test:watch   # Vitest watch mode
+npm run test:coverage # Vitest with coverage
 npm run vibe-check   # Custom audit script: tsx scripts/vibe-check.ts
 ```
 
-There are no automated tests. The vibe-check script is the closest equivalent — run it after significant changes. For dev auth bypass, set `ALLOW_DEV_FALLBACK=true` in `.env.local` (the bet API accepts an unauthenticated `dev_user_fallback` userId in dev mode only).
+Tests live in `src/lib/casino/__tests__/`. Run `npm run vibe-check` after significant changes. For dev auth bypass, set `ALLOW_DEV_FALLBACK=true` in `.env.local` (the bet API accepts an unauthenticated `dev_user_fallback` userId in dev mode only).
 
 ---
 
 ## Architecture
 
 ### Tech Stack
-Next.js 16 App Router · React 19 · TypeScript · Zustand 5 (persist) · Framer Motion 12 · Clerk (auth) · Zod (validation) · Lucide React (icons) · Web Crypto API (provably fair)
+Next.js 16 App Router · React 19 · TypeScript · Zustand 5 (persist) · Framer Motion 12 · Clerk (auth) · Zod (validation) · Lucide React (icons) · Recharts (charts) · Upstash Redis + Rate Limit · Svix (webhooks) · Web Crypto API (provably fair)
 
 ### Service Layer — `src/lib/casino/`
 
@@ -32,9 +35,11 @@ All business logic lives here, never in page components.
 |------|---------|
 | `casino-core.ts` | `CasinoCore` — single entry point for all bets. `placeBet()` routes by `GameType`, calls `ProvablyFairEngine`, returns `BetResult`. Also exposes `startCrashRound()`, `calculateXpGain()`, `calculateLevel()`. |
 | `provably-fair.ts` | `ProvablyFairEngine` — isomorphic, uses Web Crypto API only (no Node crypto). HMAC-SHA256 with format `serverSeed:clientSeed:nonce`. Game-specific helpers: `getDiceRoll()` (0–100), `getCrashMultiplier()` (1% house edge), `getRouletteNumber()` (0–36), `getSlotsResult()` (per-reel indices). |
+| `bet-validator.ts` | `validateBet()` — pure function, validates bet range ($0.10–$10,000) and sufficient balance. Call before `placeBet()`. |
 | `sound-manager.ts` | `soundManager` singleton — wraps Audio API with volume and mute control. |
 | `chat-bot.ts` | `ChatBotService` — command parsing for chat (`/tip`, `/leaderboard` etc.). |
 | `logger.ts` | `CasinoLogger` — structured bet logging, dev-only stack traces. |
+| `wallet.ts` | `WalletService` — all balance ops via Supabase RPC. |
 
 ### State — `src/store/useCasinoStore.ts`
 
@@ -50,6 +55,7 @@ VIP tiers are defined as `VIP_TIERS` array exported from the store (Bronze → S
 |-------|-------|
 | `POST /api/casino/bet` | Zod-validated (`BetSchema`). Calls `CasinoCore.placeBet()` or `startCrashRound()`. Returns `BetResult`. Balance is **not** updated server-side (no DB yet) — settlement is client-only via the store. |
 | `GET /api/user/balance` | Returns hardcoded balance. Placeholder until DB exists. |
+| `POST /api/webhooks/clerk` | Svix-verified Clerk webhook handler (user created/updated events). |
 
 ### Middleware — `src/middleware.ts`
 
@@ -61,9 +67,18 @@ Runs Clerk auth on all routes. Public routes (games, fairness, leaderboard, vaul
 
 ### Games — `src/app/games/[game]/page.tsx`
 
-Each game is a self-contained page component. Game-specific roulette sub-components live in `src/components/casino/games/roulette/`. Slots uses `src/components/casino/SlotSymbol.tsx`.
+Games: `blackjack`, `crash`, `dice`, `roulette`, `slots`. Each is a self-contained page component. Game-specific sub-components live in `src/components/casino/games/[game]/`. Slots uses `src/components/casino/SlotSymbol.tsx`.
 
 All games call `CasinoCore.placeBet()` (or the `/api/casino/bet` endpoint) and then call `processGameResult()` on the store to settle.
+
+### Admin Pages — `src/app/admin/`
+
+| Route | Notes |
+|-------|-------|
+| `/admin` | Dashboard overview |
+| `/admin/games` | Per-game stats and controls |
+| `/admin/users` | User management |
+| `/admin/simulation` | Bet simulation tooling |
 
 ### Design System Rules (enforced by Design-Guardian)
 
@@ -105,8 +120,9 @@ Balance and XP live in Supabase `users` table — **server-side, not localStorag
 | `supabase/migrations/002_wallet.sql` | wallet_transactions + game_sessions audit tables |
 | `supabase/migrations/003_provably_fair.sql` | seeds table + `place_bet()` / `settle_bet()` stored procedures |
 | `src/lib/casino/wallet.ts` | WalletService — all balance ops via Supabase RPC |
-| `src/utils/supabase/admin.ts` | Admin client (service role, bypasses RLS — server only) |
+| `src/utils/supabase/client.ts` | Browser client (anon key, used in client components) |
 | `src/utils/supabase/server.ts` | Server client with Clerk JWT for RLS |
+| `src/utils/supabase/admin.ts` | Admin client (service role, bypasses RLS — server only) |
 
 **RLS Policy**: `(auth.jwt() ->> 'sub') = user_id` — requires Clerk JWT injected via `getToken({ template: 'supabase' })`.
 
