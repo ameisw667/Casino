@@ -40,12 +40,13 @@ import {
   EyeOff
 } from 'lucide-react';
 export default function MainLayout({ children }: { children: React.ReactNode }) {
+  type CasinoWindow = Window & { _stopCasinoBackground?: () => void };
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    useCasinoStore.persist.rehydrate();
     setMounted(true);
   }, []);
   
@@ -197,10 +198,13 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   // 5. Activity Simulator & Initialization
   const initialize = useCasinoStore(state => state.initialize);
   const startActivitySimulator = useCasinoStore(state => state.startActivitySimulator);
+  const shouldSyncServerWallet = process.env.NEXT_PUBLIC_ENABLE_SERVER_WALLET_SYNC === 'true';
   
   useEffect(() => {
     // Initial data fetch
-    initialize();
+    if (shouldSyncServerWallet) {
+      initialize();
+    }
     
     // Defer non-critical background processes to prioritize initial render
     const timer = setTimeout(() => {
@@ -208,23 +212,28 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       const stopSession = useCasinoStore.getState().updateSessionTime();
       
       // Heartbeat: Sync balance every 60s (reduced frequency)
-      const heartbeat = setInterval(() => {
-        initialize();
-      }, 60000);
+      const heartbeat = shouldSyncServerWallet
+        ? setInterval(() => {
+            initialize();
+          }, 60000)
+        : null;
 
-      (window as any)._stopCasinoBackground = () => {
+      const win = window as CasinoWindow;
+      win._stopCasinoBackground = () => {
         stopSimulator();
         stopSession();
-        clearInterval(heartbeat);
+        if (heartbeat) clearInterval(heartbeat);
       };
     }, 2000);
 
     return () => {
-      if ((window as any)._stopCasinoBackground) {
-        (window as any)._stopCasinoBackground();
+      const win = window as CasinoWindow;
+      if (win._stopCasinoBackground) {
+        win._stopCasinoBackground();
       }
+      clearTimeout(timer);
     };
-  }, [initialize, startActivitySimulator]);
+  }, [initialize, startActivitySimulator, shouldSyncServerWallet]);
 
   // 6. UI Handlers
   const handleClaimDaily = () => {

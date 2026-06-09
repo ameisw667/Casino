@@ -42,9 +42,7 @@ export default function FairnessPage() {
       const { ProvablyFairEngine } = await import('@/lib/casino/provably-fair');
       
       const result = await ProvablyFairEngine.calculateOutcome(plainServerSeed, provablyFairSettings.clientSeed, verifyNonce);
-      const hash = await ProvablyFairEngine.generateHMAC(plainServerSeed, `${provablyFairSettings.clientSeed}-${verifyNonce}`);
-      
-      setVerificationResult({ ...result, hash });
+      setVerificationResult(result);
 
     } finally {
       setIsVerifying(false);

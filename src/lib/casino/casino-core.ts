@@ -7,7 +7,6 @@ export function calculateDicePayout(bet: number, multiplier: number, win: boolea
   if (bet < 0 || multiplier < 0) throw new RangeError('Bet and multiplier must be non-negative');
   if (bet > MAX_BET) throw new RangeError(`Bet ${bet} exceeds maximum allowed bet of ${MAX_BET}`);
   if (!win || bet === 0 || multiplier === 0) return 0;
-  // Use integer arithmetic to avoid IEEE 754 drift on large numbers
   const payout = Math.round(bet * multiplier * 100) / 100;
   return payout;
 }
@@ -19,6 +18,7 @@ export interface BetResult {
   payout: number;
   serverSeedHash: string;
   nonce: number;
+  symbols?: number[];
 }
 
 export type GameType = 'CRASH' | 'DICE' | 'ROULETTE' | 'SLOTS' | 'BLACKJACK';
@@ -89,7 +89,8 @@ export class CasinoCore {
             win: payoutMultiplier > 0,
             payout: params.amount * payoutMultiplier,
             serverSeedHash: hash,
-            nonce: nonce + 5
+            nonce: nonce + 5,
+            symbols
           };
         }
 
@@ -175,12 +176,12 @@ export class CasinoCore {
 
   static getRouletteMultiplier(betType: RouletteBetType): number {
     switch (betType.type) {
-      case 'STRAIGHT': return 36;
+      case 'STRAIGHT': return 35;
       case 'COLOR': return 2;
       case 'EVEN_ODD': return 2;
       case 'RANGE': return 2;
-      case 'DOZEN': return 3;
-      case 'COLUMN': return 3;
+      case 'DOZEN': return 2;
+      case 'COLUMN': return 2;
       case 'FRENCH':
         if (betType.value === 'VOISINS') return 36 / 17; 
         if (betType.value === 'TIERS') return 36 / 12;     
@@ -233,8 +234,10 @@ export class CasinoCore {
     return Math.min(raw, CasinoCore.MAX_XP_PER_BET);
   }
 
+  static readonly MAX_LEVEL = 100;
+
   static calculateLevel(totalXp: number): number {
-    return Math.floor(Math.sqrt(totalXp / 100)) + 1;
+    return Math.min(CasinoCore.MAX_LEVEL, Math.floor(Math.sqrt(totalXp / 100)) + 1);
   }
 
   static calculateSlotsPayout(symbols: number[]): number {
