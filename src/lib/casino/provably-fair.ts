@@ -126,20 +126,36 @@ export class ProvablyFairEngine {
 
   /**
    * Specifically for Blackjack (Fisher-Yates shuffle indices for 6-deck shoe)
-   * Returns swap indices for each position in the deck (312 cards = 6 decks * 52)
-   * Each index represents the position to swap with for that iteration
+   * Uses a single HMAC to derive all shuffle positions efficiently (1 call instead of 312).
    */
   static async getBlackjackDeal(serverSeed: string, clientSeed: string, nonce: number, deckSize: number = 312): Promise<number[]> {
-    const swapIndices: number[] = [];
+    const encoder = new TextEncoder();
+    const combined = `${serverSeed}:${clientSeed}:${nonce}`;
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(serverSeed || 'default'),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(combined));
+    const bytes = new Uint8Array(signature);
 
-    // Fisher-Yates: for each position i, generate a random swap index j where i <= j < deckSize
-    for (let i = 0; i < deckSize; i++) {
-      const { result } = await this.calculateOutcome(serverSeed, clientSeed, nonce + i);
-      // Map [0, 1) to [i, deckSize) to get valid swap index
-      const jIndex = i + Math.floor(result * (deckSize - i));
-      swapIndices.push(jIndex);
+    // Use the 32 HMAC bytes as a seed for a deterministic PRNG (LCG)
+    const seed = bytes.reduce((acc, b, i) => acc + b * (i + 1), 0);
+    let state = seed >>> 0;
+
+    function nextFloat(): number {
+      // LCG: fast deterministic pseudo-random
+      state = (Math.imul(1664525, state) + 1013904223) >>> 0;
+      return state / 0x100000000;
     }
 
+    const swapIndices: number[] = [];
+    for (let i = 0; i < deckSize; i++) {
+      const j = i + Math.floor(nextFloat() * (deckSize - i));
+      swapIndices.push(j);
+    }
     return swapIndices;
   }
 

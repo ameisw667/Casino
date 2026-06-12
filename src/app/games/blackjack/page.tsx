@@ -1,36 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCasinoStore } from '@/store/useCasinoStore'
-// TODO: Phase 2 - Import BlackjackEngine, BlackjackGameState from '@/lib/games/blackjack'
-// TODO: Phase 2 - Import BlackjackTable, BlackjackActions components
+import { BlackjackEngine, BlackjackGameState } from '@/lib/games/blackjack'
+import BlackjackTable from '@/components/casino/games/blackjack/BlackjackTable'
+import BlackjackActions from '@/components/casino/games/blackjack/BlackjackActions'
 import { ProvablyFairEngine } from '@/lib/casino/provably-fair'
 import { soundManager } from '@/lib/casino/sound-manager'
-
-// Placeholder types for Phase 2 component integration
-interface BlackjackGameState {
-  phase: 'IDLE' | 'DEALING' | 'PLAYER_TURN' | 'PLAYER_TURN_HAND2' | 'DEALER_TURN' | 'SETTLEMENT'
-  playerHand: { score: number; cards: any[] }
-  playerHand2?: { score: number; cards: any[] }
-  dealerHand: { score: number; cards: any[] }
-  canDouble: boolean
-  canSplit: boolean
-  payout: number
-  payoutMultiplier: number
-}
-
-class BlackjackEngine {
-  static createDeck(numDecks?: number) { return [] }
-  static shuffleDeck(deck: any[], seeds: number[]) { return deck }
-  static deal(deck: any[]) { return {} as BlackjackGameState }
-  static hit(state: BlackjackGameState) { return state }
-  static stand(state: BlackjackGameState) { return state }
-  static double(state: BlackjackGameState) { return state }
-  static split(state: BlackjackGameState) { return state }
-  static playDealerHand(state: BlackjackGameState) { return state }
-  static settleGame(state: BlackjackGameState) { return state }
-}
 
 export default function BlackjackPage() {
   // Store selectors
@@ -42,11 +19,8 @@ export default function BlackjackPage() {
   const addToast = useCasinoStore(s => s.addToast)
   const isProcessing = useCasinoStore(s => s.isProcessing)
   const setIsProcessing = useCasinoStore(s => s.setIsProcessing)
-  // TODO: Phase 1.5 - Add BLACKJACK to store autoBetSettings and gameStats
-  const autoBetSettings = useCasinoStore(s => (s.autoBetSettings as any).blackjack) || { numberOfBets: 100, stopOnProfit: 0, stopOnLoss: 0 }
-  // TODO: Phase 1.5 - Store needs to support BLACKJACK in setAutoBetSettings
-  const setAutoBetSettings = useCasinoStore(s => s.setAutoBetSettings) as any
-  const gameStats = useCasinoStore(s => (s.gameStats as any).BLACKJACK) || { totalBets: 0, totalWins: 0, totalLosses: 0, biggestWin: 0, profit: 0 }
+  const rawGameStats = useCasinoStore(s => (s.gameStats as Record<string, { totalBets: number; wins: number; losses: number; profit: number } | undefined>)['BLACKJACK'])
+  const gameStats = rawGameStats ?? { totalBets: 0, wins: 0, losses: 0, profit: 0 }
 
   // Local state
   const [mounted, setMounted] = useState(false)
@@ -56,138 +30,32 @@ export default function BlackjackPage() {
   const [isAutoMode, setIsAutoMode] = useState(false)
   const [autoRunning, setAutoRunning] = useState(false)
   const [currentAutoCount, setCurrentAutoCount] = useState(0)
+  const [autoRounds, setAutoRounds] = useState(100)
+  const [stopOnProfit, setStopOnProfit] = useState(0)
+  const [stopOnLoss, setStopOnLoss] = useState(0)
   const [history, setHistory] = useState<{ win: boolean; payout: number }[]>([])
 
+  // Stable refs to avoid stale closures in callbacks
+  const betAmountRef = useRef(betAmount)
+  const baseBetAmountRef = useRef(baseBetAmount)
+  const provablyFairRef = useRef(provablyFairSettings)
+  useEffect(() => { betAmountRef.current = betAmount }, [betAmount])
+  useEffect(() => { baseBetAmountRef.current = baseBetAmount }, [baseBetAmount])
+  useEffect(() => { provablyFairRef.current = provablyFairSettings }, [provablyFairSettings])
+
   // Hydration guard
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  // handleDeal: validate, seed, shuffle, deal
-  const handleDeal = useCallback(async () => {
-    if (!mounted || isProcessing) return
-
-    // Validate bet amount
-    if (betAmount < 0.1 || betAmount > 10000 || betAmount > balance) {
-      addToast('Invalid bet amount', 'error')
-      return
-    }
-
-    setIsProcessing(true)
-
-    try {
-      // Sanitize seed
-      const sanitizedSeed = provablyFairSettings.clientSeed
-        .replace(/[^a-zA-Z0-9]/g, '')
-        .slice(0, 32)
-
-      // TODO: Phase 1.2 - Add getBlackjackDeal() to ProvablyFairEngine
-      // For now, generate random seed indices as placeholder
-      const seedIndices = Array.from({ length: 312 }, (_, i) => i)
-
-      // Shuffle deck with provably fair seeds
-      const deck = BlackjackEngine.shuffleDeck(
-        BlackjackEngine.createDeck(6),
-        seedIndices
-      )
-
-      // Deal initial hand
-      const newState = BlackjackEngine.deal(deck)
-      setGameState(newState)
-
-      // Increment nonce by 312 (full deck size)
-      setProvablyFairSettings({
-        ...provablyFairSettings,
-        nonce: provablyFairSettings.nonce + 312,
-      })
-
-      soundManager.play('click')
-    } catch (error) {
-      console.error('Deal error:', error)
-      addToast('Deal failed', 'error')
-      setGameState(null)
-    } finally {
-      setIsProcessing(false)
-    }
-  }, [
-    mounted,
-    isProcessing,
-    betAmount,
-    balance,
-    provablyFairSettings,
-    addToast,
-    setIsProcessing,
-    setProvablyFairSettings,
-  ])
-
-  // handleHit: add card to active hand
-  const handleHit = useCallback(() => {
-    if (!gameState || gameState.phase !== 'PLAYER_TURN') return
-
-    const next = BlackjackEngine.hit(gameState)
-    setGameState(next)
-    soundManager.play('click')
-
-    // Check if bust → move to dealer
-    if (next.phase === 'DEALER_TURN' || next.phase === 'SETTLEMENT') {
-      // Will settle after dealer plays
-    }
-  }, [gameState])
-
-  // handleStand: dealer plays then settle
-  const handleStand = useCallback(() => {
-    if (!gameState || gameState.phase !== 'PLAYER_TURN') return
-
-    const afterStand = BlackjackEngine.stand(gameState)
-    const withDealer = BlackjackEngine.playDealerHand(afterStand)
-    const settled = BlackjackEngine.settleGame(withDealer)
-    setGameState(settled)
-    soundManager.play('click')
-
-    // Settle after a short delay for animations
-    setTimeout(() => handleSettlement(settled), 800)
-  }, [gameState])
-
-  // handleDouble: double bet, hit once, stand
-  const handleDouble = useCallback(() => {
-    if (!gameState || gameState.phase !== 'PLAYER_TURN' || betAmount * 2 > balance) {
-      addToast('Cannot double down', 'error')
-      return
-    }
-
-    setBetAmount(betAmount * 2)
-
-    const doubled = BlackjackEngine.double(gameState)
-    const withDealer = BlackjackEngine.playDealerHand(doubled)
-    const settled = BlackjackEngine.settleGame(withDealer)
-    setGameState(settled)
-    soundManager.play('click')
-
-    setTimeout(() => handleSettlement(settled), 800)
-  }, [gameState, betAmount, balance, addToast])
-
-  // handleSplit: split pair into two hands
-  const handleSplit = useCallback(() => {
-    if (!gameState || gameState.phase !== 'PLAYER_TURN') {
-      addToast('Cannot split', 'error')
-      return
-    }
-
-    const split = BlackjackEngine.split(gameState)
-    setGameState(split)
-    soundManager.play('click')
-  }, [gameState, addToast])
+  useEffect(() => { setMounted(true) }, [])
 
   // handleSettlement: atomic processGameResult + fire-and-forget API call
   const handleSettlement = useCallback(
     (settled: BlackjackGameState) => {
-      // Atomic settlement via store
+      const bet = betAmountRef.current
       processGameResult({
         game: 'BLACKJACK',
-        amount: betAmount,
+        amount: bet,
         multiplier: settled.payoutMultiplier,
-        payout: settled.payout,
-        win: settled.payout > betAmount,
+        payout: settled.payout * bet,
+        win: settled.payout > 1,
         resultId: crypto.randomUUID(),
       })
 
@@ -197,64 +65,183 @@ export default function BlackjackPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           gameType: 'BLACKJACK',
-          amount: betAmount,
-          payout: settled.payout,
-          win: settled.payout > betAmount,
-          clientSeed: provablyFairSettings.clientSeed,
-          currentNonce: provablyFairSettings.nonce - 312,
+          amount: bet,
+          payout: settled.payout * bet,
+          win: settled.payout > 1,
+          clientSeed: provablyFairRef.current.clientSeed,
+          currentNonce: provablyFairRef.current.nonce - 312,
         }),
       }).catch(console.error)
 
       // Update history (last 8 rounds)
       setHistory(prev =>
-        [
-          { win: settled.payout > betAmount, payout: settled.payout },
-          ...prev,
-        ].slice(0, 8)
+        [{ win: settled.payout > 1, payout: settled.payout * bet }, ...prev].slice(0, 8)
       )
 
-      // Reset to IDLE after 2.5s
+      // Reset to idle after 2.5s
       setTimeout(() => {
         setGameState(null)
-        setBetAmount(baseBetAmount)
-        if (autoRunning && isAutoMode) {
-          // Auto-bet loop will trigger next round
-        }
+        setBetAmount(baseBetAmountRef.current)
       }, 2500)
     },
-    [
-      betAmount,
-      baseBetAmount,
-      processGameResult,
-      provablyFairSettings,
-      autoRunning,
-      isAutoMode,
-    ]
+    [processGameResult]
   )
 
-  // Auto-Bet Loop: self-triggering setTimeout
-  useEffect(() => {
-    if (!autoRunning || isProcessing || gameState?.phase !== 'IDLE') return
+  // handleDeal: validate, seed, shuffle, deal
+  const handleDeal = useCallback(async () => {
+    if (!mounted || isProcessing) return
 
-    const maxBets = autoBetSettings.numberOfBets || 500
-    if (currentAutoCount >= maxBets) {
-      setAutoRunning(false)
+    const bet = betAmountRef.current
+    if (bet < 0.1 || bet > 10000 || bet > balance) {
+      addToast('Invalid bet amount', 'error')
       return
     }
 
-    if (
-      autoBetSettings.stopOnProfit > 0 &&
-      gameStats.profit >= autoBetSettings.stopOnProfit
-    ) {
+    setIsProcessing(true)
+
+    try {
+      const sanitizedSeed = provablyFairRef.current.clientSeed
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .slice(0, 32)
+
+      const seedIndices = await ProvablyFairEngine.getBlackjackDeal(
+        sanitizedSeed,
+        sanitizedSeed,
+        provablyFairRef.current.nonce,
+        312
+      )
+
+      const deck = BlackjackEngine.shuffleDeck(BlackjackEngine.createDeck(6), seedIndices)
+      const dealt = BlackjackEngine.deal(deck)
+
+      setProvablyFairSettings({ ...provablyFairRef.current, nonce: provablyFairRef.current.nonce + 312 })
+
+      // Transition DEALING → PLAYER_TURN after animation (600ms stagger × 4 cards)
+      setGameState(dealt)
+      soundManager.play('click')
+
+      setTimeout(() => {
+        setGameState(prev => {
+          if (!prev) return null
+          // Check immediate blackjack
+          if (prev.playerHand.isBlackjack) {
+            const withDealer = BlackjackEngine.playDealerHand({ ...prev, phase: 'DEALER_TURN' })
+            const settled = BlackjackEngine.settleGame(withDealer)
+            // Settle after another 500ms for dealer reveal
+            setTimeout(() => handleSettlement(settled), 500)
+            return settled
+          }
+          return { ...prev, phase: 'PLAYER_TURN' }
+        })
+      }, 700)
+    } catch {
+      addToast('Deal failed', 'error')
+      setGameState(null)
+    } finally {
+      setIsProcessing(false)
+    }
+  }, [mounted, isProcessing, balance, addToast, setIsProcessing, setProvablyFairSettings, handleSettlement])
+
+  // handleHit: add card to active hand
+  const handleHit = useCallback(() => {
+    if (!gameState) return
+    if (gameState.phase !== 'PLAYER_TURN' && gameState.phase !== 'PLAYER_TURN_HAND2') return
+
+    const next = BlackjackEngine.hit(gameState)
+    setGameState(next)
+    soundManager.play('click')
+
+    // If bust → play dealer and settle
+    if (next.phase === 'DEALER_TURN') {
+      const withDealer = BlackjackEngine.playDealerHand(next)
+      const settled = BlackjackEngine.settleGame(withDealer)
+      setGameState(settled)
+      setTimeout(() => handleSettlement(settled), 800)
+    }
+  }, [gameState, handleSettlement])
+
+  // handleStand: dealer plays then settle
+  const handleStand = useCallback(() => {
+    if (!gameState) return
+    if (gameState.phase !== 'PLAYER_TURN' && gameState.phase !== 'PLAYER_TURN_HAND2') return
+
+    const afterStand = BlackjackEngine.stand(gameState)
+
+    // If switching to Hand 2, just update state
+    if (afterStand.phase === 'PLAYER_TURN_HAND2') {
+      setGameState(afterStand)
+      return
+    }
+
+    const withDealer = BlackjackEngine.playDealerHand(afterStand)
+    const settled = BlackjackEngine.settleGame(withDealer)
+    setGameState(settled)
+    soundManager.play('click')
+    setTimeout(() => handleSettlement(settled), 800)
+  }, [gameState, handleSettlement])
+
+  // handleDouble: double bet, hit once, stand
+  const handleDouble = useCallback(() => {
+    if (!gameState || gameState.phase !== 'PLAYER_TURN') return
+    const bet = betAmountRef.current
+    if (bet * 2 > balance) {
+      addToast('Insufficient balance to double', 'error')
+      return
+    }
+
+    setBetAmount(bet * 2)
+    betAmountRef.current = bet * 2
+
+    const doubled = BlackjackEngine.double(gameState)
+    const withDealer = BlackjackEngine.playDealerHand(doubled)
+    const settled = BlackjackEngine.settleGame(withDealer)
+    setGameState(settled)
+    soundManager.play('click')
+    setTimeout(() => handleSettlement(settled), 800)
+  }, [gameState, balance, addToast, handleSettlement])
+
+  // handleSplit: split pair into two hands
+  const handleSplit = useCallback(() => {
+    if (!gameState || gameState.phase !== 'PLAYER_TURN' || !gameState.canSplit) {
+      addToast('Cannot split', 'error')
+      return
+    }
+
+    const split = BlackjackEngine.split(gameState)
+    setGameState(split)
+    soundManager.play('click')
+  }, [gameState, addToast])
+
+  // Keyboard shortcuts: H=Hit, S=Stand, D=Double
+  useEffect(() => {
+    if (!mounted) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      if (e.key === 'h' || e.key === 'H') handleHit()
+      if (e.key === 's' || e.key === 'S') handleStand()
+      if (e.key === 'd' || e.key === 'D') handleDouble()
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [mounted, handleHit, handleStand, handleDouble])
+
+  // Auto-Bet Loop
+  useEffect(() => {
+    if (!autoRunning || isProcessing || gameState !== null) return
+
+    if (currentAutoCount >= autoRounds) {
+      setAutoRunning(false)
+      addToast(`Auto-bet finished: ${autoRounds} rounds`, 'info')
+      return
+    }
+
+    if (stopOnProfit > 0 && gameStats.profit >= stopOnProfit) {
       setAutoRunning(false)
       addToast(`Stopped on profit: +$${gameStats.profit.toFixed(2)}`, 'success')
       return
     }
 
-    if (
-      autoBetSettings.stopOnLoss > 0 &&
-      gameStats.profit < -autoBetSettings.stopOnLoss
-    ) {
+    if (stopOnLoss > 0 && gameStats.profit < -stopOnLoss) {
       setAutoRunning(false)
       addToast(`Stopped on loss: $${gameStats.profit.toFixed(2)}`, 'info')
       return
@@ -262,47 +249,40 @@ export default function BlackjackPage() {
 
     const timer = setTimeout(() => {
       handleDeal()
-      setCurrentAutoCount(prev => prev + 1)
+      setCurrentAutoCount(p => p + 1)
     }, 1500)
 
     return () => clearTimeout(timer)
-  }, [
-    autoRunning,
-    isProcessing,
-    gameState?.phase,
-    currentAutoCount,
-    gameStats.profit,
-    autoBetSettings,
-    addToast,
-    handleDeal,
-  ])
+  }, [autoRunning, isProcessing, gameState, currentAutoCount, autoRounds, gameStats.profit, stopOnProfit, stopOnLoss, addToast, handleDeal])
 
-  // Auto-Play Strategy: stand at >= 16
+  // Auto-Play Strategy: stand at >= 16 (active hand)
   useEffect(() => {
     if (!autoRunning || !gameState) return
 
-    if (
-      gameState.phase === 'PLAYER_TURN' ||
-      gameState.phase === 'PLAYER_TURN_HAND2'
-    ) {
-      if (gameState.playerHand.score >= 16) {
-        handleStand()
-      } else {
-        handleHit()
-      }
+    if (gameState.phase === 'PLAYER_TURN') {
+      if (gameState.playerHand.score >= 16) handleStand()
+      else handleHit()
+    } else if (gameState.phase === 'PLAYER_TURN_HAND2') {
+      const hand2Score = gameState.playerHand2?.score ?? 0
+      if (hand2Score >= 16) handleStand()
+      else handleHit()
     }
-  }, [gameState?.phase, gameState?.playerHand?.score, autoRunning, handleStand, handleHit])
+  }, [gameState?.phase, gameState?.playerHand?.score, gameState?.playerHand2?.score, autoRunning, handleStand, handleHit])
 
   if (!mounted) return null
 
+  const isInGame = gameState !== null && gameState.phase !== 'SETTLEMENT'
+  const canDeal = !isProcessing && gameState === null && betAmount >= 0.1 && betAmount <= balance
+
   return (
-    <div className="blackjack-container">
+    <div className={`blackjack-container ${isMobile ? 'mobile' : ''}`}>
+      {/* ── SIDEBAR ─────────────────────────────────── */}
       <div className="blackjack-sidebar">
         {/* Mode Toggle */}
-        <div className="mode-toggle">
+        <div className="bj-card mode-toggle">
           <button
             className={`mode-btn ${!isAutoMode ? 'active' : ''}`}
-            onClick={() => setIsAutoMode(false)}
+            onClick={() => { setIsAutoMode(false); setAutoRunning(false) }}
           >
             Manual
           </button>
@@ -315,20 +295,33 @@ export default function BlackjackPage() {
         </div>
 
         {/* Bet Controls */}
-        <div className="bet-section">
-          <label>Bet Amount</label>
+        <div className="bj-card">
+          <label className="bj-label">Bet Amount</label>
           <div className="bet-input-group">
             <input
               type="number"
               value={betAmount}
-              onChange={e => setBetAmount(Math.max(0.1, parseFloat(e.target.value) || 0))}
-              disabled={gameState?.phase !== 'IDLE' && gameState !== null}
+              onChange={e => {
+                const v = Math.max(0.1, parseFloat(e.target.value) || 0)
+                setBetAmount(v)
+                setBaseBetAmount(v)
+              }}
+              disabled={isInGame}
               min="0.1"
               max="10000"
               step="0.1"
+              className="bet-input"
             />
-            <button onClick={() => setBetAmount(Math.max(0.1, betAmount / 2))}>½</button>
-            <button onClick={() => setBetAmount(Math.min(10000, betAmount * 2))}>2×</button>
+            <button
+              onClick={() => { const v = Math.max(0.1, betAmount / 2); setBetAmount(v); setBaseBetAmount(v) }}
+              disabled={isInGame}
+              className="bet-adj-btn"
+            >½</button>
+            <button
+              onClick={() => { const v = Math.min(10000, betAmount * 2); setBetAmount(v); setBaseBetAmount(v) }}
+              disabled={isInGame}
+              className="bet-adj-btn"
+            >2×</button>
           </div>
         </div>
 
@@ -337,7 +330,8 @@ export default function BlackjackPage() {
           {[1, 5, 10, 25, 50, 100].map(chip => (
             <button
               key={chip}
-              onClick={() => setBetAmount(chip)}
+              onClick={() => { setBetAmount(chip); setBaseBetAmount(chip) }}
+              disabled={isInGame}
               className="chip-btn"
             >
               ${chip}
@@ -345,167 +339,188 @@ export default function BlackjackPage() {
           ))}
         </div>
 
+        {/* Deal Button */}
+        <motion.button
+          className="deal-btn"
+          onClick={handleDeal}
+          disabled={!canDeal}
+          whileHover={canDeal ? { scale: 1.02 } : {}}
+          whileTap={canDeal ? { scale: 0.97 } : {}}
+        >
+          {isProcessing ? (
+            <span className="flex items-center justify-center gap-2">
+              <motion.span
+                animate={{ rotate: 360 }}
+                transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
+                className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+              />
+              Shuffling...
+            </span>
+          ) : isInGame ? 'PLAYING...' : 'DEAL'}
+        </motion.button>
+
+        {/* Keyboard Hint */}
+        {!isMobile && (
+          <div className="keyboard-hint">
+            <span>H</span> Hit &nbsp;·&nbsp; <span>S</span> Stand &nbsp;·&nbsp; <span>D</span> Double
+          </div>
+        )}
+
         {/* Payout Info */}
-        <div className="payout-info">
-          <h4>Payouts</h4>
-          <div className="payout-row">
-            <span>Blackjack</span>
-            <span>3:2</span>
-          </div>
-          <div className="payout-row">
-            <span>Win</span>
-            <span>1:1</span>
-          </div>
-          <div className="payout-row">
-            <span>Push</span>
-            <span>1:1</span>
-          </div>
+        <div className="bj-card">
+          <div className="bj-label mb-2">Payouts</div>
+          <div className="payout-row"><span>Blackjack</span><span className="text-yellow-400 font-bold">3:2</span></div>
+          <div className="payout-row"><span>Win</span><span>1:1</span></div>
+          <div className="payout-row"><span>Push</span><span className="text-blue-400">Even</span></div>
+          <div className="payout-row"><span>Bust</span><span className="text-red-400">Loss</span></div>
         </div>
 
         {/* Stats */}
-        <div className="stats-section">
-          <div className="stat">
+        <div className="bj-card">
+          <div className="bj-label mb-2">Stats</div>
+          <div className="stat-row">
             <span>Win Rate</span>
-            <span className="stat-value">
+            <span className="stat-val">
               {gameStats.totalBets > 0
-                ? ((gameStats.totalWins / gameStats.totalBets) * 100).toFixed(1)
-                : 0}
-              %
+                ? ((gameStats.wins / gameStats.totalBets) * 100).toFixed(1)
+                : 0}%
             </span>
           </div>
-          <div className="stat">
-            <span>Biggest Win</span>
-            <span className="stat-value">${gameStats.biggestWin.toFixed(2)}</span>
+          <div className="stat-row">
+            <span>Total Bets</span>
+            <span className="stat-val">{gameStats.totalBets}</span>
           </div>
-          <div className="stat">
+          <div className="stat-row">
             <span>Profit</span>
-            <span className={`stat-value ${gameStats.profit >= 0 ? 'win' : 'loss'}`}>
-              ${gameStats.profit.toFixed(2)}
+            <span className={`stat-val ${gameStats.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {gameStats.profit >= 0 ? '+' : ''}${gameStats.profit.toFixed(2)}
             </span>
           </div>
         </div>
-
-        {/* Deal Button */}
-        <button
-          className="deal-btn"
-          onClick={handleDeal}
-          disabled={
-            isProcessing ||
-            (gameState?.phase !== 'IDLE' && gameState !== null) ||
-            betAmount > balance ||
-            betAmount < 0.1
-          }
-        >
-          {gameState?.phase === 'IDLE' || gameState === null ? 'DEAL' : 'PLAYING...'}
-        </button>
 
         {/* Auto-Bet Settings */}
         <AnimatePresence>
           {isAutoMode && (
             <motion.div
-              className="auto-settings"
+              className="bj-card auto-settings"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
             >
-              <label>
+              <div className="bj-label mb-3">Auto-Bet Settings</div>
+              <label className="auto-label">
                 Rounds
-                <input
-                  type="number"
-                  value={autoBetSettings.numberOfBets}
-                  onChange={e =>
-                    setAutoBetSettings('blackjack', {
-                      ...autoBetSettings,
-                      numberOfBets: parseInt(e.target.value) || 0,
-                    })
-                  }
-                  min="1"
-                  max="500"
-                />
+                <input type="number" value={autoRounds}
+                  onChange={e => setAutoRounds(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="auto-input" min="1" max="500" />
               </label>
-              <label>
+              <label className="auto-label">
                 Stop on Profit ($)
-                <input
-                  type="number"
-                  value={autoBetSettings.stopOnProfit}
-                  onChange={e =>
-                    setAutoBetSettings('blackjack', {
-                      ...autoBetSettings,
-                      stopOnProfit: parseFloat(e.target.value) || 0,
-                    })
-                  }
-                  min="0"
-                  step="10"
-                />
+                <input type="number" value={stopOnProfit}
+                  onChange={e => setStopOnProfit(parseFloat(e.target.value) || 0)}
+                  className="auto-input" min="0" step="10" />
               </label>
-              <label>
+              <label className="auto-label">
                 Stop on Loss ($)
-                <input
-                  type="number"
-                  value={autoBetSettings.stopOnLoss}
-                  onChange={e =>
-                    setAutoBetSettings('blackjack', {
-                      ...autoBetSettings,
-                      stopOnLoss: parseFloat(e.target.value) || 0,
-                    })
-                  }
-                  min="0"
-                  step="10"
-                />
+                <input type="number" value={stopOnLoss}
+                  onChange={e => setStopOnLoss(parseFloat(e.target.value) || 0)}
+                  className="auto-input" min="0" step="10" />
               </label>
-              <button
-                className="start-auto-btn"
-                onClick={() => {
-                  setAutoRunning(true)
-                  setCurrentAutoCount(0)
-                }}
-                disabled={autoRunning}
-              >
-                {autoRunning ? `Running... (${currentAutoCount})` : 'Start Auto-Bet'}
-              </button>
+              <div className="flex gap-2 mt-2">
+                <motion.button
+                  className={`start-auto-btn flex-1 ${autoRunning ? 'running' : ''}`}
+                  onClick={() => {
+                    if (autoRunning) {
+                      setAutoRunning(false)
+                    } else {
+                      setAutoRunning(true)
+                      setCurrentAutoCount(0)
+                    }
+                  }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {autoRunning
+                    ? `Stop (${currentAutoCount}/${autoRounds})`
+                    : 'Start Auto-Bet'}
+                </motion.button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Main Game Area */}
+      {/* ── MAIN GAME AREA ─────────────────────────── */}
       <div className="blackjack-main">
         <div className="game-wrapper">
-          {gameState && (
-            <div style={{ textAlign: 'center', color: 'hsla(var(--text-color), 0.7)' }}>
-              {/* TODO: Phase 2 - Add BlackjackTable component */}
-              <p style={{ fontSize: '1.125rem', marginBottom: '20px' }}>Blackjack Table (Phase 2)</p>
-              <p style={{ fontSize: '0.875rem' }}>Player Score: {gameState.playerHand.score} | Dealer Score: {gameState.dealerHand.score}</p>
-            </div>
-          )}
-
-          {gameState && (
-            <div style={{ display: 'flex', gap: '12px', marginTop: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              {/* TODO: Phase 2 - Add BlackjackActions component */}
-              <button onClick={handleHit} style={{ padding: '12px 24px', background: 'hsla(var(--primary), 0.3)', border: '1px solid hsla(var(--primary), 0.5)', borderRadius: '8px', color: 'hsl(var(--primary))', cursor: 'pointer', fontWeight: '600' }}>HIT</button>
-              <button onClick={handleStand} style={{ padding: '12px 24px', background: 'hsla(var(--secondary), 0.3)', border: '1px solid hsla(var(--secondary), 0.5)', borderRadius: '8px', color: 'hsl(var(--secondary))', cursor: 'pointer', fontWeight: '600' }}>STAND</button>
-              <button onClick={handleDouble} disabled={!gameState.canDouble || betAmount * 2 > balance} style={{ padding: '12px 24px', background: gameState.canDouble && betAmount * 2 <= balance ? 'hsla(var(--success), 0.3)' : 'hsla(var(--text-dim), 0.1)', border: '1px solid hsla(var(--success), 0.3)', borderRadius: '8px', color: 'hsl(var(--success))', cursor: 'pointer', fontWeight: '600', opacity: gameState.canDouble && betAmount * 2 <= balance ? 1 : 0.5 }}>DOUBLE</button>
-              <button onClick={handleSplit} disabled={!gameState.canSplit} style={{ padding: '12px 24px', background: gameState.canSplit ? 'hsla(var(--accent), 0.3)' : 'hsla(var(--text-dim), 0.1)', border: '1px solid hsla(var(--accent), 0.3)', borderRadius: '8px', color: 'hsl(var(--accent))', cursor: 'pointer', fontWeight: '600', opacity: gameState.canSplit ? 1 : 0.5 }}>SPLIT</button>
-            </div>
-          )}
-
-          {!gameState && !isProcessing && (
-            <div className="empty-state">
-              <p>Place your bet and click DEAL to start</p>
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            {gameState ? (
+              <motion.div
+                key="game"
+                className="w-full flex flex-col gap-6 items-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <BlackjackTable
+                  dealerHand={gameState.dealerHand}
+                  playerHand={gameState.playerHand}
+                  playerHand2={gameState.playerHand2}
+                  activeHandIndex={gameState.activeHandIndex}
+                  betAmount={betAmount}
+                  result={gameState.result}
+                  result2={gameState.result2}
+                  payout={gameState.payout * betAmount}
+                  isProcessing={isProcessing}
+                />
+                <BlackjackActions
+                  phase={gameState.phase}
+                  canDouble={gameState.canDouble && betAmount * 2 <= balance}
+                  canSplit={gameState.canSplit}
+                  onHit={handleHit}
+                  onStand={handleStand}
+                  onDouble={handleDouble}
+                  onSplit={handleSplit}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="empty"
+                className="empty-state"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+              >
+                <motion.div
+                  className="empty-cards"
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  ♠ ♥ ♣ ♦
+                </motion.div>
+                <p className="empty-text">Place your bet and click DEAL to start</p>
+                {balance < 1 && (
+                  <p className="text-red-400 text-sm mt-2">Insufficient balance</p>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* History Pills */}
         <div className="history-pills">
-          {history.map((result, i) => (
-            <motion.div
-              key={i}
-              className={`pill ${result.win ? 'win' : 'loss'}`}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-            />
-          ))}
+          <AnimatePresence>
+            {history.map((result, i) => (
+              <motion.div
+                key={`${i}-${result.payout}`}
+                className={`pill ${result.win ? 'win' : 'loss'}`}
+                title={`${result.win ? 'Win' : 'Loss'} $${result.payout.toFixed(2)}`}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+              />
+            ))}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -517,21 +532,38 @@ export default function BlackjackPage() {
           margin: 0 auto;
           padding: 24px;
           min-height: 100vh;
+          align-items: flex-start;
+        }
+
+        .blackjack-container.mobile {
+          flex-direction: column;
+          padding: 16px;
+          gap: 16px;
         }
 
         .blackjack-sidebar {
-          width: 350px;
+          width: 340px;
           flex-shrink: 0;
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 16px;
+        }
+
+        .mobile .blackjack-sidebar {
+          width: 100%;
+          order: 2;
         }
 
         .blackjack-main {
           flex: 1;
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 16px;
+          min-width: 0;
+        }
+
+        .mobile .blackjack-main {
+          order: 1;
         }
 
         .game-wrapper {
@@ -541,45 +573,74 @@ export default function BlackjackPage() {
           align-items: center;
           justify-content: center;
           background: hsla(var(--surface-color), 0.5);
-          border-radius: 16px;
-          border: 1px solid hsla(var(--primary), 0.2);
-          padding: 40px;
-          min-height: 500px;
+          border-radius: 20px;
+          border: 1px solid hsla(var(--primary), 0.15);
+          padding: 32px 24px;
+          min-height: 520px;
+          backdrop-filter: blur(12px);
+        }
+
+        .mobile .game-wrapper {
+          padding: 20px 12px;
+          min-height: 400px;
         }
 
         .empty-state {
-          text-align: center;
-          color: hsla(var(--text-color), 0.6);
-          font-size: 1.125rem;
-        }
-
-        .mode-toggle,
-        .bet-section,
-        .payout-info,
-        .stats-section {
           display: flex;
           flex-direction: column;
-          gap: 12px;
-          padding: 16px;
-          background: hsla(var(--surface-color), 0.6);
-          border-radius: 12px;
-          border: 1px solid hsla(var(--primary), 0.1);
+          align-items: center;
+          gap: 16px;
         }
 
+        .empty-cards {
+          font-size: 2.5rem;
+          letter-spacing: 12px;
+          color: hsla(var(--primary), 0.6);
+        }
+
+        .empty-text {
+          color: hsla(var(--text-color), 0.5);
+          font-size: 1rem;
+          text-align: center;
+        }
+
+        /* Cards */
+        .bj-card {
+          padding: 16px;
+          background: hsla(var(--surface-color), 0.7);
+          border-radius: 14px;
+          border: 1px solid hsla(var(--primary), 0.12);
+          backdrop-filter: blur(8px);
+        }
+
+        .bj-label {
+          font-size: 0.75rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: hsla(var(--text-color), 0.6);
+        }
+
+        /* Mode Toggle */
         .mode-toggle {
-          flex-direction: row;
+          display: flex;
           gap: 8px;
+          flex-direction: row;
+          padding: 8px;
         }
 
         .mode-btn {
           flex: 1;
           padding: 10px 16px;
-          border: 1px solid hsla(var(--primary), 0.3);
+          border: 1px solid hsla(var(--primary), 0.25);
           background: transparent;
-          border-radius: 8px;
-          color: hsla(var(--text-color), 0.7);
+          border-radius: 10px;
+          color: hsla(var(--text-color), 0.6);
           cursor: pointer;
           transition: all 200ms ease;
+          font-weight: 600;
+          font-size: 0.875rem;
+          min-height: 44px;
         }
 
         .mode-btn.active {
@@ -588,36 +649,46 @@ export default function BlackjackPage() {
           border-color: hsl(var(--primary));
         }
 
+        /* Bet Input */
         .bet-input-group {
           display: flex;
           gap: 8px;
+          margin-top: 8px;
         }
 
-        .bet-input-group input {
+        .bet-input {
           flex: 1;
           padding: 10px 12px;
-          background: hsla(var(--surface-color), 0.5);
+          background: hsla(var(--surface-color), 0.4);
           border: 1px solid hsla(var(--primary), 0.2);
-          border-radius: 8px;
+          border-radius: 10px;
           color: hsl(var(--text-color));
           font-size: 1rem;
+          font-family: 'Courier New', monospace;
+          font-weight: 600;
+          min-height: 44px;
         }
 
-        .bet-input-group button {
-          padding: 10px 12px;
-          background: hsla(var(--primary), 0.2);
-          border: 1px solid hsla(var(--primary), 0.3);
-          border-radius: 8px;
+        .bet-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .bet-adj-btn {
+          padding: 10px 14px;
+          background: hsla(var(--primary), 0.15);
+          border: 1px solid hsla(var(--primary), 0.25);
+          border-radius: 10px;
           color: hsl(var(--primary));
           cursor: pointer;
-          font-weight: 600;
-          transition: all 200ms ease;
+          font-weight: 700;
+          font-size: 0.9rem;
+          transition: all 150ms ease;
+          min-height: 44px;
+          min-width: 44px;
         }
 
-        .bet-input-group button:hover {
-          background: hsla(var(--primary), 0.3);
-        }
+        .bet-adj-btn:hover:not(:disabled) { background: hsla(var(--primary), 0.25); }
+        .bet-adj-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+        /* Quick Chips */
         .quick-chips {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
@@ -626,157 +697,159 @@ export default function BlackjackPage() {
 
         .chip-btn {
           padding: 12px 8px;
-          background: hsla(var(--secondary), 0.2);
-          border: 1px solid hsla(var(--secondary), 0.3);
-          border-radius: 8px;
+          background: hsla(var(--secondary), 0.15);
+          border: 1px solid hsla(var(--secondary), 0.25);
+          border-radius: 10px;
           color: hsl(var(--secondary));
           cursor: pointer;
-          font-weight: 600;
-          transition: all 200ms ease;
+          font-weight: 700;
+          font-size: 0.85rem;
+          transition: all 150ms ease;
+          min-height: 48px;
         }
 
-        .chip-btn:hover {
-          background: hsla(var(--secondary), 0.3);
-          transform: scale(1.05);
+        .chip-btn:hover:not(:disabled) {
+          background: hsla(var(--secondary), 0.28);
+          transform: translateY(-1px);
         }
 
-        .payout-row {
-          display: flex;
-          justify-content: space-between;
-          font-size: 0.875rem;
-          color: hsla(var(--text-color), 0.8);
-        }
+        .chip-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        .stat {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .stat-value {
-          font-family: 'Courier New', monospace;
-          font-weight: 600;
-          color: hsl(var(--primary));
-        }
-
-        .stat-value.win {
-          color: hsl(var(--success));
-        }
-
-        .stat-value.loss {
-          color: hsl(var(--error));
-        }
-
+        /* Deal Button */
         .deal-btn {
           width: 100%;
           padding: 16px;
-          background: hsla(var(--primary), 0.8);
-          border: 1px solid hsla(var(--primary), 0.5);
-          border-radius: 12px;
-          color: hsl(var(--text-color));
-          font-size: 1.125rem;
-          font-weight: 700;
+          background: linear-gradient(135deg, hsl(var(--primary)), hsl(45, 90%, 55%));
+          border: none;
+          border-radius: 14px;
+          color: hsl(20, 10%, 10%);
+          font-size: 1.1rem;
+          font-weight: 800;
           cursor: pointer;
           transition: all 200ms ease;
           text-transform: uppercase;
-          letter-spacing: 1px;
+          letter-spacing: 2px;
+          min-height: 56px;
+          box-shadow: 0 4px 20px hsla(var(--primary), 0.3);
         }
 
         .deal-btn:hover:not(:disabled) {
-          background: hsla(var(--primary), 1);
-          transform: scale(1.02);
-          box-shadow: 0 0 20px hsla(var(--primary), 0.4);
+          box-shadow: 0 6px 28px hsla(var(--primary), 0.5);
         }
 
         .deal-btn:disabled {
-          opacity: 0.5;
+          opacity: 0.4;
           cursor: not-allowed;
+          box-shadow: none;
         }
 
-        .auto-settings {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          padding: 16px;
-          background: hsla(var(--secondary), 0.1);
-          border-radius: 12px;
-          border: 1px solid hsla(var(--secondary), 0.2);
+        /* Keyboard Hint */
+        .keyboard-hint {
+          text-align: center;
+          font-size: 0.75rem;
+          color: hsla(var(--text-color), 0.35);
         }
 
-        .auto-settings label {
+        .keyboard-hint span {
+          display: inline-block;
+          padding: 1px 6px;
+          border: 1px solid hsla(var(--text-color), 0.2);
+          border-radius: 4px;
+          font-family: monospace;
+          font-weight: 600;
+        }
+
+        /* Payout & Stat rows */
+        .payout-row {
           display: flex;
-          flex-direction: column;
-          gap: 6px;
+          justify-content: space-between;
+          align-items: center;
+          padding: 6px 0;
           font-size: 0.875rem;
           color: hsla(var(--text-color), 0.8);
+          border-bottom: 1px solid hsla(var(--primary), 0.06);
         }
 
-        .auto-settings input {
+        .payout-row:last-child { border-bottom: none; }
+
+        .stat-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 5px 0;
+          font-size: 0.875rem;
+          color: hsla(var(--text-color), 0.75);
+        }
+
+        .stat-val {
+          font-family: 'Courier New', monospace;
+          font-weight: 700;
+          color: hsl(var(--primary));
+        }
+
+        /* Auto Settings */
+        .auto-settings { overflow: hidden; }
+
+        .auto-label {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+          font-size: 0.8rem;
+          color: hsla(var(--text-color), 0.75);
+          margin-bottom: 10px;
+        }
+
+        .auto-input {
           padding: 8px 10px;
-          background: hsla(var(--surface-color), 0.5);
+          background: hsla(var(--surface-color), 0.4);
           border: 1px solid hsla(var(--secondary), 0.2);
           border-radius: 8px;
           color: hsl(var(--text-color));
           font-size: 0.875rem;
+          min-height: 40px;
         }
 
         .start-auto-btn {
           padding: 12px 16px;
-          background: hsla(var(--secondary), 0.3);
-          border: 1px solid hsla(var(--secondary), 0.4);
-          border-radius: 8px;
+          background: hsla(var(--secondary), 0.25);
+          border: 1px solid hsla(var(--secondary), 0.35);
+          border-radius: 10px;
           color: hsl(var(--secondary));
-          font-weight: 600;
+          font-weight: 700;
           cursor: pointer;
           transition: all 200ms ease;
+          min-height: 48px;
         }
 
-        .start-auto-btn:hover:not(:disabled) {
-          background: hsla(var(--secondary), 0.4);
+        .start-auto-btn.running {
+          background: hsla(var(--error), 0.2);
+          border-color: hsla(var(--error), 0.4);
+          color: hsl(var(--error));
         }
 
-        .start-auto-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
+        .start-auto-btn:hover { filter: brightness(1.15); }
 
+        /* History Pills */
         .history-pills {
           display: flex;
           gap: 8px;
           flex-wrap: wrap;
           justify-content: center;
+          min-height: 20px;
+          padding: 8px 0;
         }
 
         .pill {
-          width: 12px;
-          height: 12px;
+          width: 14px;
+          height: 14px;
           border-radius: 50%;
-          background: hsl(var(--primary));
+          cursor: default;
+          transition: transform 200ms;
         }
 
-        .pill.win {
-          background: hsl(var(--success));
-        }
-
-        .pill.loss {
-          background: hsl(var(--error));
-        }
-
-        @media (max-width: 1024px) {
-          .blackjack-container {
-            flex-direction: column;
-            gap: 20px;
-          }
-
-          .blackjack-sidebar {
-            width: 100%;
-          }
-
-          .deal-btn {
-            padding: 14px;
-            font-size: 1rem;
-          }
-        }
+        .pill:hover { transform: scale(1.3); }
+        .pill.win { background: hsl(var(--success)); box-shadow: 0 0 6px hsla(var(--success), 0.5); }
+        .pill.loss { background: hsl(var(--error)); box-shadow: 0 0 6px hsla(var(--error), 0.4); }
       `}</style>
     </div>
   )
