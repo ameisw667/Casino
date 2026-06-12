@@ -186,22 +186,30 @@ export default function DicePage() {
     
     setIsProcessing(true);
     setLoading(true);
-    // Input Sanitization (XSS & Logical)
-    const sanitizedClientSeed = provablyFairSettings.clientSeed.replace(/[^a-zA-Z0-9]/g, '').slice(0, 32);
     try {
-      const response = await fetch('/api/casino/bet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          gameType: 'DICE',
-          amount: betAmount,
-          multiplier,
-          target: targetPoint,
-          condition: isRollOver ? 'OVER' : 'UNDER',
-          clientSeed: sanitizedClientSeed,
-          currentNonce: provablyFairSettings.nonce
-        })
-      });
+      // Input Sanitization — inside try so a null/undefined clientSeed is caught
+      const sanitizedClientSeed = (provablyFairSettings.clientSeed ?? '').replace(/[^a-zA-Z0-9]/g, '').slice(0, 32) || 'default';
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      let response: Response;
+      try {
+        response = await fetch('/api/casino/bet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            gameType: 'DICE',
+            amount: betAmount,
+            multiplier,
+            target: targetPoint,
+            condition: isRollOver ? 'OVER' : 'UNDER',
+            clientSeed: sanitizedClientSeed,
+            currentNonce: provablyFairSettings.nonce
+          }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
       if (!response.ok) throw new Error('API failed');
       const result = await response.json();
       setProvablyFairSettings({ 
