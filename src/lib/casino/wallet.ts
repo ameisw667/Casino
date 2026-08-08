@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { type WalletSnapshot, walletSnapshotSchema } from './wallet-contract';
+import { CasinoLogger } from './logger';
 
 const ZERO_TRANSACTION_ID = '00000000-0000-0000-0000-000000000000';
 
