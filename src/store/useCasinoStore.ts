@@ -203,6 +203,7 @@ export interface CasinoState {
   setIsLoading: (loading: boolean) => void;
   redeemCode: (code: string) => Promise<{ success: boolean; message: string }>;
   dismissMartingaleWarning: () => void;
+  mergeServerAchievements: (serverAchievements: Array<{ id: string; unlocked: boolean; progress: number }>) => void;
   _hasHydrated: boolean;
   setHasHydrated: (val: boolean) => void;
   syncToFile: () => void;
@@ -432,6 +433,19 @@ export const useCasinoStore = create<CasinoState>()(
           if (ach.id === 'level_50' && newLevel >= 50) { unlocked = true; progress = 50; }
           if (ach.id === 'crash_master' && game === 'CRASH' && multiplier >= 10) { unlocked = true; progress = 10; }
           
+          if ((unlocked && !ach.unlocked) || progress > ach.progress) {
+            if (typeof window !== 'undefined' && typeof fetch === 'function') {
+              try {
+                const res = fetch('/api/user/stats', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ achievementId: ach.id, progress, unlocked }),
+                });
+                if (res && typeof res.catch === 'function') res.catch(() => {});
+              } catch {}
+            }
+          }
+
           return { ...ach, unlocked, progress };
         });
 
@@ -697,11 +711,37 @@ export const useCasinoStore = create<CasinoState>()(
         return () => clearInterval(interval);
       },
 
+      mergeServerAchievements: (serverAchievements) => {
+        if (!Array.isArray(serverAchievements) || serverAchievements.length === 0) return;
+        const map = new Map(serverAchievements.map(a => [a.id, a]));
+        set((state) => ({
+          achievements: state.achievements.map((ach) => {
+            const serverVal = map.get(ach.id);
+            if (!serverVal) return ach;
+            return {
+              ...ach,
+              unlocked: ach.unlocked || Boolean(serverVal.unlocked),
+              progress: Math.max(ach.progress, Number(serverVal.progress) || 0),
+            };
+          }),
+        }));
+      },
+
       initialize: async () => {
         try {
-          const response = await fetch('/api/user/balance', { cache: 'no-store' });
-          if (!response.ok) throw new Error(`Wallet request failed with HTTP ${response.status}`);
-          get().applyServerWalletSnapshot(await response.json());
+          const [walletRes, statsRes] = await Promise.all([
+            fetch('/api/user/balance', { cache: 'no-store' }),
+            fetch('/api/user/stats', { cache: 'no-store' }).catch(() => null),
+          ]);
+          if (walletRes.ok) {
+            get().applyServerWalletSnapshot(await walletRes.json());
+          }
+          if (statsRes && statsRes.ok) {
+            const statsData = await statsRes.json();
+            if (statsData?.achievements) {
+              get().mergeServerAchievements(statsData.achievements);
+            }
+          }
         } catch (error) {
           CasinoLogger.error('STORE', 'Server wallet initialization failed closed', error);
         }

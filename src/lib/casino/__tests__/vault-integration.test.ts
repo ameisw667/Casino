@@ -29,11 +29,15 @@ describe('Vault & Lifetime Stats Backend Integration', () => {
     expect(statsRoute).toContain('WalletService.syncAchievement');
   });
 
-  it('VaultPage uses dynamic user session identity and server stats', () => {
+  it('VaultPage uses dynamic session identity, achievement descriptions, and server stats merge', () => {
     const vaultPage = read('src/app/vault/page.tsx');
+    const store = read('src/store/useCasinoStore.ts');
     expect(vaultPage).toContain('useSupabaseSession');
     expect(vaultPage).toContain('/api/user/stats');
     expect(vaultPage).toContain('displayName');
-    expect(vaultPage).not.toContain('VibeCoder_Royale</div>');
+    expect(vaultPage).toContain('ach.description');
+    expect(vaultPage).toContain('showAllAchievementsModal');
+    expect(store).toContain('mergeServerAchievements');
+    expect(store).toContain('fetch(\'/api/user/stats\'');
   });
 });

@@ -14,6 +14,8 @@ import {
   Star,
   Trophy,
   BarChart3,
+  X,
+  CheckCircle2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -38,6 +40,7 @@ export default function VaultPage() {
   const [mounted, setMounted] = React.useState(false);
   const [voucherCode, setVoucherCode] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(false);
+  const [showAllAchievementsModal, setShowAllAchievementsModal] = useState(false);
   const [serverStats, setServerStats] = useState<{
     totalBets: number;
     totalWins: number;
@@ -60,6 +63,9 @@ export default function VaultPage() {
       .then((data) => {
         if (data && !cancelled) {
           setServerStats(data);
+          if (data.achievements) {
+            useCasinoStore.getState().mergeServerAchievements(data.achievements);
+          }
         }
       })
       .catch(() => {});
@@ -325,12 +331,16 @@ export default function VaultPage() {
               <Trophy size={16} color="#D4AF37" />
               <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#fff' }}>ACHIEVEMENTS</span>
             </div>
-            <Link href="/history" style={{
-              fontSize: '0.65rem', fontWeight: 700, color: 'rgba(212,175,55,0.7)', textDecoration: 'none',
-              display: 'flex', alignItems: 'center', gap: '3px',
-            }}>
+            <button
+              onClick={() => setShowAllAchievementsModal(true)}
+              style={{
+                background: 'transparent', border: 'none', cursor: 'pointer',
+                fontSize: '0.65rem', fontWeight: 700, color: 'rgba(212,175,55,0.7)',
+                display: 'flex', alignItems: 'center', gap: '3px',
+              }}
+            >
               ALL <ChevronRight size={11} />
-            </Link>
+            </button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: '10px' }}>
             {achievements.slice(0, 6).map((ach) => (
@@ -340,24 +350,26 @@ export default function VaultPage() {
                 borderRadius: '12px',
                 border: `1px solid ${ach.unlocked ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.03)'}`,
                 textAlign: 'center', position: 'relative',
-                opacity: ach.unlocked ? 1 : 0.4,
+                opacity: ach.unlocked ? 1 : 0.6,
               }}>
                 <div style={{ fontSize: '1.5rem', marginBottom: '6px', filter: ach.unlocked ? 'none' : 'grayscale(1) brightness(0.4)' }}>
                   {ach.icon.startsWith('/') ? (
-                    <Image src={ach.icon} alt={ach.title} width={40} height={40} style={{ objectFit: 'contain' }} />
+                    <Image src={ach.icon} alt={ach.title} width={40} height={40} style={{ objectFit: 'contain', margin: '0 auto' }} />
                   ) : ach.icon}
                 </div>
-                <div style={{ fontSize: '0.65rem', fontWeight: 800, color: ach.unlocked ? '#fff' : 'rgba(255,255,255,0.25)' }}>{ach.title}</div>
+                <div style={{ fontSize: '0.65rem', fontWeight: 800, color: ach.unlocked ? '#fff' : 'rgba(255,255,255,0.5)' }}>{ach.title}</div>
+                <div style={{ fontSize: '0.55rem', fontWeight: 500, color: ach.unlocked ? '#D4AF37' : 'rgba(255,255,255,0.3)', marginTop: '3px', lineHeight: '1.2' }}>{ach.description}</div>
                 {!ach.unlocked && (
-                  <div style={{ marginTop: '6px', height: '2px', borderRadius: '1px', background: 'rgba(255,255,255,0.03)', overflow: 'hidden' }}>
+                  <div style={{ marginTop: '8px', height: '3px', borderRadius: '2px', background: 'rgba(255,255,255,0.04)', overflow: 'hidden' }}>
                     <div style={{
-                      height: '100%', borderRadius: '1px',
+                      height: '100%', borderRadius: '2px',
                       width: `${Math.min(100, (ach.progress / ach.total) * 100)}%`,
                       background: '#D4AF37', transition: 'width 0.5s',
                     }} />
                   </div>
                 )}
-                {!ach.unlocked && <Lock size={9} style={{ position: 'absolute', top: 8, right: 8, opacity: 0.2, color: 'white' }} />}
+                {!ach.unlocked && <Lock size={9} style={{ position: 'absolute', top: 8, right: 8, opacity: 0.3, color: 'white' }} />}
+                {ach.unlocked && <CheckCircle2 size={11} style={{ position: 'absolute', top: 8, right: 8, color: '#D4AF37' }} />}
               </div>
             ))}
           </div>
@@ -437,6 +449,71 @@ export default function VaultPage() {
           </motion.div>
         </div>
       </div>
+
+      {/* ──── All Achievements Modal ──── */}
+      {showAllAchievementsModal && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(16px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
+        }} onClick={() => setShowAllAchievementsModal(false)}>
+          <div style={{
+            ...card({ padding: isMobile ? '24px 16px' : '32px', maxWidth: '800px', width: '100%', maxHeight: '85vh' }),
+            overflowY: 'auto', position: 'relative',
+          }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Trophy size={20} color="#D4AF37" />
+                <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#fff', letterSpacing: '0.02em' }}>ALL ACHIEVEMENTS</span>
+              </div>
+              <button
+                onClick={() => setShowAllAchievementsModal(false)}
+                style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                  color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '12px' }}>
+              {achievements.map((ach) => (
+                <div key={ach.id} style={{
+                  padding: '18px 14px',
+                  background: ach.unlocked ? 'rgba(212,175,55,0.06)' : 'rgba(255,255,255,0.02)',
+                  borderRadius: '14px',
+                  border: `1px solid ${ach.unlocked ? 'rgba(212,175,55,0.2)' : 'rgba(255,255,255,0.04)'}`,
+                  textAlign: 'center', position: 'relative',
+                }}>
+                  <div style={{ fontSize: '1.8rem', marginBottom: '8px', filter: ach.unlocked ? 'none' : 'grayscale(1) brightness(0.4)' }}>
+                    {ach.icon.startsWith('/') ? (
+                      <Image src={ach.icon} alt={ach.title} width={44} height={44} style={{ objectFit: 'contain', margin: '0 auto' }} />
+                    ) : ach.icon}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: ach.unlocked ? '#fff' : 'rgba(255,255,255,0.6)' }}>{ach.title}</div>
+                  <div style={{ fontSize: '0.6rem', fontWeight: 500, color: ach.unlocked ? '#D4AF37' : 'rgba(255,255,255,0.35)', marginTop: '4px', lineHeight: '1.3' }}>
+                    {ach.description}
+                  </div>
+                  {!ach.unlocked && (
+                    <div style={{ marginTop: '10px', height: '4px', borderRadius: '2px', background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                      <div style={{
+                        height: '100%', borderRadius: '2px',
+                        width: `${Math.min(100, (ach.progress / ach.total) * 100)}%`,
+                        background: '#D4AF37', transition: 'width 0.5s',
+                      }} />
+                    </div>
+                  )}
+                  {!ach.unlocked && <Lock size={10} style={{ position: 'absolute', top: 10, right: 10, opacity: 0.3, color: 'white' }} />}
+                  {ach.unlocked && <CheckCircle2 size={12} style={{ position: 'absolute', top: 10, right: 10, color: '#D4AF37' }} />}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
