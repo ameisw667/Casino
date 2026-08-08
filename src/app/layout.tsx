@@ -53,15 +53,26 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+import { createClient } from "@/utils/supabase/server";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let initialUser = null;
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    initialUser = user;
+  } catch {
+    initialUser = null;
+  }
+
   return (
     <html lang="en" className={`${inter.variable} ${outfit.variable} ${jetbrains.variable}`} data-scroll-behavior="smooth">
       <body style={{ fontFamily: 'var(--font-inter), sans-serif', background: '#000' }}>
-        <ClientProviders>
+        <ClientProviders initialUser={initialUser}>
           <ClientShell>
             {children}
           </ClientShell>

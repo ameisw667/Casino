@@ -12,14 +12,16 @@ interface SupabaseSessionContextValue {
 
 const SupabaseSessionContext = createContext<SupabaseSessionContextValue | null>(null);
 
-export function SupabaseSessionProvider({ children }: { children: ReactNode }) {
+export function SupabaseSessionProvider({ children, initialUser = null }: { children: ReactNode; initialUser?: User | null }) {
   const supabase = useMemo(() => createClient(), []);
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [user, setUser] = useState<User | null>(initialUser);
+  const [isLoaded, setIsLoaded] = useState(!!initialUser);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null);
+      if (data.session?.user) {
+        setUser(data.session.user);
+      }
       setIsLoaded(true);
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
