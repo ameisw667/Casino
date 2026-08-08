@@ -63,7 +63,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   // 2. Auth & Store Hooks
   const { user, isLoaded: authLoaded, signOut } = useSupabaseSession();
+  const [serverAuthUser, setServerAuthUser] = useState<boolean>(false);
   const isSignedIn = !!user;
+  const effectiveIsSignedIn = isSignedIn || serverAuthUser;
   const displayName = (user?.user_metadata?.full_name as string | undefined) || user?.email?.split('@')[0] || 'Player';
   const balance = useCasinoStore(s => s.balance);
   const level = useCasinoStore(s => s.level);
@@ -108,31 +110,37 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   // 3. All Effect Hooks (Always called, never conditional)
   useEffect(() => {
-    if (authLoaded && isSignedIn && onboardingStep !== 'NONE' && onboardingStep !== 'COMPLETED') {
+    if (authLoaded && effectiveIsSignedIn && onboardingStep !== 'NONE' && onboardingStep !== 'COMPLETED') {
       setOnboardingStep('COMPLETED');
     }
-  }, [isSignedIn, authLoaded, onboardingStep, setOnboardingStep]);
+  }, [effectiveIsSignedIn, authLoaded, onboardingStep, setOnboardingStep]);
 
   // Migrate anonymous session progress into the authenticated account
   useEffect(() => {
-    if (authLoaded && isSignedIn && sessionId) {
+    if (authLoaded && effectiveIsSignedIn && sessionId) {
       migrateAnonymousSession();
     }
-  }, [authLoaded, isSignedIn, sessionId, migrateAnonymousSession]);
+  }, [authLoaded, effectiveIsSignedIn, sessionId, migrateAnonymousSession]);
 
   // Sync live server wallet snapshot whenever user logs in or auth changes
   useEffect(() => {
-    if (authLoaded && isSignedIn) {
-      fetch('/api/user/balance', { cache: 'no-store' })
-        .then((res) => (res.ok ? res.json() : null))
-        .then((snapshot) => {
-          if (snapshot) {
-            useCasinoStore.getState().applyServerWalletSnapshot(snapshot);
-          }
-        })
-        .catch(() => {});
-    }
-  }, [authLoaded, isSignedIn, user?.id]);
+    let cancelled = false;
+    fetch('/api/user/balance', { cache: 'no-store' })
+      .then((res) => {
+        if (res.ok) {
+          if (!cancelled) setServerAuthUser(true);
+          return res.json();
+        }
+        return null;
+      })
+      .then((snapshot) => {
+        if (snapshot && !cancelled) {
+          useCasinoStore.getState().applyServerWalletSnapshot(snapshot);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   // Persist anonymous session state to Supabase every 30 seconds
   useEffect(() => {
@@ -443,7 +451,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               {!isMobile && (
                 <>
-                  {!isSignedIn ? (
+                  {!effectiveIsSignedIn ? (
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <Link href="/sign-in" className="btn btn-ghost" style={{ fontSize: '0.85rem', fontWeight: 800 }}>LOGIN</Link>
                       <Link href="/sign-up" className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '0.85rem', fontWeight: 900, borderRadius: '12px' }}>REGISTER</Link>
@@ -461,7 +469,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                   )}
                 </>
               )}
-              {isMobile && (isSignedIn ? (
+              {isMobile && (effectiveIsSignedIn ? (
                 <button onClick={() => signOut()} aria-label="Abmelden" className="btn btn-ghost" style={{ padding: '8px' }}>
                   <LogOut size={16} />
                 </button>

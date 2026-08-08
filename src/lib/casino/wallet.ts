@@ -76,8 +76,15 @@ export class WalletService {
 
     if (userError || !user) throw new Error('Wallet could not be loaded');
     if (transactionError) throw new Error('Wallet transaction history could not be loaded');
+
+    let currentBalance = Number(user.balance);
+    if (currentBalance <= 0) {
+      currentBalance = 10000.00;
+      await supabase.from('users').update({ balance: 10000.00 }).eq('id', userId);
+    }
+
     return walletSnapshotSchema.parse({
-      balance: Number(user.balance),
+      balance: currentBalance,
       xp: Number(user.xp),
       level: Number(user.level),
       rank: String(user.rank),

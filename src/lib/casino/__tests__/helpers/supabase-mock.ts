@@ -50,6 +50,7 @@ export function createSupabaseMock(): SupabaseMock {
     single: vi.fn(() => Promise.resolve(state.singleResult)),
     maybeSingle: vi.fn(() => Promise.resolve(state.maybeSingleResult)),
     upsert: vi.fn(() => Promise.resolve(state.upsertResult)),
+    update: vi.fn(() => builder),
   };
 
   const client: SupabaseMock['client'] = {
