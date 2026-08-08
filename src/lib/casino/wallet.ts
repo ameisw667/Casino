@@ -233,4 +233,92 @@ export class WalletService {
     }
     return blackjackActionSchema.parse(data);
   }
+
+  static async creditBonus(params: { userId: string; amount: number; code: string }): Promise<WalletSnapshot> {
+    const supabase = createAdminClient();
+
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('balance, xp, level, rank')
+      .eq('id', params.userId)
+      .single();
+
+    if (userError || !user) {
+      // Provision fallback user if needed
+      await supabase.from('users').upsert(
+        { id: params.userId, username: params.userId.slice(0, 64), balance: 10000.00 },
+        { onConflict: 'id', ignoreDuplicates: true }
+      );
+    }
+
+    const currentBalance = Number(user?.balance ?? 10000.00);
+    const newBalance = Number((currentBalance + params.amount).toFixed(2));
+
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ balance: newBalance })
+      .eq('id', params.userId);
+
+    if (updateError) throw new Error('Bonus credit update failed');
+
+    const { data: transaction } = await supabase
+      .from('wallet_transactions')
+      .select('id')
+      .eq('user_id', params.userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    return walletSnapshotSchema.parse({
+      balance: newBalance,
+      xp: Number(user?.xp ?? 0),
+      level: Number(user?.level ?? 1),
+      rank: String(user?.rank ?? 'BRONZE'),
+      transactionId: transaction?.id ?? ZERO_TRANSACTION_ID,
+    });
+  }
+
+  static async getUserStats(userId: string) {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.rpc('get_user_stats', { p_user_id: userId });
+    if (error || !data) {
+      // Return safe defaults if RPC is not present or fails
+      return {
+        totalBets: 0,
+        totalWins: 0,
+        totalWagered: 0,
+        totalPayout: 0,
+        totalProfit: 0,
+        winRate: 0,
+        achievements: [],
+      };
+    }
+    return data as {
+      totalBets: number;
+      totalWins: number;
+      totalWagered: number;
+      totalPayout: number;
+      totalProfit: number;
+      winRate: number;
+      achievements: Array<{ id: string; unlocked: boolean; progress: number }>;
+    };
+  }
+
+  static async syncAchievement(params: {
+    userId: string;
+    achievementId: string;
+    progress: number;
+    unlocked: boolean;
+  }) {
+    const supabase = createAdminClient();
+    const { error } = await supabase.rpc('sync_user_achievement', {
+      p_user_id: params.userId,
+      p_achievement_id: params.achievementId,
+      p_progress: params.progress,
+      p_unlocked: params.unlocked,
+    });
+    if (error) {
+      CasinoLogger.error('WalletService', 'Failed to sync achievement to server', error);
+    }
+  }
 }

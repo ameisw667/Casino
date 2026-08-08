@@ -9,34 +9,44 @@ export async function GET(request: Request) {
   const targetPath = next.startsWith('/') ? next : '/';
 
   const forwardedHost = request.headers.get('x-forwarded-host');
-  const host = forwardedHost || requestUrl.host;
-  const protocol = request.headers.get('x-forwarded-proto') || requestUrl.protocol || 'https:';
-  const redirectUrl = `${protocol}//${host}${targetPath}`;
+  const forwardedProto = request.headers.get('x-forwarded-proto');
+
+  let origin = requestUrl.origin;
+  if (forwardedHost) {
+    const proto = forwardedProto ? forwardedProto.split(',')[0].trim() : 'https';
+    origin = `${proto}://${forwardedHost.split(',')[0].trim()}`;
+  }
+
+  const redirectUrl = `${origin}${targetPath}`;
 
   if (code) {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
+    try {
+      const cookieStore = await cookies();
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll() {
+              return cookieStore.getAll();
+            },
+            setAll(cookiesToSet) {
+              try {
+                cookiesToSet.forEach(({ name, value, options }) => {
+                  cookieStore.set(name, value, { ...options, path: '/' });
+                });
+              } catch {
+                // Ignore if response headers already sent
+              }
+            },
           },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => {
-                cookieStore.set(name, value, { ...options, path: '/' });
-              });
-            } catch {
-              // Ignore if response headers already sent
-            }
-          },
-        },
-      }
-    );
+        }
+      );
 
-    await supabase.auth.exchangeCodeForSession(code);
+      await supabase.auth.exchangeCodeForSession(code);
+    } catch (err) {
+      console.error('[Auth Callback Error]:', err);
+    }
   }
 
   return NextResponse.redirect(redirectUrl);

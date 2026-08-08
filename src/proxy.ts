@@ -21,10 +21,8 @@ const PUBLIC_ROUTES = [
   '/auth/callback(.*)',
   '/api/public/(.*)',
   // These handlers perform their own Supabase auth and return API-shaped 401/503 responses.
-  '/api/casino/config',
-  '/api/casino/bet',
-  '/api/casino/blackjack',
-  '/api/user/balance',
+  '/api/casino/(.*)',
+  '/api/user/(.*)',
   '/api/admin/users',
   '/api/webhooks/clerk(.*)',
   '/sounds/(.*)',

@@ -201,7 +201,7 @@ export interface CasinoState {
   initialize: () => Promise<void>;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-  redeemCode: (code: string) => { success: boolean; message: string };
+  redeemCode: (code: string) => Promise<{ success: boolean; message: string }>;
   dismissMartingaleWarning: () => void;
   _hasHydrated: boolean;
   setHasHydrated: (val: boolean) => void;
@@ -709,9 +709,39 @@ export const useCasinoStore = create<CasinoState>()(
       isLoading: false,
       setIsLoading: (loading: boolean) => set({ isLoading: loading }),
 
-      redeemCode: (_code) => {
-        get().addToast('Voucher credits require server confirmation.', 'info');
-        return { success: false, message: 'Server confirmation required' };
+      redeemCode: async (code: string) => {
+        try {
+          const response = await fetch('/api/casino/redeem-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code }),
+          });
+
+          const contentType = response.headers.get('content-type') || '';
+          if (!contentType.includes('application/json')) {
+            const msg = 'Invalid response from server';
+            get().addToast(msg, 'error');
+            return { success: false, message: msg };
+          }
+
+          const data = await response.json();
+          if (!response.ok || !data.success) {
+            const errMsg = data.error || data.message || 'Invalid promo code';
+            get().addToast(errMsg, 'error');
+            return { success: false, message: errMsg };
+          }
+
+          if (data.snapshot) {
+            get().applyServerWalletSnapshot(data.snapshot);
+          }
+          get().addToast(data.message || 'Voucher code redeemed successfully!', 'success');
+          return { success: true, message: data.message };
+        } catch (error) {
+          CasinoLogger.error('STORE', 'Voucher redemption failed', error);
+          const msg = 'Failed to redeem voucher code';
+          get().addToast(msg, 'error');
+          return { success: false, message: msg };
+        }
       },
       setAffiliateRef: (ref) => set({ affiliateRef: ref }),
       clearToasts: () => set({ toasts: [] }),

@@ -33,7 +33,7 @@ import {
 
 const BigWinOverlay = dynamic(() => import('../casino/BigWinOverlay'), { ssr: false });
 const WalletModal = dynamic(() => import('../casino/WalletModal'), { ssr: false });
-const SettingsModal = dynamic(() => import('../casino/SettingsModal'), { ssr: false });
+import SettingsPopover from '../casino/SettingsPopover';
 const RankBenefitsModal = dynamic(() => import('../casino/RankBenefitsModal'), { ssr: false });
 const PlayerProfileModal = dynamic(() => import('@/components/casino/PlayerProfileModal'), { ssr: false });
 const GlobalChat = dynamic(() => import('@/components/social/GlobalChat').then(mod => mod.GlobalChat), { ssr: false });
@@ -116,7 +116,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       xp: 0,
       level: 1,
       rank: 'BRONZE',
-      analytics: { totalWagered: 0, totalPayout: 0, winRate: 0, totalSessionTime: 0, activityHeatmap: {} }
+      transactionId: '00000000-0000-0000-0000-000000000000',
     });
     router.push('/sign-in');
     router.refresh();
@@ -273,7 +273,15 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     { icon: <History size={20} />, label: 'My Bets', path: '/history' },
     { icon: <Trophy size={20} />, label: 'Leaderboard', path: '/leaderboard' },
     { icon: <Target size={20} />, label: 'Vault', path: '/vault' },
-    { icon: <Settings size={20} />, label: 'Settings', path: '#', onClick: () => setShowSettings((prev) => !prev) },
+    { 
+      icon: <Settings size={20} />, 
+      label: 'Settings', 
+      path: '#', 
+      onClick: () => {
+        if (!sidebarOpen && !isMobile) setSidebarOpen(true);
+        setShowSettings((prev) => !prev);
+      } 
+    },
   ];
 
   if (!mounted || !hasHydrated) {
@@ -354,9 +362,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             </div>
           )}
         </Link>
-        <nav style={{ flex: 1, padding: '12px' }}>
+        <nav style={{ flex: 1, padding: '12px', overflowY: 'auto' }}>
           {menuItems.map((item) => {
             const active = item.path === '/' ? pathname === '/' : pathname.startsWith(item.path);
+            const isSettings = item.label === 'Settings';
             const content = (
               <>
                 {item.icon}
@@ -364,15 +373,19 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               </>
             );
             return (
-              <button 
-                key={item.label} 
-                onClick={item.onClick || (() => navigate(item.path))} 
-                className="btn btn-ghost" 
-                aria-label={item.label}
-                style={{ justifyContent: sidebarOpen ? 'flex-start' : 'center', width: '100%', marginBottom: '4px', color: active ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))', background: active ? 'hsla(0, 0%, 100%, 0.05)' : 'transparent', padding: sidebarOpen ? '12px 16px' : '12px' }}
-              >
-                {content}
-              </button>
+              <React.Fragment key={item.label}>
+                <button 
+                  onClick={item.onClick || (() => navigate(item.path))} 
+                  className="btn btn-ghost" 
+                  aria-label={item.label}
+                  style={{ justifyContent: sidebarOpen ? 'flex-start' : 'center', width: '100%', marginBottom: '4px', color: active || (isSettings && showSettings) ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))', background: active || (isSettings && showSettings) ? 'hsla(0, 0%, 100%, 0.05)' : 'transparent', padding: sidebarOpen ? '12px 16px' : '12px' }}
+                >
+                  {content}
+                </button>
+                {isSettings && (
+                  <SettingsPopover isOpen={showSettings} onClose={() => setShowSettings(false)} inline />
+                )}
+              </React.Fragment>
             );
           })}
         </nav>
@@ -505,7 +518,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <MobileNav />
       {bigWin && <BigWinOverlay amount={bigWin.amount} multiplier={bigWin.multiplier} isOpen={!!bigWin} onClose={() => setBigWin(null)} />}
       {showWallet && <WalletModal isOpen={showWallet} onClose={() => setShowWallet(false)} />}
-      {showSettings && <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />}
       {showRankInfo && <RankBenefitsModal isOpen={showRankInfo} onClose={() => setShowRankInfo(false)} />}
       {showProfile && <PlayerProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} />}
 

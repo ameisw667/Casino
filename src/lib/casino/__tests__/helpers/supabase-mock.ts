@@ -25,6 +25,7 @@ export interface SupabaseMock {
     single: ReturnType<typeof vi.fn>;
     maybeSingle: ReturnType<typeof vi.fn>;
     upsert: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
   };
   state: SupabaseMockState;
 }

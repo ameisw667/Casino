@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useSupabaseSession } from '@/components/auth/SupabaseSessionProvider';
 
 export default function VaultPage() {
   const {
@@ -31,15 +32,51 @@ export default function VaultPage() {
     analytics,
   } = useCasinoStore();
 
+  const sessionContext = useSupabaseSession();
+  const user = sessionContext?.user ?? null;
+
   const [mounted, setMounted] = React.useState(false);
   const [voucherCode, setVoucherCode] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(false);
+  const [serverStats, setServerStats] = useState<{
+    totalBets: number;
+    totalWins: number;
+    totalWagered: number;
+    totalPayout: number;
+    totalProfit: number;
+    winRate: number;
+  } | null>(null);
   const router = useRouter();
 
   React.useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
     return () => clearTimeout(timer);
   }, []);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    fetch('/api/user/stats', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && !cancelled) {
+          setServerStats(data);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
+  const displayName = useMemo(() => {
+    if (!user) return 'VibeCoder_Royale';
+    const meta = user.user_metadata || {};
+    return meta.username || meta.full_name || user.email?.split('@')[0] || 'VibeCoder_Royale';
+  }, [user]);
+
+  const avatarUrl = useMemo(() => {
+    if (user?.user_metadata?.avatar_url) return user.user_metadata.avatar_url;
+    const seed = encodeURIComponent(user?.email || displayName || 'Vibe');
+    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
+  }, [user, displayName]);
 
   const currentTier = useMemo(() =>
     [...vipTiers].reverse().find(t => xp >= t.minXp) || vipTiers[0],
@@ -54,14 +91,29 @@ export default function VaultPage() {
   const levelProgress = Math.min(100, (xp / nextLevelXp) * 100);
 
   const totalStats = useMemo(() => {
+    if (serverStats && serverStats.totalBets > 0) {
+      return {
+        totalBets: serverStats.totalBets,
+        totalWins: serverStats.totalWins,
+        totalProfit: serverStats.totalProfit,
+        winRate: serverStats.winRate,
+        wagered: serverStats.totalWagered,
+      };
+    }
     let totalBets = 0, totalWins = 0, totalProfit = 0;
     for (const game of Object.values(gameStats)) {
       totalBets += game.totalBets;
       totalWins += game.wins;
       totalProfit += game.profit;
     }
-    return { totalBets, totalWins, totalProfit, winRate: totalBets > 0 ? (totalWins / totalBets) * 100 : 0 };
-  }, [gameStats]);
+    return {
+      totalBets,
+      totalWins,
+      totalProfit,
+      winRate: totalBets > 0 ? (totalWins / totalBets) * 100 : 0,
+      wagered: analytics?.totalWagered ?? 0,
+    };
+  }, [gameStats, analytics, serverStats]);
 
   if (!mounted) return null;
 
@@ -109,11 +161,11 @@ export default function VaultPage() {
                 position: 'absolute', inset: '5px', borderRadius: '50%', overflow: 'hidden',
                 border: `2px solid ${currentTier.color}40`,
               }}>
-                <Image src="https://api.dicebear.com/7.x/avataaars/svg?seed=Vibe" alt="avatar" fill style={{ objectFit: 'cover' }} />
+                <Image src={avatarUrl} alt="avatar" fill style={{ objectFit: 'cover' }} />
               </div>
             </div>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>VibeCoder_Royale</div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '3px' }}>
                 <span style={{
                   fontSize: '0.55rem', fontWeight: 800, padding: '2px 8px', borderRadius: '4px',
@@ -246,7 +298,7 @@ export default function VaultPage() {
               { label: 'BETS', value: totalStats.totalBets.toLocaleString(), color: '#6366f1' },
               { label: 'WIN RATE', value: `${totalStats.winRate.toFixed(1)}%`, color: '#10b981' },
               { label: 'PROFIT', value: `${totalStats.totalProfit >= 0 ? '+' : ''}$${totalStats.totalProfit.toFixed(2)}`, color: totalStats.totalProfit >= 0 ? '#10b981' : '#ef4444' },
-              { label: 'WAGERED', value: `$${(analytics?.totalWagered ?? 0).toFixed(0)}`, color: '#D4AF37' },
+              { label: 'WAGERED', value: `$${totalStats.wagered.toFixed(0)}`, color: '#D4AF37' },
             ].map((s) => (
               <div key={s.label} style={{
                 padding: '14px', borderRadius: '12px',
@@ -338,9 +390,10 @@ export default function VaultPage() {
                 onClick={async () => {
                   if (!voucherCode.trim()) return;
                   setIsRedeeming(true);
-                  await new Promise(r => setTimeout(r, 1000));
-                  redeemCode(voucherCode);
-                  setVoucherCode('');
+                  const res = await redeemCode(voucherCode);
+                  if (res.success) {
+                    setVoucherCode('');
+                  }
                   setIsRedeeming(false);
                 }}
                 disabled={isRedeeming || !voucherCode.trim()}
