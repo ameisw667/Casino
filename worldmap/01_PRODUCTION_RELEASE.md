@@ -9,9 +9,9 @@ Niveau: **Top 15 %** · Stand: **2026-08-08** · Verifiziert mit: `git status`, 
 | Nr. | Meilenstein / Release-Phase | Status | Risiko | Impact | Aufwand | Prod-Ready | Zuständig |
 |---|---|---|---|---|---|---|---|
 | **R1** | Git Staging, Clean Commit & Push to Remote Repository | 🟢 Abgeschlossen | Niedrig | Hoch | Niedrig | Ja | **Claude** |
-| **R2** | Hosting Provider ENV-Variablen im Dashboard abgleichen (6 Pflichtschlüssel) | 🟡 Warten auf Jan | Niedrig | Hoch | Niedrig | Ja | **Jan** |
-| **R3** | Live Deployment Trigger & Automated CI/CD Build Monitoring | 🟡 Warten auf Hosting | Niedrig | Hoch | Niedrig | Ja | **System** |
-| **R4** | Live Smoke Test gegen echte Domain (Login, Bet, Admin-Panel) | 🟡 Warten auf Jan | Niedrig | Hoch | Niedrig | Ja | **Jan & Claude** |
+| **R2** | Hosting Provider ENV-Variablen im Dashboard abgleichen (6 Pflichtschlüssel) | 🟢 Abgeschlossen | Niedrig | Hoch | Niedrig | Ja | **Jan** |
+| **R3** | Live Deployment Trigger & Automated CI/CD Build Monitoring | 🟢 Abgeschlossen | Niedrig | Hoch | Niedrig | Ja | **System** |
+| **R4** | Live Smoke Test gegen echte Domain (Login, Bet, Admin-Panel) | 🟢 Abgeschlossen | Niedrig | Hoch | Niedrig | Ja | **Jan & Claude** |
 
 ---
 
