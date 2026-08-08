@@ -52,3 +52,11 @@ CASINO_DEBUDGING_CHECKLIST.md
 CASINO_COMMUNITY_CHECKLIST.md
 CASINO_ULTIMATE_MASTER_PLAN.md
 
+.gstack/
+.superpowers/
+test-results/
+
+# claude code
+.claude/worktrees/
+
+

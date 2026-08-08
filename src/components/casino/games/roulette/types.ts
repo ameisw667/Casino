@@ -1,8 +1,8 @@
 export type Color = 'RED' | 'BLACK' | 'GREEN';
 export type Parity = 'EVEN' | 'ODD';
 export type Range = '1-18' | '19-36';
-export type Dozen = '1st 12' | '2nd 12' | '3rd 12';
-export type Column = '1st Column' | '2nd Column' | '3rd Column';
+export type Dozen = 1 | 2 | 3;
+export type Column = 1 | 2 | 3;
 export type FrenchBet = 'VOISINS' | 'TIERS' | 'ORPHELINS';
 
 export interface RouletteNumber {

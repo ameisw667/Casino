@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, User, Wallet, Zap, Rocket, Dice6, RotateCcw, LayoutGrid, Users } from 'lucide-react';
+import { Search, User, Wallet, Zap, Rocket, Dice6, RotateCcw, LayoutGrid } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCasinoStore } from '@/store/useCasinoStore';
 export function CommandPalette() {
@@ -27,7 +27,6 @@ export function CommandPalette() {
     { id: 'roulette', title: 'Play Roulette', icon: <RotateCcw size={18} />, category: 'Games', action: () => router.push('/games/roulette') },
     { id: 'slots', title: 'Play Slots', icon: <LayoutGrid size={18} />, category: 'Games', action: () => router.push('/games/slots') },
     { id: 'profile', title: 'View Profile', icon: <User size={18} />, category: 'Account', action: () => router.push('/profile') },
-    { id: 'affiliate', title: 'Affiliate Dashboard', icon: <Users size={18} />, category: 'Account', action: () => router.push('/affiliate') },
     { id: 'wallet', title: 'Open Wallet', icon: <Wallet size={18} />, category: 'Account', action: () => {} },
     { id: 'sound', title: `Toggle Sound (${soundEnabled ? 'ON' : 'OFF'})`, icon: <Zap size={18} />, category: 'Settings', action: toggleSound },
   ].filter(cmd => cmd.title.toLowerCase().includes(query.toLowerCase()));

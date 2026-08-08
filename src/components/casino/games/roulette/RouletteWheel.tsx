@@ -61,7 +61,7 @@ export const RouletteWheel: React.FC<RouletteWheelProps> = ({
                 transition={{ delay: 0.2 }}
                 className="text-primary font-black text-3xl md:text-4xl mt-2"
               >
-                +${lastWin.toLocaleString()}
+                +${lastWin.toLocaleString('en-US')}
               </motion.div>
             )}
 

@@ -1,38 +1,32 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { WalletService } from '@/lib/casino/wallet';
+import { CasinoLogger } from '@/lib/casino/logger';
+import { enforceRateLimit, getClientIdentifier, rateLimitHeaders } from '@/lib/security/request-security';
+import { createClient } from '@/utils/supabase/server';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const authData = await auth();
-    let userId = authData.userId;
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[API][User][Balance] Auth check:', { 
-        userId, 
-        hasSession: !!authData.sessionId
-      });
-    }
-
+    const supabase = await createClient();
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    let userId = authUser?.id;
     if (!userId && process.env.NODE_ENV === 'development' && process.env.ALLOW_DEV_FALLBACK === 'true') {
       userId = 'dev_user_fallback';
     }
+    if (!userId) return new NextResponse('Unauthorized', { status: 401 });
 
-    if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+    const rate = await enforceRateLimit(getClientIdentifier(request, userId), 'wallet-read', 30, 60);
+    if (!rate.success) {
+      return NextResponse.json(
+        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
+        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) }
+      );
     }
 
-    const wallet = await WalletService.getWallet(userId);
-    
-    return NextResponse.json({ 
-      balance: wallet.balance,
-      xp: wallet.xp,
-      level: wallet.level
+    return NextResponse.json(await WalletService.getWallet(userId), {
+      headers: { 'Cache-Control': 'private, no-store' },
     });
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[API][User][Balance] Error:', error);
-    }
-    return new NextResponse('Internal Server Error', { status: 500 });
+    CasinoLogger.error('API/User/Balance', 'Server wallet load failed closed', error);
+    return NextResponse.json({ error: 'Wallet unavailable' }, { status: 503 });
   }
 }

@@ -11,13 +11,14 @@ interface ChipProps {
   vipLevel?: number;
 }
 
-export const Chip: React.FC<ChipProps> = ({ 
-  amount, 
-  size = 32, 
-  onClick, 
-  active, 
-  stacked = false, 
-  index = 0 
+export const Chip: React.FC<ChipProps> = ({
+  amount,
+  size = 32,
+  onClick,
+  active,
+  stacked = false,
+  index = 0,
+  vipLevel: _vipLevel,
 }) => {
   const getChipHSL = (amt: number) => {
     if (amt >= 1000) return 'var(--primary)'; // Gold
@@ -43,12 +44,13 @@ export const Chip: React.FC<ChipProps> = ({
       }}
     >
       {[...Array(stackCount)].map((_, i) => (
-        <motion.button 
+        <motion.button
           key={i}
+          data-testid={i === stackCount - 1 ? `chip-${amount}` : undefined}
           onClick={i === stackCount - 1 ? onClick : undefined}
           whileHover={i === stackCount - 1 ? { scale: 1.15, translateY: -6, filter: 'brightness(1.1)' } : {}}
           whileTap={i === stackCount - 1 ? { scale: 0.9 } : {}}
-          className={`absolute rounded-full border-2 border-dashed border-black/20 flex items-center justify-center font-black transition-all duration-300 vibe-tap ${active ? 'ring-2 ring-white ring-offset-2 ring-offset-transparent' : ''}`}
+          className={`chip-coin absolute rounded-full border-2 border-dashed border-black/20 flex items-center justify-center font-black transition-all duration-300 vibe-tap ${active ? 'ring-2 ring-white ring-offset-2 ring-offset-transparent' : ''}`}
           style={{ 
             width: size, 
             height: size, 

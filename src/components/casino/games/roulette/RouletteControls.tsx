@@ -73,7 +73,7 @@ export const RouletteControls: React.FC<RouletteControlsProps> = ({
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Balance</span>
-            <span className="text-sm font-black text-white">${balance.toLocaleString()}</span>
+            <span className="text-sm font-black text-white">${balance.toLocaleString('en-US')}</span>
           </div>
         </div>
       </div>
@@ -194,12 +194,12 @@ export const RouletteControls: React.FC<RouletteControlsProps> = ({
             <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
               <span className="text-white/40">Est. Profit</span>
               <span className="text-primary drop-shadow-glow">
-                {estProfit > 0 ? `+$${estProfit.toLocaleString()}` : '$0'}
+                {estProfit > 0 ? `+$${estProfit.toLocaleString('en-US')}` : '$0'}
               </span>
             </div>
             <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
               <span className="text-white/40">Total Bet</span>
-              <span className="text-white">${totalWagered.toLocaleString()}</span>
+              <span className="text-white">${totalWagered.toLocaleString('en-US')}</span>
             </div>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">

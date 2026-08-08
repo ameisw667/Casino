@@ -81,17 +81,19 @@ export function GlobalLeaderboard() {
                 </td>
                 <td data-label="User" style={{ padding: '16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.85rem', fontWeight: 800 }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <User size={14} />
                     </div>
-                    {leader.user}
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px', display: 'block' }} title={leader.user}>
+                      {leader.user}
+                    </span>
                   </div>
                 </td>
                 <td data-label="Wagered" style={{ padding: '16px', fontSize: '0.85rem', fontWeight: 900 }}>
-                  ${leader.wagered.toLocaleString()}
+                  ${leader.wagered.toLocaleString('en-US')}
                 </td>
                 <td data-label="Profit" style={{ padding: '16px', fontSize: '0.85rem', fontWeight: 900, color: leader.profit >= 0 ? '#00e701' : '#ff4d4d' }}>
-                  {leader.profit >= 0 ? '+' : ''}${leader.profit.toLocaleString()}
+                  {leader.profit >= 0 ? '+' : ''}${leader.profit.toLocaleString('en-US')}
                 </td>
                 <td data-label="Status" style={{ padding: '16px', textAlign: 'right' }}>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem', fontWeight: 900, color: '#00e701', padding: '4px 8px', borderRadius: '6px', background: 'rgba(0, 231, 1, 0.05)' }}>

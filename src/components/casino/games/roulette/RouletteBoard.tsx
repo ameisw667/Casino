@@ -145,16 +145,16 @@ export const RouletteBoard: React.FC<RouletteBoardProps> = ({
   
           {/* Columns */}
           <div className="grid grid-rows-3 gap-1">
-            {renderSideBet("2:1", { type: 'COLUMN', value: '3rd Column' }, "rounded-tr-xl h-full")}
-            {renderSideBet("2:1", { type: 'COLUMN', value: '2nd Column' }, "h-full")}
-            {renderSideBet("2:1", { type: 'COLUMN', value: '1st Column' }, "rounded-br-xl h-full")}
+            {renderSideBet("2:1", { type: 'COLUMN', value: 3 }, "rounded-tr-xl h-full")}
+            {renderSideBet("2:1", { type: 'COLUMN', value: 2 }, "h-full")}
+            {renderSideBet("2:1", { type: 'COLUMN', value: 1 }, "rounded-br-xl h-full")}
           </div>
   
           {/* Dozens */}
           <div className="col-start-2 grid grid-cols-3 gap-1 mt-1">
-            {renderSideBet("1st 12", { type: 'DOZEN', value: '1st 12' }, "h-12 md:h-14")}
-            {renderSideBet("2nd 12", { type: 'DOZEN', value: '2nd 12' }, "h-12 md:h-14")}
-            {renderSideBet("3rd 12", { type: 'DOZEN', value: '3rd 12' }, "h-12 md:h-14")}
+            {renderSideBet("1st 12", { type: 'DOZEN', value: 1 }, "h-12 md:h-14")}
+            {renderSideBet("2nd 12", { type: 'DOZEN', value: 2 }, "h-12 md:h-14")}
+            {renderSideBet("3rd 12", { type: 'DOZEN', value: 3 }, "h-12 md:h-14")}
           </div>
   
           {/* Outside Bets */}

@@ -1,6 +1,7 @@
 'use client';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { CasinoLogger } from '@/lib/casino/logger';
 interface Props {
   children: ReactNode;
   gameName: string;
@@ -16,7 +17,7 @@ export class GameErrorBoundary extends Component<Props, State> {
     return { hasError: true };
   }
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error(`[${this.props.gameName}] Uncaught error:`, error, errorInfo);
+    CasinoLogger.error(this.props.gameName, 'Uncaught error', { error, errorInfo });
   }
   private handleReset = () => {
     this.setState({ hasError: false });

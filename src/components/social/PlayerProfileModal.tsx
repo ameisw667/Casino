@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar } from 'lucide-react';
-import { VIP_TIERS } from '@/store/useCasinoStore';
+import { useCasinoStore } from '@/store/useCasinoStore';
 
 interface PlayerProfileModalProps {
   user: string;
@@ -12,6 +12,8 @@ interface PlayerProfileModalProps {
 }
 
 export function PlayerProfileModal({ user, isOpen, onClose }: PlayerProfileModalProps) {
+  const vipTiers = useCasinoStore(s => s.vipTiers);
+
   // Simulate player data for the profile
   // In a real app, this would be fetched from an API
   const isSelf = user === 'You';
@@ -32,7 +34,7 @@ export function PlayerProfileModal({ user, isOpen, onClose }: PlayerProfileModal
 
   const level = isSelf ? 15 : randomData.level;
   const xp = isSelf ? 7500 : randomData.xp;
-  const tier = VIP_TIERS.findLast(t => xp >= t.minXp) || VIP_TIERS[0];
+  const tier = [...vipTiers].reverse().find(t => xp >= t.minXp) || vipTiers[0];
   const joined = 'Oct 2025';
   const totalWagered = isSelf ? 2450 : randomData.totalWagered;
   const totalWins = Math.floor(totalWagered * 0.95);
@@ -103,11 +105,11 @@ export function PlayerProfileModal({ user, isOpen, onClose }: PlayerProfileModal
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
                 <div className="glass-card" style={{ padding: '16px', borderRadius: '16px', background: 'rgba(255,255,255,0.02)' }}>
                   <div style={{ color: '#b1bad3', fontSize: '0.7rem', fontWeight: 800, marginBottom: '4px', textTransform: 'uppercase' }}>Wagered</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 900 }}>${totalWagered.toLocaleString()}</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 900 }}>${totalWagered.toLocaleString('en-US')}</div>
                 </div>
                 <div className="glass-card" style={{ padding: '16px', borderRadius: '16px', background: 'rgba(255,255,255,0.02)' }}>
                   <div style={{ color: '#b1bad3', fontSize: '0.7rem', fontWeight: 800, marginBottom: '4px', textTransform: 'uppercase' }}>Wins</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#00e701' }}>${totalWins.toLocaleString()}</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#00e701' }}>${totalWins.toLocaleString('en-US')}</div>
                 </div>
                 <div className="glass-card" style={{ padding: '16px', borderRadius: '16px', background: 'rgba(255,255,255,0.02)' }}>
                   <div style={{ color: '#b1bad3', fontSize: '0.7rem', fontWeight: 800, marginBottom: '4px', textTransform: 'uppercase' }}>Level</div>

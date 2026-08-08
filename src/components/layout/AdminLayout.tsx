@@ -2,22 +2,22 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { UserButton } from '@clerk/nextjs';
-import { 
-  LayoutDashboard, 
-  ShieldCheck, 
-  History, 
-  Users, 
-  Settings, 
-  ChevronLeft, 
+import { useSupabaseSession } from '@/components/auth/SupabaseSessionProvider';
+import {
+  LayoutDashboard,
+  Users,
+  ChevronLeft,
   ChevronRight,
   Terminal,
-  Activity
+  BarChart2,
+  FlaskConical,
+  LogOut
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { signOut } = useSupabaseSession();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
 
@@ -28,11 +28,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const menuItems = [
     { icon: <LayoutDashboard size={20} />, label: 'Overview', path: '/admin' },
-    { icon: <ShieldCheck size={20} />, label: 'Provably Fair Audits', path: '/admin/audits' },
-    { icon: <History size={20} />, label: 'Bet History', path: '/admin/history' },
     { icon: <Users size={20} />, label: 'User Management', path: '/admin/users' },
-    { icon: <Activity size={20} />, label: 'System Health', path: '/admin/health' },
-    { icon: <Settings size={20} />, label: 'Settings', path: '/admin/settings' },
+    { icon: <BarChart2 size={20} />, label: 'Game Stats', path: '/admin/games' },
+    { icon: <FlaskConical size={20} />, label: 'Simulation', path: '/admin/simulation' },
   ];
 
   if (!mounted) return null;
@@ -133,7 +131,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00e701', boxShadow: '0 0 8px #00e701' }} />
               <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#00e701' }}>LIVE SYSTEM</span>
             </div>
-            <UserButton appearance={{ elements: { avatarBox: { width: '36px', height: '36px', border: '2px solid rgba(255,215,0,0.3)' } } }} />
+            <button
+              onClick={() => signOut()}
+              aria-label="Abmelden"
+              style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid rgba(255,215,0,0.3)', background: 'transparent', color: '#ffd700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <LogOut size={16} />
+            </button>
           </div>
         </header>
 

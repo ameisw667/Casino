@@ -20,6 +20,7 @@ import {
   MAX_BET,
   calculateDicePayout,
 } from '../casino-core';
+import { DEFAULT_GAME_CONFIG } from '../game-config';
 
 // ─── 1. Baseline: normal bet ───────────────────────────────────────────────
 
@@ -115,8 +116,8 @@ describe('calculateDicePayout — extreme bets', () => {
 // ─── 4. Max-bet constant ────────────────────────────────────────────────────
 
 describe('MAX_BET constant', () => {
-  it('is exported and equals 100_000_000', () => {
-    expect(MAX_BET).toBe(100_000_000);
+  it('is exported and matches the default game config hardcap', () => {
+    expect(MAX_BET).toBe(DEFAULT_GAME_CONFIG.limits.maxBetHardcap);
   });
 
   it('is a safe integer', () => {

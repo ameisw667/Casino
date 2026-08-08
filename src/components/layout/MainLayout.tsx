@@ -2,57 +2,51 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { usePathname, useRouter } from 'next/navigation';
-import { UserButton, SignInButton, SignUpButton, useAuth, useUser } from '@clerk/nextjs';
+import { useSupabaseSession } from '@/components/auth/SupabaseSessionProvider';
 import MobileNav from './MobileNav';
-import DailyRewardModal from '../casino/DailyRewardModal';
-import ChallengesModal from '../casino/ChallengesModal';
-import BigWinOverlay from '../casino/BigWinOverlay';
-import WalletModal from '../casino/WalletModal';
-import SettingsModal from '../casino/SettingsModal';
-import RankBenefitsModal from '../casino/RankBenefitsModal';
-import PlayerProfileModal from '@/components/casino/PlayerProfileModal';
-import { GlobalChat } from '@/components/social/GlobalChat';
-import { CommandPalette } from '@/components/navigation/CommandPalette';
 import LoadingOverlay from '@/components/casino/LoadingOverlay';
 import { useCasinoStore } from '@/store/useCasinoStore';
+import { CasinoLogger } from '@/lib/casino/logger';
+import { getOrCreateSessionId } from '@/lib/casino/session';
 
-import { 
-  Home, 
-  Gamepad2, 
-  History, 
-  Trophy, 
-  Wallet, 
-  Settings, 
+import {
+  Home,
+  Gamepad2,
+  History,
+  Trophy,
+  Wallet,
+  Settings,
   ChevronLeft,
   ChevronRight,
-  CircleDollarSign,
-  Gift,
   Star,
   Target,
-  Zap,
   CheckCircle2,
   AlertCircle,
   Info as InfoIcon,
   X,
-  ShieldCheck,
   Eye,
-  EyeOff
+  EyeOff,
+  LogOut
 } from 'lucide-react';
+
+const BigWinOverlay = dynamic(() => import('../casino/BigWinOverlay'), { ssr: false });
+const WalletModal = dynamic(() => import('../casino/WalletModal'), { ssr: false });
+const SettingsModal = dynamic(() => import('../casino/SettingsModal'), { ssr: false });
+const RankBenefitsModal = dynamic(() => import('../casino/RankBenefitsModal'), { ssr: false });
+const PlayerProfileModal = dynamic(() => import('@/components/casino/PlayerProfileModal'), { ssr: false });
+const GlobalChat = dynamic(() => import('@/components/social/GlobalChat').then(mod => mod.GlobalChat), { ssr: false });
+const CommandPalette = dynamic(() => import('@/components/navigation/CommandPalette').then(mod => mod.CommandPalette), { ssr: false });
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   type CasinoWindow = Window & { _stopCasinoBackground?: () => void };
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
-  
-  useEffect(() => {
-    useCasinoStore.persist.rehydrate();
-    setMounted(true);
-  }, []);
-  
+
   // Navigation Handler with logging
   const navigate = (path: string) => {
-    console.log(`[CasinoNav] Navigating to: ${path}`);
+    CasinoLogger.info('CasinoNav', `Navigating to: ${path}`);
     if (!path || path === '#') return;
     router.push(path);
     if (isMobile) setMobileSidebarOpen(false);
@@ -61,38 +55,56 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   // 1. All State Hooks (Always called first, same order)
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [showDailyModal, setShowDailyModal] = useState(false);
-  const [showChallengesModal, setShowChallengesModal] = useState(false);
   const [bigWin, setBigWin] = useState<{amount: number, multiplier: number} | null>(null);
-  const [dailyReward, setDailyReward] = useState<number | null>(null);
   const [showWallet, setShowWallet] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showRankInfo, setShowRankInfo] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
-  // 2. Clerk & Store Hooks
-  const { user } = useUser();
-  const { isSignedIn, isLoaded: authLoaded } = useAuth();
-  const displayName = user?.username || user?.firstName || 'Player';
+  // 2. Auth & Store Hooks
+  const { user, isLoaded: authLoaded, signOut } = useSupabaseSession();
+  const isSignedIn = !!user;
+  const displayName = (user?.user_metadata?.full_name as string | undefined) || user?.email?.split('@')[0] || 'Player';
   const balance = useCasinoStore(s => s.balance);
   const level = useCasinoStore(s => s.level);
   const xp = useCasinoStore(s => s.xp);
   const rank = useCasinoStore(s => s.rank);
-  const streak = useCasinoStore(s => s.streak);
-  const claimDailyReward = useCasinoStore(s => s.claimDailyReward);
   const bets = useCasinoStore(s => s.bets);
   const toasts = useCasinoStore(s => s.toasts);
   const removeToast = useCasinoStore(s => s.removeToast);
-  const addToast = useCasinoStore(s => s.addToast);
   const isMobile = useCasinoStore(s => s.isMobile);
   const setIsMobile = useCasinoStore(s => s.setIsMobile);
   const onboardingStep = useCasinoStore(s => s.onboardingStep);
   const setOnboardingStep = useCasinoStore(s => s.setOnboardingStep);
-  const syncBalance = useCasinoStore(s => s.syncBalance);
   const communityWagered = useCasinoStore(s => s.communityWagered);
   const communityGoal = useCasinoStore(s => s.communityGoal);
   const hideBalance = useCasinoStore(s => s.hideBalance);
+  const hasHydrated = useCasinoStore(s => s._hasHydrated);
   const updateSettings = useCasinoStore(s => s.updateSettings);
+  const loadVipConfig = useCasinoStore(s => s.loadVipConfig);
+  const setSessionId = useCasinoStore(s => s.setSessionId);
+  const migrateAnonymousSession = useCasinoStore(s => s.migrateAnonymousSession);
+  const sessionId = useCasinoStore(s => s.sessionId);
+
+  useEffect(() => {
+    try {
+      CasinoLogger.info('MainLayout', 'Rehydrating casino store...');
+      useCasinoStore.persist.rehydrate();
+      CasinoLogger.success('MainLayout', 'Store rehydrated successfully.');
+
+      // Initialize anonymous session id and load dynamic VIP/Rank config
+      const sessionId = getOrCreateSessionId();
+      if (sessionId) {
+        setSessionId(sessionId);
+      }
+      loadVipConfig();
+    } catch (e) {
+      CasinoLogger.error('MainLayout', 'Rehydration failed', e);
+      useCasinoStore.getState().setHasHydrated(true);
+    }
+    const mountedTimer = window.setTimeout(() => setMounted(true), 0);
+    return () => window.clearTimeout(mountedTimer);
+  }, [setSessionId, loadVipConfig]);
 
   // 3. All Effect Hooks (Always called, never conditional)
   useEffect(() => {
@@ -100,6 +112,27 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       setOnboardingStep('COMPLETED');
     }
   }, [isSignedIn, authLoaded, onboardingStep, setOnboardingStep]);
+
+  // Migrate anonymous session progress into the authenticated account
+  useEffect(() => {
+    if (authLoaded && isSignedIn && sessionId) {
+      migrateAnonymousSession();
+    }
+  }, [authLoaded, isSignedIn, sessionId, migrateAnonymousSession]);
+
+  // Persist anonymous session state to Supabase every 30 seconds
+  useEffect(() => {
+    if (authLoaded && !isSignedIn && sessionId) {
+      const sync = useCasinoStore.getState().syncAnonymousSession;
+      sync();
+      const interval = setInterval(() => {
+        sync();
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+    return undefined;
+  }, [authLoaded, isSignedIn, sessionId]);
+
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 1024;
@@ -150,7 +183,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     // ChunkLoadError Handler
     const handleChunkError = (e: ErrorEvent) => {
       if (e.message.includes('Loading chunk') || e.message.includes('ChunkLoadError')) {
-        console.warn('[CasinoGuard] Chunk load error detected. Refreshing for stability...');
+        CasinoLogger.warn('CasinoGuard', 'Chunk load error detected. Refreshing for stability...');
         window.location.reload();
       }
     };
@@ -159,52 +192,12 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   }, []);
 
 
-  // 4. Tab Synchronization (BroadcastChannel)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    const channel = new BroadcastChannel('casino_tab_sync');
-    
-    // Logic-Architect: Use a ref to track if the update came from another tab to avoid loops
-    const isRemoteUpdate = { current: false };
-
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data.type === 'BALANCE_UPDATE') {
-        if (Math.abs(event.data.balance - useCasinoStore.getState().balance) > 0.001) {
-          isRemoteUpdate.current = true;
-          syncBalance(event.data.balance);
-          // Reset after state has had time to propagate
-          setTimeout(() => { isRemoteUpdate.current = false; }, 50);
-        }
-      }
-    };
-
-    channel.addEventListener('message', handleMessage);
-    
-    // Only broadcast if the change was local
-    const unsubscribe = useCasinoStore.subscribe((state, prevState) => {
-      if (state.balance !== prevState.balance && !isRemoteUpdate.current) {
-        channel.postMessage({ type: 'BALANCE_UPDATE', balance: state.balance });
-      }
-    });
-
-    return () => {
-      channel.removeEventListener('message', handleMessage);
-      unsubscribe();
-      channel.close();
-    };
-  }, [syncBalance]);
-
-  // 5. Activity Simulator & Initialization
+  // 4. Activity Simulator & server-authoritative wallet initialization
   const initialize = useCasinoStore(state => state.initialize);
   const startActivitySimulator = useCasinoStore(state => state.startActivitySimulator);
-  const shouldSyncServerWallet = process.env.NEXT_PUBLIC_ENABLE_SERVER_WALLET_SYNC === 'true';
   
   useEffect(() => {
-    // Initial data fetch
-    if (shouldSyncServerWallet) {
-      initialize();
-    }
+    initialize();
     
     // Defer non-critical background processes to prioritize initial render
     const timer = setTimeout(() => {
@@ -212,11 +205,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       const stopSession = useCasinoStore.getState().updateSessionTime();
       
       // Heartbeat: Sync balance every 60s (reduced frequency)
-      const heartbeat = shouldSyncServerWallet
-        ? setInterval(() => {
-            initialize();
-          }, 60000)
-        : null;
+      const heartbeat = setInterval(() => {
+        initialize();
+      }, 60000);
 
       const win = window as CasinoWindow;
       win._stopCasinoBackground = () => {
@@ -233,19 +224,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       }
       clearTimeout(timer);
     };
-  }, [initialize, startActivitySimulator, shouldSyncServerWallet]);
-
-  // 6. UI Handlers
-  const handleClaimDaily = () => {
-    const reward = claimDailyReward();
-    if (reward) {
-      setDailyReward(reward);
-      setShowDailyModal(true);
-      addToast(`Claimed $${reward} daily reward!`, 'success');
-    } else {
-      addToast('You already claimed your reward today!', 'error');
-    }
-  };
+  }, [initialize, startActivitySimulator]);
 
   const nextLevelXp = Math.pow(level, 2) * 100;
   const progress = Math.min(100, (xp / nextLevelXp) * 100);
@@ -255,13 +234,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     { icon: <History size={20} />, label: 'My Bets', path: '/history' },
     { icon: <Trophy size={20} />, label: 'Leaderboard', path: '/leaderboard' },
     { icon: <Target size={20} />, label: 'Vault', path: '/vault' },
-    { icon: <Zap size={20} />, label: 'Challenges', path: '#', onClick: () => setShowChallengesModal(true) },
-    { icon: <ShieldCheck size={20} />, label: 'Fairness', path: '/fairness' },
-    { icon: <CircleDollarSign size={20} />, label: 'Affiliate', path: '/affiliate' },
     { icon: <Settings size={20} />, label: 'Settings', path: '#', onClick: () => setShowSettings(true) },
   ];
 
-  if (!mounted) {
+  if (!mounted || !hasHydrated) {
     return (
       <div style={{ background: '#000', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffd700', fontWeight: 900, fontFamily: 'var(--font-inter), sans-serif' }}>
         INITIALIZING CASINO...
@@ -421,12 +397,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 </div>
               </div>
             )}
-            {!isMobile && (
-              <button onClick={handleClaimDaily} className="btn btn-secondary" style={{ padding: '8px 16px', gap: '8px', color: 'hsl(var(--accent))', borderColor: 'hsla(var(--accent), 0.2)' }}>
-                <Gift size={18} />
-                <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>DAILY</span>
-              </button>
-            )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px', paddingRight: isMobile ? '8px' : '0' }}>
             <div className="glass-card" style={{ padding: isMobile ? '6px 10px' : '8px 16px', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: isMobile ? '6px' : '12px' }}>
@@ -434,7 +404,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Wallet size={isMobile ? 14 : 16} color="hsl(var(--primary))" />
                   <span style={{ fontFamily: 'var(--font-mono)', color: 'hsl(var(--primary))', fontWeight: 800, fontSize: isMobile ? '0.85rem' : '1rem' }}>
-                    {hideBalance ? '••••••' : `$${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+                    {hideBalance ? '••••••' : `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
                   </span>
                   <button 
                     onClick={() => updateSettings({ hideBalance: !hideBalance })}
@@ -461,12 +431,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 <>
                   {!isSignedIn ? (
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <SignInButton mode="modal">
-                        <button className="btn btn-ghost" style={{ fontSize: '0.85rem', fontWeight: 800 }}>LOGIN</button>
-                      </SignInButton>
-                      <SignUpButton mode="modal">
-                        <button className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '0.85rem', fontWeight: 900, borderRadius: '12px' }}>REGISTER</button>
-                      </SignUpButton>
+                      <Link href="/sign-in" className="btn btn-ghost" style={{ fontSize: '0.85rem', fontWeight: 800 }}>LOGIN</Link>
+                      <Link href="/sign-up" className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '0.85rem', fontWeight: 900, borderRadius: '12px' }}>REGISTER</Link>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '4px 8px', background: 'hsla(0,0%,100%,0.03)', borderRadius: '16px', border: '1px solid hsla(0,0%,100%,0.05)' }}>
@@ -474,12 +440,20 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                         <div style={{ fontSize: '0.85rem', fontWeight: 900, color: '#fff' }}>{displayName}</div>
                         <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'hsl(var(--primary))', textTransform: 'uppercase' }}>{rank}</div>
                       </div>
-                      <UserButton appearance={{ elements: { avatarBox: { width: '40px', height: '40px', borderRadius: '12px', border: '2px solid hsla(var(--primary), 0.5)' } } }} />
+                      <button onClick={() => signOut()} aria-label="Abmelden" className="btn btn-ghost" style={{ width: '40px', height: '40px', padding: 0, borderRadius: '12px', border: '2px solid hsla(var(--primary), 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <LogOut size={16} />
+                      </button>
                     </div>
                   )}
                 </>
               )}
-              {isMobile && <UserButton />}
+              {isMobile && (isSignedIn ? (
+                <button onClick={() => signOut()} aria-label="Abmelden" className="btn btn-ghost" style={{ padding: '8px' }}>
+                  <LogOut size={16} />
+                </button>
+              ) : (
+                <Link href="/sign-in" className="btn btn-ghost" style={{ padding: '8px', fontSize: '0.75rem', fontWeight: 800 }}>LOGIN</Link>
+              ))}
             </div>
           </div>
         </header>
@@ -490,13 +464,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
       {/* Persistent Overlay Components */}
       <MobileNav />
-      <DailyRewardModal isOpen={showDailyModal} onClose={() => setShowDailyModal(false)} rewardAmount={dailyReward} streak={streak} />
-      <ChallengesModal isOpen={showChallengesModal} onClose={() => setShowChallengesModal(false)} />
       {bigWin && <BigWinOverlay amount={bigWin.amount} multiplier={bigWin.multiplier} isOpen={!!bigWin} onClose={() => setBigWin(null)} />}
-      <WalletModal isOpen={showWallet} onClose={() => setShowWallet(false)} />
+      {showWallet && <WalletModal isOpen={showWallet} onClose={() => setShowWallet(false)} />}
       {showSettings && <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />}
-      <RankBenefitsModal isOpen={showRankInfo} onClose={() => setShowRankInfo(false)} />
-      <PlayerProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} />
+      {showRankInfo && <RankBenefitsModal isOpen={showRankInfo} onClose={() => setShowRankInfo(false)} />}
+      {showProfile && <PlayerProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} />}
 
       <GlobalChat />
       

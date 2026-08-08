@@ -1,477 +1,389 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { useRouter } from 'next/navigation';
-import { 
-  Lock, 
-  Star, 
-  Flame, 
-  Rocket, 
-  TrendingUp, 
-  Gift, 
-  Wallet, 
+import {
+  Lock,
+  Rocket,
+  Gift,
   ShieldCheck,
-  Users,
-  Settings,
-  Bell,
-  Globe,
-  Camera,
-  Activity,
-  Award,
-  CircleDollarSign
+  Crown,
+  ChevronRight,
+  ArrowUpRight,
+  Star,
+  Trophy,
+  BarChart3,
 } from 'lucide-react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+
 export default function VaultPage() {
-  const balance = useCasinoStore(s => s.balance);
-  const xp = useCasinoStore(s => s.xp);
-  const level = useCasinoStore(s => s.level);
-  const achievements = useCasinoStore(s => s.achievements);
-  const rakebackPool = useCasinoStore(s => s.rakebackPool);
-  const inventory = useCasinoStore(s => s.inventory);
-  const openCase = useCasinoStore(s => s.openCase);
-  const isMobile = useCasinoStore(s => s.isMobile);
-  const streak = useCasinoStore(s => s.streak);
-  const onboardingStep = useCasinoStore(s => s.onboardingStep);
-  const setOnboardingStep = useCasinoStore(s => s.setOnboardingStep);
-  const addToast = useCasinoStore(s => s.addToast);
-  const redeemCode = useCasinoStore(s => s.redeemCode);
+  const {
+    balance,
+    xp,
+    level,
+    vipTiers,
+    achievements,
+    isMobile,
+    redeemCode,
+    gameStats,
+    analytics,
+  } = useCasinoStore();
+
   const [mounted, setMounted] = React.useState(false);
   const [voucherCode, setVoucherCode] = useState('');
   const [isRedeeming, setIsRedeeming] = useState(false);
+  const router = useRouter();
+
   React.useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
     return () => clearTimeout(timer);
   }, []);
 
-
-  const router = useRouter();
-  const [opening, setOpening] = useState(false);
-  const [reward, setReward] = useState<{reward: number, type: 'balance' | 'xp'} | null>(null);
-  const [animationPhase, setAnimationPhase] = useState<'idle' | 'spinning' | 'reveal'>('idle');
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isMobile) return;
-    const { clientX, clientY } = e;
-    const moveX = (clientX - window.innerWidth / 2) / 50;
-    const moveY = (clientY - window.innerHeight / 2) / 50;
-    setMousePos({ x: moveX, y: moveY });
-  };
-  // Progress Calculation
+  const currentTier = useMemo(() =>
+    [...vipTiers].reverse().find(t => xp >= t.minXp) || vipTiers[0],
+    [xp, vipTiers]
+  );
+  const currentTierIndex = vipTiers.findIndex(t => t.name === currentTier.name);
+  const nextTier = currentTierIndex < vipTiers.length - 1 ? vipTiers[currentTierIndex + 1] : null;
+  const tierProgress = nextTier
+    ? ((xp - currentTier.minXp) / (nextTier.minXp - currentTier.minXp)) * 100
+    : 100;
   const nextLevelXp = Math.pow(level, 2) * 100;
-  const progress = Math.min(100, (xp / nextLevelXp) * 100);
-  const handleOpenCase = () => {
-    setOpening(true);
-    setAnimationPhase('spinning');
-    setReward(null);
-    
-    setTimeout(() => {
-      try {
-        const result = openCase();
-        setReward(result);
-        setAnimationPhase('reveal');
-        
-        setTimeout(() => {
-          setOpening(false);
-          setAnimationPhase('idle');
-          setReward(null);
-        }, 4000);
-      } catch {
-        setOpening(false);
-        setAnimationPhase('idle');
-      }
-    }, 3000);
-  };
+  const levelProgress = Math.min(100, (xp / nextLevelXp) * 100);
 
-  // 4. Auto-trigger Case Opening for Onboarding
-  React.useEffect(() => {
-    if (onboardingStep === 'OPEN_CASE' && inventory.cases > 0 && !opening) {
-      setTimeout(() => {
-        handleOpenCase();
-      }, 1000);
+  const totalStats = useMemo(() => {
+    let totalBets = 0, totalWins = 0, totalProfit = 0;
+    for (const game of Object.values(gameStats)) {
+      totalBets += game.totalBets;
+      totalWins += game.wins;
+      totalProfit += game.profit;
     }
-  }, [onboardingStep]);
+    return { totalBets, totalWins, totalProfit, winRate: totalBets > 0 ? (totalWins / totalBets) * 100 : 0 };
+  }, [gameStats]);
 
   if (!mounted) return null;
 
+  const card = (extra?: React.CSSProperties): React.CSSProperties => ({
+    borderRadius: '16px',
+    background: 'rgba(12,12,14,0.7)',
+    border: '1px solid rgba(255,255,255,0.05)',
+    backdropFilter: 'blur(12px)',
+    ...extra,
+  });
+
   return (
+    <div style={{ maxWidth: '1400px', width: '100%', margin: '0 auto', padding: isMobile ? '16px 12px 120px' : '20px 32px 80px' }}>
 
-    <div 
-      onMouseMove={handleMouseMove}
-      style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '32px', padding: '0 24px 120px' }}
-    >
-      
-      {/* Header Profile Dashboard */}
-      <header style={{ 
-        marginTop: '20px',
-        padding: isMobile ? '32px 20px' : '48px',
-        borderRadius: '32px',
-        background: 'linear-gradient(135deg, hsla(var(--bg-color), 0.9), hsla(var(--primary), 0.05))',
-        backgroundImage: 'url(/images/vault-door-v2.png)',
-        backgroundSize: '110%',
-        backgroundPosition: `${50 + mousePos.x}% ${50 + mousePos.y}%`,
-        border: '1px solid hsla(var(--primary), 0.2)',
-        position: 'relative',
-        overflow: 'hidden',
-        transition: 'background-position 0.2s ease-out'
+      {/* ──── ROW 1: Profile ──── */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 420px)',
+        gap: '16px',
+        marginBottom: '16px',
       }}>
-        {/* Overlay for readability - Darkened and extended to ensure all text is legible */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, hsla(var(--bg-color), 0.95) 0%, hsla(var(--bg-color), 0.4) 60%, hsla(var(--bg-color), 0.8) 100%)', zIndex: 1 }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 0 }} />
-        {/* Pro Badge */}
-        <div style={{ position: 'absolute', top: '24px', right: '24px', padding: '6px 16px', background: 'hsl(var(--primary))', color: 'black', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 950, boxShadow: '0 0 20px hsla(var(--primary), 0.4)' }}>
-          PRO ROYALE MEMBER
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'auto 1fr auto', gap: '48px', alignItems: 'center', position: 'relative', zIndex: 2 }}>
-          {/* Avatar & XP Hub */}
-          <div style={{ 
-            width: isMobile ? '160px' : '220px', 
-            height: isMobile ? '160px' : '220px', 
-            position: 'relative', 
-            margin: isMobile ? '0 auto' : '0' 
-          }}>
-            <svg width="100%" height="100%" viewBox="0 0 100 100" style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }}>
-              <circle cx="50" cy="50" r="46" fill="none" stroke="hsla(0,0%,100%,0.05)" strokeWidth="4" />
-              <circle 
-                cx="50" cy="50" r="46" 
-                fill="none" 
-                stroke="hsl(var(--primary))" 
-                strokeWidth="4" 
-                strokeDasharray={`${progress * 2.89} 289`} 
-                style={{ transition: 'stroke-dasharray 1s ease', filter: 'drop-shadow(0 0 8px hsla(var(--primary), 0.4))' }} 
-              />
-            </svg>
-            
-            {/* Avatar Image */}
-            <div style={{
-              position: 'absolute',
-              inset: '8px',
-              borderRadius: '50%',
-              overflow: 'hidden',
-              border: '4px solid hsl(var(--bg-color))',
-              background: 'hsla(var(--bg-color), 0.8)',
-              backdropFilter: 'blur(10px)',
-            }}>
-              <Image src="https://api.dicebear.com/7.x/avataaars/svg?seed=Vibe" alt="avatar" fill style={{ objectFit: 'cover' }} />
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '30%', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 2 }} className="hover:bg-black/80 transition-colors">
-                <Camera size={16} color="white" />
+        {/* Profile Card */}
+        <div style={{
+          ...card({ padding: '28px 24px' }),
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            position: 'absolute', top: '-40px', right: '-40px', width: '140px', height: '140px',
+            background: `radial-gradient(circle, ${currentTier.color}10 0%, transparent 70%)`,
+            pointerEvents: 'none',
+          }} />
+
+          {/* Avatar + Name */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
+            <div style={{ width: '52px', height: '52px', position: 'relative', flexShrink: 0 }}>
+              <svg width="52" height="52" viewBox="0 0 100 100" style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }}>
+                <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="6" />
+                <circle cx="50" cy="50" r="44" fill="none" stroke={currentTier.color} strokeWidth="6"
+                  strokeDasharray={`${levelProgress * 2.76} 276`} strokeLinecap="round"
+                  style={{ transition: 'stroke-dasharray 0.8s ease', filter: `drop-shadow(0 0 4px ${currentTier.color}50)` }}
+                />
+              </svg>
+              <div style={{
+                position: 'absolute', inset: '5px', borderRadius: '50%', overflow: 'hidden',
+                border: `2px solid ${currentTier.color}40`,
+              }}>
+                <Image src="https://api.dicebear.com/7.x/avataaars/svg?seed=Vibe" alt="avatar" fill style={{ objectFit: 'cover' }} />
               </div>
             </div>
-            {/* Level Badge */}
-            <div style={{ position: 'absolute', bottom: '5%', right: '5%', width: '48px', height: '48px', borderRadius: '16px', background: 'hsl(var(--primary))', color: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 950, fontSize: '1.2rem', boxShadow: '0 5px 15px rgba(0,0,0,0.3)', border: '4px solid hsl(var(--bg-color))', zIndex: 3 }}>
-              {level}
-            </div>
-          </div>
-          
-          <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
-            <div style={{ fontSize: '2.5rem', fontWeight: 950, color: '#fff', textShadow: '0 2px 20px rgba(0,0,0,0.8)', letterSpacing: '-0.02em' }}>VibeCoder_Royale</div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 16px', background: 'hsla(var(--primary), 0.1)', borderRadius: '100px', border: '1px solid hsla(var(--primary), 0.2)', marginTop: '12px' }}>
-              <Star size={14} color="hsl(var(--primary))" fill="hsl(var(--primary))" />
-              <div style={{ fontSize: '0.85rem', fontWeight: 900, color: 'hsl(var(--primary))' }}>GLOBAL RANK: #4,124</div>
-            </div>
-            
-            {/* Status Badges Row - Wrapped in glass for visibility */}
-            <div style={{ 
-              display: 'flex', 
-              gap: '16px', 
-              marginTop: '24px', 
-              padding: '12px 20px', 
-              background: 'hsla(var(--bg-color), 0.6)', 
-              backdropFilter: 'blur(12px)', 
-              borderRadius: '16px', 
-              width: 'fit-content',
-              border: '1px solid hsla(0,0%,100%,0.05)',
-              margin: isMobile ? '24px auto 0' : '24px 0 0'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'hsl(var(--success))', fontSize: '0.8rem', fontWeight: 900 }}>
-                <ShieldCheck size={16} /> VERIFIED
-              </div>
-              <div style={{ width: '1px', height: '16px', background: 'hsla(0,0%,100%,0.1)' }} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ff5722', fontSize: '0.8rem', fontWeight: 900 }}>
-                <Flame size={16} /> {streak} DAY STREAK
-              </div>
-              <div style={{ width: '1px', height: '16px', background: 'hsla(0,0%,100%,0.1)' }} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#2196f3', fontSize: '0.8rem', fontWeight: 900 }}>
-                <Users size={16} /> 12 REFS
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>VibeCoder_Royale</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '3px' }}>
+                <span style={{
+                  fontSize: '0.55rem', fontWeight: 800, padding: '2px 8px', borderRadius: '4px',
+                  background: `${currentTier.color}15`, color: currentTier.color,
+                  border: `1px solid ${currentTier.color}30`, letterSpacing: '0.08em',
+                }}>{currentTier.name}</span>
+                <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)' }}>LVL {level}</span>
               </div>
             </div>
           </div>
 
-          {!isMobile && (
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button className="btn btn-secondary" style={{ width: '56px', height: '56px', padding: 0, borderRadius: '16px' }}><Settings size={24} /></button>
-              <button className="btn btn-primary" style={{ padding: '0 32px', height: '56px', borderRadius: '16px', fontWeight: 950, fontSize: '1rem', boxShadow: '0 10px 30px hsla(var(--primary), 0.3)' }}>WITHDRAW</button>
+          {/* Key Figures */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+            <div style={{ padding: '14px', borderRadius: '12px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.04)' }}>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.06em', marginBottom: '4px' }}>BALANCE</div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#D4AF37', fontFamily: 'var(--font-mono, monospace)' }}>
+                ${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              </div>
+            </div>
+            <div style={{ padding: '14px', borderRadius: '12px', background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.04)' }}>
+              <div style={{ fontSize: '0.55rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.06em', marginBottom: '4px' }}>XP</div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#fff', fontFamily: 'var(--font-mono, monospace)' }}>
+                {xp.toLocaleString()}
+              </div>
+            </div>
+          </div>
+
+          {/* Verified */}
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '5px',
+              padding: '5px 10px', borderRadius: '8px',
+              background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)',
+              fontSize: '0.6rem', fontWeight: 800, color: '#10b981',
+            }}>
+              <ShieldCheck size={11} /> VERIFIED
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ──── ROW 2: VIP Progression (left 60%) + Stats (right 40%) ──── */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : '3fr 2fr',
+        gap: '16px',
+        marginBottom: '16px',
+      }}>
+        {/* VIP Progression */}
+        <div style={{ ...card({ padding: isMobile ? '24px 16px' : '28px' }) }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Crown size={16} color="#D4AF37" />
+              <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#fff', letterSpacing: '0.02em' }}>VIP PROGRESSION</span>
+            </div>
+            {nextTier && (
+              <span style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)' }}>
+                {(nextTier.minXp - xp).toLocaleString()} XP to {nextTier.name}
+              </span>
+            )}
+          </div>
+
+          {/* Tier Nodes */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 0, padding: '0 8px', marginBottom: '12px' }}>
+            {vipTiers.map((tier, i) => {
+              const isActive = tier.name === currentTier.name;
+              const isPast = xp >= tier.minXp;
+              return (
+                <React.Fragment key={tier.name}>
+                  {i > 0 && (
+                    <div style={{
+                      flex: 1, height: '2px',
+                      background: isPast ? `linear-gradient(90deg, ${vipTiers[i - 1].color}80, ${tier.color}80)` : 'rgba(255,255,255,0.04)',
+                    }} />
+                  )}
+                  <div style={{
+                    width: isActive ? 40 : 28, height: isActive ? 40 : 28,
+                    borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: isPast ? `${tier.color}18` : 'rgba(255,255,255,0.02)',
+                    border: `2px solid ${isPast ? `${tier.color}80` : 'rgba(255,255,255,0.06)'}`,
+                    position: 'relative', transition: 'all 0.3s',
+                    boxShadow: isActive ? `0 0 20px ${tier.color}25` : 'none',
+                  }}>
+                    {isPast ? <Star size={isActive ? 16 : 11} color={tier.color} fill={tier.color} /> : <Lock size={10} color="rgba(255,255,255,0.15)" />}
+                    <span style={{
+                      position: 'absolute', top: '100%', marginTop: '5px',
+                      fontSize: '0.5rem', fontWeight: 800, color: isPast ? `${tier.color}cc` : 'rgba(255,255,255,0.15)',
+                      whiteSpace: 'nowrap', letterSpacing: '0.04em',
+                    }}>{tier.name}</span>
+                  </div>
+                </React.Fragment>
+              );
+            })}
+          </div>
+
+          {nextTier && (
+            <div style={{ marginTop: '28px' }}>
+              <div style={{ height: '5px', borderRadius: '3px', background: 'rgba(255,255,255,0.03)', overflow: 'hidden' }}>
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(tierProgress, 100)}%` }}
+                  transition={{ duration: 1, ease: 'easeOut' }}
+                  style={{
+                    height: '100%', borderRadius: '3px',
+                    background: `linear-gradient(90deg, ${currentTier.color}, ${nextTier.color})`,
+                    boxShadow: `0 0 8px ${currentTier.color}30`,
+                  }}
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
+                <span style={{ fontSize: '0.6rem', fontWeight: 700, color: `${currentTier.color}aa` }}>
+                  {currentTier.name} &middot; {(currentTier.rakeback * 100).toFixed(0)}% rakeback
+                </span>
+                <span style={{ fontSize: '0.6rem', fontWeight: 700, color: `${nextTier.color}aa` }}>
+                  {nextTier.name} &middot; {(nextTier.rakeback * 100).toFixed(0)}% rakeback
+                </span>
+              </div>
             </div>
           )}
         </div>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: '16px' }}>
-              {[
-                { label: 'TOTAL BALANCE', value: `$${balance.toLocaleString()}`, color: 'hsl(var(--primary))', icon: Wallet },
-                { label: 'RAKEBACK', value: `$${rakebackPool.toFixed(2)}`, color: 'hsl(var(--success))', icon: TrendingUp },
-                { label: 'TOTAL EARNED', value: '$12,420', color: '#fff', icon: CircleDollarSign },
-                { label: 'WAGERED', value: '$45,820', color: '#fff', icon: Activity },
-              ].map((s, i) => (
-                <div key={i} className="glass" style={{ 
-                  padding: '20px', 
-                  borderRadius: '20px', 
-                  border: '1px solid hsla(var(--primary), 0.1)',
-                  background: 'hsla(var(--bg-color), 0.7)',
-                  backdropFilter: 'blur(16px)',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <s.icon size={14} color="hsl(var(--text-muted))" />
-                    <span style={{ fontSize: '0.65rem', fontWeight: 900, color: 'hsl(var(--text-muted))', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{s.label}</span>
-                  </div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 950, color: s.color, textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{s.value}</div>
-                </div>
-              ))}
-            </div>
-      </header>
 
-
-      {/* Main Content Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.5fr 1fr', gap: '32px' }}>
-        
-        {/* Left Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          
-          {/* Level Roadmap */}
-          <section className="glass-card" style={{ padding: 'clamp(24px, 5vw, 32px)', borderRadius: '32px' }}>
-            <h3 style={{ fontSize: 'clamp(1rem, 2.5vw, 1.2rem)', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <TrendingUp color="hsl(var(--primary))" /> LEVEL REWARDS ROADMAP
-            </h3>
-            <div style={{ position: 'relative', padding: '20px 0', overflowX: isMobile ? 'auto' : 'visible', WebkitOverflowScrolling: 'touch' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '0', right: '0', height: '4px', background: 'hsla(0,0%,100%,0.05)', borderRadius: '2px' }} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
-                {[level, level+1, level+2, level+3, level+4].map((l, i) => (
-                  <div key={l} style={{ textAlign: 'center', minWidth: isMobile ? '80px' : 'auto' }}>
-                    <div style={{ 
-                      width: '40px', 
-                      height: '40px', 
-                      borderRadius: '12px', 
-                      background: i === 0 ? 'hsl(var(--primary))' : 'hsl(var(--bg-color))', 
-                      border: `2px solid ${i === 0 ? 'white' : 'hsla(0,0%,100%,0.1)'}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: i === 0 ? 'black' : 'white',
-                      fontWeight: 900,
-                      margin: '0 auto 12px'
-                    }}>
-                      {l}
-                    </div>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 900, color: i === 0 ? 'white' : 'hsl(var(--text-dim))' }}>
-                      {i === 0 ? 'CURRENT' : i === 4 ? '$100 CASE' : '+1% RB'}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-          {/* Quick Actions & Inventory */}
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '32px' }}>
-            <div className="glass-card" style={{ padding: '24px', borderRadius: '24px' }}>
-              <h4 style={{ fontSize: '1rem', fontWeight: 900, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Gift size={18} color="hsl(var(--primary))" /> INVENTORY
-              </h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div style={{ padding: '16px', background: 'hsla(0,0%,100%,0.02)', borderRadius: '16px', border: '1px solid hsla(0,0%,100%,0.05)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 950 }}>{inventory.cases}</div>
-                  <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'hsl(var(--text-dim))' }}>CASES</div>
-                  <button onClick={handleOpenCase} disabled={inventory.cases === 0} className="btn btn-primary" style={{ width: '100%', height: '32px', marginTop: '12px', fontSize: '0.7rem', padding: 0 }}>OPEN</button>
-                </div>
-                <div style={{ padding: '16px', background: 'hsla(0,0%,100%,0.02)', borderRadius: '16px', border: '1px solid hsla(0,0%,100%,0.05)', textAlign: 'center', opacity: 0.4 }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 950 }}>0</div>
-                  <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'hsl(var(--text-dim))' }}>BOOSTS</div>
-                  <button disabled className="btn btn-secondary" style={{ width: '100%', height: '32px', marginTop: '12px', fontSize: '0.7rem', padding: 0 }}>USE</button>
-                </div>
-              </div>
-            </div>
-            <div className="glass-card" style={{ padding: '24px', borderRadius: '24px' }}>
-              <h4 style={{ fontSize: '1rem', fontWeight: 900, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <ShieldCheck size={18} color="hsl(var(--success))" /> SECURITY
-              </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'hsla(0,0%,100%,0.02)', borderRadius: '12px' }}>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>2FA Status</div>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'hsl(var(--error))' }}>DISABLED</div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'hsla(0,0%,100%,0.02)', borderRadius: '12px' }}>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>Support ID</div>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'hsl(var(--text-muted))' }}>#RY-8291</div>
-                </div>
-              </div>
-            </div>
+        {/* Stats Panel */}
+        <div style={{ ...card({ padding: isMobile ? '20px 16px' : '28px' }) }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+            <BarChart3 size={16} color="rgba(255,255,255,0.4)" />
+            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#fff', letterSpacing: '0.02em' }}>LIFETIME STATS</span>
           </div>
-          {/* Achievement Showroom */}
-          <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Award color="hsl(var(--primary))" /> ACHIEVEMENT SHOWROOM
-              </h3>
-              <Link href="/history" style={{ fontSize: '0.75rem', fontWeight: 800, color: 'hsl(var(--primary))', textDecoration: 'none' }}>VIEW ALL</Link>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-              {achievements.filter(a => a.id === 'high_roller' || a.id === 'lucky_streak' || a.id === 'moon_shot').map((ach) => (
-                <div key={ach.id} style={{ 
-                  padding: '24px', 
-                  background: ach.unlocked ? 'linear-gradient(135deg, hsla(var(--primary), 0.1), transparent)' : 'hsla(0,0%,100%,0.02)', 
-                  borderRadius: '24px', 
-                  border: `1px solid ${ach.unlocked ? 'hsla(var(--primary), 0.3)' : 'hsla(0,0%,100%,0.05)'}`, 
-                  textAlign: 'center', 
-                  position: 'relative',
-                  opacity: ach.unlocked ? 1 : 0.5
-                }}>
-                  <div style={{ width: '80px', height: '80px', margin: '0 auto 16px', position: 'relative', filter: ach.unlocked ? 'none' : 'grayscale(1) brightness(0.5)' }}>
-                    {ach.icon.startsWith('/') ? (
-                      <Image src={ach.icon} alt={ach.title} fill sizes="100px" style={{ objectFit: 'contain' }} />
-                    ) : (
-                      <div style={{ fontSize: '2.5rem' }}>{ach.icon}</div>
-                    )}
-                  </div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 900, color: ach.unlocked ? 'white' : 'hsl(var(--text-dim))' }}>{ach.title}</div>
-                  <div style={{ fontSize: '0.65rem', color: 'hsl(var(--text-dim))', marginTop: '4px' }}>{ach.description}</div>
-                  {!ach.unlocked && <Lock size={12} style={{ position: 'absolute', top: '12px', right: '12px', opacity: 0.5 }} />}
-                </div>
-              ))}
-            </div>
-          </section>
-        </div>
-        {/* Right Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          
-          {/* Earnings Analytics */}
-          <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '24px' }}>7-DAY ANALYTICS</h3>
-            <div style={{ height: '120px', width: '100%', display: 'flex', alignItems: 'flex-end', gap: '8px', padding: '10px 0' }}>
-              {[40, 70, 45, 90, 65, 80, 100].map((h, i) => (
-                <div key={i} style={{ flex: 1, height: `${h}%`, background: i === 6 ? 'hsl(var(--primary))' : 'hsla(var(--primary), 0.2)', borderRadius: '4px', position: 'relative' }}>
-                  {i === 6 && <div style={{ position: 'absolute', top: '-25px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.6rem', fontWeight: 900 }}>$142</div>}
-                </div>
-              ))}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', fontSize: '0.65rem', fontWeight: 800, color: 'hsl(var(--text-dim))' }}>
-              <span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
-            </div>
-          </section>
-          {/* Quick Withdrawal Hub */}
-          <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '24px' }}>QUICK CASHOUT</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              {[
-                { name: 'PayPal', color: '#0070ba', label: 'P' },
-                { name: 'Bitcoin', color: '#f7931a', label: 'B' },
-              ].map(m => (
-                <button key={m.name} className="btn btn-secondary" style={{ height: '70px', flexDirection: 'column', gap: '6px', borderRadius: '16px' }}>
-                  <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: m.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 900, fontSize: '10px' }}>{m.label}</div>
-                  <span style={{ fontSize: '0.7rem', fontWeight: 800 }}>{m.name}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-          <section className="glass-card" style={{ padding: '32px', borderRadius: '32px' }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '24px' }}>PREFERENCES</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Globe size={18} color="hsl(var(--text-dim))" />
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>Language</span>
-                </div>
-                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'hsl(var(--primary))' }}>ENGLISH</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            {[
+              { label: 'BETS', value: totalStats.totalBets.toLocaleString(), color: '#6366f1' },
+              { label: 'WIN RATE', value: `${totalStats.winRate.toFixed(1)}%`, color: '#10b981' },
+              { label: 'PROFIT', value: `${totalStats.totalProfit >= 0 ? '+' : ''}$${totalStats.totalProfit.toFixed(2)}`, color: totalStats.totalProfit >= 0 ? '#10b981' : '#ef4444' },
+              { label: 'WAGERED', value: `$${(analytics?.totalWagered ?? 0).toFixed(0)}`, color: '#D4AF37' },
+            ].map((s) => (
+              <div key={s.label} style={{
+                padding: '14px', borderRadius: '12px',
+                background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)',
+              }}>
+                <div style={{ fontSize: '0.5rem', fontWeight: 700, color: 'rgba(255,255,255,0.25)', letterSpacing: '0.06em', marginBottom: '6px' }}>{s.label}</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 900, color: s.color, fontFamily: 'var(--font-mono, monospace)' }}>{s.value}</div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Bell size={18} color="hsl(var(--text-dim))" />
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>Notifications</span>
-                </div>
-                <div style={{ width: '36px', height: '20px', background: 'hsl(var(--primary))', borderRadius: '100px', position: 'relative' }}>
-                  <div style={{ position: 'absolute', right: '2px', top: '2px', width: '16px', height: '16px', background: 'white', borderRadius: '50%' }} />
-                </div>
-              </div>
-            </div>
-
-            {/* Voucher Section */}
-            <div style={{ marginTop: '32px', paddingTop: '24px', borderTop: '1px solid hsla(0,0%,100%,0.05)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-                <Gift size={18} color="hsl(var(--primary))" />
-                <span style={{ fontSize: '0.85rem', fontWeight: 900 }}>REDEEM VOUCHER</span>
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input 
-                  type="text" 
-                  value={voucherCode}
-                  onChange={(e) => setVoucherCode(e.target.value)}
-                  placeholder="Enter promo code"
-                  style={{ 
-                    flex: 1, 
-                    height: '48px', 
-                    background: 'hsla(0,0%,100%,0.03)', 
-                    border: '1px solid hsla(0,0%,100%,0.1)', 
-                    borderRadius: '12px',
-                    padding: '0 16px',
-                    color: 'white',
-                    fontSize: '0.85rem',
-                    fontWeight: 700,
-                    outline: 'none'
-                  }}
-                  className="focus:border-primary transition-colors"
-                />
-                <button 
-                  onClick={async () => {
-                    if (!voucherCode.trim()) return;
-                    setIsRedeeming(true);
-                    // Artificial delay for premium feel
-                    await new Promise(r => setTimeout(r, 1000));
-                    redeemCode(voucherCode);
-                    setVoucherCode('');
-                    setIsRedeeming(false);
-                  }}
-                  disabled={isRedeeming || !voucherCode.trim()}
-                  className="btn btn-primary" 
-                  style={{ padding: '0 20px', height: '48px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 950 }}
-                >
-                  {isRedeeming ? '...' : 'REDEEM'}
-                </button>
-              </div>
-            </div>
-          </section>
+            ))}
+          </div>
         </div>
       </div>
-      {/* Opening Animation Overlay */}
-      {opening && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ textAlign: 'center' }}>
-            {animationPhase === 'spinning' ? (
-              <>
-                <div className="animate-bounce" style={{ marginBottom: '40px' }}>
-                  <Gift size={120} color="hsl(var(--primary))" />
+
+      {/* ──── ROW 3: Achievements (left 65%) + Redeem & CTA (right 35%) ──── */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr',
+        gap: '16px',
+      }}>
+        {/* Achievements */}
+        <div style={{ ...card({ padding: isMobile ? '24px 16px' : '28px' }) }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Trophy size={16} color="#D4AF37" />
+              <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#fff' }}>ACHIEVEMENTS</span>
+            </div>
+            <Link href="/history" style={{
+              fontSize: '0.65rem', fontWeight: 700, color: 'rgba(212,175,55,0.7)', textDecoration: 'none',
+              display: 'flex', alignItems: 'center', gap: '3px',
+            }}>
+              ALL <ChevronRight size={11} />
+            </Link>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: '10px' }}>
+            {achievements.slice(0, 6).map((ach) => (
+              <div key={ach.id} style={{
+                padding: '16px 12px',
+                background: ach.unlocked ? 'rgba(212,175,55,0.04)' : 'rgba(255,255,255,0.01)',
+                borderRadius: '12px',
+                border: `1px solid ${ach.unlocked ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.03)'}`,
+                textAlign: 'center', position: 'relative',
+                opacity: ach.unlocked ? 1 : 0.4,
+              }}>
+                <div style={{ fontSize: '1.5rem', marginBottom: '6px', filter: ach.unlocked ? 'none' : 'grayscale(1) brightness(0.4)' }}>
+                  {ach.icon.startsWith('/') ? (
+                    <Image src={ach.icon} alt={ach.title} width={40} height={40} style={{ objectFit: 'contain' }} />
+                  ) : ach.icon}
                 </div>
-                <h2 style={{ fontSize: '2rem', fontWeight: 950, letterSpacing: '0.3em' }} className="animate-pulse">OPENING CASE...</h2>
-              </>
-            ) : reward && (
-              <div className="animate-slide-up">
-                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: 'hsl(var(--primary))', marginBottom: '16px' }}>CONGRATULATIONS!</div>
-                <div style={{ fontSize: '6rem', fontWeight: 950, color: '#fff', textShadow: '0 0 50px hsla(var(--primary), 0.5)' }}>
-                  {reward.type === 'balance' ? '$' : '+'}{reward.reward}
-                </div>
-                <div style={{ fontSize: '2rem', fontWeight: 900, color: 'hsl(var(--text-muted))' }}>{reward.type.toUpperCase()} ADDED</div>
-                <button 
-                  onClick={() => {
-                    setOnboardingStep('COMPLETED');
-                    router.push('/games/crash');
-                    addToast('Good luck! Your $10.00 is ready to be multiplied.', 'success');
-                  }}
-                  className="btn btn-primary" 
-                  style={{ marginTop: '40px', height: '64px', padding: '0 40px', borderRadius: '16px', fontWeight: 950, fontSize: '1.2rem' }}
-                >
-                  START PLAYING CRASH <Rocket size={20} />
-                </button>
+                <div style={{ fontSize: '0.65rem', fontWeight: 800, color: ach.unlocked ? '#fff' : 'rgba(255,255,255,0.25)' }}>{ach.title}</div>
+                {!ach.unlocked && (
+                  <div style={{ marginTop: '6px', height: '2px', borderRadius: '1px', background: 'rgba(255,255,255,0.03)', overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%', borderRadius: '1px',
+                      width: `${Math.min(100, (ach.progress / ach.total) * 100)}%`,
+                      background: '#D4AF37', transition: 'width 0.5s',
+                    }} />
+                  </div>
+                )}
+                {!ach.unlocked && <Lock size={9} style={{ position: 'absolute', top: 8, right: 8, opacity: 0.2, color: 'white' }} />}
               </div>
-            )}
+            ))}
           </div>
         </div>
-      )}
+
+        {/* Right Column: Redeem + Quick Play */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Redeem Code */}
+          <div style={{ ...card({ padding: '24px 20px' }) }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+              <Gift size={14} color="#D4AF37" />
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#fff' }}>REDEEM CODE</span>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                value={voucherCode}
+                onChange={(e) => setVoucherCode(e.target.value)}
+                placeholder="e.g. JAN100"
+                style={{
+                  flex: 1, height: 42,
+                  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+                  borderRadius: '10px', padding: '0 14px',
+                  color: 'white', fontSize: '0.8rem', fontWeight: 600, outline: 'none',
+                }}
+              />
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={async () => {
+                  if (!voucherCode.trim()) return;
+                  setIsRedeeming(true);
+                  await new Promise(r => setTimeout(r, 1000));
+                  redeemCode(voucherCode);
+                  setVoucherCode('');
+                  setIsRedeeming(false);
+                }}
+                disabled={isRedeeming || !voucherCode.trim()}
+                style={{
+                  padding: '0 18px', height: 42, borderRadius: '10px',
+                  fontSize: '0.75rem', fontWeight: 900, border: 'none', cursor: 'pointer',
+                  background: 'linear-gradient(135deg, #D4AF37, #b8962e)',
+                  color: '#000',
+                }}
+              >
+                {isRedeeming ? '...' : 'GO'}
+              </motion.button>
+            </div>
+          </div>
+
+          {/* Quick Play */}
+          <motion.div
+            whileHover={{ scale: 1.01, y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => router.push('/games/crash')}
+            style={{
+              ...card({ padding: '22px 20px', cursor: 'pointer' }),
+              borderColor: 'rgba(212,175,55,0.15)',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              flex: 1,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: 38, height: 38, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'rgba(212,175,55,0.1)',
+              }}>
+                <Rocket size={16} color="#D4AF37" />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#fff' }}>Play Now</div>
+                <div style={{ fontSize: '0.6rem', fontWeight: 600, color: 'rgba(255,255,255,0.3)' }}>Crash, Dice, Roulette & more</div>
+              </div>
+            </div>
+            <ArrowUpRight size={16} color="rgba(212,175,55,0.6)" />
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

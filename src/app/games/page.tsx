@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -230,6 +230,7 @@ export default function GamesPage() {
 
 function GameCard({ game, index }: { game: GameMeta; index: number }) {
   const Icon = game.icon;
+  const [imgError, setImgError] = useState(false);
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -270,18 +271,39 @@ function GameCard({ game, index }: { game: GameMeta; index: number }) {
               flexShrink: 0,
             }}
           >
-            <Image
-              src={game.preview}
-              alt={`${game.name} preview`}
-              fill
-              sizes="(max-width: 768px) 50vw, 20vw"
-              loading={index <= 2 ? 'eager' : 'lazy'}
-              style={{
-                objectFit: 'cover',
-                transition: 'transform 0.6s cubic-bezier(0.33, 1, 0.68, 1)',
-              }}
-              className="game-preview-img"
-            />
+            {imgError ? (
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  position: 'absolute',
+                  inset: 0,
+                  background: `linear-gradient(135deg, ${game.color}33, #000)`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ opacity: 0.5, color: game.color }}><Icon size={32} /></div>
+                <span style={{ fontSize: '0.6rem', fontWeight: 900, color: 'hsla(0,0%,100%,0.3)', letterSpacing: '0.1em' }}>PREVIEW</span>
+              </div>
+            ) : (
+              <Image
+                src={game.preview}
+                alt={`${game.name} preview`}
+                fill
+                sizes="(max-width: 768px) 50vw, 20vw"
+                loading={index <= 2 ? 'eager' : 'lazy'}
+                onError={() => setImgError(true)}
+                style={{
+                  objectFit: 'cover',
+                  transition: 'transform 0.6s cubic-bezier(0.33, 1, 0.68, 1)',
+                }}
+                className="game-preview-img"
+              />
+            )}
             <div
               style={{
                 position: 'absolute',

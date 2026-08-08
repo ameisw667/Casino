@@ -12,7 +12,19 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // .gstack is created by the gstack browser-testing tool and is unreadable
+    // by Node's fs.readdir (EPERM), which crashes ESLint's flat-config file walker.
+    ".gstack/**",
+    // Generated coverage reports — not source code, lint noise only.
+    "coverage/**",
   ]),
+  {
+    rules: {
+      // Codebase convention: leading underscore marks an intentionally unused
+      // binding (e.g. destructured placeholders for future migration logic).
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+    },
+  },
 ]);
 
 export default eslintConfig;

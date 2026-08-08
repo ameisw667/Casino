@@ -1,67 +1,118 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { NextResponse, type NextRequest, type NextFetchEvent } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
+import { isAdminEmail } from '@/lib/security/admin';
 
-const isPublicRoute = createRouteMatcher([
+const PUBLIC_ROUTES = [
   '/',
+  '/v2',
+  '/v3',
+  '/v4',
+  '/v5',
+  // Retired route must reach Next.js so it returns a real 404 instead of an auth redirect.
+  '/fairness',
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/games(.*)',
-  '/landing',
-  '/fairness(.*)',
   '/history(.*)',
   '/leaderboard(.*)',
   '/vault(.*)',
   '/affiliate(.*)',
-  '/admin(.*)',
+  '/backend(.*)',
+  '/auth/callback(.*)',
   '/api/public/(.*)',
+  // These handlers perform their own Supabase auth and return API-shaped 401/503 responses.
+  '/api/casino/config',
+  '/api/casino/bet',
+  '/api/casino/blackjack',
+  '/api/user/balance',
+  '/api/admin/users',
   '/api/webhooks/clerk(.*)',
-  '/api/casino/(.*)',
-  '/api/user/(.*)',
   '/sounds/(.*)',
-  '/images/(.*)'
-]);
+  '/images/(.*)',
+];
 
-// Clerk middleware — only used for protected routes
-const clerkProtect = clerkMiddleware(async (auth) => {
-  await auth.protect();
-  return NextResponse.next();
-});
-
-function addSecurityHeaders(response: NextResponse): NextResponse {
-  response.headers.set('X-DNS-Prefetch-Control', 'on');
-  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
-  response.headers.set('X-Rate-Limit-Status', 'active');
-  return response;
+function isPublicRoute(pathname: string): boolean {
+  return PUBLIC_ROUTES.some((pattern) => {
+    if (pattern.endsWith('(.*)')) {
+      const prefix = pattern.slice(0, -4);
+      return pathname === prefix || pathname.startsWith(`${prefix}/`);
+    }
+    return pathname === pattern;
+  });
 }
 
-export default async function middleware(req: NextRequest, evt: NextFetchEvent) {
-  // CSRF protection (non-GET requests from foreign origins)
-  if (req.method !== 'GET' && !req.nextUrl.pathname.startsWith('/api/public')) {
-    const origin = req.headers.get('origin');
-    const host = req.headers.get('host');
-    const isAllowedOrigin = !origin || origin.includes(host ?? '') ||
-      origin.includes('localhost') || origin.includes('127.0.0.1');
-    if (!isAllowedOrigin) {
-      console.warn(`[Middleware] CSRF Blocked: origin=${origin}, host=${host}`);
+function hasValidOrigin(req: NextRequest): boolean {
+  const origin = req.headers.get('origin');
+  if (!origin) return true;
+  try {
+    const forwardedHost = req.headers.get('x-forwarded-host')?.split(',')[0]?.trim();
+    const expectedHost = forwardedHost || req.headers.get('host');
+    return Boolean(expectedHost && new URL(origin).host === expectedHost);
+  } catch {
+    return false;
+  }
+}
+
+// Copies the refreshed session cookies from the Supabase pass-through response onto a
+// terminal response (redirect/403). Skipping this silently drops rotated tokens — the
+// next request then fails to refresh, logging the user out. Known @supabase/ssr pitfall.
+function withRefreshedCookies(from: NextResponse, terminal: NextResponse): NextResponse {
+  from.cookies.getAll().forEach((cookie) => terminal.cookies.set(cookie));
+  return terminal;
+}
+
+export default async function proxy(req: NextRequest) {
+  try {
+    const pathname = req.nextUrl.pathname;
+    const isWebhook = pathname.startsWith('/api/webhooks/clerk');
+
+    // Webhooks use their signature as authenticity proof and do not send browser Origin headers.
+    if (!isWebhook && !['GET', 'HEAD', 'OPTIONS'].includes(req.method) && !hasValidOrigin(req)) {
       return new NextResponse('Invalid Origin', { status: 403 });
     }
-  }
 
-  // Public routes: skip Clerk entirely — avoids JWK fetch hangs when
-  // Clerk's API is unreachable (offline dev, E2E tests, etc.)
-  if (isPublicRoute(req)) {
-    return addSecurityHeaders(NextResponse.next());
-  }
+    let response = NextResponse.next({ request: req });
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return req.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
+            response = NextResponse.next({ request: req });
+            cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+          },
+        },
+      }
+    );
 
-  // Protected routes: delegate to Clerk, then add security headers
-  const clerkResponse = await clerkProtect(req, evt);
-  if (clerkResponse instanceof NextResponse) {
-    return addSecurityHeaders(clerkResponse);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (pathname.startsWith('/admin')) {
+      if (!user) return withRefreshedCookies(response, NextResponse.redirect(new URL('/sign-in', req.url)));
+      if (!isAdminEmail(user.email)) return withRefreshedCookies(response, new NextResponse('Forbidden', { status: 403 }));
+    } else if (!isPublicRoute(pathname) && !user) {
+      return withRefreshedCookies(response, NextResponse.redirect(new URL('/sign-in', req.url)));
+    }
+
+    response.headers.set('X-DNS-Prefetch-Control', 'on');
+    response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+    response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
+    response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    response.headers.set(
+      'Content-Security-Policy',
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io; frame-ancestors 'none';"
+    );
+    return response;
+  } catch (error) {
+    console.error('[Proxy Error]:', error);
+    return new NextResponse('Security boundary unavailable', { status: 500 });
   }
-  return clerkResponse ?? addSecurityHeaders(NextResponse.next());
 }
 
 export const config = {

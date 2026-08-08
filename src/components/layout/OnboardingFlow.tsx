@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useCasinoStore } from '@/store/useCasinoStore';
-import { Gift, ArrowRight, ShieldCheck, Zap, Users, X } from 'lucide-react';
+import { Gift, ArrowRight, ShieldCheck, Zap, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { SignInButton, SignUpButton, useAuth } from '@clerk/nextjs';
+import Link from 'next/link';
+import { useSupabaseSession } from '@/components/auth/SupabaseSessionProvider';
 
 import Image from 'next/image';
 
@@ -12,9 +13,14 @@ export default function OnboardingFlow() {
   const onboardingStep = useCasinoStore(s => s.onboardingStep);
   const setOnboardingStep = useCasinoStore(s => s.setOnboardingStep);
   const isMobile = useCasinoStore(s => s.isMobile);
-  const { isSignedIn, isLoaded } = useAuth();
+  const { user, isLoaded } = useSupabaseSession();
+  const isSignedIn = !!user;
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const isBlockingStep =
+    onboardingStep !== 'NONE' &&
+    onboardingStep !== 'COMPLETED' &&
+    onboardingStep !== 'OPEN_CASE';
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -23,13 +29,13 @@ export default function OnboardingFlow() {
 
   // 8. Background Scroll Lock implementation
   useEffect(() => {
-    if (onboardingStep !== 'NONE' && onboardingStep !== 'COMPLETED') {
+    if (isBlockingStep) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
     }
     return () => { document.body.style.overflow = 'unset'; };
-  }, [onboardingStep]);
+  }, [isBlockingStep]);
 
   // 7 & 30. Skip entire onboarding if already signed in
   useEffect(() => {
@@ -38,7 +44,7 @@ export default function OnboardingFlow() {
     }
   }, [isLoaded, isSignedIn, onboardingStep, setOnboardingStep]);
 
-  if (!mounted || !isLoaded || onboardingStep === 'NONE' || onboardingStep === 'COMPLETED') return null;
+  if (!mounted || !isLoaded || !isBlockingStep) return null;
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 10000, pointerEvents: 'none' }}>
@@ -106,20 +112,11 @@ export default function OnboardingFlow() {
             </button>
             <h3 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '32px' }}>ONE-CLICK CLAIM</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <SignInButton mode="modal">
-                <button className="btn btn-secondary" style={{ height: '60px', borderRadius: '16px', background: '#fff', color: 'black', border: 'none', fontWeight: 800 }}>
-                  <Image src="https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png" alt="Google" width={20} height={20} style={{ marginRight: '12px' }} /> SIGN UP WITH GOOGLE
-                </button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <button className="btn btn-secondary" style={{ height: '60px', borderRadius: '16px', background: '#5865F2', color: 'white', border: 'none', fontWeight: 800 }}>
-                  <Users size={20} style={{ marginRight: '12px' }} /> SIGN UP WITH DISCORD
-                </button>
-              </SignUpButton>
+              <Link href="/sign-up" className="btn btn-secondary" style={{ height: '60px', borderRadius: '16px', background: '#fff', color: 'black', border: 'none', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Image src="https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png" alt="Google" width={20} height={20} style={{ marginRight: '12px' }} /> SIGN UP WITH GOOGLE
+              </Link>
               <div style={{ margin: '8px 0', fontSize: '0.7rem', color: 'hsl(var(--text-dim))', fontWeight: 800 }}>OR USE YOUR EMAIL</div>
-              <SignUpButton mode="modal">
-                <button className="btn btn-primary" style={{ height: '56px', borderRadius: '16px', fontWeight: 900 }}>CREATE FREE ACCOUNT</button>
-              </SignUpButton>
+              <Link href="/sign-up" className="btn btn-primary" style={{ height: '56px', borderRadius: '16px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>CREATE FREE ACCOUNT</Link>
             </div>
             <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'center', gap: '16px', opacity: 0.6 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.65rem', fontWeight: 800 }}><ShieldCheck size={14} /> NO KYC</div>
@@ -132,6 +129,25 @@ export default function OnboardingFlow() {
       {/* Phase 3: TOUR_VAULT (Spotlight) */}
       {onboardingStep === 'TOUR_VAULT' && (
         <>
+          <button
+            onClick={() => setOnboardingStep('NONE')}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              background: 'transparent',
+              border: 'none',
+              color: 'hsl(var(--text-dim))',
+              cursor: 'pointer',
+              pointerEvents: 'auto',
+              zIndex: 2,
+            }}
+            className="hover:text-white transition-colors"
+            aria-label="Skip onboarding"
+          >
+            <X size={24} />
+          </button>
+
           {/* Custom Spotlight SVG Mask */}
           <div style={{ position: 'absolute', inset: 0, pointerEvents: 'auto' }} onClick={() => {
             router.push('/vault');
@@ -187,4 +203,4 @@ export default function OnboardingFlow() {
       `}</style>
     </div>
   );
-}
+}

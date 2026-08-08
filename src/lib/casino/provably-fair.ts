@@ -93,13 +93,23 @@ export class ProvablyFairEngine {
 
 
   /**
-   * Specifically for Crash
+   * Specifically for Crash — market-standard formula (Bustabit / Stake / Roobet).
+   *
+   * houseEdge: share of rounds that crash instantly at 1.00 x.
+   * Formula: multiplier = (1 - houseEdge) / (1 - result)
+   * Floored to 2 decimal places so the displayed value always matches the
+   * actual crash point (no misleading intermediate digits).
    */
-  static async getCrashMultiplier(serverSeed: string, clientSeed: string, nonce: number): Promise<number> {
+  static async getCrashMultiplier(
+    serverSeed: string,
+    clientSeed: string,
+    nonce: number,
+    houseEdge: number = 0.01
+  ): Promise<number> {
     const { result } = await this.calculateOutcome(serverSeed, clientSeed, nonce);
-    if (result < 0.03) return 1.00;
-    const multiplier = (100 * (1 - 0.03)) / (1 - result);
-    return Math.max(1.00, Math.floor(multiplier) / 100);
+    if (result < houseEdge) return 1.00;
+    const multiplier = (1 - houseEdge) / (1 - result);
+    return Math.max(1.00, Math.floor(multiplier * 100) / 100);
   }
 
 
@@ -159,4 +169,8 @@ export class ProvablyFairEngine {
     return swapIndices;
   }
 
+}
+
+export function sanitizeClientSeed(seed: string): string {
+  return seed.replace(/[^a-zA-Z0-9]/g, '').slice(0, 32);
 }

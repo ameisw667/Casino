@@ -3,10 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCasinoStore } from '@/store/useCasinoStore'
-import { BlackjackEngine, BlackjackGameState } from '@/lib/games/blackjack'
+import type { BlackjackGameState } from '@/lib/games/blackjack'
 import BlackjackTable from '@/components/casino/games/blackjack/BlackjackTable'
 import BlackjackActions from '@/components/casino/games/blackjack/BlackjackActions'
-import { ProvablyFairEngine } from '@/lib/casino/provably-fair'
 import { soundManager } from '@/lib/casino/sound-manager'
 
 export default function BlackjackPage() {
@@ -16,14 +15,16 @@ export default function BlackjackPage() {
   const provablyFairSettings = useCasinoStore(s => s.provablyFairSettings)
   const setProvablyFairSettings = useCasinoStore(s => s.setProvablyFairSettings)
   const processGameResult = useCasinoStore(s => s.processGameResult)
+  const applyServerWalletSnapshot = useCasinoStore(s => s.applyServerWalletSnapshot)
   const addToast = useCasinoStore(s => s.addToast)
   const isProcessing = useCasinoStore(s => s.isProcessing)
   const setIsProcessing = useCasinoStore(s => s.setIsProcessing)
   const rawGameStats = useCasinoStore(s => (s.gameStats as Record<string, { totalBets: number; wins: number; losses: number; profit: number } | undefined>)['BLACKJACK'])
   const gameStats = rawGameStats ?? { totalBets: 0, wins: 0, losses: 0, profit: 0 }
+  const { betMin, betMax } = useCasinoStore(s => s.gameConfig.limits)
 
   // Local state
-  const [mounted, setMounted] = useState(false)
+  const mounted = true
   const [betAmount, setBetAmount] = useState(10)
   const [baseBetAmount, setBaseBetAmount] = useState(10)
   const [gameState, setGameState] = useState<BlackjackGameState | null>(null)
@@ -39,179 +40,116 @@ export default function BlackjackPage() {
   const betAmountRef = useRef(betAmount)
   const baseBetAmountRef = useRef(baseBetAmount)
   const provablyFairRef = useRef(provablyFairSettings)
+  const roundIdRef = useRef<string | null>(null)
+  const roundVersionRef = useRef(0)
   useEffect(() => { betAmountRef.current = betAmount }, [betAmount])
   useEffect(() => { baseBetAmountRef.current = baseBetAmount }, [baseBetAmount])
   useEffect(() => { provablyFairRef.current = provablyFairSettings }, [provablyFairSettings])
 
-  // Hydration guard
-  useEffect(() => { setMounted(true) }, [])
-
-  // handleSettlement: atomic processGameResult + fire-and-forget API call
-  const handleSettlement = useCallback(
-    (settled: BlackjackGameState) => {
-      const bet = betAmountRef.current
+  const applyBlackjackResponse = useCallback((data: {
+    gameState: BlackjackGameState
+    roundId: string
+    version: number
+    wallet: Parameters<typeof applyServerWalletSnapshot>[0]
+    settled?: boolean
+    result?: { id: string; win: boolean; payout: number; multiplier: number }
+    serverSeedHash?: string
+    nonce?: number
+  }, totalBet: number) => {
+    applyServerWalletSnapshot(data.wallet)
+    roundIdRef.current = data.roundId
+    roundVersionRef.current = data.version
+    setGameState(data.gameState)
+    if (data.serverSeedHash && data.nonce !== undefined) {
+      setProvablyFairSettings({ serverSeedHash: data.serverSeedHash, nonce: data.nonce })
+    }
+    if (data.settled && data.result) {
       processGameResult({
         game: 'BLACKJACK',
-        amount: bet,
-        multiplier: settled.payoutMultiplier,
-        payout: settled.payout * bet,
-        win: settled.payout > 1,
-        resultId: crypto.randomUUID(),
+        amount: totalBet,
+        multiplier: data.result.multiplier,
+        payout: data.result.payout,
+        win: data.result.win,
+        resultId: data.result.id,
       })
+      setHistory((previous) => [
+        { win: data.result!.win, payout: data.result!.payout },
+        ...previous,
+      ].slice(0, 8))
+      setTimeout(() => {
+        setGameState(null)
+        roundIdRef.current = null
+        roundVersionRef.current = 0
+        setBetAmount(baseBetAmountRef.current)
+      }, 2500)
+    }
+  }, [applyServerWalletSnapshot, processGameResult, setProvablyFairSettings])
 
-      // Fire-and-forget API call
-      fetch('/api/casino/bet', {
+  const handleDeal = useCallback(async () => {
+    if (!mounted || isProcessing) return
+    const bet = betAmountRef.current
+    if (bet < betMin || bet > betMax || bet > balance) {
+      addToast(`Bet must be between $${betMin.toFixed(2)} and $${betMax.toLocaleString()}`, 'error')
+      return
+    }
+    setIsProcessing(true)
+    try {
+      const clientSeed = provablyFairRef.current.clientSeed.replace(/[^a-zA-Z0-9]/g, '').slice(0, 32)
+      const response = await fetch('/api/casino/blackjack', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          gameType: 'BLACKJACK',
-          amount: bet,
-          payout: settled.payout * bet,
-          win: settled.payout > 1,
-          clientSeed: provablyFairRef.current.clientSeed,
-          currentNonce: provablyFairRef.current.nonce - 312,
+          action: 'DEAL', requestId: crypto.randomUUID(), amount: bet,
+          clientSeed, currentNonce: provablyFairRef.current.nonce,
         }),
-      }).catch(console.error)
-
-      // Update history (last 8 rounds)
-      setHistory(prev =>
-        [{ win: settled.payout > 1, payout: settled.payout * bet }, ...prev].slice(0, 8)
-      )
-
-      // Reset to idle after 2.5s
-      setTimeout(() => {
-        setGameState(null)
-        setBetAmount(baseBetAmountRef.current)
-      }, 2500)
-    },
-    [processGameResult]
-  )
-
-  // handleDeal: validate, seed, shuffle, deal
-  const handleDeal = useCallback(async () => {
-    if (!mounted || isProcessing) return
-
-    const bet = betAmountRef.current
-    if (bet < 0.1 || bet > 10000 || bet > balance) {
-      addToast('Invalid bet amount', 'error')
-      return
-    }
-
-    setIsProcessing(true)
-
-    try {
-      const sanitizedSeed = provablyFairRef.current.clientSeed
-        .replace(/[^a-zA-Z0-9]/g, '')
-        .slice(0, 32)
-
-      const seedIndices = await ProvablyFairEngine.getBlackjackDeal(
-        sanitizedSeed,
-        sanitizedSeed,
-        provablyFairRef.current.nonce,
-        312
-      )
-
-      const deck = BlackjackEngine.shuffleDeck(BlackjackEngine.createDeck(6), seedIndices)
-      const dealt = BlackjackEngine.deal(deck)
-
-      setProvablyFairSettings({ ...provablyFairRef.current, nonce: provablyFairRef.current.nonce + 312 })
-
-      // Transition DEALING → PLAYER_TURN after animation (600ms stagger × 4 cards)
-      setGameState(dealt)
+      })
+      if (!response.ok) throw new Error(`Deal failed with HTTP ${response.status}`)
+      applyBlackjackResponse(await response.json(), bet)
       soundManager.play('click')
-
-      setTimeout(() => {
-        setGameState(prev => {
-          if (!prev) return null
-          // Check immediate blackjack
-          if (prev.playerHand.isBlackjack) {
-            const withDealer = BlackjackEngine.playDealerHand({ ...prev, phase: 'DEALER_TURN' })
-            const settled = BlackjackEngine.settleGame(withDealer)
-            // Settle after another 500ms for dealer reveal
-            setTimeout(() => handleSettlement(settled), 500)
-            return settled
-          }
-          return { ...prev, phase: 'PLAYER_TURN' }
-        })
-      }, 700)
     } catch {
-      addToast('Deal failed', 'error')
+      addToast('Deal could not be confirmed by the server', 'error')
       setGameState(null)
     } finally {
       setIsProcessing(false)
     }
-  }, [mounted, isProcessing, balance, addToast, setIsProcessing, setProvablyFairSettings, handleSettlement])
+  }, [mounted, isProcessing, betMin, betMax, balance, addToast, setIsProcessing, applyBlackjackResponse])
 
-  // handleHit: add card to active hand
-  const handleHit = useCallback(() => {
-    if (!gameState) return
-    if (gameState.phase !== 'PLAYER_TURN' && gameState.phase !== 'PLAYER_TURN_HAND2') return
-
-    const next = BlackjackEngine.hit(gameState)
-    setGameState(next)
-    soundManager.play('click')
-
-    // If bust → play dealer and settle
-    if (next.phase === 'DEALER_TURN') {
-      const withDealer = BlackjackEngine.playDealerHand(next)
-      const settled = BlackjackEngine.settleGame(withDealer)
-      setGameState(settled)
-      setTimeout(() => handleSettlement(settled), 800)
+  const requestAction = useCallback(async (action: 'HIT' | 'STAND' | 'DOUBLE' | 'SPLIT') => {
+    if (!roundIdRef.current || !roundVersionRef.current || isProcessing) return
+    setIsProcessing(true)
+    try {
+      const currentBet = betAmountRef.current
+      const totalBet = action === 'DOUBLE' || action === 'SPLIT' ? currentBet * 2 : currentBet
+      if (totalBet > balance && (action === 'DOUBLE' || action === 'SPLIT')) {
+        throw new Error('Insufficient balance')
+      }
+      const response = await fetch('/api/casino/blackjack', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action, requestId: crypto.randomUUID(), roundId: roundIdRef.current,
+          version: roundVersionRef.current,
+        }),
+      })
+      if (!response.ok) throw new Error(`Action failed with HTTP ${response.status}`)
+      if (totalBet !== currentBet) {
+        setBetAmount(totalBet)
+        betAmountRef.current = totalBet
+      }
+      applyBlackjackResponse(await response.json(), totalBet)
+      soundManager.play('click')
+    } catch (error) {
+      addToast(error instanceof Error && error.message === 'Insufficient balance'
+        ? error.message : 'Blackjack action could not be confirmed by the server', 'error')
+    } finally {
+      setIsProcessing(false)
     }
-  }, [gameState, handleSettlement])
+  }, [isProcessing, balance, addToast, setIsProcessing, applyBlackjackResponse])
 
-  // handleStand: dealer plays then settle
-  const handleStand = useCallback(() => {
-    if (!gameState) return
-    if (gameState.phase !== 'PLAYER_TURN' && gameState.phase !== 'PLAYER_TURN_HAND2') return
-
-    const afterStand = BlackjackEngine.stand(gameState)
-
-    // If switching to Hand 2, just update state
-    if (afterStand.phase === 'PLAYER_TURN_HAND2') {
-      setGameState(afterStand)
-      return
-    }
-
-    const withDealer = BlackjackEngine.playDealerHand(afterStand)
-    const settled = BlackjackEngine.settleGame(withDealer)
-    setGameState(settled)
-    soundManager.play('click')
-    setTimeout(() => handleSettlement(settled), 800)
-  }, [gameState, handleSettlement])
-
-  // handleDouble: double bet, hit once, stand
-  const handleDouble = useCallback(() => {
-    if (!gameState || gameState.phase !== 'PLAYER_TURN') return
-    const bet = betAmountRef.current
-    if (bet * 2 > balance) {
-      addToast('Insufficient balance to double', 'error')
-      return
-    }
-
-    setBetAmount(bet * 2)
-    betAmountRef.current = bet * 2
-
-    const doubled = BlackjackEngine.double(gameState)
-    const withDealer = BlackjackEngine.playDealerHand(doubled)
-    const settled = BlackjackEngine.settleGame(withDealer)
-    setGameState(settled)
-    soundManager.play('click')
-    setTimeout(() => handleSettlement(settled), 800)
-  }, [gameState, balance, addToast, handleSettlement])
-
-  // handleSplit: split pair into two hands
-  const handleSplit = useCallback(() => {
-    if (!gameState || gameState.phase !== 'PLAYER_TURN' || !gameState.canSplit) {
-      addToast('Cannot split', 'error')
-      return
-    }
-
-    const split = BlackjackEngine.split(gameState)
-    setGameState(split)
-    soundManager.play('click')
-  }, [gameState, addToast])
-
+  const handleHit = useCallback(() => { void requestAction('HIT') }, [requestAction])
+  const handleStand = useCallback(() => { void requestAction('STAND') }, [requestAction])
+  const handleDouble = useCallback(() => { void requestAction('DOUBLE') }, [requestAction])
+  const handleSplit = useCallback(() => { void requestAction('SPLIT') }, [requestAction])
   // Keyboard shortcuts: H=Hit, S=Stand, D=Double
   useEffect(() => {
     if (!mounted) return
@@ -230,6 +168,7 @@ export default function BlackjackPage() {
     if (!autoRunning || isProcessing || gameState !== null) return
 
     if (currentAutoCount >= autoRounds) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAutoRunning(false)
       addToast(`Auto-bet finished: ${autoRounds} rounds`, 'info')
       return
@@ -272,7 +211,7 @@ export default function BlackjackPage() {
   if (!mounted) return null
 
   const isInGame = gameState !== null && gameState.phase !== 'SETTLEMENT'
-  const canDeal = !isProcessing && gameState === null && betAmount >= 0.1 && betAmount <= balance
+  const canDeal = !isProcessing && gameState === null && betAmount >= betMin && betAmount <= balance
 
   return (
     <div className={`blackjack-container ${isMobile ? 'mobile' : ''}`}>
@@ -302,23 +241,23 @@ export default function BlackjackPage() {
               type="number"
               value={betAmount}
               onChange={e => {
-                const v = Math.max(0.1, parseFloat(e.target.value) || 0)
+                const v = Math.max(betMin, Math.min(betMax, parseFloat(e.target.value) || 0))
                 setBetAmount(v)
                 setBaseBetAmount(v)
               }}
               disabled={isInGame}
-              min="0.1"
-              max="10000"
+              min={betMin}
+              max={betMax}
               step="0.1"
               className="bet-input"
             />
             <button
-              onClick={() => { const v = Math.max(0.1, betAmount / 2); setBetAmount(v); setBaseBetAmount(v) }}
+              onClick={() => { const v = Math.max(betMin, betAmount / 2); setBetAmount(v); setBaseBetAmount(v) }}
               disabled={isInGame}
               className="bet-adj-btn"
             >½</button>
             <button
-              onClick={() => { const v = Math.min(10000, betAmount * 2); setBetAmount(v); setBaseBetAmount(v) }}
+              onClick={() => { const v = Math.min(betMax, betAmount * 2); setBetAmount(v); setBaseBetAmount(v) }}
               disabled={isInGame}
               className="bet-adj-btn"
             >2×</button>

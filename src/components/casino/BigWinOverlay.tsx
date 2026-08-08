@@ -162,7 +162,7 @@ export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: B
                   textShadow: '0 0 40px hsla(var(--primary), 0.5)'
                 }}
               >
-                ${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                ${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
               </motion.div>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '40px' }}>
                 {[...Array(5)].map((_, i) => (

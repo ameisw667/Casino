@@ -97,7 +97,7 @@ export class ChatBotService {
     addChatMessage({
       user: 'System',
       rank: 'MOD',
-      message: `${emoji} ${vibe}! ${user} just won $${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} (${multiplier.toFixed(2)}x)!`,
+      message: `${emoji} ${vibe}! ${user} just won $${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${multiplier.toFixed(2)}x)!`,
       isSystem: true,
       isWin: true
     });
@@ -105,7 +105,8 @@ export class ChatBotService {
 
   static handleCommand(user: string, command: string) {
     const { addChatMessage, balance, level, rank } = useCasinoStore.getState();
-    const cmd = command.toLowerCase().split(' ')[0];
+    const normalized = command.normalize('NFC');
+    const cmd = normalized.toLowerCase().split(' ')[0];
 
     switch (cmd) {
       case '/tip':
@@ -128,11 +129,17 @@ export class ChatBotService {
         addChatMessage({
           user: 'RoyaleGuard',
           rank: 'MOD',
-          message: `Available commands: /stats, /tip, /fair`,
+          message: `Available commands: /stats, /tip`,
           isSystem: true
         });
         break;
       default:
+        addChatMessage({
+          user: 'RoyaleGuard',
+          rank: 'MOD',
+          message: `Unknown command: ${cmd}. Type /help for a list of commands.`,
+          isSystem: true
+        });
         return false;
     }
     return true;

@@ -1,0 +1,142 @@
+/* Game Effects — CSS-based animations (deterministic, no Math.random) */
+
+/* Confetti Fall Animation */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10px) rotateZ(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(400px) rotateZ(720deg);
+    opacity: 0;
+  }
+}
+
+.confetti-burst {
+  position: fixed;
+  pointer-events: none;
+  z-index: 40;
+}
+
+.confetti-burst::before,
+.confetti-burst::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(45deg, #ffd700, #ff6b6b, #4d96ff, #6bcb77);
+  animation: confetti-fall 2s ease-out forwards;
+}
+
+.confetti-burst::before {
+  left: 0;
+  top: 0;
+  animation-delay: 0s;
+}
+
+.confetti-burst::after {
+  right: 0;
+  top: 0;
+  animation-delay: 0.1s;
+}
+
+/* Particle Burst (for Crash crash event) */
+@keyframes particle-burst {
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.3) translate(var(--tx), var(--ty));
+    opacity: 0;
+  }
+}
+
+.particle {
+  position: absolute;
+  pointer-events: none;
+  animation: particle-burst 0.8s ease-out forwards;
+}
+
+/* Roulette Confetti Fall */
+@keyframes roulette-confetti-fall {
+  0% {
+    transform: translateY(-20px) rotateZ(-45deg);
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(500px) rotateZ(180deg);
+    opacity: 0;
+  }
+}
+
+.roulette-confetti {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+  animation: roulette-confetti-fall 2.5s ease-in forwards;
+}
+
+/* Win Pulse Glow */
+@keyframes win-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(0, 231, 1, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(0, 231, 1, 0.8);
+  }
+}
+
+.win-glow {
+  animation: win-glow 0.6s ease-in-out;
+}
+
+/* Loss Shake */
+@keyframes loss-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.loss-shake {
+  animation: loss-shake 0.4s ease-in-out;
+}
+
+/* Loading Shimmer */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Multiplier Grow */
+@keyframes multiplier-grow {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.multiplier-grow {
+  animation: multiplier-grow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}

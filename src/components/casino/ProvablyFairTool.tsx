@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { ShieldCheck, RefreshCw, Copy, Check } from 'lucide-react';
 import { ProvablyFairEngine } from '@/lib/casino/provably-fair';
 import { useCasinoStore } from '@/store/useCasinoStore';
+import { CasinoLogger } from '@/lib/casino/logger';
 
 export default function ProvablyFairTool() {
   const isMobile = useCasinoStore(s => s.isMobile);
@@ -23,7 +24,7 @@ export default function ProvablyFairTool() {
         setResults({ dice, crash, slots });
 
       } catch (e) {
-        console.error(e);
+        CasinoLogger.error('ProvablyFairTool', 'Failed to calculate outcome', e);
       }
     };
     calculate();

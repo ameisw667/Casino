@@ -1,0 +1,8 @@
+.next/
+out/
+build/
+coverage/
+.gstack/
+node_modules/
+package-lock.json
+supabase/consolidated-setup.sql

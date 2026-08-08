@@ -1,23 +1,24 @@
-import { createClient } from '@supabase/supabase-js';
-import { auth } from '@clerk/nextjs/server';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
-/**
- * Creates a Supabase client for use in Server Components, Route Handlers, or Server Actions.
- * It automatically injects the Clerk JWT token (if available) for Row Level Security.
- */
-export async function createServerSupabase() {
-  const { getToken } = await auth();
-  
-  // Get the custom Supabase JWT from Clerk
-  const token = await getToken({ template: 'supabase' });
+export async function createClient() {
+  const cookieStore = await cookies();
 
-  return createClient(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      global: {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : '',
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+          } catch {
+            // Called from a Server Component render, where cookie writes are disallowed.
+            // Safe to ignore: the proxy middleware refreshes the session on every request.
+          }
         },
       },
     }

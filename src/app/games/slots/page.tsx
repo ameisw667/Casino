@@ -1,366 +1,448 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Dices, 
-  ShieldCheck, 
-  TrendingUp, 
-  Info, 
-  RotateCcw, 
-  Zap, 
-  ChevronRight, 
-  Coins, 
-  History as HistoryIcon,
-  Play,
-  Pause,
-  Settings
-} from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { RotateCcw, Play, Zap, TrendingUp, TrendingDown, Info, Trophy } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
-import { ProvablyFairEngine } from '@/lib/casino/provably-fair';
+import { validateBet } from '@/lib/casino/bet-validator';
+import { sanitizeClientSeed } from '@/lib/casino/provably-fair';
 import { GameErrorBoundary } from '@/components/casino/GameErrorBoundary';
-// --- Constants ---
-const SYMBOLS = [
-  { id: 'cherry', label: '🍒', multiplier: 2, color: '#ff4d4d' },
-  { id: 'lemon', label: '🍋', multiplier: 3, color: '#fffb00' },
-  { id: 'orange', label: '🍊', multiplier: 4, color: '#ffae00' },
-  { id: 'grapes', label: '🍇', multiplier: 5, color: '#a200ff' },
-  { id: 'bell', label: '🔔', multiplier: 10, color: '#ffd700' },
-  { id: 'diamond', label: '💎', multiplier: 25, color: '#00f2ff' },
-  { id: 'seven', label: '7️⃣', multiplier: 50, color: '#ff0055' },
-  { id: 'wild', label: '⭐', multiplier: 1, isWild: true, color: '#ffffff' },
-];
-const REEL_COUNT = 5;
-const ROW_COUNT = 3;
-const SYMBOL_COUNT = SYMBOLS.length;
-// Paylines (simplistic approach: 20 fixed lines)
-const PAYLINES = [
-  [1, 1, 1, 1, 1], // Middle row
-  [0, 0, 0, 0, 0], // Top row
-  [2, 2, 2, 2, 2], // Bottom row
-  [0, 1, 2, 1, 0], // V-shape
-  [2, 1, 0, 1, 2], // Inverted V
-  [0, 0, 1, 2, 2],
-  [2, 2, 1, 0, 0],
-  [1, 0, 0, 0, 1],
-  [1, 2, 2, 2, 1],
-  [0, 1, 0, 1, 0],
-  [2, 1, 2, 1, 2],
-];
-// Metadata moved to layout or server component
-export default function SlotsPage() {
-  const balance = useCasinoStore(state => state.balance);
-  const provablyFairSettings = useCasinoStore(state => state.provablyFairSettings);
-  const setProvablyFairSettings = useCasinoStore(state => state.setProvablyFairSettings);
-  const processGameResult = useCasinoStore(state => state.processGameResult);
-  const addToast = useCasinoStore(state => state.addToast);
-  const isProcessing = useCasinoStore(state => state.isProcessing);
-  const setIsProcessing = useCasinoStore(state => state.setIsProcessing);
-  const isMobile = useCasinoStore(state => state.isMobile);
+import { SlotReel } from '@/components/casino/games/slots/SlotReel';
+import { WinLine } from '@/components/casino/games/slots/WinLine';
+import { GAME_SYMBOLS, STAGGER_DELAYS_MS, TOTAL_SPIN_MS } from './symbols';
+import type { SymbolType } from '@/components/casino/SlotSymbol';
 
-  
-  const [betAmount, setBetAmount] = useState(10);
-  const [isSpinning, setIsSpinning] = useState(false);
-  const [reels, setReels] = useState<number[][]>(Array(REEL_COUNT).fill(Array(ROW_COUNT).fill(0)));
-  const [history, setHistory] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
-  const [lastWin, setLastWin] = useState(0);
-  const [winningLines, setWinningLines] = useState<number[]>([]);
-  const [autoPlay, setAutoPlay] = useState(false);
-  
-  const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
+const REEL_COUNT = 5;
+
+type ReelSymbols = [SymbolType, SymbolType, SymbolType];
+type WinningRows = [boolean, boolean, boolean];
+
+const POOL_SIZE = GAME_SYMBOLS.length;
+
+function buildReel(idx: number): ReelSymbols {
+  return [
+    GAME_SYMBOLS[(idx + POOL_SIZE - 1) % POOL_SIZE],
+    GAME_SYMBOLS[idx % POOL_SIZE],
+    GAME_SYMBOLS[(idx + 1) % POOL_SIZE],
+  ];
+}
+
+const DEFAULT_REELS: ReelSymbols[] = Array(REEL_COUNT)
+  .fill(null)
+  .map((_, i) => buildReel(i % POOL_SIZE));
+
+const NO_WIN: WinningRows = [false, false, false];
+
+const PAYTABLE = [
+  { symbol: '⚡ ZEUS',    tier: 'legendary', mult3: '10×', mult4: '25×', mult5: '75×' },
+  { symbol: '♛ CROWN',   tier: 'epic',      mult3: '5×',  mult4: '12×', mult5: '35×' },
+  { symbol: '⚗ CHALICE', tier: 'rare',      mult3: '4×',  mult4: '8×',  mult5: '20×' },
+  { symbol: 'A',          tier: 'uncommon',  mult3: '3×',  mult4: '6×',  mult5: '15×' },
+  { symbol: 'K',          tier: 'uncommon',  mult3: '2.5×',mult4: '5×',  mult5: '12×' },
+  { symbol: 'Q',          tier: 'common',    mult3: '2×',  mult4: '4×',  mult5: '10×' },
+  { symbol: 'J',          tier: 'common',    mult3: '1.5×',mult4: '3×',  mult5: '8×'  },
+  { symbol: '10',         tier: 'common',    mult3: '1×',  mult4: '2×',  mult5: '5×'  },
+];
+
+const QUICK_BETS = [1, 5, 25, 100];
+
+const RECENT_WINS = [
+  { user: 'NeonSniper', amount: 142.50, symbol: 'ZEUS' },
+  { user: 'LuckyShark', amount: 38.20, symbol: 'CROWN' },
+  { user: 'SarahSlot',  amount: 215.00, symbol: 'ZEUS' },
+  { user: 'MoonWalker', amount: 64.80, symbol: 'CHALICE' },
+];
+
+export default function SlotsPage() {
+  const balance       = useCasinoStore(s => s.balance);
+  const provablyFair  = useCasinoStore(s => s.provablyFairSettings);
+  const setPF         = useCasinoStore(s => s.setProvablyFairSettings);
+  const processResult = useCasinoStore(s => s.processGameResult);
+  const applyServerWalletSnapshot = useCasinoStore(s => s.applyServerWalletSnapshot);
+  const addToast      = useCasinoStore(s => s.addToast);
+  const setProcessing = useCasinoStore(s => s.setIsProcessing);
+  const { betMin, betMax } = useCasinoStore(s => s.gameConfig.limits);
+
+  type LastResult = { type: 'win' | 'loss' | 'idle'; amount: number };
+
+  const [betAmount, setBetAmount]           = useState(10);
+  const [isSpinning, setIsSpinning]         = useState(false);
+  const [isAuto, setIsAuto]                 = useState(false);
+  const [lastResult, setLastResult]         = useState<LastResult>({ type: 'idle', amount: 0 });
+  const [finalReels, setFinalReels]         = useState<ReelSymbols[]>(DEFAULT_REELS);
+  const [winRows, setWinRows]               = useState<WinningRows[]>(Array(REEL_COUNT).fill(NO_WIN));
+  const [winningRowIndex, setWinningRowIndex] = useState<0 | 1 | 2 | null>(null);
+  const [sessionProfit, setSessionProfit]   = useState(0);
+  const [sessionSpins, setSessionSpins]     = useState(0);
+  const [showTutorial, setShowTutorial]     = useState(false);
+
+  const audioRefs = useRef<Record<string, HTMLAudioElement>>({});
   useEffect(() => {
-    const sounds = {
-      spin: '/sounds/dice-roll.mp3', // Reusing for now
-      stop: '/sounds/dice-roll.mp3',
-      win: '/sounds/win.mp3',
-      loss: '/sounds/loss.mp3'
-    };
-    Object.entries(sounds).forEach(([name, url]) => {
-      const audio = new Audio(url);
-      audio.volume = 0.3;
-      audioRefs.current[name] = audio;
+    const sounds = { spin: '/sounds/dice-roll.mp3', win: '/sounds/win.mp3', loss: '/sounds/loss.mp3' };
+    const created: HTMLAudioElement[] = [];
+    Object.entries(sounds).forEach(([k, url]) => {
+      const a = new Audio(url);
+      a.volume = 0.3;
+      audioRefs.current[k] = a;
+      created.push(a);
     });
-    return () => {
-      Object.values(audioRefs.current).forEach(a => {
-        a.pause();
-        a.src = '';
-      });
-    };
+    return () => created.forEach(a => { a.pause(); a.src = ''; });
   }, []);
-  const playSound = (name: string) => {
-    const audio = audioRefs.current[name];
-    if (audio) {
-      audio.currentTime = 0;
-      audio.play().catch(() => {});
-    }
-  };
-  const calculateWins = (currentReels: number[][]) => {
-    let totalWin = 0;
-    const lines: number[] = [];
-    PAYLINES.forEach((line, lineIndex) => {
-      // Find the first non-wild symbol to determine the line type
-      let firstNonWildIdx = -1;
-      for (let i = 0; i < REEL_COUNT; i++) {
-        const symbolIdx = currentReels[i][line[i]];
-        if (!SYMBOLS[symbolIdx].isWild) {
-          firstNonWildIdx = i;
-          break;
-        }
-      }
-      // If all symbols are wild or we found a non-wild
-      const targetSymbolIdx = firstNonWildIdx === -1 ? currentReels[0][line[0]] : currentReels[firstNonWildIdx][line[firstNonWildIdx]];
-      const targetSymbol = SYMBOLS[targetSymbolIdx];
-      
-      let matchCount = 0;
-      for (let i = 0; i < REEL_COUNT; i++) {
-        const currentSymbolIdx = currentReels[i][line[i]];
-        const currentSymbol = SYMBOLS[currentSymbolIdx];
-        
-        if (currentSymbol.id === targetSymbol.id || currentSymbol.isWild) {
-          matchCount++;
-        } else {
-          break; // Must be consecutive from left
-        }
-      }
-      if (matchCount >= 3) {
-        // Multiplier based on match count: 3x -> 1x, 4x -> 2x, 5x -> 5x of the symbol multiplier
-        const countMult = matchCount === 5 ? 5 : matchCount === 4 ? 2 : 1;
-        const winAmount = (betAmount / PAYLINES.length) * targetSymbol.multiplier * countMult;
-        totalWin += winAmount;
-        lines.push(lineIndex);
-      }
-    });
-    return { totalWin, lines };
-  };
-  const handleSpin = async () => {
+
+  const playSound = useCallback((name: string) => {
+    const a = audioRefs.current[name];
+    if (a) { a.currentTime = 0; a.play().catch(() => {}); }
+  }, []);
+
+  const handleSpin = useCallback(async () => {
     if (isSpinning) return;
-    
-    if (betAmount < 0.1 || betAmount > 10000) {
-      addToast('Bet amount must be between $0.10 and $10,000!', 'error');
+    const betError = validateBet(betAmount, balance);
+    if (betError) {
+      addToast(betError, 'error');
       return;
     }
-    
-    if (balance < betAmount) {
-      addToast('Insufficient balance!', 'error');
-      return;
-    }
-    setIsProcessing(true);
+
     setIsSpinning(true);
-    setWinningLines([]);
-    setLastWin(0);
-    
+    setProcessing(true);
+    setWinRows(Array(REEL_COUNT).fill(NO_WIN));
+    setWinningRowIndex(null);
+    setLastResult({ type: 'idle', amount: 0 });
     playSound('spin');
+
+    const sanitizedSeed = sanitizeClientSeed(provablyFair.clientSeed);
+    const controller = new AbortController();
+    const timeoutId  = setTimeout(() => controller.abort(), 12000);
+
     try {
-      // Provably Fair Result
-      const { clientSeed, nonce } = provablyFairSettings;
-      const { seed, hash } = await ProvablyFairEngine.generateServerSeed();
-      
-      const resultIndices = await ProvablyFairEngine.getSlotsResult(seed, clientSeed, nonce, REEL_COUNT, SYMBOL_COUNT);
-      
-      // Update nonce and hash for history
-      setProvablyFairSettings({ serverSeedHash: hash, nonce: nonce + REEL_COUNT });
-    // Simulate reel animation
-    const newReels = resultIndices.map(idx => {
-      // For each reel, we'll have a window of 3 symbols
-      return [
-        idx,
-        (idx + 1) % SYMBOL_COUNT,
-        (idx + 2) % SYMBOL_COUNT
-      ];
-    });
-    // Spinning duration
-    setTimeout(() => {
-      setReels(newReels);
-      setIsSpinning(false);
-      
-      const { totalWin, lines } = calculateWins(newReels);
-      
-      if (totalWin > 0) {
-        setLastWin(totalWin);
-        setWinningLines(lines);
+      const [res] = await Promise.all([
+        fetch('/api/casino/bet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            requestId: crypto.randomUUID(),
+            gameType: 'SLOTS',
+            amount: betAmount,
+            clientSeed: sanitizedSeed,
+            currentNonce: provablyFair.nonce,
+          }),
+          signal: controller.signal,
+        }),
+        new Promise(r => setTimeout(r, TOTAL_SPIN_MS)),
+      ]);
+
+      clearTimeout(timeoutId);
+      if (!res.ok) throw new Error('API error');
+      const data = await res.json();
+
+      setPF({ serverSeedHash: data.serverSeedHash, nonce: data.nonce });
+
+      const engineSymbols: number[] = data.symbols ?? [];
+      const newReels = engineSymbols.length === REEL_COUNT
+        ? engineSymbols.map(buildReel)
+        : DEFAULT_REELS;
+
+      setFinalReels(newReels);
+
+      if (data.payout > 0) {
+        setLastResult({ type: 'win', amount: data.payout });
         playSound('win');
       } else {
+        setLastResult({ type: 'loss', amount: betAmount });
         playSound('loss');
       }
-      processGameResult({
+
+      if (data.win && engineSymbols.length > 0) {
+        const counts: Record<number, number> = {};
+        engineSymbols.forEach((s: number) => { counts[s] = (counts[s] ?? 0) + 1; });
+        const winningSym = Object.entries(counts).find(([, c]) => c >= 3)?.[0];
+
+        const newWinRows: WinningRows[] = newReels.map(reel =>
+          winningSym !== undefined
+            ? reel.map(s => s === GAME_SYMBOLS[Number(winningSym)]) as WinningRows
+            : NO_WIN
+        );
+        setWinRows(newWinRows);
+
+        const rowIdx = ([0, 1, 2] as const).find(r => newWinRows.every(reel => reel[r])) ?? null;
+        setWinningRowIndex(rowIdx);
+      }
+
+      const net = (data.payout ?? 0) - betAmount;
+      setSessionProfit(p => p + net);
+      setSessionSpins(s => s + 1);
+
+      applyServerWalletSnapshot(data.wallet);
+      processResult({
         game: 'SLOTS',
         amount: betAmount,
-        multiplier: totalWin / betAmount,
-        payout: totalWin,
-        win: totalWin > 0,
-        resultId: Math.random().toString(36).substring(2, 11)
+        multiplier: data.payout > 0 ? data.payout / betAmount : 0,
+        payout: data.payout ?? 0,
+        win: data.win ?? false,
+        resultId: data.id ?? Math.random().toString(36).slice(2),
       });
-      setHistory(prev => [{
-        result: newReels,
-        win: totalWin,
-        time: new Date().toLocaleTimeString()
-      }, ...prev].slice(0, 10));
-      setIsProcessing(false);
-    }, 1000);
-    } catch (error) {
-      console.error("Slots spin error:", error);
+
+    } catch {
+      clearTimeout(timeoutId);
+      addToast('Spin failed. Try again.', 'error');
+    } finally {
       setIsSpinning(false);
-      setIsProcessing(false);
-      addToast('Failed to spin', 'error');
+      setProcessing(false);
     }
-  };
+  }, [isSpinning, betAmount, balance, provablyFair, addToast, setPF, processResult, applyServerWalletSnapshot, playSound, setProcessing]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (document.activeElement?.tagName === 'INPUT') return;
+      if (e.code === 'Space') { e.preventDefault(); handleSpin(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [handleSpin]);
+
+  useEffect(() => {
+    if (!isAuto || isSpinning) return;
+
+    const timer = setTimeout(() => {
+      if (balance < betAmount) {
+        setIsAuto(false);
+        return;
+      }
+      void handleSpin();
+    }, balance < betAmount ? 0 : 800);
+
+    return () => clearTimeout(timer);
+  }, [isAuto, isSpinning, balance, betAmount, handleSpin]);
+
+
+  const hasWin = lastResult.type === 'win';
+
   return (
     <GameErrorBoundary gameName="Slots">
-      <div className="slots-container" style={{ 
-        maxWidth: '1200px', 
-        margin: '0 auto', 
-        padding: '40px 20px',
-        minHeight: '80vh'
-      }}>
-      <div className="game-header" style={{ marginBottom: '40px', textAlign: 'center' }}>
-        <h1 className="text-gradient" style={{ fontSize: 'clamp(2.5rem, 8vw, 4rem)', fontWeight: 900, letterSpacing: '-0.05em' }}>NEON SLOTS</h1>
-        <p style={{ color: 'hsl(var(--text-muted))', fontSize: 'clamp(0.9rem, 2vw, 1.1rem)' }}>Spin to win big in the neon city 🌃</p>
-      </div>
-
-      <div className="slots-layout" style={{ 
-        display: 'flex', 
-        flexDirection: isMobile ? 'column' : 'row',
-        gap: '30px',
-        alignItems: 'start'
-      }}>
-        {/* Controls Sidebar */}
-        <div className="glass-card" style={{ 
-          width: isMobile ? '100%' : '300px',
-          padding: 'clamp(16px, 4vw, 24px)', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: '20px',
-          backdropFilter: 'blur(20px)',
-          background: 'hsla(var(--bg-card), 0.7)',
-          border: '1px solid hsla(var(--primary), 0.1)',
-          order: isMobile ? 2 : 1
-        }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', color: 'hsl(var(--text-muted))', marginBottom: '8px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Bet Amount
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input 
-                type="number" 
-                className="input"
-                value={betAmount}
-                onChange={(e) => setBetAmount(Number(e.target.value))}
-                style={{ paddingLeft: '40px', fontWeight: 700 }}
-              />
-              <Coins size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--primary))' }} />
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '12px' }}>
-              <button onClick={() => setBetAmount(Math.max(0.1, betAmount / 2))} className="btn btn-secondary" style={{ padding: '8px', fontSize: '0.8rem' }}>1/2</button>
-              <button onClick={() => setBetAmount(Math.min(10000, betAmount * 2))} className="btn btn-secondary" style={{ padding: '8px', fontSize: '0.8rem' }}>2x</button>
-            </div>
-          </div>
-          <button 
-            onClick={handleSpin} 
-            disabled={isSpinning || isProcessing}
-            className="btn btn-primary" 
-            style={{ 
-              width: '100%', 
-              height: '64px', 
-              fontSize: '1.25rem',
-              fontWeight: 900,
-              boxShadow: '0 8px 32px hsla(var(--primary), 0.3)',
-              background: (isSpinning || isProcessing) ? 'hsl(var(--surface-raised))' : 'hsl(var(--primary))'
-            }}
+      <div className="slots-page">
+        {showTutorial && (
+          <div
+            className="slot-tutorial-overlay"
+            onClick={() => setShowTutorial(false)}
           >
-            {isSpinning || isProcessing ? <RotateCcw className="animate-spin" size={24} /> : <Play fill="currentColor" size={24} />}
-            <span style={{ marginLeft: '8px' }}>{isSpinning || isProcessing ? 'SPINNING...' : 'SPIN'}</span>
-          </button>
-          <div className="stats-box" style={{ background: 'hsla(0,0%,0%,0.3)', padding: '20px', borderRadius: '16px', border: '1px solid hsla(var(--primary), 0.05)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <span style={{ fontSize: '0.8rem', color: 'hsl(var(--text-muted))', fontWeight: 600 }}>Last Win</span>
-              <span style={{ fontWeight: 800, color: lastWin > 0 ? 'hsl(var(--success))' : '#fff', fontSize: '1rem' }}>
-                ${lastWin.toFixed(2)}
-              </span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.8rem', color: 'hsl(var(--text-muted))', fontWeight: 600 }}>Balance</span>
-              <span style={{ fontWeight: 800, fontSize: '1rem' }}>${balance.toFixed(2)}</span>
+            <div className="slot-tutorial-card" onClick={e => e.stopPropagation()}>
+              <Info size={40} color="hsl(var(--primary))" style={{ margin: '0 auto 16px' }} />
+              <h2 style={{ marginBottom: '12px' }}>HOW TO WIN</h2>
+              <p>Match 3–5 identical symbols across the center row to win.<br />ZEUS pays up to 75× your bet.</p>
+              <button className="btn btn-primary" style={{ marginTop: '20px', width: '100%' }} onClick={() => setShowTutorial(false)}>GOT IT</button>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button className="btn btn-secondary" style={{ flex: 1, padding: '12px' }} aria-label="Settings"><Settings size={18} /></button>
-            <button className="btn btn-secondary" style={{ flex: 1, padding: '12px' }} aria-label="History"><HistoryIcon size={18} /></button>
-          </div>
-        </div>
+        )}
 
-        {/* Reels Display */}
-        <div className="reels-container" style={{ 
-          background: 'hsla(var(--bg-color), 0.5)', 
-          borderRadius: '32px', 
-          padding: '24px',
-          border: '1px solid hsla(var(--primary), 0.1)',
-          boxShadow: '0 20px 80px rgba(0,0,0,0.5)',
-          position: 'relative',
-          overflow: 'hidden',
-          backdropFilter: 'blur(10px)'
-        }}>
-          {/* Neon Glow Accents */}
-          <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '40%', height: '40%', background: 'hsla(var(--primary), 0.1)', filter: 'blur(80px)', borderRadius: '50%' }} />
-          <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '40%', height: '40%', background: 'hsla(var(--primary), 0.05)', filter: 'blur(80px)', borderRadius: '50%' }} />
+        <div className="slots-grid">
+          {/* ── Left: Paytable / Legend ── */}
+          <aside className="slot-legend">
+            <div className="slot-legend-header">
+              <Trophy size={18} color="hsl(var(--primary))" />
+              <span>PAYTABLE</span>
+            </div>
+            <div className="slot-legend-rule">
+              Match 3–5 symbols on the <strong>center line</strong> to win.
+            </div>
+            <div className="slot-legend-rows">
+              {PAYTABLE.map((row) => (
+                <div key={row.symbol} className={`slot-legend-row tier-${row.tier}`}>
+                  <span className="slot-legend-sym">{row.symbol}</span>
+                  <div className="slot-legend-mults">
+                    <span className="slot-mult-chip">3× <strong>{row.mult3}</strong></span>
+                    <span className="slot-mult-chip">4× <strong>{row.mult4}</strong></span>
+                    <span className="slot-mult-chip">5× <strong>{row.mult5}</strong></span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </aside>
 
-          {/* Reel Grid */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: `repeat(${REEL_COUNT}, 1fr)`, 
-            gap: '10px',
-            background: '#0f212e',
-            borderRadius: '12px',
-            padding: isMobile ? '4px' : '10px',
-            minHeight: isMobile ? '280px' : '400px'
-          }}>
-            {reels.map((reel, rIdx) => (
-              <div key={rIdx} className={`reel ${isSpinning ? 'spinning' : ''}`} style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px',
-                background: 'rgba(255,255,255,0.02)',
-                borderRadius: '8px',
-                padding: isMobile ? '4px' : '10px',
-                transition: 'transform 0.1s ease-out',
-                position: 'relative'
-              }}>
-                {reel.map((symbolIdx, sIdx) => {
-                  const symbol = SYMBOLS[symbolIdx];
-                  return (
-                    <div key={sIdx} className="symbol" style={{
-                      aspectRatio: '1',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: isMobile ? '1.75rem' : '3rem',
-                      background: 'rgba(255,255,255,0.03)',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(255,255,255,0.05)',
-                      transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                      boxShadow: lastWin > 0 ? `0 0 20px ${symbol.color}22` : 'none',
-                      filter: isSpinning ? 'blur(4px)' : 'none'
-                    }}>
-                      {symbol.label}
-                    </div>
-                  );
-                })}
+          {/* ── Center: Slot Machine ── */}
+          <section className="slot-machine-area">
+            {/* Recent wins ticker — social proof / FOMO */}
+            <div className="slot-win-ticker">
+              {RECENT_WINS.map((w, i) => (
+                <div key={i} className="slot-win-ticket">
+                  <Zap size={12} />
+                  <span>{w.user} won ${w.amount.toFixed(2)} on {w.symbol}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="slot-machine">
+              <div className="slot-machine-top">
+                <div className="slot-machine-title">ZEUS VAULT</div>
+                <div className="slot-machine-lights">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span key={i} className="slot-light" style={{ animationDelay: `${i * 0.15}s` }} />
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
-          {/* Winning Line Overlays (Mental Map) */}
-          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-            {/* Payline visualization could go here */}
-          </div>
+
+              <div className="slot-reels-container">
+                <AnimatePresence>
+                  {hasWin && (
+                    <motion.div
+                      className="slot-win-banner"
+                      initial={{ opacity: 0, scale: 0.7, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ type: 'spring', bounce: 0.5, duration: 0.4 }}
+                    >
+                      <Zap size={18} />
+                      <span>WIN +${lastResult.amount.toFixed(2)}</span>
+                      <Zap size={18} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className="slot-reels-frame">
+                  {finalReels.map((reelSyms, i) => (
+                    <React.Fragment key={i}>
+                      <SlotReel
+                        finalSymbols={reelSyms}
+                        isSpinning={isSpinning}
+                        stopDelay={STAGGER_DELAYS_MS[i]}
+                        winningRows={winRows[i] ?? NO_WIN}
+                        symbolPool={GAME_SYMBOLS}
+                      />
+                    </React.Fragment>
+                  ))}
+                  <WinLine rowIndex={winningRowIndex} isVisible={hasWin && !isSpinning} />
+                </div>
+              </div>
+
+              <div className="slot-machine-base">
+                <div className="slot-base-readout">
+                  <span className="slot-readout-label">LAST RESULT</span>
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={`${lastResult.type}-${lastResult.amount}`}
+                      className={`slot-readout-value ${lastResult.type}`}
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 6 }}
+                      transition={{ duration: 0.18 }}
+                    >
+                      {lastResult.type === 'win' && (
+                        <><TrendingUp size={14} />+${lastResult.amount.toFixed(2)}</>
+                      )}
+                      {lastResult.type === 'loss' && (
+                        <><TrendingDown size={14} />-${lastResult.amount.toFixed(2)}</>
+                      )}
+                      {lastResult.type === 'idle' && '—'}
+                    </motion.span>
+                  </AnimatePresence>
+                </div>
+                <div className="slot-base-readout">
+                  <span className="slot-readout-label">SPINS</span>
+                  <span className="slot-readout-value idle">{sessionSpins}</span>
+                </div>
+                <div className="slot-base-readout">
+                  <span className="slot-readout-label">SESSION PROFIT</span>
+                  <span className={`slot-readout-value ${sessionProfit >= 0 ? 'win' : 'loss'}`}>
+                    {sessionProfit >= 0 ? '+' : ''}${sessionProfit.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ── Right: Control Panel (Crash-style) ── */}
+          <aside className="slot-control-panel">
+            <div className="slot-panel-header">
+              <Zap size={20} color="hsl(var(--primary))" />
+              <h3>CONTROL</h3>
+              <button className="btn btn-secondary" style={{ padding: '8px' }} onClick={() => setShowTutorial(true)} aria-label="How to play">
+                <Info size={16} />
+              </button>
+            </div>
+
+            <div className="slot-balance-card">
+              <div className="slot-balance-label">BALANCE</div>
+              <div className="slot-balance-value mono">${balance.toFixed(2)}</div>
+            </div>
+
+            <div className="slot-bet-section">
+              <div className="slot-section-label">
+                <span>BET AMOUNT</span>
+              </div>
+              <div className="slot-bet-input-row">
+                <button
+                  className="slot-bet-half"
+                  onClick={() => setBetAmount(v => Math.max(betMin, parseFloat((v / 2).toFixed(2))))}
+                >
+                  1/2
+                </button>
+                <input
+                  type="number"
+                  className="input mono slot-bet-input"
+                  value={betAmount}
+                  onChange={e => setBetAmount(Math.min(betMax, Math.max(betMin, parseFloat(e.target.value) || betMin)))}
+                  aria-label="Bet amount"
+                />
+                <button
+                  className="slot-bet-double"
+                  onClick={() => setBetAmount(v => Math.min(betMax, parseFloat((v * 2).toFixed(2))))}
+                >
+                  2×
+                </button>
+              </div>
+              <div className="slot-quick-bets">
+                {QUICK_BETS.map(v => (
+                  <button
+                    key={v}
+                    className={`slot-quick-bet${betAmount === v ? ' active' : ''}`}
+                    onClick={() => setBetAmount(v)}
+                  >
+                    ${v}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="slot-auto-row">
+              <button
+                className={`slot-auto-toggle${isAuto ? ' active' : ''}`}
+                onClick={() => setIsAuto(v => !v)}
+                disabled={isSpinning}
+              >
+                {isAuto ? 'AUTO ON' : 'AUTO'}
+              </button>
+            </div>
+
+            <motion.button
+              className="slot-spin-btn btn btn-primary"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              transition={{ type: 'spring', bounce: 0.4 }}
+              onClick={handleSpin}
+              disabled={isSpinning}
+              aria-label={isSpinning ? 'Spinning' : 'Spin'}
+            >
+              {isSpinning
+                ? <><RotateCcw size={28} className="animate-spin" /><span>SPINNING…</span></>
+                : <><Play size={28} fill="currentColor" /><span>SPIN</span></>
+              }
+            </motion.button>
+
+            <div className="slot-session-card">
+              <div className="slot-session-label">SESSION STATS</div>
+              <div className="slot-session-grid">
+                <div>
+                  <div className="slot-session-sub">SPINS</div>
+                  <div className="mono">{sessionSpins}</div>
+                </div>
+                <div>
+                  <div className="slot-session-sub">PROFIT</div>
+                  <div className={`mono ${sessionProfit >= 0 ? 'slot-positive' : 'slot-negative'}`}>
+                    {sessionProfit >= 0 ? '+' : ''}${sessionProfit.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
         </div>
       </div>
-      <style jsx>{`
-        @keyframes reel-spin {
-          0% { transform: translateY(0); }
-          100% { transform: translateY(-100%); }
-        }
-        .spinning {
-          animation: reel-spin 0.1s infinite linear;
-        }
-      `}</style>
-    </div>
     </GameErrorBoundary>
   );
 }

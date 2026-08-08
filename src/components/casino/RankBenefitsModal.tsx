@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { X, Trophy, Star, Info } from 'lucide-react';
-import { useCasinoStore, RANKS } from '@/store/useCasinoStore';
+import { useCasinoStore } from '@/store/useCasinoStore';
 interface RankBenefitsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -11,9 +11,10 @@ export default function RankBenefitsModal({ isOpen, onClose }: RankBenefitsModal
   const level = useCasinoStore(s => s.level);
   const xp = useCasinoStore(s => s.xp);
   const rank = useCasinoStore(s => s.rank);
+  const ranks = useCasinoStore(s => s.ranks);
   if (!isOpen) return null;
-  const currentRankIndex = RANKS.findIndex(r => r.name === rank);
-  const nextRank = RANKS[currentRankIndex + 1];
+  const currentRankIndex = ranks.findIndex(r => r.name === rank);
+  const nextRank = ranks[currentRankIndex + 1];
   
   const nextLevelXp = Math.pow(level, 2) * 100;
   const progress = Math.min(100, (xp / nextLevelXp) * 100);
@@ -89,7 +90,7 @@ export default function RankBenefitsModal({ isOpen, onClose }: RankBenefitsModal
           <section>
             <div style={{ fontSize: '0.75rem', fontWeight: 900, color: 'hsl(var(--text-muted))', letterSpacing: '0.1em', marginBottom: '16px' }}>VIP PRIVILEGES</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {RANKS.map((r, i) => {
+              {ranks.map((r, _i) => {
                 const isReached = level >= r.minLevel;
                 const isCurrent = rank === r.name;
                 

@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { User, Zap, TrendingUp, Star, X } from 'lucide-react';
-import { useCasinoStore, RANKS } from '@/store/useCasinoStore';
+import { useCasinoStore } from '@/store/useCasinoStore';
 interface PlayerProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -13,7 +13,8 @@ export default function PlayerProfileModal({ isOpen, onClose, username: propUser
   const isMobile = useCasinoStore(s => s.isMobile);
   const storeLevel = useCasinoStore(s => s.level);
   const storeRank = useCasinoStore(s => s.rank);
-  
+  const ranks = useCasinoStore(s => s.ranks);
+
   const username = propUsername || 'You';
   const level = propLevel || storeLevel;
   const rank = propRank || storeRank;
@@ -112,7 +113,7 @@ export default function PlayerProfileModal({ isOpen, onClose, username: propUser
               <Star size={14} fill="currentColor" /> {rank.toUpperCase()} PERKS
             </h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {RANKS.find(r => r.name === rank)?.perks.map((perk) => (
+              {ranks.find(r => r.name === rank)?.perks.map((perk) => (
                 <span key={perk} style={{ fontSize: '0.65rem', fontWeight: 700, padding: '4px 8px', background: 'hsla(0,0%,100%,0.05)', borderRadius: '8px', color: 'hsl(var(--text-main))' }}>
                   ✓ {perk}
                 </span>

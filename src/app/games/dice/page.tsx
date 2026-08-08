@@ -1,8 +1,11 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { RotateCcw, Zap } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { GameErrorBoundary } from '@/components/casino/GameErrorBoundary';
+import { validateBet } from '@/lib/casino/bet-validator';
+import { sanitizeClientSeed } from '@/lib/casino/provably-fair';
+import { CasinoLogger } from '@/lib/casino/logger';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 // Metadata moved to layout or server component
@@ -16,42 +19,32 @@ export default function DicePage() {
 
 
   const balance = useCasinoStore(state => state.balance);
-  const xp = useCasinoStore(state => state.xp);
   const provablyFairSettings = useCasinoStore(state => state.provablyFairSettings);
   const setProvablyFairSettings = useCasinoStore(state => state.setProvablyFairSettings);
   const processGameResult = useCasinoStore(state => state.processGameResult);
+  const applyServerWalletSnapshot = useCasinoStore(state => state.applyServerWalletSnapshot);
   const allBets = useCasinoStore(state => state.allBets);
   const addToast = useCasinoStore(state => state.addToast);
   const isProcessing = useCasinoStore(state => state.isProcessing);
   const setIsProcessing = useCasinoStore(state => state.setIsProcessing);
   const sliderRef = useRef<HTMLDivElement>(null);
+  const isRunningRef = useRef(false);
   const [betAmount, setBetAmount] = useState(10);
   const [multiplier, setMultiplier] = useState(2.00);
   const [loading, setLoading] = useState(false);
   const [lastResult, setLastResult] = useState<{ roll: number; win: boolean } | null>(null);
   const [history, setHistory] = useState<{ roll: number, win: boolean }[]>([]);
-  const [showFairness, setShowFairness] = useState(false);
   const [isRollOver, setIsRollOver] = useState(true);
   const [winChance, setWinChance] = useState(49.5);
   const [targetPoint, setTargetPoint] = useState(50.50);
   const [winning, setWinning] = useState<boolean | null>(null);
   
+  // Live bet feed from Zustand store (real player activity)
   useEffect(() => {
-    const users = ['LuckyWhale', 'DiceKing', 'CryptoVibe', 'HighRoller', 'MoonShot'];
-    const interval = setInterval(() => {
-      const amount = Math.floor(Math.random() * 500) + 10;
-      const mult = (Math.random() * 5 + 1).toFixed(2);
-      const isWin = Math.random() > 0.5;
-      const newBet = {
-        user: users[Math.floor(Math.random() * users.length)],
-        resultId: Math.random().toString(36).slice(2, 11),
-        win: isWin,
-      };
-      
-      // Show result
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+    // Optionally display live dice bets in sidebar if space becomes available
+    // For now, allBets is available via store for future UI additions
+    // Filter: const diceBets = allBets.filter(b => b.game === 'DICE').slice(0, 15);
+  }, [allBets]);
   // New: Auto-betting & Stats
   const [isAutoMode, setIsAutoMode] = useState(false);
   const [autoRunning, setAutoRunning] = useState(false);
@@ -69,7 +62,8 @@ export default function DicePage() {
   const [baseBetAmount, setBaseBetAmount] = useState(10);
 
   const gameStats = useCasinoStore(state => state.gameStats.DICE);
-  const profitOnWin = betAmount * (multiplier - 1);
+  const { betMin, betMax } = useCasinoStore(state => state.gameConfig.limits);
+  const profitOnWin = useMemo(() => betAmount * (multiplier - 1), [betAmount, multiplier]);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
   useEffect(() => {
     const sounds = {
@@ -99,18 +93,14 @@ export default function DicePage() {
   const spawnConfetti = () => {
     const main = document.querySelector('.dice-main');
     if (!main) return;
-    for (let i = 0; i < 40; i++) {
-      const c = document.createElement('div');
-      c.className = 'confetti';
-      c.style.position = 'absolute';
-      c.style.left = Math.random() * 100 + '%';
-      c.style.top = '20%';
-      c.style.backgroundColor = ['#00e701', '#ffd700', '#fff'][Math.floor(Math.random() * 3)];
-      c.style.width = Math.random() * 10 + 5 + 'px';
-      c.style.height = c.style.width;
-      main.appendChild(c);
-      setTimeout(() => c.remove(), 2000);
-    }
+    // CSS-based confetti (deterministic, no randomness)
+    const burst = document.createElement('div');
+    burst.className = 'confetti-burst';
+    burst.style.left = '50%';
+    burst.style.top = '50%';
+    burst.style.transform = 'translate(-50%, -50%)';
+    main.appendChild(burst);
+    setTimeout(() => burst.remove(), 2500);
   };
   const updateFromWinChance = (chance: number) => {
     const val = Math.max(0.01, Math.min(98.99, chance));
@@ -174,21 +164,19 @@ export default function DicePage() {
     document.addEventListener('touchend', onTouchEnd);
   };
   const handleRoll = async () => {
-    if (betAmount < 0.1 || betAmount > 10000) {
-      addToast('Bet amount must be between $0.10 and $10,000!', 'error');
-      return;
-    }
-    if (betAmount > balance) {
+    if (isRunningRef.current) return;
+    const betError = validateBet(betAmount, balance);
+    if (betError) {
       setAutoRunning(false);
-      addToast('Insufficient balance!', 'error');
+      addToast(betError, 'error');
       return;
     }
-    
+    isRunningRef.current = true;
     setIsProcessing(true);
     setLoading(true);
     try {
       // Input Sanitization — inside try so a null/undefined clientSeed is caught
-      const sanitizedClientSeed = (provablyFairSettings.clientSeed ?? '').replace(/[^a-zA-Z0-9]/g, '').slice(0, 32) || 'default';
+      const sanitizedClientSeed = sanitizeClientSeed(provablyFairSettings.clientSeed);
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000);
       let response: Response;
@@ -197,6 +185,7 @@ export default function DicePage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            requestId: crypto.randomUUID(),
             gameType: 'DICE',
             amount: betAmount,
             multiplier,
@@ -216,6 +205,7 @@ export default function DicePage() {
         serverSeedHash: result.serverSeedHash,
         nonce: result.nonce 
       });
+      applyServerWalletSnapshot(result.wallet);
       processGameResult({
         game: 'DICE',
         amount: betAmount,
@@ -248,10 +238,13 @@ export default function DicePage() {
 
       setLastResult(outcomeResult);
       setHistory(prev => [outcomeResult, ...prev].slice(0, 10));
+      setVisualResult(result.roll);
+      setWinning(result.win);
     } catch (error) {
-      console.error("Dice bet error:", error);
+      CasinoLogger.error('Dice', 'Bet error', error);
       addToast('Bet failed. Please try again.', 'error');
     } finally {
+      isRunningRef.current = false;
       setLoading(false);
       setIsProcessing(false);
     }
@@ -269,21 +262,18 @@ export default function DicePage() {
         addToast(`Auto-bet stopped: Reached limit of ${maxAllowed} bets`, 'info');
         return;
       }
-      // Safety Cap: Bet amount cannot exceed $10,000 in auto-mode
-      if (betAmount > 10000) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+      // Safety Cap: Bet amount cannot exceed configured max in auto-mode
+      if (betAmount > betMax) {
         setAutoRunning(false);
-        addToast('Auto-bet stopped: Bet amount exceeded $10,000 limit', 'error');
+        addToast(`Auto-bet stopped: Bet amount exceeded $${betMax.toLocaleString()} limit`, 'error');
         return;
       }
       if (autoBetSettings.stopOnProfit > 0 && gameStats.profit >= autoBetSettings.stopOnProfit) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setAutoRunning(false);
         addToast('Auto-bet stopped: Profit goal reached!', 'success');
         return;
       }
       if (autoBetSettings.stopOnLoss > 0 && Math.abs(gameStats.profit) >= autoBetSettings.stopOnLoss && gameStats.profit < 0) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setAutoRunning(false);
         addToast('Auto-bet stopped: Loss limit reached', 'info');
         return;
@@ -300,20 +290,21 @@ export default function DicePage() {
     if (!autoRunning) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setCurrentAutoCount(0);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInitialBalance(balance);
     }
   }, [autoRunning]);
   useEffect(() => {
     const saved = localStorage.getItem('dice_settings');
-    if (saved) {
+    if (!saved) return;
+
+    try {
       const parsed = JSON.parse(saved);
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setBetAmount(parsed.betAmount || 1);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsRollOver(parsed.isRollOver ?? true);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTargetPoint(parsed.targetPoint || 50.5);
+    } catch {
+      localStorage.removeItem('dice_settings');
     }
   }, []);
   useEffect(() => {
@@ -426,7 +417,7 @@ export default function DicePage() {
               className="mono" 
               value={betAmount} 
               style={{ flex: 1, background: 'hsl(var(--bg-color))', border: 'none', color: '#fff', padding: '14px', fontSize: '1rem', fontWeight: 700, outline: 'none' }}
-              onChange={(e) => setBetAmount(Math.max(0, parseFloat(e.target.value) || 0))} 
+              onChange={(e) => setBetAmount(Math.min(betMax, Math.max(betMin, parseFloat(e.target.value) || betMin)))}
             />
             <button style={{ background: 'hsla(var(--surface-raised), 0.5)', color: '#fff', border: 'none', padding: isMobile ? '0 8px' : '0 16px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }} onClick={() => setBetAmount(betAmount / 2)}>1/2</button>
             <button style={{ background: 'hsla(var(--surface-raised), 0.5)', color: '#fff', border: 'none', padding: isMobile ? '0 8px' : '0 16px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }} onClick={() => setBetAmount(betAmount * 2)}>2x</button>
@@ -439,6 +430,37 @@ export default function DicePage() {
             <Zap size={16} style={{ marginLeft: 'auto', color: 'hsl(var(--text-dim))' }} />
           </div>
         </div>
+
+        <button
+          onClick={() => {
+            if (isAutoMode) {
+              if (!autoRunning) {
+                setBaseBetAmount(betAmount);
+                setAutoRunning(true);
+              } else {
+                setAutoRunning(false);
+              }
+            } else {
+              handleRoll();
+            }
+          }}
+          disabled={loading || isProcessing}
+          style={{
+            background: isAutoMode && autoRunning ? 'hsla(var(--primary), 0.1)' : 'hsl(var(--primary))',
+            color: isAutoMode && autoRunning ? 'hsl(var(--primary))' : '#000',
+            border: `1px solid ${isAutoMode && autoRunning ? 'hsla(var(--primary), 0.3)' : 'transparent'}`,
+            minHeight: '56px',
+            padding: 'var(--space-md)',
+            borderRadius: 'var(--radius-lg)',
+            fontSize: '1rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+            boxShadow: isAutoMode && autoRunning ? 'none' : 'var(--glow-primary)'
+          }}
+        >
+          {loading || isProcessing ? 'Rolling...' : isAutoMode ? (autoRunning ? 'Stop Autobet' : 'Start Autobet') : 'Bet'}
+        </button>
 
         {isAutoMode && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -481,41 +503,9 @@ export default function DicePage() {
           </div>
         )}
 
-        <div style={{ marginTop: isMobile ? '8px' : 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: 'hsl(var(--text-muted))' }}>
-              <Zap size={14} color="hsl(var(--success))" /> Instant Settlement
-            </div>
-          </div>
-
-        <button 
-          onClick={() => {
-            if (isAutoMode) {
-              if (!autoRunning) {
-                setBaseBetAmount(betAmount);
-                setAutoRunning(true);
-              } else {
-                setAutoRunning(false);
-              }
-            } else {
-              handleRoll();
-            }
-          }}
-          disabled={loading || isProcessing}
-          style={{ 
-            background: isAutoMode && autoRunning ? 'hsla(var(--primary), 0.1)' : 'hsl(var(--primary))', 
-            color: isAutoMode && autoRunning ? 'hsl(var(--primary))' : '#000', 
-            border: isAutoMode && autoRunning ? '1px solid hsla(var(--primary), 0.3)' : 'none', 
-            padding: 'var(--space-md)', 
-            borderRadius: 'var(--radius-lg)', 
-            fontSize: '1rem', 
-            fontWeight: 800, 
-            cursor: 'pointer',
-            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-            boxShadow: isAutoMode && autoRunning ? 'none' : 'var(--glow-primary)'
-          }}
-        >
-          {loading || isProcessing ? 'Rolling...' : isAutoMode ? (autoRunning ? 'Stop Autobet' : 'Start Autobet') : 'Bet'}
-        </button>
+        <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: 'hsl(var(--text-muted))' }}>
+          <Zap size={14} color="hsl(var(--success))" /> Instant Settlement
+        </div>
 
 
       </div>
@@ -530,9 +520,9 @@ export default function DicePage() {
         minWidth: 0
       }}>
         {/* Lucky 777 Backdrop */}
-        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', opacity: 0.1, zIndex: 0 }}>
-          <motion.div 
-            animate={{ 
+        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', opacity: 0.2, zIndex: 0 }}>
+          <motion.div
+            animate={{
               y: [0, -20, 0],
               scale: [1, 1.05, 1],
               rotate: [-2, 2, -2]
@@ -540,7 +530,7 @@ export default function DicePage() {
             transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
             style={{ width: '100%', height: '100%', position: 'relative' }}
           >
-            <Image src="/images/lucky-777-neon-3d.png" alt="777 Background" fill style={{ objectFit: 'contain', filter: 'blur(10px)' }} />
+            <Image src="/images/dice/lucky-777-neon-3d.png" alt="777 Background" fill style={{ objectFit: 'cover' }} loading="lazy" priority={false} />
           </motion.div>
         </div>
 

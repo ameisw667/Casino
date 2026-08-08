@@ -10,13 +10,14 @@
 
 import { describe, it, expect } from 'vitest';
 import { CasinoCore } from '../casino-core';
+import { DEFAULT_GAME_CONFIG } from '../game-config';
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
 const MAX_SAFE = Number.MAX_SAFE_INTEGER; // 9007199254740991
-const XP_CAP = 10_000; // Maximum XP that can be awarded per single bet
+const XP_CAP = DEFAULT_GAME_CONFIG.xp.maxXpPerBet; // Maximum XP that can be awarded per single bet
 
 // ---------------------------------------------------------------------------
 // Helper

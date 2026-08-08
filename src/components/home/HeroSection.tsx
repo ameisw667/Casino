@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Image from 'next/image';
 import { Star, CheckCircle2, Trophy, Coins, ShieldCheck } from 'lucide-react';
 
 interface Withdrawal {
@@ -15,7 +16,6 @@ interface HeroSectionProps {
   startOnboarding: () => void;
   liveWithdrawals: Withdrawal[];
 }
-import Image from 'next/image';
 import { Magnetic } from '@/components/ui/Magnetic';
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ 
@@ -48,14 +48,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         inset: 0,
         zIndex: 0,
       }}>
-        <Image 
-          src="/images/hero_bg.png" 
-          alt="Premium Casino Background" 
+        <Image
+          src="/images/hero_bg.png"
+          alt="Premium Casino Background"
           fill
           priority
-          style={{ 
+          sizes="100vw"
+          style={{
             objectFit: 'cover',
-            opacity: 1, 
             objectPosition: 'center right',
             maskImage: 'linear-gradient(to right, transparent, black 25%, black 75%, transparent)',
             WebkitMaskImage: 'linear-gradient(to right, transparent, black 25%, black 75%, transparent)'
@@ -197,9 +197,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
               <div style={{ height: '32px', width: '1px', background: 'rgba(255,255,255,0.1)' }} />
               <div style={{ display: 'flex', gap: '20px' }}>
-                <Image src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=029" width={24} height={24} style={{ filter: 'grayscale(1) brightness(4)' }} alt="BTC" />
-                <Image src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=029" width={24} height={24} style={{ filter: 'grayscale(1) brightness(4)' }} alt="ETH" />
-                <Image src="https://cryptologos.cc/logos/litecoin-ltc-logo.svg?v=029" width={24} height={24} style={{ filter: 'grayscale(1) brightness(4)' }} alt="LTC" />
+                <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=029" style={{ height: '24px', filter: 'grayscale(1) brightness(4)' }} alt="BTC" />
+                <img src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=029" style={{ height: '24px', filter: 'grayscale(1) brightness(4)' }} alt="ETH" />
+                <img src="https://cryptologos.cc/logos/litecoin-ltc-logo.svg?v=029" style={{ height: '24px', filter: 'grayscale(1) brightness(4)' }} alt="LTC" />
               </div>
             </div>
           )}
@@ -229,8 +229,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {liveWithdrawals.slice(0, 4).map((w, i) => (
               <div key={i} className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
-                  <Image src={w.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${w.user}`} alt="u" fill style={{ objectFit: 'cover' }} />
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <img src={w.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${w.user}`} alt="u" />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '0.9rem', fontWeight: 900, color: '#fff' }}>{w.user}</div>

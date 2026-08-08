@@ -1,7 +1,27 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { CasinoCore } from '@/lib/casino/casino-core';
+import { persist } from 'zustand/middleware';
 import { soundManager } from '@/lib/casino/sound-manager';
+import { CasinoLogger } from '@/lib/casino/logger';
+import {
+  type VipTier,
+  type Rank,
+  DEFAULT_VIP_CONFIG,
+  getVipTierByXp,
+  getRankByLevel,
+} from '@/lib/casino/vip-config';
+import {
+  type GameConfig,
+  DEFAULT_GAME_CONFIG,
+  getBetLimits,
+  calculateXpGainWithConfig,
+  calculateLevelWithConfig,
+  getRouletteMultiplierWithConfig,
+  calculateSlotsPayoutWithConfig,
+  getBlackjackMaxPayoutFactor,
+  validateBetWithConfig,
+} from '@/lib/casino/game-config';
+import type { WalletSnapshot } from '@/lib/casino/wallet-contract';
+import { walletSnapshotSchema } from '@/lib/casino/wallet-contract';
 
 export interface Bet {
   id: string;
@@ -14,14 +34,6 @@ export interface Bet {
   win: boolean;
 }
 
-export const VIP_TIERS = [
-  { name: 'BRONZE', minXp: 0, rakeback: 0.01, color: '#cd7f32' },
-  { name: 'SILVER', minXp: 5000, rakeback: 0.02, color: '#c0c0c0' },
-  { name: 'GOLD', minXp: 25000, rakeback: 0.03, color: '#ffd700' },
-  { name: 'PLATINUM', minXp: 100000, rakeback: 0.05, color: '#e5e4e2' },
-  { name: 'DIAMOND', minXp: 500000, rakeback: 0.10, color: '#b9f2ff' }
-];
-
 export interface Achievement {
   id: string;
   title: string;
@@ -30,17 +42,6 @@ export interface Achievement {
   unlocked: boolean;
   progress: number;
   total: number;
-}
-
-export interface Challenge {
-  id: string;
-  title: string;
-  description: string;
-  target: number;
-  current: number;
-  reward: number;
-  isClaimed: boolean;
-  type: 'wager' | 'wins' | 'multiplier';
 }
 
 export interface Toast {
@@ -55,16 +56,13 @@ export interface CasinoState {
   xp: number;
   level: number;
   rank: string;
+  vipTiers: VipTier[];
+  ranks: Rank[];
+  gameConfig: GameConfig;
+  sessionId: string | null;
   bets: Bet[];
   crashHistory: number[];
   achievements: Achievement[];
-  challenges: Challenge[];
-  rakebackPool: number;
-  inventory: {
-    cases: number;
-  };
-  dailyRewardLastClaimed: string | null;
-  streak: number;
   provablyFairSettings: {
     clientSeed: string;
     serverSeedHash: string;
@@ -123,7 +121,6 @@ export interface CasinoState {
   }[];
   communityWagered: number;
   communityGoal: number;
-  lastDailyClaim: string | null;
   onboardingStep: 'NONE' | 'WELCOME' | 'LOGIN' | 'TOUR_VAULT' | 'OPEN_CASE' | 'COMPLETED';
   soundEnabled: boolean;
   autoBetSettings: {
@@ -145,6 +142,7 @@ export interface CasinoState {
   affiliateRef: string | null;
   setAffiliateRef: (ref: string | null) => void;
   clearToasts: () => void;
+  applyServerWalletSnapshot: (snapshot: WalletSnapshot) => void;
 
   processGameResult: (params: {
     game: string;
@@ -154,8 +152,29 @@ export interface CasinoState {
     win: boolean;
     resultId: string;
     crashMultiplier?: number;
+    isSettlement?: boolean;
   }) => void;
-  
+
+  // VIP / Rank config
+  loadVipConfig: () => Promise<void>;
+  getVipTierByXp: (xp?: number) => VipTier;
+  getRankByLevel: (level?: number) => Rank;
+
+  // Game config
+  loadGameConfig: () => Promise<void>;
+  getBetLimits: () => { betMin: number; betMax: number };
+  getRouletteMultiplier: (betType: { type: string; value: number | string }) => number;
+  getSlotsPayout: (symbols: number[]) => number;
+  getBlackjackMaxPayoutFactor: () => number;
+  validateBet: (betAmount: number, balance: number) => string | null;
+  getXpGain: (wager: number, level?: number) => number;
+  calculateLevel: (totalXp: number) => number;
+
+  // Anonymous session
+  setSessionId: (sessionId: string | null) => void;
+  syncAnonymousSession: () => Promise<void>;
+  migrateAnonymousSession: () => Promise<boolean>;
+
   // Actions
   setIsChatOpen: (open: boolean) => void;
   updateSettings: (settings: Partial<Pick<CasinoState, 'soundVolume' | 'hideBalance' | 'anonymousBetting' | 'language' | 'oddsFormat' | 'soundEnabled'>>) => void;
@@ -165,25 +184,19 @@ export interface CasinoState {
   setIsMobile: (isMobile: boolean) => void;
   addChatMessage: (msg: { user: string; rank: string; message: string; isSystem?: boolean; isWin?: boolean }) => void;
   addLiveBet: (bet: { user: string; game: string; amount: number; multiplier: number; payout: number; isWin: boolean }) => void;
-  claimRakeback: () => number;
   startOnboarding: () => void;
   setOnboardingStep: (step: 'NONE' | 'WELCOME' | 'LOGIN' | 'TOUR_VAULT' | 'OPEN_CASE' | 'COMPLETED') => void;
   addBalance: (amount: number) => void;
-  claimDailyReward: () => number | null;
   toggleSound: () => void;
   addBet: (bet: Bet) => void;
   calculateXp: (wager: number) => void;
   addCrashHistory: (multiplier: number) => void;
   setProvablyFairSettings: (settings: Partial<CasinoState['provablyFairSettings']>) => void;
   unlockAchievement: (id: string) => void;
-  updateChallenge: (type: Challenge['type'], value: number) => void;
-  claimChallenge: (id: string) => void;
   removeBalance: (amount: number) => boolean;
-  openCase: () => { reward: number, type: 'balance' | 'xp' };
   addToast: (msg: string, type?: Toast['type'], duration?: number) => void;
   removeToast: (id: string) => void;
   setAutoBetSettings: (game: 'dice' | 'crash', settings: Partial<CasinoState['autoBetSettings']['dice'] | CasinoState['autoBetSettings']['crash']>) => void;
-  syncBalance: (newBalance: number) => void;
   startActivitySimulator: () => (() => void);
   initialize: () => Promise<void>;
   isLoading: boolean;
@@ -198,18 +211,6 @@ export interface CasinoState {
 
 
 
-export const RANKS = [
-  { name: 'Bronze', minLevel: 1, color: '#CD7F32', rakeback: 0.01, perks: ['Daily Missions', 'Basic Rakeback'] },
-  { name: 'Silver', minLevel: 10, color: '#C0C0C0', rakeback: 0.012, perks: ['Priority Support', 'Enhanced Rakeback'] },
-  { name: 'Gold', minLevel: 25, color: '#FFD700', rakeback: 0.015, perks: ['Private Access', 'Weekly Bonuses'] },
-  { name: 'Platinum', minLevel: 50, color: '#E5E4E2', rakeback: 0.018, perks: ['VIP Manager', 'Custom Cases'] },
-  { name: 'Diamond', minLevel: 100, color: '#B9F2FF', rakeback: 0.02, perks: ['Instant Withdrawals', 'Global Recognition'] },
-];
-
-export const BET_LIMITS = {
-  MIN: 0.1,
-  MAX: 10000
-};
 
 const INITIAL_ACHIEVEMENTS: Achievement[] = [
   { id: 'first_bet', title: 'First Steps', description: 'Place your first bet', icon: '🎯', unlocked: false, progress: 0, total: 1 },
@@ -223,38 +224,33 @@ const INITIAL_ACHIEVEMENTS: Achievement[] = [
   { id: 'moon_shot', title: 'Moon Shot', description: 'Hit a 100x multiplier in Crash', icon: '/images/ach-rocket-3d.png', unlocked: false, progress: 0, total: 100 },
 ];
 
-function getRankByLevel(level: number): string {
-  for (let i = RANKS.length - 1; i >= 0; i--) {
-    if (level >= RANKS[i].minLevel) return RANKS[i].name;
-  }
-  return RANKS[0].name;
-}
-
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const PROCESSED_RESULT_ID_CAPACITY = 256;
+const processedResultIds = new Set<string>();
+
+function rememberProcessedResultId(resultId: string): void {
+  if (processedResultIds.size >= PROCESSED_RESULT_ID_CAPACITY) {
+    const oldestResultId = processedResultIds.values().next().value;
+    if (oldestResultId !== undefined) processedResultIds.delete(oldestResultId);
+  }
+  processedResultIds.add(resultId);
+}
 
 export const useCasinoStore = create<CasinoState>()(
   persist(
     (set, get) => ({
-      balance: 1000.00,
+      balance: 0,
       xp: 0,
       level: 1,
       rank: 'Bronze',
+      vipTiers: DEFAULT_VIP_CONFIG.vipTiers,
+      ranks: DEFAULT_VIP_CONFIG.ranks,
+      gameConfig: DEFAULT_GAME_CONFIG,
+      sessionId: null,
       bets: [],
       crashHistory: [1.24, 5.52, 1.05, 12.43, 2.11, 1.88, 4.20],
       achievements: INITIAL_ACHIEVEMENTS,
-      challenges: [
-        { id: '1', title: 'Daily Grinder', description: 'Wager a total of $1,000 today', target: 1000, current: 0, reward: 50, isClaimed: false, type: 'wager' },
-        { id: '2', title: 'Lucky Streak', description: 'Win 10 bets in any game', target: 10, current: 0, reward: 25, isClaimed: false, type: 'wins' },
-        { id: '3', title: 'Moon Shot', description: 'Hit a 10x multiplier', target: 10, current: 0, reward: 100, isClaimed: false, type: 'multiplier' },
-        { id: '4', title: 'Roulette Master', description: 'Win 5 rounds on Roulette', target: 5, current: 0, reward: 40, isClaimed: false, type: 'wins' },
-        { id: '5', title: 'High Roller Dice', description: 'Wager $500 on Dice', target: 500, current: 0, reward: 75, isClaimed: false, type: 'wager' },
-      ],
-      rakebackPool: 0,
-      inventory: {
-        cases: 1,
-      },
-      dailyRewardLastClaimed: null,
-      streak: 0,
       provablyFairSettings: {
         clientSeed: 'vibe-coder-default',
         serverSeedHash: '',
@@ -275,13 +271,19 @@ export const useCasinoStore = create<CasinoState>()(
         ROULETTE: { totalBets: 0, wins: 0, losses: 0, profit: 0 },
         SLOTS: { totalBets: 0, wins: 0, losses: 0, profit: 0 }
       },
+      analytics: {
+        totalWagered: 0,
+        totalPayout: 0,
+        winRate: 0,
+        totalSessionTime: 0,
+        activityHeatmap: {},
+      },
       chatMessages: [
         { id: '1', user: 'System', rank: 'MOD', message: 'Welcome to Casino Royale! Play fair, win big.', time: '10:00 AM', isSystem: true }
       ],
       allBets: [],
       communityWagered: 8420.50,
       communityGoal: 25000.00,
-      lastDailyClaim: null,
       onboardingStep: 'NONE',
       soundEnabled: true,
       communityGoalReached: false,
@@ -303,12 +305,26 @@ export const useCasinoStore = create<CasinoState>()(
       },
       _hasHydrated: false,
       setHasHydrated: (val: boolean) => set({ _hasHydrated: val }),
+      applyServerWalletSnapshot: (snapshot) => {
+        const verified = walletSnapshotSchema.parse(snapshot);
+        set({
+          balance: verified.balance,
+          xp: verified.xp,
+          level: verified.level,
+          rank: verified.rank,
+        });
+      },
       syncToFile: () => {
         if (process.env.NODE_ENV !== 'development') return;
         if (syncTimer) clearTimeout(syncTimer);
         syncTimer = setTimeout(() => {
           const state = get();
-          const { toasts: _t, isProcessing: _p, isMobile: _m, _hasHydrated: _h, ...data } = state;
+          const {
+            toasts: _t, isProcessing: _p, isMobile: _m, _hasHydrated: _h,
+            balance: _balance, xp: _xp, level: _level, rank: _rank,
+            bets: _bets, allBets: _allBets,
+            ...data
+          } = state;
           const serializable = Object.fromEntries(
             Object.entries(data as Record<string, unknown>).filter(([, v]) => typeof v !== 'function')
           );
@@ -330,17 +346,25 @@ export const useCasinoStore = create<CasinoState>()(
       crashMultiplier?: number;
       isSettlement?: boolean; // If true, doesn't subtract amount (it was already subtracted)
     }) => {
-      const { game, amount, multiplier, payout, win, resultId, crashMultiplier, isSettlement } = params;
+      const { game, amount, multiplier, payout, win, resultId, crashMultiplier } = params;
+      const config = get().gameConfig;
 
       // --- 1. Validation & Security ---
-      if (typeof amount !== 'number' || isNaN(amount) || amount < 0 || amount > 10000) {
-        console.error(`[CasinoCore] SECURITY ALERT: Invalid bet amount detected: ${amount}`);
+      if (typeof amount !== 'number' || isNaN(amount) || amount < 0 || amount > config.limits.betMax) {
+        CasinoLogger.error('CasinoCore', `SECURITY ALERT: Invalid bet amount detected: ${amount}`);
         return;
       }
       if (typeof payout !== 'number' || isNaN(payout) || payout < 0) {
-        console.error(`[CasinoCore] SECURITY ALERT: Invalid payout detected: ${payout}`);
+        CasinoLogger.error('CasinoCore', `SECURITY ALERT: Invalid payout detected: ${payout}`);
         return;
       }
+      if (!UUID_PATTERN.test(resultId)) {
+        CasinoLogger.error('CasinoCore', 'SECURITY ALERT: Missing or invalid canonical result ID');
+        return;
+      }
+
+      if (processedResultIds.has(resultId)) return;
+      rememberProcessedResultId(resultId);
 
       set((state) => {
         // --- 1. Audio Feedback ---
@@ -349,44 +373,12 @@ export const useCasinoStore = create<CasinoState>()(
           else soundManager.play('loss');
         }
 
-        // --- 2. Atomic Balance Update ---
-        // Consistent with Logic-Architect directives: amount is already deducted or deducted here.
-        // For atomic safety, we recalculate from the current balance.
-        const newBalance = isSettlement ? state.balance + payout : state.balance - amount + payout;
-        
-        if (newBalance < 0 && amount > 0) {
-          console.error(`[CasinoCore] Insufficient balance for transaction: ${newBalance}`);
-          return state;
-        }
-
-        // --- 3. XP & Progression ---
-        const xpGain = CasinoCore.calculateXpGain(amount);
-        const newXp = Math.max(0, state.xp + xpGain);
-        const newLevel = CasinoCore.calculateLevel(newXp);
-
-        // --- 4. VIP Rank Logic ---
-        const currentTier = [...VIP_TIERS].reverse().find(t => newXp >= t.minXp) || VIP_TIERS[0];
-        
-        // --- 5. Rakeback Calculation (0.5% base + Tier bonus) ---
-        const rakebackRate = 0.005 + currentTier.rakeback;
-        const rakebackGain = amount * rakebackRate;
-        const newRakebackPool = state.rakebackPool + rakebackGain;
-
-        let inventoryUpdate = {};
-        if (newLevel > state.level) {
-          inventoryUpdate = { 
-            inventory: { ...state.inventory, cases: state.inventory.cases + (newLevel - state.level) } 
-          };
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('level-up', { detail: { level: newLevel } }));
-          }
-        }
-        
-        const calculatedRank = getRankByLevel(newLevel);
-
+        // Wallet, XP, level and rank are applied separately from the server snapshot.
+        // This action records only already-confirmed presentation/history data.
+        const newLevel = state.level;
         // --- 4. History & Analytics ---
         const newBet: Bet = {
-          id: resultId || Math.random().toString(36).slice(2, 11),
+          id: resultId,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           game,
           user: 'You',
@@ -414,14 +406,6 @@ export const useCasinoStore = create<CasinoState>()(
             window.dispatchEvent(new CustomEvent('community-goal-reached'));
           }
         }
-
-        const newChallenges = state.challenges.map((c) => {
-          if (c.isClaimed) return c;
-          if (c.type === 'wager') return { ...c, current: Math.min(c.current + amount, c.target) };
-          if (c.type === 'wins' && win) return { ...c, current: Math.min(c.current + 1, c.target) };
-          if (c.type === 'multiplier') return { ...c, current: Math.max(c.current, multiplier) };
-          return c;
-        });
 
         // --- 6. Stats Tracking ---
         const prevGameStats = state.gameStats[game] || { totalBets: 0, wins: 0, losses: 0, profit: 0 };
@@ -451,15 +435,9 @@ export const useCasinoStore = create<CasinoState>()(
           return { ...ach, unlocked, progress };
         });
 
-        return { 
-          balance: Math.round(newBalance * 100) / 100,
-          xp: newXp,
-          level: newLevel,
-          rank: calculatedRank,
+        return {
           bets: newBets,
           achievements: newAchievements,
-          challenges: newChallenges,
-          rakebackPool: newRakebackPool,
           isProcessing: false,
           gameStats: updatedGameStats,
           communityWagered: newCommunityWagered,
@@ -477,15 +455,79 @@ export const useCasinoStore = create<CasinoState>()(
             },
             ...state.allBets
           ].slice(0, 30),
-          ...inventoryUpdate,
           ...crashHistoryUpdate
         };
       });
       get().syncToFile();
     },
 
+      loadVipConfig: async () => {
+        try {
+          const response = await fetch('/api/casino/config');
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const config = (await response.json()) as {
+            vipTiers: VipTier[];
+            ranks: Rank[];
+            gameConfig: GameConfig;
+          };
+          set({
+            vipTiers: config.vipTiers,
+            ranks: config.ranks,
+            gameConfig: config.gameConfig ?? DEFAULT_GAME_CONFIG,
+          });
+        } catch (error) {
+          CasinoLogger.error('STORE', 'Failed to load VIP/game config, keeping defaults', error);
+        }
+      },
+
+      loadGameConfig: async () => {
+        try {
+          const response = await fetch('/api/casino/config');
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const config = (await response.json()) as { gameConfig: GameConfig };
+          set({ gameConfig: config.gameConfig ?? DEFAULT_GAME_CONFIG });
+        } catch (error) {
+          CasinoLogger.error('STORE', 'Failed to load game config, keeping defaults', error);
+        }
+      },
+
+      getBetLimits: () => getBetLimits(get().gameConfig),
+
+      getRouletteMultiplier: (betType) => getRouletteMultiplierWithConfig(betType as never, get().gameConfig),
+
+      getSlotsPayout: (symbols) => calculateSlotsPayoutWithConfig(symbols, get().gameConfig),
+
+      getBlackjackMaxPayoutFactor: () => getBlackjackMaxPayoutFactor(get().gameConfig),
+
+      validateBet: (betAmount, balance) => validateBetWithConfig(betAmount, balance, get().gameConfig),
+
+      getXpGain: (wager, level = get().level) => calculateXpGainWithConfig(wager, level, get().gameConfig),
+
+      calculateLevel: (totalXp) => calculateLevelWithConfig(totalXp, get().gameConfig),
+
+      getVipTierByXp: (xp = get().xp) => {
+        return getVipTierByXp(get().vipTiers, xp);
+      },
+
+      getRankByLevel: (level = get().level) => {
+        return getRankByLevel(get().ranks, level);
+      },
+
+      setSessionId: (sessionId) => set({ sessionId }),
+
+      syncAnonymousSession: async () => {
+        // Anonymous clients cannot submit authoritative XP or wallet state.
+      },
+      migrateAnonymousSession: async () => {
+        // Server wallet provisioning replaces client-supplied session migration.
+        return false;
+      },
       setIsChatOpen: (open) => set({ isChatOpen: open }),
-      updateSettings: (settings) => set((state) => ({ ...state, ...settings })),
+      updateSettings: (settings) => {
+        if (settings.soundEnabled !== undefined) soundManager.toggle(settings.soundEnabled);
+        if (settings.soundVolume !== undefined) soundManager.setVolume(settings.soundVolume);
+        set((state) => ({ ...state, ...settings }));
+      },
       updateSessionTime: () => {
         const interval = setInterval(() => {
           set((state) => ({
@@ -520,17 +562,6 @@ export const useCasinoStore = create<CasinoState>()(
         };
       }),
       setIsMobile: (isMobile) => set({ isMobile }),
-      claimRakeback: () => {
-        const { rakebackPool, balance, addToast } = get();
-        if (rakebackPool <= 0) {
-          addToast('No rakeback to claim', 'error');
-          return 0;
-        }
-        const claimAmount = Math.round(rakebackPool * 100) / 100;
-        set({ balance: balance + claimAmount, rakebackPool: 0 });
-        addToast(`Claimed $${claimAmount} Rakeback!`, 'success');
-        return claimAmount;
-      },
       toggleSound: () => {
         set((state) => {
           const newEnabled = !state.soundEnabled;
@@ -566,56 +597,10 @@ export const useCasinoStore = create<CasinoState>()(
       
       setOnboardingStep: (step) => set({ onboardingStep: step }),
 
-      addBalance: (amount) => {
-        if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) return;
-        set((state) => ({ balance: state.balance + amount }));
+      addBalance: (_amount) => {
+        get().addToast('Client-side wallet credits are disabled.', 'error');
       },
-
-      claimDailyReward: () => {
-        const state = get();
-        const now = new Date();
-        const todayStr = now.toDateString();
-        
-        if (state.lastDailyClaim === todayStr) return null;
-
-        const lastClaimDate = state.lastDailyClaim ? new Date(state.lastDailyClaim) : null;
-        const oneDay = 24 * 60 * 60 * 1000;
-        
-        let newStreak = 1;
-        if (lastClaimDate) {
-          const diff = now.getTime() - lastClaimDate.getTime();
-          if (diff < 2 * oneDay) {
-            newStreak = (state.streak % 7) + 1;
-          }
-        }
-
-        const rewards = [1.00, 2.50, 5.00, 10.00, 20.00, 50.00, 100.00];
-        const rewardAmount = rewards[newStreak - 1] || 1.00;
-
-        set((state) => ({
-          balance: state.balance + rewardAmount,
-          lastDailyClaim: todayStr,
-          streak: newStreak
-        }));
-        get().syncToFile();
-
-        return rewardAmount;
-      },
-
-      removeBalance: (amount) => {
-        if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) return false;
-        
-        let success = false;
-        set((state) => {
-          if (state.balance >= amount) {
-            success = true;
-            return { balance: state.balance - amount };
-          }
-          return state;
-        });
-        return success;
-      },
-
+      removeBalance: (_amount) => false,
       addBet: (bet) => {
         set((state) => {
           const newBets = [bet, ...state.bets].slice(0, 50);
@@ -633,34 +618,11 @@ export const useCasinoStore = create<CasinoState>()(
 
           return { bets: newBets, achievements: newAchievements };
         });
-        
-        // Update XP & Challenges & Rakeback
-        get().calculateXp(bet.amount);
-        get().updateChallenge('wager', bet.amount);
-        if (bet.win) get().updateChallenge('wins', 1);
-
-        const currentRank = RANKS.find(r => r.name === get().rank) || RANKS[0];
-        set((state) => ({ rakebackPool: state.rakebackPool + bet.amount * currentRank.rakeback }));
       },
 
-      calculateXp: (wager) => set((state) => {
-        const xpGain = CasinoCore.calculateXpGain(wager);
-        const newXp = state.xp + xpGain;
-        const newLevel = CasinoCore.calculateLevel(newXp);
-        
-        let inventoryUpdate = {};
-        if (newLevel > state.level) {
-          inventoryUpdate = { 
-            inventory: { ...state.inventory, cases: state.inventory.cases + (newLevel - state.level) } 
-          };
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('level-up', { detail: { level: newLevel } }));
-          }
-        }
-        
-        return { xp: newXp, level: newLevel, rank: getRankByLevel(newLevel), ...inventoryUpdate };
-      }),
-
+      calculateXp: (_wager) => {
+        get().addToast('XP is updated only from a server wallet snapshot.', 'info');
+      },
       addCrashHistory: (multiplier) => set((state) => {
         const newAchievements = state.achievements.map(ach => {
           if (ach.id === 'moon_shot' && multiplier >= 10 && !ach.unlocked) {
@@ -668,7 +630,6 @@ export const useCasinoStore = create<CasinoState>()(
           }
           return ach;
         });
-        get().updateChallenge('multiplier', multiplier);
         return {
           crashHistory: [multiplier, ...state.crashHistory].slice(0, 50),
           achievements: newAchievements
@@ -684,45 +645,6 @@ export const useCasinoStore = create<CasinoState>()(
           ach.id === id ? { ...ach, unlocked: true, progress: ach.total } : ach
         )
       })),
-
-      updateChallenge: (type, value) => {
-        set((state) => ({
-          challenges: state.challenges.map((c) => {
-            if (c.type === type && !c.isClaimed) {
-              const newCurrent = type === 'multiplier' ? Math.max(c.current, value) : c.current + value;
-              return { ...c, current: Math.min(newCurrent, c.target) };
-            }
-            return c;
-          }),
-        }));
-      },
-
-      claimChallenge: (id) => {
-        const challenge = get().challenges.find((c) => c.id === id);
-        if (challenge && challenge.current >= challenge.target && !challenge.isClaimed) {
-          set((state) => ({
-            balance: state.balance + challenge.reward,
-            challenges: state.challenges.map((c) => 
-              c.id === id ? { ...c, isClaimed: true } : c
-            ),
-          }));
-        }
-      },
-
-      openCase: () => {
-        if (get().inventory.cases <= 0) throw new Error("No cases available");
-        
-        const isXp = Math.random() > 0.7;
-        const reward = isXp ? Math.floor(Math.random() * 500) + 100 : Math.floor(Math.random() * 50) + 5;
-        
-        set((state) => ({
-          inventory: { ...state.inventory, cases: state.inventory.cases - 1 },
-          balance: isXp ? state.balance : state.balance + reward,
-          xp: isXp ? state.xp + reward : state.xp
-        }));
-
-        return { reward, type: isXp ? 'xp' : 'balance' };
-      },
 
       addToast: (message, type = 'info', duration = 4000) => set((state) => {
         const id = Math.random().toString(36).slice(2, 11);
@@ -745,8 +667,6 @@ export const useCasinoStore = create<CasinoState>()(
           [game]: { ...state.autoBetSettings[game], ...settings }
         }
       })),
-
-      syncBalance: (newBalance) => set({ balance: newBalance }),
 
       startActivitySimulator: () => {
         if (typeof window === 'undefined') return () => {};
@@ -778,79 +698,23 @@ export const useCasinoStore = create<CasinoState>()(
       },
 
       initialize: async () => {
-        if (process.env.NODE_ENV !== 'development') return;
-
         try {
-          const response = await fetch('/api/local/state');
-          if (!response.ok) return;
-
-          const saved = await response.json() as Record<string, unknown>;
-          if (!saved || saved.notFound) return;
-
-          const {
-            balance, xp, level, rank, bets, gameStats, achievements, challenges,
-            rakebackPool, streak, communityWagered, allBets, crashHistory,
-            provablyFairSettings, dailyRewardLastClaimed, lastDailyClaim,
-            communityGoalReached, soundEnabled, soundVolume, language, oddsFormat,
-            hideBalance, anonymousBetting, autoBetSettings, analytics,
-            responsibleGaming, onboardingStep, inventory, chatMessages,
-          } = saved;
-
-          const update: Partial<CasinoState> = {};
-          if (balance !== undefined && Number.isFinite(balance as number)) update.balance = balance as number;
-          if (xp !== undefined) update.xp = xp as number;
-          if (level !== undefined) update.level = level as number;
-          if (rank !== undefined) update.rank = rank as string;
-          if (bets !== undefined) update.bets = bets as Bet[];
-          if (gameStats !== undefined) update.gameStats = gameStats as CasinoState['gameStats'];
-          if (achievements !== undefined) update.achievements = achievements as Achievement[];
-          if (challenges !== undefined) update.challenges = challenges as Challenge[];
-          if (rakebackPool !== undefined) update.rakebackPool = rakebackPool as number;
-          if (streak !== undefined) update.streak = streak as number;
-          if (communityWagered !== undefined) update.communityWagered = communityWagered as number;
-          if (allBets !== undefined) update.allBets = allBets as CasinoState['allBets'];
-          if (crashHistory !== undefined) update.crashHistory = crashHistory as number[];
-          if (provablyFairSettings !== undefined) update.provablyFairSettings = provablyFairSettings as CasinoState['provablyFairSettings'];
-          if (dailyRewardLastClaimed !== undefined) update.dailyRewardLastClaimed = dailyRewardLastClaimed as string | null;
-          if (lastDailyClaim !== undefined) update.lastDailyClaim = lastDailyClaim as string | null;
-          if (communityGoalReached !== undefined) update.communityGoalReached = communityGoalReached as boolean;
-          if (soundEnabled !== undefined) update.soundEnabled = soundEnabled as boolean;
-          if (soundVolume !== undefined) update.soundVolume = soundVolume as number;
-          if (language !== undefined) update.language = language as string;
-          if (oddsFormat !== undefined) update.oddsFormat = oddsFormat as string;
-          if (hideBalance !== undefined) update.hideBalance = hideBalance as boolean;
-          if (anonymousBetting !== undefined) update.anonymousBetting = anonymousBetting as boolean;
-          if (autoBetSettings !== undefined) update.autoBetSettings = autoBetSettings as CasinoState['autoBetSettings'];
-          if (analytics !== undefined) update.analytics = analytics as CasinoState['analytics'];
-          if (responsibleGaming !== undefined) update.responsibleGaming = responsibleGaming as CasinoState['responsibleGaming'];
-          if (onboardingStep !== undefined) update.onboardingStep = onboardingStep as CasinoState['onboardingStep'];
-          if (inventory !== undefined) update.inventory = inventory as CasinoState['inventory'];
-          if (chatMessages !== undefined) update.chatMessages = chatMessages as CasinoState['chatMessages'];
-
-          if (Object.keys(update).length > 0) set(update);
-        } catch {
-          // Silently fall back to localStorage state
+          const response = await fetch('/api/user/balance', { cache: 'no-store' });
+          if (!response.ok) throw new Error(`Wallet request failed with HTTP ${response.status}`);
+          get().applyServerWalletSnapshot(await response.json());
+        } catch (error) {
+          CasinoLogger.error('STORE', 'Server wallet initialization failed closed', error);
         }
       },
-
       isLoading: false,
       setIsLoading: (loading: boolean) => set({ isLoading: loading }),
 
-      redeemCode: (code) => {
-        const { addToast, balance } = get();
-        const normalizedCode = code.trim().toUpperCase();
-
-        if (normalizedCode === 'JAN100') {
-          const rewardAmount = 1000000;
-          set((state) => ({ balance: state.balance + rewardAmount }));
-          get().syncToFile();
-          addToast(`Voucher Redeemed! +$${rewardAmount.toLocaleString()}`, 'success');
-          return { success: true, message: 'Voucher activated!' };
-        }
-
-        addToast('Invalid voucher code', 'error');
-        return { success: false, message: 'Invalid code' };
+      redeemCode: (_code) => {
+        get().addToast('Voucher credits require server confirmation.', 'info');
+        return { success: false, message: 'Server confirmation required' };
       },
+      setAffiliateRef: (ref) => set({ affiliateRef: ref }),
+      clearToasts: () => set({ toasts: [] }),
 
       dismissMartingaleWarning: () => {
         set((state) => ({
@@ -865,13 +729,45 @@ export const useCasinoStore = create<CasinoState>()(
     {
       name: 'casino-storage',
       skipHydration: true,
-      version: 1,
-      migrate: (persistedState) => persistedState as CasinoState,
+      version: 3,
+      migrate: (persistedState) => {
+        const migrated = {
+          ...(persistedState as Partial<CasinoState> & { processedResultIds?: string[] }),
+        };
+        delete migrated.balance;
+        delete migrated.xp;
+        delete migrated.level;
+        delete migrated.rank;
+        delete migrated.bets;
+        delete migrated.allBets;
+        delete migrated.processedResultIds;
+        return migrated as CasinoState;
+      },
       onRehydrateStorage: () => (state) => {
-        if (state) state.setHasHydrated(true);
+        if (state) {
+          state.setHasHydrated(true);
+          if (state.soundEnabled !== undefined) soundManager.toggle(state.soundEnabled);
+          if (state.soundVolume !== undefined) soundManager.setVolume(state.soundVolume);
+        }
       },
       partialize: (state) => {
-        const { toasts: _t, isProcessing: _p, isMobile: _m, _hasHydrated: _h, ...rest } = state;
+        const {
+          toasts: _t,
+          isProcessing: _p,
+          isMobile: _m,
+          _hasHydrated: _h,
+          sessionId: _s,
+          gameConfig: _gc,
+          vipTiers: _vt,
+          ranks: _r,
+          bets: _bets,
+          allBets: _allBets,
+          balance: _balance,
+          xp: _xp,
+          level: _level,
+          rank: _rank,
+          ...rest
+        } = state;
         return rest;
       }
     }

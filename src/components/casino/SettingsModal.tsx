@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Settings, Shield, EyeOff, Layout, Volume2, VolumeX, Eye } from 'lucide-react';
+import { X, Settings, Volume2, VolumeX } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { useModalKeyboard } from '@/hooks/useModalKeyboard';
 
@@ -12,24 +12,15 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const isMobile = useCasinoStore(s => s.isMobile);
   const soundEnabled = useCasinoStore(s => s.soundEnabled);
   const soundVolume = useCasinoStore(s => s.soundVolume);
-  const hideBalance = useCasinoStore(s => s.hideBalance);
-  const anonymousBetting = useCasinoStore(s => s.anonymousBetting);
-  const language = useCasinoStore(s => s.language);
-  const oddsFormat = useCasinoStore(s => s.oddsFormat);
   const updateSettings = useCasinoStore(s => s.updateSettings);
   const addToast = useCasinoStore(s => s.addToast);
-  
+
   // Universal ESC-key handling
   useModalKeyboard(onClose, isOpen);
 
-  // Local state for all settings to allow "Save Changes" vs "Cancel" pattern
-  // Logic-Architect: Initialize directly from props since parent uses conditional rendering
-  const [localLang, setLocalLang] = useState(language || 'en');
-  const [localOdds, setLocalOdds] = useState(oddsFormat || 'decimal');
+  // Local state for sound settings to allow "Save Changes" vs "Cancel" pattern
   const [localSoundEnabled, setLocalSoundEnabled] = useState(soundEnabled ?? true);
   const [localSoundVolume, setLocalSoundVolume] = useState(soundVolume ?? 0.5);
-  const [localHideBalance, setLocalHideBalance] = useState(hideBalance ?? false);
-  const [localAnonymousBetting, setLocalAnonymousBetting] = useState(anonymousBetting ?? false);
 
   // Body Scroll Lock
   useEffect(() => {
@@ -45,12 +36,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   const handleSave = () => {
     updateSettings({
-      language: localLang,
-      oddsFormat: localOdds,
       soundEnabled: localSoundEnabled,
       soundVolume: localSoundVolume,
-      hideBalance: localHideBalance,
-      anonymousBetting: localAnonymousBetting
     });
     addToast('Settings updated successfully', 'success');
     onClose();
@@ -103,92 +90,38 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         </div>
 
         <div style={{ padding: isMobile ? '24px' : '32px', display: 'flex', flexDirection: 'column', gap: isMobile ? '24px' : '32px' }}>
-          {/* Privacy Section */}
-          <section>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-              <Shield size={18} color="hsl(var(--primary))" />
-              <h3 style={{ fontSize: '0.9rem', fontWeight: 800, margin: 0 }}>PRIVACY & SECURITY</h3>
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>Hide Balance</div>
-                  <div style={{ fontSize: '0.75rem', color: 'hsl(var(--text-muted))' }}>Conceal balance in topbar</div>
-                </div>
-                <button 
-                  onClick={() => setLocalHideBalance(!localHideBalance)}
-                  className="btn btn-ghost" 
-                  style={{ padding: '12px', color: localHideBalance ? 'hsl(var(--primary))' : 'inherit' }}
-                >
-                  {localHideBalance ? <Eye size={20} /> : <EyeOff size={20} />}
-                </button>
-              </div>
-              
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>Anonymous Betting</div>
-                  <div style={{ fontSize: '0.75rem', color: 'hsl(var(--text-muted))' }}>Hide name from public feeds</div>
-                </div>
-                <div 
-                  onClick={() => setLocalAnonymousBetting(!localAnonymousBetting)}
-                  style={{ 
-                    width: '48px', 
-                    height: '24px', 
-                    borderRadius: '12px', 
-                    background: localAnonymousBetting ? 'hsl(var(--primary))' : 'hsla(0,0%,100%,0.1)', 
-                    position: 'relative', 
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  <div style={{ 
-                    position: 'absolute', 
-                    left: localAnonymousBetting ? '28px' : '4px', 
-                    top: '4px', 
-                    width: '16px', 
-                    height: '16px', 
-                    borderRadius: '50%', 
-                    background: localAnonymousBetting ? 'black' : 'white',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                  }} />
-                </div>
-              </div>
-            </div>
-          </section>
-
           {/* Audio Section */}
           <section>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
               <Volume2 size={18} color="hsl(var(--primary))" />
               <h3 style={{ fontSize: '0.9rem', fontWeight: 800, margin: 0 }}>AUDIO & SOUND</h3>
             </div>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>Sound Effects</div>
                   <div style={{ fontSize: '0.75rem', color: 'hsl(var(--text-muted))' }}>Toggle all game sounds</div>
                 </div>
-                <div 
+                <div
                   onClick={() => setLocalSoundEnabled(!localSoundEnabled)}
-                  style={{ 
-                    width: '48px', 
-                    height: '24px', 
-                    borderRadius: '12px', 
-                    background: localSoundEnabled ? 'hsl(var(--primary))' : 'hsla(0,0%,100%,0.1)', 
-                    position: 'relative', 
+                  style={{
+                    width: '48px',
+                    height: '24px',
+                    borderRadius: '12px',
+                    background: localSoundEnabled ? 'hsl(var(--primary))' : 'hsla(0,0%,100%,0.1)',
+                    position: 'relative',
                     cursor: 'pointer',
                     transition: 'all 0.3s ease'
                   }}
                 >
-                  <div style={{ 
-                    position: 'absolute', 
-                    left: localSoundEnabled ? '28px' : '4px', 
-                    top: '4px', 
-                    width: '16px', 
-                    height: '16px', 
-                    borderRadius: '50%', 
+                  <div style={{
+                    position: 'absolute',
+                    left: localSoundEnabled ? '28px' : '4px',
+                    top: '4px',
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '50%',
                     background: localSoundEnabled ? 'black' : 'white',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                   }} />
@@ -202,61 +135,24 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   {localSoundVolume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                  <input 
-                    type="range" 
-                    min="0" 
-                    max="1" 
-                    step="0.01" 
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
                     value={localSoundVolume}
                     onChange={(e) => setLocalSoundVolume(parseFloat(e.target.value))}
-                    style={{ 
-                      flex: 1, 
-                      height: '6px', 
-                      borderRadius: '3px', 
-                      appearance: 'none', 
+                    style={{
+                      flex: 1,
+                      height: '6px',
+                      borderRadius: '3px',
+                      appearance: 'none',
                       background: `linear-gradient(to right, hsl(var(--primary)) ${localSoundVolume * 100}%, hsla(0,0%,100%,0.1) ${localSoundVolume * 100}%)`,
                       outline: 'none',
                       cursor: 'pointer'
-                    }} 
+                    }}
                   />
                 </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Localization Section */}
-          <section>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-              <Layout size={18} color="hsl(var(--primary))" />
-              <h3 style={{ fontSize: '0.9rem', fontWeight: 800, margin: 0 }}>LOCALIZATION</h3>
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'hsl(var(--text-muted))', marginBottom: '8px', display: 'block' }}>LANGUAGE</label>
-                <select 
-                  value={localLang}
-                  onChange={(e) => setLocalLang(e.target.value)}
-                  className="input" 
-                  style={{ height: '52px', fontSize: '0.9rem', fontWeight: 600, background: 'hsla(var(--bg-color), 0.5)', width: '100%', borderRadius: '12px', border: '1px solid var(--glass-border)', padding: '0 16px', color: '#fff' }}
-                >
-                  <option value="en">English (US)</option>
-                  <option value="de">German (DE)</option>
-                  <option value="fr">French (FR)</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: '0.7rem', fontWeight: 800, color: 'hsl(var(--text-muted))', marginBottom: '8px', display: 'block' }}>ODDS FORMAT</label>
-                <select 
-                  value={localOdds}
-                  onChange={(e) => setLocalOdds(e.target.value)}
-                  className="input" 
-                  style={{ height: '52px', fontSize: '0.9rem', fontWeight: 600, background: 'hsla(var(--bg-color), 0.5)', width: '100%', borderRadius: '12px', border: '1px solid var(--glass-border)', padding: '0 16px', color: '#fff' }}
-                >
-                  <option value="decimal">Decimal (2.00)</option>
-                  <option value="fractional">Fractional (1/1)</option>
-                  <option value="american">American (+100)</option>
-                </select>
               </div>
             </div>
           </section>

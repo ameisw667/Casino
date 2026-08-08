@@ -49,7 +49,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
       return;
     }
     addBalance(val);
-    addToast(`Successfully deposited $${val.toLocaleString()}!`, 'success');
+    addToast(`Successfully deposited $${val.toLocaleString('en-US')}!`, 'success');
     setAmount('');
     onClose();
   };
@@ -78,7 +78,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
     const success = removeBalance(val);
     if (success) {
-      addToast(`Withdrawal of $${val.toLocaleString()} initiated to ${withdrawAddress}!`, 'success');
+      addToast(`Withdrawal of $${val.toLocaleString('en-US')} initiated to ${withdrawAddress}!`, 'success');
       setAmount('');
       setWithdrawAddress('');
       onClose();
@@ -130,7 +130,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
         <div style={{ padding: isMobile ? '16px 24px' : '24px 32px', textAlign: 'center', background: 'hsla(var(--primary), 0.05)' }}>
           <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'hsl(var(--text-muted))', letterSpacing: '0.1em', marginBottom: '4px' }}>AVAILABLE BALANCE</div>
           <div className="mono" style={{ fontSize: isMobile ? '2rem' : '2.5rem', fontWeight: 900, color: 'hsl(var(--primary))' }}>
-            ${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            ${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </div>
         </div>
         {/* Tabs */}

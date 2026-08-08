@@ -13,7 +13,12 @@ export type SymbolType =
   | 'gem_green'
   | 'wild'
   | 'scatter'
-  | 'multiplier';
+  | 'multiplier'
+  | 'card_ten'
+  | 'card_jack'
+  | 'card_queen'
+  | 'card_king'
+  | 'card_ace';
 
 interface SlotSymbolProps {
   type: SymbolType;
@@ -28,64 +33,24 @@ const SYMBOL_DATA: Record<SymbolType, { color: string; glowColor: string; label:
     color: '#FFD700',
     glowColor: '#FFD700',
     label: 'ZEUS',
-    icon: (id) => (
-      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <radialGradient id={`grad-zeus-${id}`} cx="50%" cy="30%" r="60%">
-            <stop offset="0%" stopColor="#FFF9C4" />
-            <stop offset="60%" stopColor="#FFD700" />
-            <stop offset="100%" stopColor="#B8860B" />
-          </radialGradient>
-        </defs>
-        {/* Orb */}
-        <circle cx="32" cy="20" r="12" fill={`url(#grad-zeus-${id})`} />
-        <circle cx="28" cy="16" r="3" fill="rgba(255,255,255,0.5)" />
-        {/* Lightning bolt */}
-        <path d="M36 28 L24 40 L30 40 L26 56 L44 36 L36 36 L40 28 Z" fill={`url(#grad-zeus-${id})`} stroke="#B8860B" strokeWidth="1" />
-      </svg>
+    icon: (_id) => (
+      <img src="/images/slots/sym-zeus.png" alt="Zeus" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
     )
   },
   crown: {
     color: '#FFD700',
     glowColor: '#FFD700',
     label: 'CROWN',
-    icon: (id) => (
-      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id={`grad-crown-${id}`} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#FFF9C4" />
-            <stop offset="50%" stopColor="#FFD700" />
-            <stop offset="100%" stopColor="#B8860B" />
-          </linearGradient>
-        </defs>
-        <path d="M8 48 L8 20 L20 34 L32 12 L44 34 L56 20 L56 48 Z" fill={`url(#grad-crown-${id})`} stroke="#B8860B" strokeWidth="1.5" strokeLinejoin="round" />
-        <rect x="8" y="46" width="48" height="8" rx="2" fill={`url(#grad-crown-${id})`} stroke="#B8860B" strokeWidth="1" />
-        <circle cx="32" cy="12" r="4" fill="#FF4081" />
-        <circle cx="8" cy="20" r="3" fill="#FF4081" />
-        <circle cx="56" cy="20" r="3" fill="#FF4081" />
-        <circle cx="20" cy="34" r="2.5" fill="#E040FB" />
-        <circle cx="44" cy="34" r="2.5" fill="#E040FB" />
-      </svg>
+    icon: (_id) => (
+      <img src="/images/slots/sym-crown.png" alt="Crown" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
     )
   },
   chalice: {
     color: '#FF8C00',
     glowColor: '#FF8C00',
     label: 'CHALICE',
-    icon: (id) => (
-      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id={`grad-chalice-${id}`} x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#FFE0A0" />
-            <stop offset="50%" stopColor="#FF8C00" />
-            <stop offset="100%" stopColor="#CC5500" />
-          </linearGradient>
-        </defs>
-        <path d="M16 10 Q16 36 32 42 Q48 36 48 10 Z" fill={`url(#grad-chalice-${id})`} stroke="#CC5500" strokeWidth="1.5" />
-        <rect x="27" y="42" width="10" height="10" fill={`url(#grad-chalice-${id})`} />
-        <rect x="18" y="52" width="28" height="6" rx="3" fill={`url(#grad-chalice-${id})`} stroke="#CC5500" strokeWidth="1" />
-        <ellipse cx="32" cy="10" rx="16" ry="4" fill="#FFE0A0" opacity="0.6" />
-      </svg>
+    icon: (_id) => (
+      <img src="/images/slots/sym-chalice.png" alt="Chalice" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
     )
   },
   ring: {
@@ -264,6 +229,51 @@ const SYMBOL_DATA: Record<SymbolType, { color: string; glowColor: string; label:
         <circle cx="32" cy="32" r="16" fill={`url(#grad-multi-${id})`} />
         <circle cx="27" cy="26" r="4" fill="rgba(255,255,255,0.5)" />
       </svg>
+    )
+  },
+
+  card_ten: {
+    color: '#C8A84B',
+    glowColor: '#D4AF37',
+    label: '10',
+    icon: (_id) => (
+      <img src="/images/slots/sym-ten.png" alt="10" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+    )
+  },
+
+  card_jack: {
+    color: '#7799DD',
+    glowColor: '#99BBFF',
+    label: 'J',
+    icon: (_id) => (
+      <img src="/images/slots/sym-jack.png" alt="Jack" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+    )
+  },
+
+  card_queen: {
+    color: '#DD6677',
+    glowColor: '#FF8899',
+    label: 'Q',
+    icon: (_id) => (
+      <img src="/images/slots/sym-queen.png" alt="Queen" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+    )
+  },
+
+  card_king: {
+    color: '#CCCCCC',
+    glowColor: '#FFFFFF',
+    label: 'K',
+    icon: (_id) => (
+      <img src="/images/slots/sym-king.png" alt="King" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+    )
+  },
+
+  card_ace: {
+    color: '#FFD700',
+    glowColor: '#FFFACD',
+    label: 'A',
+    icon: (_id) => (
+      <img src="/images/slots/sym-ace.png" alt="Ace" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
     )
   },
 };

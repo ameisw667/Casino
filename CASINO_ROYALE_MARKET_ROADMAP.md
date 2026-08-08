@@ -1,7 +1,8 @@
 # 🎰 Casino Royale — Markt-Analyse & Zukunfts-Roadmap
 
 > **Stand:** Mai 2026 | **Aktualisierbar:** Checkboxen beim Abschluss abhaken
-> 
+> **Architektur-Hinweis (2026-08-07):** Die Aussage unten "ohne echtes Backend, Payment oder Server-Validierung" ist veraltet — seit Migration `007_server_authority.sql` läuft die Wallet serverautoritativ über Supabase RPCs (siehe `01_WORLDMAP_STATUS.md`, Kategorie 04). Payment/Crypto-Einzahlung bleibt weiterhin nicht umgesetzt. Restlicher Markt-/Wettbewerbs-Inhalt unten ungeprüft, nicht Teil dieses Updates.
+>
 > Dieses Dokument zeigt den aktuellen Marktstand, analysiert die Top-3-Wettbewerber und listet priorisierte Zukunftspotenziale von großen zu kleinen Hebeln.
 
 ---
@@ -10,7 +11,7 @@
 
 Der globale Crypto-Casino-Markt überschreitet 2026 die **$65 Milliarden**-Marke (CAGR ~12–15%).
 
-**Casino Royale heute:** Ein vollständig spielbares Frontend-Demo mit 4 Original-Spielen, Provably-Fair-Engine, VIP-System und Gamification — aber **ohne echtes Backend, Payment oder Server-Validierung.**
+**Casino Royale heute:** 5 Spiele (Dice, Slots, Roulette, Crash, Blackjack) mit serverautoritativer Wallet (Migration 007), Provably-Fair-Engine, VIP-System und Gamification — Payment/Crypto-Einzahlung weiterhin nicht implementiert.
 
 **Chance:** Der Markt ist gesättigt mit großen Anbietern, aber unterversorgt mit hochpolierter, modularer Open-Source-Infrastruktur und Web3-nativen Mechaniken. Die Lücke zwischen Demo und Production-Grade ist unser Hebel.
 
