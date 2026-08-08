@@ -256,7 +256,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     { icon: <History size={20} />, label: 'My Bets', path: '/history' },
     { icon: <Trophy size={20} />, label: 'Leaderboard', path: '/leaderboard' },
     { icon: <Target size={20} />, label: 'Vault', path: '/vault' },
-    { icon: <Settings size={20} />, label: 'Settings', path: '#', onClick: () => setShowSettings(true) },
+    { icon: <Settings size={20} />, label: 'Settings', path: '#', onClick: () => setShowSettings((prev) => !prev) },
   ];
 
   if (!mounted || !hasHydrated) {
