@@ -132,7 +132,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#00e701' }}>LIVE SYSTEM</span>
             </div>
             <button
-              onClick={() => signOut()}
+              onClick={async () => {
+                await signOut();
+                router.push('/sign-in');
+                router.refresh();
+              }}
               aria-label="Abmelden"
               style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid rgba(255,215,0,0.3)', background: 'transparent', color: '#ffd700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >

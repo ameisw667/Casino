@@ -8,8 +8,9 @@ export async function GET(request: Request) {
   try {
     const supabase = await createClient();
     const { data: { user: authUser } } = await supabase.auth.getUser();
-    let userId = authUser?.id;
-    if (!userId && process.env.NODE_ENV === 'development' && process.env.ALLOW_DEV_FALLBACK === 'true') {
+    const cookieHeader = request.headers.get('cookie') || '';
+    const isExplicitSignedOut = cookieHeader.includes('casino_signed_out=1');
+    if (!userId && process.env.NODE_ENV === 'development' && process.env.ALLOW_DEV_FALLBACK === 'true' && !isExplicitSignedOut) {
       userId = 'dev_user_fallback';
     }
     if (!userId) return new NextResponse('Unauthorized', { status: 401 });

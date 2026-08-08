@@ -20,11 +20,15 @@ export function SupabaseSessionProvider({ children, initialUser = null }: { chil
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session?.user) {
+        document.cookie = 'casino_signed_out=; path=/; max-age=0';
         setUser(data.session.user);
       }
       setIsLoaded(true);
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        document.cookie = 'casino_signed_out=; path=/; max-age=0';
+      }
       setUser(session?.user ?? null);
       setIsLoaded(true);
     });
@@ -34,7 +38,11 @@ export function SupabaseSessionProvider({ children, initialUser = null }: { chil
   const value = useMemo<SupabaseSessionContextValue>(() => ({
     user,
     isLoaded,
-    signOut: async () => { await supabase.auth.signOut(); },
+    signOut: async () => {
+      document.cookie = 'casino_signed_out=1; path=/; max-age=86400';
+      setUser(null);
+      await supabase.auth.signOut();
+    },
   }), [user, isLoaded, supabase]);
 
   return <SupabaseSessionContext.Provider value={value}>{children}</SupabaseSessionContext.Provider>;

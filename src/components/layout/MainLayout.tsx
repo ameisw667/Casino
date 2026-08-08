@@ -108,6 +108,20 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     return () => window.clearTimeout(mountedTimer);
   }, [setSessionId, loadVipConfig]);
 
+  const handleSignOut = async () => {
+    setServerAuthUser(false);
+    await signOut();
+    useCasinoStore.getState().applyServerWalletSnapshot({
+      balance: 0,
+      xp: 0,
+      level: 1,
+      rank: 'BRONZE',
+      analytics: { totalWagered: 0, totalPayout: 0, winRate: 0, totalSessionTime: 0, activityHeatmap: {} }
+    });
+    router.push('/sign-in');
+    router.refresh();
+  };
+
   // 3. All Effect Hooks (Always called, never conditional)
   useEffect(() => {
     if (authLoaded && effectiveIsSignedIn && onboardingStep !== 'NONE' && onboardingStep !== 'COMPLETED') {
@@ -131,6 +145,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           if (!cancelled) setServerAuthUser(true);
           return res.json();
         }
+        if (!cancelled) setServerAuthUser(false);
         return null;
       })
       .then((snapshot) => {
@@ -138,7 +153,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           useCasinoStore.getState().applyServerWalletSnapshot(snapshot);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) setServerAuthUser(false);
+      });
     return () => { cancelled = true; };
   }, [user?.id]);
 
@@ -462,7 +479,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                         <div style={{ fontSize: '0.85rem', fontWeight: 900, color: '#fff' }}>{displayName}</div>
                         <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'hsl(var(--primary))', textTransform: 'uppercase' }}>{rank}</div>
                       </div>
-                      <button onClick={() => signOut()} aria-label="Abmelden" className="btn btn-ghost" style={{ width: '40px', height: '40px', padding: 0, borderRadius: '12px', border: '2px solid hsla(var(--primary), 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <button onClick={handleSignOut} aria-label="Abmelden" className="btn btn-ghost" style={{ width: '40px', height: '40px', padding: 0, borderRadius: '12px', border: '2px solid hsla(var(--primary), 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <LogOut size={16} />
                       </button>
                     </div>
@@ -470,7 +487,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 </>
               )}
               {isMobile && (effectiveIsSignedIn ? (
-                <button onClick={() => signOut()} aria-label="Abmelden" className="btn btn-ghost" style={{ padding: '8px' }}>
+                <button onClick={handleSignOut} aria-label="Abmelden" className="btn btn-ghost" style={{ padding: '8px' }}>
                   <LogOut size={16} />
                 </button>
               ) : (
