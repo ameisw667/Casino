@@ -55,7 +55,7 @@ export class WalletService {
     const supabase = createAdminClient();
 
     const { error: provisionError } = await supabase.from('users').upsert(
-      { id: userId, username: userId.slice(0, 64) },
+      { id: userId, username: userId.slice(0, 64), balance: 10000.00 },
       { onConflict: 'id', ignoreDuplicates: true }
     );
     if (provisionError) throw new Error('Wallet user could not be provisioned');

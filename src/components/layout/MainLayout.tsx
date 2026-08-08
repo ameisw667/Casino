@@ -120,6 +120,20 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     }
   }, [authLoaded, isSignedIn, sessionId, migrateAnonymousSession]);
 
+  // Sync live server wallet snapshot whenever user logs in or auth changes
+  useEffect(() => {
+    if (authLoaded && isSignedIn) {
+      fetch('/api/user/balance', { cache: 'no-store' })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((snapshot) => {
+          if (snapshot) {
+            useCasinoStore.getState().applyServerWalletSnapshot(snapshot);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [authLoaded, isSignedIn, user?.id]);
+
   // Persist anonymous session state to Supabase every 30 seconds
   useEffect(() => {
     if (authLoaded && !isSignedIn && sessionId) {

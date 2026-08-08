@@ -41,7 +41,7 @@ describe('WalletService.getWallet', () => {
       transactionId: TRANSACTION_ID,
     });
     expect(mock.builder.upsert).toHaveBeenCalledWith(
-      { id: USER_ID, username: USER_ID.slice(0, 64) },
+      { id: USER_ID, username: USER_ID.slice(0, 64), balance: 10000.00 },
       { onConflict: 'id', ignoreDuplicates: true }
     );
     expect(mock.client.from).toHaveBeenCalledWith('users');
