@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typography Evaluation — 6 Kandidaten (Cyber-Stealth · Platinum)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Hanken+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --bg-grid: rgba(203, 213, 225, 0.04);
+      --surface: #141923;
+      --surface-2: #1a2232;
+      --border: #1e2638;
+      --border-bright: #2d3b56;
+      --text: #f1f5f9;
+      --text-muted: #8a97ad;
+      --text-dim: #475569;
+      --accent: #cbd5e1;
+      --accent-glow: rgba(203, 213, 225, 0.15);
+      --emerald: #00e676;
+      --crimson: #ff3366;
+      --amber: #ffb300;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(var(--bg-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+      background-size: 28px 28px;
+      color: var(--text);
+      font-size: 14px;
+      padding: 28px 20px 60px;
+      min-height: 100vh;
+      font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    /* ---- Page header ---- */
+    .page-head { max-width: 1120px; margin: 0 auto 28px; }
+    .page-eyebrow {
+      font-family: 'Spline Sans Mono', monospace;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.22em;
+      color: var(--accent); text-transform: uppercase;
+    }
+    .page-title { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; margin-top: 8px; }
+    .page-sub { color: var(--text-muted); font-size: 14px; margin-top: 8px; max-width: 680px; line-height: 1.5; }
+    .legend { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 16px; font-family: 'Spline Sans Mono', monospace; font-size: 11px; color: var(--text-dim); }
+    .legend span b { color: var(--accent); font-weight: 600; }
+
+    /* ---- Candidate card ---- */
+    .cand {
+      max-width: 1120px; margin: 0 auto 22px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .cand-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 18px;
+      background: rgba(203, 213, 225, 0.03);
+      border-bottom: 1px solid var(--border);
+      font-family: 'Spline Sans Mono', monospace;
+    }
+    .cand-id { font-size: 11px; font-weight: 600; color: var(--text-dim); letter-spacing: 0.12em; }
+    .cand-name { font-size: 14px; font-weight: 700; color: var(--text); margin-left: 8px; }
+    .cand-tags { display: flex; gap: 6px; }
+    .tag {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-muted); border: 1px solid var(--border-bright);
+      padding: 3px 8px; border-radius: 4px;
+    }
+
+    .cand-body { padding: 22px 22px 24px; }
+
+    /* Per-candidate font scoping */
+    .f-inter { --f-sans: 'Inter', sans-serif; --f-mono: 'JetBrains Mono', monospace; }
+    .f-geist { --f-sans: 'Geist', sans-serif; --f-mono: 'Geist Mono', monospace; }
+    .f-space { --f-sans: 'Space Grotesk', sans-serif; --f-mono: 'Space Mono', monospace; }
+    .f-jakarta { --f-sans: 'Plus Jakarta Sans', sans-serif; --f-mono: 'JetBrains Mono', monospace; }
+    .f-hanken { --f-sans: 'Hanken Grotesk', sans-serif; --f-mono: 'Spline Sans Mono', monospace; }
+    .f-sora { --f-sans: 'Sora', sans-serif; --f-mono: 'Spline Sans Mono', monospace; }
+
+    .stage { font-family: var(--f-sans); color: var(--text); }
+
+    .eyebrow {
+      font-family: var(--f-mono); font-size: 11px; font-weight: 600;
+      letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase;
+    }
+    .h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; margin-top: 6px; }
+    .h2 { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; margin-top: 18px; color: var(--text); }
+
+    .readout-row { display: flex; align-items: baseline; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+    .balance {
+      font-family: var(--f-mono); font-size: 30px; font-weight: 700; letter-spacing: -0.01em;
+      color: var(--text); font-variant-numeric: tabular-nums;
+    }
+    .delta-up {
+      font-family: var(--f-mono); font-size: 13px; font-weight: 600; color: var(--emerald);
+      background: rgba(0, 230, 118, 0.08); border: 1px solid rgba(0, 230, 118, 0.25);
+      padding: 3px 8px; border-radius: 4px; font-variant-numeric: tabular-nums;
+    }
+    .mult-chip {
+      font-family: var(--f-mono); font-size: 13px; font-weight: 600; color: var(--accent);
+      border: 1px solid var(--accent-glow); background: rgba(203, 213, 225, 0.05);
+      padding: 3px 10px; border-radius: 999px; font-variant-numeric: tabular-nums;
+    }
+
+    .tbl { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+    .tbl th {
+      text-align: left; font-family: var(--f-mono); font-size: 10px; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim);
+      padding: 8px 12px; border-bottom: 1px solid var(--border);
+    }
+    .tbl td { padding: 11px 12px; border-bottom: 1px solid rgba(30, 38, 56, 0.6); color: var(--text); }
+    .tbl td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+    .tbl td.win { color: var(--emerald); }
+    .tbl td.loss { color: var(--crimson); }
+
+    .body-p { color: var(--text-muted); font-size: 13px; line-height: 1.6; margin-top: 16px; max-width: 640px; }
+
+    .btn-row { display: flex; gap: 10px; margin-top: 18px; }
+    .btn {
+      font-family: var(--f-sans); font-size: 13px; font-weight: 600;
+      padding: 9px 16px; border-radius: 7px; cursor: pointer; border: 1px solid transparent;
+      letter-spacing: 0.01em;
+    }
+    .btn-primary { background: var(--accent); color: #0b0e14; }
+    .btn-ghost { background: transparent; color: var(--text); border-color: var(--border-bright); }
+
+    .abjad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+    .abjad-cell { border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; background: rgba(203,213,225,0.02); }
+    .abjad-cell .k { font-family: var(--f-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; }
+    .abjad-cell .v { font-family: var(--f-mono); font-size: 16px; font-weight: 600; color: var(--text); margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .abjad-cell .v.acc { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+  <header class="page-head">
+    <div class="page-eyebrow">// TYPOGRAPHY EVALUATION · 06 CANDIDATES</div>
+    <h1 class="page-title">Schriftart-Vergleich — Cyber-Stealth Terminal</h1>
+    <p class="page-sub">Sechs kohärente UI+Mono-Paarungen, jeweils mit identischem Casino-Terminal-Inhalt auf der Platinum/Charcoal-Palette. Direkt nebeneinander vergleichbar. Ziel: übersichtlicher & professioneller als IBM Plex.</p>
+    <div class="legend">
+      <span><b>—</b> jede Karte nutzt ihre eigene Schrift</span>
+      <span><b>—</b> Zahlen = jeweilige Mono-Familie</span>
+      <span><b>—</b> Top 3 → siehe <code>fonts_top3.html</code></span>
+    </div>
+  </header>
+
+  <!-- 01 Inter + JetBrains Mono -->
+  <section class="cand f-inter">
+    <div class="cand-bar">
+      <div><span class="cand-id">01</span><span class="cand-name">Inter + JetBrains Mono</span></div>
+      <div class="cand-tags"><span class="tag">Neutral</span><span class="tag">Professional</span><span class="tag">Baseline</span></div>
+    </div>
+    <div class="cand-body stage">
+      <div class="eyebrow">// LIVE BET STREAM</div>
+      <div class="h1">HIGH-FREQUENCY TERMINAL</div>
+      <div class="readout-row">
+        <span class="balance">$1,428,910.50</span>
+        <span class="delta-up">+14.2%</span>
+        <span class="mult-chip">1.45x</span>
+      </div>
+      <div class="abjad">
+        <div class="abjad-cell"><div class="k">24H Volume</div><div class="v acc">$842,310</div></div>
+        <div class="abjad-cell"><div class="k">Win Rate</div><div class="v">52.8%</div></div>
+        <div class="abjad-cell"><div class="k">Net P/L</div><div class="v">+$12,847</div></div>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>Game</th><th>Bet</th><th>Multi</th><th>Payout</th></tr></thead>
+        <tbody>
+          <tr><td>Crash</td><td class="num">$50.00</td><td class="num">2.41x</td><td class="num win">+$120.50</td></tr>
+          <tr><td>Dice</td><td class="num">$25.00</td><td class="num">0.00x</td><td class="num loss">−$25.00</td></tr>
+          <tr><td>Roulette</td><td class="num">$100.00</td><td class="num">3.00x</td><td class="num win">+$300.00</td></tr>
+        </tbody>
+      </table>
+      <p class="body-p">Provably-fair Settlement Engine — jeder Bet serverseitig atomar abgerechnet über idempotente RPCs. Kein Client-Fallback, keine Browser-Wallet-Autorität. Monospace-Zahlen verhindern Layout-Flackern bei Live-Updates.</p>
+      <div class="btn-row"><button class="btn btn-primary">PLACE BET</button><button class="btn btn-ghost">View History</button></div>
+    </div>
+  </section>
+
+  <!-- 02 Geist + Geist Mono -->
+  <section class="cand f-geist">
+    <div class="cand-bar">
+      <div><span class="cand-id">02</span><span class="cand-name">Geist + Geist Mono</span></div>
+      <div class="cand-tags"><span class="tag">Modern</span><span class="tag">Crisp</span><span class="tag">Technical</span></div>
+    </div>
+    <div class="cand-body stage">
+      <div class="eyebrow">// LIVE BET STREAM</div>
+      <div class="h1">HIGH-FREQUENCY TERMINAL</div>
+      <div class="readout-row">
+        <span class="balance">$1,428,910.50</span>
+        <span class="delta-up">+14.2%</span>
+        <span class="mult-chip">1.45x</span>
+      </div>
+      <div class="abjad">
+        <div class="abjad-cell"><div class="k">24H Volume</div><div class="v acc">$842,310</div></div>
+        <div class="abjad-cell"><div class="k">Win Rate</div><div class="v">52.8%</div></div>
+        <div class="abjad-cell"><div class="k">Net P/L</div><div class="v">+$12,847</div></div>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>Game</th><th>Bet</th><th>Multi</th><th>Payout</th></tr></thead>
+        <tbody>
+          <tr><td>Crash</td><td class="num">$50.00</td><td class="num">2.41x</td><td class="num win">+$120.50</td></tr>
+          <tr><td>Dice</td><td class="num">$25.00</td><td class="num">0.00x</td><td class="num loss">−$25.00</td></tr>
+          <tr><td>Roulette</td><td class="num">$100.00</td><td class="num">3.00x</td><td class="num win">+$300.00</td></tr>
+        </tbody>
+      </table>
+      <p class="body-p">Provably-fair Settlement Engine — jeder Bet serverseitig atomar abgerechnet über idempotente RPCs. Kein Client-Fallback, keine Browser-Wallet-Autorität. Monospace-Zahlen verhindern Layout-Flackern bei Live-Updates.</p>
+      <div class="btn-row"><button class="btn btn-primary">PLACE BET</button><button class="btn btn-ghost">View History</button></div>
+    </div>
+  </section>
+
+  <!-- 03 Space Grotesk + Space Mono -->
+  <section class="cand f-space">
+    <div class="cand-bar">
+      <div><span class="cand-id">03</span><span class="cand-name">Space Grotesk + Space Mono</span></div>
+      <div class="cand-tags"><span class="tag">Geometric</span><span class="tag">Retro-Tech</span><span class="tag">Characterful</span></div>
+    </div>
+    <div class="cand-body stage">
+      <div class="eyebrow">// LIVE BET STREAM</div>
+      <div class="h1">HIGH-FREQUENCY TERMINAL</div>
+      <div class="readout-row">
+        <span class="balance">$1,428,910.50</span>
+        <span class="delta-up">+14.2%</span>
+        <span class="mult-chip">1.45x</span>
+      </div>
+      <div class="abjad">
+        <div class="abjad-cell"><div class="k">24H Volume</div><div class="v acc">$842,310</div></div>
+        <div class="abjad-cell"><div class="k">Win Rate</div><div class="v">52.8%</div></div>
+        <div class="abjad-cell"><div class="k">Net P/L</div><div class="v">+$12,847</div></div>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>Game</th><th>Bet</th><th>Multi</th><th>Payout</th></tr></thead>
+        <tbody>
+          <tr><td>Crash</td><td class="num">$50.00</td><td class="num">2.41x</td><td class="num win">+$120.50</td></tr>
+          <tr><td>Dice</td><td class="num">$25.00</td><td class="num">0.00x</td><td class="num loss">−$25.00</td></tr>
+          <tr><td>Roulette</td><td class="num">$100.00</td><td class="num">3.00x</td><td class="num win">+$300.00</td></tr>
+        </tbody>
+      </table>
+      <p class="body-p">Provably-fair Settlement Engine — jeder Bet serverseitig atomar abgerechnet über idempotente RPCs. Kein Client-Fallback, keine Browser-Wallet-Autorität. Monospace-Zahlen verhindern Layout-Flackern bei Live-Updates.</p>
+      <div class="btn-row"><button class="btn btn-primary">PLACE BET</button><button class="btn btn-ghost">View History</button></div>
+    </div>
+  </section>
+
+  <!-- 04 Plus Jakarta Sans + JetBrains Mono -->
+  <section class="cand f-jakarta">
+    <div class="cand-bar">
+      <div><span class="cand-id">04</span><span class="cand-name">Plus Jakarta Sans + JetBrains Mono</span></div>
+      <div class="cand-tags"><span class="tag">Premium</span><span class="tag">Humanist</span><span class="tag">Warm</span></div>
+    </div>
+    <div class="cand-body stage">
+      <div class="eyebrow">// LIVE BET STREAM</div>
+      <div class="h1">HIGH-FREQUENCY TERMINAL</div>
+      <div class="readout-row">
+        <span class="balance">$1,428,910.50</span>
+        <span class="delta-up">+14.2%</span>
+        <span class="mult-chip">1.45x</span>
+      </div>
+      <div class="abjad">
+        <div class="abjad-cell"><div class="k">24H Volume</div><div class="v acc">$842,310</div></div>
+        <div class="abjad-cell"><div class="k">Win Rate</div><div class="v">52.8%</div></div>
+        <div class="abjad-cell"><div class="k">Net P/L</div><div class="v">+$12,847</div></div>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>Game</th><th>Bet</th><th>Multi</th><th>Payout</th></tr></thead>
+        <tbody>
+          <tr><td>Crash</td><td class="num">$50.00</td><td class="num">2.41x</td><td class="num win">+$120.50</td></tr>
+          <tr><td>Dice</td><td class="num">$25.00</td><td class="num">0.00x</td><td class="num loss">−$25.00</td></tr>
+          <tr><td>Roulette</td><td class="num">$100.00</td><td class="num">3.00x</td><td class="num win">+$300.00</td></tr>
+        </tbody>
+      </table>
+      <p class="body-p">Provably-fair Settlement Engine — jeder Bet serverseitig atomar abgerechnet über idempotente RPCs. Kein Client-Fallback, keine Browser-Wallet-Autorität. Monospace-Zahlen verhindern Layout-Flackern bei Live-Updates.</p>
+      <div class="btn-row"><button class="btn btn-primary">PLACE BET</button><button class="btn btn-ghost">View History</button></div>
+    </div>
+  </section>
+
+  <!-- 05 Hanken Grotesk + Spline Sans Mono -->
+  <section class="cand f-hanken">
+    <div class="cand-bar">
+      <div><span class="cand-id">05</span><span class="cand-name">Hanken Grotesk + Spline Sans Mono</span></div>
+      <div class="cand-tags"><span class="tag">Refined</span><span class="tag">Grotesque</span><span class="tag">Understated</span></div>
+    </div>
+    <div class="cand-body stage">
+      <div class="eyebrow">// LIVE BET STREAM</div>
+      <div class="h1">HIGH-FREQUENCY TERMINAL</div>
+      <div class="readout-row">
+        <span class="balance">$1,428,910.50</span>
+        <span class="delta-up">+14.2%</span>
+        <span class="mult-chip">1.45x</span>
+      </div>
+      <div class="abjad">
+        <div class="abjad-cell"><div class="k">24H Volume</div><div class="v acc">$842,310</div></div>
+        <div class="abjad-cell"><div class="k">Win Rate</div><div class="v">52.8%</div></div>
+        <div class="abjad-cell"><div class="k">Net P/L</div><div class="v">+$12,847</div></div>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>Game</th><th>Bet</th><th>Multi</th><th>Payout</th></tr></thead>
+        <tbody>
+          <tr><td>Crash</td><td class="num">$50.00</td><td class="num">2.41x</td><td class="num win">+$120.50</td></tr>
+          <tr><td>Dice</td><td class="num">$25.00</td><td class="num">0.00x</td><td class="num loss">−$25.00</td></tr>
+          <tr><td>Roulette</td><td class="num">$100.00</td><td class="num">3.00x</td><td class="num win">+$300.00</td></tr>
+        </tbody>
+      </table>
+      <p class="body-p">Provably-fair Settlement Engine — jeder Bet serverseitig atomar abgerechnet über idempotente RPCs. Kein Client-Fallback, keine Browser-Wallet-Autorität. Monospace-Zahlen verhindern Layout-Flackern bei Live-Updates.</p>
+      <div class="btn-row"><button class="btn btn-primary">PLACE BET</button><button class="btn btn-ghost">View History</button></div>
+    </div>
+  </section>
+
+  <!-- 06 Sora + Spline Sans Mono -->
+  <section class="cand f-sora">
+    <div class="cand-bar">
+      <div><span class="cand-id">06</span><span class="cand-name">Sora + Spline Sans Mono</span></div>
+      <div class="cand-tags"><span class="tag">Geometric</span><span class="tag">Display-Tech</span><span class="tag">Bold</span></div>
+    </div>
+    <div class="cand-body stage">
+      <div class="eyebrow">// LIVE BET STREAM</div>
+      <div class="h1">HIGH-FREQUENCY TERMINAL</div>
+      <div class="readout-row">
+        <span class="balance">$1,428,910.50</span>
+        <span class="delta-up">+14.2%</span>
+        <span class="mult-chip">1.45x</span>
+      </div>
+      <div class="abjad">
+        <div class="abjad-cell"><div class="k">24H Volume</div><div class="v acc">$842,310</div></div>
+        <div class="abjad-cell"><div class="k">Win Rate</div><div class="v">52.8%</div></div>
+        <div class="abjad-cell"><div class="k">Net P/L</div><div class="v">+$12,847</div></div>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>Game</th><th>Bet</th><th>Multi</th><th>Payout</th></tr></thead>
+        <tbody>
+          <tr><td>Crash</td><td class="num">$50.00</td><td class="num">2.41x</td><td class="num win">+$120.50</td></tr>
+          <tr><td>Dice</td><td class="num">$25.00</td><td class="num">0.00x</td><td class="num loss">−$25.00</td></tr>
+          <tr><td>Roulette</td><td class="num">$100.00</td><td class="num">3.00x</td><td class="num win">+$300.00</td></tr>
+        </tbody>
+      </table>
+      <p class="body-p">Provably-fair Settlement Engine — jeder Bet serverseitig atomar abgerechnet über idempotente RPCs. Kein Client-Fallback, keine Browser-Wallet-Autorität. Monospace-Zahlen verhindern Layout-Flackern bei Live-Updates.</p>
+      <div class="btn-row"><button class="btn btn-primary">PLACE BET</button><button class="btn btn-ghost">View History</button></div>
+    </div>
+  </section>
+
+</body>
+</html>

@@ -1,0 +1,92 @@
+# docs/ — Index (LLM-Einstieg)
+
+> **Zweck:** In <30 s wissen, welche Datei lebendig vs. historisch ist und wofür sie steht.
+> **Pflege-Pflicht:** Bei jeder `docs/`-Änderung diese Tabelle同步 halten (Pfad · Status · last-updated). Quelle der Planung: [`archive/DOCS_ORDNUNG_MASTER_PLAN.md`](./archive/DOCS_ORDNUNG_MASTER_PLAN.md) (M1–M11 ✅, archiviert) · Batch-Historie: [`archive/DOCS_ORDNUNG_BATCH2_M5_M8.md`](./archive/DOCS_ORDNUNG_BATCH2_M5_M8.md) + [`archive/DOCS_ORDNUNG_BATCH3_M9_M10.md`](./archive/DOCS_ORDNUNG_BATCH3_M9_M10.md) + [`archive/DOCS_ORDNUNG_BATCH4_M11.md`](./archive/DOCS_ORDNUNG_BATCH4_M11.md).
+> **Legende:** ✅ lebendig (autoritativ/aktuell) · 📦 archiv (historisch/ausgeführt, Lernwert) · 🗑️ gelöscht · 🔜 geplante Änderung (Milestone in `DOCS_ORDNUNG_MASTER_PLAN.md`).
+
+## Wie nutze ich docs/?
+
+| Wenn du …                                             | Geh zu                                                                       |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Projekt-Status pro Kategorie brauchst                 | `status-reports/NN_*.md` (Backbone, eine Datei pro Worldmap-Kategorie 01–12) |
+| Auth-Architektur verstehen willst                     | `architecture/02_CLERK_SUPABASE.md` (autoritativ)                            |
+| Wallet-/Spiel-Mechanik verstehst                      | `SPIELMECHANIK.md` (autoritativ)                                             |
+| Leaderboard-RPC/Stats                                 | `architecture/LEADERBOARD_RPC.md` (autoritativ, M5 konsolidiert)             |
+| Strategie/Roadmap brauchst                            | `CASINO_ROYALE_MARKET_ROADMAP.md` (Vibe-Architect)                           |
+| Design-Regeln brauchst                                | `DESIGN_SYSTEM_AND_VIBE.md` (+ `CLAUDE.md`-Abschnitt)                        |
+| Mobile-Perf-Messung suchst                            | `architecture/05_MOBILE_PERFORMANCE.md` (neueste)                            |
+| Frontend-Redesign-Prototypen willst                   | `prototypes/option*_*.html` + `fonts_*.html` + `glassmorphism_*.html`        |
+| Historie/Lernwert einer abgeschlossenen Arbeit suchst | `archive/*.md`                                                               |
+
+## Datei-Index
+
+| Pfad                                                   | Zweck (1 Satz)                                                                     | Status                           | Besitzer         | last-updated                                                         |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------- | -------------------------------- | ---------------- | -------------------------------------------------------------------- |
+| `SPIELMECHANIK.md`                                     | Lebendige Wallet-/Spiel-Architektur (RNG, RPCs, Security)                          | ✅                               | Logic-Architect  | 2026-08-09 🔜 (M8: Clerk→Supabase bereinigen)                        |
+| `CASINO_ROYALE_MARKET_ROADMAP.md`                      | Strategie & Feature-Gap-Roadmap                                                    | ✅                               | Vibe-Architect   | 2026-08-09 🔜 (M8: stale Zeilen)                                     |
+| `DESIGN_SYSTEM_AND_VIBE.md`                            | Design-System-Regeln (kanonisch, ergänzt `CLAUDE.md`)                              | ✅                               | Design-Guardian  | 2026-08-09 🔜 (M8: Dedup-Notiz)                                      |
+| `architecture/02_CLERK_SUPABASE.md`                    | Auth-Architektur Clerk→Supabase (Kat. 13), alle 10 Tasks ✅                        | ✅                               | Security-Auditor | 2026-08-08                                                           |
+| `architecture/05_MOBILE_PERFORMANCE.md`                | Mobile-Perf-Report (72→75, Lighthouse)                                             | ✅                               | DevOps-Slayer    | 2026-08-09                                                           |
+| `architecture/LEADERBOARD_RPC.md`                      | Leaderboard-RPC 015 + Semantik (M5 konsolidiert aus 03+13)                         | ✅                               | Logic-Architect  | 2026-08-09                                                           |
+| `status-reports/01_PRODUCTION_RELEASE.md`              | Kat. 01 — Production-Release                                                       | ✅                               | —                | s. Datei                                                             |
+| `status-reports/02_BUILD_TOOLCHAIN.md`                 | Kat. 02 — Build-Toolchain                                                          | ✅                               | —                | s. Datei                                                             |
+| `status-reports/03_ENGINE_FAIRNESS.md`                 | Kat. 03 — Engine & Fairness                                                        | ✅                               | —                | s. Datei                                                             |
+| `status-reports/04_WALLET_ECONOMY.md`                  | Kat. 04 — Wallet & Ökonomie                                                        | ✅                               | —                | s. Datei                                                             |
+| `status-reports/05_AUTH_SECURITY.md`                   | Kat. 05 — Auth & Security                                                          | ✅                               | —                | s. Datei                                                             |
+| `status-reports/06_AUTH_WELCOME_BONUS.md`              | Kat. 06 — Auth/Welcome-Bonus                                                       | ✅                               | —                | s. Datei                                                             |
+| `status-reports/08_META_FEATURES.md`                   | Kat. 08 — Meta-Features                                                            | ✅                               | —                | s. Datei                                                             |
+| `status-reports/11_PERF_MOBILE.md`                     | Kat. 11 — Perf/Mobile (ältere Messung, superseded durch `architecture/05`)         | ✅                               | —                | s. Datei                                                             |
+| `status-reports/12_SUPABASE_OUTSOURCING.md`            | Kat. 12 — Supabase-Outsourcing                                                     | ✅                               | —                | s. Datei                                                             |
+| `archive/AUTH_SUPABASE_HISTORY.md`                     | Historie: Auth- & Supabase-Architektur (M6 aus 3 Plänen konsolidiert)              | 📦 historisch                    | —                | 2026-08-09                                                           |
+| `archive/DOCS_ORDNUNG_BATCH2_M5_M8.md`                 | Batch-2-Execution-Plan M5–M8 (Historie, aus `worldmap/` verschoben)                | 📦 historisch                    | —                | 2026-08-09                                                           |
+| `archive/DOCS_ORDNUNG_BATCH3_M9_M10.md`                | Batch-3-Execution-Plan M9–M10 (Historie, aus `worldmap/` verschoben)               | 📦 historisch                    | —                | 2026-08-09                                                           |
+| `archive/AUTH_MIGRATION_PRE_HISTORY.md`                | Migrations-Log bis /backend (M7 aus `architecture/01_AUTH_MIGRATION_…` verschoben) | 📦 historisch                    | —                | 2026-08-08                                                           |
+| `archive/ROUTE_CONSOLIDIZATION_2026-07-28.md`          | Routen-Konsolidierung + Route-Selection-Ergebnis (M7 gefaltet)                     | 📦 executed                      | —                | 2026-07-28                                                           |
+| `archive/CRASH_VISUAL_TENSION_2026-08-09.md`           | Crash-Visual-Tension (executed +282/-50)                                           | 📦 executed                      | —                | 2026-08-09                                                           |
+| `archive/WALLET_ADMIN_SECURITY_PLAN_2026-08-05.md`     | Wallet/Admin-Security-Plan (executed)                                              | 📦 executed                      | —                | 2026-08-05                                                           |
+| `archive/WALLET_ADMIN_SECURITY_SPEC_2026-08-05.md`     | Design-Spec (ADR-Wert, hist.)                                                      | 📦 executed                      | —                | 2026-08-05                                                           |
+| `archive/META_FEATURES_08_PLAN_2026-08-06.md`          | Meta-Features-08-Plan (executed)                                                   | 📦 executed                      | —                | 2026-08-06                                                           |
+| `archive/META_FEATURES_08_SPEC_2026-08-06.md`          | Design-Spec (hist.)                                                                | 📦 executed                      | —                | 2026-08-06                                                           |
+| `archive/STATUS_QUO_KOHORTEN_2026-08-09.md`            | 9-Kohorten-Session-Snapshot (M7 verschoben, löst `02`-Kollision)                   | 📦 executed                      | —                | 2026-08-09                                                           |
+| `archive/04_FRONTEND_REFACTOR.md`                      | Tombstone → `worldmap/02_FRONTEND_REDESIGN.md`                                     | 📦                               | —                | s. Datei                                                             |
+| `archive/03_01_CASINO_SUPABASE_IMPLEMENTATION_PLAN.md` | Server-Autorität-Plan (Migration 016 + RPCs), Status „Ausführung"                  | ⚠️ aktiv, misfiled in `archive/` | Logic-Architect  | 2026-08-09 — Triage offen (siehe `DOCS_ORDNUNG_MASTER_PLAN.md` §8.7) |
+| `archive/03_CASINO_SUPABASE_CONNECTION.md`             | Supabase-Anbindung/Server-Autorität, Status „100 % umgesetzt"                      | 📦 executed                      | —                | 2026-08-09 (Session-Verschiebung aus `worldmap/`)                    |
+| `archive/03_02_ADMIN_SUPABASE.md`                      | Admin-Supabase-Autorität, Status „100 % umgesetzt"                                 | 📦 executed                      | —                | 2026-08-09 (Session-Verschiebung aus `worldmap/`)                    |
+| `archive/DOCS_ORDNUNG_MASTER_PLAN.md`                  | Master-Plan Docs-Ordnung M1–M11 (alle 🟢, archiviert nach Abschluss)               | 📦 historisch                    | —                | 2026-08-09                                                           |
+| `archive/DOCS_ORDNUNG_BATCH4_M11.md`                   | Batch-4-Execution-Plan M11 (finaler Self-Audit, aus `worldmap/` verschoben)        | 📦 historisch                    | —                | 2026-08-09                                                           |
+| `prototypes/option1_cyber_stealth.html`                | Frontend-Redesign-Prototyp 1                                                       | ✅                               | —                | 2026-08-09                                                           |
+| `prototypes/option2_swiss_luxury.html`                 | Frontend-Redesign-Prototyp 2                                                       | ✅                               | —                | 2026-08-09                                                           |
+| `prototypes/option3_neo_tokyo.html`                    | Frontend-Redesign-Prototyp 3                                                       | ✅                               | —                | 2026-08-09                                                           |
+| `prototypes/option4_tactical_glass.html`               | Frontend-Redesign-Prototyp 4                                                       | ✅                               | —                | 2026-08-09                                                           |
+| `prototypes/option1_1_cyber_stealth.html`              | Frontend-v2-Prototyp (Variante Option 1)                                           | ✅                               | —                | 2026-08-09                                                           |
+| `prototypes/fonts_evaluation_6.html`                   | Frontend-v2-Schriftarten-Evaluierung (6 Kandidaten)                                | ✅                               | —                | 2026-08-09                                                           |
+| `prototypes/fonts_top3.html`                           | Frontend-v2-Schriftarten-Top-3                                                     | ✅                               | —                | 2026-08-09                                                           |
+| `prototypes/glassmorphism_top3.html`                   | Frontend-v2-Glassmorphism-Top-3                                                    | ✅                               | —                | 2026-08-09                                                           |
+
+### 🗑️ Gelöscht
+
+| Pfad                                                             | Wann            | Warum gelöscht                                                                           |
+| ---------------------------------------------------------------- | --------------- | ---------------------------------------------------------------------------------------- |
+| `EVALUATION.md`                                                  | M4 (2026-08-09) | Snapshot 2026-07-12; alle Defekte behoben; 0 externe Refs                                |
+| `superpowers/plans/2026-07-28-backend-private-access.md`         | M4 (2026-08-09) | `/backend`-Route gelöscht; Plan obsolet                                                  |
+| `superpowers/specs/2026-07-28-backend-private-access-design.md`  | M4 (2026-08-09) | Dto.                                                                                     |
+| `architecture/03_LEADERBOARD_STATS.md`                           | M5 (2026-08-09) | Konsolidiert nach `architecture/LEADERBOARD_RPC.md`                                      |
+| `architecture/13_LEADERBOARD_BOT_SIMULATION.md`                  | M5 (2026-08-09) | Konsolidiert nach `architecture/LEADERBOARD_RPC.md`                                      |
+| `architecture/CLERK_INTEGRATION_PLAN.md`                         | M6 (2026-08-09) | Konsolidiert nach `archive/AUTH_SUPABASE_HISTORY.md`                                     |
+| `architecture/SUPABASE_MIGRATION.md`                             | M6 (2026-08-09) | Konsolidiert nach `archive/AUTH_SUPABASE_HISTORY.md`                                     |
+| `architecture/MIGRATION_PLAN.md`                                 | M6 (2026-08-09) | Konsolidiert nach `archive/AUTH_SUPABASE_HISTORY.md`                                     |
+| `architecture/01_AUTH_MIGRATION_CLERK_TO_SUPABASE.md`            | M7 (2026-08-09) | Verschoben nach `archive/AUTH_MIGRATION_PRE_HISTORY.md`                                  |
+| `routes/2026-07-28-routen-konsolidierung-implementationsplan.md` | M7 (2026-08-09) | Verschoben nach `archive/ROUTE_CONSOLIDIZATION_2026-07-28.md`                            |
+| `routes/0.2.1.1.0.0-…nicht verlinkte Routen.md`                  | M7 (2026-08-09) | Gefaltet in `archive/ROUTE_CONSOLIDIZATION_2026-07-28.md`                                |
+| `crash-visual-tension-plan.md`                                   | M7 (2026-08-09) | Verschoben nach `archive/CRASH_VISUAL_TENSION_2026-08-09.md`                             |
+| `superpowers/plans/2026-08-05-wallet-admin-security.md`          | M7 (2026-08-09) | Verschoben nach `archive/WALLET_ADMIN_SECURITY_PLAN_2026-08-05.md`                       |
+| `superpowers/specs/2026-08-05-wallet-admin-security-design.md`   | M7 (2026-08-09) | Verschoben nach `archive/WALLET_ADMIN_SECURITY_SPEC_2026-08-05.md`                       |
+| `superpowers/plans/2026-08-06-meta-features-08.md`               | M7 (2026-08-09) | Verschoben nach `archive/META_FEATURES_08_PLAN_2026-08-06.md`                            |
+| `superpowers/specs/2026-08-06-meta-features-08-design.md`        | M7 (2026-08-09) | Verschoben nach `archive/META_FEATURES_08_SPEC_2026-08-06.md`                            |
+| `status-reports/02_STATUS_QUO_KOHORTEN.md`                       | M7 (2026-08-09) | Verschoben nach `archive/STATUS_QUO_KOHORTEN_2026-08-09.md` (löst `02`-Nummernkollision) |
+| `superpowers/` (Ordner)                                          | M7 (2026-08-09) | Nach M7-Moves leer → gelöscht                                                            |
+| `routes/` (Ordner)                                               | M7 (2026-08-09) | Nach M7-Moves leer → gelöscht                                                            |
+
+---
+
+**Netto-Stand (nach M11 — 11/11 🟢):** `docs/` → 41 Dateien (33 `.md` + 8 `.html`). `architecture/` → 3 lebendig (`02_CLERK_SUPABASE`, `05_MOBILE_PERFORMANCE`, `LEADERBOARD_RPC`); `superpowers/`+`routes/` → verschwunden; `status-reports/` → 9 saubere Kategorie-Reports (02-Kollision gelöst); `prototypes/` → 8 (4 Optionen + 4 v2-Explorationen: Schrift/Glassmorphism); `archive/` → 17 historische Dateien. **Docs-Ordnung M1–M11 abgeschlossen** — Master-Plan + alle Batch-Historien archiviert unter `archive/DOCS_ORDNUNG_*.md`. Verbleibende Off-Scope-Punkte: src/-Refs in `02_CLERK_SUPABASE`/`CRASH_VISUAL_TENSION` (Kategorie 13, Security/Logic-Owner, nicht Docs-Ordnung).

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option 1.1 v2 — Cyber-Stealth Terminal (optimiertes Duplikat)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Cyber-Stealth · Platinum palette */
+      --bg: #0b0e14;
+      --surface: rgba(20, 25, 35, 0.55);
+      --surface-2: rgba(26, 34, 50, 0.45);
+      --border: rgba(203, 213, 225, 0.14);
+      --border-bright: rgba(203, 213, 225, 0.28);
+      --text: #f1f5f9;
+      --text-muted: #8a97ad;
+      --text-dim: #6b7689;            /* P1: aufgehellt für AA bei kleinen Texten */
+      --accent: #cbd5e1;
+      --accent-glow: rgba(203, 213, 225, 0.15);
+      --emerald: #00e676;
+      --crimson: #ff3366;
+      --amber: #ffb300;
+
+      /* Fonts — verbindlicher Standard */
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+
+      /* P1: explizite Spacing-Skala */
+      --sp-1: 8px; --sp-2: 12px; --sp-3: 16px; --sp-4: 20px; --sp-5: 24px; --sp-6: 32px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      position: relative;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      min-height: 100vh;
+      padding: 18px 16px 60px;
+      overflow-x: hidden;
+    }
+
+    /* ---- P1: universelle Focus-Styles ---- */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    /* ---- Animated background (so glass blur is visible) ---- */
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(203,213,225,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(203,213,225,0.05) 1px, transparent 1px);
+      background-size: 30px 30px;
+      mask-image: radial-gradient(ellipse 85% 80% at 50% 25%, #000 35%, transparent 85%);
+      -webkit-mask-image: radial-gradient(ellipse 85% 80% at 50% 25%, #000 35%, transparent 85%); /* P2: Safari */
+    }
+    .blob {
+      position: fixed; z-index: 0; border-radius: 50%; filter: blur(70px); pointer-events: none;
+      mix-blend-mode: screen; opacity: 0.55;
+      will-change: transform; /* P2 */
+    }
+    .blob-1 { width: 460px; height: 460px; top: -100px; left: -80px; background: radial-gradient(circle, rgba(203,213,225,0.20), transparent 70%); animation: drift1 18s ease-in-out infinite; }
+    .blob-2 { width: 380px; height: 380px; top: 22%; right: -40px; background: radial-gradient(circle, rgba(0,230,118,0.14), transparent 70%); animation: drift2 22s ease-in-out infinite; } /* P2: näher an Crash-Panel (rechts) + stärkerer emerald-Anteil */
+    .blob-3 { width: 320px; height: 320px; bottom: -80px; left: 38%; background: radial-gradient(circle, rgba(120,134,163,0.16), transparent 70%); animation: drift3 26s ease-in-out infinite; }
+    @keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(70px,40px)} }
+    @keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-60px,70px)} }
+    @keyframes drift3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(50px,-60px)} }
+
+    .wrap { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; }
+
+    /* ---- Frosted Obsidian glass primitive (foundation) ---- */
+    .glass {
+      position: relative;
+      background: var(--surface);
+      backdrop-filter: blur(18px) saturate(140%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .glass::before {
+      content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+      background: linear-gradient(180deg, rgba(203,213,225,0.08), transparent 32%);
+    }
+
+    /* ---- Live dot (emerald pulse) — NUR für echte Live-Daten ---- */
+    .live-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--emerald);
+      box-shadow: 0 0 12px var(--emerald); display: inline-block; flex: none;
+      animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:0.7; transform:scale(0.92)} 50%{opacity:1; transform:scale(1.25)} }
+
+    /* ---- Header / Nav ---- */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 18px; margin-bottom: var(--sp-3);
+    }
+    .brand { display: flex; align-items: center; gap: var(--sp-2); }
+    .brand-logo {
+      font-family: var(--font-mono); font-weight: 700; font-size: 15px;
+      letter-spacing: 0.14em; color: var(--accent); display: flex; align-items: center; gap: 9px;
+    }
+    /* P3: Dev-Tag + Brand-Live-Dot entfernt — Brand ist nicht "live" */
+    .nav { display: flex; gap: 6px; }
+    .nav a {
+      font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: none;
+      padding: 7px 13px; border-radius: 7px; transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+      border: 1px solid transparent;
+    }
+    .nav a:hover { color: var(--text); background: rgba(203,213,225,0.06); }
+    .nav a.active { color: var(--accent); background: rgba(203,213,225,0.08); border-color: var(--border-bright); }
+
+    /* P3: Mobile-Hamburger */
+    .hamburger { display: none; background: rgba(203,213,225,0.04); border: 1px solid var(--border-bright); color: var(--text); padding: 8px 11px; border-radius: 8px; cursor: pointer; font-family: var(--font-mono); font-size: 13px; }
+    .mobile-nav { display: none; flex-direction: column; gap: 4px; margin-top: 10px; padding: 12px; }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a { font-size: 14px; font-weight: 600; color: var(--text-muted); text-decoration: none; padding: 9px 12px; border-radius: 7px; }
+    .mobile-nav a.active { color: var(--accent); background: rgba(203,213,225,0.08); }
+
+    .header-right { display: flex; align-items: center; gap: var(--sp-2); }
+    .balance-box {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(203,213,225,0.05); border: 1px solid var(--border-bright);
+      padding: 7px 14px; border-radius: 8px;
+    }
+    .balance-box .lbl { font-family: var(--font-mono); font-size: 10px; font-weight: 600; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; }
+    .balance-box .val { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+
+    /* P3: Deposit-Button */
+    .btn-deposit {
+      font-family: var(--font-sans); font-size: 13px; font-weight: 700; color: var(--accent);
+      background: rgba(203,213,225,0.06); border: 1px solid var(--border-bright);
+      padding: 7px 13px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    .btn-deposit:hover { background: rgba(203,213,225,0.12); border-color: var(--accent); }
+    .btn-deposit .plus { font-family: var(--font-mono); font-size: 16px; line-height: 1; }
+
+    /* P3: Avatar als Menü-Button */
+    .avatar {
+      width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-bright);
+      background: linear-gradient(135deg, rgba(203,213,225,0.2), rgba(0,230,118,0.15));
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; color: var(--text);
+      cursor: pointer; position: relative;
+    }
+    .avatar .caret { position: absolute; bottom: -2px; right: -2px; font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); background: var(--bg); border-radius: 50%; padding: 0 3px; }
+
+    /* ---- Metrics row ---- */
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); margin-bottom: var(--sp-3); }
+    .metric { padding: var(--sp-3) var(--sp-4); }
+    .metric .top { display: flex; align-items: center; justify-content: space-between; }
+    .metric .k { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; color: var(--text-dim); text-transform: uppercase; }
+    .metric .v-row { display: flex; align-items: baseline; justify-content: flex-end; gap: 8px; margin-top: 10px; } /* P4: rechtsbündig + Delta */
+    .metric .v { font-family: var(--font-mono); font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+    .metric .v.acc { color: var(--accent); }
+    .metric .v.up { color: var(--emerald); }
+    .metric .v.down { color: var(--crimson); }
+    .metric .delta { font-family: var(--font-mono); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .metric .delta.up { color: var(--emerald); }
+    .metric .delta.down { color: var(--crimson); }
+    .metric .d { font-family: var(--font-mono); font-size: 11px; margin-top: 6px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .metric .live-label { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 10px; font-weight: 600; color: var(--emerald); letter-spacing: 0.12em; text-transform: uppercase; }
+
+    /* P4: Primär-Metric (Net P/L) = Hero, span 2 + größer */
+    .metric.hero { grid-column: span 2; }
+    .metric.hero .v { font-size: 32px; }
+
+    /* P4: Mini-Sparkline */
+    .spark { margin-top: 8px; height: 28px; width: 100%; display: block; }
+    .spark polyline { fill: none; stroke: var(--accent); stroke-width: 1.4; opacity: 0.8; }
+    .spark .fill { fill: rgba(203,213,225,0.08); stroke: none; }
+    .spark.up polyline { stroke: var(--emerald); }
+    .spark.up .fill { fill: rgba(0,230,118,0.08); }
+
+    /* ---- Main grid ---- */
+    .grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: var(--sp-3); }
+
+    .panel { padding: var(--sp-4) var(--sp-5) var(--sp-5); }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-3); }
+    .panel-title { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 9px; }
+    .panel-title .live-dot { margin-right: 0; }
+    .panel-pill { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; color: var(--text-dim); border: 1px solid var(--border); padding: 4px 9px; border-radius: 4px; text-transform: uppercase; }
+
+    .filters { display: flex; gap: 8px; margin-bottom: var(--sp-2); flex-wrap: wrap; }
+    /* P5: Chips als echte Buttons mit aria-pressed */
+    .chip {
+      font-family: var(--font-sans); font-size: 12px; font-weight: 600; padding: 6px 13px; border-radius: 7px;
+      border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; background: rgba(203,213,225,0.02);
+      transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+    .chip:hover { color: var(--text); border-color: var(--border-bright); }
+    .chip[aria-pressed="true"] { color: var(--accent); border-color: var(--border-bright); background: rgba(203,213,225,0.07); }
+
+    /* ---- P5: scrollbarer Panel + sticky thead ---- */
+    .stream-scroll { max-height: 360px; overflow: auto; }
+    .stream { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .stream th { text-align: left; font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); padding: 9px 12px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(20,25,35,0.92); backdrop-filter: blur(8px); z-index: 1; }
+    .stream td { padding: 11px 12px; border-bottom: 1px solid rgba(203,213,225,0.06); }
+    .stream td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; } /* P5: numerisch rechtsbündig */
+    .stream th.num { text-align: right; }
+    .stream td.win { color: var(--emerald); }
+    .stream td.loss { color: var(--crimson); }
+    .stream tr:hover td { background: rgba(203,213,225,0.03); }
+    .game-tag { font-family: var(--font-mono); font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border); color: var(--text-muted); letter-spacing: 0.06em; }
+
+    /* P5: Provably-Fair-Chevron pro Row */
+    .pf-link { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); text-decoration: none; padding: 2px 6px; border-radius: 4px; transition: color 0.15s ease, background 0.15s ease; }
+    .pf-link:hover { color: var(--accent); background: rgba(203,213,225,0.06); }
+
+    .panel-foot { display: flex; justify-content: space-between; align-items: center; margin-top: var(--sp-4); gap: var(--sp-2); flex-wrap: wrap; }
+    .panel-note { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+    .btn { font-family: var(--font-sans); font-size: 13px; font-weight: 600; padding: 9px 16px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; transition: background 0.15s ease, border-color 0.15s ease; }
+    .btn-primary { background: var(--accent); color: #0b0e14; }
+    .btn-primary:hover { background: #e2e8f0; }
+    .btn-ghost { background: rgba(203,213,225,0.04); color: var(--text); border-color: var(--border-bright); }
+    .btn-ghost:hover { background: rgba(203,213,225,0.1); }
+    .btn-emerald { background: rgba(0,230,118,0.12); color: var(--emerald); border-color: rgba(0,230,118,0.35); }
+    .btn-emerald:hover { background: rgba(0,230,118,0.2); }
+    .btn-emerald:disabled { color: var(--text-dim); background: rgba(203,213,225,0.04); border-color: var(--border); cursor: not-allowed; }
+
+    /* P5: Auto-Refresh-Toggle */
+    .toggle { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); cursor: pointer; }
+    .toggle .sw { width: 34px; height: 18px; border-radius: 999px; background: rgba(203,213,225,0.08); border: 1px solid var(--border-bright); position: relative; transition: background 0.2s ease; }
+    .toggle .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--text-dim); transition: transform 0.2s ease, background 0.2s ease; }
+    .toggle[aria-pressed="true"] .sw { background: rgba(0,230,118,0.2); border-color: rgba(0,230,118,0.4); }
+    .toggle[aria-pressed="true"] .sw::after { transform: translateX(16px); background: var(--emerald); }
+
+    /* ---- Right column ---- */
+    .side { display: flex; flex-direction: column; gap: var(--sp-3); }
+    .crash-panel { padding: var(--sp-4) var(--sp-5) var(--sp-5); }
+    .crash-label { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.16em; color: var(--emerald); text-transform: uppercase; }
+    /* P6: Multi einfarbig, nur "x" akzent */
+    .crash-mult { font-family: var(--font-mono); font-size: 52px; font-weight: 700; letter-spacing: -0.03em; color: var(--text); margin: 10px 0 4px; font-variant-numeric: tabular-nums; }
+    .crash-mult .x { color: var(--accent); }
+
+    /* P6: Progress-Bar animiert, Platinum-Gradient (Emerald reserviert) */
+    .crash-bar { height: 6px; border-radius: 999px; background: rgba(203,213,225,0.08); margin: 14px 0; overflow: hidden; }
+    .crash-bar > i { display: block; height: 100%; width: 64%; background: linear-gradient(90deg, rgba(203,213,225,0.4), var(--accent)); border-radius: 999px; transition: width 0.6s ease; }
+
+    .crash-meta { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); margin-top: 8px; font-variant-numeric: tabular-nums; }
+
+    /* P6: Recent-Busts-Strip */
+    .busts { display: flex; gap: 6px; margin: 14px 0 4px; flex-wrap: wrap; }
+    .bust { font-family: var(--font-mono); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .bust.low { color: var(--crimson); border-color: rgba(255,51,102,0.3); }
+    .busts-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 12px; }
+
+    /* P6: Bet- + Auto-Cashout-Inputs */
+    .crash-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 6px; }
+    .ci-group { display: flex; flex-direction: column; gap: 4px; }
+    .ci-group label { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+    .ci-input { font-family: var(--font-mono); font-size: 13px; color: var(--text); background: rgba(203,213,225,0.04); border: 1px solid var(--border-bright); padding: 8px 10px; border-radius: 7px; font-variant-numeric: tabular-nums; }
+
+    .payouts { padding: var(--sp-3) var(--sp-5) var(--sp-4); }
+    .payout-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(203,213,225,0.06); }
+    .payout-row:last-child { border-bottom: none; }
+    .payout-row .who { display: flex; align-items: center; gap: 10px; }
+    /* P7: Initialen-Avatar */
+    .pa-avatar { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border-bright); background: rgba(203,213,225,0.08); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 9px; font-weight: 700; color: var(--text-muted); }
+    /* P7: Rang-Hierarchie */
+    .payout-row .rank { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); width: 20px; font-variant-numeric: tabular-nums; }
+    .payout-row.r1 .rank { color: var(--accent); font-size: 13px; font-weight: 700; }
+    .payout-row.r2 .rank, .payout-row.r3 .rank { color: var(--text); font-weight: 700; }
+    .payout-row .name { font-size: 13px; font-weight: 600; }
+    .payout-row .meta { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-top: 2px; letter-spacing: 0.06em; }
+    .payout-row .amt { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--emerald); font-variant-numeric: tabular-nums; }
+    /* P7: "Du"-Row */
+    .payout-row.you { background: rgba(203,213,225,0.06); border-left: 2px solid var(--accent); padding-left: 10px; border-radius: 4px; }
+    .payout-row.you .name { color: var(--accent); display: flex; align-items: center; gap: 8px; }
+    .you-badge { font-family: var(--font-mono); font-size: 9px; font-weight: 700; color: var(--bg); background: var(--accent); padding: 1px 5px; border-radius: 3px; letter-spacing: 0.08em; }
+
+    /* ---- Featured games row ---- */
+    .featured { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); margin-top: var(--sp-3); }
+    .gcard { padding: var(--sp-3); cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease; position: relative; overflow: hidden; }
+    .gcard:hover { transform: translateY(-3px); border-color: var(--border-bright); }
+    .gcard .gname { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .gcard .gdesc { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } /* P8: Truncation */
+    .gcard .gfoot { display: flex; justify-content: space-between; align-items: center; margin-top: var(--sp-2); }
+    .gcard .gpayout { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+    .gcard .greward { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .gcard .live-label { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 9px; font-weight: 600; color: var(--emerald); letter-spacing: 0.12em; text-transform: uppercase; }
+    /* P8: Spielerzahl */
+    .gcard .players { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+    /* P8: PLAY-Affordance bei Hover */
+    .gcard .play { position: absolute; right: 16px; bottom: 14px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; opacity: 0; transform: translateX(8px); transition: opacity 0.2s ease, transform 0.2s ease; }
+    .gcard:hover .play { opacity: 1; transform: translateX(0); }
+
+    /* P8: Mono-Monogram-Badge statt Emoji */
+    .ico {
+      width: 28px; height: 28px; border-radius: 7px; background: rgba(203,213,225,0.06); border: 1px solid var(--border-bright);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; flex: none;
+    }
+
+    /* P8: Hero-Card (Crash) breiter */
+    .gcard.hero { grid-column: span 2; }
+    .gcard.hero .gname { font-size: 16px; }
+    .gcard.hero .greward { font-size: 16px; }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      .metric.hero { grid-column: span 2; }
+      .featured { grid-template-columns: repeat(2, 1fr); }
+      .gcard.hero { grid-column: span 2; }
+      .nav { display: none; }
+      .hamburger { display: inline-block; } /* P3 */
+    }
+    @media (max-width: 560px) {
+      .metrics { grid-template-columns: 1fr; }
+      .metric.hero { grid-column: span 1; }
+      .featured { grid-template-columns: 1fr; }
+      .gcard.hero { grid-column: span 1; }
+      .header { flex-wrap: wrap; gap: 10px; }
+      .blob-2, .blob-3 { display: none; } /* P2: Mobile-Reduktion */
+      .blob-1 { filter: blur(50px); }
+    }
+
+    /* P1 / P9: Reduced-Motion — Blobs eingefroren, Progress statisch */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+      .blob { animation: none; }
+      .crash-bar > i { transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="wrap">
+
+    <!-- Header / Nav -->
+    <header class="glass header">
+      <div class="brand">
+        <div class="brand-logo">ROYALE.TERMINAL</div> <!-- P3: Live-Dot + Dev-Tag entfernt -->
+      </div>
+      <nav class="nav">
+        <a class="active" href="#">Lobby</a>
+        <a href="#">History</a>
+        <a href="#">Leaderboard</a>
+        <a href="#">Vault</a>
+        <a href="#">Admin</a>
+      </nav>
+      <div class="header-right">
+        <div class="balance-box">
+          <span class="lbl">Balance</span>
+          <span class="val">$12,847.50</span>
+        </div>
+        <button class="btn-deposit" aria-label="Einzahlen"><span class="plus">+</span>Deposit</button> <!-- P3 -->
+        <button class="avatar" aria-haspopup="menu" aria-label="Benutzermenü">JP<span class="caret">▾</span></button> <!-- P3 -->
+      </div>
+      <!-- P3: Mobile-Hamburger -->
+      <button class="hamburger" aria-expanded="false" aria-controls="mobileNav" aria-label="Menü öffnen">☰</button>
+    </header>
+    <nav class="glass mobile-nav" id="mobileNav"> <!-- P3 -->
+      <a class="active" href="#">Lobby</a>
+      <a href="#">History</a>
+      <a href="#">Leaderboard</a>
+      <a href="#">Vault</a>
+      <a href="#">Admin</a>
+    </nav>
+
+    <!-- Metrics -->
+    <section class="metrics">
+      <!-- P4: Volume (live) + Sparkline + Delta -->
+      <div class="glass metric">
+        <div class="top"><span class="k">24H Volume</span><span class="live-label"><span class="live-dot"></span>Live</span></div>
+        <div class="v-row"><span class="v acc">$842,310</span><span class="delta up">▲ 14.2%</span></div>
+        <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline class="fill" points="0,22 12,18 25,20 38,14 52,16 65,10 78,12 90,6 100,8 100,28 0,28"/><polyline points="0,22 12,18 25,20 38,14 52,16 65,10 78,12 90,6 100,8"/></svg>
+      </div>
+      <!-- P4: Net P/L = Hero (live) -->
+      <div class="glass metric hero">
+        <div class="top"><span class="k">Net P/L · 24H</span><span class="live-label"><span class="live-dot"></span>Live</span></div>
+        <div class="v-row"><span class="v up">+$2,103.75</span><span class="delta up">▲ 8.4%</span></div>
+        <svg class="spark up" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline class="fill" points="0,20 14,22 28,16 42,18 56,12 70,14 84,8 100,10 100,28 0,28"/><polyline points="0,20 14,22 28,16 42,18 56,12 70,14 84,8 100,10"/></svg>
+        <div class="d">412 bets · 24h</div>
+      </div>
+      <!-- P4: Win Rate (aggregiert, kein Live-Label) -->
+      <div class="glass metric">
+        <div class="top"><span class="k">Win Rate</span></div>
+        <div class="v-row"><span class="v">52.8%</span><span class="delta up">▲ 1.2pp</span></div>
+        <div class="d">218 / 412 settled</div>
+      </div>
+      <!-- P4: Active Players (live) -->
+      <div class="glass metric">
+        <div class="top"><span class="k">Active Players</span><span class="live-label"><span class="live-dot"></span>Live</span></div>
+        <div class="v-row"><span class="v acc">1,284</span><span class="delta down">▼ 3.1%</span></div>
+        <div class="d">peak 2,910 · 24h</div>
+      </div>
+    </section>
+
+    <!-- Main grid -->
+    <div class="grid">
+
+      <!-- Bet stream -->
+      <section class="glass panel">
+        <div class="panel-head">
+          <div class="panel-title"><span class="live-dot" aria-label="live"></span>BET HISTORY // TERMINAL TAPE</div>
+          <span class="panel-pill">LIVE</span>
+        </div>
+        <div class="filters">
+          <button class="chip" aria-pressed="true">All</button>
+          <button class="chip" aria-pressed="false">Crash</button>
+          <button class="chip" aria-pressed="false">Dice</button>
+          <button class="chip" aria-pressed="false">Roulette</button>
+          <button class="chip" aria-pressed="false">Slots</button>
+          <button class="chip" aria-pressed="false">Blackjack</button>
+        </div>
+        <div class="stream-scroll"> <!-- P5: scrollbar -->
+          <table class="stream">
+            <thead>
+              <tr><th>Time</th><th>Game</th><th class="num">Bet</th><th class="num">Multi</th><th class="num">Payout</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr><td>12:04:21</td><td><span class="game-tag">CRASH</span></td><td class="num">$50.00</td><td class="num">2.41x</td><td class="num win">+$120.50</td><td><a class="pf-link" href="#" aria-label="Fairness verifizieren">⌗</a></td></tr>
+              <tr><td>12:03:58</td><td><span class="game-tag">DICE</span></td><td class="num">$25.00</td><td class="num">0.00x</td><td class="num loss">−$25.00</td><td><a class="pf-link" href="#" aria-label="Fairness verifizieren">⌗</a></td></tr>
+              <tr><td>12:03:11</td><td><span class="game-tag">ROULETTE</span></td><td class="num">$100.00</td><td class="num">3.00x</td><td class="num win">+$300.00</td><td><a class="pf-link" href="#" aria-label="Fairness verifizieren">⌗</a></td></tr>
+              <tr><td>12:02:44</td><td><span class="game-tag">SLOTS</span></td><td class="num">$10.00</td><td class="num">1.50x</td><td class="num win">+$15.00</td><td><a class="pf-link" href="#" aria-label="Fairness verifizieren">⌗</a></td></tr>
+              <tr><td>12:01:09</td><td><span class="game-tag">BLACKJACK</span></td><td class="num">$75.00</td><td class="num">0.00x</td><td class="num loss">−$75.00</td><td><a class="pf-link" href="#" aria-label="Fairness verifizieren">⌗</a></td></tr>
+              <tr><td>12:00:32</td><td><span class="game-tag">CRASH</span></td><td class="num">$200.00</td><td class="num">1.84x</td><td class="num win">+$368.00</td><td><a class="pf-link" href="#" aria-label="Fairness verifizieren">⌗</a></td></tr>
+              <tr><td>11:59:50</td><td><span class="game-tag">DICE</span></td><td class="num">$40.00</td><td class="num">2.00x</td><td class="num win">+$80.00</td><td><a class="pf-link" href="#" aria-label="Fairness verifizieren">⌗</a></td></tr>
+              <tr><td>11:58:12</td><td><span class="game-tag">ROULETTE</span></td><td class="num">$60.00</td><td class="num">0.00x</td><td class="num loss">−$60.00</td><td><a class="pf-link" href="#" aria-label="Fairness verifizieren">⌗</a></td></tr>
+              <tr><td>11:57:33</td><td><span class="game-tag">SLOTS</span></td><td class="num">$15.00</td><td class="num">5.00x</td><td class="num win">+$75.00</td><td><a class="pf-link" href="#" aria-label="Fairness verifizieren">⌗</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel-foot">
+          <span class="panel-note">412 settled · 24h · Server-settled · idempotent · 0 client authority</span>
+          <span style="display:flex; gap:10px; align-items:center;">
+            <button class="toggle" aria-pressed="true" aria-label="Auto-Refresh"><span class="sw"></span>Auto</button> <!-- P5: Auto-Refresh statt Place Bet -->
+            <button class="btn btn-ghost">Export</button>
+            <button class="btn btn-primary">Load More</button> <!-- P5: Load-More -->
+          </span>
+        </div>
+      </section>
+
+      <!-- Side column -->
+      <aside class="side">
+        <div class="glass crash-panel">
+          <div class="crash-label"><span class="live-dot" aria-label="live"></span>CRASH // LIVE ROUND</div>
+          <div class="crash-mult">2.41<span class="x">x</span></div> <!-- P6: einfarbig, nur x akzent -->
+          <div class="crash-bar"><i></i></div>
+          <div class="crash-meta">
+            <span>cashout @ 2.50x</span>
+            <span>potential +$125.00</span>
+          </div>
+
+          <!-- P6: Recent-Busts -->
+          <div class="busts-label">Recent Busts</div>
+          <div class="busts">
+            <span class="bust low">1.12x</span>
+            <span class="bust">3.40x</span>
+            <span class="bust low">1.02x</span>
+            <span class="bust">8.21x</span>
+            <span class="bust">2.04x</span>
+            <span class="bust low">1.38x</span>
+          </div>
+
+          <!-- P6: Bet- + Auto-Cashout-Inputs -->
+          <div class="crash-inputs">
+            <div class="ci-group">
+              <label for="bet">Bet</label>
+              <input class="ci-input" id="bet" type="text" value="$50.00" inputmode="decimal">
+            </div>
+            <div class="ci-group">
+              <label for="auto">Auto-Cashout</label>
+              <input class="ci-input" id="auto" type="text" value="2.50x" inputmode="decimal">
+            </div>
+          </div>
+
+          <div class="panel-foot" style="margin-top: 14px;">
+            <span class="panel-note">round #84,221 · 14s left</span>
+            <button class="btn btn-emerald">Cash Out</button>
+          </div>
+        </div>
+
+        <div class="glass payouts">
+          <div class="panel-head" style="margin-bottom: 10px;">
+            <div class="panel-title">TOP PAYOUTS // 24H</div>
+            <a href="#" class="pf-link" style="font-size:11px;">View all →</a> <!-- P7 -->
+          </div>
+          <!-- P7: Avatare, Rang-Hierarchie, Game/Zeit, "Du"-Row -->
+          <div class="payout-row r1">
+            <div class="who"><span class="rank">01</span><span class="pa-avatar">WW</span><div><div class="name">_whale.eth</div><div class="meta">CRASH · 12:04</div></div></div>
+            <span class="amt">+$48,210</span>
+          </div>
+          <div class="payout-row r2">
+            <div class="who"><span class="rank">02</span><span class="pa-avatar">CR</span><div><div class="name">cr0nx</div><div class="meta">SLOTS · 11:51</div></div></div>
+            <span class="amt">+$31,840</span>
+          </div>
+          <div class="payout-row r3">
+            <div class="who"><span class="rank">03</span><span class="pa-avatar">VX</span><div><div class="name">vortex_77</div><div class="meta">ROULETTE · 11:38</div></div></div>
+            <span class="amt">+$22,100</span>
+          </div>
+          <div class="payout-row you"> <!-- P7: "Du"-Row -->
+            <div class="who"><span class="rank">04</span><span class="pa-avatar">JP</span><div><div class="name">You <span class="you-badge">YOU</span></div><div class="meta">CRASH · 12:00</div></div></div>
+            <span class="amt">+$18,520</span>
+          </div>
+          <div class="payout-row">
+            <div class="who"><span class="rank">05</span><span class="pa-avatar">NV</span><div><div class="name">n0va</div><div class="meta">DICE · 11:20</div></div></div>
+            <span class="amt">+$15,910</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Featured games -->
+    <section class="featured">
+      <!-- P8: Hero-Card Crash (breiter), Monogram statt Emoji, PLAY-Affordance, Spielerzahl -->
+      <div class="glass gcard hero">
+        <div class="gname"><span class="ico">CR</span>Crash <span class="live-label" style="margin-left:auto"><span class="live-dot"></span>Live</span></div>
+        <div class="gdesc">Cash out before the multiplier busts. Provably-fair curve, atomic server settlement per round.</div>
+        <div class="gfoot"><span class="gpayout">Top Multi</span><span class="greward">412.8x</span></div>
+        <div class="players" style="margin-top:8px;">1,284 playing now</div>
+        <span class="play">PLAY →</span>
+      </div>
+      <div class="glass gcard">
+        <div class="gname"><span class="ico">DC</span>Dice</div>
+        <div class="gdesc">Roll over / under. 1% house edge, instant settle.</div>
+        <div class="gfoot"><span class="gpayout">Top Multi</span><span class="greward">9.90x</span></div>
+        <div class="players" style="margin-top:8px;">842 playing now</div>
+        <span class="play">PLAY →</span>
+      </div>
+      <div class="glass gcard">
+        <div class="gname"><span class="ico">SL</span>Slots</div>
+        <div class="gdesc">Per-reel provably-fair indices. Dynamic paylines.</div>
+        <div class="gfoot"><span class="gpayout">Top Multi</span><span class="greward">25.0x</span></div>
+        <div class="players" style="margin-top:8px;">1,016 playing now</div>
+        <span class="play">PLAY →</span>
+      </div>
+      <div class="glass gcard">
+        <div class="gname"><span class="ico">RL</span>Roulette</div>
+        <div class="gdesc">European single-zero. Atomic server settlement.</div>
+        <div class="gfoot"><span class="gpayout">Top Multi</span><span class="greward">36x</span></div>
+        <div class="players" style="margin-top:8px;">504 playing now</div>
+        <span class="play">PLAY →</span>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- P3: Mobile-Nav-Toggle -->
+  <script>
+    (function () {
+      var hb = document.querySelector('.hamburger');
+      var mn = document.getElementById('mobileNav');
+      if (!hb || !mn) return;
+      hb.addEventListener('click', function () {
+        var open = mn.classList.toggle('open');
+        hb.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    })();
+  </script>
+</body>
+</html>

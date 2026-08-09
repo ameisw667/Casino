@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BG-Option 1 — Glass-Water Refraction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --surface: rgba(20, 25, 35, 0.55);
+      --border: rgba(203, 213, 225, 0.14);
+      --border-bright: rgba(203, 213, 225, 0.28);
+      --text: #f1f5f9;
+      --text-muted: #8a97ad;
+      --text-dim: #6b7689;
+      --accent: #cbd5e1;
+      --emerald: #00e676;
+      --crimson: #ff3366;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      position: relative; background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 14px; min-height: 100vh;
+      padding: 18px 16px 60px; overflow-x: hidden;
+    }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* ===== BG-Option 1: Glass-Water Refraction ===== */
+    /* Layer 1: faint grid (wird vom Wasser verzerrt) */
+    .bg-grid {
+      position: fixed; inset: -10%; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(203,213,225,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(203,213,225,0.06) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 30%, #000 30%, transparent 82%);
+      -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 30%, #000 30%, transparent 82%);
+      /* SVG-Displacement: Muster "fließt" leicht, verzerrt NICHT den Inhalt */
+      filter: url(#waterDisplace);
+      transition: transform 0.4s ease-out;
+    }
+    /* Layer 2: statische Glow-Blobs (zurückhaltender als v2) */
+    .blob { position: fixed; z-index: 0; border-radius: 50%; filter: blur(80px); pointer-events: none; mix-blend-mode: screen; opacity: 0.4; will-change: transform; }
+    .blob-a { width: 420px; height: 420px; top: -120px; left: -100px; background: radial-gradient(circle, rgba(203,213,225,0.18), transparent 70%); animation: drift1 22s ease-in-out infinite; }
+    .blob-b { width: 360px; height: 360px; bottom: -100px; right: -60px; background: radial-gradient(circle, rgba(0,230,118,0.10), transparent 70%); animation: drift2 28s ease-in-out infinite; }
+    @keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(60px,40px)} }
+    @keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-50px,50px)} }
+
+    /* Layer 3: Cursor-Glass-Spotlight (Lichtbrechung) — folgt der Maus via --mx/--my */
+    .glass-spot {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(circle 280px at var(--mx, 50%) var(--my, 40%),
+        rgba(203,213,225,0.16), rgba(203,213,225,0.05) 40%, transparent 70%);
+      mix-blend-mode: screen;
+      transition: background 0.15s ease-out;
+    }
+    /* Layer 4: feine Glas-Linse (schärferer Platinum-Ring am Cursor) */
+    .glass-lens {
+      position: fixed; z-index: 0; pointer-events: none; left: 0; top: 0;
+      width: 180px; height: 180px; margin: -90px 0 0 -90px;
+      transform: translate3d(var(--mx, 50%), var(--my, 40%), 0);
+      background: radial-gradient(circle, transparent 30%, rgba(203,213,225,0.08) 55%, transparent 75%);
+      mix-blend-mode: screen;
+      transition: transform 0.12s ease-out;
+    }
+
+    .wrap { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; }
+
+    .glass {
+      position: relative; background: var(--surface);
+      backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%);
+      border: 1px solid var(--border); border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .glass::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(180deg, rgba(203,213,225,0.08), transparent 32%); }
+
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); box-shadow: 0 0 12px var(--emerald); display: inline-block; flex: none; animation: pulse 1.6s infinite; }
+    @keyframes pulse { 0%,100%{opacity:0.7; transform:scale(0.92)} 50%{opacity:1; transform:scale(1.25)} }
+
+    .header { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; margin-bottom: 16px; }
+    .brand-logo { font-family: var(--font-mono); font-weight: 700; font-size: 15px; letter-spacing: 0.14em; color: var(--accent); }
+    .balance-box { display: flex; align-items: center; gap: 10px; background: rgba(203,213,225,0.05); border: 1px solid var(--border-bright); padding: 7px 14px; border-radius: 8px; }
+    .balance-box .lbl { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; }
+    .balance-box .val { font-family: var(--font-mono); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+    .metric { padding: 16px 18px; }
+    .metric .k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; color: var(--text-dim); text-transform: uppercase; }
+    .metric .v { font-family: var(--font-mono); font-size: 24px; font-weight: 600; margin-top: 10px; font-variant-numeric: tabular-nums; }
+    .metric .v.acc { color: var(--accent); } .metric .v.up { color: var(--emerald); }
+    .metric .d { font-family: var(--font-mono); font-size: 11px; margin-top: 6px; color: var(--text-muted); }
+
+    .grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
+    .panel { padding: 18px 20px; }
+    .panel-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 9px; margin-bottom: 14px; }
+    .stream th { text-align: left; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); padding: 9px 12px; border-bottom: 1px solid var(--border); }
+    .stream td { padding: 11px 12px; border-bottom: 1px solid rgba(203,213,225,0.06); font-size: 13px; }
+    .stream td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+    .stream td.win { color: var(--emerald); } .stream td.loss { color: var(--crimson); }
+    .game-tag { font-family: var(--font-mono); font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border); color: var(--text-muted); }
+
+    .crash-panel { padding: 18px 20px; }
+    .crash-label { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; color: var(--emerald); text-transform: uppercase; }
+    .crash-mult { font-family: var(--font-mono); font-size: 52px; font-weight: 700; letter-spacing: -0.03em; margin: 10px 0; font-variant-numeric: tabular-nums; }
+    .crash-mult .x { color: var(--accent); }
+    .crash-bar { height: 6px; border-radius: 999px; background: rgba(203,213,225,0.08); margin: 14px 0; overflow: hidden; }
+    .crash-bar > i { display: block; height: 100%; width: 64%; background: linear-gradient(90deg, rgba(203,213,225,0.4), var(--accent)); border-radius: 999px; }
+
+    .featured { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; }
+    .gcard { padding: 16px; }
+    .gname { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .ico { width: 28px; height: 28px; border-radius: 7px; background: rgba(203,213,225,0.06); border: 1px solid var(--border-bright); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent); }
+    .gdesc { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; line-height: 1.4; }
+    .gfoot { display: flex; justify-content: space-between; margin-top: 12px; }
+    .gpayout { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+    .greward { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--accent); }
+
+    .bg-note { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 2; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; background: rgba(20,25,35,0.6); border: 1px solid var(--border); padding: 6px 14px; border-radius: 999px; backdrop-filter: blur(8px); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.001ms !important; transition: none !important; }
+      .blob { animation: none; }
+    }
+    @media (max-width: 560px) { .metrics { grid-template-columns: 1fr; } .grid, .featured { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <!-- SVG-Filter: Wasser-Verzerrung (nur auf .bg-grid angewendet) -->
+  <svg width="0" height="0" style="position:absolute"><filter id="waterDisplace">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="2" seed="7" result="noise">
+      <animate attributeName="baseFrequency" dur="18s" values="0.012 0.02; 0.014 0.018; 0.012 0.02" repeatCount="indefinite"/>
+    </feTurbulence>
+    <feDisplacementMap in="SourceGraphic" in2="noise" scale="22" xChannelSelector="R" yChannelSelector="G"/>
+  </filter></svg>
+
+  <div class="bg-grid"></div>
+  <div class="blob blob-a"></div>
+  <div class="blob blob-b"></div>
+  <div class="glass-spot"></div>
+  <div class="glass-lens"></div>
+
+  <div class="wrap">
+    <header class="glass header">
+      <div class="brand-logo">ROYALE.TERMINAL</div>
+      <div class="balance-box"><span class="lbl">Balance</span><span class="val">$12,847.50</span></div>
+    </header>
+
+    <section class="metrics">
+      <div class="glass metric"><div class="k">24H Volume</div><div class="v acc">$842,310</div><div class="d">▲ 14.2% vs 7d</div></div>
+      <div class="glass metric"><div class="k">Net P/L</div><div class="v up">+$2,103.75</div><div class="d">412 bets · 24h</div></div>
+      <div class="glass metric"><div class="k">Win Rate</div><div class="v">52.8%</div><div class="d">218 / 412</div></div>
+    </section>
+
+    <div class="grid">
+      <section class="glass panel">
+        <div class="panel-title"><span class="live-dot"></span>BET HISTORY // TERMINAL TAPE</div>
+        <table class="stream"><thead><tr><th>Time</th><th>Game</th><th class="num">Bet</th><th class="num">Multi</th><th class="num">Payout</th></tr></thead>
+          <tbody>
+            <tr><td>12:04:21</td><td><span class="game-tag">CRASH</span></td><td class="num">$50.00</td><td class="num">2.41x</td><td class="num win">+$120.50</td></tr>
+            <tr><td>12:03:58</td><td><span class="game-tag">DICE</span></td><td class="num">$25.00</td><td class="num">0.00x</td><td class="num loss">−$25.00</td></tr>
+            <tr><td>12:03:11</td><td><span class="game-tag">ROULETTE</span></td><td class="num">$100.00</td><td class="num">3.00x</td><td class="num win">+$300.00</td></tr>
+            <tr><td>12:02:44</td><td><span class="game-tag">SLOTS</span></td><td class="num">$10.00</td><td class="num">1.50x</td><td class="num win">+$15.00</td></tr>
+          </tbody></table>
+      </section>
+      <aside class="glass crash-panel">
+        <div class="crash-label"><span class="live-dot"></span>CRASH // LIVE ROUND</div>
+        <div class="crash-mult">2.41<span class="x">x</span></div>
+        <div class="crash-bar"><i></i></div>
+      </aside>
+    </div>
+
+    <section class="featured">
+      <div class="glass gcard"><div class="gname"><span class="ico">CR</span>Crash</div><div class="gdesc">Cash out before the multiplier busts. Provably-fair curve.</div><div class="gfoot"><span class="gpayout">Top Multi</span><span class="greward">412.8x</span></div></div>
+      <div class="glass gcard"><div class="gname"><span class="ico">DC</span>Dice</div><div class="gdesc">Roll over / under. 1% house edge, instant settle.</div><div class="gfoot"><span class="gpayout">Top Multi</span><span class="greward">9.90x</span></div></div>
+      <div class="glass gcard"><div class="gname"><span class="ico">SL</span>Slots</div><div class="gdesc">Per-reel provably-fair indices. Dynamic paylines.</div><div class="gfoot"><span class="gpayout">Top Multi</span><span class="greward">25.0x</span></div></div>
+    </section>
+  </div>
+
+  <div class="bg-note">BG-Option 1 · Glass-Water — bewege die Maus</div>
+
+  <script>
+    // Cursor → CSS-Vars (Lichtbrechung + Linse folgen der Maus)
+    document.addEventListener('mousemove', function (e) {
+      var x = (e.clientX / window.innerWidth) * 100;
+      var y = (e.clientY / window.innerHeight) * 100;
+      document.documentElement.style.setProperty('--mx', x + '%');
+      document.documentElement.style.setProperty('--my', y + '%');
+      // BG-Grid leicht zur Maus kippen (Parallax-Tiefe)
+      var gx = document.querySelector('.bg-grid');
+      if (gx) gx.style.transform = 'translate(' + ((x - 50) * -0.12) + 'px,' + ((y - 50) * -0.12) + 'px)';
+    });
+  </script>
+</body>
+</html>

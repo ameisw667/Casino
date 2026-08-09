@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typography Top 3 — Realistischer Terminal-Kontext (Cyber-Stealth · Platinum)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --bg-grid: rgba(203, 213, 225, 0.04);
+      --surface: #141923;
+      --surface-2: #1a2232;
+      --border: #1e2638;
+      --border-bright: #2d3b56;
+      --text: #f1f5f9;
+      --text-muted: #8a97ad;
+      --text-dim: #475569;
+      --accent: #cbd5e1;
+      --accent-glow: rgba(203, 213, 225, 0.15);
+      --emerald: #00e676;
+      --crimson: #ff3366;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(var(--bg-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+      background-size: 28px 28px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      padding: 28px 20px 60px;
+      min-height: 100vh;
+    }
+
+    .page-head { max-width: 1120px; margin: 0 auto 24px; }
+    .page-eyebrow { font-family: 'Spline Sans Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.22em; color: var(--accent); text-transform: uppercase; }
+    .page-title { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; margin-top: 8px; }
+    .page-sub { color: var(--text-muted); font-size: 14px; margin-top: 8px; max-width: 720px; line-height: 1.55; }
+
+    /* Top-3 wrappers each scope their own fonts */
+    .panel-wrap { max-width: 1120px; margin: 0 auto 30px; }
+    .panel-label {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 10px; padding: 0 4px;
+    }
+    .pl-left { font-family: 'Spline Sans Mono', monospace; font-size: 12px; color: var(--text-muted); letter-spacing: 0.06em; }
+    .pl-left b { color: var(--accent); font-weight: 600; }
+    .pl-rec { font-family: 'Spline Sans Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--emerald); border: 1px solid rgba(0,230,118,0.3); background: rgba(0,230,118,0.06); padding: 3px 8px; border-radius: 4px; }
+
+    .f-geist { --f-sans: 'Geist', sans-serif; --f-mono: 'Geist Mono', monospace; }
+    .f-hanken { --f-sans: 'Hanken Grotesk', sans-serif; --f-mono: 'Spline Sans Mono', monospace; }
+    .f-jakarta { --f-sans: 'Plus Jakarta Sans', sans-serif; --f-mono: 'JetBrains Mono', monospace; }
+
+    .terminal { font-family: var(--f-sans); }
+    .term-head {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px 10px 0 0;
+      padding: 14px 18px; border-bottom: 1px solid var(--border);
+    }
+    .term-title { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
+    .term-title .slash { font-family: var(--f-mono); color: var(--accent); font-weight: 600; margin-right: 8px; font-size: 14px; }
+    .term-pill { font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; color: var(--text-dim); border: 1px solid var(--border); padding: 4px 9px; border-radius: 4px; text-transform: uppercase; }
+
+    .term-body { background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 10px 10px; padding: 18px; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .stat { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; background: rgba(203,213,225,0.02); }
+    .stat .k { font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.12em; color: var(--text-dim); text-transform: uppercase; }
+    .stat .v { font-family: var(--f-mono); font-size: 19px; font-weight: 600; margin-top: 6px; font-variant-numeric: tabular-nums; }
+    .stat .v.acc { color: var(--accent); }
+    .stat .v.up { color: var(--emerald); }
+    .stat .v.down { color: var(--crimson); }
+    .stat .d { font-family: var(--f-mono); font-size: 11px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+
+    .filters { display: flex; gap: 8px; margin: 16px 0 12px; }
+    .fchip { font-family: var(--f-sans); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; }
+    .fchip.active { color: var(--accent); border-color: var(--accent-glow); background: rgba(203,213,225,0.06); }
+
+    .stream { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .stream th { text-align: left; font-family: var(--f-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); padding: 9px 12px; border-bottom: 1px solid var(--border); }
+    .stream td { padding: 11px 12px; border-bottom: 1px solid rgba(30,38,56,0.6); }
+    .stream td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+    .stream td.win { color: var(--emerald); }
+    .stream td.loss { color: var(--crimson); }
+    .stream tr:hover td { background: rgba(203,213,225,0.03); }
+
+    .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .foot-note { font-family: var(--f-mono); font-size: 11px; color: var(--text-dim); }
+    .btn { font-family: var(--f-sans); font-size: 13px; font-weight: 600; padding: 9px 16px; border-radius: 7px; cursor: pointer; border: 1px solid transparent; }
+    .btn-primary { background: var(--accent); color: #0b0e14; }
+    .btn-ghost { background: transparent; color: var(--text); border-color: var(--border-bright); }
+
+    @media (max-width: 760px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+
+  <header class="page-head">
+    <div class="page-eyebrow">// TYPOGRAPHY · TOP 3 · IN-CONTEXT</div>
+    <h1 class="page-title">Top 3 — wie die Schrift in der App aussieht</h1>
+    <p class="page-sub">Drei realistische Terminal-Panels (BET HISTORY // TERMINAL TAPE) — jedes in seiner eigenen Schrift. Identischer Inhalt, gleiche Platinum/Charcoal-Palette. Empfehlung: Option A (Geist).</p>
+  </header>
+
+  <!-- A: Geist + Geist Mono -->
+  <div class="panel-wrap f-geist">
+    <div class="panel-label">
+      <span class="pl-left"><b>A</b> &nbsp; Geist + Geist Mono</span>
+      <span class="pl-rec">★ Empfehlung</span>
+    </div>
+    <div class="terminal">
+      <div class="term-head">
+        <div class="term-title"><span class="slash">//</span>BET HISTORY // TERMINAL TAPE</div>
+        <span class="term-pill">LIVE</span>
+      </div>
+      <div class="term-body">
+        <div class="stats">
+          <div class="stat"><div class="k">Balance</div><div class="v acc">$12,847.50</div><div class="d">+14.2% · 24h</div></div>
+          <div class="stat"><div class="k">Total Wagered</div><div class="v">$84,231.00</div><div class="d">412 bets</div></div>
+          <div class="stat"><div class="k">Net P/L</div><div class="v up">+$2,103.75</div><div class="d">+2.5%</div></div>
+          <div class="stat"><div class="k">Win Rate</div><div class="v">52.8%</div><div class="d">218/412</div></div>
+        </div>
+        <div class="filters">
+          <span class="fchip active">All</span><span class="fchip">Crash</span><span class="fchip">Dice</span><span class="fchip">Roulette</span><span class="fchip">Slots</span>
+        </div>
+        <table class="stream">
+          <thead><tr><th>Time</th><th>Game</th><th>Bet</th><th>Multi</th><th>Payout</th></tr></thead>
+          <tbody>
+            <tr><td>12:04:21</td><td>Crash</td><td class="num">$50.00</td><td class="num">2.41x</td><td class="num win">+$120.50</td></tr>
+            <tr><td>12:03:58</td><td>Dice</td><td class="num">$25.00</td><td class="num">0.00x</td><td class="num loss">−$25.00</td></tr>
+            <tr><td>12:03:11</td><td>Roulette</td><td class="num">$100.00</td><td class="num">3.00x</td><td class="num win">+$300.00</td></tr>
+            <tr><td>12:02:44</td><td>Slots</td><td class="num">$10.00</td><td class="num">1.50x</td><td class="num win">+$15.00</td></tr>
+            <tr><td>12:01:09</td><td>Blackjack</td><td class="num">$75.00</td><td class="num">0.00x</td><td class="num loss">−$75.00</td></tr>
+          </tbody>
+        </table>
+        <div class="foot">
+          <span class="foot-note">Server-settled · idempotent · 0 client authority</span>
+          <span><button class="btn btn-ghost">Export</button> &nbsp; <button class="btn btn-primary">Place Bet</button></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B: Hanken Grotesk + Spline Sans Mono -->
+  <div class="panel-wrap f-hanken">
+    <div class="panel-label">
+      <span class="pl-left"><b>B</b> &nbsp; Hanken Grotesk + Spline Sans Mono</span>
+    </div>
+    <div class="terminal">
+      <div class="term-head">
+        <div class="term-title"><span class="slash">//</span>BET HISTORY // TERMINAL TAPE</div>
+        <span class="term-pill">LIVE</span>
+      </div>
+      <div class="term-body">
+        <div class="stats">
+          <div class="stat"><div class="k">Balance</div><div class="v acc">$12,847.50</div><div class="d">+14.2% · 24h</div></div>
+          <div class="stat"><div class="k">Total Wagered</div><div class="v">$84,231.00</div><div class="d">412 bets</div></div>
+          <div class="stat"><div class="k">Net P/L</div><div class="v up">+$2,103.75</div><div class="d">+2.5%</div></div>
+          <div class="stat"><div class="k">Win Rate</div><div class="v">52.8%</div><div class="d">218/412</div></div>
+        </div>
+        <div class="filters">
+          <span class="fchip active">All</span><span class="fchip">Crash</span><span class="fchip">Dice</span><span class="fchip">Roulette</span><span class="fchip">Slots</span>
+        </div>
+        <table class="stream">
+          <thead><tr><th>Time</th><th>Game</th><th>Bet</th><th>Multi</th><th>Payout</th></tr></thead>
+          <tbody>
+            <tr><td>12:04:21</td><td>Crash</td><td class="num">$50.00</td><td class="num">2.41x</td><td class="num win">+$120.50</td></tr>
+            <tr><td>12:03:58</td><td>Dice</td><td class="num">$25.00</td><td class="num">0.00x</td><td class="num loss">−$25.00</td></tr>
+            <tr><td>12:03:11</td><td>Roulette</td><td class="num">$100.00</td><td class="num">3.00x</td><td class="num win">+$300.00</td></tr>
+            <tr><td>12:02:44</td><td>Slots</td><td class="num">$10.00</td><td class="num">1.50x</td><td class="num win">+$15.00</td></tr>
+            <tr><td>12:01:09</td><td>Blackjack</td><td class="num">$75.00</td><td class="num">0.00x</td><td class="num loss">−$75.00</td></tr>
+          </tbody>
+        </table>
+        <div class="foot">
+          <span class="foot-note">Server-settled · idempotent · 0 client authority</span>
+          <span><button class="btn btn-ghost">Export</button> &nbsp; <button class="btn btn-primary">Place Bet</button></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C: Plus Jakarta Sans + JetBrains Mono -->
+  <div class="panel-wrap f-jakarta">
+    <div class="panel-label">
+      <span class="pl-left"><b>C</b> &nbsp; Plus Jakarta Sans + JetBrains Mono</span>
+    </div>
+    <div class="terminal">
+      <div class="term-head">
+        <div class="term-title"><span class="slash">//</span>BET HISTORY // TERMINAL TAPE</div>
+        <span class="term-pill">LIVE</span>
+      </div>
+      <div class="term-body">
+        <div class="stats">
+          <div class="stat"><div class="k">Balance</div><div class="v acc">$12,847.50</div><div class="d">+14.2% · 24h</div></div>
+          <div class="stat"><div class="k">Total Wagered</div><div class="v">$84,231.00</div><div class="d">412 bets</div></div>
+          <div class="stat"><div class="k">Net P/L</div><div class="v up">+$2,103.75</div><div class="d">+2.5%</div></div>
+          <div class="stat"><div class="k">Win Rate</div><div class="v">52.8%</div><div class="d">218/412</div></div>
+        </div>
+        <div class="filters">
+          <span class="fchip active">All</span><span class="fchip">Crash</span><span class="fchip">Dice</span><span class="fchip">Roulette</span><span class="fchip">Slots</span>
+        </div>
+        <table class="stream">
+          <thead><tr><th>Time</th><th>Game</th><th>Bet</th><th>Multi</th><th>Payout</th></tr></thead>
+          <tbody>
+            <tr><td>12:04:21</td><td>Crash</td><td class="num">$50.00</td><td class="num">2.41x</td><td class="num win">+$120.50</td></tr>
+            <tr><td>12:03:58</td><td>Dice</td><td class="num">$25.00</td><td class="num">0.00x</td><td class="num loss">−$25.00</td></tr>
+            <tr><td>12:03:11</td><td>Roulette</td><td class="num">$100.00</td><td class="num">3.00x</td><td class="num win">+$300.00</td></tr>
+            <tr><td>12:02:44</td><td>Slots</td><td class="num">$10.00</td><td class="num">1.50x</td><td class="num win">+$15.00</td></tr>
+            <tr><td>12:01:09</td><td>Blackjack</td><td class="num">$75.00</td><td class="num">0.00x</td><td class="num loss">−$75.00</td></tr>
+          </tbody>
+        </table>
+        <div class="foot">
+          <span class="foot-note">Server-settled · idempotent · 0 client authority</span>
+          <span><button class="btn btn-ghost">Export</button> &nbsp; <button class="btn btn-primary">Place Bet</button></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Option 1.1 — Cyber-Stealth Terminal (Jakarta + JetBrains · Frosted Obsidian)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Cyber-Stealth · Platinum palette */
+      --bg: #0b0e14;
+      --surface: rgba(20, 25, 35, 0.55);
+      --surface-2: rgba(26, 34, 50, 0.45);
+      --border: rgba(203, 213, 225, 0.14);
+      --border-bright: rgba(203, 213, 225, 0.28);
+      --text: #f1f5f9;
+      --text-muted: #8a97ad;
+      --text-dim: #5a6678;
+      --accent: #cbd5e1;
+      --accent-glow: rgba(203, 213, 225, 0.15);
+      --emerald: #00e676;
+      --crimson: #ff3366;
+      --amber: #ffb300;
+
+      /* Fonts — verbindlicher Standard */
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      position: relative;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      min-height: 100vh;
+      padding: 18px 16px 60px;
+      overflow-x: hidden;
+    }
+
+    /* ---- Animated background (so glass blur is visible) ---- */
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(203,213,225,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(203,213,225,0.05) 1px, transparent 1px);
+      background-size: 30px 30px;
+      mask-image: radial-gradient(ellipse 85% 80% at 50% 25%, #000 35%, transparent 85%);
+    }
+    .blob {
+      position: fixed; z-index: 0; border-radius: 50%; filter: blur(70px); pointer-events: none;
+      mix-blend-mode: screen; opacity: 0.55;
+    }
+    .blob-1 { width: 460px; height: 460px; top: -100px; left: -80px; background: radial-gradient(circle, rgba(203,213,225,0.20), transparent 70%); animation: drift1 18s ease-in-out infinite; }
+    .blob-2 { width: 380px; height: 380px; top: 28%; right: -90px; background: radial-gradient(circle, rgba(0,230,118,0.12), transparent 70%); animation: drift2 22s ease-in-out infinite; }
+    .blob-3 { width: 320px; height: 320px; bottom: -80px; left: 38%; background: radial-gradient(circle, rgba(120,134,163,0.16), transparent 70%); animation: drift3 26s ease-in-out infinite; }
+    @keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(70px,40px)} }
+    @keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-60px,70px)} }
+    @keyframes drift3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(50px,-60px)} }
+
+    .wrap { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; }
+
+    /* ---- Frosted Obsidian glass primitive (foundation) ---- */
+    .glass {
+      position: relative;
+      background: var(--surface);
+      backdrop-filter: blur(18px) saturate(140%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .glass::before {
+      content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+      background: linear-gradient(180deg, rgba(203,213,225,0.08), transparent 32%);
+    }
+
+    /* ---- Live dot (emerald pulse) ---- */
+    .live-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--emerald);
+      box-shadow: 0 0 12px var(--emerald); display: inline-block; flex: none;
+      animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:0.7; transform:scale(0.92)} 50%{opacity:1; transform:scale(1.25)} }
+
+    /* ---- Header / Nav ---- */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 18px; margin-bottom: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-logo {
+      font-family: var(--font-mono); font-weight: 700; font-size: 15px;
+      letter-spacing: 0.14em; color: var(--accent); display: flex; align-items: center; gap: 9px;
+    }
+    .brand-tag {
+      font-family: var(--font-mono); font-size: 10px; font-weight: 600; color: var(--text-dim);
+      border: 1px solid var(--border); padding: 3px 8px; border-radius: 4px; letter-spacing: 0.12em;
+    }
+    .nav { display: flex; gap: 6px; }
+    .nav a {
+      font-size: 13px; font-weight: 600; color: var(--text-muted); text-decoration: none;
+      padding: 7px 13px; border-radius: 7px; transition: all 0.2s ease;
+    }
+    .nav a:hover { color: var(--text); background: rgba(203,213,225,0.06); }
+    .nav a.active { color: var(--accent); background: rgba(203,213,225,0.08); border: 1px solid var(--border-bright); }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .balance-box {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(203,213,225,0.05); border: 1px solid var(--border-bright);
+      padding: 7px 14px; border-radius: 8px;
+    }
+    .balance-box .lbl { font-family: var(--font-mono); font-size: 10px; font-weight: 600; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; }
+    .balance-box .val { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-bright); background: linear-gradient(135deg, rgba(203,213,225,0.2), rgba(0,230,118,0.15)); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; color:var(--text); }
+
+    /* ---- Metrics row ---- */
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px; }
+    .metric { padding: 16px 18px; }
+    .metric .top { display: flex; align-items: center; justify-content: space-between; }
+    .metric .k { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; color: var(--text-dim); text-transform: uppercase; }
+    .metric .v { font-family: var(--font-mono); font-size: 24px; font-weight: 600; margin-top: 10px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+    .metric .v.acc { color: var(--accent); }
+    .metric .v.up { color: var(--emerald); }
+    .metric .v.down { color: var(--crimson); }
+    .metric .d { font-family: var(--font-mono); font-size: 11px; margin-top: 4px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .metric .live-label { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 10px; font-weight: 600; color: var(--emerald); letter-spacing: 0.12em; text-transform: uppercase; }
+
+    /* ---- Main grid ---- */
+    .grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; }
+
+    .panel { padding: 18px 20px 20px; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .panel-title { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 9px; }
+    .panel-title .live-dot { margin-right: 0; }
+    .panel-pill { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; color: var(--text-dim); border: 1px solid var(--border); padding: 4px 9px; border-radius: 4px; text-transform: uppercase; }
+
+    .filters { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .chip { font-family: var(--font-sans); font-size: 12px; font-weight: 600; padding: 6px 13px; border-radius: 7px; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; background: rgba(203,213,225,0.02); }
+    .chip.active { color: var(--accent); border-color: var(--border-bright); background: rgba(203,213,225,0.07); }
+
+    /* ---- Bet stream table ---- */
+    .stream { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .stream th { text-align: left; font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); padding: 9px 12px; border-bottom: 1px solid var(--border); }
+    .stream td { padding: 11px 12px; border-bottom: 1px solid rgba(203,213,225,0.06); }
+    .stream td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+    .stream td.win { color: var(--emerald); }
+    .stream td.loss { color: var(--crimson); }
+    .stream tr:hover td { background: rgba(203,213,225,0.03); }
+    .game-tag { font-family: var(--font-mono); font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border); color: var(--text-muted); }
+
+    .panel-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .panel-note { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+    .btn { font-family: var(--font-sans); font-size: 13px; font-weight: 600; padding: 9px 16px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; }
+    .btn-primary { background: var(--accent); color: #0b0e14; }
+    .btn-ghost { background: rgba(203,213,225,0.04); color: var(--text); border-color: var(--border-bright); }
+    .btn-emerald { background: rgba(0,230,118,0.12); color: var(--emerald); border-color: rgba(0,230,118,0.35); }
+
+    /* ---- Right column ---- */
+    .side { display: flex; flex-direction: column; gap: 16px; }
+    .crash-panel { padding: 18px 20px 20px; }
+    .crash-label { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.16em; color: var(--emerald); text-transform: uppercase; }
+    .crash-mult { font-family: var(--font-mono); font-size: 52px; font-weight: 700; letter-spacing: -0.03em; color: var(--text); margin: 10px 0 4px; font-variant-numeric: tabular-nums; }
+    .crash-mult .x { color: var(--accent); }
+    .crash-meta { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); margin-top: 8px; font-variant-numeric: tabular-nums; }
+    .crash-bar { height: 6px; border-radius: 999px; background: rgba(203,213,225,0.08); margin: 14px 0; overflow: hidden; }
+    .crash-bar > i { display: block; height: 100%; width: 64%; background: linear-gradient(90deg, rgba(0,230,118,0.5), var(--emerald)); border-radius: 999px; }
+
+    .payouts { padding: 16px 20px 18px; }
+    .payout-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(203,213,225,0.06); }
+    .payout-row:last-child { border-bottom: none; }
+    .payout-row .who { display: flex; align-items: center; gap: 10px; }
+    .payout-row .rank { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); width: 18px; }
+    .payout-row .name { font-size: 13px; font-weight: 600; }
+    .payout-row .amt { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--emerald); font-variant-numeric: tabular-nums; }
+
+    /* ---- Featured games row ---- */
+    .featured { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 16px; }
+    .gcard { padding: 16px; cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease; }
+    .gcard:hover { transform: translateY(-3px); border-color: var(--border-bright); }
+    .gcard .gname { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .gcard .gdesc { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; line-height: 1.4; }
+    .gcard .gfoot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+    .gcard .gpayout { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+    .gcard .greward { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .gcard .live-label { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 9px; font-weight: 600; color: var(--emerald); letter-spacing: 0.12em; text-transform: uppercase; }
+
+    .ico { width: 22px; height: 22px; border-radius: 6px; background: rgba(203,213,225,0.08); border: 1px solid var(--border); display:inline-flex; align-items:center; justify-content:center; }
+
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      .featured { grid-template-columns: repeat(2, 1fr); }
+      .nav { display: none; }
+    }
+    @media (max-width: 560px) {
+      .metrics { grid-template-columns: 1fr; }
+      .featured { grid-template-columns: 1fr; }
+      .header { flex-wrap: wrap; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="wrap">
+
+    <!-- Header / Nav -->
+    <header class="glass header">
+      <div class="brand">
+        <div class="brand-logo"><span class="live-dot"></span>ROYALE.TERMINAL</div>
+        <span class="brand-tag">v1.1 · FROSTED</span>
+      </div>
+      <nav class="nav">
+        <a class="active" href="#">Lobby</a>
+        <a href="#">History</a>
+        <a href="#">Leaderboard</a>
+        <a href="#">Vault</a>
+        <a href="#">Admin</a>
+      </nav>
+      <div class="header-right">
+        <div class="balance-box">
+          <span class="lbl">Balance</span>
+          <span class="val">$12,847.50</span>
+        </div>
+        <div class="avatar">JP</div>
+      </div>
+    </header>
+
+    <!-- Metrics -->
+    <section class="metrics">
+      <div class="glass metric">
+        <div class="top"><span class="k">24H Volume</span></div>
+        <div class="v acc">$842,310</div>
+        <div class="d">+14.2% vs 7d avg</div>
+      </div>
+      <div class="glass metric">
+        <div class="top"><span class="k">Net P/L</span><span class="live-label"><span class="live-dot"></span>Live</span></div>
+        <div class="v up">+$2,103.75</div>
+        <div class="d">412 bets · 24h</div>
+      </div>
+      <div class="glass metric">
+        <div class="top"><span class="k">Win Rate</span></div>
+        <div class="v">52.8%</div>
+        <div class="d">218 / 412 settled</div>
+      </div>
+      <div class="glass metric">
+        <div class="top"><span class="k">Active Players</span></div>
+        <div class="v acc">1,284</div>
+        <div class="d">peak 2,910 · 24h</div>
+      </div>
+    </section>
+
+    <!-- Main grid -->
+    <div class="grid">
+
+      <!-- Bet stream -->
+      <section class="glass panel">
+        <div class="panel-head">
+          <div class="panel-title"><span class="live-dot"></span>BET HISTORY // TERMINAL TAPE</div>
+          <span class="panel-pill">LIVE</span>
+        </div>
+        <div class="filters">
+          <span class="chip active">All</span>
+          <span class="chip">Crash</span>
+          <span class="chip">Dice</span>
+          <span class="chip">Roulette</span>
+          <span class="chip">Slots</span>
+          <span class="chip">Blackjack</span>
+        </div>
+        <table class="stream">
+          <thead>
+            <tr><th>Time</th><th>Game</th><th>Bet</th><th>Multi</th><th>Payout</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>12:04:21</td><td><span class="game-tag">CRASH</span></td><td class="num">$50.00</td><td class="num">2.41x</td><td class="num win">+$120.50</td></tr>
+            <tr><td>12:03:58</td><td><span class="game-tag">DICE</span></td><td class="num">$25.00</td><td class="num">0.00x</td><td class="num loss">−$25.00</td></tr>
+            <tr><td>12:03:11</td><td><span class="game-tag">RLT</span></td><td class="num">$100.00</td><td class="num">3.00x</td><td class="num win">+$300.00</td></tr>
+            <tr><td>12:02:44</td><td><span class="game-tag">SLOTS</span></td><td class="num">$10.00</td><td class="num">1.50x</td><td class="num win">+$15.00</td></tr>
+            <tr><td>12:01:09</td><td><span class="game-tag">BJ</span></td><td class="num">$75.00</td><td class="num">0.00x</td><td class="num loss">−$75.00</td></tr>
+            <tr><td>12:00:32</td><td><span class="game-tag">CRASH</span></td><td class="num">$200.00</td><td class="num">1.84x</td><td class="num win">+$368.00</td></tr>
+            <tr><td>11:59:50</td><td><span class="game-tag">DICE</span></td><td class="num">$40.00</td><td class="num">2.00x</td><td class="num win">+$80.00</td></tr>
+          </tbody>
+        </table>
+        <div class="panel-foot">
+          <span class="panel-note">Server-settled · idempotent · 0 client authority</span>
+          <span style="display:flex; gap:10px;">
+            <button class="btn btn-ghost">Export</button>
+            <button class="btn btn-primary">Place Bet</button>
+          </span>
+        </div>
+      </section>
+
+      <!-- Side column -->
+      <aside class="side">
+        <div class="glass crash-panel">
+          <div class="crash-label"><span class="live-dot"></span>CRASH // LIVE ROUND</div>
+          <div class="crash-mult">2.<span class="x">41</span>x</div>
+          <div class="crash-bar"><i></i></div>
+          <div class="crash-meta">
+            <span>cashout @ 2.50x</span>
+            <span>potential +$125.00</span>
+          </div>
+          <div class="panel-foot" style="margin-top: 16px;">
+            <span class="panel-note">round #84,221 · 14s left</span>
+            <button class="btn btn-emerald">Cash Out</button>
+          </div>
+        </div>
+
+        <div class="glass payouts">
+          <div class="panel-head" style="margin-bottom: 10px;">
+            <div class="panel-title">TOP PAYOUTS // 24H</div>
+          </div>
+          <div class="payout-row">
+            <div class="who"><span class="rank">01</span><span class="name">_whale.eth</span></div>
+            <span class="amt">+$48,210</span>
+          </div>
+          <div class="payout-row">
+            <div class="who"><span class="rank">02</span><span class="name">cr0nx</span></div>
+            <span class="amt">+$31,840</span>
+          </div>
+          <div class="payout-row">
+            <div class="who"><span class="rank">03</span><span class="name">vortex_77</span></div>
+            <span class="amt">+$22,100</span>
+          </div>
+          <div class="payout-row">
+            <div class="who"><span class="rank">04</span><span class="name">n0va</span></div>
+            <span class="amt">+$18,520</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Featured games -->
+    <section class="featured">
+      <div class="glass gcard">
+        <div class="gname"><span class="ico">💥</span>Crash</div>
+        <div class="gdesc">Cash out before the multiplier busts. Provably-fair curve.</div>
+        <div class="gfoot"><span class="gpayout">Top Multi</span><span class="greward">412.8x</span></div>
+      </div>
+      <div class="glass gcard">
+        <div class="gname"><span class="ico">🎲</span>Dice <span class="live-label" style="margin-left:auto"><span class="live-dot"></span>Live</span></div>
+        <div class="gdesc">Roll over / under. 1% house edge, instant settle.</div>
+        <div class="gfoot"><span class="gpayout">Top Multi</span><span class="greward">9.90x</span></div>
+      </div>
+      <div class="glass gcard">
+        <div class="gname"><span class="ico">🎰</span>Slots</div>
+        <div class="gdesc">Per-reel provably-fair indices. Dynamic paylines.</div>
+        <div class="gfoot"><span class="gpayout">Top Multi</span><span class="greward">25.0x</span></div>
+      </div>
+      <div class="glass gcard">
+        <div class="gname"><span class="ico">🎯</span>Roulette</div>
+        <div class="gdesc">European single-zero. Atomic server settlement.</div>
+        <div class="gfoot"><span class="gpayout">Top Multi</span><span class="greward">36x</span></div>
+      </div>
+    </section>
+
+  </div>
+</body>
+</html>

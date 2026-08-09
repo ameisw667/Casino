@@ -22,13 +22,13 @@ Supabase ist die einzige Autorität für `balance`, `xp`, `level` und `rank`. De
 
 `WalletSnapshot` enthält:
 
-| Feld | Regel |
-|---|---|
-| `balance` | endlich, nicht negativ |
-| `xp` | Integer, nicht negativ |
-| `level` | Integer, mindestens 1 |
-| `rank` | nicht leer |
-| `transactionId` | UUID |
+| Feld            | Regel                  |
+| --------------- | ---------------------- |
+| `balance`       | endlich, nicht negativ |
+| `xp`            | Integer, nicht negativ |
+| `level`         | Integer, mindestens 1  |
+| `rank`          | nicht leer             |
+| `transactionId` | UUID                   |
 
 `applyServerWalletSnapshot()` ist der einzige Store-Einstieg. Walletfelder sind aus Zustand-Persistenz und Dev-State-Sync ausgeschlossen; Persist-Version 2 entfernt auch alte Walletfelder aus vorhandenen localStorage-Daten.
 
@@ -37,7 +37,7 @@ Supabase ist die einzige Autorität für `balance`, `xp`, `level` und `rank`. De
 ### Dice, Roulette, Slots
 
 1. Client erzeugt eine UUID `requestId`.
-2. `/api/casino/bet` validiert Origin, Clerk-Identität, Rate-Limit und Zod-Schema.
+2. `/api/casino/bet` validiert Origin, Supabase-Identität (`supabase.auth.getUser()`), Rate-Limit und Zod-Schema.
 3. Der Server berechnet das Resultat und ruft `settle_game_bet` auf.
 4. Der RPC sperrt pro User, prüft Replay/Balance, schreibt `balance - bet + payout`, XP/Level/Rank und genau einen Audit-Eintrag atomar.
 5. Replay derselben `(user_id, request_id)` liefert das gespeicherte Resultat.
@@ -65,16 +65,21 @@ Migration `supabase/migrations/007_server_authority.sql` ergänzt:
 
 Die Migration ist additiv. Sie löscht keine Daten. Sie muss mit einem DDL-fähigen Zugang ausgerollt werden; der Service-Role-Key allein kann keine Migration installieren.
 
+### Weitere Migrationen (Stand 2026-08-09)
+
+- **Migration 015 `get_leaderboard`** — live & von Jan im Supabase SQL Editor ausgeführt; performanter RPC, konsolidiert alle 5 Spiele (s. `architecture/LEADERBOARD_RPC.md`).
+- **Migration 016 `full_server_authority_expansion`** — **pending**: Seeds/Provably-Fair-Autorität, Chat, Community-Goal, Active-Round-Recovery. Server-Seed-Autorität damit noch nicht live; `generateServerSeed()` verbleibt clientseitig (s. aktiven Plan `archive/03_01_CASINO_SUPABASE_IMPLEMENTATION_PLAN.md`).
+
 ## Security
 
-| Grenze | Verhalten |
-|---|---|
-| Admin | `/admin` nicht public; anonym → Sign-in, normal → 403, Adminrolle/Allowlist → Zugriff |
-| Rate-Limit | Upstash in Production erforderlich; Development-In-Memory-Fallback |
-| Provider-Ausfall | Production 503 (fail-closed) |
-| CSRF | geparster Origin-Host muss exakt zum Forwarded-/Host-Header passen |
-| Clerk-Webhook | Svix-Verifikation vor Rate-Limit; kein Browser-Origin erforderlich |
-| Fairness-UI | Seite entfernt; `/fairness` ist 404 ohne Redirect; Engine bleibt intern |
+| Grenze            | Verhalten                                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------------- |
+| Admin             | `/admin` nicht public; anonym → Sign-in, normal → 403, Adminrolle/Allowlist → Zugriff     |
+| Rate-Limit        | Upstash in Production erforderlich; Development-In-Memory-Fallback                        |
+| Provider-Ausfall  | Production 503 (fail-closed)                                                              |
+| CSRF              | geparster Origin-Host muss exakt zum Forwarded-/Host-Header passen                        |
+| User-Provisioning | nativer `auth.users`-Trigger (Migration 008); ehemalige Clerk-Webhook-Route antwortet 410 |
+| Fairness-UI       | Seite entfernt; `/fairness` ist 404 ohne Redirect; Engine bleibt intern                   |
 
 ## Retirierte Clientpfade
 
@@ -82,20 +87,21 @@ Folgende Funktionen erzeugen keine lokalen Walletwerte mehr und bleiben bis zu e
 
 ## Environment
 
-| Variable | Sichtbarkeit | Zweck |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | public | Supabase URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | public | RLS-Clientzugriff |
-| `SUPABASE_SERVICE_ROLE_KEY` | server-only | WalletService/RPC |
-| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | server-only | produktives Rate-Limit |
-| `SUPABASE_ADMIN_EMAILS` | server-only | kommagetrennte Admin-E-Mails (Supabase Auth, ersetzt das frühere `CLERK_ADMIN_USER_IDS`) |
-| `ALLOW_DEV_FALLBACK` | server-only, Development | lokaler Auth-Fallback (`dev_user_fallback`) |
+| Variable                                             | Sichtbarkeit             | Zweck                                                                                    |
+| ---------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`                           | public                   | Supabase URL                                                                             |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`                      | public                   | RLS-Clientzugriff                                                                        |
+| `SUPABASE_SERVICE_ROLE_KEY`                          | server-only              | WalletService/RPC                                                                        |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | server-only              | produktives Rate-Limit                                                                   |
+| `SUPABASE_ADMIN_EMAILS`                              | server-only              | kommagetrennte Admin-E-Mails (Supabase Auth, ersetzt das frühere `CLERK_ADMIN_USER_IDS`) |
+| `ALLOW_DEV_FALLBACK`                                 | server-only, Development | lokaler Auth-Fallback (`dev_user_fallback`)                                              |
 
 `env.login` und `.env.login` existieren nicht und werden von Next.js nicht benötigt. Projektvariablen gehören in `.env.local`; dokumentierte Platzhalter gehören in `.env.example`.
 
 ## Aktuelle externe Voraussetzungen
 
 - 3/3 Supabase-Variablen sind in `.env.local` befüllt.
-- Der konfigurierte Supabase-Host war beim Read-only-Test am 2026-08-05 nicht per DNS auflösbar; Tabellen/RPC-Livestatus ist deshalb unbewiesen.
-- Upstash, Admin-Allowlist und Clerk-Webhook-Secret sind lokal noch nicht konfiguriert.
-- Migration 007 ist lokal implementiert, aber nicht als remote ausgerollt bestätigt.
+- Remote-DB seit 2026-08-09 erreichbar: Migration 015 (`get_leaderboard`) von Jan live ausgeführt und verifiziert (s. `architecture/LEADERBOARD_RPC.md`).
+- Migration 007 (`server_authority`) ist lokal implementiert; der remote-Rollout bleibt separat zu bestätigen.
+- Upstash und Admin-Allowlist sind lokal noch nicht konfiguriert.
+- Migration 016 (`full_server_authority_expansion`) ist noch nicht live (s. aktiven Plan `archive/03_01_CASINO_SUPABASE_IMPLEMENTATION_PLAN.md`).

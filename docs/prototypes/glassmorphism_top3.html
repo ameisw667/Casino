@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glassmorphism Top 3 — Cyber-Stealth · Platinum</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --surface: rgba(20, 25, 35, 0.55);
+      --surface-2: rgba(26, 34, 50, 0.45);
+      --border: rgba(203, 213, 225, 0.14);
+      --border-bright: rgba(203, 213, 225, 0.28);
+      --text: #f1f5f9;
+      --text-muted: #8a97ad;
+      --text-dim: #5a6678;
+      --accent: #cbd5e1;
+      --accent-glow: rgba(203, 213, 225, 0.15);
+      --emerald: #00e676;
+      --crimson: #ff3366;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; }
+    body {
+      position: relative;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      padding: 28px 20px 80px;
+      overflow-x: hidden;
+    }
+
+    /* Animated background so glass blur is actually visible */
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(203,213,225,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(203,213,225,0.05) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 30%, #000 30%, transparent 80%);
+    }
+    .blob {
+      position: fixed; z-index: 0; border-radius: 50%; filter: blur(60px); pointer-events: none;
+      mix-blend-mode: screen; opacity: 0.5;
+    }
+    .blob-1 { width: 420px; height: 420px; top: -80px; left: -60px; background: radial-gradient(circle, rgba(203,213,225,0.22), transparent 70%); animation: drift1 16s ease-in-out infinite; }
+    .blob-2 { width: 380px; height: 380px; top: 30%; right: -80px; background: radial-gradient(circle, rgba(0,230,118,0.14), transparent 70%); animation: drift2 20s ease-in-out infinite; }
+    .blob-3 { width: 300px; height: 300px; bottom: -60px; left: 35%; background: radial-gradient(circle, rgba(120,134,163,0.18), transparent 70%); animation: drift3 24s ease-in-out infinite; }
+    @keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(60px,40px)} }
+    @keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-50px,60px)} }
+    @keyframes drift3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(40px,-50px)} }
+
+    .wrap { position: relative; z-index: 1; max-width: 1120px; margin: 0 auto; }
+
+    .page-eyebrow { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.22em; color: var(--accent); text-transform: uppercase; }
+    .page-title { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; margin-top: 8px; }
+    .page-sub { color: var(--text-muted); font-size: 14px; margin-top: 8px; max-width: 740px; line-height: 1.55; }
+
+    .eval5 { margin-top: 22px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .e5 {
+      border: 1px solid var(--border); border-radius: 8px; padding: 10px 11px;
+      background: rgba(20,25,35,0.4); backdrop-filter: blur(6px);
+    }
+    .e5 .n { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.12em; }
+    .e5 .t { font-size: 12.5px; font-weight: 700; margin-top: 4px; line-height: 1.2; }
+    .e5 .s { font-size: 10.5px; color: var(--text-muted); margin-top: 5px; line-height: 1.35; }
+    .e5.in .t { color: var(--emerald); }
+    .e5.out { opacity: 0.45; }
+    .e5.out .t { color: var(--text-dim); text-decoration: line-through; }
+
+    /* ---- Glass primitives ---- */
+    .glass-base {
+      background: var(--surface);
+      backdrop-filter: blur(18px) saturate(140%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .glass-inner-highlight { position: relative; }
+    .glass-inner-highlight::before {
+      content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+      background: linear-gradient(180deg, rgba(203,213,225,0.10), transparent 30%);
+    }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 26px; }
+    .row.full { grid-template-columns: 1fr; }
+
+    .card-label { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; padding: 0 2px; }
+    .cl-left { font-family: var(--mono); font-size: 12px; color: var(--text-muted); letter-spacing: 0.06em; }
+    .cl-left b { color: var(--accent); font-weight: 600; }
+    .cl-rec { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--emerald); border: 1px solid rgba(0,230,118,0.3); background: rgba(0,230,118,0.06); padding: 3px 8px; border-radius: 4px; }
+
+    .pad { padding: 20px 22px; }
+    .eyebrow { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.18em; color: var(--accent); text-transform: uppercase; }
+    .h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; margin-top: 6px; }
+    .muted { color: var(--text-muted); font-size: 13px; line-height: 1.55; margin-top: 10px; }
+    .stat-row { display: flex; gap: 18px; margin-top: 16px; flex-wrap: wrap; }
+    .stat-row .s .k { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+    .stat-row .s .v { font-family: var(--mono); font-size: 18px; font-weight: 600; margin-top: 3px; font-variant-numeric: tabular-nums; }
+    .stat-row .s .v.up { color: var(--emerald); }
+    .stat-row .s .v.acc { color: var(--accent); }
+
+    /* A: Frosted Obsidian — baseline (uses .glass-base) */
+    .btn { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; padding: 9px 16px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; }
+    .btn-primary { background: var(--accent); color: #0b0e14; }
+    .btn-ghost { background: rgba(203,213,225,0.04); color: var(--text); border-color: var(--border-bright); backdrop-filter: blur(4px); }
+
+    /* B: Edge-Lit Live Glass — animated conic border */
+    .glass-edge {
+      position: relative; border-radius: 14px; isolation: isolate;
+      background: var(--surface); backdrop-filter: blur(18px) saturate(140%);
+      border: 1px solid transparent;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .glass-edge::before {
+      content: ""; position: absolute; inset: -1px; border-radius: inherit; z-index: -1;
+      background: conic-gradient(from var(--ang, 0deg), rgba(203,213,225,0.05), rgba(203,213,225,0.55), rgba(0,230,118,0.45), rgba(203,213,225,0.05));
+      animation: spin 6s linear infinite; filter: blur(2px);
+    }
+    .glass-edge::after {
+      content: ""; position: absolute; inset: 1px; border-radius: calc(14px - 1px); z-index: -1;
+      background: var(--surface); backdrop-filter: blur(18px);
+    }
+    @property --ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+    @keyframes spin { to { --ang: 360deg; } }
+
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); box-shadow: 0 0 12px var(--emerald); display: inline-block; margin-right: 8px; animation: pulse 1.6s infinite; }
+    @keyframes pulse { 0%,100%{opacity:0.7; transform:scale(0.95)} 50%{opacity:1; transform:scale(1.2)} }
+
+    .stream { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 14px; }
+    .stream th { text-align: left; font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    .stream td { padding: 10px; border-bottom: 1px solid rgba(203,213,225,0.06); }
+    .stream td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+    .stream td.win { color: var(--emerald); }
+    .stream td.loss { color: var(--crimson); }
+
+    /* C: Layered Parallax Glass */
+    .layer-stack { position: relative; height: 320px; perspective: 1200px; }
+    .layer {
+      position: absolute; inset: 0; border-radius: 14px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+      backdrop-filter: blur(14px) saturate(140%);
+      transform-style: preserve-3d;
+      transition: transform 0.2s ease-out;
+    }
+    .layer.l1 { background: rgba(20,25,35,0.30); }
+    .layer.l2 { background: rgba(20,25,35,0.45); transform: translateZ(28px) scale(0.94); }
+    .layer.l3 { background: rgba(26,34,50,0.55); transform: translateZ(56px) scale(0.88); }
+    .layer .pad-c { padding: 20px; }
+
+    .legend-tag { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 14px; }
+
+    .rec-box {
+      margin-top: 30px; padding: 18px 20px; border-radius: 12px;
+      background: rgba(0,230,118,0.04); border: 1px solid rgba(0,230,118,0.22);
+    }
+    .rec-box .rt { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--emerald); }
+    .rec-box .rb { color: var(--text-muted); font-size: 13px; line-height: 1.6; margin-top: 8px; }
+    .rec-box .rb b { color: var(--accent); }
+
+    @media (max-width: 760px) {
+      .row { grid-template-columns: 1fr; }
+      .eval5 { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="wrap">
+    <div class="page-eyebrow">// GLASSMORPHISM · 5 → 3</div>
+    <h1 class="page-title">Glassmorphism — drei Ansätze, live demonstriert</h1>
+    <p class="page-sub">Hintergrund animiert (Grid + Glow-Blobs), damit das Backdrop-Blur sichtbar wird. Drei Top-Ansätze auf repräsentativen Terminal-Karten. Empfehlung unten: ein tiered System aus allen dreien.</p>
+
+    <!-- 5 evaluated -->
+    <div class="eval5">
+      <div class="e5 in"><div class="n">01</div><div class="t">Frosted Obsidian</div><div class="s">Blur + transluzent + Platinum-Hairline. Pro-Baseline.</div></div>
+      <div class="e5 in"><div class="n">02</div><div class="t">Edge-Lit Live Glass</div><div class="s">Animierter Conic-Border-Glow für aktive/live States.</div></div>
+      <div class="e5 in"><div class="n">03</div><div class="t">Layered Parallax</div><div class="s">Gestapelte Glasebenen + Maus-Parallax-Tilt. 3D-Wow.</div></div>
+      <div class="e5 out"><div class="n">04</div><div class="t">Holographic Aurora</div><div class="s">Irisierender Schein. Drop: gaudy-Risiko → "spielhaft".</div></div>
+      <div class="e5 out"><div class="n">05</div><div class="t">Grained Matte</div><div class="s">Frosted + Film-Grain. Drop: weniger interaktiv.</div></div>
+    </div>
+
+    <!-- A: Frosted Obsidian -->
+    <div class="row">
+      <div>
+        <div class="card-label">
+          <span class="cl-left"><b>A</b> &nbsp; Frosted Obsidian <span style="color:var(--text-dim)">— Foundation</span></span>
+        </div>
+        <div class="glass-base glass-inner-highlight pad">
+          <div class="eyebrow">// WALLET · SESSION</div>
+          <div class="h1">Balance</div>
+          <div class="stat-row">
+            <div class="s"><div class="k">Available</div><div class="v acc">$12,847.50</div></div>
+            <div class="s"><div class="k">24h P/L</div><div class="v up">+14.2%</div></div>
+          </div>
+          <p class="muted">Blur(18px) + saturate(140%) auf transluzentem Obsidian, 1px Platinum-Hairline, dezenter Top-Highlight. Die professionelle Basisebene — auf allen Panels einsetzbar.</p>
+          <div style="margin-top:14px; display:flex; gap:10px;">
+            <button class="btn btn-primary">Deposit</button>
+            <button class="btn btn-ghost">Withdraw</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- B: Edge-Lit Live Glass -->
+      <div>
+        <div class="card-label">
+          <span class="cl-left"><b>B</b> &nbsp; Edge-Lit Live Glass <span style="color:var(--text-dim)">— Active States</span></span>
+        </div>
+        <div class="glass-edge pad">
+          <div class="eyebrow" style="display:flex; align-items:center;"><span class="live-dot"></span>CRASH // LIVE ROUND</div>
+          <div class="h1">2.41x</div>
+          <p class="muted">Conic-Gradient-Border rotiert langsam (6s), emerald/platinum getönt. Nur auf aktiven/live-Elementen (laufende Runde, aktive Filter, Win-State). Signalisiert "live" ohne gaudy zu werden.</p>
+          <div class="legend-tag">↳ Einsatz: laufende Runden, aktive Zeilen, Cashout-Button</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- C: Layered Parallax Glass -->
+    <div class="row full">
+      <div>
+        <div class="card-label">
+          <span class="cl-left"><b>C</b> &nbsp; Layered Parallax Glass <span style="color:var(--text-dim)">— Hero / Featured</span></span>
+          <span class="cl-rec">★ Empfehlung (kombiniert)</span>
+        </div>
+        <div class="layer-stack" id="stack">
+          <div class="layer l1"><div class="pad-c"><div class="eyebrow">// FEATURED · HERO SURFACE</div><div class="h1">Crash Multiplier</div></div></div>
+          <div class="layer l2"><div class="pad-c"><div class="eyebrow">// LAYER 2</div><div class="h1" style="font-size:18px">Provably-Fair Engine</div><p class="muted" style="margin-top:6px">Drei gestapelte Glasebenen mit echtem Z-Offset (translateZ 0 / 28 / 56px).</p></div></div>
+          <div class="layer l3"><div class="pad-c">
+            <div class="eyebrow">// LAYER 3 · FOREGROUND</div>
+            <div class="h1" style="font-size:20px">+14.2% · 24h</div>
+            <div class="stat-row" style="margin-top:10px"><div class="s"><div class="k">Volume</div><div class="v acc">$842,310</div></div><div class="s"><div class="k">Win Rate</div><div class="v up">52.8%</div></div></div>
+            <p class="muted" style="margin-top:10px; font-size:12px">Bewege die Maus über die Karte → Tilt-Parallax. Nur für Hero-/Featured-Flächen (Games-Lobby-Hero, Featured-Bet, Top-Turnier).</p>
+          </div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rec-box">
+      <div class="rt">★ Empfehlung — Tiered Glass System</div>
+      <div class="rb">
+        Nicht einer für alles, sondern <b>drei Schichten nach Surface-Wichtigkeit</b>:<br>
+        <b>A · Frosted Obsidian</b> = globale Basis (alle Cards/Modals/Nav). <b>B · Edge-Lit</b> = aktive/live-Highlights (laufende Runde, aktive Zeile, Cashout). <b>C · Layered Parallax</b> = Hero-/Featured-Flächen (Games-Lobby-Hero, Featured-Bet, Top-Turnier — das "Wow").<br>
+        So bleibt es professionell (A dominiert), interaktiv-cool (B setzt Akzente) und high-impact (C für die 2–3 wichtigsten Flächen). <b>04/05 bewusst verworfen</b> (gaudy-Risiko / zu wenig interaktiv).
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // C: pointer parallax tilt
+    const stack = document.getElementById('stack');
+    if (stack) {
+      const layers = stack.querySelectorAll('.layer');
+      stack.addEventListener('mousemove', (e) => {
+        const r = stack.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - 0.5;
+        const py = (e.clientY - r.top) / r.height - 0.5;
+        layers.forEach((l, i) => {
+          const depth = (i + 1) * 6;
+          l.style.transform = `translateZ(${i*28}px) scale(${1 - i*0.06}) rotateY(${px*depth}deg) rotateX(${-py*depth}deg)`;
+        });
+      });
+      stack.addEventListener('mouseleave', () => {
+        layers.forEach((l, i) => { l.style.transform = `translateZ(${i*28}px) scale(${1 - i*0.06})`; });
+      });
+    }
+  </script>
+</body>
+</html>
