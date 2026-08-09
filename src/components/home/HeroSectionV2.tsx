@@ -45,8 +45,16 @@ function FloatingParticles() {
   const particles = FLOATING_PARTICLES;
 
   return (
-    <div style={{ position: 'absolute', inset: 0, zIndex: 3, pointerEvents: 'none', overflow: 'hidden' }}>
-      {particles.map(p => (
+    <div
+      style={{
+        position: 'absolute',
+        inset: 0,
+        zIndex: 3,
+        pointerEvents: 'none',
+        overflow: 'hidden',
+      }}
+    >
+      {particles.map((p) => (
         <motion.div
           key={p.id}
           style={{
@@ -87,17 +95,29 @@ function WinnerCard({ withdrawal, index }: { withdrawal: Withdrawal; index: numb
     >
       <motion.div
         style={{
-          width: '40px', height: '40px', borderRadius: '12px', overflow: 'hidden',
-          background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.05)',
+          width: '40px',
+          height: '40px',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(255,255,255,0.05)',
         }}
         whileHover={{ rotate: [0, -5, 5, 0] }}
         transition={{ duration: 0.4 }}
       >
-        <img src={withdrawal.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${withdrawal.user}`} alt="u" style={{ width: '100%', height: '100%' }} />
+        <img
+          src={
+            withdrawal.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${withdrawal.user}`
+          }
+          alt="u"
+          style={{ width: '100%', height: '100%' }}
+        />
       </motion.div>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: '0.9rem', fontWeight: 900, color: '#fff' }}>{withdrawal.user}</div>
-        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>Just won</div>
+        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
+          Just won
+        </div>
       </div>
       <motion.div
         style={{ fontSize: '1rem', fontWeight: 1000, color: 'hsl(var(--primary))' }}
@@ -115,10 +135,34 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
   isMobile = false,
   startOnboarding,
   liveWithdrawals = [
-    { user: 'Satoshi', amount: 450.00, currency: 'BTC', time: 'Just now', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=1' },
-    { user: 'Vitalik', amount: 120.00, currency: 'ETH', time: '2m ago', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=2' },
-    { user: 'Elon', amount: 15.00, currency: 'DOGE', time: '5m ago', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=3' },
-    { user: 'CZ', amount: 890.00, currency: 'BNB', time: '12m ago', image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=4' },
+    {
+      user: 'Satoshi',
+      amount: 450.0,
+      currency: 'BTC',
+      time: 'Just now',
+      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=1',
+    },
+    {
+      user: 'Vitalik',
+      amount: 120.0,
+      currency: 'ETH',
+      time: '2m ago',
+      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=2',
+    },
+    {
+      user: 'Elon',
+      amount: 15.0,
+      currency: 'DOGE',
+      time: '5m ago',
+      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=3',
+    },
+    {
+      user: 'CZ',
+      amount: 890.0,
+      currency: 'BNB',
+      time: '12m ago',
+      image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=4',
+    },
   ],
 }) => {
   const sectionRef = useRef<HTMLElement>(null);
@@ -136,14 +180,17 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
   const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '15%']);
   const overlayOpacity = useTransform(scrollYProgress, [0, 0.5], [0, 0.6]);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isMobile) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 20;
-    const y = ((e.clientY - rect.top) / rect.height - 0.5) * 20;
-    mouseX.set(x);
-    mouseY.set(y);
-  }, [isMobile, mouseX, mouseY]);
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (isMobile) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width - 0.5) * 20;
+      const y = ((e.clientY - rect.top) / rect.height - 0.5) * 20;
+      mouseX.set(x);
+      mouseY.set(y);
+    },
+    [isMobile, mouseX, mouseY],
+  );
 
   const titleWords = ['THE', 'ULTIMATE'];
   const subtitleWords = ['CRYPTO', 'CASINO.'];
@@ -168,7 +215,9 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
       }}
     >
       {/* Parallax Background - new image with soft fade */}
-      <motion.div style={{ position: 'absolute', inset: '-10%', zIndex: 0, y: bgY, x: smoothX, scale: 1.15 }}>
+      <motion.div
+        style={{ position: 'absolute', inset: '-10%', zIndex: 0, y: bgY, x: smoothX, scale: 1.15 }}
+      >
         <Image
           src="/images/hero_bg_v2.jpg"
           alt="Premium Casino Background"
@@ -179,7 +228,8 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
             objectFit: 'cover',
             objectPosition: 'center',
             maskImage: 'radial-gradient(ellipse 90% 80% at 60% 50%, black 30%, transparent 75%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 90% 80% at 60% 50%, black 30%, transparent 75%)',
+            WebkitMaskImage:
+              'radial-gradient(ellipse 90% 80% at 60% 50%, black 30%, transparent 75%)',
           }}
         />
       </motion.div>
@@ -188,11 +238,16 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
       {!isMobile && (
         <motion.div
           style={{
-            position: 'absolute', right: '15%', top: '30%',
-            width: '400px', height: '400px',
+            position: 'absolute',
+            right: '15%',
+            top: '30%',
+            width: '400px',
+            height: '400px',
             background: 'radial-gradient(circle, hsla(var(--primary), 0.2) 0%, transparent 70%)',
-            filter: 'blur(80px)', zIndex: 1,
-            x: smoothX, y: smoothY,
+            filter: 'blur(80px)',
+            zIndex: 1,
+            x: smoothX,
+            y: smoothY,
           }}
           animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.7, 0.4] }}
           transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
@@ -202,20 +257,41 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
       <FloatingParticles />
 
       {/* Cinematic Vignette - smooth fade to black on all edges */}
-      <div style={{
-        position: 'absolute', inset: 0, zIndex: 2,
-        background: isMobile
-          ? 'radial-gradient(ellipse at center top, transparent 0%, rgba(0,0,0,0.7) 70%, #000 100%)'
-          : `radial-gradient(ellipse at 40% 50%, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.75) 55%, #000 90%),
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 2,
+          background: isMobile
+            ? 'radial-gradient(ellipse at center top, transparent 0%, rgba(0,0,0,0.7) 70%, #000 100%)'
+            : `radial-gradient(ellipse at 40% 50%, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.75) 55%, #000 90%),
              linear-gradient(to right, rgba(0,0,0,0.9) 0%, transparent 35%, transparent 65%, rgba(0,0,0,0.9) 100%),
              linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.8) 100%)`,
-      }} />
+        }}
+      />
 
       {/* Scroll Darken Overlay */}
-      <motion.div style={{ position: 'absolute', inset: 0, zIndex: 3, background: '#000', opacity: overlayOpacity, pointerEvents: 'none' }} />
+      <motion.div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 3,
+          background: '#000',
+          opacity: overlayOpacity,
+          pointerEvents: 'none',
+        }}
+      />
 
       {/* Content */}
-      <motion.div style={{ position: 'relative', zIndex: 10, width: '100%', padding: isMobile ? '40px var(--space-md)' : '0 80px', y: contentY }}>
+      <motion.div
+        style={{
+          position: 'relative',
+          zIndex: 10,
+          width: '100%',
+          padding: isMobile ? '40px var(--space-md)' : '0 80px',
+          y: contentY,
+        }}
+      >
         <div style={{ maxWidth: isMobile ? '100%' : '700px' }}>
           {/* Promo Tag */}
           <motion.div
@@ -223,28 +299,45 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 20 }}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: '12px',
-              padding: '8px 16px', background: 'hsla(var(--primary), 0.15)',
-              borderRadius: '10px', color: 'hsl(var(--primary))',
-              fontSize: '0.75rem', fontWeight: 900, marginBottom: '24px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '8px 16px',
+              background: 'hsla(var(--primary), 0.15)',
+              borderRadius: '10px',
+              color: 'hsl(var(--primary))',
+              fontSize: '0.75rem',
+              fontWeight: 900,
+              marginBottom: '24px',
               border: '1px solid hsla(var(--primary), 0.3)',
-              backdropFilter: 'blur(10px)', textTransform: 'uppercase',
-              letterSpacing: '0.1em', boxShadow: '0 0 20px hsla(var(--primary), 0.1)',
+              backdropFilter: 'blur(10px)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              boxShadow: '0 0 20px hsla(var(--primary), 0.1)',
             }}
           >
-            <motion.div animate={{ rotate: [0, 15, -15, 0] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}>
+            <motion.div
+              animate={{ rotate: [0, 15, -15, 0] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+            >
               <Trophy size={14} fill="currentColor" />
             </motion.div>
             100% FIRST DEPOSIT BONUS ACTIVE
           </motion.div>
 
           {/* Animated Title - more compact */}
-          <h1 style={{
-            fontSize: isMobile ? 'clamp(2.2rem, 9vw, 3rem)' : 'clamp(3rem, 6vw, 5.5rem)',
-            fontWeight: 1000, lineHeight: 0.9, letterSpacing: '-0.06em',
-            color: '#fff', marginBottom: '20px',
-            textShadow: '0 20px 60px rgba(0,0,0,1)', textTransform: 'uppercase',
-          }}>
+          <h1
+            style={{
+              fontSize: isMobile ? 'clamp(2.2rem, 9vw, 3rem)' : 'clamp(3rem, 6vw, 5.5rem)',
+              fontWeight: 1000,
+              lineHeight: 0.9,
+              letterSpacing: '-0.06em',
+              color: '#fff',
+              marginBottom: '20px',
+              textShadow: '0 20px 60px rgba(0,0,0,1)',
+              textTransform: 'uppercase',
+            }}
+          >
             <div style={{ overflow: 'hidden' }}>
               {titleWords.map((word, i) => (
                 <motion.span
@@ -266,9 +359,11 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
                   animate={{ y: '0%', opacity: 1 }}
                   transition={{ delay: 0.5 + i * 0.12, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                   style={{
-                    display: 'inline-block', marginRight: '0.3em',
+                    display: 'inline-block',
+                    marginRight: '0.3em',
                     background: 'linear-gradient(to right, #fff 0%, rgba(255,255,255,0.4) 100%)',
-                    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
                   }}
                 >
                   {word}
@@ -284,8 +379,11 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
             transition={{ delay: 0.7, duration: 0.6, ease: 'easeOut' }}
             style={{
               fontSize: isMobile ? '1rem' : '1.4rem',
-              color: 'rgba(255,255,255,0.65)', lineHeight: 1.35,
-              marginBottom: '36px', fontWeight: 600, maxWidth: '550px',
+              color: 'rgba(255,255,255,0.65)',
+              lineHeight: 1.35,
+              marginBottom: '36px',
+              fontWeight: 600,
+              maxWidth: '550px',
               textShadow: '0 2px 10px rgba(0,0,0,0.5)',
             }}
           >
@@ -295,7 +393,8 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
               whileHover={{ textShadow: '0 0 20px hsla(var(--primary), 0.5)' }}
             >
               Instant Crypto Withdrawals
-            </motion.span>.
+            </motion.span>
+            .
           </motion.p>
 
           {/* CTA Row */}
@@ -303,7 +402,12 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9, duration: 0.6 }}
-            style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center', gap: '24px' }}
+            style={{
+              display: 'flex',
+              flexDirection: isMobile ? 'column' : 'row',
+              alignItems: isMobile ? 'stretch' : 'center',
+              gap: '24px',
+            }}
           >
             <Magnetic>
               <motion.button
@@ -312,17 +416,27 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
                 whileHover={{ scale: 1.05, boxShadow: '0 25px 60px hsla(var(--primary), 0.5)' }}
                 whileTap={{ scale: 0.97 }}
                 style={{
-                  height: '68px', padding: '0 52px', fontSize: '1.2rem',
-                  borderRadius: '18px', fontWeight: 1000, textTransform: 'uppercase',
+                  height: '68px',
+                  padding: '0 52px',
+                  fontSize: '1.2rem',
+                  borderRadius: '18px',
+                  fontWeight: 1000,
+                  textTransform: 'uppercase',
                   boxShadow: '0 20px 50px hsla(var(--primary), 0.4)',
-                  letterSpacing: '0.02em', background: 'hsl(var(--primary))',
-                  border: 'none', color: '#000', position: 'relative', overflow: 'hidden',
+                  letterSpacing: '0.02em',
+                  background: 'hsl(var(--primary))',
+                  border: 'none',
+                  color: '#000',
+                  position: 'relative',
+                  overflow: 'hidden',
                 }}
               >
                 <motion.div
                   style={{
-                    position: 'absolute', inset: 0,
-                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+                    position: 'absolute',
+                    inset: 0,
+                    background:
+                      'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
                   }}
                   animate={{ x: ['-100%', '200%'] }}
                   transition={{ duration: 2, repeat: Infinity, repeatDelay: 3, ease: 'easeInOut' }}
@@ -339,12 +453,17 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ display: 'flex', color: '#00b67a' }}>
-                  {[1, 2, 3, 4, 5].map(i => (
+                  {[1, 2, 3, 4, 5].map((i) => (
                     <motion.div
                       key={i}
                       initial={{ opacity: 0, scale: 0, rotate: -180 }}
                       animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                      transition={{ delay: 1.2 + i * 0.08, type: 'spring', stiffness: 300, damping: 15 }}
+                      transition={{
+                        delay: 1.2 + i * 0.08,
+                        type: 'spring',
+                        stiffness: 300,
+                        damping: 15,
+                      }}
                     >
                       <Star size={18} fill="#00b67a" />
                     </motion.div>
@@ -352,7 +471,16 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
                 </div>
                 <span style={{ fontSize: '1rem', fontWeight: 1000, color: '#fff' }}>4.9/5</span>
               </div>
-              <span style={{ fontSize: '0.7rem', fontWeight: 900, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.15em' }}>TRUSTPILOT VERIFIED</span>
+              <span
+                style={{
+                  fontSize: '0.7rem',
+                  fontWeight: 900,
+                  color: 'rgba(255,255,255,0.35)',
+                  letterSpacing: '0.15em',
+                }}
+              >
+                TRUSTPILOT VERIFIED
+              </span>
             </motion.div>
           </motion.div>
         </div>
@@ -366,20 +494,48 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
           transition={{ delay: 0.6, type: 'spring', stiffness: 150, damping: 20 }}
           whileHover={{ y: -4 }}
           style={{
-            position: 'absolute', right: '40px', top: '50%',
-            transform: 'translateY(-50%)', width: '300px',
-            borderRadius: '24px', padding: '20px',
+            position: 'absolute',
+            right: '40px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: '300px',
+            borderRadius: '24px',
+            padding: '20px',
             border: '1px solid rgba(255,255,255,0.08)',
-            background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(40px)',
-            zIndex: 15, boxShadow: '0 40px 100px rgba(0,0,0,1)',
+            background: 'rgba(0,0,0,0.4)',
+            backdropFilter: 'blur(40px)',
+            zIndex: 15,
+            boxShadow: '0 40px 100px rgba(0,0,0,1)',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <span style={{ fontSize: '0.7rem', fontWeight: 1000, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.4)' }}>LATEST WINS</span>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '20px',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '0.7rem',
+                fontWeight: 1000,
+                letterSpacing: '0.2em',
+                color: 'rgba(255,255,255,0.4)',
+              }}
+            >
+              LATEST WINS
+            </span>
             <motion.div
               animate={{ scale: [1, 1.4, 1], opacity: [0.7, 1, 0.7] }}
               transition={{ duration: 2, repeat: Infinity }}
-              style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00e701', boxShadow: '0 0 15px #00e701' }}
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: '#00e701',
+                boxShadow: '0 0 15px #00e701',
+              }}
             />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -389,12 +545,21 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
           </div>
           <motion.button
             className="btn btn-ghost"
-            whileHover={{ scale: 1.02, background: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.2)' }}
+            whileHover={{
+              scale: 1.02,
+              background: 'rgba(255,255,255,0.06)',
+              borderColor: 'rgba(255,255,255,0.2)',
+            }}
             whileTap={{ scale: 0.98 }}
             style={{
-              width: '100%', marginTop: '20px', fontSize: '0.7rem',
-              fontWeight: 900, border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '12px', height: '42px', background: 'rgba(255,255,255,0.02)',
+              width: '100%',
+              marginTop: '20px',
+              fontSize: '0.7rem',
+              fontWeight: 900,
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '12px',
+              height: '42px',
+              background: 'rgba(255,255,255,0.02)',
             }}
           >
             VIEW ALL WINS

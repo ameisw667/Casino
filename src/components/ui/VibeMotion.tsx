@@ -5,7 +5,7 @@ import React from 'react';
 
 /**
  * VibeMotion - A premium animation wrapper for consistent spring physics.
- * 
+ *
  * Uses the Design-Guardian's standard spring settings:
  * - Stiffness: 300
  * - Damping: 30
@@ -17,18 +17,18 @@ interface VibeMotionProps extends HTMLMotionProps<'div'> {
   delay?: number;
 }
 
-export const VibeMotion: React.FC<VibeMotionProps> = ({ 
-  children, 
-  variant, 
+export const VibeMotion: React.FC<VibeMotionProps> = ({
+  children,
+  variant,
   delay = 0,
-  ...props 
+  ...props
 }) => {
   const springTransition = {
     type: 'spring' as const,
     stiffness: 300,
     damping: 30,
     mass: 1,
-    delay
+    delay,
   };
 
   const variants = {
@@ -48,17 +48,13 @@ export const VibeMotion: React.FC<VibeMotionProps> = ({
     reveal: {
       initial: { opacity: 0, x: -20 },
       animate: { opacity: 1, x: 0 },
-    }
+    },
   };
 
   const selectedVariant = variant ? variants[variant] : {};
 
   return (
-    <motion.div
-      transition={springTransition}
-      {...selectedVariant}
-      {...props}
-    >
+    <motion.div transition={springTransition} {...selectedVariant} {...props}>
       {children}
     </motion.div>
   );

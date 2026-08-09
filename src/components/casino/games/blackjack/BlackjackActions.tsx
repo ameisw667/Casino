@@ -4,12 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CornerDownRight, AlertCircle, Copy, TrendingUp } from 'lucide-react';
 
 type GamePhase =
-  | 'IDLE'
-  | 'DEALING'
-  | 'PLAYER_TURN'
-  | 'PLAYER_TURN_HAND2'
-  | 'DEALER_TURN'
-  | 'SETTLEMENT';
+  'IDLE' | 'DEALING' | 'PLAYER_TURN' | 'PLAYER_TURN_HAND2' | 'DEALER_TURN' | 'SETTLEMENT';
 
 interface BlackjackActionsProps {
   phase: GamePhase;
@@ -40,14 +35,14 @@ export default function BlackjackActions({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.3 }}
-          className="flex flex-wrap gap-3 justify-center"
+          className="flex flex-wrap justify-center gap-3"
         >
           {/* HIT Button */}
           <motion.button
             onClick={onHit}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-6 py-3 rounded-lg font-bold uppercase tracking-wide text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 flex items-center gap-2"
+            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3 font-bold tracking-wide text-white uppercase shadow-lg transition-all duration-200 hover:from-blue-700 hover:to-blue-800"
           >
             <CornerDownRight size={18} />
             Hit
@@ -58,7 +53,7 @@ export default function BlackjackActions({
             onClick={onStand}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-6 py-3 rounded-lg font-bold uppercase tracking-wide text-white bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 shadow-lg transition-all duration-200 flex items-center gap-2"
+            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-slate-600 to-slate-700 px-6 py-3 font-bold tracking-wide text-white uppercase shadow-lg transition-all duration-200 hover:from-slate-700 hover:to-slate-800"
           >
             <AlertCircle size={18} />
             Stand
@@ -74,7 +69,7 @@ export default function BlackjackActions({
                 onClick={onDouble}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 rounded-lg font-bold uppercase tracking-wide text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 shadow-lg transition-all duration-200 flex items-center gap-2"
+                className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-3 font-bold tracking-wide text-white uppercase shadow-lg transition-all duration-200 hover:from-emerald-700 hover:to-emerald-800"
               >
                 <TrendingUp size={18} />
                 Double
@@ -92,7 +87,7 @@ export default function BlackjackActions({
                 onClick={onSplit}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 rounded-lg font-bold uppercase tracking-wide text-white bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 shadow-lg transition-all duration-200 flex items-center gap-2"
+                className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-3 font-bold tracking-wide text-white uppercase shadow-lg transition-all duration-200 hover:from-purple-700 hover:to-purple-800"
               >
                 <Copy size={18} />
                 Split

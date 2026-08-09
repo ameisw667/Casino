@@ -83,7 +83,8 @@
 
 /* Win Pulse Glow */
 @keyframes win-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 10px rgba(0, 231, 1, 0.3);
   }
   50% {
@@ -97,9 +98,16 @@
 
 /* Loss Shake */
 @keyframes loss-shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
 }
 
 .loss-shake {

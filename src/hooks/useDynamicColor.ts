@@ -28,7 +28,7 @@ const TIME_THEMES: TimeTheme[] = [
       bgHue: 30,
       bgSat: 15,
       bgLight: 4,
-    }
+    },
   },
   {
     name: 'day',
@@ -40,7 +40,7 @@ const TIME_THEMES: TimeTheme[] = [
       bgHue: 0,
       bgSat: 5,
       bgLight: 3,
-    }
+    },
   },
   {
     name: 'dusk',
@@ -52,7 +52,7 @@ const TIME_THEMES: TimeTheme[] = [
       bgHue: 270,
       bgSat: 20,
       bgLight: 5,
-    }
+    },
   },
   {
     name: 'night',
@@ -64,7 +64,7 @@ const TIME_THEMES: TimeTheme[] = [
       bgHue: 240,
       bgSat: 25,
       bgLight: 2,
-    }
+    },
   },
   {
     name: 'midnight',
@@ -76,7 +76,7 @@ const TIME_THEMES: TimeTheme[] = [
       bgHue: 260,
       bgSat: 30,
       bgLight: 1,
-    }
+    },
   },
 ];
 
@@ -99,7 +99,7 @@ const WIN_STREAK_PALETTE: ColorPalette = {
 };
 
 export function useDynamicColor() {
-  const bets = useCasinoStore(s => s.bets);
+  const bets = useCasinoStore((s) => s.bets);
   const [isAdapting, setIsAdapting] = useState(true);
   const [manualThemeIndex, setManualThemeIndex] = useState<number | null>(null);
 
@@ -121,8 +121,8 @@ export function useDynamicColor() {
     if (bets.length < 5) return 'neutral';
 
     const recentBets = bets.slice(0, 10);
-    const wins = recentBets.filter(b => b.win).length;
-    const losses = recentBets.filter(b => !b.win).length;
+    const wins = recentBets.filter((b) => b.win).length;
+    const losses = recentBets.filter((b) => !b.win).length;
 
     if (wins >= 6) return 'winning';
     if (losses >= 7) return 'losing';
@@ -152,7 +152,10 @@ export function useDynamicColor() {
     root.style.setProperty('--primary', currentPalette.primary);
     root.style.setProperty('--secondary', currentPalette.secondary);
     root.style.setProperty('--accent', currentPalette.accent);
-    root.style.setProperty('--bg-color', `${currentPalette.bgHue} ${currentPalette.bgSat}% ${currentPalette.bgLight}%`);
+    root.style.setProperty(
+      '--bg-color',
+      `${currentPalette.bgHue} ${currentPalette.bgSat}% ${currentPalette.bgLight}%`,
+    );
     root.style.setProperty('--theme-name', `"${themeName}"`);
   }, [currentPalette, themeName]);
 
@@ -172,6 +175,6 @@ export function useDynamicColor() {
     isAdapting,
     setManualTheme,
     resetToAuto,
-    availableThemes: TIME_THEMES.map(t => t.name),
+    availableThemes: TIME_THEMES.map((t) => t.name),
   };
 }

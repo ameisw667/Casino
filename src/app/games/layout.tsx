@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Games | Casino Royale',
-  description: 'Browse all Provably Fair games at Casino Royale — Dice, Crash, Roulette, Slots, and Blackjack.',
+  description:
+    'Browse all Provably Fair games at Casino Royale — Dice, Crash, Roulette, Slots, and Blackjack.',
   openGraph: {
     title: 'Games | Casino Royale',
     description: 'Browse all Provably Fair games at Casino Royale.',
@@ -10,10 +11,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default function GamesLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function GamesLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

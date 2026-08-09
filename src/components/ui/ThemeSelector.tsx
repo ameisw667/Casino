@@ -14,13 +14,7 @@ const THEME_ICONS: Record<string, React.ReactNode> = {
 };
 
 export const ThemeSelector: React.FC = () => {
-  const {
-    themeName,
-    isAdapting,
-    setManualTheme,
-    resetToAuto,
-    availableThemes,
-  } = useDynamicColor();
+  const { themeName, isAdapting, setManualTheme, resetToAuto, availableThemes } = useDynamicColor();
 
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -63,11 +57,32 @@ export const ThemeSelector: React.FC = () => {
               boxShadow: 'var(--shadow-lg)',
             }}
           >
-            <div style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid var(--glass-border)' }}>
-              <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'hsl(var(--text-dim))', marginBottom: '4px' }}>
+            <div
+              style={{
+                marginBottom: '12px',
+                paddingBottom: '12px',
+                borderBottom: '1px solid var(--glass-border)',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '0.65rem',
+                  fontWeight: 900,
+                  color: 'hsl(var(--text-dim))',
+                  marginBottom: '4px',
+                }}
+              >
                 CURRENT THEME
               </div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'hsl(var(--primary))', display: 'flex', alignItems: 'center' }}>
+              <div
+                style={{
+                  fontSize: '0.85rem',
+                  fontWeight: 800,
+                  color: 'hsl(var(--primary))',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
                 {THEME_ICONS[themeName]}
                 <span style={{ marginLeft: '6px' }}>{themeName.toUpperCase()}</span>
               </div>
@@ -100,8 +115,14 @@ export const ThemeSelector: React.FC = () => {
                   className="btn btn-ghost"
                   style={{
                     justifyContent: 'flex-start',
-                    background: !isAdapting && themeName === theme ? 'hsla(var(--primary), 0.1)' : 'transparent',
-                    color: !isAdapting && themeName === theme ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))',
+                    background:
+                      !isAdapting && themeName === theme
+                        ? 'hsla(var(--primary), 0.1)'
+                        : 'transparent',
+                    color:
+                      !isAdapting && themeName === theme
+                        ? 'hsl(var(--primary))'
+                        : 'hsl(var(--text-muted))',
                     padding: '8px 12px',
                     fontSize: '0.75rem',
                     fontWeight: 700,

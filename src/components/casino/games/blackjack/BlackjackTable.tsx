@@ -74,10 +74,10 @@ export default function BlackjackTable({
   isProcessing = false,
 }: BlackjackTableProps) {
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="mx-auto w-full max-w-2xl">
       {/* Table Container */}
       <motion.div
-        className="relative rounded-2xl overflow-hidden"
+        className="relative overflow-hidden rounded-2xl"
         style={{
           background: `linear-gradient(135deg, hsla(var(--surface-color), 0.95) 0%, hsla(145, 30%, 15%, 0.4) 100%)`,
           backdropFilter: 'blur(10px)',
@@ -105,15 +105,21 @@ export default function BlackjackTable({
         >
           <div className="flex items-center justify-center gap-4">
             <div
-              className="flex-1 h-px"
-              style={{ background: 'linear-gradient(90deg, transparent, hsla(45, 80%, 50%, 0.3), transparent)' }}
+              className="h-px flex-1"
+              style={{
+                background:
+                  'linear-gradient(90deg, transparent, hsla(45, 80%, 50%, 0.3), transparent)',
+              }}
             />
-            <div className="text-sm font-bold uppercase tracking-widest text-yellow-600/80 whitespace-nowrap">
+            <div className="text-sm font-bold tracking-widest whitespace-nowrap text-yellow-600/80 uppercase">
               Blackjack Pays 3:2
             </div>
             <div
-              className="flex-1 h-px"
-              style={{ background: 'linear-gradient(90deg, transparent, hsla(45, 80%, 50%, 0.3), transparent)' }}
+              className="h-px flex-1"
+              style={{
+                background:
+                  'linear-gradient(90deg, transparent, hsla(45, 80%, 50%, 0.3), transparent)',
+              }}
             />
           </div>
         </motion.div>
@@ -131,7 +137,7 @@ export default function BlackjackTable({
                 transition={{ duration: 0.2 }}
               >
                 <div className="flex flex-col items-center gap-2">
-                  <div className="text-xs font-bold uppercase tracking-wide text-yellow-600/70">
+                  <div className="text-xs font-bold tracking-wide text-yellow-600/70 uppercase">
                     Hand 1 {activeHandIndex === 0 && '→ Active'}
                   </div>
                   <CardHand
@@ -151,7 +157,7 @@ export default function BlackjackTable({
                 transition={{ duration: 0.2 }}
               >
                 <div className="flex flex-col items-center gap-2">
-                  <div className="text-xs font-bold uppercase tracking-wide text-yellow-600/70">
+                  <div className="text-xs font-bold tracking-wide text-yellow-600/70 uppercase">
                     Hand 2 {activeHandIndex === 1 && '→ Active'}
                   </div>
                   <CardHand
@@ -166,12 +172,7 @@ export default function BlackjackTable({
           ) : (
             // Single Hand Layout
             <div className="flex justify-center">
-              <CardHand
-                hand={playerHand}
-                label="Player"
-                isActive={true}
-                hideScore={false}
-              />
+              <CardHand hand={playerHand} label="Player" isActive={true} hideScore={false} />
             </div>
           )}
 
@@ -181,10 +182,10 @@ export default function BlackjackTable({
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.5 }}
-              className="flex justify-center mt-6"
+              className="mt-6 flex justify-center"
             >
               <div
-                className="px-6 py-3 rounded-full font-bold text-white"
+                className="rounded-full px-6 py-3 font-bold text-white"
                 style={{
                   background: 'linear-gradient(135deg, hsl(45, 80%, 50%), hsl(40, 90%, 60%))',
                   boxShadow: '0 0 20px hsla(45, 80%, 50%, 0.5)',
@@ -202,17 +203,15 @@ export default function BlackjackTable({
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            className="pointer-events-none absolute inset-0 flex items-center justify-center"
           >
             <motion.div
-              className={`bg-gradient-to-r ${getResultColor(result)} text-white px-8 py-4 rounded-xl font-bold text-lg uppercase tracking-wider shadow-2xl`}
+              className={`bg-gradient-to-r ${getResultColor(result)} rounded-xl px-8 py-4 text-lg font-bold tracking-wider text-white uppercase shadow-2xl`}
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 1, repeat: Infinity }}
             >
               {getResultLabel(result)}
-              {payout > 0 && (
-                <div className="text-sm mt-2 font-mono">+${payout}</div>
-              )}
+              {payout > 0 && <div className="mt-2 font-mono text-sm">+${payout}</div>}
             </motion.div>
           </motion.div>
         )}
@@ -221,7 +220,7 @@ export default function BlackjackTable({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute bottom-4 right-4 text-xs font-bold uppercase tracking-wider px-3 py-2 rounded-lg"
+            className="absolute right-4 bottom-4 rounded-lg px-3 py-2 text-xs font-bold tracking-wider uppercase"
             style={{
               background: `linear-gradient(135deg, ${getResultColor(result2)})`,
               color: 'white',
@@ -233,11 +232,11 @@ export default function BlackjackTable({
 
         {/* Loading Overlay */}
         {isProcessing && (
-          <motion.div className="absolute inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center">
+          <motion.div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm">
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              className="w-8 h-8 border-3 border-yellow-500/50 border-t-yellow-500 rounded-full"
+              className="h-8 w-8 rounded-full border-3 border-yellow-500/50 border-t-yellow-500"
             />
           </motion.div>
         )}

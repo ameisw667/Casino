@@ -13,7 +13,16 @@ import {
 import { Star, ShieldCheck, Zap, Flame, Play, Sparkles, Coins, Users, Crown } from 'lucide-react';
 import { Magnetic } from '@/components/ui/Magnetic';
 import { soundManager } from '@/lib/casino/sound-manager';
-import { WebGlWaterRefractionCanvas } from '@/components/home/WebGlWaterRefractionCanvas';
+import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
+import dynamic from 'next/dynamic';
+
+const WebGlWaterRefractionCanvas = dynamic(
+  () =>
+    import('@/components/home/WebGlWaterRefractionCanvas').then(
+      (m) => m.WebGlWaterRefractionCanvas,
+    ),
+  { ssr: false },
+);
 
 interface Withdrawal {
   user: string;
@@ -143,6 +152,7 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
   startOnboarding,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const isNarrowViewport = useIsNarrowViewport();
   const [activeTab, setActiveTab] = useState<GameTabConfig>(GAME_TABS[0]);
   const [tickerIndex, setTickerIndex] = useState<number>(0);
 
@@ -251,8 +261,8 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
   return (
     <motion.section
       ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      onMouseMove={isMobile ? undefined : handleMouseMove}
+      onMouseLeave={isMobile ? undefined : handleMouseLeave}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -307,8 +317,13 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
         />
       </motion.div>
 
-      {/* WebGL Smooth Fluid Water Refraction Shader */}
-      <WebGlWaterRefractionCanvas isMobile={isMobile} />
+      {/* WebGL Smooth Fluid Water Refraction Shader — the component itself
+          already renders null below the 1023px breakpoint (matchMedia guard
+          inside WebGlWaterRefractionCanvas), so skipping the mount here too
+          is a pure bytes-saving change with 0 visual difference: not
+          mounting it never fetches its next/dynamic chunk on narrow
+          viewports instead of fetching-then-discarding it. */}
+      {!isNarrowViewport && <WebGlWaterRefractionCanvas isMobile={isMobile} />}
 
       {/* Scrolly-Telling Darken Overlay Fade */}
       <motion.div

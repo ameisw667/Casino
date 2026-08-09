@@ -18,8 +18,8 @@ interface ThrottledBet {
 }
 
 export function LiveActivityFeedV2() {
-  const isMobile = useCasinoStore(state => state.isMobile);
-  const allBets = useCasinoStore(state => state.allBets);
+  const isMobile = useCasinoStore((state) => state.isMobile);
+  const allBets = useCasinoStore((state) => state.allBets);
   const [activeTab, setActiveTab] = useState<'ALL' | 'BIG' | 'MINE'>('ALL');
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [displayBets, setDisplayBets] = useState<ThrottledBet[]>([]);
@@ -36,7 +36,7 @@ export function LiveActivityFeedV2() {
     setDisplayBets(allBets.slice(0, 10) as ThrottledBet[]);
   }, [allBets, displayBets.length]);
 
-  const filteredBets = displayBets.filter(bet => {
+  const filteredBets = displayBets.filter((bet) => {
     if (activeTab === 'MINE') return bet.user === 'You';
     if (activeTab === 'BIG') return bet.multiplier >= 10 || bet.amount >= 50;
     return true;
@@ -50,7 +50,14 @@ export function LiveActivityFeedV2() {
       transition={{ duration: 0.6 }}
       style={{ margin: '40px 0' }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '24px',
+        }}
+      >
         <div style={{ display: 'flex', gap: '8px' }}>
           {['ALL', 'BIG', 'MINE'].map((tab) => (
             <motion.button
@@ -67,7 +74,16 @@ export function LiveActivityFeedV2() {
         </div>
 
         {!isMobile && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00e701', fontSize: '0.8rem', fontWeight: 800 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              color: '#00e701',
+              fontSize: '0.8rem',
+              fontWeight: 800,
+            }}
+          >
             <motion.div
               animate={{ opacity: [1, 0.5, 1] }}
               transition={{ repeat: Infinity, duration: 2 }}
@@ -78,10 +94,27 @@ export function LiveActivityFeedV2() {
         )}
       </div>
 
-      <div className="glass-card" style={{ borderRadius: '24px', overflow: 'hidden', border: '1px solid hsla(0,0%,100%,0.05)' }}>
-        <table className="smart-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+      <div
+        className="glass-card"
+        style={{
+          borderRadius: '24px',
+          overflow: 'hidden',
+          border: '1px solid hsla(0,0%,100%,0.05)',
+        }}
+      >
+        <table
+          className="smart-table"
+          style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}
+        >
           <thead>
-            <tr style={{ background: 'rgba(0,0,0,0.2)', color: '#b1bad3', fontSize: '0.75rem', textTransform: 'uppercase' }}>
+            <tr
+              style={{
+                background: 'rgba(0,0,0,0.2)',
+                color: '#b1bad3',
+                fontSize: '0.75rem',
+                textTransform: 'uppercase',
+              }}
+            >
               <th style={{ padding: '16px' }}>Game</th>
               <th style={{ padding: '16px' }}>Player</th>
               <th style={{ padding: '16px' }}>
@@ -111,7 +144,16 @@ export function LiveActivityFeedV2() {
                     }}
                   >
                     <td data-label="Game" style={{ padding: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 800, color: 'hsl(var(--primary))' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '0.85rem',
+                          fontWeight: 800,
+                          color: 'hsl(var(--primary))',
+                        }}
+                      >
                         <Gamepad2 size={14} />
                         {bet.game}
                       </div>
@@ -119,20 +161,52 @@ export function LiveActivityFeedV2() {
                     <td data-label="Player" style={{ padding: '16px' }}>
                       <div
                         onClick={() => setSelectedUser(bet.user)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '0.85rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
                       >
                         <User size={14} style={{ color: '#b1bad3' }} />
                         {bet.user}
                       </div>
                     </td>
-                    <td data-label="Wager" style={{ padding: '16px', fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>
+                    <td
+                      data-label="Wager"
+                      style={{
+                        padding: '16px',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        color: '#fff',
+                      }}
+                    >
                       ${bet.amount.toFixed(2)}
                     </td>
-                    <td data-label="Multiplier" style={{ padding: '16px', fontSize: '0.85rem', fontWeight: 800, color: bet.isWin ? '#00e701' : '#b1bad3' }}>
+                    <td
+                      data-label="Multiplier"
+                      style={{
+                        padding: '16px',
+                        fontSize: '0.85rem',
+                        fontWeight: 800,
+                        color: bet.isWin ? '#00e701' : '#b1bad3',
+                      }}
+                    >
                       {bet.multiplier > 0 ? `${bet.multiplier.toFixed(2)}x` : '-'}
                     </td>
                     <td data-label="Payout" style={{ padding: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', fontWeight: 900, color: bet.isWin ? '#00e701' : '#b1bad3' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '0.85rem',
+                          fontWeight: 900,
+                          color: bet.isWin ? '#00e701' : '#b1bad3',
+                        }}
+                      >
                         ${bet.payout.toFixed(2)}
                         {bet.isWin && bet.multiplier >= 10 && <Trophy size={14} />}
                         {bet.user === 'You' && (
@@ -148,7 +222,13 @@ export function LiveActivityFeedV2() {
                                 isWin: true,
                               });
                             }}
-                            style={{ background: 'transparent', border: 'none', color: 'hsla(var(--primary), 0.5)', cursor: 'pointer', marginLeft: 'auto' }}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: 'hsla(var(--primary), 0.5)',
+                              cursor: 'pointer',
+                              marginLeft: 'auto',
+                            }}
                           >
                             <ExternalLink size={14} />
                           </motion.button>
@@ -159,7 +239,15 @@ export function LiveActivityFeedV2() {
                 ))
               ) : (
                 <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  <td colSpan={5} style={{ padding: '40px', textAlign: 'center', color: '#b1bad3', fontSize: '0.9rem' }}>
+                  <td
+                    colSpan={5}
+                    style={{
+                      padding: '40px',
+                      textAlign: 'center',
+                      color: '#b1bad3',
+                      fontSize: '0.9rem',
+                    }}
+                  >
                     No recent activity to show
                   </td>
                 </motion.tr>

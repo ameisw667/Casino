@@ -81,30 +81,35 @@ export const SuperButton: React.FC<SuperButtonProps> = ({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const particleBurstRef = useRef<ParticleBurstHandle>(null);
 
-  const handleClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    if (disabled || loading) return;
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (disabled || loading) return;
 
-    if (enableParticles) {
-      particleBurstRef.current?.fire();
-    }
+      if (enableParticles) {
+        particleBurstRef.current?.fire();
+      }
 
-    if (enableSound) {
-      soundManager.play('click');
-    }
+      if (enableSound) {
+        soundManager.play('click');
+      }
 
-    if (enableHaptic && navigator.vibrate) {
-      navigator.vibrate(10);
-    }
+      if (enableHaptic && navigator.vibrate) {
+        navigator.vibrate(10);
+      }
 
-    onClick?.(e);
-  }, [disabled, loading, enableParticles, enableSound, enableHaptic, onClick]);
+      onClick?.(e);
+    },
+    [disabled, loading, enableParticles, enableSound, enableHaptic, onClick],
+  );
 
   const variantStyle = VARIANT_STYLES[variant];
   const sizeStyle = SIZE_STYLES[size];
 
   return (
     <Magnetic strength={0.3}>
-      <RippleContainer rippleColor={variant === 'primary' ? 'hsla(45, 100%, 50%, 0.4)' : 'hsla(0, 0%, 100%, 0.2)'}>
+      <RippleContainer
+        rippleColor={variant === 'primary' ? 'hsla(45, 100%, 50%, 0.4)' : 'hsla(0, 0%, 100%, 0.2)'}
+      >
         <motion.button
           ref={buttonRef}
           onClick={handleClick}
@@ -171,11 +176,12 @@ export const SuperButton: React.FC<SuperButtonProps> = ({
           {/* Particle burst overlay */}
           <ParticleBurst
             ref={particleBurstRef}
-            colors={variant === 'primary'
-              ? ['#FFD700', '#FFF', 'hsl(var(--secondary))']
-              : variant === 'danger'
-              ? ['#FF4444', '#FFF', '#FF8888']
-              : ['#FFF', 'hsl(var(--primary))', 'hsl(var(--accent))']
+            colors={
+              variant === 'primary'
+                ? ['#FFD700', '#FFF', 'hsl(var(--secondary))']
+                : variant === 'danger'
+                  ? ['#FF4444', '#FFF', '#FF8888']
+                  : ['#FFF', 'hsl(var(--primary))', 'hsl(var(--accent))']
             }
           />
         </motion.button>

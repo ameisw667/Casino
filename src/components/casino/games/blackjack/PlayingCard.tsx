@@ -61,7 +61,7 @@ export default function PlayingCard({ card, faceDown = false, size = 'md' }: Pla
       >
         {/* Back Face (Face Down) */}
         <div
-          className="absolute inset-0 rounded-lg flex items-center justify-center"
+          className="absolute inset-0 flex items-center justify-center rounded-lg"
           style={{
             backfaceVisibility: 'hidden',
             backgroundColor: 'hsla(var(--surface-color), 0.95)',
@@ -81,7 +81,7 @@ export default function PlayingCard({ card, faceDown = false, size = 'md' }: Pla
 
         {/* Front Face (Face Up) */}
         <div
-          className="absolute inset-0 rounded-lg flex flex-col items-center justify-center p-1"
+          className="absolute inset-0 flex flex-col items-center justify-center rounded-lg p-1"
           style={{
             backfaceVisibility: 'hidden',
             transform: 'rotateY(180deg)',
@@ -104,16 +104,13 @@ export default function PlayingCard({ card, faceDown = false, size = 'md' }: Pla
               </div>
 
               {/* Center Suit Symbol (Large) */}
-              <div
-                style={{ fontSize: `${config.fontSize * 1.5}px` }}
-                className="font-bold"
-              >
+              <div style={{ fontSize: `${config.fontSize * 1.5}px` }} className="font-bold">
                 {getSuitSymbol(card?.suit || '')}
               </div>
 
               {/* Bottom-Right Corner (Upside Down) */}
               <div
-                className="absolute bottom-1 right-1 text-center leading-none transform rotate-180"
+                className="absolute right-1 bottom-1 rotate-180 transform text-center leading-none"
                 style={{ fontSize: `${config.fontSize}px` }}
               >
                 <div className="font-bold">{card?.value}</div>

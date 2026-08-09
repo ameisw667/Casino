@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCasinoStore } from '@/store/useCasinoStore';
 
 export default function LoadingOverlay() {
-  const isMobile = useCasinoStore(state => state.isMobile);
-  const isLoading = useCasinoStore(state => state.isLoading);
+  const isMobile = useCasinoStore((state) => state.isMobile);
+  const isLoading = useCasinoStore((state) => state.isLoading);
 
   return (
     <AnimatePresence>
@@ -28,13 +28,13 @@ export default function LoadingOverlay() {
             display: 'flex',
             alignItems: 'center',
             gap: '20px',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
+            boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
           }}
         >
           <div style={{ position: 'relative', width: '40px', height: '40px' }}>
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
               style={{
                 position: 'absolute',
                 inset: 0,
@@ -45,7 +45,7 @@ export default function LoadingOverlay() {
             />
             <motion.div
               animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
               style={{
                 position: 'absolute',
                 inset: '10px',
@@ -57,18 +57,27 @@ export default function LoadingOverlay() {
                 justifyContent: 'center',
                 fontSize: '0.8rem',
                 fontWeight: 900,
-                color: 'black'
+                color: 'black',
               }}
             >
               R
             </motion.div>
           </div>
-          
+
           <div style={{ textAlign: 'left' }}>
-            <div style={{ fontSize: '0.8rem', fontWeight: 900, letterSpacing: '1px', color: 'white' }}>
+            <div
+              style={{ fontSize: '0.8rem', fontWeight: 900, letterSpacing: '1px', color: 'white' }}
+            >
               INITIALIZING ENGINE
             </div>
-            <div style={{ fontSize: '0.6rem', fontWeight: 800, color: 'hsl(var(--primary))', marginTop: '2px' }}>
+            <div
+              style={{
+                fontSize: '0.6rem',
+                fontWeight: 800,
+                color: 'hsl(var(--primary))',
+                marginTop: '2px',
+              }}
+            >
               PROVABLY FAIR VERIFICATION
             </div>
           </div>

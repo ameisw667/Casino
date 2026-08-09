@@ -151,9 +151,9 @@ export default function GamesPage() {
           gap: '20px',
           flexWrap: 'wrap',
           padding: '14px 20px',
-          borderRadius: '20px',
-          border: '1px solid hsla(var(--primary), 0.18)',
-          background: 'linear-gradient(135deg, hsla(var(--bg-color), 0.6), hsla(var(--primary), 0.05))',
+          borderRadius: '8px',
+          border: '1px solid var(--stealth-border, #1e2638)',
+          background: 'var(--stealth-surface, #141923)',
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -162,7 +162,7 @@ export default function GamesPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
-              color: 'hsl(var(--primary))',
+              color: 'var(--stealth-accent, #cbd5e1)',
               fontSize: '0.7rem',
               fontWeight: 900,
               letterSpacing: '0.08em',
@@ -175,7 +175,7 @@ export default function GamesPage() {
               fontSize: 'clamp(1.6rem, 2.2vw, 2.1rem)',
               fontWeight: 950,
               lineHeight: 1.05,
-              fontFamily: "'Outfit', sans-serif",
+              fontFamily: 'var(--font-inter), sans-serif',
               margin: 0,
             }}
           >
@@ -215,7 +215,7 @@ export default function GamesPage() {
           display: 'grid',
           gridTemplateColumns: isMobile
             ? 'repeat(2, minmax(0, 1fr))'
-            : 'repeat(5, minmax(0, 1fr))',
+            : 'repeat(auto-fit, minmax(220px, 1fr))',
           gap: isMobile ? '12px' : '14px',
           alignItems: 'stretch',
         }}
@@ -286,8 +286,19 @@ function GameCard({ game, index }: { game: GameMeta; index: number }) {
                   gap: '8px',
                 }}
               >
-                <div style={{ opacity: 0.5, color: game.color }}><Icon size={32} /></div>
-                <span style={{ fontSize: '0.6rem', fontWeight: 900, color: 'hsla(0,0%,100%,0.3)', letterSpacing: '0.1em' }}>PREVIEW</span>
+                <div style={{ opacity: 0.5, color: game.color }}>
+                  <Icon size={32} />
+                </div>
+                <span
+                  style={{
+                    fontSize: '0.6rem',
+                    fontWeight: 900,
+                    color: 'hsla(0,0%,100%,0.3)',
+                    letterSpacing: '0.1em',
+                  }}
+                >
+                  PREVIEW
+                </span>
               </div>
             ) : (
               <Image
@@ -400,7 +411,7 @@ function GameCard({ game, index }: { game: GameMeta; index: number }) {
                 fontSize: '1.15rem',
                 fontWeight: 950,
                 margin: 0,
-                fontFamily: "'Outfit', sans-serif",
+                fontFamily: 'var(--font-inter), sans-serif',
                 lineHeight: 1,
               }}
             >
@@ -414,7 +425,7 @@ function GameCard({ game, index }: { game: GameMeta; index: number }) {
                 fontSize: '0.7rem',
                 fontWeight: 800,
                 color: 'hsl(45, 100%, 50%)',
-                fontFamily: "'JetBrains Mono', 'SF Mono', monospace",
+                fontFamily: 'var(--font-mono), monospace',
               }}
             >
               <Star size={12} fill="currentColor" />
@@ -445,13 +456,15 @@ function GameCard({ game, index }: { game: GameMeta; index: number }) {
               border: '1px solid hsla(0,0%,100%,0.05)',
             }}
           >
-            <span style={{ fontSize: '0.55rem', fontWeight: 800, color: 'hsl(var(--text-dim))' }}>TOP PAYOUT</span>
+            <span style={{ fontSize: '0.55rem', fontWeight: 800, color: 'hsl(var(--text-dim))' }}>
+              TOP PAYOUT
+            </span>
             <span
               style={{
                 fontSize: '0.85rem',
                 fontWeight: 950,
                 color: 'hsl(var(--primary))',
-                fontFamily: "'JetBrains Mono', 'SF Mono', monospace",
+                fontFamily: 'var(--font-mono), monospace',
               }}
             >
               {game.reward}
@@ -500,7 +513,7 @@ function GameCard({ game, index }: { game: GameMeta; index: number }) {
                 borderRadius: '5px',
                 border: '1px solid hsla(0,0%,100%,0.12)',
                 background: 'hsla(0,0%,100%,0.03)',
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: 'var(--font-mono), monospace',
               }}
             >
               {index + 1}
@@ -526,11 +539,56 @@ function LiveWinRibbon() {
     if (wins.length >= 5) return wins;
 
     const fallback = [
-      { id: 'f1', user: 'SarahSlot', game: 'SLOTS', amount: 18, multiplier: 2.26, payout: 40.66, time: 'fallback', isWin: true },
-      { id: 'f2', user: 'CryptoKing', game: 'CRASH', amount: 21, multiplier: 4.2, payout: 88.2, time: 'fallback', isWin: true },
-      { id: 'f3', user: 'VibeCoder', game: 'ROULETTE', amount: 45, multiplier: 2.46, payout: 110.92, time: 'fallback', isWin: true },
-      { id: 'f4', user: 'NeonSniper', game: 'DICE', amount: 12, multiplier: 3.1, payout: 37.2, time: 'fallback', isWin: true },
-      { id: 'f5', user: 'HighRoller', game: 'BLACKJACK', amount: 100, multiplier: 2.5, payout: 250, time: 'fallback', isWin: true },
+      {
+        id: 'f1',
+        user: 'SarahSlot',
+        game: 'SLOTS',
+        amount: 18,
+        multiplier: 2.26,
+        payout: 40.66,
+        time: 'fallback',
+        isWin: true,
+      },
+      {
+        id: 'f2',
+        user: 'CryptoKing',
+        game: 'CRASH',
+        amount: 21,
+        multiplier: 4.2,
+        payout: 88.2,
+        time: 'fallback',
+        isWin: true,
+      },
+      {
+        id: 'f3',
+        user: 'VibeCoder',
+        game: 'ROULETTE',
+        amount: 45,
+        multiplier: 2.46,
+        payout: 110.92,
+        time: 'fallback',
+        isWin: true,
+      },
+      {
+        id: 'f4',
+        user: 'NeonSniper',
+        game: 'DICE',
+        amount: 12,
+        multiplier: 3.1,
+        payout: 37.2,
+        time: 'fallback',
+        isWin: true,
+      },
+      {
+        id: 'f5',
+        user: 'HighRoller',
+        game: 'BLACKJACK',
+        amount: 100,
+        multiplier: 2.5,
+        payout: 250,
+        time: 'fallback',
+        isWin: true,
+      },
     ];
     return [...wins, ...fallback].slice(0, 15);
   }, [allBets]);
@@ -546,7 +604,8 @@ function LiveWinRibbon() {
         overflow: 'hidden',
         borderRadius: '14px',
         border: '1px solid hsla(var(--primary), 0.15)',
-        background: 'linear-gradient(90deg, hsla(var(--primary), 0.08), hsla(var(--secondary), 0.05))',
+        background:
+          'linear-gradient(90deg, hsla(var(--primary), 0.08), hsla(var(--secondary), 0.05))',
         padding: '10px 0',
       }}
       className="live-ribbon"
@@ -575,11 +634,19 @@ function LiveWinRibbon() {
           >
             <span style={{ color: 'hsl(var(--success))' }}>{bet.user}</span>
             <span>won</span>
-            <span style={{ color: '#fff', fontFamily: "'JetBrains Mono', monospace" }}>${bet.payout.toFixed(2)}</span>
+            <span style={{ color: '#fff', fontFamily: 'var(--font-mono), monospace' }}>
+              ${bet.payout.toFixed(2)}
+            </span>
             <span>@</span>
-            <span style={{ color: 'hsl(var(--primary))', fontFamily: "'JetBrains Mono', monospace" }}>{bet.multiplier.toFixed(2)}x</span>
+            <span
+              style={{ color: 'hsl(var(--primary))', fontFamily: 'var(--font-mono), monospace' }}
+            >
+              {bet.multiplier.toFixed(2)}x
+            </span>
             <span>in</span>
-            <span style={{ color: '#fff', textTransform: 'capitalize' }}>{bet.game.toLowerCase()}</span>
+            <span style={{ color: '#fff', textTransform: 'capitalize' }}>
+              {bet.game.toLowerCase()}
+            </span>
             <Clock size={12} color="hsl(var(--text-dim))" />
           </div>
         ))}
@@ -602,8 +669,17 @@ function LiveWinRibbon() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.1 }}>
-      <span style={{ fontSize: '0.58rem', fontWeight: 900, color: 'hsl(var(--text-dim))', letterSpacing: '0.06em' }}>
+    <div
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.1 }}
+    >
+      <span
+        style={{
+          fontSize: '0.58rem',
+          fontWeight: 900,
+          color: 'hsl(var(--text-dim))',
+          letterSpacing: '0.06em',
+        }}
+      >
         {label}
       </span>
       <span
@@ -611,7 +687,7 @@ function Stat({ label, value }: { label: string; value: string }) {
           fontSize: '0.95rem',
           fontWeight: 950,
           color: '#fff',
-          fontFamily: "'JetBrains Mono', 'SF Mono', monospace",
+          fontFamily: 'var(--font-mono), monospace',
         }}
       >
         {value}

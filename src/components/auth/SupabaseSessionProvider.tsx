@@ -12,7 +12,13 @@ interface SupabaseSessionContextValue {
 
 const SupabaseSessionContext = createContext<SupabaseSessionContextValue | null>(null);
 
-export function SupabaseSessionProvider({ children, initialUser = null }: { children: ReactNode; initialUser?: User | null }) {
+export function SupabaseSessionProvider({
+  children,
+  initialUser = null,
+}: {
+  children: ReactNode;
+  initialUser?: User | null;
+}) {
   const supabase = useMemo(() => createClient(), []);
   const [user, setUser] = useState<User | null>(initialUser);
   const [isLoaded, setIsLoaded] = useState(!!initialUser);
@@ -35,17 +41,22 @@ export function SupabaseSessionProvider({ children, initialUser = null }: { chil
     return () => listener.subscription.unsubscribe();
   }, [supabase]);
 
-  const value = useMemo<SupabaseSessionContextValue>(() => ({
-    user,
-    isLoaded,
-    signOut: async () => {
-      document.cookie = 'casino_signed_out=1; path=/; max-age=86400';
-      setUser(null);
-      await supabase.auth.signOut();
-    },
-  }), [user, isLoaded, supabase]);
+  const value = useMemo<SupabaseSessionContextValue>(
+    () => ({
+      user,
+      isLoaded,
+      signOut: async () => {
+        document.cookie = 'casino_signed_out=1; path=/; max-age=86400';
+        setUser(null);
+        await supabase.auth.signOut();
+      },
+    }),
+    [user, isLoaded, supabase],
+  );
 
-  return <SupabaseSessionContext.Provider value={value}>{children}</SupabaseSessionContext.Provider>;
+  return (
+    <SupabaseSessionContext.Provider value={value}>{children}</SupabaseSessionContext.Provider>
+  );
 }
 
 export function useSupabaseSession(): SupabaseSessionContextValue {

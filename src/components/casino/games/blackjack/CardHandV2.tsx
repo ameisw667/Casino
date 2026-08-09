@@ -35,8 +35,8 @@ export default function CardHandV2({
     return (
       <div className="flex flex-col items-center gap-2">
         <div className="text-sm font-semibold text-gray-400">{label}</div>
-        <div className="w-20 h-28 rounded-lg border-2 border-dashed border-gray-600/30 flex items-center justify-center">
-          <span className="text-gray-500 text-xs">Empty</span>
+        <div className="flex h-28 w-20 items-center justify-center rounded-lg border-2 border-dashed border-gray-600/30">
+          <span className="text-xs text-gray-500">Empty</span>
         </div>
       </div>
     );
@@ -64,7 +64,7 @@ export default function CardHandV2({
     <div className="flex flex-col items-center gap-3">
       {/* Label */}
       <motion.div
-        className="text-sm font-semibold uppercase tracking-wide"
+        className="text-sm font-semibold tracking-wide uppercase"
         animate={{
           color: isActive ? 'hsl(45, 80%, 50%)' : 'rgb(209, 213, 219)',
         }}
@@ -73,7 +73,7 @@ export default function CardHandV2({
       </motion.div>
 
       {/* Cards Container */}
-      <div className="relative h-32 flex items-center justify-center">
+      <div className="relative flex h-32 items-center justify-center">
         <AnimatePresence>
           {hand.cards.map((card, index) => (
             <motion.div
@@ -92,11 +92,7 @@ export default function CardHandV2({
                 zIndex: index,
               }}
             >
-              <PlayingCardV2
-                card={card}
-                faceDown={card.faceDown || false}
-                size="md"
-              />
+              <PlayingCardV2 card={card} faceDown={card.faceDown || false} size="md" />
             </motion.div>
           ))}
         </AnimatePresence>
@@ -105,7 +101,7 @@ export default function CardHandV2({
       {/* Score Badge */}
       {!hideScore && (
         <motion.div
-          className={`rounded-full px-4 py-2 font-mono font-bold text-center ${badgeBgColor} ${badgeTextColor} backdrop-blur-md border border-white/20 min-w-20`}
+          className={`rounded-full px-4 py-2 text-center font-mono font-bold ${badgeBgColor} ${badgeTextColor} min-w-20 border border-white/20 backdrop-blur-md`}
           animate={{
             scale: isActive ? 1.1 : 1,
             y: isActive ? -2 : 0,
@@ -113,12 +109,12 @@ export default function CardHandV2({
           transition={{ duration: 0.3 }}
         >
           <div className="text-lg">{hand.score}</div>
-          {hand.isBust && <div className="text-xs leading-none mt-0.5">BUST</div>}
+          {hand.isBust && <div className="mt-0.5 text-xs leading-none">BUST</div>}
           {hand.isBlackjack && !hand.isBust && (
-            <div className="text-xs leading-none mt-0.5">BJ</div>
+            <div className="mt-0.5 text-xs leading-none">BJ</div>
           )}
           {hand.isSoft && !hand.isBust && hand.score !== 21 && (
-            <div className="text-xs leading-none mt-0.5">Soft</div>
+            <div className="mt-0.5 text-xs leading-none">Soft</div>
           )}
         </motion.div>
       )}
@@ -128,7 +124,7 @@ export default function CardHandV2({
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-xs text-yellow-400/70 font-semibold uppercase tracking-wider"
+          className="text-xs font-semibold tracking-wider text-yellow-400/70 uppercase"
         >
           Soft 17 (Must Hit)
         </motion.div>

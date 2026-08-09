@@ -33,34 +33,35 @@ export const RippleContainer: React.FC<RippleContainerProps> = ({
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const createRipple = useCallback((e: React.MouseEvent) => {
-    if (!containerRef.current) return;
+  const createRipple = useCallback(
+    (e: React.MouseEvent) => {
+      if (!containerRef.current) return;
 
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
 
-    const ripple = {
-      id: Date.now(),
-      x,
-      y,
-      size: 0,
-    };
+      const ripple = {
+        id: Date.now(),
+        x,
+        y,
+        size: 0,
+      };
 
-    setRipples(prev => [...prev, ripple]);
+      setRipples((prev) => [...prev, ripple]);
 
-    const maxSize = Math.max(rect.width, rect.height) * 1.5;
+      const maxSize = Math.max(rect.width, rect.height) * 1.5;
 
-    requestAnimationFrame(() => {
-      setRipples(prev => prev.map(r =>
-        r.id === ripple.id ? { ...r, size: maxSize } : r
-      ));
-    });
+      requestAnimationFrame(() => {
+        setRipples((prev) => prev.map((r) => (r.id === ripple.id ? { ...r, size: maxSize } : r)));
+      });
 
-    setTimeout(() => {
-      setRipples(prev => prev.filter(r => r.id !== ripple.id));
-    }, rippleDuration);
-  }, [rippleDuration]);
+      setTimeout(() => {
+        setRipples((prev) => prev.filter((r) => r.id !== ripple.id));
+      }, rippleDuration);
+    },
+    [rippleDuration],
+  );
 
   return (
     <div
@@ -70,7 +71,7 @@ export const RippleContainer: React.FC<RippleContainerProps> = ({
       style={{ position: 'relative', overflow: 'hidden', ...style }}
     >
       {children}
-      {ripples.map(ripple => (
+      {ripples.map((ripple) => (
         <motion.div
           key={ripple.id}
           initial={{ scale: 0, opacity: 0.8 }}

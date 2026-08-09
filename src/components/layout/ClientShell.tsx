@@ -1,32 +1,27 @@
 'use client';
 
-import React, { useSyncExternalStore } from 'react';
+import React from 'react';
 import { usePathname } from 'next/navigation';
 import MainLayout from './MainLayout';
 import AdminLayout from './AdminLayout';
 import OnboardingFlow from './OnboardingFlow';
-
-const emptySubscribe = () => () => {};
-
-// Client-mount detection without an effect + setState (avoids the extra
-// render pass and hydration flash that useState+useEffect(() => setMounted(true)) causes).
-function useMounted() {
-  return useSyncExternalStore(emptySubscribe, () => true, () => false);
-}
+import { useMounted } from '@/hooks/useMounted';
 
 export default function ClientShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin');
-  const isBackend = pathname?.startsWith('/backend');
+  const isSandboxV2 = pathname === '/v2' || pathname?.startsWith('/v2/');
+  const isRefactoring = pathname === '/refactoring' || pathname?.startsWith('/refactoring/');
   const mounted = useMounted();
+
+  // Standalone design-sandbox routes: render their own header/sidebar/hero,
+  // must never inherit the live app's MainLayout nav.
+  if (isSandboxV2 || isRefactoring) {
+    return <>{children}</>;
+  }
 
   if (isAdmin) {
     return <AdminLayout>{children}</AdminLayout>;
-  }
-
-  // /backend: functionality-only test page, no premium shell (no sidebar/nav/modals)
-  if (isBackend) {
-    return <>{children}</>;
   }
 
   return (

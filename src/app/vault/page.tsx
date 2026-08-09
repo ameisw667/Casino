@@ -135,211 +135,228 @@ export default function VaultPage() {
         padding: isMobile ? '16px 12px 120px' : '20px 32px 80px',
       }}
     >
-      {/* ──── ROW 1: Profile ──── */}
+      {/* ──── ROW 1: Profile Banner (full width) ──── */}
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 420px)',
-          gap: '16px',
+          ...card({ padding: isMobile ? '24px 20px' : '22px 32px' }),
+          position: 'relative',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'stretch' : 'center',
+          justifyContent: 'space-between',
+          gap: isMobile ? '20px' : '28px',
           marginBottom: '16px',
         }}
       >
-        {/* Profile Card */}
         <div
           style={{
-            ...card({ padding: '28px 24px' }),
+            position: 'absolute',
+            top: '-60px',
+            right: '10%',
+            width: '220px',
+            height: '220px',
+            background: `radial-gradient(circle, ${currentTier.color}0d 0%, transparent 70%)`,
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Avatar + Name */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+            flexShrink: 0,
             position: 'relative',
-            overflow: 'hidden',
+          }}
+        >
+          <div style={{ width: '52px', height: '52px', position: 'relative', flexShrink: 0 }}>
+            <svg
+              width="52"
+              height="52"
+              viewBox="0 0 100 100"
+              style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }}
+            >
+              <circle
+                cx="50"
+                cy="50"
+                r="44"
+                fill="none"
+                stroke="rgba(255,255,255,0.04)"
+                strokeWidth="6"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="44"
+                fill="none"
+                stroke={currentTier.color}
+                strokeWidth="6"
+                strokeDasharray={`${levelProgress * 2.76} 276`}
+                strokeLinecap="round"
+                style={{
+                  transition: 'stroke-dasharray 0.8s ease',
+                  filter: `drop-shadow(0 0 4px ${currentTier.color}50)`,
+                }}
+              />
+            </svg>
+            <div
+              style={{
+                position: 'absolute',
+                inset: '5px',
+                borderRadius: '50%',
+                overflow: 'hidden',
+                border: `2px solid ${currentTier.color}40`,
+              }}
+            >
+              <Image
+                src={avatarUrl}
+                alt={displayName}
+                fill
+                unoptimized
+                style={{ objectFit: 'cover' }}
+              />
+            </div>
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: '1.05rem',
+                fontWeight: 800,
+                color: '#fff',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {displayName}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '3px' }}>
+              <span
+                style={{
+                  fontSize: '0.55rem',
+                  fontWeight: 800,
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  background: `${currentTier.color}15`,
+                  color: currentTier.color,
+                  border: `1px solid ${currentTier.color}30`,
+                  letterSpacing: '0.08em',
+                }}
+              >
+                {currentTier.name}
+              </span>
+              <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)' }}>
+                LVL {level}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Key Figures */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '10px',
+            flexWrap: 'wrap',
+            flex: isMobile ? undefined : 1,
+            justifyContent: isMobile ? undefined : 'center',
+            maxWidth: isMobile ? undefined : '420px',
+            position: 'relative',
           }}
         >
           <div
             style={{
-              position: 'absolute',
-              top: '-40px',
-              right: '-40px',
-              width: '140px',
-              height: '140px',
-              background: `radial-gradient(circle, ${currentTier.color}10 0%, transparent 70%)`,
-              pointerEvents: 'none',
-            }}
-          />
-
-          {/* Avatar + Name */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
-            <div style={{ width: '52px', height: '52px', position: 'relative', flexShrink: 0 }}>
-              <svg
-                width="52"
-                height="52"
-                viewBox="0 0 100 100"
-                style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }}
-              >
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="44"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.04)"
-                  strokeWidth="6"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="44"
-                  fill="none"
-                  stroke={currentTier.color}
-                  strokeWidth="6"
-                  strokeDasharray={`${levelProgress * 2.76} 276`}
-                  strokeLinecap="round"
-                  style={{
-                    transition: 'stroke-dasharray 0.8s ease',
-                    filter: `drop-shadow(0 0 4px ${currentTier.color}50)`,
-                  }}
-                />
-              </svg>
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: '5px',
-                  borderRadius: '50%',
-                  overflow: 'hidden',
-                  border: `2px solid ${currentTier.color}40`,
-                }}
-              >
-                <Image
-                  src={avatarUrl}
-                  alt={displayName}
-                  fill
-                  unoptimized
-                  style={{ objectFit: 'cover' }}
-                />
-              </div>
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: '1.05rem',
-                  fontWeight: 800,
-                  color: '#fff',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {displayName}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '3px' }}>
-                <span
-                  style={{
-                    fontSize: '0.55rem',
-                    fontWeight: 800,
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    background: `${currentTier.color}15`,
-                    color: currentTier.color,
-                    border: `1px solid ${currentTier.color}30`,
-                    letterSpacing: '0.08em',
-                  }}
-                >
-                  {currentTier.name}
-                </span>
-                <span
-                  style={{ fontSize: '0.6rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)' }}
-                >
-                  LVL {level}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Key Figures */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '10px',
-              marginBottom: '20px',
+              padding: '14px',
+              borderRadius: '12px',
+              background: 'rgba(255,255,255,0.025)',
+              border: '1px solid rgba(255,255,255,0.04)',
+              flex: 1,
+              minWidth: '140px',
             }}
           >
             <div
               style={{
-                padding: '14px',
-                borderRadius: '12px',
-                background: 'rgba(255,255,255,0.025)',
-                border: '1px solid rgba(255,255,255,0.04)',
+                fontSize: '0.55rem',
+                fontWeight: 700,
+                color: 'rgba(255,255,255,0.3)',
+                letterSpacing: '0.06em',
+                marginBottom: '4px',
               }}
             >
-              <div
-                style={{
-                  fontSize: '0.55rem',
-                  fontWeight: 700,
-                  color: 'rgba(255,255,255,0.3)',
-                  letterSpacing: '0.06em',
-                  marginBottom: '4px',
-                }}
-              >
-                BALANCE
-              </div>
-              <div
-                style={{
-                  fontSize: '1.15rem',
-                  fontWeight: 900,
-                  color: '#D4AF37',
-                  fontFamily: 'var(--font-mono, monospace)',
-                }}
-              >
-                ${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </div>
+              BALANCE
             </div>
             <div
               style={{
-                padding: '14px',
-                borderRadius: '12px',
-                background: 'rgba(255,255,255,0.025)',
-                border: '1px solid rgba(255,255,255,0.04)',
+                fontSize: '1.15rem',
+                fontWeight: 900,
+                color: '#D4AF37',
+                fontFamily: 'var(--font-mono, monospace)',
               }}
             >
-              <div
-                style={{
-                  fontSize: '0.55rem',
-                  fontWeight: 700,
-                  color: 'rgba(255,255,255,0.3)',
-                  letterSpacing: '0.06em',
-                  marginBottom: '4px',
-                }}
-              >
-                XP
-              </div>
-              <div
-                style={{
-                  fontSize: '1.15rem',
-                  fontWeight: 900,
-                  color: '#fff',
-                  fontFamily: 'var(--font-mono, monospace)',
-                }}
-              >
-                {xp.toLocaleString()}
-              </div>
+              ${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </div>
           </div>
-
-          {/* Verified */}
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div
+            style={{
+              padding: '14px',
+              borderRadius: '12px',
+              background: 'rgba(255,255,255,0.025)',
+              border: '1px solid rgba(255,255,255,0.04)',
+              flex: 1,
+              minWidth: '140px',
+            }}
+          >
             <div
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '5px 10px',
-                borderRadius: '8px',
-                background: 'rgba(16,185,129,0.08)',
-                border: '1px solid rgba(16,185,129,0.15)',
-                fontSize: '0.6rem',
-                fontWeight: 800,
-                color: '#10b981',
+                fontSize: '0.55rem',
+                fontWeight: 700,
+                color: 'rgba(255,255,255,0.3)',
+                letterSpacing: '0.06em',
+                marginBottom: '4px',
               }}
             >
-              <ShieldCheck size={11} /> VERIFIED
+              XP
             </div>
+            <div
+              style={{
+                fontSize: '1.15rem',
+                fontWeight: 900,
+                color: '#fff',
+                fontFamily: 'var(--font-mono, monospace)',
+              }}
+            >
+              {xp.toLocaleString()}
+            </div>
+          </div>
+        </div>
+
+        {/* Verified */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '10px',
+            alignItems: 'center',
+            flexShrink: 0,
+            position: 'relative',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '5px 10px',
+              borderRadius: '8px',
+              background: 'rgba(16,185,129,0.08)',
+              border: '1px solid rgba(16,185,129,0.15)',
+              fontSize: '0.6rem',
+              fontWeight: 800,
+              color: '#10b981',
+            }}
+          >
+            <ShieldCheck size={11} /> VERIFIED
           </div>
         </div>
       </div>
@@ -504,8 +521,8 @@ export default function VaultPage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             {[
-              { label: 'BETS', value: totalStats.totalBets.toLocaleString(), color: '#6366f1' },
-              { label: 'WIN RATE', value: `${totalStats.winRate.toFixed(1)}%`, color: '#10b981' },
+              { label: 'BETS', value: totalStats.totalBets.toLocaleString(), color: '#fff' },
+              { label: 'WIN RATE', value: `${totalStats.winRate.toFixed(1)}%`, color: '#fff' },
               {
                 label: 'PROFIT',
                 value: `${totalStats.totalProfit >= 0 ? '+' : ''}$${totalStats.totalProfit.toFixed(2)}`,
@@ -750,42 +767,73 @@ export default function VaultPage() {
 
           {/* Quick Play */}
           <motion.div
-            whileHover={{ scale: 1.01, y: -1 }}
+            whileHover={{ scale: 1.015, y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => router.push('/games/crash')}
             style={{
-              ...card({ padding: '22px 20px', cursor: 'pointer' }),
-              borderColor: 'rgba(212,175,55,0.15)',
+              borderRadius: '16px',
+              backgroundImage:
+                'linear-gradient(100deg, rgba(6,5,3,0.75) 0%, rgba(6,5,3,0.45) 40%, rgba(6,5,3,0.1) 75%), url(/images/vault-playnow-bg.webp)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              border: '1px solid rgba(212,175,55,0.35)',
+              boxShadow: '0 10px 28px rgba(212,175,55,0.15)',
+              padding: '22px 20px',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               flex: 1,
+              position: 'relative',
+              overflow: 'hidden',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' }}
+            >
               <div
                 style={{
-                  width: 38,
-                  height: 38,
+                  width: 40,
+                  height: 40,
                   borderRadius: '10px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  background: 'rgba(212,175,55,0.1)',
+                  background: 'rgba(0,0,0,0.35)',
+                  backdropFilter: 'blur(4px)',
+                  border: '1px solid rgba(212,175,55,0.3)',
                 }}
               >
-                <Rocket size={16} color="#D4AF37" />
+                <Rocket size={18} color="#D4AF37" />
               </div>
               <div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#fff' }}>Play Now</div>
                 <div
-                  style={{ fontSize: '0.6rem', fontWeight: 600, color: 'rgba(255,255,255,0.3)' }}
+                  style={{
+                    fontSize: '0.9rem',
+                    fontWeight: 900,
+                    color: '#fff',
+                    textShadow: '0 2px 8px rgba(0,0,0,0.6)',
+                  }}
+                >
+                  Play Now
+                </div>
+                <div
+                  style={{
+                    fontSize: '0.6rem',
+                    fontWeight: 700,
+                    color: 'rgba(255,255,255,0.75)',
+                    textShadow: '0 1px 6px rgba(0,0,0,0.6)',
+                  }}
                 >
                   Crash, Dice, Roulette & more
                 </div>
               </div>
             </div>
-            <ArrowUpRight size={16} color="rgba(212,175,55,0.6)" />
+            <ArrowUpRight
+              size={18}
+              color="rgba(255,255,255,0.85)"
+              style={{ position: 'relative', filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.5))' }}
+            />
           </motion.div>
         </div>
       </div>

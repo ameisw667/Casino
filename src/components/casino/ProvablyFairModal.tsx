@@ -85,27 +85,87 @@ export function ProvablyFairModal({
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-      <div style={{ width: '100%', maxWidth: '520px', background: '#0a0a0c', border: '1px solid rgba(212,175,55,0.3)', borderRadius: '24px', padding: '28px', color: '#fff', position: 'relative' }}>
-        <button onClick={onClose} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1000,
+        background: 'rgba(0,0,0,0.85)',
+        backdropFilter: 'blur(12px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px',
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '520px',
+          background: '#0a0a0c',
+          border: '1px solid rgba(212,175,55,0.3)',
+          borderRadius: '24px',
+          padding: '28px',
+          color: '#fff',
+          position: 'relative',
+        }}
+      >
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            background: 'none',
+            border: 'none',
+            color: 'rgba(255,255,255,0.4)',
+            cursor: 'pointer',
+          }}
+        >
           <X size={20} />
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
           <ShieldCheck size={22} color="#D4AF37" />
-          <h2 style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0, color: '#fff' }}>Provably Fair Verifier</h2>
+          <h2 style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0, color: '#fff' }}>
+            Provably Fair Verifier
+          </h2>
         </div>
         <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', margin: '0 0 20px 0' }}>
-          Kryptographische HMAC-SHA256 Re-Berechnung zur Verifikation deterministischer Spielergebnisse.
+          Kryptographische HMAC-SHA256 Re-Berechnung zur Verifikation deterministischer
+          Spielergebnisse.
         </p>
 
-        <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <form
+          onSubmit={handleVerify}
+          style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+        >
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#D4AF37', marginBottom: '6px' }}>Spiel auswaehlen</label>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '0.75rem',
+                fontWeight: 800,
+                color: '#D4AF37',
+                marginBottom: '6px',
+              }}
+            >
+              Spiel auswaehlen
+            </label>
             <select
               value={game}
-              onChange={e => setGame(e.target.value)}
-              style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.85rem', fontWeight: 700, outline: 'none' }}
+              onChange={(e) => setGame(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: '#fff',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                outline: 'none',
+              }}
             >
               <option value="dice">Dice (0.00 - 100.00)</option>
               <option value="crash">Crash Multiplier</option>
@@ -116,34 +176,94 @@ export function ProvablyFairModal({
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Server Seed</label>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '0.75rem',
+                fontWeight: 800,
+                color: 'rgba(255,255,255,0.6)',
+                marginBottom: '6px',
+              }}
+            >
+              Server Seed
+            </label>
             <input
               type="text"
               value={serverSeed}
-              onChange={e => setServerSeed(e.target.value)}
+              onChange={(e) => setServerSeed(e.target.value)}
               placeholder="z.B. a8f9b2c3d4..."
-              style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.85rem', fontFamily: 'monospace', outline: 'none' }}
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: '#fff',
+                fontSize: '0.85rem',
+                fontFamily: 'monospace',
+                outline: 'none',
+              }}
             />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Client Seed</label>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  color: 'rgba(255,255,255,0.6)',
+                  marginBottom: '6px',
+                }}
+              >
+                Client Seed
+              </label>
               <input
                 type="text"
                 value={clientSeed}
-                onChange={e => setClientSeed(e.target.value)}
-                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.85rem', fontFamily: 'monospace', outline: 'none' }}
+                onChange={(e) => setClientSeed(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#fff',
+                  fontSize: '0.85rem',
+                  fontFamily: 'monospace',
+                  outline: 'none',
+                }}
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Nonce</label>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  color: 'rgba(255,255,255,0.6)',
+                  marginBottom: '6px',
+                }}
+              >
+                Nonce
+              </label>
               <input
                 type="number"
                 min="1"
                 value={nonce}
-                onChange={e => setNonce(Number(e.target.value))}
-                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.85rem', fontFamily: 'monospace', outline: 'none' }}
+                onChange={(e) => setNonce(Number(e.target.value))}
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#fff',
+                  fontSize: '0.85rem',
+                  fontFamily: 'monospace',
+                  outline: 'none',
+                }}
               />
             </div>
           </div>
@@ -151,23 +271,71 @@ export function ProvablyFairModal({
           <button
             type="submit"
             disabled={verifying}
-            style={{ width: '100%', padding: '12px', borderRadius: '12px', background: '#D4AF37', border: 'none', color: '#000', fontWeight: 900, fontSize: '0.9rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: verifying ? 0.6 : 1 }}
+            style={{
+              width: '100%',
+              padding: '12px',
+              borderRadius: '12px',
+              background: '#D4AF37',
+              border: 'none',
+              color: '#000',
+              fontWeight: 900,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              opacity: verifying ? 0.6 : 1,
+            }}
           >
-            {verifying ? <RefreshCw size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
+            {verifying ? (
+              <RefreshCw size={16} className="animate-spin" />
+            ) : (
+              <ShieldCheck size={16} />
+            )}
             {verifying ? 'Berechne HMAC-SHA256…' : 'Wette verifizieren'}
           </button>
         </form>
 
         {result && (
-          <div style={{ marginTop: '20px', padding: '16px', borderRadius: '14px', background: result.verified ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', border: `1px solid ${result.verified ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: result.verified ? '#10b981' : '#ef4444', fontWeight: 800, fontSize: '0.85rem' }}>
+          <div
+            style={{
+              marginTop: '20px',
+              padding: '16px',
+              borderRadius: '14px',
+              background: result.verified ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+              border: `1px solid ${result.verified ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`,
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '8px',
+                color: result.verified ? '#10b981' : '#ef4444',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+              }}
+            >
               {result.verified ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
-              {result.verified ? 'HMAC-SHA256 Verifiziert & Deterministisch' : 'Verifikation fehlgeschlagen'}
+              {result.verified
+                ? 'HMAC-SHA256 Verifiziert & Deterministisch'
+                : 'Verifikation fehlgeschlagen'}
             </div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#fff', marginBottom: '6px' }}>
+            <div
+              style={{ fontSize: '0.85rem', fontWeight: 800, color: '#fff', marginBottom: '6px' }}
+            >
               {result.computedOutcome}
             </div>
-            <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace', wordBreak: 'break-all' }}>
+            <div
+              style={{
+                fontSize: '0.72rem',
+                color: 'rgba(255,255,255,0.4)',
+                fontFamily: 'monospace',
+                wordBreak: 'break-all',
+              }}
+            >
               HMAC: {result.hash}
             </div>
           </div>

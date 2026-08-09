@@ -47,73 +47,79 @@ export const RouletteControls: React.FC<RouletteControlsProps> = ({
   autoBetStats,
   strategy,
   setStrategy,
-  history
+  history,
 }) => {
   const [tab, setTab] = useState<'MANUAL' | 'AUTO'>('MANUAL');
 
   const colorStats = React.useMemo(() => {
     if (history.length === 0) return { red: 50, black: 50 };
-    const reds = history.filter(h => h.c === 'RED').length;
-    const blacks = history.filter(h => h.c === 'BLACK').length;
+    const reds = history.filter((h) => h.c === 'RED').length;
+    const blacks = history.filter((h) => h.c === 'BLACK').length;
     const total = reds + blacks;
     if (total === 0) return { red: 50, black: 50 };
     return {
       red: Math.round((reds / total) * 100),
-      black: Math.round((blacks / total) * 100)
+      black: Math.round((blacks / total) * 100),
     };
   }, [history]);
 
   return (
-    <div className="flex flex-col gap-4 h-full font-inter overflow-hidden">
+    <div className="font-inter flex h-full flex-col gap-4 overflow-hidden">
       {/* Wallet Display */}
-      <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+      <div className="flex items-center justify-between rounded-2xl border border-white/5 bg-white/5 p-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+          <div className="bg-primary/10 text-primary border-primary/20 flex h-10 w-10 items-center justify-center rounded-xl border">
             <Wallet size={20} />
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Balance</span>
-            <span className="text-sm font-black text-white">${balance.toLocaleString('en-US')}</span>
+            <span className="text-[10px] font-black tracking-widest text-white/40 uppercase">
+              Balance
+            </span>
+            <span className="text-sm font-black text-white">
+              ${balance.toLocaleString('en-US')}
+            </span>
           </div>
         </div>
       </div>
 
       {/* Mode Switcher */}
-      <div className="flex p-1 bg-black/40 rounded-xl border border-white/5">
-        <button 
+      <div className="flex rounded-xl border border-white/5 bg-black/40 p-1">
+        <button
           onClick={() => setTab('MANUAL')}
-          className={`flex-1 py-2.5 text-[10px] font-black rounded-lg transition-all tracking-widest vibe-tap ${tab === 'MANUAL' ? 'bg-primary text-black shadow-glow-primary' : 'text-white/40 hover:text-white/60'}`}
+          className={`vibe-tap flex-1 rounded-lg py-2.5 text-[10px] font-black tracking-widest transition-all ${tab === 'MANUAL' ? 'bg-primary shadow-glow-primary text-black' : 'text-white/40 hover:text-white/60'}`}
         >
           MANUAL
         </button>
-        <button 
+        <button
           onClick={() => setTab('AUTO')}
-          className={`flex-1 py-2.5 text-[10px] font-black rounded-lg transition-all tracking-widest vibe-tap ${tab === 'AUTO' ? 'bg-primary text-black shadow-glow-primary' : 'text-white/40 hover:text-white/60'}`}
+          className={`vibe-tap flex-1 rounded-lg py-2.5 text-[10px] font-black tracking-widest transition-all ${tab === 'AUTO' ? 'bg-primary shadow-glow-primary text-black' : 'text-white/40 hover:text-white/60'}`}
         >
           AUTO
         </button>
       </div>
 
-      <div className="flex flex-col gap-6 flex-1 overflow-y-auto no-scrollbar">
+      <div className="no-scrollbar flex flex-1 flex-col gap-6 overflow-y-auto">
         {/* Chip Selection */}
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest">Chip Value</label>
-            <button 
+            <label className="text-[10px] font-black tracking-widest text-white/40 uppercase">
+              Chip Value
+            </label>
+            <button
               onClick={() => setTurboMode(!turboMode)}
-              className={`transition-all duration-300 vibe-tap ${turboMode ? 'text-primary drop-shadow-glow scale-110' : 'text-white/20 hover:text-white/40'}`}
+              className={`vibe-tap transition-all duration-300 ${turboMode ? 'text-primary drop-shadow-glow scale-110' : 'text-white/20 hover:text-white/40'}`}
             >
               <FastForward size={18} />
             </button>
           </div>
           <div className="grid grid-cols-4 gap-2.5">
-            {CHIPS.map(c => (
-              <Chip 
-                key={c} 
-                amount={c} 
-                active={selectedChip === c} 
-                onClick={() => setSelectedChip(c)} 
-                size={42} 
+            {CHIPS.map((c) => (
+              <Chip
+                key={c}
+                amount={c}
+                active={selectedChip === c}
+                onClick={() => setSelectedChip(c)}
+                size={42}
                 vipLevel={vipLevel}
               />
             ))}
@@ -123,21 +129,23 @@ export const RouletteControls: React.FC<RouletteControlsProps> = ({
         {/* Manual: French Bets */}
         {tab === 'MANUAL' && (
           <div className="flex flex-col gap-3">
-            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest">Special Bets</label>
+            <label className="text-[10px] font-black tracking-widest text-white/40 uppercase">
+              Special Bets
+            </label>
             <div className="flex flex-col gap-2">
-              {(['VOISINS', 'TIERS', 'ORPHELINS'] as const).map(f => (
-                <motion.button 
+              {(['VOISINS', 'TIERS', 'ORPHELINS'] as const).map((f) => (
+                <motion.button
                   key={f}
                   whileHover={{ x: 4 }}
                   whileTap={{ scale: 0.96 }}
                   onClick={() => onPlaceFrenchBet(f)}
                   disabled={spinning || isProcessing}
-                  className="w-full py-3.5 px-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-[10px] font-black text-left flex items-center justify-between transition-all group vibe-tap"
+                  className="group vibe-tap flex w-full items-center justify-between rounded-xl border border-white/5 bg-white/5 px-4 py-3.5 text-left text-[10px] font-black transition-all hover:bg-white/10"
                 >
                   <span className="group-hover:text-primary transition-colors">{f}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-white/20 group-hover:text-white/40">ANNOUNCE</span>
-                    <TrendingUp size={12} className="text-white/20 group-hover:text-primary" />
+                    <TrendingUp size={12} className="group-hover:text-primary text-white/20" />
                   </div>
                 </motion.button>
               ))}
@@ -147,29 +155,31 @@ export const RouletteControls: React.FC<RouletteControlsProps> = ({
 
         {/* Auto: Strategies */}
         {tab === 'AUTO' && (
-          <div className="flex flex-col gap-4 animate-slide-up">
+          <div className="animate-slide-up flex flex-col gap-4">
             <div className="flex flex-col gap-3">
-              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest">Strategy</label>
+              <label className="text-[10px] font-black tracking-widest text-white/40 uppercase">
+                Strategy
+              </label>
               <div className="grid grid-cols-2 gap-2">
-                {(['MARTINGALE', 'PAROLI'] as const).map(s => (
-                  <button 
+                {(['MARTINGALE', 'PAROLI'] as const).map((s) => (
+                  <button
                     key={s}
                     disabled={autoBetting}
                     onClick={() => setStrategy(s)}
-                    className={`py-3 rounded-xl border transition-all text-[10px] font-black tracking-tighter vibe-tap ${strategy === s ? 'bg-primary/20 border-primary text-primary' : 'bg-white/5 border-white/5 text-white/40 hover:text-white'}`}
+                    className={`vibe-tap rounded-xl border py-3 text-[10px] font-black tracking-tighter transition-all ${strategy === s ? 'bg-primary/20 border-primary text-primary' : 'border-white/5 bg-white/5 text-white/40 hover:text-white'}`}
                   >
                     {s}
                   </button>
                 ))}
               </div>
             </div>
-            
-            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col gap-3">
-              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+
+            <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center justify-between text-[10px] font-black tracking-widest uppercase">
                 <span className="text-white/40">Auto Rounds</span>
                 <span className="text-white">{autoBetStats.total}</span>
               </div>
-              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+              <div className="flex items-center justify-between text-[10px] font-black tracking-widest uppercase">
                 <span className="text-white/40">Wins / Losses</span>
                 <div className="flex gap-2">
                   <span className="text-success">{autoBetStats.wins}W</span>
@@ -177,9 +187,9 @@ export const RouletteControls: React.FC<RouletteControlsProps> = ({
                 </div>
               </div>
               {autoBetting && (
-                <button 
+                <button
                   onClick={() => setAutoBetting(false)}
-                  className="w-full py-3 bg-error/10 hover:bg-error/20 border border-error/20 text-error text-[10px] font-black rounded-xl transition-all uppercase tracking-widest mt-2 vibe-tap"
+                  className="bg-error/10 hover:bg-error/20 border-error/20 text-error vibe-tap mt-2 w-full rounded-xl border py-3 text-[10px] font-black tracking-widest uppercase transition-all"
                 >
                   Stop Autobet
                 </button>
@@ -190,19 +200,19 @@ export const RouletteControls: React.FC<RouletteControlsProps> = ({
 
         {/* Stats Summary */}
         <div className="mt-auto flex flex-col gap-4">
-          <div className="p-5 bg-black/40 border border-white/5 rounded-2xl flex flex-col gap-3 backdrop-blur-md">
-            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+          <div className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-black/40 p-5 backdrop-blur-md">
+            <div className="flex items-center justify-between text-[10px] font-black tracking-widest uppercase">
               <span className="text-white/40">Est. Profit</span>
               <span className="text-primary drop-shadow-glow">
                 {estProfit > 0 ? `+$${estProfit.toLocaleString('en-US')}` : '$0'}
               </span>
             </div>
-            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+            <div className="flex items-center justify-between text-[10px] font-black tracking-widest uppercase">
               <span className="text-white/40">Total Bet</span>
               <span className="text-white">${totalWagered.toLocaleString('en-US')}</span>
             </div>
             <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+              <div className="flex items-center justify-between text-[10px] font-black tracking-widest uppercase">
                 <span className="text-white/40">Color Distribution</span>
                 <div className="flex gap-2">
                   <span className="text-error">{colorStats.red}%</span>
@@ -210,14 +220,20 @@ export const RouletteControls: React.FC<RouletteControlsProps> = ({
                   <span className="text-white">{colorStats.black}%</span>
                 </div>
               </div>
-              <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden flex border border-white/5">
-                <div style={{ width: `${colorStats.red}%` }} className="h-full bg-error transition-all duration-500" />
-                <div style={{ width: `${colorStats.black}%` }} className="h-full bg-white/20 transition-all duration-500" />
+              <div className="flex h-1.5 w-full overflow-hidden rounded-full border border-white/5 bg-black/40">
+                <div
+                  style={{ width: `${colorStats.red}%` }}
+                  className="bg-error h-full transition-all duration-500"
+                />
+                <div
+                  style={{ width: `${colorStats.black}%` }}
+                  className="h-full bg-white/20 transition-all duration-500"
+                />
               </div>
             </div>
 
-            <div className="h-px bg-white/5 w-full my-1" />
-            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+            <div className="my-1 h-px w-full bg-white/5" />
+            <div className="flex items-center justify-between text-[10px] font-black tracking-widest uppercase">
               <span className="text-white/40">Max Possible Payout</span>
               <span className="text-white/60">x36.00</span>
             </div>
@@ -236,9 +252,13 @@ export const RouletteControls: React.FC<RouletteControlsProps> = ({
                 }
               }}
               disabled={spinning || isProcessing || (totalWagered === 0 && !autoBetting)}
-              className={`w-full h-16 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-3 shadow-glow-primary relative overflow-hidden vibe-tap
-                ${spinning || isProcessing || (totalWagered === 0 && !autoBetting) ? 'bg-primary/50 text-black/50 cursor-not-allowed opacity-50' : 
-                  autoBetting ? 'bg-error text-white shadow-glow-error' : 'bg-primary text-black hover:brightness-110'}`}
+              className={`shadow-glow-primary vibe-tap relative flex h-16 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl text-lg font-black transition-all ${
+                spinning || isProcessing || (totalWagered === 0 && !autoBetting)
+                  ? 'bg-primary/50 cursor-not-allowed text-black/50 opacity-50'
+                  : autoBetting
+                    ? 'bg-error shadow-glow-error text-white'
+                    : 'bg-primary text-black hover:brightness-110'
+              }`}
             >
               {spinning || isProcessing ? (
                 <RotateCcw className="animate-spin" size={24} />
@@ -247,27 +267,29 @@ export const RouletteControls: React.FC<RouletteControlsProps> = ({
               ) : (
                 <>
                   <Zap size={20} fill="currentColor" />
-                  <span className="tracking-tighter">{tab === 'AUTO' ? 'START AUTO' : 'PLACE YOUR BETS'}</span>
+                  <span className="tracking-tighter">
+                    {tab === 'AUTO' ? 'START AUTO' : 'PLACE YOUR BETS'}
+                  </span>
                 </>
               )}
               {/* Shimmer effect */}
               {!spinning && !isProcessing && totalWagered > 0 && !autoBetting && (
-                <div className="absolute inset-0 shimmer opacity-20 pointer-events-none" />
+                <div className="shimmer pointer-events-none absolute inset-0 opacity-20" />
               )}
             </motion.button>
-            
+
             <div className="grid grid-cols-2 gap-2">
-              <button 
+              <button
                 onClick={onClear}
                 disabled={spinning || isProcessing || totalWagered === 0}
-                className="h-14 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl flex items-center justify-center text-white/40 hover:text-white transition-all disabled:opacity-30 vibe-tap"
+                className="vibe-tap flex h-14 items-center justify-center rounded-xl border border-white/5 bg-white/5 text-white/40 transition-all hover:bg-white/10 hover:text-white disabled:opacity-30"
               >
                 <Trash2 size={20} />
               </button>
-              <button 
+              <button
                 onClick={onUndo}
                 disabled={spinning || isProcessing}
-                className="h-14 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl flex items-center justify-center text-white/40 hover:text-white transition-all disabled:opacity-30 vibe-tap"
+                className="vibe-tap flex h-14 items-center justify-center rounded-xl border border-white/5 bg-white/5 text-white/40 transition-all hover:bg-white/10 hover:text-white disabled:opacity-30"
               >
                 <Undo2 size={20} />
               </button>

@@ -1,6 +1,13 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   RotateCcw,
@@ -167,7 +174,9 @@ function HotColdStats({ history }: { history: RouletteNumber[] }) {
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
             {stats.hot.length === 0 && (
-              <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>
+              <span
+                style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}
+              >
                 Waiting...
               </span>
             )}
@@ -207,7 +216,9 @@ function HotColdStats({ history }: { history: RouletteNumber[] }) {
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
             {stats.cold.length === 0 && (
-              <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>
+              <span
+                style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}
+              >
                 Waiting...
               </span>
             )}
@@ -290,16 +301,16 @@ function CurrentBetsList({ bets }: { bets: BetPlacement[] }) {
                 {bet.type.type === 'STRAIGHT'
                   ? `Number ${bet.type.value}`
                   : bet.type.type === 'COLOR'
-                  ? `${bet.type.value}`
-                  : bet.type.type === 'EVEN_ODD'
-                  ? `${bet.type.value}`
-                  : bet.type.type === 'RANGE'
-                  ? `${bet.type.value}`
-                  : bet.type.type === 'DOZEN'
-                  ? `${bet.type.value === 1 ? '1st' : bet.type.value === 2 ? '2nd' : '3rd'} 12`
-                  : bet.type.type === 'COLUMN'
-                  ? `${bet.type.value === 1 ? '1st' : bet.type.value === 2 ? '2nd' : '3rd'} Column`
-                  : `${bet.type.value}`}
+                    ? `${bet.type.value}`
+                    : bet.type.type === 'EVEN_ODD'
+                      ? `${bet.type.value}`
+                      : bet.type.type === 'RANGE'
+                        ? `${bet.type.value}`
+                        : bet.type.type === 'DOZEN'
+                          ? `${bet.type.value === 1 ? '1st' : bet.type.value === 2 ? '2nd' : '3rd'} 12`
+                          : bet.type.type === 'COLUMN'
+                            ? `${bet.type.value === 1 ? '1st' : bet.type.value === 2 ? '2nd' : '3rd'} Column`
+                            : `${bet.type.value}`}
               </span>
               <span style={{ fontSize: '10px', fontWeight: 900, color: 'hsl(var(--primary))' }}>
                 {formatUsd(bet.amount)}
@@ -342,9 +353,23 @@ function SessionStats({ stats }: { stats: { wins: number; losses: number; profit
           Session Stats
         </span>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', textAlign: 'center' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '8px',
+          textAlign: 'center',
+        }}
+      >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <span style={{ fontSize: '9px', fontWeight: 900, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
+          <span
+            style={{
+              fontSize: '9px',
+              fontWeight: 900,
+              color: 'rgba(255,255,255,0.3)',
+              textTransform: 'uppercase',
+            }}
+          >
             Win Rate
           </span>
           <span
@@ -358,7 +383,14 @@ function SessionStats({ stats }: { stats: { wins: number; losses: number; profit
           </span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <span style={{ fontSize: '9px', fontWeight: 900, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
+          <span
+            style={{
+              fontSize: '9px',
+              fontWeight: 900,
+              color: 'rgba(255,255,255,0.3)',
+              textTransform: 'uppercase',
+            }}
+          >
             Profit
           </span>
           <span
@@ -373,7 +405,14 @@ function SessionStats({ stats }: { stats: { wins: number; losses: number; profit
           </span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <span style={{ fontSize: '9px', fontWeight: 900, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
+          <span
+            style={{
+              fontSize: '9px',
+              fontWeight: 900,
+              color: 'rgba(255,255,255,0.3)',
+              textTransform: 'uppercase',
+            }}
+          >
             Spins
           </span>
           <span style={{ fontSize: '14px', fontWeight: 900, color: '#fff' }}>{total}</span>
@@ -541,11 +580,27 @@ function RouletteWheel({
           viewBox={`0 0 ${size} ${size}`}
           style={{
             transform: `rotate(${-wheelRotation}deg)`,
-            transition: spinning ? 'transform 5.5s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'transform 0.6s ease-out',
+            transition: spinning
+              ? 'transform 5.5s cubic-bezier(0.2, 0.8, 0.2, 1)'
+              : 'transform 0.6s ease-out',
           }}
         >
-          <circle cx={cx} cy={cy} r={outerR} fill="none" stroke="rgba(212,175,55,0.25)" strokeWidth={2} />
-          <circle cx={cx} cy={cy} r={innerR} fill="none" stroke="rgba(212,175,55,0.2)" strokeWidth={1} />
+          <circle
+            cx={cx}
+            cy={cy}
+            r={outerR}
+            fill="none"
+            stroke="rgba(212,175,55,0.25)"
+            strokeWidth={2}
+          />
+          <circle
+            cx={cx}
+            cy={cy}
+            r={innerR}
+            fill="none"
+            stroke="rgba(212,175,55,0.2)"
+            strokeWidth={1}
+          />
 
           {pockets.map((p, i) => {
             const startAngle = (p.angle - pocketAngle / 2) * (Math.PI / 180);
@@ -597,7 +652,9 @@ function RouletteWheel({
             width: size,
             height: size,
             transform: `rotate(${ballRotation}deg)`,
-            transition: spinning ? 'transform 5.5s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'transform 0.6s ease-out',
+            transition: spinning
+              ? 'transform 5.5s cubic-bezier(0.2, 0.8, 0.2, 1)'
+              : 'transform 0.6s ease-out',
             pointerEvents: 'none',
           }}
         >
@@ -714,7 +771,7 @@ export function RouletteClient() {
   const setIsProcessing = useCasinoStore((s) => s.setIsProcessing);
   const isProcessing = useCasinoStore((s) => s.isProcessing);
   const gameStats = useCasinoStore(
-    (s) => s.gameStats.ROULETTE ?? { wins: 0, losses: 0, profit: 0 }
+    (s) => s.gameStats.ROULETTE ?? { wins: 0, losses: 0, profit: 0 },
   );
   const gameConfig = useCasinoStore((s) => s.gameConfig);
 
@@ -738,11 +795,10 @@ export function RouletteClient() {
 
   const spinLockRef = useRef(false);
 
-
   // Derived values
   const totalWagered = useMemo(
     () => currentBets.reduce((acc, bet) => acc + bet.amount, 0),
-    [currentBets]
+    [currentBets],
   );
 
   const estProfit = useMemo(() => {
@@ -751,7 +807,8 @@ export function RouletteClient() {
       let currentNumWin = 0;
       currentBets.forEach((bet) => {
         if (CasinoCore.isRouletteWin(bet.type as never, i)) {
-          currentNumWin += bet.amount * CasinoCore.getRouletteMultiplier(bet.type as never, gameConfig);
+          currentNumWin +=
+            bet.amount * CasinoCore.getRouletteMultiplier(bet.type as never, gameConfig);
         }
       });
       if (currentNumWin > maxWin) maxWin = currentNumWin;
@@ -785,20 +842,17 @@ export function RouletteClient() {
       if (existingIndex > -1) {
         setCurrentBets((prev) => {
           const next = prev.map((b, i) =>
-            i === existingIndex ? { ...b, amount: b.amount + chipValue } : b
+            i === existingIndex ? { ...b, amount: b.amount + chipValue } : b,
           );
           return next;
         });
       } else {
-        setCurrentBets((prev) => [
-          ...prev,
-          { id: crypto.randomUUID(), type, amount: chipValue },
-        ]);
+        setCurrentBets((prev) => [...prev, { id: crypto.randomUUID(), type, amount: chipValue }]);
       }
 
       soundManager.play('chip');
     },
-    [spinning, balance, totalWagered, selectedChip, currentBets, addToast]
+    [spinning, balance, totalWagered, selectedChip, currentBets, addToast],
   );
 
   // Clear & undo
@@ -845,10 +899,10 @@ export function RouletteClient() {
     spinLockRef.current = true;
     setIsProcessing(true);
 
-
     setSpinning(true);
     setWinningNumber(null);
     setLastWin(null);
+    soundManager.play('roulette-spin');
 
     try {
       const controller = new AbortController();
@@ -871,6 +925,11 @@ export function RouletteClient() {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        if (response.status === 429) {
+          const errData = await response.json().catch(() => ({}));
+          const retry = errData.retryAfter || 2;
+          throw new Error(`RATE_LIMIT:${retry}`);
+        }
         throw new Error(`API failed: ${response.status}`);
       }
 
@@ -923,12 +982,6 @@ export function RouletteClient() {
           resultId: result.id,
         });
 
-        if (result.win) {
-          soundManager.play('win');
-        } else {
-          soundManager.play('loss');
-        }
-
         // Clear table after showing result for a moment
         setTimeout(() => {
           setCurrentBets([]);
@@ -941,7 +994,12 @@ export function RouletteClient() {
       setSpinning(false);
       setIsProcessing(false);
       spinLockRef.current = false;
-      addToast('Failed to spin. Please try again.', 'error');
+      if (error instanceof Error && error.message.startsWith('RATE_LIMIT:')) {
+        const retrySec = error.message.split(':')[1] || '2';
+        addToast(`Rate limit reached. Please wait ${retrySec}s.`, 'error');
+      } else {
+        addToast('Failed to spin. Please try again.', 'error');
+      }
     }
   }, [
     spinning,
@@ -982,7 +1040,7 @@ export function RouletteClient() {
       if (!hoveredArea) return false;
       return CasinoCore.isRouletteWin(hoveredArea as never, num);
     },
-    [hoveredArea]
+    [hoveredArea],
   );
 
   const renderNumberTile = (num: number) => {
@@ -1015,8 +1073,8 @@ export function RouletteClient() {
             data.c === 'RED'
               ? 'linear-gradient(135deg, hsl(var(--error)), #7f0e1e)'
               : data.c === 'BLACK'
-              ? 'linear-gradient(135deg, #1a1a1a, #0d0d0d)'
-              : 'linear-gradient(135deg, hsl(var(--success)), #006b40)',
+                ? 'linear-gradient(135deg, #1a1a1a, #0d0d0d)'
+                : 'linear-gradient(135deg, hsl(var(--success)), #006b40)',
           boxShadow: highlighted
             ? 'inset 0 0 30px rgba(255,255,255,0.4), 0 0 20px hsla(var(--primary), 0.2)'
             : 'none',
@@ -1055,10 +1113,10 @@ export function RouletteClient() {
     const borderRadius = className.includes('rounded-bl')
       ? '0 0 0 12px'
       : className.includes('rounded-br')
-      ? '0 0 12px 0'
-      : className.includes('rounded-tr')
-      ? '0 12px 0 0'
-      : '4px';
+        ? '0 0 12px 0'
+        : className.includes('rounded-tr')
+          ? '0 12px 0 0'
+          : '4px';
 
     return (
       <motion.div
@@ -1122,8 +1180,7 @@ export function RouletteClient() {
           display: 'grid',
           gridTemplateColumns: '1fr',
           gap: isMobile ? '16px' : '24px',
-          background:
-            'linear-gradient(135deg, #0a0a0a 0%, #111 50%, #0a0a0a 100%)',
+          background: 'linear-gradient(135deg, #0a0a0a 0%, #111 50%, #0a0a0a 100%)',
           borderRadius: '32px',
           minHeight: 'calc(100vh - 120px)',
           border: '1px solid rgba(255,255,255,0.06)',
@@ -1218,7 +1275,15 @@ export function RouletteClient() {
                 LVL {level}
               </span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontWeight: 900, color: 'rgba(255,255,255,0.4)' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: '10px',
+                fontWeight: 900,
+                color: 'rgba(255,255,255,0.4)',
+              }}
+            >
               <span>XP Progress</span>
               <span>{xpProgress}%</span>
             </div>
@@ -1250,7 +1315,10 @@ export function RouletteClient() {
         </aside>
 
         {/* CENTER: Wheel + Board */}
-        <main className="roulette-center" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <main
+          className="roulette-center"
+          style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
+        >
           <div
             style={{
               background: 'rgba(20,20,20,0.6)',
@@ -1355,7 +1423,7 @@ export function RouletteClient() {
                   0
                   {(() => {
                     const bet = currentBets.find(
-                      (b) => b.type.type === 'STRAIGHT' && b.type.value === 0
+                      (b) => b.type.type === 'STRAIGHT' && b.type.value === 0,
                     );
                     return bet ? (
                       <div
@@ -1510,7 +1578,7 @@ export function RouletteClient() {
                     active={selectedChip === c}
                     onClick={() => setSelectedChip(c)}
                     size={isMobile ? 48 : 58}
-                                     />
+                  />
                 </div>
               ))}
             </div>
@@ -1604,9 +1672,7 @@ export function RouletteClient() {
                     ? 'rgba(212,175,55,0.4)'
                     : 'linear-gradient(135deg, hsl(var(--primary)), #b8962e)',
                 color:
-                  spinning || isProcessing || currentBets.length === 0
-                    ? 'rgba(0,0,0,0.5)'
-                    : '#000',
+                  spinning || isProcessing || currentBets.length === 0 ? 'rgba(0,0,0,0.5)' : '#000',
                 opacity: spinning || isProcessing || currentBets.length === 0 ? 0.6 : 1,
                 boxShadow: '0 0 30px hsla(var(--primary), 0.25)',
                 position: 'relative',
@@ -1675,7 +1741,8 @@ export function RouletteClient() {
               lineHeight: 1.4,
             }}
           >
-            Hover any board area, then press 1-7 to drop chips instantly. Click a chip to select its value.
+            Hover any board area, then press 1-7 to drop chips instantly. Click a chip to select its
+            value.
           </div>
         </aside>
       </div>

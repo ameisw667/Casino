@@ -12,7 +12,7 @@ export function Tooltip({ content, children }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   return (
-    <div 
+    <div
       style={{ position: 'relative', display: 'inline-block' }}
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
@@ -41,19 +41,21 @@ export function Tooltip({ content, children }: TooltipProps) {
               zIndex: 3000,
               boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
               border: '1px solid rgba(255,255,255,0.05)',
-              pointerEvents: 'none'
+              pointerEvents: 'none',
             }}
           >
             {content}
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: '50%',
-              x: '-50%',
-              borderLeft: '5px solid transparent',
-              borderRight: '5px solid transparent',
-              borderTop: '5px solid #243b4a'
-            }} />
+            <div
+              style={{
+                position: 'absolute',
+                top: '100%',
+                left: '50%',
+                x: '-50%',
+                borderLeft: '5px solid transparent',
+                borderRight: '5px solid transparent',
+                borderTop: '5px solid #243b4a',
+              }}
+            />
           </motion.div>
         )}
       </AnimatePresence>

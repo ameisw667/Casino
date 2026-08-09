@@ -47,9 +47,24 @@ export default function SettingsPopover({ isOpen, inline: _inline = true }: Sett
             }}
           >
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid hsla(0, 0%, 100%, 0.06)', paddingBottom: '6px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                borderBottom: '1px solid hsla(0, 0%, 100%, 0.06)',
+                paddingBottom: '6px',
+              }}
+            >
               <Sliders size={14} color="hsl(var(--primary))" />
-              <span style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.05em', color: 'hsl(var(--primary))' }}>
+              <span
+                style={{
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  letterSpacing: '0.05em',
+                  color: 'hsl(var(--primary))',
+                }}
+              >
                 QUICK SETTINGS
               </span>
             </div>
@@ -62,7 +77,9 @@ export default function SettingsPopover({ isOpen, inline: _inline = true }: Sett
                 ) : (
                   <VolumeX size={14} color="hsl(var(--text-muted))" />
                 )}
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'hsl(var(--text-main))' }}>
+                <span
+                  style={{ fontSize: '0.75rem', fontWeight: 700, color: 'hsl(var(--text-main))' }}
+                >
                   Sound Effects
                 </span>
               </div>
@@ -99,12 +116,36 @@ export default function SettingsPopover({ isOpen, inline: _inline = true }: Sett
             </div>
 
             {/* Volume Slider Row */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', opacity: soundEnabled ? 1 : 0.45, transition: 'opacity 0.2s ease' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.6rem', fontWeight: 800, color: 'hsl(var(--text-muted))', letterSpacing: '0.05em' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+                opacity: soundEnabled ? 1 : 0.45,
+                transition: 'opacity 0.2s ease',
+              }}
+            >
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <span
+                  style={{
+                    fontSize: '0.6rem',
+                    fontWeight: 800,
+                    color: 'hsl(var(--text-muted))',
+                    letterSpacing: '0.05em',
+                  }}
+                >
                   VOLUME
                 </span>
-                <span style={{ fontSize: '0.65rem', fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'hsl(var(--primary))' }}>
+                <span
+                  style={{
+                    fontSize: '0.65rem',
+                    fontWeight: 800,
+                    fontFamily: 'var(--font-mono)',
+                    color: 'hsl(var(--primary))',
+                  }}
+                >
                   {soundEnabled ? `${Math.round(soundVolume * 100)}%` : 'MUTED'}
                 </span>
               </div>
@@ -130,14 +171,24 @@ export default function SettingsPopover({ isOpen, inline: _inline = true }: Sett
             </div>
 
             {/* Hide Balance Toggle Row */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid hsla(0, 0%, 100%, 0.06)', paddingTop: '8px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderTop: '1px solid hsla(0, 0%, 100%, 0.06)',
+                paddingTop: '8px',
+              }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 {hideBalance ? (
                   <EyeOff size={14} color="hsl(var(--primary))" />
                 ) : (
                   <Eye size={14} color="hsl(var(--text-muted))" />
                 )}
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'hsl(var(--text-main))' }}>
+                <span
+                  style={{ fontSize: '0.75rem', fontWeight: 700, color: 'hsl(var(--text-main))' }}
+                >
                   Hide Balance
                 </span>
               </div>

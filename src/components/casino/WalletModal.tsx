@@ -1,14 +1,14 @@
 'use client';
 import React, { useState } from 'react';
-import { 
-  X, 
-  Wallet, 
-  ArrowUpRight, 
-  ArrowDownLeft, 
-  Copy, 
+import {
+  X,
+  Wallet,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Copy,
   Check,
   CircleDollarSign,
-  Zap
+  Zap,
 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { useModalKeyboard } from '@/hooks/useModalKeyboard';
@@ -17,12 +17,12 @@ interface WalletModalProps {
   onClose: () => void;
 }
 export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
-  const isMobile = useCasinoStore(s => s.isMobile);
-  const balance = useCasinoStore(s => s.balance);
-  const addBalance = useCasinoStore(s => s.addBalance);
-  const removeBalance = useCasinoStore(s => s.removeBalance);
-  const addToast = useCasinoStore(s => s.addToast);
-  
+  const isMobile = useCasinoStore((s) => s.isMobile);
+  const balance = useCasinoStore((s) => s.balance);
+  const addBalance = useCasinoStore((s) => s.addBalance);
+  const removeBalance = useCasinoStore((s) => s.removeBalance);
+  const addToast = useCasinoStore((s) => s.addToast);
+
   // Universal ESC-key handling
   useModalKeyboard(onClose, isOpen);
   const [activeTab, setActiveTab] = useState<'deposit' | 'withdraw'>('deposit');
@@ -32,9 +32,10 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
   if (!isOpen) return null;
   // Ideally this would come from an environment variable or server config
   const CRYPTO_CONFIG = {
-    DEPOSIT_ADDR: process.env.NEXT_PUBLIC_DEPOSIT_ADDRESS || 'bc1qxy2kg26gr06p74z685r8u85v9j697gh626u0nk',
-    WITHDRAW_MIN: 1.00,
-    DEPOSIT_MIN: 0.01
+    DEPOSIT_ADDR:
+      process.env.NEXT_PUBLIC_DEPOSIT_ADDRESS || 'bc1qxy2kg26gr06p74z685r8u85v9j697gh626u0nk',
+    WITHDRAW_MIN: 1.0,
+    DEPOSIT_MIN: 0.01,
   };
   const handleCopy = () => {
     navigator.clipboard.writeText(CRYPTO_CONFIG.DEPOSIT_ADDR);
@@ -55,7 +56,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
   };
   const handleWithdraw = () => {
     const val = parseFloat(amount);
-    if (isNaN(val) || val < 1.00) {
+    if (isNaN(val) || val < 1.0) {
       addToast('Minimum withdrawal is $1.00', 'error');
       return;
     }
@@ -78,7 +79,10 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
     const success = removeBalance(val);
     if (success) {
-      addToast(`Withdrawal of $${val.toLocaleString('en-US')} initiated to ${withdrawAddress}!`, 'success');
+      addToast(
+        `Withdrawal of $${val.toLocaleString('en-US')} initiated to ${withdrawAddress}!`,
+        'success',
+      );
       setAmount('');
       setWithdrawAddress('');
       onClose();
@@ -87,39 +91,81 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
     }
   };
   return (
-    <div style={{ 
-      position: 'fixed', 
-      inset: 0, 
-      zIndex: 5000, 
-      display: 'flex', 
-      alignItems: isMobile ? 'flex-end' : 'center', 
-      justifyContent: 'center',
-      padding: isMobile ? '0' : '20px'
-    }}>
-      <div 
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 5000,
+        display: 'flex',
+        alignItems: isMobile ? 'flex-end' : 'center',
+        justifyContent: 'center',
+        padding: isMobile ? '0' : '20px',
+      }}
+    >
+      <div
         onClick={onClose}
-        style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)' }} 
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'rgba(0,0,0,0.8)',
+          backdropFilter: 'blur(10px)',
+        }}
       />
-      
-      <div className="glass animate-slide-up" style={{ 
-        width: '100%', 
-        maxWidth: '500px', 
-        borderRadius: isMobile ? '32px 32px 0 0' : '32px', 
-        maxHeight: isMobile ? '90vh' : 'auto',
-        overflowY: 'auto', 
-        position: 'relative',
-        border: '1px solid hsla(0,0%,100%,0.1)',
-        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
-      }}>
+
+      <div
+        className="glass animate-slide-up"
+        style={{
+          width: '100%',
+          maxWidth: '500px',
+          borderRadius: isMobile ? '32px 32px 0 0' : '32px',
+          maxHeight: isMobile ? '90vh' : 'auto',
+          overflowY: 'auto',
+          position: 'relative',
+          border: '1px solid hsla(0,0%,100%,0.1)',
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+        }}
+      >
         {/* Header */}
-        <div style={{ padding: isMobile ? '24px' : '32px', background: 'hsla(0,0%,100%,0.02)', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div
+          style={{
+            padding: isMobile ? '24px' : '32px',
+            background: 'hsla(0,0%,100%,0.02)',
+            borderBottom: '1px solid var(--glass-border)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ width: isMobile ? '40px' : '48px', height: isMobile ? '40px' : '48px', borderRadius: '14px', background: 'hsla(var(--primary), 0.1)', color: 'hsl(var(--primary))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div
+              style={{
+                width: isMobile ? '40px' : '48px',
+                height: isMobile ? '40px' : '48px',
+                borderRadius: '14px',
+                background: 'hsla(var(--primary), 0.1)',
+                color: 'hsl(var(--primary))',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <Wallet size={isMobile ? 20 : 24} />
             </div>
             <div>
-              <h2 style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 800, fontFamily: "'Outfit', sans-serif" }}>CASHIER</h2>
-              <div style={{ fontSize: '0.75rem', color: 'hsl(var(--text-muted))', fontWeight: 600 }}>Manage your assets</div>
+              <h2
+                style={{
+                  fontSize: isMobile ? '1.25rem' : '1.5rem',
+                  fontWeight: 800,
+                  fontFamily: 'var(--font-inter), sans-serif',
+                }}
+              >
+                CASHIER
+              </h2>
+              <div
+                style={{ fontSize: '0.75rem', color: 'hsl(var(--text-muted))', fontWeight: 600 }}
+              >
+                Manage your assets
+              </div>
             </div>
           </div>
           <button onClick={onClose} className="btn btn-ghost" style={{ padding: '8px' }}>
@@ -127,23 +173,46 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
           </button>
         </div>
         {/* Balance Display */}
-        <div style={{ padding: isMobile ? '16px 24px' : '24px 32px', textAlign: 'center', background: 'hsla(var(--primary), 0.05)' }}>
-          <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'hsl(var(--text-muted))', letterSpacing: '0.1em', marginBottom: '4px' }}>AVAILABLE BALANCE</div>
-          <div className="mono" style={{ fontSize: isMobile ? '2rem' : '2.5rem', fontWeight: 900, color: 'hsl(var(--primary))' }}>
+        <div
+          style={{
+            padding: isMobile ? '16px 24px' : '24px 32px',
+            textAlign: 'center',
+            background: 'hsla(var(--primary), 0.05)',
+          }}
+        >
+          <div
+            style={{
+              fontSize: '0.7rem',
+              fontWeight: 900,
+              color: 'hsl(var(--text-muted))',
+              letterSpacing: '0.1em',
+              marginBottom: '4px',
+            }}
+          >
+            AVAILABLE BALANCE
+          </div>
+          <div
+            className="mono"
+            style={{
+              fontSize: isMobile ? '2rem' : '2.5rem',
+              fontWeight: 900,
+              color: 'hsl(var(--primary))',
+            }}
+          >
             ${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </div>
         </div>
         {/* Tabs */}
         <div style={{ display: 'flex', padding: isMobile ? '12px 24px' : '12px 32px', gap: '8px' }}>
-          <button 
+          <button
             onClick={() => setActiveTab('deposit')}
-            style={{ 
-              flex: 1, 
-              height: '52px', 
-              borderRadius: '14px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
+            style={{
+              flex: 1,
+              height: '52px',
+              borderRadius: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               gap: '8px',
               fontWeight: 700,
               fontSize: '0.9rem',
@@ -151,20 +220,20 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
               background: activeTab === 'deposit' ? 'hsl(var(--primary))' : 'hsla(0,0%,100%,0.05)',
               color: activeTab === 'deposit' ? 'black' : 'white',
               border: 'none',
-              cursor: 'pointer'
+              cursor: 'pointer',
             }}
           >
             <ArrowDownLeft size={18} /> DEPOSIT
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('withdraw')}
-            style={{ 
-              flex: 1, 
-              height: '52px', 
-              borderRadius: '14px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
+            style={{
+              flex: 1,
+              height: '52px',
+              borderRadius: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               gap: '8px',
               fontWeight: 700,
               fontSize: '0.9rem',
@@ -172,7 +241,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
               background: activeTab === 'withdraw' ? 'hsl(var(--primary))' : 'hsla(0,0%,100%,0.05)',
               color: activeTab === 'withdraw' ? 'black' : 'white',
               border: 'none',
-              cursor: 'pointer'
+              cursor: 'pointer',
             }}
           >
             <ArrowUpRight size={18} /> WITHDRAW
@@ -182,36 +251,117 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
           {activeTab === 'deposit' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'hsl(var(--text-muted))', marginBottom: '8px', display: 'block' }}>CRYPTO DEPOSIT ADDRESS</label>
-                <div className="glass" style={{ padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '12px', border: '1px solid hsla(0,0%,100%,0.1)' }}>
-                  <div className="mono" style={{ flex: 1, fontSize: '0.8rem', wordBreak: 'break-all', color: 'hsl(var(--text-main))' }}>
+                <label
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    color: 'hsl(var(--text-muted))',
+                    marginBottom: '8px',
+                    display: 'block',
+                  }}
+                >
+                  CRYPTO DEPOSIT ADDRESS
+                </label>
+                <div
+                  className="glass"
+                  style={{
+                    padding: '16px',
+                    borderRadius: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    border: '1px solid hsla(0,0%,100%,0.1)',
+                  }}
+                >
+                  <div
+                    className="mono"
+                    style={{
+                      flex: 1,
+                      fontSize: '0.8rem',
+                      wordBreak: 'break-all',
+                      color: 'hsl(var(--text-main))',
+                    }}
+                  >
                     {CRYPTO_CONFIG.DEPOSIT_ADDR}
                   </div>
-                  <button onClick={handleCopy} className="btn btn-secondary" style={{ padding: '8px', width: '44px', height: '44px', borderRadius: '10px', flexShrink: 0 }}>
+                  <button
+                    onClick={handleCopy}
+                    className="btn btn-secondary"
+                    style={{
+                      padding: '8px',
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '10px',
+                      flexShrink: 0,
+                    }}
+                  >
                     {copied ? <Check size={18} color="hsl(var(--success))" /> : <Copy size={18} />}
                   </button>
                 </div>
               </div>
               <div style={{ height: '1px', background: 'var(--glass-border)' }} />
               <div>
-                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'hsl(var(--text-muted))', marginBottom: '12px', display: 'block' }}>QUICK DEPOSIT</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '16px' }}>
-                  {[10, 50, 100].map(val => (
-                    <button key={val} onClick={() => setAmount(val.toString())} className="btn btn-secondary" style={{ fontSize: '0.95rem', fontWeight: 800, height: '48px' }}>${val}</button>
+                <label
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    color: 'hsl(var(--text-muted))',
+                    marginBottom: '12px',
+                    display: 'block',
+                  }}
+                >
+                  QUICK DEPOSIT
+                </label>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '10px',
+                    marginBottom: '16px',
+                  }}
+                >
+                  {[10, 50, 100].map((val) => (
+                    <button
+                      key={val}
+                      onClick={() => setAmount(val.toString())}
+                      className="btn btn-secondary"
+                      style={{ fontSize: '0.95rem', fontWeight: 800, height: '48px' }}
+                    >
+                      ${val}
+                    </button>
                   ))}
                 </div>
                 <div style={{ position: 'relative' }}>
-                  <input 
-                    type="number" 
-                    placeholder="Enter amount..." 
+                  <input
+                    type="number"
+                    placeholder="Enter amount..."
                     className="input"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     style={{ height: '56px', paddingLeft: '44px', fontSize: '1.1rem' }}
                   />
-                  <CircleDollarSign size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--text-muted))' }} />
+                  <CircleDollarSign
+                    size={20}
+                    style={{
+                      position: 'absolute',
+                      left: '16px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: 'hsl(var(--text-muted))',
+                    }}
+                  />
                 </div>
-                <button onClick={handleDeposit} className="btn btn-primary" style={{ width: '100%', height: '56px', marginTop: '16px', fontSize: '1.1rem', borderRadius: '16px' }}>
+                <button
+                  onClick={handleDeposit}
+                  className="btn btn-primary"
+                  style={{
+                    width: '100%',
+                    height: '56px',
+                    marginTop: '16px',
+                    fontSize: '1.1rem',
+                    borderRadius: '16px',
+                  }}
+                >
                   <Zap size={20} /> CONFIRM DEPOSIT
                 </button>
               </div>
@@ -219,29 +369,73 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'hsl(var(--text-muted))', marginBottom: '12px', display: 'block' }}>SELECT WITHDRAWAL METHOD</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                <label
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    color: 'hsl(var(--text-muted))',
+                    marginBottom: '12px',
+                    display: 'block',
+                  }}
+                >
+                  SELECT WITHDRAWAL METHOD
+                </label>
+                <div
+                  style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}
+                >
                   {[
                     { id: 'paypal', label: 'PayPal', color: '#0070ba' },
                     { id: 'btc', label: 'Bitcoin', color: '#f7931a' },
                     { id: 'ltc', label: 'Litecoin', color: '#345d9d' },
-                  ].map(m => (
-                    <button key={m.id} className="btn btn-secondary" style={{ 
-                      flexDirection: 'column', 
-                      height: '70px', 
-                      gap: '4px',
-                      border: m.id === 'paypal' ? '2px solid hsl(var(--primary))' : '1px solid var(--glass-border)'
-                    }}>
-                      <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: m.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: 'white', fontWeight: 900 }}>{m.label[0]}</div>
+                  ].map((m) => (
+                    <button
+                      key={m.id}
+                      className="btn btn-secondary"
+                      style={{
+                        flexDirection: 'column',
+                        height: '70px',
+                        gap: '4px',
+                        border:
+                          m.id === 'paypal'
+                            ? '2px solid hsl(var(--primary))'
+                            : '1px solid var(--glass-border)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '6px',
+                          background: m.color,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '12px',
+                          color: 'white',
+                          fontWeight: 900,
+                        }}
+                      >
+                        {m.label[0]}
+                      </div>
                       <span style={{ fontSize: '0.7rem', fontWeight: 800 }}>{m.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
               <div>
-                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'hsl(var(--text-muted))', marginBottom: '8px', display: 'block' }}>WITHDRAWAL ADDRESS / EMAIL</label>
-                <input 
-                  placeholder="Enter your address..." 
+                <label
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    color: 'hsl(var(--text-muted))',
+                    marginBottom: '8px',
+                    display: 'block',
+                  }}
+                >
+                  WITHDRAWAL ADDRESS / EMAIL
+                </label>
+                <input
+                  placeholder="Enter your address..."
                   className="input"
                   style={{ height: '56px' }}
                   value={withdrawAddress}
@@ -249,33 +443,90 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 />
               </div>
               <div>
-                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: 'hsl(var(--text-muted))', marginBottom: '8px', display: 'block' }}>AMOUNT TO WITHDRAW</label>
+                <label
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    color: 'hsl(var(--text-muted))',
+                    marginBottom: '8px',
+                    display: 'block',
+                  }}
+                >
+                  AMOUNT TO WITHDRAW
+                </label>
                 <div style={{ position: 'relative' }}>
-                  <input 
-                    type="number" 
-                    placeholder="0.00" 
+                  <input
+                    type="number"
+                    placeholder="0.00"
                     className="input"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     style={{ height: '56px', paddingLeft: '44px', fontSize: '1.1rem' }}
                   />
-                  <CircleDollarSign size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'hsl(var(--text-muted))' }} />
-                  <button 
+                  <CircleDollarSign
+                    size={20}
+                    style={{
+                      position: 'absolute',
+                      left: '16px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: 'hsl(var(--text-muted))',
+                    }}
+                  />
+                  <button
                     onClick={() => setAmount(balance.toString())}
-                    style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', background: 'hsla(var(--primary), 0.1)', border: 'none', color: 'hsl(var(--primary))', padding: '6px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 900, cursor: 'pointer' }}
+                    style={{
+                      position: 'absolute',
+                      right: '16px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'hsla(var(--primary), 0.1)',
+                      border: 'none',
+                      color: 'hsl(var(--primary))',
+                      padding: '6px 10px',
+                      borderRadius: '8px',
+                      fontSize: '0.75rem',
+                      fontWeight: 900,
+                      cursor: 'pointer',
+                    }}
                   >
                     MAX
                   </button>
                 </div>
               </div>
-              <div className="glass" style={{ padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid hsla(var(--success), 0.2)', background: 'hsla(var(--success), 0.05)' }}>
+              <div
+                className="glass"
+                style={{
+                  padding: '16px',
+                  borderRadius: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '16px',
+                  border: '1px solid hsla(var(--success), 0.2)',
+                  background: 'hsla(var(--success), 0.05)',
+                }}
+              >
                 <Zap size={24} color="hsl(var(--success))" style={{ flexShrink: 0 }} />
-                <div style={{ fontSize: '0.75rem', color: 'hsl(var(--text-main))', lineHeight: 1.4 }}>
-                  <div style={{ fontWeight: 900, color: 'hsl(var(--success))' }}>INSTANT WITHDRAWAL ENABLED</div>
+                <div
+                  style={{ fontSize: '0.75rem', color: 'hsl(var(--text-main))', lineHeight: 1.4 }}
+                >
+                  <div style={{ fontWeight: 900, color: 'hsl(var(--success))' }}>
+                    INSTANT WITHDRAWAL ENABLED
+                  </div>
                   Your funds will be sent immediately to your chosen address.
                 </div>
               </div>
-              <button onClick={handleWithdraw} className="btn btn-primary" style={{ width: '100%', height: '56px', fontSize: '1.1rem', borderRadius: '16px', fontWeight: 900 }}>
+              <button
+                onClick={handleWithdraw}
+                className="btn btn-primary"
+                style={{
+                  width: '100%',
+                  height: '56px',
+                  fontSize: '1.1rem',
+                  borderRadius: '16px',
+                  fontWeight: 900,
+                }}
+              >
                 WITHDRAW INSTANTLY
               </button>
             </div>
