@@ -55,33 +55,33 @@ export class WalletService {
   static async getWallet(userId: string): Promise<WalletSnapshot> {
     const supabase = createAdminClient();
 
-    const { error: provisionError } = await supabase.from('users').upsert(
-      { id: userId, username: userId.slice(0, 64), balance: 10000.00 },
-      { onConflict: 'id', ignoreDuplicates: true }
-    );
+    const { error: provisionError } = await supabase
+      .from('users')
+      .upsert(
+        { id: userId, username: userId.slice(0, 64), balance: 10000.0 },
+        { onConflict: 'id', ignoreDuplicates: true },
+      );
     if (provisionError) throw new Error('Wallet user could not be provisioned');
 
-    const [
-      { data: user, error: userError },
-      { data: transaction, error: transactionError },
-    ] = await Promise.all([
-      supabase.from('users').select('balance, xp, level, rank').eq('id', userId).single(),
-      supabase
-        .from('wallet_transactions')
-        .select('id')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-    ]);
+    const [{ data: user, error: userError }, { data: transaction, error: transactionError }] =
+      await Promise.all([
+        supabase.from('users').select('balance, xp, level, rank').eq('id', userId).single(),
+        supabase
+          .from('wallet_transactions')
+          .select('id')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
 
     if (userError || !user) throw new Error('Wallet could not be loaded');
     if (transactionError) throw new Error('Wallet transaction history could not be loaded');
 
     let currentBalance = Number(user.balance);
     if (currentBalance <= 0) {
-      currentBalance = 10000.00;
-      await supabase.from('users').update({ balance: 10000.00 }).eq('id', userId);
+      currentBalance = 10000.0;
+      await supabase.from('users').update({ balance: 10000.0 }).eq('id', userId);
     }
 
     return walletSnapshotSchema.parse({
@@ -157,7 +157,7 @@ export class WalletService {
   static async getActiveRound(
     userId: string,
     roundId: string,
-    game: 'CRASH' | 'BLACKJACK'
+    game: 'CRASH' | 'BLACKJACK',
   ): Promise<{ betAmount: number; state: Record<string, unknown>; version: number }> {
     const supabase = createAdminClient();
     const { data, error } = await supabase
@@ -235,7 +235,11 @@ export class WalletService {
     return blackjackActionSchema.parse(data);
   }
 
-  static async creditBonus(params: { userId: string; amount: number; code: string }): Promise<WalletSnapshot> {
+  static async creditBonus(params: {
+    userId: string;
+    amount: number;
+    code: string;
+  }): Promise<WalletSnapshot> {
     const supabase = createAdminClient();
 
     const { data: user, error: userError } = await supabase
@@ -246,13 +250,15 @@ export class WalletService {
 
     if (userError || !user) {
       // Provision fallback user if needed
-      await supabase.from('users').upsert(
-        { id: params.userId, username: params.userId.slice(0, 64), balance: 10000.00 },
-        { onConflict: 'id', ignoreDuplicates: true }
-      );
+      await supabase
+        .from('users')
+        .upsert(
+          { id: params.userId, username: params.userId.slice(0, 64), balance: 10000.0 },
+          { onConflict: 'id', ignoreDuplicates: true },
+        );
     }
 
-    const currentBalance = Number(user?.balance ?? 10000.00);
+    const currentBalance = Number(user?.balance ?? 10000.0);
     const newBalance = Number((currentBalance + params.amount).toFixed(2));
 
     const { error: updateError } = await supabase
@@ -321,5 +327,107 @@ export class WalletService {
     if (error) {
       CasinoLogger.error('WalletService', 'Failed to sync achievement to server', error);
     }
+  }
+
+  static async getUserSeeds(userId: string) {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.rpc('get_or_create_user_seed', {
+      p_user_id: userId,
+    });
+    if (error || !data) {
+      return {
+        clientSeed: 'vibe-coder-default',
+        serverSeedHash: '',
+        nonce: 0,
+      };
+    }
+    return data as { clientSeed: string; serverSeedHash: string; nonce: number };
+  }
+
+  static async rotateUserSeed(params: { userId: string; clientSeed: string }) {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.rpc('rotate_user_seed', {
+      p_user_id: params.userId,
+      p_client_seed: params.clientSeed,
+    });
+    if (error || !data) {
+      throw new Error('Failed to rotate seed');
+    }
+    return data as { clientSeed: string; serverSeedHash: string; nonce: number };
+  }
+
+  static async getChatMessages(limit = 50) {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.rpc('get_recent_chat_messages', {
+      p_limit: limit,
+    });
+    if (error || !data) {
+      return [];
+    }
+    return data as Array<{
+      id: string;
+      user: string;
+      rank: string;
+      message: string;
+      time: string;
+      isSystem?: boolean;
+      isWin?: boolean;
+    }>;
+  }
+
+  static async postChatMessage(params: { userId: string; message: string }) {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.rpc('post_chat_message', {
+      p_user_id: params.userId,
+      p_message: params.message,
+    });
+    if (error || !data) {
+      throw new Error('Failed to post chat message');
+    }
+    return data as {
+      id: string;
+      user: string;
+      rank: string;
+      message: string;
+      time: string;
+      isSystem?: boolean;
+      isWin?: boolean;
+    };
+  }
+
+  static async getCommunityStats() {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.rpc('get_community_stats');
+    if (error || !data) {
+      return {
+        communityWagered: 0,
+        communityGoal: 25000.0,
+        communityGoalReached: false,
+      };
+    }
+    return data as {
+      communityWagered: number;
+      communityGoal: number;
+      communityGoalReached: boolean;
+    };
+  }
+
+  static async getGameActiveRound(params: { userId: string; game: 'CRASH' | 'BLACKJACK' }) {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.rpc('get_active_game_round', {
+      p_user_id: params.userId,
+      p_game: params.game,
+    });
+    if (error || !data) {
+      return { hasActiveRound: false };
+    }
+    return data as {
+      hasActiveRound: boolean;
+      roundId?: string;
+      requestId?: string;
+      betAmount?: number;
+      state?: Record<string, unknown>;
+      version?: number;
+    };
   }
 }
