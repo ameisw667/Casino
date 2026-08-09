@@ -1,27 +1,27 @@
 'use client';
 import { motion, useAnimationControls } from 'framer-motion';
 import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
-import { SlotSymbol, type SymbolType } from '@/components/casino/SlotSymbol';
+import type { SymbolType } from '@/components/casino/SlotSymbol';
+import { SlotSymbolV2 } from './SlotSymbolV2';
 
 const FILLER_COUNT = 18;
 const DEFAULT_CELL_SIZE = 112;
-// Must match .slot-reel-window { height: calc(var(--slot-cell-size) * 3) } in globals.css
+// Must match .slot-v2-reel-window { height: calc(var(--slot-v2-cell-size) * 3) } in globals.css
 const VISIBLE_ROWS = 3;
 
-interface SlotReelProps {
+interface SlotReelV2Props {
   finalSymbols: [SymbolType, SymbolType, SymbolType];
   isSpinning: boolean;
   stopDelay: number;
   winningRows: [boolean, boolean, boolean];
   symbolPool: SymbolType[];
-  onStopComplete?: () => void;
 }
 
 function useCellSize() {
   const [size, setSize] = useState(DEFAULT_CELL_SIZE);
   const frameRef = useRef<HTMLDivElement | null>(null);
 
-  // --slot-cell-size is a clamp()/min() expression — getComputedStyle
+  // --slot-v2-cell-size is a clamp()/min() expression — getComputedStyle
   // returns custom properties as their unresolved source string, so
   // parseFloat() on it always fails. Measure the actual rendered box
   // instead, which the browser has already resolved to real pixels.
@@ -36,21 +36,19 @@ function useCellSize() {
   return { size, frameRef, measure };
 }
 
-export function SlotReel({
+export function SlotReelV2({
   finalSymbols,
   isSpinning,
   stopDelay,
   winningRows,
   symbolPool,
-  onStopComplete,
-}: SlotReelProps) {
+}: SlotReelV2Props) {
   const controls = useAnimationControls();
   const isAnimating = useRef(false);
   const spinStarted = useRef(false);
   const [strip, setStrip] = useState<SymbolType[]>([...finalSymbols]);
   const { size: symbolHeight, frameRef, measure } = useCellSize();
 
-  // Measure cell size whenever the reel frame is mounted / resized.
   useLayoutEffect(() => {
     measure();
   }, [measure]);
@@ -114,24 +112,23 @@ export function SlotReel({
       )
       .then(() => {
         isAnimating.current = false;
-        onStopComplete?.();
       });
-  }, [isSpinning, stopDelay, controls, onStopComplete, symbolHeight]);
+  }, [isSpinning, stopDelay, controls, symbolHeight]);
 
   const symbolSize = Math.max(44, Math.round(symbolHeight * 0.72));
 
   return (
-    <div ref={frameRef} className={`slot-reel-window${isSpinning ? 'spinning' : ''}`}>
+    <div ref={frameRef} className={`slot-v2-reel-window${isSpinning ? 'spinning' : ''}`}>
       <motion.div
         animate={controls}
-        className="slot-reel-strip"
+        className="slot-v2-reel-strip"
         style={{ willChange: 'transform' }}
       >
         {strip.map((sym, i) => {
           const isWin = !isSpinning && i >= FILLER_COUNT && winningRows[i - FILLER_COUNT];
           return (
-            <div key={i} className={`slot-cell${isWin ? 'winning' : ''}`}>
-              <SlotSymbol type={sym} size={symbolSize} isWinning={isWin} />
+            <div key={i} className={`slot-v2-cell${isWin ? 'winning' : ''}`}>
+              <SlotSymbolV2 type={sym} size={symbolSize} isWinning={isWin} />
             </div>
           );
         })}

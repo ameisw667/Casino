@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Slots | Casino Royale',
-  description: 'Hit the jackpot on our premium slot machine. Dynamic multipliers, high-fidelity animations, and guaranteed Provably Fair outcomes.',
+  description:
+    'Hit the jackpot on our premium slot machine. Dynamic multipliers, high-fidelity animations, and guaranteed Provably Fair outcomes.',
   openGraph: {
     title: 'Slots | Casino Royale',
     description: 'High-fidelity Slot machine with huge potential.',
@@ -10,10 +11,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default function SlotsLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function SlotsLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

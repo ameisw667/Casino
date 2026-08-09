@@ -1,14 +1,13 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { RotateCcw, Play, Zap, TrendingUp, TrendingDown, Info, Trophy } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { RotateCcw, Play, Zap, Info, Trophy } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { validateBet } from '@/lib/casino/bet-validator';
 import { sanitizeClientSeed } from '@/lib/casino/provably-fair';
 import { GameErrorBoundary } from '@/components/casino/GameErrorBoundary';
-import { SlotReel } from '@/components/casino/games/slots/SlotReel';
-import { WinLine } from '@/components/casino/games/slots/WinLine';
-import { GAME_SYMBOLS, STAGGER_DELAYS_MS, TOTAL_SPIN_MS } from './symbols';
+import { SlotCabinetV2 } from '@/components/casino/games/slots/v2/SlotCabinetV2';
+import { GAME_SYMBOLS, STAGGER_DELAYS_MS, TOTAL_SPIN_MS } from '../symbols';
 import type { SymbolType } from '@/components/casino/SlotSymbol';
 
 const REEL_COUNT = 5;
@@ -45,14 +44,7 @@ const PAYTABLE = [
 
 const QUICK_BETS = [1, 5, 25, 100];
 
-const RECENT_WINS = [
-  { user: 'NeonSniper', amount: 142.5, symbol: 'ZEUS' },
-  { user: 'LuckyShark', amount: 38.2, symbol: 'CROWN' },
-  { user: 'SarahSlot', amount: 215.0, symbol: 'ZEUS' },
-  { user: 'MoonWalker', amount: 64.8, symbol: 'CHALICE' },
-];
-
-export default function SlotsPage() {
+export default function SlotsV2Page() {
   const balance = useCasinoStore((s) => s.balance);
   const provablyFair = useCasinoStore((s) => s.provablyFairSettings);
   const setPF = useCasinoStore((s) => s.setProvablyFairSettings);
@@ -260,10 +252,8 @@ export default function SlotsPage() {
     return () => clearTimeout(timer);
   }, [isAuto, isSpinning, balance, betAmount, handleSpin]);
 
-  const hasWin = lastResult.type === 'win';
-
   return (
-    <GameErrorBoundary gameName="Slots">
+    <GameErrorBoundary gameName="Slots V2">
       <div className="slots-page">
         {showTutorial && (
           <div className="slot-tutorial-overlay" onClick={() => setShowTutorial(false)}>
@@ -287,7 +277,6 @@ export default function SlotsPage() {
         )}
 
         <div className="slots-grid">
-          {/* ── Left: Paytable / Legend ── */}
           <aside className="slot-legend">
             <div className="slot-legend-header">
               <Trophy size={18} color="hsl(var(--primary))" />
@@ -316,110 +305,20 @@ export default function SlotsPage() {
             </div>
           </aside>
 
-          {/* ── Center: Slot Machine ── */}
           <section className="slot-machine-area">
-            {/* Recent wins ticker — social proof / FOMO */}
-            <div className="slot-win-ticker">
-              {RECENT_WINS.map((w, i) => (
-                <div key={i} className="slot-win-ticket">
-                  <Zap size={12} />
-                  <span>
-                    {w.user} won ${w.amount.toFixed(2)} on {w.symbol}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="slot-machine">
-              <div className="slot-machine-top">
-                <div className="slot-machine-title">ZEUS VAULT</div>
-                <div className="slot-machine-lights">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <span
-                      key={i}
-                      className="slot-light"
-                      style={{ animationDelay: `${i * 0.15}s` }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="slot-reels-container">
-                <AnimatePresence>
-                  {hasWin && (
-                    <motion.div
-                      className="slot-win-banner"
-                      initial={{ opacity: 0, scale: 0.7, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ type: 'spring', bounce: 0.5, duration: 0.4 }}
-                    >
-                      <Zap size={18} />
-                      <span>WIN +${lastResult.amount.toFixed(2)}</span>
-                      <Zap size={18} />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <div className="slot-reels-frame">
-                  {finalReels.map((reelSyms, i) => (
-                    <React.Fragment key={i}>
-                      <SlotReel
-                        finalSymbols={reelSyms}
-                        isSpinning={isSpinning}
-                        stopDelay={STAGGER_DELAYS_MS[i]}
-                        winningRows={winRows[i] ?? NO_WIN}
-                        symbolPool={GAME_SYMBOLS}
-                      />
-                    </React.Fragment>
-                  ))}
-                  <WinLine rowIndex={winningRowIndex} isVisible={hasWin && !isSpinning} />
-                </div>
-              </div>
-
-              <div className="slot-machine-base">
-                <div className="slot-base-readout">
-                  <span className="slot-readout-label">LAST RESULT</span>
-                  <AnimatePresence mode="wait">
-                    <motion.span
-                      key={`${lastResult.type}-${lastResult.amount}`}
-                      className={`slot-readout-value ${lastResult.type}`}
-                      initial={{ opacity: 0, y: -6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 6 }}
-                      transition={{ duration: 0.18 }}
-                    >
-                      {lastResult.type === 'win' && (
-                        <>
-                          <TrendingUp size={14} />
-                          +${lastResult.amount.toFixed(2)}
-                        </>
-                      )}
-                      {lastResult.type === 'loss' && (
-                        <>
-                          <TrendingDown size={14} />
-                          -${lastResult.amount.toFixed(2)}
-                        </>
-                      )}
-                      {lastResult.type === 'idle' && '—'}
-                    </motion.span>
-                  </AnimatePresence>
-                </div>
-                <div className="slot-base-readout">
-                  <span className="slot-readout-label">SPINS</span>
-                  <span className="slot-readout-value idle">{sessionSpins}</span>
-                </div>
-                <div className="slot-base-readout">
-                  <span className="slot-readout-label">SESSION PROFIT</span>
-                  <span className={`slot-readout-value ${sessionProfit >= 0 ? 'win' : 'loss'}`}>
-                    {sessionProfit >= 0 ? '+' : ''}${sessionProfit.toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            </div>
+            <SlotCabinetV2
+              finalReels={finalReels}
+              isSpinning={isSpinning}
+              winRows={winRows}
+              winningRowIndex={winningRowIndex}
+              lastResult={lastResult}
+              sessionSpins={sessionSpins}
+              sessionProfit={sessionProfit}
+              stopDelays={STAGGER_DELAYS_MS}
+              symbolPool={GAME_SYMBOLS}
+            />
           </section>
 
-          {/* ── Right: Control Panel (Crash-style) ── */}
           <aside className="slot-control-panel">
             <div className="slot-panel-header">
               <Zap size={20} color="hsl(var(--primary))" />

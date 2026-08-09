@@ -1,7 +1,7 @@
 'use client';
 import { motion, AnimatePresence } from 'framer-motion';
 
-interface WinLineProps {
+interface WinLineV2Props {
   rowIndex: 0 | 1 | 2 | null;
   isVisible: boolean;
 }
@@ -12,7 +12,7 @@ const ROW_TOP_PERCENT: Record<0 | 1 | 2, number> = {
   2: 83.3,
 };
 
-export function WinLine({ rowIndex, isVisible }: WinLineProps) {
+export function WinLineV2({ rowIndex, isVisible }: WinLineV2Props) {
   if (rowIndex === null) return null;
 
   const topPercent = ROW_TOP_PERCENT[rowIndex];
@@ -21,20 +21,20 @@ export function WinLine({ rowIndex, isVisible }: WinLineProps) {
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          key={`winline-${rowIndex}`}
+          key={`winline-v2-${rowIndex}`}
           style={{
             position: 'absolute',
             left: -10,
             right: -10,
             top: `${topPercent}%`,
             transform: 'translateY(-50%)',
-            height: 4,
+            height: 8,
             pointerEvents: 'none',
             zIndex: 20,
-            borderRadius: 2,
+            borderRadius: 4,
             background:
               'linear-gradient(90deg, transparent 0%, #D4AF37 8%, #FFD700 50%, #D4AF37 92%, transparent 100%)',
-            boxShadow: '0 0 10px #D4AF37, 0 0 22px #D4AF3780, 0 0 38px #D4AF3740',
+            animation: 'slot-v2-winline-pulse 1.1s ease-in-out infinite',
             transformOrigin: 'center center',
           }}
           initial={{ scaleX: 0, opacity: 0 }}

@@ -1,26 +1,9 @@
 'use client';
 import React from 'react';
 import { motion } from 'framer-motion';
+import type { SymbolType } from '@/components/casino/SlotSymbol';
 
-export type SymbolType =
-  | 'zeus'
-  | 'crown'
-  | 'chalice'
-  | 'ring'
-  | 'hourglass'
-  | 'gem_red'
-  | 'gem_blue'
-  | 'gem_green'
-  | 'wild'
-  | 'scatter'
-  | 'multiplier'
-  | 'card_ten'
-  | 'card_jack'
-  | 'card_queen'
-  | 'card_king'
-  | 'card_ace';
-
-interface SlotSymbolProps {
+interface SlotSymbolV2Props {
   type: SymbolType;
   size?: number;
   isWinning?: boolean;
@@ -38,7 +21,7 @@ const SYMBOL_DATA: Record<
     label: 'ZEUS',
     icon: (_id) => (
       <img
-        src="/images/slots/sym-zeus.png"
+        src="/images/slots/v2/sym-zeus.png"
         alt="Zeus"
         loading="lazy"
         decoding="async"
@@ -52,7 +35,7 @@ const SYMBOL_DATA: Record<
     label: 'CROWN',
     icon: (_id) => (
       <img
-        src="/images/slots/sym-crown.png"
+        src="/images/slots/v2/sym-crown.png"
         alt="Crown"
         loading="lazy"
         decoding="async"
@@ -66,7 +49,7 @@ const SYMBOL_DATA: Record<
     label: 'CHALICE',
     icon: (_id) => (
       <img
-        src="/images/slots/sym-chalice.png"
+        src="/images/slots/v2/sym-chalice.png"
         alt="Chalice"
         loading="lazy"
         decoding="async"
@@ -81,7 +64,7 @@ const SYMBOL_DATA: Record<
     icon: (id) => (
       <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id={`grad-ring-${id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id={`grad-ring-v2-${id}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#E0F7FF" />
             <stop offset="50%" stopColor="#00D4FF" />
             <stop offset="100%" stopColor="#0066AA" />
@@ -92,11 +75,10 @@ const SYMBOL_DATA: Record<
           cy="36"
           r="18"
           fill="none"
-          stroke={`url(#grad-ring-${id})`}
+          stroke={`url(#grad-ring-v2-${id})`}
           strokeWidth="8"
         />
         <circle cx="32" cy="36" r="10" fill="none" stroke="rgba(0,212,255,0.3)" strokeWidth="2" />
-        {/* Diamond on top */}
         <path d="M24 18 L32 8 L40 18 L32 26 Z" fill="#00D4FF" stroke="#0066AA" strokeWidth="1" />
         <path d="M24 18 L32 22 L40 18" fill="rgba(255,255,255,0.4)" />
         <circle cx="29" cy="12" r="2" fill="rgba(255,255,255,0.7)" />
@@ -110,33 +92,31 @@ const SYMBOL_DATA: Record<
     icon: (id) => (
       <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id={`grad-hg-${id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+          <linearGradient id={`grad-hg-v2-${id}`} x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#E9D5FF" />
             <stop offset="50%" stopColor="#A855F7" />
             <stop offset="100%" stopColor="#6B21A8" />
           </linearGradient>
         </defs>
-        <rect x="12" y="6" width="40" height="6" rx="3" fill={`url(#grad-hg-${id})`} />
-        <rect x="12" y="52" width="40" height="6" rx="3" fill={`url(#grad-hg-${id})`} />
+        <rect x="12" y="6" width="40" height="6" rx="3" fill={`url(#grad-hg-v2-${id})`} />
+        <rect x="12" y="52" width="40" height="6" rx="3" fill={`url(#grad-hg-v2-${id})`} />
         <path
           d="M14 12 L28 32 L14 52"
           fill="none"
-          stroke={`url(#grad-hg-${id})`}
+          stroke={`url(#grad-hg-v2-${id})`}
           strokeWidth="3"
           strokeLinejoin="round"
         />
         <path
           d="M50 12 L36 32 L50 52"
           fill="none"
-          stroke={`url(#grad-hg-${id})`}
+          stroke={`url(#grad-hg-v2-${id})`}
           strokeWidth="3"
           strokeLinejoin="round"
         />
         <path d="M14 12 L50 12 L36 32 L50 52 L14 52 L28 32 Z" fill="rgba(168,85,247,0.15)" />
-        {/* Sand top */}
-        <path d="M18 14 L46 14 L34 28 L30 28 Z" fill={`url(#grad-hg-${id})`} opacity="0.6" />
-        {/* Sand bottom */}
-        <path d="M30 36 L34 36 L42 50 L22 50 Z" fill={`url(#grad-hg-${id})`} opacity="0.8" />
+        <path d="M18 14 L46 14 L34 28 L30 28 Z" fill={`url(#grad-hg-v2-${id})`} opacity="0.6" />
+        <path d="M30 36 L34 36 L42 50 L22 50 Z" fill={`url(#grad-hg-v2-${id})`} opacity="0.8" />
         <circle cx="32" cy="32" r="2" fill="#A855F7" />
       </svg>
     ),
@@ -148,7 +128,7 @@ const SYMBOL_DATA: Record<
     icon: (id) => (
       <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id={`grad-gr-${id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id={`grad-gr-v2-${id}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#FFB3C6" />
             <stop offset="50%" stopColor="#FF3366" />
             <stop offset="100%" stopColor="#AA0033" />
@@ -156,7 +136,7 @@ const SYMBOL_DATA: Record<
         </defs>
         <path
           d="M32 6 L52 22 L44 58 L20 58 L12 22 Z"
-          fill={`url(#grad-gr-${id})`}
+          fill={`url(#grad-gr-v2-${id})`}
           stroke="#AA0033"
           strokeWidth="1.5"
           strokeLinejoin="round"
@@ -173,7 +153,7 @@ const SYMBOL_DATA: Record<
     icon: (id) => (
       <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id={`grad-gb-${id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id={`grad-gb-v2-${id}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#BFDBFE" />
             <stop offset="50%" stopColor="#3B82F6" />
             <stop offset="100%" stopColor="#1D4ED8" />
@@ -181,7 +161,7 @@ const SYMBOL_DATA: Record<
         </defs>
         <path
           d="M32 6 L52 22 L44 58 L20 58 L12 22 Z"
-          fill={`url(#grad-gb-${id})`}
+          fill={`url(#grad-gb-v2-${id})`}
           stroke="#1D4ED8"
           strokeWidth="1.5"
           strokeLinejoin="round"
@@ -198,7 +178,7 @@ const SYMBOL_DATA: Record<
     icon: (id) => (
       <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id={`grad-gg-${id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id={`grad-gg-v2-${id}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#BBF7D0" />
             <stop offset="50%" stopColor="#22C55E" />
             <stop offset="100%" stopColor="#15803D" />
@@ -206,7 +186,7 @@ const SYMBOL_DATA: Record<
         </defs>
         <path
           d="M32 6 L52 22 L44 58 L20 58 L12 22 Z"
-          fill={`url(#grad-gg-${id})`}
+          fill={`url(#grad-gg-v2-${id})`}
           stroke="#15803D"
           strokeWidth="1.5"
           strokeLinejoin="round"
@@ -223,16 +203,15 @@ const SYMBOL_DATA: Record<
     icon: (id) => (
       <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id={`grad-wild-${id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id={`grad-wild-v2-${id}`} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#FF00FF" />
             <stop offset="50%" stopColor="#FFD700" />
             <stop offset="100%" stopColor="#00FFFF" />
           </linearGradient>
         </defs>
-        {/* Star burst */}
         <polygon
           points="32,4 37,26 58,26 42,40 48,62 32,48 16,62 22,40 6,26 27,26"
-          fill={`url(#grad-wild-${id})`}
+          fill={`url(#grad-wild-v2-${id})`}
           stroke="rgba(255,255,255,0.3)"
           strokeWidth="1"
         />
@@ -257,16 +236,14 @@ const SYMBOL_DATA: Record<
     icon: (id) => (
       <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <radialGradient id={`grad-scatter-${id}`} cx="50%" cy="50%" r="50%">
+          <radialGradient id={`grad-scatter-v2-${id}`} cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#FFFFFF" />
             <stop offset="40%" stopColor="#FFD700" />
             <stop offset="100%" stopColor="#FF8C00" />
           </radialGradient>
         </defs>
-        {/* Glow orb */}
-        <circle cx="32" cy="32" r="22" fill={`url(#grad-scatter-${id})`} />
+        <circle cx="32" cy="32" r="22" fill={`url(#grad-scatter-v2-${id})`} />
         <circle cx="32" cy="32" r="16" fill="rgba(255,255,255,0.2)" />
-        {/* Lightning rays */}
         {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
           <line
             key={i}
@@ -300,17 +277,15 @@ const SYMBOL_DATA: Record<
     icon: (id) => (
       <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <radialGradient id={`grad-multi-${id}`} cx="50%" cy="50%" r="50%">
+          <radialGradient id={`grad-multi-v2-${id}`} cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#FFFFFF" />
             <stop offset="50%" stopColor="#FFD700" />
             <stop offset="100%" stopColor="#FF8C00" />
           </radialGradient>
         </defs>
-        {/* Wings */}
         <path d="M4 32 Q12 16 24 24 Q16 32 24 40 Q12 48 4 32 Z" fill="#FFD700" opacity="0.7" />
         <path d="M60 32 Q52 16 40 24 Q48 32 40 40 Q52 48 60 32 Z" fill="#FFD700" opacity="0.7" />
-        {/* Orb */}
-        <circle cx="32" cy="32" r="16" fill={`url(#grad-multi-${id})`} />
+        <circle cx="32" cy="32" r="16" fill={`url(#grad-multi-v2-${id})`} />
         <circle cx="27" cy="26" r="4" fill="rgba(255,255,255,0.5)" />
       </svg>
     ),
@@ -322,7 +297,7 @@ const SYMBOL_DATA: Record<
     label: '10',
     icon: (_id) => (
       <img
-        src="/images/slots/sym-ten.png"
+        src="/images/slots/v2/sym-ten.png"
         alt="10"
         loading="lazy"
         decoding="async"
@@ -337,7 +312,7 @@ const SYMBOL_DATA: Record<
     label: 'J',
     icon: (_id) => (
       <img
-        src="/images/slots/sym-jack.png"
+        src="/images/slots/v2/sym-jack.png"
         alt="Jack"
         loading="lazy"
         decoding="async"
@@ -352,7 +327,7 @@ const SYMBOL_DATA: Record<
     label: 'Q',
     icon: (_id) => (
       <img
-        src="/images/slots/sym-queen.png"
+        src="/images/slots/v2/sym-queen.png"
         alt="Queen"
         loading="lazy"
         decoding="async"
@@ -367,7 +342,7 @@ const SYMBOL_DATA: Record<
     label: 'K',
     icon: (_id) => (
       <img
-        src="/images/slots/sym-king.png"
+        src="/images/slots/v2/sym-king.png"
         alt="King"
         loading="lazy"
         decoding="async"
@@ -382,7 +357,7 @@ const SYMBOL_DATA: Record<
     label: 'A',
     icon: (_id) => (
       <img
-        src="/images/slots/sym-ace.png"
+        src="/images/slots/v2/sym-ace.png"
         alt="Ace"
         loading="lazy"
         decoding="async"
@@ -392,7 +367,9 @@ const SYMBOL_DATA: Record<
   },
 };
 
-export const SlotSymbol: React.FC<SlotSymbolProps> = ({
+const WIN_GLOW_COLOR = '#FFD700';
+
+export const SlotSymbolV2: React.FC<SlotSymbolV2Props> = ({
   type,
   size = 64,
   isWinning = false,
@@ -410,7 +387,7 @@ export const SlotSymbol: React.FC<SlotSymbolProps> = ({
         filter: isBlurry
           ? 'blur(6px) brightness(1.2)'
           : isWinning
-            ? `drop-shadow(0 0 12px ${data.glowColor}) drop-shadow(0 0 24px ${data.glowColor})`
+            ? `drop-shadow(0 0 12px ${WIN_GLOW_COLOR}) drop-shadow(0 0 24px ${WIN_GLOW_COLOR})`
             : `drop-shadow(0 0 4px ${data.glowColor}40)`,
       }}
       transition={
@@ -429,7 +406,6 @@ export const SlotSymbol: React.FC<SlotSymbolProps> = ({
         cursor: 'default',
       }}
     >
-      {/* Winning pulse glow background */}
       {isWinning && (
         <motion.div
           animate={{ opacity: [0.3, 0.7, 0.3], scale: [0.8, 1.2, 0.8] }}
@@ -438,17 +414,15 @@ export const SlotSymbol: React.FC<SlotSymbolProps> = ({
             position: 'absolute',
             inset: '-20%',
             borderRadius: '50%',
-            background: data.glowColor,
+            background: WIN_GLOW_COLOR,
             filter: 'blur(20px)',
             zIndex: -1,
           }}
         />
       )}
 
-      {/* Symbol SVG */}
       <div style={{ width: '85%', height: '85%' }}>{data.icon(uniqueId)}</div>
 
-      {/* Multiplier value overlay */}
       {type === 'multiplier' && multiplierValue && (
         <div
           style={{
@@ -469,7 +443,6 @@ export const SlotSymbol: React.FC<SlotSymbolProps> = ({
         </div>
       )}
 
-      {/* BONUS / WILD label badge */}
       {type === 'scatter' && !isBlurry && (
         <motion.span
           animate={isWinning ? { scale: [1, 1.2, 1] } : {}}
