@@ -4,7 +4,12 @@ import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { isAdminEmail } from '@/lib/security/admin';
 import { CasinoLogger } from '@/lib/casino/logger';
-import { enforceRateLimit, getClientIdentifier, rateLimitHeaders, validateMutationOrigin } from '@/lib/security/request-security';
+import {
+  enforceRateLimit,
+  getClientIdentifier,
+  rateLimitHeaders,
+  validateMutationOrigin,
+} from '@/lib/security/request-security';
 
 const USER_LIST_LIMIT = 200;
 
@@ -22,15 +27,22 @@ interface AdminUserRow {
 export async function GET(request: Request) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return new NextResponse('Unauthorized', { status: 401 });
     if (!isAdminEmail(user.email)) return new NextResponse('Forbidden', { status: 403 });
 
-    const rate = await enforceRateLimit(getClientIdentifier(request, user.id), 'admin-users-read', 30, 60);
+    const rate = await enforceRateLimit(
+      getClientIdentifier(request, user.id),
+      'admin-users-read',
+      30,
+      60,
+    );
     if (!rate.success) {
       return NextResponse.json(
         { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) }
+        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
       );
     }
 
@@ -49,7 +61,7 @@ export async function GET(request: Request) {
     const users = (data ?? []) as AdminUserRow[];
     const totals = users.reduce(
       (acc, u) => ({ balance: acc.balance + Number(u.balance), xp: acc.xp + Number(u.xp) }),
-      { balance: 0, xp: 0 }
+      { balance: 0, xp: 0 },
     );
 
     return NextResponse.json(
@@ -62,7 +74,7 @@ export async function GET(request: Request) {
           totalXp: totals.xp,
         },
       },
-      { headers: { 'Cache-Control': 'private, no-store' } }
+      { headers: { 'Cache-Control': 'private, no-store' } },
     );
   } catch (error) {
     CasinoLogger.error('API/Admin/Users', 'Admin user list failed closed', error);
@@ -84,15 +96,22 @@ export async function PATCH(request: Request) {
 
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return new NextResponse('Unauthorized', { status: 401 });
     if (!isAdminEmail(user.email)) return new NextResponse('Forbidden', { status: 403 });
 
-    const rate = await enforceRateLimit(getClientIdentifier(request, user.id), 'admin-users-write', 10, 60);
+    const rate = await enforceRateLimit(
+      getClientIdentifier(request, user.id),
+      'admin-users-write',
+      10,
+      60,
+    );
     if (!rate.success) {
       return NextResponse.json(
         { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) }
+        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
       );
     }
 
@@ -120,7 +139,26 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
     }
 
-    CasinoLogger.info('API/Admin/Users', `Admin ${user.email} updated user ${targetUserId}`, updates);
+    if (updates.balance !== undefined) {
+      try {
+        await admin.from('wallet_transactions').insert({
+          user_id: targetUserId,
+          game: 'admin',
+          type: 'admin_adjust',
+          amount: Number(updates.balance),
+          balance_after: Number(data.balance),
+          metadata: { admin_email: user.email, updated_fields: Object.keys(updates) },
+        });
+      } catch (err) {
+        CasinoLogger.error('API/Admin/Users', 'Failed to insert admin adjustment audit log', err);
+      }
+    }
+
+    CasinoLogger.info(
+      'API/Admin/Users',
+      `Admin ${user.email} updated user ${targetUserId}`,
+      updates,
+    );
 
     return NextResponse.json({ success: true, user: data });
   } catch (error) {
@@ -128,4 +166,3 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'User update unavailable' }, { status: 503 });
   }
 }
-

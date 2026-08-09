@@ -4,7 +4,9 @@ import { createClient } from '@/utils/supabase/server';
 
 export default async function AdminRootLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) redirect('/sign-in');
   if (!isAdminEmail(user.email)) forbidden();
   return children;
