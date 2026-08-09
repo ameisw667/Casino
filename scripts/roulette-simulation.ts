@@ -13,7 +13,12 @@ function buildBets(types: RouletteBetType[], totalAmount: number): RouletteBet[]
   return types.map((type) => ({ type, amount: perBet }));
 }
 
-async function runSimulation(name: string, betTypes: RouletteBetType[], totalAmount: number, nonce: number) {
+async function runSimulation(
+  name: string,
+  betTypes: RouletteBetType[],
+  totalAmount: number,
+  nonce: number,
+) {
   const bets = buildBets(betTypes, totalAmount);
   const result = await CasinoCore.placeBet({
     gameType: 'ROULETTE',
@@ -51,7 +56,7 @@ async function main() {
     'Simulation 1: Straight-up #17',
     [{ type: 'STRAIGHT', value: 17 }],
     10,
-    0
+    0,
   );
 
   // Simulation 2: color bet
@@ -59,7 +64,7 @@ async function main() {
     'Simulation 2: RED color',
     [{ type: 'COLOR', value: 'RED' }],
     50,
-    s1.nonce
+    s1.nonce,
   );
 
   // Simulation 3: spread bet (straight + dozen + range)
@@ -71,7 +76,7 @@ async function main() {
       { type: 'RANGE', value: '1-18' },
     ],
     30,
-    s2.nonce
+    s2.nonce,
   );
 
   console.log('\n=== All 3 simulations completed successfully ===');

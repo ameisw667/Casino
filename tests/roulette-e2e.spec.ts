@@ -39,12 +39,18 @@ test.beforeEach(async ({ context }) => {
 
 test.describe('Roulette', () => {
   test('loads and shows animated wheel and betting board', async ({ page }) => {
-    await page.goto(`${BASE_URL}/games/roulette`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(`${BASE_URL}/games/roulette`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 30000,
+    });
     await page.waitForTimeout(1200);
 
     const wheel = page.getByTestId('roulette-wheel');
     const board = page.locator('.roulette-board').first();
-    const placeBtn = page.locator('button').filter({ hasText: /PLACE BET/ }).first();
+    const placeBtn = page
+      .locator('button')
+      .filter({ hasText: /PLACE BET/ })
+      .first();
 
     await expect(wheel).toBeVisible({ timeout: 10000 });
     await expect(board).toBeVisible({ timeout: 10000 });
@@ -56,10 +62,16 @@ test.describe('Roulette', () => {
   });
 
   test('places three consecutive roulette spins', async ({ page }) => {
-    await page.goto(`${BASE_URL}/games/roulette`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(`${BASE_URL}/games/roulette`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 30000,
+    });
     await page.waitForTimeout(1500);
 
-    const placeBtn = page.locator('button').filter({ hasText: /PLACE BET/ }).first();
+    const placeBtn = page
+      .locator('button')
+      .filter({ hasText: /PLACE BET/ })
+      .first();
     await expect(placeBtn).toBeVisible({ timeout: 10000 });
     await page.getByTitle('Toggle turbo (T)').click();
 
@@ -81,7 +93,10 @@ test.describe('Roulette', () => {
 
       await expect(page.locator('.roulette-page')).toBeVisible();
 
-      const hubNumber = page.locator('div').filter({ hasText: /^[0-9]$/ }).first();
+      const hubNumber = page
+        .locator('div')
+        .filter({ hasText: /^[0-9]$/ })
+        .first();
       await expect(hubNumber).toBeVisible({ timeout: 10000 });
       await expect(placeBtn).toBeEnabled({ timeout: 5000 });
       console.log(`Spin ${round} settled`);

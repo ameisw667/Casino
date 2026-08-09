@@ -36,13 +36,17 @@ async function main() {
   for (let nonce = 0; nonce < 1000; nonce++) {
     const m = await ProvablyFairEngine.getCrashMultiplier(seed, clientSeed, nonce);
     multipliers.push(m);
-    if (m === 1.00) instantCrashes++;
+    if (m === 1.0) instantCrashes++;
   }
 
   const instantCrashRate = (instantCrashes / 1000) * 100;
-  console.log(`  Instant crashes (1.00x): ${instantCrashes}/1000 = ${instantCrashRate.toFixed(1)}%`);
+  console.log(
+    `  Instant crashes (1.00x): ${instantCrashes}/1000 = ${instantCrashRate.toFixed(1)}%`,
+  );
   console.log(`  Expected: ~1.0% (house edge)`);
-  console.log(`  → ${Math.abs(instantCrashRate - 1.0) < 2.0 ? '✓ Within expected range' : '⚠ Deviation detected'}`);
+  console.log(
+    `  → ${Math.abs(instantCrashRate - 1.0) < 2.0 ? '✓ Within expected range' : '⚠ Deviation detected'}`,
+  );
 
   const sorted = [...multipliers].sort((a, b) => a - b);
   const median = sorted[500];
@@ -51,7 +55,9 @@ async function main() {
   console.log(`  Median: ${median.toFixed(2)}x`);
   console.log(`  95th percentile: ${p95.toFixed(2)}x`);
   console.log(`  Max: ${max.toFixed(2)}x`);
-  console.log(`  → Distribution looks ${median < 3 ? 'realistic' : 'suspicious'} (median should be < 2x)`);
+  console.log(
+    `  → Distribution looks ${median < 3 ? 'realistic' : 'suspicious'} (median should be < 2x)`,
+  );
 
   // --- Test 2: Growth rate ---
   console.log('\n=== TEST 2: Growth Rate (time to reach key multipliers) ===');
@@ -92,25 +98,29 @@ async function main() {
     // Otherwise: m = floor((0.99 / (1 - result)) * 100) / 100
     let expected: number;
     if (result < 0.01) {
-      expected = 1.00;
+      expected = 1.0;
     } else {
-      expected = Math.max(1.00, Math.floor((0.99 / (1 - result)) * 100) / 100);
+      expected = Math.max(1.0, Math.floor((0.99 / (1 - result)) * 100) / 100);
     }
     const match = Math.abs(m - expected) < 0.001;
-    console.log(`  ${tc.desc} (nonce=${tc.nonce}): result=${result.toFixed(6)}, m=${m.toFixed(2)}x, expected=${expected.toFixed(2)}x → ${match ? '✓' : '✗'}`);
+    console.log(
+      `  ${tc.desc} (nonce=${tc.nonce}): result=${result.toFixed(6)}, m=${m.toFixed(2)}x, expected=${expected.toFixed(2)}x → ${match ? '✓' : '✗'}`,
+    );
     if (!match) precisionOk = false;
   }
 
   // --- Summary ---
   console.log('\n══════════════════════════════');
   console.log('SUMMARY:');
-  console.log(`  Formula: ${instantCrashRate >= 0 && instantCrashRate <= 3 ? '✓' : '⚠'} (instant crash rate ${instantCrashRate.toFixed(1)}%)`);
+  console.log(
+    `  Formula: ${instantCrashRate >= 0 && instantCrashRate <= 3 ? '✓' : '⚠'} (instant crash rate ${instantCrashRate.toFixed(1)}%)`,
+  );
   console.log(`  Growth:  ${to2x >= 3 && to2x <= 5 ? '✓' : '⚠'} (${to2x.toFixed(1)}s to 2x)`);
   console.log(`  Precision: ${precisionOk ? '✓' : '✗'} (2 decimal places)`);
   console.log('══════════════════════════════\n');
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Simulation crashed:', err);
   process.exit(1);
 });

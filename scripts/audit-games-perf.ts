@@ -22,21 +22,16 @@ async function checkGameRoute(game: string): Promise<AuditResult> {
   const url = `${BASE_URL}/games/${game}`;
 
   try {
-    const response = await new Promise<http.IncomingMessage>(
-      (resolve, reject) => {
-        const timeout = setTimeout(
-          () => reject(new Error('Timeout')),
-          TIMEOUT_MS
-        );
+    const response = await new Promise<http.IncomingMessage>((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('Timeout')), TIMEOUT_MS);
 
-        http
-          .get(url, (res) => {
-            clearTimeout(timeout);
-            resolve(res);
-          })
-          .on('error', reject);
-      }
-    );
+      http
+        .get(url, (res) => {
+          clearTimeout(timeout);
+          resolve(res);
+        })
+        .on('error', reject);
+    });
 
     const loadTime = Date.now() - startTime;
     const statusCode = response.statusCode ?? 500;
@@ -46,7 +41,7 @@ async function checkGameRoute(game: string): Promise<AuditResult> {
         game,
         loadTime,
         status: 'FAIL',
-        message: `HTTP ${statusCode}`
+        message: `HTTP ${statusCode}`,
       };
     }
 
@@ -55,7 +50,7 @@ async function checkGameRoute(game: string): Promise<AuditResult> {
         game,
         loadTime,
         status: 'WARN',
-        message: `Slow load: ${loadTime}ms`
+        message: `Slow load: ${loadTime}ms`,
       };
     }
 
@@ -63,14 +58,14 @@ async function checkGameRoute(game: string): Promise<AuditResult> {
       game,
       loadTime,
       status: 'PASS',
-      message: `OK (${loadTime}ms)`
+      message: `OK (${loadTime}ms)`,
     };
   } catch (error) {
     return {
       game,
       loadTime: TIMEOUT_MS,
       status: 'FAIL',
-      message: `Error: ${error instanceof Error ? error.message : 'Unknown'}`
+      message: `Error: ${error instanceof Error ? error.message : 'Unknown'}`,
     };
   }
 }
@@ -80,9 +75,7 @@ async function runAudit() {
   console.log(`📍 Base URL: ${BASE_URL}`);
   console.log(`⏱️  Threshold: ${THRESHOLD_MS}ms\n`);
 
-  const results = await Promise.all(
-    GAMES.map((game) => checkGameRoute(game))
-  );
+  const results = await Promise.all(GAMES.map((game) => checkGameRoute(game)));
 
   const passed = results.filter((r) => r.status === 'PASS').length;
   const warned = results.filter((r) => r.status === 'WARN').length;
@@ -91,21 +84,14 @@ async function runAudit() {
   console.log('Results:');
   console.log('────────────────────────────────────────');
   results.forEach((result) => {
-    const icon =
-      result.status === 'PASS'
-        ? '✅'
-        : result.status === 'WARN'
-          ? '⚠️'
-          : '❌';
+    const icon = result.status === 'PASS' ? '✅' : result.status === 'WARN' ? '⚠️' : '❌';
     console.log(
-      `${icon} ${result.game.padEnd(12)} ${result.loadTime.toString().padStart(5)}ms  ${result.message}`
+      `${icon} ${result.game.padEnd(12)} ${result.loadTime.toString().padStart(5)}ms  ${result.message}`,
     );
   });
 
   console.log('────────────────────────────────────────');
-  console.log(
-    `Summary: ${passed} passed, ${warned} warned, ${failed} failed`
-  );
+  console.log(`Summary: ${passed} passed, ${warned} warned, ${failed} failed`);
 
   process.exit(failed > 0 ? 1 : 0);
 }

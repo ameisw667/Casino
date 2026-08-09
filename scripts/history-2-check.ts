@@ -20,14 +20,86 @@ const DEMO_STATE = {
     level: 12,
     rank: 'Silver',
     bets: [
-      { id: 'bet-crash-001', time: '10:42 AM', game: 'Crash', user: 'You', amount: 50, multiplier: 3.25, payout: 162.5, win: true },
-      { id: 'bet-dice-002', time: '10:38 AM', game: 'Dice', user: 'You', amount: 25, multiplier: 0, payout: 0, win: false },
-      { id: 'bet-roulette-003', time: '10:31 AM', game: 'Roulette', user: 'You', amount: 100, multiplier: 2, payout: 200, win: true },
-      { id: 'bet-crash-004', time: '10:25 AM', game: 'Crash', user: 'You', amount: 75, multiplier: 1.85, payout: 138.75, win: true },
-      { id: 'bet-slots-005', time: '10:18 AM', game: 'Slots', user: 'You', amount: 40, multiplier: 0, payout: 0, win: false },
-      { id: 'bet-dice-006', time: '10:12 AM', game: 'Dice', user: 'You', amount: 60, multiplier: 2.1, payout: 126, win: true },
-      { id: 'bet-crash-007', time: '10:05 AM', game: 'Crash', user: 'You', amount: 30, multiplier: 0, payout: 0, win: false },
-      { id: 'bet-roulette-008', time: '09:58 AM', game: 'Roulette', user: 'You', amount: 80, multiplier: 0, payout: 0, win: false },
+      {
+        id: 'bet-crash-001',
+        time: '10:42 AM',
+        game: 'Crash',
+        user: 'You',
+        amount: 50,
+        multiplier: 3.25,
+        payout: 162.5,
+        win: true,
+      },
+      {
+        id: 'bet-dice-002',
+        time: '10:38 AM',
+        game: 'Dice',
+        user: 'You',
+        amount: 25,
+        multiplier: 0,
+        payout: 0,
+        win: false,
+      },
+      {
+        id: 'bet-roulette-003',
+        time: '10:31 AM',
+        game: 'Roulette',
+        user: 'You',
+        amount: 100,
+        multiplier: 2,
+        payout: 200,
+        win: true,
+      },
+      {
+        id: 'bet-crash-004',
+        time: '10:25 AM',
+        game: 'Crash',
+        user: 'You',
+        amount: 75,
+        multiplier: 1.85,
+        payout: 138.75,
+        win: true,
+      },
+      {
+        id: 'bet-slots-005',
+        time: '10:18 AM',
+        game: 'Slots',
+        user: 'You',
+        amount: 40,
+        multiplier: 0,
+        payout: 0,
+        win: false,
+      },
+      {
+        id: 'bet-dice-006',
+        time: '10:12 AM',
+        game: 'Dice',
+        user: 'You',
+        amount: 60,
+        multiplier: 2.1,
+        payout: 126,
+        win: true,
+      },
+      {
+        id: 'bet-crash-007',
+        time: '10:05 AM',
+        game: 'Crash',
+        user: 'You',
+        amount: 30,
+        multiplier: 0,
+        payout: 0,
+        win: false,
+      },
+      {
+        id: 'bet-roulette-008',
+        time: '09:58 AM',
+        game: 'Roulette',
+        user: 'You',
+        amount: 80,
+        multiplier: 0,
+        payout: 0,
+        win: false,
+      },
     ],
     gameStats: {
       CRASH: { totalBets: 3, wins: 2, losses: 1, profit: 176.25, peakWinMultiplier: 3.25 },
@@ -62,7 +134,10 @@ async function run() {
     const errors: string[] = [];
 
     try {
-      await page.goto('http://localhost:3000/history-2', { waitUntil: 'networkidle', timeout: 15000 });
+      await page.goto('http://localhost:3000/history-2', {
+        waitUntil: 'networkidle',
+        timeout: 15000,
+      });
 
       // Seed localStorage so the table renders with demo data
       await page.evaluate((demo) => {
@@ -87,7 +162,11 @@ async function run() {
       ];
 
       for (const check of checks) {
-        const visible = await page.locator(check.selector).first().isVisible().catch(() => false);
+        const visible = await page
+          .locator(check.selector)
+          .first()
+          .isVisible()
+          .catch(() => false);
         if (!visible) errors.push(`Missing or hidden: ${check.name}`);
       }
 
@@ -101,7 +180,9 @@ async function run() {
       const box = await tableHeader.boundingBox().catch(() => null);
       if (box) {
         if (box.y > vp.height * 0.78) {
-          errors.push(`ACTIVITY table starts too low (${Math.round(box.y)}px), may be below fold on ${vp.name}`);
+          errors.push(
+            `ACTIVITY table starts too low (${Math.round(box.y)}px), may be below fold on ${vp.name}`,
+          );
         }
       }
 
@@ -111,7 +192,11 @@ async function run() {
 
       results.push({ name: vp.name, ok: errors.length === 0, errors });
     } catch (e) {
-      results.push({ name: vp.name, ok: false, errors: [`Exception: ${e instanceof Error ? e.message : String(e)}`] });
+      results.push({
+        name: vp.name,
+        ok: false,
+        errors: [`Exception: ${e instanceof Error ? e.message : String(e)}`],
+      });
       await page.screenshot({ path: path.join(OUT_DIR, `${vp.name}-error.png`), fullPage: true });
     } finally {
       await context.close();
@@ -126,7 +211,7 @@ async function run() {
     for (const err of r.errors) console.log(`  - ${err}`);
   }
 
-  const allOk = results.every(r => r.ok);
+  const allOk = results.every((r) => r.ok);
   process.exit(allOk ? 0 : 1);
 }
 

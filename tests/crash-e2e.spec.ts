@@ -8,7 +8,9 @@ test.describe('Crash Game', () => {
   test('loads and shows initial UI', async ({ page }) => {
     await page.goto('http://localhost:3000/games/crash', { waitUntil: 'load', timeout: 30000 });
     // Should show "WAITING FOR BETS" or the multiplier display
-    await expect(page.locator('text=WAITING FOR BETS').or(page.locator('h1'))).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=WAITING FOR BETS').or(page.locator('h1'))).toBeVisible({
+      timeout: 10000,
+    });
   });
 
   test('can place a bet and see the multiplier rise', async ({ page }) => {
@@ -22,7 +24,10 @@ test.describe('Crash Game', () => {
     await betInput.fill('10');
 
     // Click BET button
-    const betButton = page.locator('button').filter({ hasText: /BET|AUTO ON/ }).first();
+    const betButton = page
+      .locator('button')
+      .filter({ hasText: /BET|AUTO ON/ })
+      .first();
     await betButton.click();
 
     // Wait for the game to start — multiplier should change from 1.00
@@ -43,7 +48,10 @@ test.describe('Crash Game', () => {
     await betInput.fill('10');
 
     // Click BET
-    const betButton = page.locator('button').filter({ hasText: /BET|AUTO ON/ }).first();
+    const betButton = page
+      .locator('button')
+      .filter({ hasText: /BET|AUTO ON/ })
+      .first();
     await betButton.click();
 
     // Wait a bit for multiplier to rise
@@ -70,7 +78,10 @@ test.describe('Crash Game', () => {
 
     // Round 1
     await betInput.fill('10');
-    const betButton1 = page.locator('button').filter({ hasText: /BET|AUTO ON/ }).first();
+    const betButton1 = page
+      .locator('button')
+      .filter({ hasText: /BET|AUTO ON/ })
+      .first();
     await betButton1.click();
     console.log('Round 1: Bet placed');
 
@@ -88,7 +99,10 @@ test.describe('Crash Game', () => {
     await page.waitForTimeout(8000);
 
     // Round 2 — should be able to bet again
-    const betButton2 = page.locator('button').filter({ hasText: /BET|AUTO ON/ }).first();
+    const betButton2 = page
+      .locator('button')
+      .filter({ hasText: /BET|AUTO ON/ })
+      .first();
     const isEnabled = await betButton2.isEnabled();
     console.log(`Round 2: Bet button enabled = ${isEnabled}`);
     expect(isEnabled).toBe(true);

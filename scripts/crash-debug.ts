@@ -78,7 +78,7 @@ async function getBalance(page: Page): Promise<number> {
 async function getCrashHistory(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const chips = Array.from(document.querySelectorAll('.game-area div[class*="glass"]'));
-    return chips.slice(0, 5).map(c => (c as HTMLElement).textContent?.trim() || '');
+    return chips.slice(0, 5).map((c) => (c as HTMLElement).textContent?.trim() || '');
   });
 }
 
@@ -89,7 +89,12 @@ async function getLiveBetsCount(page: Page): Promise<number> {
   });
 }
 
-async function runRound(page: Page, round: number, action: 'cashout' | 'crash', cashoutAt?: number) {
+async function runRound(
+  page: Page,
+  round: number,
+  action: 'cashout' | 'crash',
+  cashoutAt?: number,
+) {
   log(`\n=== RUNDE ${round} (Aktion: ${action}${cashoutAt ? ` @ ${cashoutAt}x` : ''}) ===`);
 
   // Prüfe Initialzustand
@@ -97,7 +102,11 @@ async function runRound(page: Page, round: number, action: 'cashout' | 'crash', 
   const initialBalance = await getBalance(page);
   log(`Initialzustand: Button="${initialBtn}", Balance=${initialBalance}`);
 
-  if (!initialBtn.includes('BET') && !initialBtn.includes('AUTO') && !initialBtn.includes('PROCESSING')) {
+  if (
+    !initialBtn.includes('BET') &&
+    !initialBtn.includes('AUTO') &&
+    !initialBtn.includes('PROCESSING')
+  ) {
     bug(`Runde ${round}: Button im Initialzustand zeigt "${initialBtn}" statt "BET"`);
   }
 
@@ -262,7 +271,9 @@ async function runRound(page: Page, round: number, action: 'cashout' | 'crash', 
   log(`Balance: ${initialBalance} → ${finalBalance}`);
 
   if (action === 'cashout' && finalBalance <= initialBalance) {
-    bug(`Runde ${round}: Nach erfolgreichem Cashout ist Balance nicht gestiegen (${initialBalance} → ${finalBalance})`);
+    bug(
+      `Runde ${round}: Nach erfolgreichem Cashout ist Balance nicht gestiegen (${initialBalance} → ${finalBalance})`,
+    );
   }
 
   log(`Runde ${round} abgeschlossen ✓`);
@@ -274,7 +285,7 @@ async function testAutoCashout(page: Page) {
   // Prüfe ob Toggle sichtbar ist
   const toggleVisible = await page.evaluate(() => {
     const labels = Array.from(document.querySelectorAll('label'));
-    return labels.some(l => l.textContent?.includes('AUTO CASHOUT'));
+    return labels.some((l) => l.textContent?.includes('AUTO CASHOUT'));
   });
   log(`Auto-Cashout Label sichtbar: ${toggleVisible}`);
   if (!toggleVisible) {
@@ -392,7 +403,7 @@ async function main() {
   const browser = await chromium.launch({
     headless: true,
     executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
@@ -400,17 +411,19 @@ async function main() {
 
   // Console-Error-Listener
   const consoleErrors: string[] = [];
-  page.on('console', msg => {
+  page.on('console', (msg) => {
     if (msg.type() === 'error') consoleErrors.push(msg.text());
   });
 
-  page.on('pageerror', err => {
+  page.on('pageerror', (err) => {
     bug(`PAGE ERROR: ${err.message}`);
   });
 
   await page.goto(`${BASE_URL}/games/crash`, { waitUntil: 'domcontentloaded', timeout: 20000 });
   // Warte bis INITIALIZING CASINO... verschwindet
-  await page.waitForFunction(() => !document.body.innerText.includes('INITIALIZING'), { timeout: 15000 });
+  await page.waitForFunction(() => !document.body.innerText.includes('INITIALIZING'), {
+    timeout: 15000,
+  });
   await page.waitForTimeout(1500);
   log('Seite geladen');
 
@@ -460,7 +473,7 @@ async function main() {
   // Console-Errors prüfen
   if (consoleErrors.length > 0) {
     const unique = [...new Set(consoleErrors)];
-    unique.forEach(e => bug(`Console-Error: ${e}`));
+    unique.forEach((e) => bug(`Console-Error: ${e}`));
   }
 
   // Finaler Screenshot
@@ -481,22 +494,25 @@ async function main() {
   console.log('='.repeat(60));
 
   // Bugs in Datei schreiben
-  fs.writeFileSync('scripts/crash-debug-report.md', [
-    '# Crash Game Debug Report',
-    `Datum: ${new Date().toISOString()}`,
-    `Bugs gesamt: ${bugs.length}`,
-    '',
-    '## Gefundene Bugs',
-    ...bugs.map((b, i) => `${i + 1}. ${b}`),
-    '',
-    '## Screenshots',
-    `Gespeichert in: ${SCREENSHOT_DIR}/`,
-  ].join('\n'));
+  fs.writeFileSync(
+    'scripts/crash-debug-report.md',
+    [
+      '# Crash Game Debug Report',
+      `Datum: ${new Date().toISOString()}`,
+      `Bugs gesamt: ${bugs.length}`,
+      '',
+      '## Gefundene Bugs',
+      ...bugs.map((b, i) => `${i + 1}. ${b}`),
+      '',
+      '## Screenshots',
+      `Gespeichert in: ${SCREENSHOT_DIR}/`,
+    ].join('\n'),
+  );
 
   process.exit(bugs.length > 0 ? 1 : 0);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('FATAL:', err);
   process.exit(2);
 });

@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3015';
 
 function wait(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 test.use({
@@ -47,7 +47,10 @@ test.describe('Slots', () => {
     // Machine frame, reels and spin button must be visible without scrolling
     const machine = page.locator('.slot-machine');
     const reels = page.locator('.slot-reels-frame');
-    const spinBtn = page.locator('button').filter({ hasText: /SPIN|SPINNING/ }).first();
+    const spinBtn = page
+      .locator('button')
+      .filter({ hasText: /SPIN|SPINNING/ })
+      .first();
 
     await expect(machine).toBeVisible({ timeout: 10000 });
     await expect(reels).toBeVisible({ timeout: 10000 });
@@ -64,7 +67,10 @@ test.describe('Slots', () => {
     await page.waitForTimeout(1500);
 
     const betInput = page.locator('input[type="number"]').first();
-    const spinBtn = page.locator('button').filter({ hasText: /SPIN|SPINNING/ }).first();
+    const spinBtn = page
+      .locator('button')
+      .filter({ hasText: /SPIN|SPINNING/ })
+      .first();
 
     // Ensure a sane default bet amount
     await betInput.fill('5');

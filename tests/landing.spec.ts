@@ -4,7 +4,7 @@ test('Landing page loads and has correct elements', async ({ page }) => {
   // Increase timeout for first load (compilation)
   await page.goto('http://localhost:3000/landing', {
     waitUntil: 'networkidle',
-    timeout: 60000
+    timeout: 60000,
   });
 
   // Check for the main heading

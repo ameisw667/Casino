@@ -24,7 +24,10 @@ async function spinRound(page: Page, round: number) {
   await redBtn.waitFor({ state: 'visible', timeout: 5000 });
   await redBtn.click();
 
-  const placeBtn = page.locator('button').filter({ hasText: /PLACE BET/ }).first();
+  const placeBtn = page
+    .locator('button')
+    .filter({ hasText: /PLACE BET/ })
+    .first();
   await placeBtn.click();
   console.log(`Spin ${round} started`);
 
@@ -51,12 +54,18 @@ async function run() {
   const page = await context.newPage();
 
   try {
-    await page.goto(`${BASE_URL}/games/roulette`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(`${BASE_URL}/games/roulette`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 30000,
+    });
     await wait(1500);
 
     const wheel = page.locator('[data-testid="roulette-wheel"]').first();
     const board = page.locator('.roulette-board').first();
-    const placeBtn = page.locator('button').filter({ hasText: /PLACE BET/ }).first();
+    const placeBtn = page
+      .locator('button')
+      .filter({ hasText: /PLACE BET/ })
+      .first();
 
     await wheel.waitFor({ state: 'visible', timeout: 10000 });
     await board.waitFor({ state: 'visible', timeout: 10000 });

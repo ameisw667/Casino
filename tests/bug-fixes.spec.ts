@@ -8,9 +8,12 @@ async function goto(page: import('@playwright/test').Page, url: string) {
   await page.waitForTimeout(1500);
 }
 
-async function setCasinoState(page: import('@playwright/test').Page, patch: Record<string, unknown>) {
+async function setCasinoState(
+  page: import('@playwright/test').Page,
+  patch: Record<string, unknown>,
+) {
   await page.evaluate((p) => {
-    const key = Object.keys(localStorage).find(k => k.includes('casino'));
+    const key = Object.keys(localStorage).find((k) => k.includes('casino'));
     if (!key) return;
     const raw = localStorage.getItem(key);
     if (!raw) return;
@@ -67,7 +70,10 @@ test('Bug #39 — Roulette shows toast when balance < chip value', async ({ page
   await setCasinoState(page, { balance: 0 });
 
   // Click first visible chip button
-  const chip = page.locator('button').filter({ hasText: /\$1|\$5|\$10|\$25/i }).first();
+  const chip = page
+    .locator('button')
+    .filter({ hasText: /\$1|\$5|\$10|\$25/i })
+    .first();
   const chipCount = await chip.count();
   if (chipCount > 0) {
     await chip.click();
@@ -87,7 +93,7 @@ test('Bug #32 — Unknown chat command shows error message', async ({ page }) =>
   await goto(page, `${BASE}/games/dice`);
 
   const chatToggle = page.locator('button').filter({ hasText: /chat/i }).first();
-  if (await chatToggle.count() > 0) await chatToggle.click();
+  if ((await chatToggle.count()) > 0) await chatToggle.click();
 
   const chatInput = page.locator('input[placeholder]').last();
   const ph = await chatInput.getAttribute('placeholder').catch(() => '');
@@ -112,7 +118,7 @@ test('Bug #59 — Chat /tip with unicode name does not throw TypeError', async (
   await goto(page, `${BASE}/games/dice`);
 
   const chatToggle = page.locator('button').filter({ hasText: /chat/i }).first();
-  if (await chatToggle.count() > 0) await chatToggle.click();
+  if ((await chatToggle.count()) > 0) await chatToggle.click();
 
   const chatInput = page.locator('input[placeholder]').last();
   const ph = await chatInput.getAttribute('placeholder').catch(() => '');
@@ -125,7 +131,7 @@ test('Bug #59 — Chat /tip with unicode name does not throw TypeError', async (
   await chatInput.press('Enter');
   await page.waitForTimeout(500);
 
-  expect(errors.filter(e => e.includes('TypeError'))).toHaveLength(0);
+  expect(errors.filter((e) => e.includes('TypeError'))).toHaveLength(0);
 });
 
 // ─── Bug #42: Dark Mode Smooth Transition ─────────────────────────────────────
@@ -156,7 +162,9 @@ test('Bug #44 — data-tooltip::before has max-width rule', async ({ page }) => 
             if (rule.style.maxWidth && rule.style.maxWidth !== '') return true;
           }
         }
-      } catch { /* cross-origin sheet */ }
+      } catch {
+        /* cross-origin sheet */
+      }
     }
     return false;
   });
@@ -187,7 +195,7 @@ test('Bug #60 — Dismiss button clears martingale warning', async ({ page }) =>
       sessionLoss: 120,
       martingaleDetected: true,
       lossLimit: 100,
-    }
+    },
   });
 
   const dismissBtn = page.locator('button[title="Dismiss warning"]');
@@ -203,7 +211,7 @@ test('Bug #70 — Dice bet input clamps to max 10000', async ({ page }) => {
   await goto(page, `${BASE}/games/dice`);
 
   const betInput = page.locator('input[type="number"]').first();
-  if (await betInput.count() === 0) {
+  if ((await betInput.count()) === 0) {
     test.skip(true, 'Bet input not found — skipping');
     return;
   }
@@ -212,6 +220,6 @@ test('Bug #70 — Dice bet input clamps to max 10000', async ({ page }) => {
   await betInput.press('Tab');
   await page.waitForTimeout(300);
 
-  const value = parseFloat(await betInput.inputValue() || '0');
+  const value = parseFloat((await betInput.inputValue()) || '0');
   expect(value).toBeLessThanOrEqual(10000);
 });

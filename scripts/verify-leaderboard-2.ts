@@ -16,7 +16,11 @@ async function sleep(ms: number) {
 }
 
 async function isInViewport(page: Page, selector: string): Promise<boolean> {
-  const box = await page.locator(selector).first().boundingBox().catch(() => null);
+  const box = await page
+    .locator(selector)
+    .first()
+    .boundingBox()
+    .catch(() => null);
   if (!box) return false;
   const viewport = await page.evaluate(() => ({ height: window.innerHeight }));
   return box.y + box.height <= viewport.height && box.y >= 0;
@@ -66,8 +70,8 @@ async function runViewport(page: Page, width: number, height: number, label: str
 
   const table = page.locator('table');
   const cards = page.locator('[data-testid="leader-cards"]');
-  const rankingsVisible = (await table.isVisible().catch(() => false)) ||
-    (await cards.isVisible().catch(() => false));
+  const rankingsVisible =
+    (await table.isVisible().catch(() => false)) || (await cards.isVisible().catch(() => false));
   results.push({
     name: `${label} — Rankings table/cards visible`,
     passed: rankingsVisible,
@@ -115,8 +119,14 @@ async function runSearchTest(page: Page) {
 
   const results: CheckResult[] = [];
   const rankings = page.locator('table tbody, [data-testid="leader-cards"]');
-  const sarahInRankings = await rankings.getByText('Sarah Williams').isVisible().catch(() => false);
-  const michaelInRankings = await rankings.getByText('Michael Chen').isVisible().catch(() => false);
+  const sarahInRankings = await rankings
+    .getByText('Sarah Williams')
+    .isVisible()
+    .catch(() => false);
+  const michaelInRankings = await rankings
+    .getByText('Michael Chen')
+    .isVisible()
+    .catch(() => false);
   results.push({ name: 'Rankings — Sarah Williams visible', passed: sarahInRankings });
   results.push({ name: 'Rankings — Michael Chen visible', passed: michaelInRankings });
 
