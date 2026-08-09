@@ -46,12 +46,22 @@ export async function loadVipConfig(): Promise<VipConfig> {
     const supabase = createAdminClient();
 
     const [vipResult, ranksResult] = await Promise.all([
-      supabase.from('vip_tiers').select('*').eq('is_active', true).order('sort_order', { ascending: true }),
-      supabase.from('ranks').select('*').eq('is_active', true).order('sort_order', { ascending: true }),
+      supabase
+        .from('vip_tiers')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true }),
+      supabase
+        .from('ranks')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true }),
     ]);
 
     if (vipResult.error || ranksResult.error) {
-      throw new Error(`Supabase config error: ${vipResult.error?.message ?? ranksResult.error?.message}`);
+      throw new Error(
+        `Supabase config error: ${vipResult.error?.message ?? ranksResult.error?.message}`,
+      );
     }
 
     const vipTiers = (vipResult.data ?? []).map(normalizeVipTier);

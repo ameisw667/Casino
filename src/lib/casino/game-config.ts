@@ -107,7 +107,7 @@ export function getBetLimits(config: GameConfig): GameLimitsConfig {
 export function validateBetWithConfig(
   betAmount: number,
   balance: number,
-  config: GameConfig
+  config: GameConfig,
 ): string | null {
   const { betMin, betMax } = config.limits;
   if (betAmount < betMin || betAmount > betMax) {
@@ -124,7 +124,7 @@ export function validateBetWithConfig(
  */
 export function getRouletteMultiplierWithConfig(
   betType: RouletteBetType,
-  config: GameConfig
+  config: GameConfig,
 ): number {
   if (betType.type === 'FRENCH') {
     return config.roulette.multipliers[betType.value as string] ?? 0;
@@ -136,10 +136,7 @@ export function getRouletteMultiplierWithConfig(
 /**
  * Calculate slots payout from symbols using configured paytable.
  */
-export function calculateSlotsPayoutWithConfig(
-  symbols: number[],
-  config: GameConfig
-): number {
+export function calculateSlotsPayoutWithConfig(symbols: number[], config: GameConfig): number {
   const counts: Record<number, number> = {};
   symbols.forEach((s) => {
     counts[s] = (counts[s] || 0) + 1;
@@ -189,14 +186,14 @@ export function getCrashHouseEdge(config: GameConfig): number {
 export function calculateXpGainWithConfig(
   wager: number,
   level: number = 1,
-  config: GameConfig
+  config: GameConfig,
 ): number {
   if (!Number.isFinite(wager) || wager <= 0) return 0;
 
   const safeLevel = Math.max(1, Math.floor(level));
   const levelMultiplier = Math.min(
     config.xp.levelMultiplierMax,
-    1 + Math.floor(safeLevel / config.xp.levelMultiplierStep)
+    1 + Math.floor(safeLevel / config.xp.levelMultiplierStep),
   );
 
   const raw = Math.floor(wager * config.xp.baseMultiplier * levelMultiplier);
@@ -209,6 +206,6 @@ export function calculateXpGainWithConfig(
 export function calculateLevelWithConfig(totalXp: number, config: GameConfig): number {
   return Math.min(
     config.xp.maxLevel,
-    Math.floor(Math.sqrt(totalXp / config.xp.levelFormulaSqrtDivisor)) + 1
+    Math.floor(Math.sqrt(totalXp / config.xp.levelFormulaSqrtDivisor)) + 1,
   );
 }

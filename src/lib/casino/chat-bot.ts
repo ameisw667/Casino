@@ -1,27 +1,38 @@
 import { useCasinoStore } from '@/store/useCasinoStore';
 
-const BOT_NAMES = ['LuckyWhale', 'DiceKing', 'CryptoVibe', 'HighRoller', 'MoonShot', 'ZenGambler', 'VibeMaster', 'SlotQueen', 'EtherEater', 'BullRun'];
+const BOT_NAMES = [
+  'LuckyWhale',
+  'DiceKing',
+  'CryptoVibe',
+  'HighRoller',
+  'MoonShot',
+  'ZenGambler',
+  'VibeMaster',
+  'SlotQueen',
+  'EtherEater',
+  'BullRun',
+];
 const RANKS = ['VIP', 'LEGEND', 'PRO', 'WHALE', 'GOLD', 'PLATINUM'];
 
 const MESSAGES = [
   "Let's gooo!",
-  "Big win incoming 🚀",
-  "Dice is hot right now",
-  "Just cashed out at 5x on Crash, nice",
-  "Anyone tried the new slots?",
-  "Road to 10k starts now",
-  "Rip that multiplier",
-  "Casino vibe is elite today",
-  "GL everyone!",
-  "Nice win @user",
-  "Whew, that was close",
-  "Max bet or go home",
-  "Strategy pays off",
-  "Loving the new HSL design",
-  "Is Crash rigged? Jk, just lost lol",
-  "Daily rewards are up!",
+  'Big win incoming 🚀',
+  'Dice is hot right now',
+  'Just cashed out at 5x on Crash, nice',
+  'Anyone tried the new slots?',
+  'Road to 10k starts now',
+  'Rip that multiplier',
+  'Casino vibe is elite today',
+  'GL everyone!',
+  'Nice win @user',
+  'Whew, that was close',
+  'Max bet or go home',
+  'Strategy pays off',
+  'Loving the new HSL design',
+  'Is Crash rigged? Jk, just lost lol',
+  'Daily rewards are up!',
   "Who's the top on leaderboard?",
-  "10x on Roulette, black is life",
+  '10x on Roulette, black is life',
 ];
 
 export class ChatBotService {
@@ -32,17 +43,17 @@ export class ChatBotService {
 
     this.interval = setInterval(() => {
       const { addChatMessage, addLiveBet } = useCasinoStore.getState();
-      
+
       // Randomly decide to send a message (15% chance every interval)
       if (Math.random() > 0.85) {
         const name = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
         const rank = RANKS[Math.floor(Math.random() * RANKS.length)];
         const message = MESSAGES[Math.floor(Math.random() * MESSAGES.length)];
-        
+
         addChatMessage({
           user: name,
           rank: rank,
-          message: message
+          message: message,
         });
       }
 
@@ -53,7 +64,7 @@ export class ChatBotService {
         const game = games[Math.floor(Math.random() * games.length)];
         const amount = Math.floor(Math.random() * 100) + 1;
         const isWin = Math.random() > 0.6;
-        const multiplier = isWin ? (Math.random() * 5 + 1.1) : 0;
+        const multiplier = isWin ? Math.random() * 5 + 1.1 : 0;
         const payout = isWin ? amount * multiplier : 0;
 
         addLiveBet({
@@ -62,7 +73,7 @@ export class ChatBotService {
           amount,
           multiplier: isWin ? multiplier : 0,
           payout,
-          isWin
+          isWin,
         });
 
         // Contribute to community goal
@@ -82,12 +93,12 @@ export class ChatBotService {
 
   static shoutout(user: string, amount: number, multiplier: number) {
     const { addChatMessage } = useCasinoStore.getState();
-    
+
     let emoji = '🎉';
     let vibe = 'BIG WIN';
-    
-    if (multiplier >= 100) { 
-      emoji = '🐋🔥'; 
+
+    if (multiplier >= 100) {
+      emoji = '🐋🔥';
       vibe = 'INSANE WHALE WIN';
     } else if (multiplier >= 50) {
       emoji = '🚀';
@@ -99,7 +110,7 @@ export class ChatBotService {
       rank: 'MOD',
       message: `${emoji} ${vibe}! ${user} just won $${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${multiplier.toFixed(2)}x)!`,
       isSystem: true,
-      isWin: true
+      isWin: true,
     });
   }
 
@@ -114,7 +125,7 @@ export class ChatBotService {
           user: 'RoyaleGuard',
           rank: 'MOD',
           message: `@${user}, tips are currently disabled in this demo. Try /stats instead!`,
-          isSystem: true
+          isSystem: true,
         });
         break;
       case '/stats':
@@ -122,7 +133,7 @@ export class ChatBotService {
           user: 'RoyaleGuard',
           rank: 'MOD',
           message: `📊 @${user}'s Stats: Lvl ${level} ${rank} | Balance: $${balance.toFixed(2)}`,
-          isSystem: true
+          isSystem: true,
         });
         break;
       case '/help':
@@ -130,7 +141,7 @@ export class ChatBotService {
           user: 'RoyaleGuard',
           rank: 'MOD',
           message: `Available commands: /stats, /tip`,
-          isSystem: true
+          isSystem: true,
         });
         break;
       default:
@@ -138,7 +149,7 @@ export class ChatBotService {
           user: 'RoyaleGuard',
           rank: 'MOD',
           message: `Unknown command: ${cmd}. Type /help for a list of commands.`,
-          isSystem: true
+          isSystem: true,
         });
         return false;
     }

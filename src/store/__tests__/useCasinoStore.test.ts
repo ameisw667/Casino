@@ -89,7 +89,7 @@ describe('applyServerWalletSnapshot', () => {
 
   it('throws on an invalid snapshot instead of silently applying it', () => {
     expect(() =>
-      useCasinoStore.getState().applyServerWalletSnapshot(makeSnapshot({ balance: -5 }))
+      useCasinoStore.getState().applyServerWalletSnapshot(makeSnapshot({ balance: -5 })),
     ).toThrow();
 
     expect(useCasinoStore.getState().balance).toBe(0);
@@ -234,7 +234,11 @@ describe('processGameResult — Happy Path', () => {
   });
 
   it('flips communityGoalReached exactly once when the threshold is crossed and dispatches the event', () => {
-    useCasinoStore.setState({ communityWagered: 24995, communityGoal: 25000, communityGoalReached: false });
+    useCasinoStore.setState({
+      communityWagered: 24995,
+      communityGoal: 25000,
+      communityGoalReached: false,
+    });
     const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
 
     useCasinoStore.getState().processGameResult({
@@ -247,7 +251,9 @@ describe('processGameResult — Happy Path', () => {
     });
 
     expect(useCasinoStore.getState().communityGoalReached).toBe(true);
-    expect(dispatchSpy).toHaveBeenCalledWith(expect.objectContaining({ type: 'community-goal-reached' }));
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'community-goal-reached' }),
+    );
 
     dispatchSpy.mockClear();
     useCasinoStore.getState().processGameResult({
@@ -329,12 +335,22 @@ describe('processGameResult — Replay safety', () => {
     }
 
     useCasinoStore.getState().processGameResult({
-      game: 'DICE', amount: 1, multiplier: 0, payout: 0, win: false, resultId: secondResultId,
+      game: 'DICE',
+      amount: 1,
+      multiplier: 0,
+      payout: 0,
+      win: false,
+      resultId: secondResultId,
     });
     expect(useCasinoStore.getState().gameStats.DICE.totalBets).toBe(257);
 
     useCasinoStore.getState().processGameResult({
-      game: 'DICE', amount: 1, multiplier: 0, payout: 0, win: false, resultId: firstResultId,
+      game: 'DICE',
+      amount: 1,
+      multiplier: 0,
+      payout: 0,
+      win: false,
+      resultId: firstResultId,
     });
     expect(useCasinoStore.getState().gameStats.DICE.totalBets).toBe(258);
   });
@@ -343,7 +359,12 @@ describe('processGameResult — Replay safety', () => {
     vi.stubEnv('NODE_ENV', 'development');
     vi.mocked(fetch).mockResolvedValue({ ok: true } as unknown as Response);
     const params = {
-      game: 'DICE', amount: 1, multiplier: 0, payout: 0, win: false, resultId: resultId(500),
+      game: 'DICE',
+      amount: 1,
+      multiplier: 0,
+      payout: 0,
+      win: false,
+      resultId: resultId(500),
     };
 
     useCasinoStore.getState().processGameResult(params);
@@ -367,7 +388,7 @@ describe('processGameResult — Achievements', () => {
       resultId: resultId(2),
     });
     expect(useCasinoStore.getState().achievements.find((a) => a.id === 'first_bet')!.unlocked).toBe(
-      true
+      true,
     );
   });
 
@@ -381,7 +402,7 @@ describe('processGameResult — Achievements', () => {
       resultId: resultId(2),
     });
     expect(
-      useCasinoStore.getState().achievements.find((a) => a.id === 'high_roller')!.unlocked
+      useCasinoStore.getState().achievements.find((a) => a.id === 'high_roller')!.unlocked,
     ).toBe(false);
 
     useCasinoStore.getState().processGameResult({
@@ -393,7 +414,7 @@ describe('processGameResult — Achievements', () => {
       resultId: resultId(3),
     });
     expect(
-      useCasinoStore.getState().achievements.find((a) => a.id === 'high_roller')!.unlocked
+      useCasinoStore.getState().achievements.find((a) => a.id === 'high_roller')!.unlocked,
     ).toBe(true);
   });
 
@@ -407,7 +428,7 @@ describe('processGameResult — Achievements', () => {
       resultId: resultId(2),
     });
     expect(useCasinoStore.getState().achievements.find((a) => a.id === 'big_win')!.unlocked).toBe(
-      true
+      true,
     );
   });
 
@@ -421,7 +442,7 @@ describe('processGameResult — Achievements', () => {
       resultId: resultId(2),
     });
     expect(
-      useCasinoStore.getState().achievements.find((a) => a.id === 'crash_master')!.unlocked
+      useCasinoStore.getState().achievements.find((a) => a.id === 'crash_master')!.unlocked,
     ).toBe(false);
 
     useCasinoStore.getState().processGameResult({
@@ -434,8 +455,102 @@ describe('processGameResult — Achievements', () => {
       crashMultiplier: 10,
     });
     expect(
-      useCasinoStore.getState().achievements.find((a) => a.id === 'crash_master')!.unlocked
+      useCasinoStore.getState().achievements.find((a) => a.id === 'crash_master')!.unlocked,
     ).toBe(true);
+  });
+
+  it('unlocks moon_shot only at CRASH multiplier >= 100, independent of crash_master', () => {
+    useCasinoStore.getState().processGameResult({
+      game: 'CRASH',
+      amount: 10,
+      multiplier: 15,
+      payout: 150,
+      win: true,
+      resultId: resultId(2),
+      crashMultiplier: 15,
+    });
+    expect(
+      useCasinoStore.getState().achievements.find((a) => a.id === 'crash_master')!.unlocked,
+    ).toBe(true);
+    expect(useCasinoStore.getState().achievements.find((a) => a.id === 'moon_shot')!.unlocked).toBe(
+      false,
+    );
+
+    useCasinoStore.getState().processGameResult({
+      game: 'CRASH',
+      amount: 10,
+      multiplier: 100,
+      payout: 1000,
+      win: true,
+      resultId: resultId(3),
+      crashMultiplier: 100,
+    });
+    expect(useCasinoStore.getState().achievements.find((a) => a.id === 'moon_shot')!.unlocked).toBe(
+      true,
+    );
+  });
+
+  it('unlocks lucky_streak after 5 consecutive wins and resets the streak on a loss', () => {
+    for (let i = 0; i < 4; i++) {
+      useCasinoStore.getState().processGameResult({
+        game: 'DICE',
+        amount: 1,
+        multiplier: 2,
+        payout: 2,
+        win: true,
+        resultId: resultId(10 + i),
+      });
+    }
+    expect(useCasinoStore.getState().currentWinStreak).toBe(4);
+    expect(
+      useCasinoStore.getState().achievements.find((a) => a.id === 'lucky_streak')!.unlocked,
+    ).toBe(false);
+
+    useCasinoStore.getState().processGameResult({
+      game: 'DICE',
+      amount: 1,
+      multiplier: 2,
+      payout: 2,
+      win: true,
+      resultId: resultId(20),
+    });
+    expect(
+      useCasinoStore.getState().achievements.find((a) => a.id === 'lucky_streak')!.unlocked,
+    ).toBe(true);
+
+    useCasinoStore.getState().processGameResult({
+      game: 'DICE',
+      amount: 1,
+      multiplier: 1,
+      payout: 0,
+      win: false,
+      resultId: resultId(21),
+    });
+    expect(useCasinoStore.getState().currentWinStreak).toBe(0);
+  });
+
+  it('unlocks first_bet exactly once and does not re-fire on every subsequent bet', () => {
+    useCasinoStore.getState().processGameResult({
+      game: 'DICE',
+      amount: 1,
+      multiplier: 1,
+      payout: 0,
+      win: false,
+      resultId: resultId(30),
+    });
+    const first = useCasinoStore.getState().achievements.find((a) => a.id === 'first_bet')!;
+    expect(first.unlocked).toBe(true);
+
+    useCasinoStore.getState().processGameResult({
+      game: 'DICE',
+      amount: 1,
+      multiplier: 1,
+      payout: 0,
+      win: false,
+      resultId: resultId(31),
+    });
+    const second = useCasinoStore.getState().achievements.find((a) => a.id === 'first_bet')!;
+    expect(second).toBe(first);
   });
 
   it('never re-mutates an already unlocked achievement', () => {
@@ -545,53 +660,53 @@ describe('Config-Delegations-Wrapper', () => {
 
   it('validateBet forwards gameConfig and balance', () => {
     expect(useCasinoStore.getState().validateBet(5, 10)).toEqual(
-      validateBetWithConfig(5, 10, useCasinoStore.getState().gameConfig)
+      validateBetWithConfig(5, 10, useCasinoStore.getState().gameConfig),
     );
   });
 
   it('getRouletteMultiplier forwards gameConfig', () => {
     const betType = { type: 'COLOR', value: 'RED' };
     expect(useCasinoStore.getState().getRouletteMultiplier(betType)).toEqual(
-      getRouletteMultiplierWithConfig(betType as never, useCasinoStore.getState().gameConfig)
+      getRouletteMultiplierWithConfig(betType as never, useCasinoStore.getState().gameConfig),
     );
   });
 
   it('getSlotsPayout forwards gameConfig', () => {
     expect(useCasinoStore.getState().getSlotsPayout([1, 1, 1])).toEqual(
-      calculateSlotsPayoutWithConfig([1, 1, 1], useCasinoStore.getState().gameConfig)
+      calculateSlotsPayoutWithConfig([1, 1, 1], useCasinoStore.getState().gameConfig),
     );
   });
 
   it('getBlackjackMaxPayoutFactor forwards gameConfig', () => {
     expect(useCasinoStore.getState().getBlackjackMaxPayoutFactor()).toBe(
-      getBlackjackMaxPayoutFactor(useCasinoStore.getState().gameConfig)
+      getBlackjackMaxPayoutFactor(useCasinoStore.getState().gameConfig),
     );
   });
 
   it('getXpGain forwards gameConfig and the current level by default', () => {
     useCasinoStore.setState({ level: 5 });
     expect(useCasinoStore.getState().getXpGain(100)).toBe(
-      calculateXpGainWithConfig(100, 5, useCasinoStore.getState().gameConfig)
+      calculateXpGainWithConfig(100, 5, useCasinoStore.getState().gameConfig),
     );
   });
 
   it('calculateLevel forwards gameConfig', () => {
     expect(useCasinoStore.getState().calculateLevel(5000)).toBe(
-      calculateLevelWithConfig(5000, useCasinoStore.getState().gameConfig)
+      calculateLevelWithConfig(5000, useCasinoStore.getState().gameConfig),
     );
   });
 
   it('getVipTierByXp forwards the current vipTiers and xp', () => {
     useCasinoStore.setState({ xp: 300 });
     expect(useCasinoStore.getState().getVipTierByXp()).toEqual(
-      getVipTierByXp(useCasinoStore.getState().vipTiers, 300)
+      getVipTierByXp(useCasinoStore.getState().vipTiers, 300),
     );
   });
 
   it('getRankByLevel forwards the current ranks and level', () => {
     useCasinoStore.setState({ level: 12 });
     expect(useCasinoStore.getState().getRankByLevel()).toEqual(
-      getRankByLevel(useCasinoStore.getState().ranks, 12)
+      getRankByLevel(useCasinoStore.getState().ranks, 12),
     );
   });
 });
@@ -642,7 +757,9 @@ describe('einfache UI-/Settings-Aktionen', () => {
   });
 
   it('updateSettings merges partial settings and forwards volume/toggle to soundManager', () => {
-    useCasinoStore.getState().updateSettings({ soundVolume: 0.2, soundEnabled: false, language: 'de' });
+    useCasinoStore
+      .getState()
+      .updateSettings({ soundVolume: 0.2, soundEnabled: false, language: 'de' });
 
     expect(soundManager.setVolume).toHaveBeenCalledWith(0.2);
     expect(soundManager.toggle).toHaveBeenCalledWith(false);
@@ -659,19 +776,35 @@ describe('einfache UI-/Settings-Aktionen', () => {
 
   it('resetGameStats resets a single game when given, all games otherwise', () => {
     useCasinoStore.getState().processGameResult({
-      game: 'DICE', amount: 10, multiplier: 2, payout: 20, win: true, resultId: resultId(2),
+      game: 'DICE',
+      amount: 10,
+      multiplier: 2,
+      payout: 20,
+      win: true,
+      resultId: resultId(2),
     });
     useCasinoStore.getState().resetGameStats('DICE');
     expect(useCasinoStore.getState().gameStats.DICE).toEqual({
-      totalBets: 0, wins: 0, losses: 0, profit: 0,
+      totalBets: 0,
+      wins: 0,
+      losses: 0,
+      profit: 0,
     });
 
     useCasinoStore.getState().processGameResult({
-      game: 'ROULETTE', amount: 10, multiplier: 2, payout: 0, win: false, resultId: resultId(3),
+      game: 'ROULETTE',
+      amount: 10,
+      multiplier: 2,
+      payout: 0,
+      win: false,
+      resultId: resultId(3),
     });
     useCasinoStore.getState().resetGameStats();
     expect(useCasinoStore.getState().gameStats.ROULETTE).toEqual({
-      totalBets: 0, wins: 0, losses: 0, profit: 0,
+      totalBets: 0,
+      wins: 0,
+      losses: 0,
+      profit: 0,
     });
   });
 
@@ -683,7 +816,12 @@ describe('einfache UI-/Settings-Aktionen', () => {
 
   it('addLiveBet prepends a bet and caps allBets at 30', () => {
     useCasinoStore.getState().addLiveBet({
-      user: 'Jan', game: 'DICE', amount: 5, multiplier: 2, payout: 10, isWin: true,
+      user: 'Jan',
+      game: 'DICE',
+      amount: 5,
+      multiplier: 2,
+      payout: 10,
+      isWin: true,
     });
     expect(useCasinoStore.getState().allBets[0]).toMatchObject({ user: 'Jan', isWin: true });
   });
@@ -702,11 +840,11 @@ describe('einfache UI-/Settings-Aktionen', () => {
     expect(useCasinoStore.getState().toasts).toHaveLength(1);
   });
 
-  it('addCrashHistory prepends the multiplier and unlocks moon_shot at >=10', () => {
+  it('addCrashHistory only prepends the multiplier (achievement evaluation lives in processGameResult)', () => {
     useCasinoStore.getState().addCrashHistory(15);
     expect(useCasinoStore.getState().crashHistory[0]).toBe(15);
     expect(useCasinoStore.getState().achievements.find((a) => a.id === 'moon_shot')!.unlocked).toBe(
-      true
+      false,
     );
   });
 
@@ -718,9 +856,9 @@ describe('einfache UI-/Settings-Aktionen', () => {
 
   it('unlockAchievement force-unlocks a specific achievement', () => {
     useCasinoStore.getState().unlockAchievement('daily_grinder');
-    expect(useCasinoStore.getState().achievements.find((a) => a.id === 'daily_grinder')!.unlocked).toBe(
-      true
-    );
+    expect(
+      useCasinoStore.getState().achievements.find((a) => a.id === 'daily_grinder')!.unlocked,
+    ).toBe(true);
   });
 
   it('removeToast removes a toast by id independent of its timer', () => {
@@ -753,7 +891,10 @@ describe('einfache UI-/Settings-Aktionen', () => {
 
 describe('loadVipConfig / loadGameConfig', () => {
   it('loadVipConfig adopts vipTiers/ranks/gameConfig from the API on success', async () => {
-    const customConfig = { ...DEFAULT_GAME_CONFIG, limits: { betMin: 2, betMax: 20, maxBetHardcap: 1000 } };
+    const customConfig = {
+      ...DEFAULT_GAME_CONFIG,
+      limits: { betMin: 2, betMax: 20, maxBetHardcap: 1000 },
+    };
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       json: async () => ({ vipTiers: [], ranks: [], gameConfig: customConfig }),
@@ -772,8 +913,47 @@ describe('loadVipConfig / loadGameConfig', () => {
     expect(useCasinoStore.getState().gameConfig).toEqual(DEFAULT_GAME_CONFIG);
   });
 
+  it('loadVipConfig merges fresh achievementConfigs into achievements, preserving unlocked/progress', async () => {
+    useCasinoStore.getState().unlockAchievement('high_roller');
+    expect(
+      useCasinoStore.getState().achievements.find((a) => a.id === 'high_roller')!.unlocked,
+    ).toBe(true);
+
+    const customAchievementConfigs = [
+      {
+        id: 'high_roller',
+        title: 'Renamed Whale',
+        description: 'updated description',
+        icon: '🐋',
+        total: 1000,
+        progressStat: 'betAmount' as const,
+        conditions: [{ stat: 'betAmount' as const, op: 'gte' as const, value: 1000 }],
+        sortOrder: 1,
+        isActive: true,
+      },
+    ];
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        vipTiers: [],
+        ranks: [],
+        gameConfig: DEFAULT_GAME_CONFIG,
+        achievementConfigs: customAchievementConfigs,
+      }),
+    } as unknown as Response);
+
+    await useCasinoStore.getState().loadVipConfig();
+
+    const merged = useCasinoStore.getState().achievements.find((a) => a.id === 'high_roller')!;
+    expect(merged.title).toBe('Renamed Whale');
+    expect(merged.unlocked).toBe(true); // preserved across the config refresh
+  });
+
   it('loadGameConfig adopts gameConfig from the API on success', async () => {
-    const customConfig = { ...DEFAULT_GAME_CONFIG, limits: { betMin: 3, betMax: 30, maxBetHardcap: 1000 } };
+    const customConfig = {
+      ...DEFAULT_GAME_CONFIG,
+      limits: { betMin: 3, betMax: 30, maxBetHardcap: 1000 },
+    };
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       json: async () => ({ gameConfig: customConfig }),
@@ -801,25 +981,14 @@ describe('syncToFile', () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it('posts development state without wallet or local result-authority fields', () => {
+  it('is a no-op and does not send requests to deprecated local endpoints', () => {
     vi.stubEnv('NODE_ENV', 'development');
     vi.mocked(fetch).mockResolvedValue({ ok: true } as unknown as Response);
 
-    useCasinoStore.getState().processGameResult({
-      game: 'DICE', amount: 1, multiplier: 0, payout: 0, win: false, resultId: resultId(600),
-    });
+    useCasinoStore.getState().syncToFile();
     vi.advanceTimersByTime(500);
 
-    expect(fetch).toHaveBeenCalledWith(
-      '/api/local/state',
-      expect.objectContaining({ method: 'POST' })
-    );
-    const body = JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as string);
-    expect(body).not.toHaveProperty('balance');
-    expect(body).not.toHaveProperty('xp');
-    expect(body).not.toHaveProperty('bets');
-    expect(body).not.toHaveProperty('allBets');
-    expect(body).not.toHaveProperty('processedResultIds');
+    expect(fetch).not.toHaveBeenCalledWith('/api/local/state', expect.anything());
   });
 });
 
@@ -828,7 +997,7 @@ describe('persist configuration', () => {
     const options = useCasinoStore.persist.getOptions();
     const migrate = options.migrate as unknown as (
       state: unknown,
-      version: number
+      version: number,
     ) => Record<string, unknown>;
 
     const legacy = {
@@ -852,7 +1021,7 @@ describe('persist configuration', () => {
     const options = useCasinoStore.persist.getOptions();
     const migrate = options.migrate as unknown as (
       state: unknown,
-      version: number
+      version: number,
     ) => Record<string, unknown>;
 
     const migrated = migrate(
@@ -861,7 +1030,7 @@ describe('persist configuration', () => {
         allBets: [{ id: resultId(22), game: 'DICE', amount: 10 }],
         soundEnabled: true,
       },
-      2
+      2,
     );
 
     expect(migrated.bets).toBeUndefined();
@@ -871,7 +1040,7 @@ describe('persist configuration', () => {
   it('partialize() excludes wallet + transient UI fields from persistence', () => {
     const options = useCasinoStore.persist.getOptions();
     const partialize = options.partialize as unknown as (
-      state: ReturnType<typeof useCasinoStore.getState>
+      state: ReturnType<typeof useCasinoStore.getState>,
     ) => Record<string, unknown>;
 
     const persisted = partialize(useCasinoStore.getState());

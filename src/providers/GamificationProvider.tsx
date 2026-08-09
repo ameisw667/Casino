@@ -10,8 +10,8 @@ interface GamificationContextType {
 const GamificationContext = createContext<GamificationContextType | undefined>(undefined);
 
 export function GamificationProvider({ children }: { children: React.ReactNode }) {
-  const level = useCasinoStore(s => s.level);
-  const addToast = useCasinoStore(s => s.addToast);
+  const level = useCasinoStore((s) => s.level);
+  const addToast = useCasinoStore((s) => s.addToast);
   const [lastLevelUp, setLastLevelUp] = useState<number | null>(null);
   const isFirstRender = useRef(true);
 
@@ -25,7 +25,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setLastLevelUp(level);
       addToast(`LEVEL UP! You are now Level ${level} 🚀`, 'success', 5000);
-      
+
       // Trigger confetti or special effect event
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('celebrate-level-up', { detail: { level } }));
@@ -34,9 +34,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
   }, [level, addToast]);
 
   return (
-    <GamificationContext.Provider value={{ lastLevelUp }}>
-      {children}
-    </GamificationContext.Provider>
+    <GamificationContext.Provider value={{ lastLevelUp }}>{children}</GamificationContext.Provider>
   );
 }
 
