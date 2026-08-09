@@ -12,7 +12,7 @@ class SoundManager {
     click: '/sounds/dice-roll.mp3',
     notification: '/sounds/win.mp3',
     chip: '/sounds/dice-roll.mp3',
-    spin: '/sounds/dice-roll.mp3'
+    spin: '/sounds/dice-roll.mp3',
   };
 
   private constructor() {
@@ -51,7 +51,7 @@ class SoundManager {
   }
 
   private updateVolumes() {
-    Object.values(this.sounds).forEach(s => {
+    Object.values(this.sounds).forEach((s) => {
       s.volume = this.volume;
     });
   }
@@ -68,7 +68,14 @@ class SoundManager {
       });
     }
   }
+
+  public playClick() {
+    this.play('click');
+  }
+
+  public playHover() {
+    this.play('click');
+  }
 }
 
 export const soundManager = SoundManager.getInstance();
-

@@ -9,13 +9,13 @@ export class ProvablyFairEngine {
   static async generateServerSeed(): Promise<{ seed: string; hash: string }> {
     const array = new Uint8Array(32);
     crypto.getRandomValues(array);
-    const seed = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-    
+    const seed = Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
+
     const msgUint8 = new TextEncoder().encode(seed);
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    
+    const hash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+
     return { seed, hash };
   }
 
@@ -27,7 +27,7 @@ export class ProvablyFairEngine {
     const msgUint8 = encoder.encode(seed);
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const calculatedHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    const calculatedHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
     return calculatedHash === hash;
   }
 
@@ -35,7 +35,11 @@ export class ProvablyFairEngine {
    * Calculates the outcome for a game using the seeds and nonce.
    * Returns a value between 0 and 1.
    */
-  static async calculateOutcome(serverSeed: string, clientSeed: string, nonce: number): Promise<{ result: number; hash: string }> {
+  static async calculateOutcome(
+    serverSeed: string,
+    clientSeed: string,
+    nonce: number,
+  ): Promise<{ result: number; hash: string }> {
     if (!serverSeed || typeof serverSeed !== 'string') throw new Error('Invalid server seed');
     if (!clientSeed || typeof clientSeed !== 'string' || clientSeed.trim().length === 0) {
       throw new Error('Client seed cannot be empty');
@@ -49,19 +53,20 @@ export class ProvablyFairEngine {
       encoder.encode(serverSeed),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
-      ['sign']
+      ['sign'],
     );
     const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(combined));
     const hashArray = Array.from(new Uint8Array(signature));
-    const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    
+    const hash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+
     // Use first 4 bytes to generate an unsigned 32-bit integer (0 - 4,294,967,295)
-    const int = ((hashArray[0] << 24) | (hashArray[1] << 16) | (hashArray[2] << 8) | hashArray[3]) >>> 0;
-    
+    const int =
+      ((hashArray[0] << 24) | (hashArray[1] << 16) | (hashArray[2] << 8) | hashArray[3]) >>> 0;
+
     // Divide by 2^32 to get a number between 0 and 1
-    return { 
+    return {
       result: int / Math.pow(2, 32),
-      hash 
+      hash,
     };
   }
 
@@ -75,13 +80,12 @@ export class ProvablyFairEngine {
       encoder.encode(serverSeed),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
-      ['sign']
+      ['sign'],
     );
     const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(data));
     const hashArray = Array.from(new Uint8Array(signature));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   }
-
 
   /**
    * Specifically for Dice (0-100)
@@ -90,7 +94,6 @@ export class ProvablyFairEngine {
     const { result } = await this.calculateOutcome(serverSeed, clientSeed, nonce);
     return Math.floor(result * 10001) / 100; // Returns 0.00 to 100.00
   }
-
 
   /**
    * Specifically for Crash — market-standard formula (Bustabit / Stake / Roobet).
@@ -104,28 +107,36 @@ export class ProvablyFairEngine {
     serverSeed: string,
     clientSeed: string,
     nonce: number,
-    houseEdge: number = 0.01
+    houseEdge: number = 0.01,
   ): Promise<number> {
     const { result } = await this.calculateOutcome(serverSeed, clientSeed, nonce);
-    if (result < houseEdge) return 1.00;
+    if (result < houseEdge) return 1.0;
     const multiplier = (1 - houseEdge) / (1 - result);
-    return Math.max(1.00, Math.floor(multiplier * 100) / 100);
+    return Math.max(1.0, Math.floor(multiplier * 100) / 100);
   }
-
 
   /**
    * Specifically for Roulette (0-36)
    */
-  static async getRouletteNumber(serverSeed: string, clientSeed: string, nonce: number): Promise<number> {
+  static async getRouletteNumber(
+    serverSeed: string,
+    clientSeed: string,
+    nonce: number,
+  ): Promise<number> {
     const { result } = await this.calculateOutcome(serverSeed, clientSeed, nonce);
     return Math.floor(result * 37); // Returns 0 to 36
   }
 
-
   /**
    * Specifically for Slots (Indices for each reel)
    */
-  static async getSlotsResult(serverSeed: string, clientSeed: string, nonce: number, reelCount: number = 5, symbolsPerReel: number = 12): Promise<number[]> {
+  static async getSlotsResult(
+    serverSeed: string,
+    clientSeed: string,
+    nonce: number,
+    reelCount: number = 5,
+    symbolsPerReel: number = 12,
+  ): Promise<number[]> {
     const results: number[] = [];
     for (let i = 0; i < reelCount; i++) {
       const { result } = await this.calculateOutcome(serverSeed, clientSeed, nonce + i);
@@ -138,7 +149,12 @@ export class ProvablyFairEngine {
    * Specifically for Blackjack (Fisher-Yates shuffle indices for 6-deck shoe)
    * Uses a single HMAC to derive all shuffle positions efficiently (1 call instead of 312).
    */
-  static async getBlackjackDeal(serverSeed: string, clientSeed: string, nonce: number, deckSize: number = 312): Promise<number[]> {
+  static async getBlackjackDeal(
+    serverSeed: string,
+    clientSeed: string,
+    nonce: number,
+    deckSize: number = 312,
+  ): Promise<number[]> {
     const encoder = new TextEncoder();
     const combined = `${serverSeed}:${clientSeed}:${nonce}`;
     const key = await crypto.subtle.importKey(
@@ -146,7 +162,7 @@ export class ProvablyFairEngine {
       encoder.encode(serverSeed || 'default'),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
-      ['sign']
+      ['sign'],
     );
     const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(combined));
     const bytes = new Uint8Array(signature);
@@ -168,7 +184,6 @@ export class ProvablyFairEngine {
     }
     return swapIndices;
   }
-
 }
 
 export function sanitizeClientSeed(seed: string): string {

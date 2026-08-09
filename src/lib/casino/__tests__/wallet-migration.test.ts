@@ -2,7 +2,10 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const sql = readFileSync(resolve(__dirname, '../../../../supabase/migrations/007_server_authority.sql'), 'utf8');
+const sql = readFileSync(
+  resolve(__dirname, '../../../../supabase/migrations/007_server_authority.sql'),
+  'utf8',
+);
 
 describe('server-authoritative wallet migration', () => {
   it('defines an idempotent atomic settlement RPC', () => {

@@ -7,7 +7,7 @@ import { type GameConfig, DEFAULT_GAME_CONFIG, validateBetWithConfig } from './g
 export function validateBet(
   betAmount: number,
   balance: number,
-  config: GameConfig = DEFAULT_GAME_CONFIG
+  config: GameConfig = DEFAULT_GAME_CONFIG,
 ): string | null {
   return validateBetWithConfig(betAmount, balance, config);
 }

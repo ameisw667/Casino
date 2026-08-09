@@ -36,4 +36,5 @@ describe('server-authoritative wallet boundary', () => {
     expect(store).not.toContain('balance: state.balance -');
     expect(store).not.toContain('xp: state.xp +');
     expect(store).not.toContain('rakebackPool: state.rakebackPool +');
-  });});
+  });
+});

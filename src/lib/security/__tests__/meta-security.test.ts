@@ -75,9 +75,10 @@ function authClientWithUser(user: { id: string; email?: string } | null) {
 function adminClientWithCanonicalRole() {
   return {
     from(table: string) {
-      const result = table === 'user_identities'
-        ? { data: { user_id: 'canonical-user' }, error: null }
-        : { data: { role: 'admin' }, error: null };
+      const result =
+        table === 'user_identities'
+          ? { data: { user_id: 'canonical-user' }, error: null }
+          : { data: { role: 'admin' }, error: null };
       const builder = {
         select: () => builder,
         eq: () => builder,
@@ -113,17 +114,21 @@ describe('meta security baseline', () => {
     const sql = normalizedSql();
 
     expect(sql).toMatch(/DROP POLICY IF EXISTS ["']users_update_own["'] ON (?:public\.)?users/i);
-    expect(sql).toMatch(/REVOKE UPDATE ON TABLE (?:public\.)?users FROM PUBLIC, anon, authenticated/i);
+    expect(sql).toMatch(
+      /REVOKE UPDATE ON TABLE (?:public\.)?users FROM PUBLIC, anon, authenticated/i,
+    );
     for (const signature of [
       'place_bet\\(TEXT, NUMERIC, TEXT\\)',
       'settle_bet\\(TEXT, NUMERIC, INTEGER, TEXT\\)',
       'migrate_anonymous_session\\(TEXT, TEXT\\)',
       'upsert_anonymous_session\\(TEXT, BIGINT, INTEGER, TEXT, NUMERIC\\)',
     ]) {
-      expect(sql).toMatch(new RegExp(
-        `REVOKE ALL ON FUNCTION (?:public\\.)?${signature} FROM PUBLIC, anon, authenticated, service_role`,
-        'i'
-      ));
+      expect(sql).toMatch(
+        new RegExp(
+          `REVOKE ALL ON FUNCTION (?:public\\.)?${signature} FROM PUBLIC, anon, authenticated, service_role`,
+          'i',
+        ),
+      );
     }
   });
 
@@ -137,14 +142,23 @@ describe('meta security baseline', () => {
     expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS (?:public\.)?admin_roles/i);
     expect(sql).toMatch(/ALTER TABLE (?:public\.)?user_identities ENABLE ROW LEVEL SECURITY/i);
     expect(sql).toMatch(/ALTER TABLE (?:public\.)?admin_roles ENABLE ROW LEVEL SECURITY/i);
-    expect(sql).toMatch(/REVOKE ALL ON TABLE (?:public\.)?user_identities FROM PUBLIC, anon, authenticated/i);
-    expect(sql).toMatch(/REVOKE ALL ON TABLE (?:public\.)?admin_roles FROM PUBLIC, anon, authenticated/i);
+    expect(sql).toMatch(
+      /REVOKE ALL ON TABLE (?:public\.)?user_identities FROM PUBLIC, anon, authenticated/i,
+    );
+    expect(sql).toMatch(
+      /REVOKE ALL ON TABLE (?:public\.)?admin_roles FROM PUBLIC, anon, authenticated/i,
+    );
   });
 
   it('quarantines a possible legacy email conflict before provisioning a second wallet', () => {
     const sql = readWorkspaceFile('supabase/migrations/009_meta_features.sql');
-    const triggerStart = sql.indexOf('CREATE OR REPLACE FUNCTION public.handle_new_supabase_user()');
-    const triggerEnd = sql.indexOf('REVOKE ALL ON FUNCTION public.handle_new_supabase_user()', triggerStart);
+    const triggerStart = sql.indexOf(
+      'CREATE OR REPLACE FUNCTION public.handle_new_supabase_user()',
+    );
+    const triggerEnd = sql.indexOf(
+      'REVOKE ALL ON FUNCTION public.handle_new_supabase_user()',
+      triggerStart,
+    );
     const trigger = sql.slice(triggerStart, triggerEnd);
     const identityLookup = trigger.indexOf('FROM public.user_identities');
     const emailConflictLookup = trigger.indexOf('FROM public.users');
@@ -153,11 +167,21 @@ describe('meta security baseline', () => {
 
     expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS public\.identity_link_quarantine/i);
     expect(sql).toMatch(/ALTER TABLE public\.identity_link_quarantine ENABLE ROW LEVEL SECURITY/i);
-    expect(sql).toMatch(/REVOKE ALL ON TABLE public\.identity_link_quarantine FROM PUBLIC, anon, authenticated/i);
-    expect(sql).toMatch(/CREATE OR REPLACE FUNCTION public\.guard_canonical_user_provisioning\(\)/i);
-    expect(sql).toMatch(/CREATE TRIGGER guard_canonical_user_provisioning\s+BEFORE INSERT ON public\.users/i);
-    expect(sql).toMatch(/identity_link_quarantine[\s\S]*resolved_at IS NULL[\s\S]*IDENTITY_CLAIM_REQUIRED/i);
-    expect(sql).toMatch(/user_identities[\s\S]*v_canonical_user_id <> NEW\.id[\s\S]*CANONICAL_IDENTITY_REQUIRED/i);
+    expect(sql).toMatch(
+      /REVOKE ALL ON TABLE public\.identity_link_quarantine FROM PUBLIC, anon, authenticated/i,
+    );
+    expect(sql).toMatch(
+      /CREATE OR REPLACE FUNCTION public\.guard_canonical_user_provisioning\(\)/i,
+    );
+    expect(sql).toMatch(
+      /CREATE TRIGGER guard_canonical_user_provisioning\s+BEFORE INSERT ON public\.users/i,
+    );
+    expect(sql).toMatch(
+      /identity_link_quarantine[\s\S]*resolved_at IS NULL[\s\S]*IDENTITY_CLAIM_REQUIRED/i,
+    );
+    expect(sql).toMatch(
+      /user_identities[\s\S]*v_canonical_user_id <> NEW\.id[\s\S]*CANONICAL_IDENTITY_REQUIRED/i,
+    );
     expect(identityLookup).toBeGreaterThan(0);
     expect(emailConflictLookup).toBeGreaterThan(identityLookup);
     expect(quarantineInsert).toBeGreaterThan(emailConflictLookup);
@@ -189,14 +213,18 @@ describe('meta security baseline', () => {
   it('rejects an allowlisted host when the origin scheme differs', () => {
     process.env.APP_ORIGINS = 'https://casino.test';
 
-    const accepted = validateMutationOrigin(new Request('https://casino.test/api/admin', {
-      method: 'POST',
-      headers: { origin: 'https://casino.test', host: 'casino.test' },
-    }));
-    const rejected = validateMutationOrigin(new Request('https://casino.test/api/admin', {
-      method: 'POST',
-      headers: { origin: 'http://casino.test', host: 'casino.test' },
-    }));
+    const accepted = validateMutationOrigin(
+      new Request('https://casino.test/api/admin', {
+        method: 'POST',
+        headers: { origin: 'https://casino.test', host: 'casino.test' },
+      }),
+    );
+    const rejected = validateMutationOrigin(
+      new Request('https://casino.test/api/admin', {
+        method: 'POST',
+        headers: { origin: 'http://casino.test', host: 'casino.test' },
+      }),
+    );
 
     expect(accepted).toBeNull();
     expect(rejected?.status).toBe(403);
@@ -204,32 +232,40 @@ describe('meta security baseline', () => {
 
   it('rejects malformed configured origins instead of using the development fallback', () => {
     process.env.APP_ORIGINS = 'not-an-origin';
-    const result = validateMutationOrigin(new Request('https://casino.test/api/admin', {
-      method: 'POST',
-      headers: { origin: 'https://casino.test' },
-    }));
+    const result = validateMutationOrigin(
+      new Request('https://casino.test/api/admin', {
+        method: 'POST',
+        headers: { origin: 'https://casino.test' },
+      }),
+    );
     expect(result?.status).toBe(403);
   });
 
   it('rejects configured origins with a trailing slash', () => {
     process.env.APP_ORIGINS = 'https://casino.test/';
-    const result = validateMutationOrigin(new Request('https://casino.test/api/admin', {
-      method: 'POST',
-      headers: { origin: 'https://casino.test' },
-    }));
+    const result = validateMutationOrigin(
+      new Request('https://casino.test/api/admin', {
+        method: 'POST',
+        headers: { origin: 'https://casino.test' },
+      }),
+    );
     expect(result?.status).toBe(403);
   });
 
   it('matches preview origins with their exact configured port', () => {
     process.env.APP_ORIGINS = 'https://casino.test, https://preview.casino.test:8443';
-    const accepted = validateMutationOrigin(new Request('https://preview.casino.test:8443/api/admin', {
-      method: 'POST',
-      headers: { origin: 'https://preview.casino.test:8443' },
-    }));
-    const rejected = validateMutationOrigin(new Request('https://preview.casino.test:9443/api/admin', {
-      method: 'POST',
-      headers: { origin: 'https://preview.casino.test:9443' },
-    }));
+    const accepted = validateMutationOrigin(
+      new Request('https://preview.casino.test:8443/api/admin', {
+        method: 'POST',
+        headers: { origin: 'https://preview.casino.test:8443' },
+      }),
+    );
+    const rejected = validateMutationOrigin(
+      new Request('https://preview.casino.test:9443/api/admin', {
+        method: 'POST',
+        headers: { origin: 'https://preview.casino.test:9443' },
+      }),
+    );
     expect(accepted).toBeNull();
     expect(rejected?.status).toBe(403);
   });
@@ -254,8 +290,9 @@ describe('meta security baseline', () => {
     process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token';
     mocks.remoteLimiterError = new Error('remote unavailable');
 
-    const result = await enforceRateLimit('user:one', 'admin-mutation', 7, 5)
-      .catch((error: unknown) => error);
+    const result = await enforceRateLimit('user:one', 'admin-mutation', 7, 5).catch(
+      (error: unknown) => error,
+    );
 
     expect(result).toMatchObject({
       success: false,
@@ -268,8 +305,7 @@ describe('meta security baseline', () => {
 
   it('rejects unauthenticated and non-admin API calls before creating a service-role client', async () => {
     const requireAdminApi = (adminSecurity as Record<string, unknown>).requireAdminApi as
-      | (() => Promise<Response | { canonicalUserId: string }>)
-      | undefined;
+      (() => Promise<Response | { canonicalUserId: string }>) | undefined;
     expect(requireAdminApi).toBeTypeOf('function');
     if (!requireAdminApi) return;
 
@@ -280,10 +316,12 @@ describe('meta security baseline', () => {
     expect((unauthenticated as Response).status).toBe(401);
     expect(mocks.createAdminClient).not.toHaveBeenCalled();
 
-    mocks.createServerClient.mockResolvedValueOnce(authClientWithUser({
-      id: '00000000-0000-4000-8000-000000000001',
-      email: 'player@example.com',
-    }));
+    mocks.createServerClient.mockResolvedValueOnce(
+      authClientWithUser({
+        id: '00000000-0000-4000-8000-000000000001',
+        email: 'player@example.com',
+      }),
+    );
     const forbidden = await requireAdminApi();
     expect(forbidden).toBeInstanceOf(Response);
     expect((forbidden as Response).status).toBe(403);
@@ -291,14 +329,16 @@ describe('meta security baseline', () => {
   });
 
   it('returns 503 when service-role infrastructure is unavailable', async () => {
-    const requireAdminApi = (adminSecurity as Record<string, unknown>).requireAdminApi as
-      () => Promise<Response | { canonicalUserId: string }>;
+    const requireAdminApi = (adminSecurity as Record<string, unknown>)
+      .requireAdminApi as () => Promise<Response | { canonicalUserId: string }>;
 
     process.env.SUPABASE_ADMIN_EMAILS = 'admin@example.com';
-    mocks.createServerClient.mockResolvedValue(authClientWithUser({
-      id: '00000000-0000-4000-8000-000000000003',
-      email: 'admin@example.com',
-    }));
+    mocks.createServerClient.mockResolvedValue(
+      authClientWithUser({
+        id: '00000000-0000-4000-8000-000000000003',
+        email: 'admin@example.com',
+      }),
+    );
     mocks.createAdminClient.mockImplementation(() => {
       throw new Error('Missing Supabase Admin Environment Variables');
     });
@@ -311,16 +351,17 @@ describe('meta security baseline', () => {
 
   it('returns the canonical identity only after both admin boundaries pass', async () => {
     const requireAdminApi = (adminSecurity as Record<string, unknown>).requireAdminApi as
-      | (() => Promise<Response | { canonicalUserId: string }>)
-      | undefined;
+      (() => Promise<Response | { canonicalUserId: string }>) | undefined;
     expect(requireAdminApi).toBeTypeOf('function');
     if (!requireAdminApi) return;
 
     process.env.SUPABASE_ADMIN_EMAILS = 'admin@example.com';
-    mocks.createServerClient.mockResolvedValue(authClientWithUser({
-      id: '00000000-0000-4000-8000-000000000002',
-      email: 'admin@example.com',
-    }));
+    mocks.createServerClient.mockResolvedValue(
+      authClientWithUser({
+        id: '00000000-0000-4000-8000-000000000002',
+        email: 'admin@example.com',
+      }),
+    );
     mocks.createAdminClient.mockReturnValue(adminClientWithCanonicalRole());
 
     const result = await requireAdminApi();

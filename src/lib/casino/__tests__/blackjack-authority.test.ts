@@ -7,7 +7,8 @@ const api = readFileSync(resolve(root, 'src/app/api/casino/blackjack/route.ts'),
 
 describe('server blackjack authority', () => {
   it('executes every player action through the stateful server route', () => {
-    for (const action of ['DEAL', 'HIT', 'STAND', 'DOUBLE', 'SPLIT']) expect(api).toContain(`'${action}'`);
+    for (const action of ['DEAL', 'HIT', 'STAND', 'DOUBLE', 'SPLIT'])
+      expect(api).toContain(`'${action}'`);
     expect(api).toContain('advanceBlackjackRound');
     expect(api).toContain('getActiveRound');
   });

@@ -16,10 +16,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import {
-  MAX_BET,
-  calculateDicePayout,
-} from '../casino-core';
+import { MAX_BET, calculateDicePayout } from '../casino-core';
 import { DEFAULT_GAME_CONFIG } from '../game-config';
 
 // ─── 1. Baseline: normal bet ───────────────────────────────────────────────
@@ -89,9 +86,7 @@ describe('calculateDicePayout — extreme bets', () => {
   });
 
   it('throws RangeError with a descriptive message when bet exceeds MAX_BET', () => {
-    expect(() => calculateDicePayout(MAX_BET + 1, 2, true)).toThrow(
-      /exceeds maximum allowed bet/i
-    );
+    expect(() => calculateDicePayout(MAX_BET + 1, 2, true)).toThrow(/exceeds maximum allowed bet/i);
   });
 
   it('accepts bet exactly at MAX_BET without throwing', () => {

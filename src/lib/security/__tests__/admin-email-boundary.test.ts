@@ -5,7 +5,9 @@ import { isAdminEmail } from '../admin';
 
 const root = resolve(__dirname, '../../../..');
 
-afterEach(() => { delete process.env.SUPABASE_ADMIN_EMAILS; });
+afterEach(() => {
+  delete process.env.SUPABASE_ADMIN_EMAILS;
+});
 
 describe('admin email boundary', () => {
   it('accepts only an exact allowlisted email, case-insensitively', () => {

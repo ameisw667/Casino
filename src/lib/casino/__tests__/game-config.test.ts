@@ -119,7 +119,7 @@ describe('calculateLevelWithConfig', () => {
 
   it('never exceeds maxLevel', () => {
     expect(calculateLevelWithConfig(Number.MAX_SAFE_INTEGER, DEFAULT_GAME_CONFIG)).toBe(
-      DEFAULT_GAME_CONFIG.xp.maxLevel
+      DEFAULT_GAME_CONFIG.xp.maxLevel,
     );
   });
 });

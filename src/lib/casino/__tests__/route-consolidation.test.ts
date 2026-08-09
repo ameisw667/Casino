@@ -21,8 +21,8 @@ describe('canonical game routes', () => {
   it('uses the promoted slots page and canonical components', () => {
     const page = read('src/app/games/slots/page.tsx');
 
-    expect(page).toContain("@/components/casino/games/slots/SlotReel");
-    expect(page).toContain("@/components/casino/games/slots/WinLine");
+    expect(page).toContain('@/components/casino/games/slots/SlotReel');
+    expect(page).toContain('@/components/casino/games/slots/WinLine');
     expect(page).toContain("from './symbols'");
     expect(page).toContain('ZEUS VAULT');
     expect(page).not.toContain('SlotLightsBar');

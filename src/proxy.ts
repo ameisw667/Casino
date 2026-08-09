@@ -17,7 +17,6 @@ const PUBLIC_ROUTES = [
   '/leaderboard(.*)',
   '/vault(.*)',
   '/affiliate(.*)',
-  '/backend(.*)',
   '/auth/callback(.*)',
   '/api/public/(.*)',
   // These handlers perform their own Supabase auth and return API-shaped 401/503 responses.
@@ -32,7 +31,7 @@ const PUBLIC_ROUTES = [
 function isPublicRoute(pathname: string): boolean {
   return PUBLIC_ROUTES.some((pattern) => {
     if (pattern.endsWith('(.*)')) {
-      const prefix = pattern.slice(0, -4);
+      const prefix = pattern.slice(0, -4).replace(/\/$/, '');
       return pathname === prefix || pathname.startsWith(`${prefix}/`);
     }
     return pathname === pattern;
@@ -81,30 +80,39 @@ export default async function proxy(req: NextRequest) {
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
             response = NextResponse.next({ request: req });
-            cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options),
+            );
           },
         },
-      }
+      },
     );
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (pathname.startsWith('/admin')) {
-      if (!user) return withRefreshedCookies(response, NextResponse.redirect(new URL('/sign-in', req.url)));
-      if (!isAdminEmail(user.email)) return withRefreshedCookies(response, new NextResponse('Forbidden', { status: 403 }));
+      if (!user)
+        return withRefreshedCookies(response, NextResponse.redirect(new URL('/sign-in', req.url)));
+      if (!isAdminEmail(user.email))
+        return withRefreshedCookies(response, new NextResponse('Forbidden', { status: 403 }));
     } else if (!isPublicRoute(pathname) && !user) {
       return withRefreshedCookies(response, NextResponse.redirect(new URL('/sign-in', req.url)));
     }
 
     response.headers.set('X-DNS-Prefetch-Control', 'on');
-    response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+    response.headers.set(
+      'Strict-Transport-Security',
+      'max-age=63072000; includeSubDomains; preload',
+    );
     response.headers.set('X-Frame-Options', 'SAMEORIGIN');
     response.headers.set('X-Content-Type-Options', 'nosniff');
     response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
     response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     response.headers.set(
       'Content-Security-Policy',
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io; frame-ancestors 'none';"
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io; frame-ancestors 'none';",
     );
     return response;
   } catch (error) {

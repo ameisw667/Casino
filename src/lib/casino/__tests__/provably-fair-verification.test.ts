@@ -23,8 +23,8 @@ describe('ProvablyFairEngine cryptographic verification & game determinism', () 
     const roll2 = await ProvablyFairEngine.getDiceRoll(serverSeed, clientSeed, nonce);
 
     expect(roll1).toBe(roll2); // Deterministic
-    expect(roll1).toBeGreaterThanOrEqual(0.00);
-    expect(roll1).toBeLessThanOrEqual(100.00);
+    expect(roll1).toBeGreaterThanOrEqual(0.0);
+    expect(roll1).toBeLessThanOrEqual(100.0);
   });
 
   it('calculates deterministic crash multiplier >= 1.00', async () => {
@@ -32,7 +32,7 @@ describe('ProvablyFairEngine cryptographic verification & game determinism', () 
     const clientSeed = 'player-seed';
     const mult = await ProvablyFairEngine.getCrashMultiplier(serverSeed, clientSeed, 5);
 
-    expect(mult).toBeGreaterThanOrEqual(1.00);
+    expect(mult).toBeGreaterThanOrEqual(1.0);
     expect(Number.isFinite(mult)).toBe(true);
   });
 
@@ -52,7 +52,7 @@ describe('ProvablyFairEngine cryptographic verification & game determinism', () 
     const reels = await ProvablyFairEngine.getSlotsResult(serverSeed, clientSeed, 10, 5, 12);
 
     expect(reels).toHaveLength(5);
-    reels.forEach(r => {
+    reels.forEach((r) => {
       expect(Number.isInteger(r)).toBe(true);
       expect(r).toBeGreaterThanOrEqual(0);
       expect(r).toBeLessThan(12);
@@ -65,7 +65,7 @@ describe('ProvablyFairEngine cryptographic verification & game determinism', () 
     const deal = await ProvablyFairEngine.getBlackjackDeal(serverSeed, clientSeed, 1, 312);
 
     expect(deal).toHaveLength(312);
-    deal.forEach(index => {
+    deal.forEach((index) => {
       expect(Number.isInteger(index)).toBe(true);
       expect(index).toBeGreaterThanOrEqual(0);
       expect(index).toBeLessThan(312);

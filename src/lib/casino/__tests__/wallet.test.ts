@@ -19,7 +19,7 @@ let mock: SupabaseMock;
 beforeEach(() => {
   mock = createSupabaseMock();
   vi.mocked(createAdminClient).mockReturnValue(
-    mock.client as unknown as ReturnType<typeof createAdminClient>
+    mock.client as unknown as ReturnType<typeof createAdminClient>,
   );
 });
 
@@ -41,8 +41,8 @@ describe('WalletService.getWallet', () => {
       transactionId: TRANSACTION_ID,
     });
     expect(mock.builder.upsert).toHaveBeenCalledWith(
-      { id: USER_ID, username: USER_ID.slice(0, 64), balance: 10000.00 },
-      { onConflict: 'id', ignoreDuplicates: true }
+      { id: USER_ID, username: USER_ID.slice(0, 64), balance: 10000.0 },
+      { onConflict: 'id', ignoreDuplicates: true },
     );
     expect(mock.client.from).toHaveBeenCalledWith('users');
     expect(mock.client.from).toHaveBeenCalledWith('wallet_transactions');
@@ -68,7 +68,7 @@ describe('WalletService.getWallet', () => {
     mock.state.maybeSingleResult = { data: null, error: { message: 'connection reset' } };
 
     await expect(WalletService.getWallet(USER_ID)).rejects.toThrow(
-      'Wallet transaction history could not be loaded'
+      'Wallet transaction history could not be loaded',
     );
   });
 
@@ -76,7 +76,7 @@ describe('WalletService.getWallet', () => {
     mock.state.upsertResult = { error: { message: 'db down' } };
 
     await expect(WalletService.getWallet(USER_ID)).rejects.toThrow(
-      'Wallet user could not be provisioned'
+      'Wallet user could not be provisioned',
     );
   });
 
@@ -84,9 +84,7 @@ describe('WalletService.getWallet', () => {
     mock.state.singleResult = { data: null, error: { message: 'not found' } };
     mock.state.maybeSingleResult = { data: null, error: null };
 
-    await expect(WalletService.getWallet(USER_ID)).rejects.toThrow(
-      'Wallet could not be loaded'
-    );
+    await expect(WalletService.getWallet(USER_ID)).rejects.toThrow('Wallet could not be loaded');
   });
 
   it('rejects a malformed rank via the wallet snapshot schema instead of returning it', async () => {
@@ -167,9 +165,7 @@ describe('WalletService.settleBet', () => {
   it('maps any other RPC error to a generic settlement failure', async () => {
     mock.state.rpcResult = { data: null, error: { message: 'deadlock detected' } };
 
-    await expect(WalletService.settleBet(params)).rejects.toThrow(
-      'Atomic bet settlement failed'
-    );
+    await expect(WalletService.settleBet(params)).rejects.toThrow('Atomic bet settlement failed');
   });
 
   it('rejects a malformed RPC response instead of returning it', async () => {
@@ -255,7 +251,7 @@ describe('WalletService.startRound', () => {
     mock.state.rpcResult = { data: null, error: { message: 'lock timeout' } };
 
     await expect(WalletService.startRound(params)).rejects.toThrow(
-      'Game round could not be started'
+      'Game round could not be started',
     );
   });
 
@@ -299,9 +295,9 @@ describe('WalletService.getActiveRound', () => {
   it('throws when no active round is found', async () => {
     mock.state.singleResult = { data: null, error: { message: 'no rows' } };
 
-    await expect(
-      WalletService.getActiveRound(USER_ID, ROUND_ID, 'CRASH')
-    ).rejects.toThrow('Active game round not found');
+    await expect(WalletService.getActiveRound(USER_ID, ROUND_ID, 'CRASH')).rejects.toThrow(
+      'Active game round not found',
+    );
   });
 });
 
@@ -373,9 +369,7 @@ describe('WalletService.settleRound', () => {
   it('maps any RPC error to a generic settlement failure', async () => {
     mock.state.rpcResult = { data: null, error: { message: 'constraint violation' } };
 
-    await expect(WalletService.settleRound(params)).rejects.toThrow(
-      'Game round settlement failed'
-    );
+    await expect(WalletService.settleRound(params)).rejects.toThrow('Game round settlement failed');
   });
 });
 
@@ -451,7 +445,7 @@ describe('WalletService.advanceBlackjackRound', () => {
     mock.state.rpcResult = { data: null, error: { message: 'Insufficient balance for hit' } };
 
     await expect(WalletService.advanceBlackjackRound(params)).rejects.toThrow(
-      'Insufficient balance'
+      'Insufficient balance',
     );
   });
 
@@ -459,7 +453,7 @@ describe('WalletService.advanceBlackjackRound', () => {
     mock.state.rpcResult = { data: null, error: { message: 'Stale version conflict' } };
 
     await expect(WalletService.advanceBlackjackRound(params)).rejects.toThrow(
-      'Stale blackjack action'
+      'Stale blackjack action',
     );
   });
 
@@ -467,7 +461,7 @@ describe('WalletService.advanceBlackjackRound', () => {
     mock.state.rpcResult = { data: null, error: { message: 'unexpected' } };
 
     await expect(WalletService.advanceBlackjackRound(params)).rejects.toThrow(
-      'Blackjack action failed'
+      'Blackjack action failed',
     );
   });
 

@@ -30,7 +30,7 @@ export class CasinoLogger {
     const style = win ? 'color: #00ff88' : 'color: #ff4d4d';
     console.log(
       `%c[BET] ${game} | Amount: $${amount} | Result: ${win ? 'WIN' : 'LOSS'} | Payout: $${payout}`,
-      `${style}; font-weight: bold;`
+      `${style}; font-weight: bold;`,
     );
   }
 }

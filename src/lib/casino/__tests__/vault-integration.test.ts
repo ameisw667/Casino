@@ -38,6 +38,6 @@ describe('Vault & Lifetime Stats Backend Integration', () => {
     expect(vaultPage).toContain('ach.description');
     expect(vaultPage).toContain('showAllAchievementsModal');
     expect(store).toContain('mergeServerAchievements');
-    expect(store).toContain('fetch(\'/api/user/stats\'');
+    expect(store).toContain("fetch('/api/user/stats'");
   });
 });

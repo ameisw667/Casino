@@ -17,11 +17,7 @@ function buildBets(types: RouletteBetType[], totalAmount: number): RouletteBet[]
   return types.map((type) => ({ type, amount: perBet }));
 }
 
-async function spinOnce(
-  betTypes: RouletteBetType[],
-  totalAmount: number,
-  nonce: number
-) {
+async function spinOnce(betTypes: RouletteBetType[], totalAmount: number, nonce: number) {
   return CasinoCore.placeBet({
     gameType: 'ROULETTE',
     amount: totalAmount,
@@ -50,9 +46,7 @@ describe('Roulette — three consecutive place-bet simulations', () => {
     expect(result.roll).toBeGreaterThanOrEqual(0);
     expect(result.roll).toBeLessThanOrEqual(36);
 
-    const redNumbers = new Set([
-      1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36,
-    ]);
+    const redNumbers = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
     const isRed = redNumbers.has(result.roll);
 
     if (isRed) {

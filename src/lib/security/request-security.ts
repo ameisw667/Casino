@@ -35,21 +35,21 @@ export function validateMutationOrigin(request: Request): Response | null {
   }
 
   const configuredOriginsValue = process.env.APP_ORIGINS;
-  const hasConfiguredOrigins = typeof configuredOriginsValue === 'string'
-    && configuredOriginsValue.trim() !== '';
+  const hasConfiguredOrigins =
+    typeof configuredOriginsValue === 'string' && configuredOriginsValue.trim() !== '';
   const configuredOrigins = hasConfiguredOrigins
     ? configuredOriginsValue
-      .split(',')
-      .map((value) => value.trim())
-      .filter(Boolean)
-      .flatMap((value) => {
-        try {
-          const configured = new URL(value);
-          return configured.origin === value ? [configured.origin] : [];
-        } catch {
-          return [];
-        }
-      })
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .flatMap((value) => {
+          try {
+            const configured = new URL(value);
+            return configured.origin === value ? [configured.origin] : [];
+          } catch {
+            return [];
+          }
+        })
     : [];
 
   let allowedOrigins = configuredOrigins;
@@ -67,14 +67,16 @@ export async function enforceRateLimit(
   identifier: string,
   scope: string,
   limit = 10,
-  windowSeconds = 10
+  windowSeconds = 10,
 ): Promise<RateLimitDecision> {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
   if (url && token) {
     try {
-      const limiterKey = [url, token, scope, String(limit), String(windowSeconds)].join(String.fromCharCode(0));
+      const limiterKey = [url, token, scope, String(limit), String(windowSeconds)].join(
+        String.fromCharCode(0),
+      );
       let remoteLimiter = remoteLimiters.get(limiterKey);
       if (!remoteLimiter) {
         remoteLimiter = new Ratelimit({
@@ -103,15 +105,20 @@ export async function enforceRateLimit(
     }
   }
   if (process.env.NODE_ENV === 'production') {
-    return { success: false, unavailable: true, limit, remaining: 0, reset: Date.now() + windowSeconds * 1000 };
+    return {
+      success: false,
+      unavailable: true,
+      limit,
+      remaining: 0,
+      reset: Date.now() + windowSeconds * 1000,
+    };
   }
 
   const key = `${scope}:${identifier}`;
   const now = Date.now();
   const current = localWindows.get(key);
-  const bucket = !current || current.reset <= now
-    ? { count: 0, reset: now + windowSeconds * 1000 }
-    : current;
+  const bucket =
+    !current || current.reset <= now ? { count: 0, reset: now + windowSeconds * 1000 } : current;
   bucket.count += 1;
   localWindows.set(key, bucket);
   return {
@@ -127,7 +134,9 @@ export function rateLimitHeaders(result: RateLimitDecision): HeadersInit {
     'X-RateLimit-Limit': String(result.limit),
     'X-RateLimit-Remaining': String(result.remaining),
     'X-RateLimit-Reset': String(result.reset),
-    ...(result.success ? {} : { 'Retry-After': String(Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))) }),
+    ...(result.success
+      ? {}
+      : { 'Retry-After': String(Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))) }),
   };
 }
 

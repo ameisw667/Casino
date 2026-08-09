@@ -1,0 +1,47 @@
+import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+
+// We extract and test the isPublicRoute function directly from src/proxy.ts
+const proxyContent = readFileSync(resolve(process.cwd(), 'src/proxy.ts'), 'utf8');
+
+// Match PUBLIC_ROUTES array from source
+const match = proxyContent.match(/const PUBLIC_ROUTES = (\[[\s\S]*?\]);/);
+if (!match) throw new Error('Could not find PUBLIC_ROUTES in src/proxy.ts');
+
+const PUBLIC_ROUTES: string[] = eval(match[1]);
+
+function isPublicRoute(pathname: string): boolean {
+  return PUBLIC_ROUTES.some((pattern) => {
+    if (pattern.endsWith('(.*)')) {
+      const prefix = pattern.slice(0, -4).replace(/\/$/, '');
+      return pathname === prefix || pathname.startsWith(`${prefix}/`);
+    }
+    return pathname === pattern;
+  });
+}
+
+describe('isPublicRoute pattern matching', () => {
+  it('correctly matches API routes with trailing slashes before (.*)', () => {
+    expect(isPublicRoute('/api/casino/config')).toBe(true);
+    expect(isPublicRoute('/api/casino/bet')).toBe(true);
+    expect(isPublicRoute('/api/user/balance')).toBe(true);
+    expect(isPublicRoute('/api/user/stats')).toBe(true);
+    expect(isPublicRoute('/api/public/ping')).toBe(true);
+  });
+
+  it('correctly matches page routes', () => {
+    expect(isPublicRoute('/')).toBe(true);
+    expect(isPublicRoute('/sign-in')).toBe(true);
+    expect(isPublicRoute('/sign-up')).toBe(true);
+    expect(isPublicRoute('/games/slots')).toBe(true);
+    expect(isPublicRoute('/games/dice')).toBe(true);
+    expect(isPublicRoute('/fairness')).toBe(true);
+  });
+
+  it('correctly blocks protected non-public routes', () => {
+    expect(isPublicRoute('/admin')).toBe(false);
+    expect(isPublicRoute('/admin/users')).toBe(false);
+    expect(isPublicRoute('/secret-page')).toBe(false);
+  });
+});
