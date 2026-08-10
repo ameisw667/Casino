@@ -1,6 +1,6 @@
 # 01 — World Map: Offene Commits — Konsolidierung & Execution Roadmap
 
-> **Erstellt:** 2026-08-09 · **Status:** C1 ✅ (`5860f83`) · C2 ✅ (`92cb929`) · C3 ✅ (`5d3fc7f`) · C4 ✅ (`d825c4b`) · C5 ✅ (`06f364d`) · C6 ✅ (`ca156f3`) · C7 ✅ (`9e97d53`) · C8 ✅ (`5c87a7a`) · C9 ✅ (`d85a2ce`) · C10 ✅ (`e6dd3d6`) · C11 ✅ (`cb88252`) · C12 ✅ (`d2d9777`) · **Ziel:** Vollumfängliche, geordnete Commit-Reihenfolge für sämtliche uncommitted-Arbeit (196 modified · 36 untracked · 12 staged).
+> **Erstellt:** 2026-08-09 · **Status:** R1 C1 ✅ (`5860f83`) · C2 ✅ (`92cb929`) · C3 ✅ (`5d3fc7f`) · C4 ✅ (`d825c4b`) · C5 ✅ (`06f364d`) · C6 ✅ (`ca156f3`) · C7 ✅ (`9e97d53`) · C8 ✅ (`5c87a7a`) · C9 ✅ (`d85a2ce`) · C10 ✅ (`e6dd3d6`) · C11 ✅ (`cb88252`) · C12 ✅ (`d2d9777`) · **R2** C13 ✅ (`e44d712`) · C14 ✅ (`c7f9bc8`) · C15 ✅ (`eb209d9`) · C16 ✅ (`615c45a`) · C17 ✅ (`0b84e34`) · C18 ✅ (`7e1707e`) · C19 ✅ (`49b99da`) · C20 ✅ (`bd48ac5`) · C21 ✅ (`f9231f7`) · **Post-R2 C1** ✅ (`ca2a389`). **Single-Source-of-Truth** — ehemalige `02-offene-commits-r2.md` konsolidiert in §8 (2026-08-10). **Offen:** B6 (`/v2`-Sitemap), M21 (Migration 021 remote rollout) — siehe §9.
 > **Scope:** 5 % Übersichtstabelle für Jan · 95 % Execution-Detail für LLM.
 > **Quellen:** `git status --porcelain` (2026-08-09 11:2x), `worldmap/02_FRONTEND_REDESIGN.md`, `docs/archive/03_CASINO_SUPABASE_CONNECTION.md`, `docs/archive/03_01_CASINO_SUPABASE_IMPLEMENTATION_PLAN.md`, `docs/archive/01b-c1-docs-commit-plan.md`.
 
@@ -77,24 +77,24 @@ C12 (Meta-Docs)     [zuletzt, reflektiert Endzustand]
 | B3  | ~~`ALLOW_DEV_FALLBACK` in `.env.local` — Dev-Auth-Bypass darf nicht in Produktion landen.~~             | Security                         | ✅ **GELÖST/VERIFIZIERT 2026-08-10** — Triple-Gate auf allen 10 Dev-Fallback-Routen vorhanden: `NODE_ENV === 'development'` + `ALLOW_DEV_FALLBACK === 'true'` + `!isExplicitSignedOut` (`casino_signed_out=1`-Cookie). Routen: bet, blackjack, balance, history, stats (GET+POST), chat, seeds (2x), active-round, seeds/history, redeem-code. Kein Hardcode-Fallback in produktiven Pfaden. |
 | B4  | ~~`communityWagered: 8420.5` Hardcode im Store~~ (laut `03_CASINO_SUPABASE_CONNECTION.md` Abschnitt 2). | Server-Autorität                 | ✅ **GELÖST 2026-08-10** — Hardcode aus Initial-State entfernt (`0`); `get_community_stats()`-RPC bleibt angebunden (`wallet.ts` + Store-Hydration). Test `useCasinoStore.test.ts:289` an `0`+10=`10` angepasst.                                                                                                                                                                             |
 | B5  | ~~`syncToFile()` Dev-Methode im Store noch vorhanden.~~                                                 | Dead-Code / Local-Speicher       | ✅ **GELÖST 2026-08-10** — Vollständig entfernt (Type-Dekl, No-Op-Impl, Call-Site in `processGameResult`, Test-Block). Keine verbleibenden Code-Referenzen (nur noch Doku/Historie).                                                                                                                                                                                                         |
-| B6  | Neue v2-Routes (`/v2`) sind WIP/Sandbox — `ClientShell` rendert `/v2` bewusst ohne Shell.               | Prod-Exposition                  | C5: sicherstellen, dass `/v2` nicht in Sitemap/Metadata als Produktivroute deklariert.                                                                                                                                                                                                                                                                                                       |
+| B6  | Neue v2-Routes (`/v2`) sind WIP/Sandbox — `ClientShell` rendert `/v2` bewusst ohne Shell.               | Prod-Exposition                  | ⏳ **OFFEN** — C5: sicherstellen, dass `/v2` nicht in Sitemap/Metadata als Produktivroute deklariert. (Bisher nicht verifiziert — kein Teil von R1/R2-Commits.)                                                                                                                                                                                                                              |
 | B7  | ~~Migration 009 nicht remote angewandt~~ (user_identities/admin_roles/Trigger fehlen).                  | Identitäts-Layer                 | ✅ **GELÖST 2026-08-09** — 009 LIVE ausgerollt (Post-Check 14/14: 3 Tabellen + 3 Funktionen + Guard-Trigger + RLS, identity_rows=16 Backfill, quarantine=0, Legacy-RPCs gesperrt). Rollout-Log: `docs/archive/DB_ROLLOUT_PLAN_2026-08-09.md`.                                                                                                                                                |
 
 ### Verifikation 2026-08-09 (Supabase SQL Editor, Projekt `hmqwozhdckbwjqzcmire`)
 
-| Prüfung                                                                                         | Ergebnis                                                                                                                                                                      |
-| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 003 `seeds` + 007 `game_rounds` + 5 RPCs                                                        | ✅ live                                                                                                                                                                       |
-| 013/014/015 (`get_user_stats`, `sync_user_achievement`, `get_leaderboard`, `user_achievements`) | ✅ live — **014/015 bereits remote angewandt**                                                                                                                                |
-| 011 Legacy-REVOKE (`place_bet`/`settle_bet`)                                                    | ✅ angewandt (ACL nur `postgres`+`service_role`)                                                                                                                              |
-| RLS (`game_rounds`, `seeds`, `users`, `wallet_transactions`, `game_sessions`)                   | ✅ aktiv                                                                                                                                                                      |
-| 016-Dep A `chat_messages`-Schema                                                                | ✅ kompatibel (Tabelle existiert bereits, 016 überspringt CREATE)                                                                                                             |
-| 016-Dep B `seeds`-Schema + Unique(`user_id`)                                                    | ✅ kompatibel, `ON CONFLICT (user_id)` sicher                                                                                                                                 |
-| 016-Dep C `game_rounds`-Schema                                                                  | ✅ kompatibel (alle Spalten vorhanden)                                                                                                                                        |
-| 016-Dep D `wallet_transactions.type`                                                            | ⚠ nur `bet_settled`/`round_settled`/`round_started` (kein `bet`) — `get_community_stats` zählt `bet_settled`=306, funktional ok                                               |
-| 009 (`user_identities`/`admin_roles`)                                                           | ✅ **live** (ausgerollt 2026-08-09, Post-Check 14/14) → B7 gelöst                                                                                                             |
-| 012 (`promo_codes`)                                                                             | ✅ **live** (ausgerollt 2026-08-09, zero_balance_post=0) — 012 ist `balance DEFAULT 10000` (Doku in `03` korrigiert)                                                          |
-| 021 (`promo_codes`-Tabelle + `redeem_promo_code`-RPC)                                           | ⏳ **committed** `ca2a389` (2026-08-10, post-R2) — **noch nicht remote ausgerollt**. Löst R2-Deferral C1 (redeem-code self-credit ATM). Siehe `02-offene-commits-r2.md` §9.7. |
+| Prüfung                                                                                         | Ergebnis                                                                                                                                                  |
+| ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 003 `seeds` + 007 `game_rounds` + 5 RPCs                                                        | ✅ live                                                                                                                                                   |
+| 013/014/015 (`get_user_stats`, `sync_user_achievement`, `get_leaderboard`, `user_achievements`) | ✅ live — **014/015 bereits remote angewandt**                                                                                                            |
+| 011 Legacy-REVOKE (`place_bet`/`settle_bet`)                                                    | ✅ angewandt (ACL nur `postgres`+`service_role`)                                                                                                          |
+| RLS (`game_rounds`, `seeds`, `users`, `wallet_transactions`, `game_sessions`)                   | ✅ aktiv                                                                                                                                                  |
+| 016-Dep A `chat_messages`-Schema                                                                | ✅ kompatibel (Tabelle existiert bereits, 016 überspringt CREATE)                                                                                         |
+| 016-Dep B `seeds`-Schema + Unique(`user_id`)                                                    | ✅ kompatibel, `ON CONFLICT (user_id)` sicher                                                                                                             |
+| 016-Dep C `game_rounds`-Schema                                                                  | ✅ kompatibel (alle Spalten vorhanden)                                                                                                                    |
+| 016-Dep D `wallet_transactions.type`                                                            | ⚠ nur `bet_settled`/`round_settled`/`round_started` (kein `bet`) — `get_community_stats` zählt `bet_settled`=306, funktional ok                           |
+| 009 (`user_identities`/`admin_roles`)                                                           | ✅ **live** (ausgerollt 2026-08-09, Post-Check 14/14) → B7 gelöst                                                                                         |
+| 012 (`promo_codes`)                                                                             | ✅ **live** (ausgerollt 2026-08-09, zero_balance_post=0) — 012 ist `balance DEFAULT 10000` (Doku in `03` korrigiert)                                      |
+| 021 (`promo_codes`-Tabelle + `redeem_promo_code`-RPC)                                           | ⏳ **committed** `ca2a389` (2026-08-10, post-R2) — **noch nicht remote ausgerollt**. Löst R2-Deferral C1 (redeem-code self-credit ATM). Siehe §8.7 unten. |
 
 **C2-Rollout-Scope final:** **016** ✅ + **009** ✅ + **012** ✅ alle LIVE (2026-08-09). Details: `docs/archive/DB_ROLLOUT_PLAN_2026-08-09.md`.
 
@@ -402,3 +402,92 @@ Jeder Block: Scope · Dateien (➕ neu / ✎ modifiziert / ➖ gelöscht) · Com
 ### 7.4 Ergebnis des Audits
 
 Plan ist nach Ergänzung von F1–F4, P1–P7 und A1–A7 auf „Next-Level": vollständig, abhängigkeitskonsistent, je Block verifizierbar, mit Security-/Design-Gates, Rollback-Runbook und Visual-Checkpoint. Ausprägbar in der vorgeschlagenen Reihenfolge.
+
+---
+
+## 8 — Runde 2 (C13–C21) + Post-R2 Follow-up (C1) — konsolidiert aus ehemaliger `02-offene-commits-r2.md`
+
+> **Status:** R2 vollständig `Executed` — C13–C21 alle 🟢 committed. Post-R2 C1 (redeem-code CRITICAL) resolved (`ca2a389`). Diese Sektion konsolidiert die ehemalige R2-Plandatei (gelöscht 2026-08-10) in diese Single-Source-of-Truth-Datei.
+> **Vorgänger-Runde:** §1–§7 oben (R1, C1–C12, alle 🟢 committed `5860f83`→`d2d9777`).
+
+### 8.1 — R2-Übersicht (C13–C21)
+
+| Block | Inhalt                                                                                                        | Commit    | Verify                                                                                                                                      |
+| ----- | ------------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| C13   | Cleanup TEMP-SQL (`_tmp_*`, `verify-migrations-applied.sql`, `.gitignore`)                                    | `e44d712` | tsc 0, vibe-check ✅                                                                                                                        |
+| C14   | Docs Reorg R2 (8 NEW architecture + 6 NEW archive + 4 worldmap-DELETEs)                                       | `c7f9bc8` | tsc 0                                                                                                                                       |
+| C15   | 410-Routen + `/backend`-Löschung (prettier + 2 DELETE)                                                        | `eb209d9` | tsc 0                                                                                                                                       |
+| C16   | Sound-Design 1.6 (SoundKey-Enum + 16 URLs, Store, Slots-Page, 16 Sounds)                                      | `615c45a` | tsc 0, vibe-check ✅                                                                                                                        |
+| C17   | meta-Refactor (Repository-Pattern: contracts/cursor/repository + 3 Tests)                                     | `0b84e34` | tsc 0, vitest repository.test.ts ✅                                                                                                         |
+| C18   | Achievements 1.5 (Migration 017, config-server, config/route.ts read-only)                                    | `7e1707e` | tsc 0, security-reviewer PASS (2 MEDIUM-Hardenings: `server-only`-Import + idempotente Policy)                                              |
+| C19   | Money-Path API (bet Rate 10→60, blackjack 20→40, redeem-code prettier)                                        | `49b99da` | tsc 0, security-reviewer BLOCK→in-scope fixed (H1 rate-limit 30/20 per 10s + M1 `isExplicitSignedOut`-Gate); redeem-code C1 deferred → §8.7 |
+| C20   | Read-Path API (leaderboard game_rounds-Fallback, history-Gate, balance/stats)                                 | `bd48ac5` | tsc 0, security-reviewer PASS (1 MEDIUM-Observability-Fix: `roundsResult.error`-Log + safe-null `?? []`)                                    |
+| C21   | worldmap-Status (Endzustand: 01-offene-commits, 02_FRONTEND_REDESIGN, 05_ZUKUNFTSPLANUNG, 01_WORLDMAP_STATUS) | `f9231f7` | tsc 0, vibe-check ✅                                                                                                                        |
+
+**⛔ Bewusst ausgeschlossen (Jans Refactoring-Test, andere Konversation — nicht committen, nicht löschen):**
+
+- `src/app/refactoring/{layout,page}.tsx` (2 NEW) — Testseite für Lobby-v2-Prototype (iframe).
+- `public/prototypes/` (`lobby_v2_refactoring.html` + `lib/`) — Asset der Testseite (vendored Three.js/GSAP, isoliert vom Build).
+- `src/proxy.ts` (M, +2) — einzige Änderung = `/refactoring(.*)` in `PUBLIC_ROUTES`, gehört zum ausgeschlossenen Test.
+
+### 8.2 — Verify-Gate-Ergebnisse (Post-R2)
+
+- **TypeScript:** `tsc --noEmit` → 0 Errors.
+- **vibe-check:** ✅ (Balance-Integrität, RNG-Verteilung, Payout-Math).
+- **Vitest:** 275/276 PASS. 1 FAIL = `src/lib/casino/__tests__/stats-derivation.test.ts` (`buildDailyActivity` caps-span) — **untracked Jan-WIP** (Initiative 1.7), nicht durch C13–C20 verursacht (keine Route importiert `stats-derivation`). Exkludiert.
+- **lint-staged:** pro Commit via pre-commit-Hook (eslint --fix + typecheck-staged + prettier).
+
+### 8.3 — Aufgetretene Problem-Register-Fälle (realisiert)
+
+- **P5 (Edit-Tool String-Mismatch bei C15):** gelöst durch zeilenweises Editieren mit kleineren unique Anchors nach vorherigem Read der exakten Zeilen.
+- **P3 (security-reviewer BLOCK bei C19):** redeem-code CRITICAL C1 (self-credit ATM: amount aus Code-String-Regex `/\d+/`, `Math.min(parsedVal, 1000)`, kein `promo_codes`-Table-Lookup). In-scope-Hardenings (H1, M1) angewandt, redeem-code **komplett aus C19 exkludiert** und als separater Security-Round deferred → §8.7.
+- Keine weiteren P-Fälle realisiert (P1/P2/P4/P6–P12: Prävention greift).
+
+### 8.4 — Deferrals / Exklusionen (post-R2 verbleibend)
+
+- **C1 (CRITICAL)** → ✅ **Resolved post-R2** (`ca2a389`, siehe §8.7).
+- **H3** `src/lib/casino/wallet.ts` (`creditBonus` non-atomic + neue M-Modifikation) → **Jan-WIP** (andere Konversation). Uncommitted belassen.
+- Migration 018 / `stats-derivation.ts`+Test / `src/app/stats/` / `src/components/stats/` / `MainLayout.tsx` (Stats-Nav) / `worldmap/05_1.2` + `05_1.7` → **Jan-WIP** Initiative 1.7, exkludiert.
+- `src/app/refactoring/` → **TEST-Ordner** (Jan-Weisung), nicht committen/löschen.
+- `public/prototypes/` → exkludiert (Prototypen). `src/proxy.ts` → kein R2-Scope-Overlap.
+
+### 8.5 — Security-Reviewer-Verdikte
+
+- **C18 (achievements):** PASS read-only. 2 MEDIUM-Hardenings angewandt (`server-only`-Import in `achievements-config-server.ts`; idempotente `CREATE POLICY` in Migration 017 via `DO $… IF NOT EXISTS`).
+- **C19 (money-path API):** BLOCK auf redeem-code (CRITICAL C1) → in-scope-Hardenings (bet+blackjack: rate-limit 30/20 per 10s, `isExplicitSignedOut`-Cookie-Gate) umgesetzt + redeem-code vollständig exkludiert und zu dedicated security round deferred. Freigabe für bet+blackjack.
+- **C20 (read-path API):** PASS. 1 MEDIUM-Observability-Fix angewandt (`leaderboard/route.ts` `roundsResult.error`-Log + safe-null `roundsResult.data ?? []`).
+
+### 8.6 — Self-Verify (post C21)
+
+- `git status --porcelain` nach C21 zeigte nur noch die ⛔-Exklusions-Menge (refactoring/, public/prototypes/, proxy.ts, redeem-code, wallet.ts, stats-Cluster, Migration 018, 1.2/1.7-worldmaps).
+- `git log --oneline -9` zeigte C13–C21 in korrekter Reihenfolge.
+- `01_WORLDMAP_STATUS.md` §2 „Aktive Pläne"-Tabelle konsistent mit R2-Status (R1 + R2 = Executed).
+- R2-Plan versionskontrolliert.
+
+### 8.7 — Post-R2 Follow-up: C1 (redeem-code) resolved — `ca2a389` (2026-08-10)
+
+**Commit:** `ca2a389` (separat nach R2, nicht Teil der C13–C21-Kohorte). Marker-Update: `c7a1eea`.
+
+**Was gelöst wurde** (der in §8.3 P3 / §8.4 dokumentierte CRITICAL C1 self-credit-ATM):
+
+- `supabase/migrations/021_promo_codes.sql` (NEW): `promo_codes`-Tabelle (RLS service_role-only, CHECK `used_count <= max_uses`) + atomare `redeem_promo_code(p_user_id, p_code)` RPC — `SECURITY DEFINER`, `search_path public, pg_temp`, `FOR UPDATE`-Locks auf `promo_codes`+`users`, `used_count`-Inkrement + Balance-Credit + `wallet_transactions`-Insert in einer TX, Rückgabe JSONB-Wallet-Snapshot.
+- `src/lib/casino/wallet.ts`: `creditBonus` (nicht-atomarer TOCTOU Read-Modify-Write) **gelöscht**, ersetzt durch `redeemPromoCode()` (RPC-Aufruf). Keine Code-Caller von `creditBonus`.
+- `src/app/api/casino/redeem-code/route.ts`: Regex-Self-Credit (`rawCode.match(/\d+/)` + `Math.min(parsedVal, 1000)`) entfernt; `validateMutationOrigin` CSRF-Guard hinzugefügt; RPC-Fehlercodes (`PROMO_NOT_FOUND/INACTIVE/EXPIRED/EXHAUSTED/INVALID`) auf User-Meldungen gemappt; Server-Wallet-Snapshot zurückgegeben.
+- `src/app/api/admin/promo-codes/route.ts` (NEW): Admin-only GET (List) + POST (Create) mit `validateMutationOrigin` + Zod-Schema.
+- `src/app/admin/promo-codes/` (NEW): Admin-Page + `PromoCodesClient` (Obsidian & Gold, Glassmorphism).
+- `src/components/layout/AdminLayout.tsx`: Nav-Eintrag „Promo Codes".
+
+**Modell-Entscheidungen (Jan):** Global `max_uses`, kein Per-User-Limit · Code-Erstellung via Admin-Route.
+
+**Verify-Gates post-C1:** tsc 0 · lint C1-Dateien clean · vibe-check ✅ · vitest 308/308 · security-reviewer BLOCK→fixed (HIGH-1 `validateMutationOrigin` auf Admin-POST, MEDIUM-1 dead `creditBonus` entfernt). Jan-WIP (provably-fair seed chain, stats migration 018, `consumeActiveSeed`, `perGame`) via Hunk-Stage-Isolation **nicht** in `ca2a389` übernommen — bleibt uncommitted im Working-Tree.
+
+**⚠️ Deployment-Prereq (offen):** Migration `021_promo_codes.sql` muss vor Runtime via Supabase SQL-Editor remote ausgerollt werden (Tabelle + RPC existieren remote noch nicht). Bis dahin liefert `/api/casino/redeem-code` 500 (RPC nicht gefunden).
+
+---
+
+## 9 — Verbleibend offene Punkte (Stand 2026-08-10)
+
+| #   | Punkt                                                                    | Status                             | Aktion                                                                               |
+| --- | ------------------------------------------------------------------------ | ---------------------------------- | ------------------------------------------------------------------------------------ |
+| B6  | `/v2`-Routes nicht als Produktivroute in Sitemap/Metadata deklariert     | ⏳ **OFFEN**                       | C5-Verifikation: `app/v2`-Sitemap/Metadata prüfen, ggf. `noindex`/Sitemap-Exclusion. |
+| M21 | Migration 021 (`promo_codes` + `redeem_promo_code`-RPC) remote ausrollen | ⏳ **committed, nicht ausgerollt** | Via Supabase SQL Editor (DDL-fähiger Zugang). Vor Wallet-Redeem-Tests. Siehe §8.7.   |
