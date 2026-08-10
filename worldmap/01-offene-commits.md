@@ -1,8 +1,8 @@
 # 01 — World Map: Offene Commits — Konsolidierung & Execution Roadmap
 
-> **Erstellt:** 2026-08-09 · **Status:** Geplant · **Ziel:** Vollumfängliche, geordnete Commit-Reihenfolge für sämtliche uncommitted-Arbeit (196 modified · 36 untracked · 12 staged).
+> **Erstellt:** 2026-08-09 · **Status:** C1 ✅ (`5860f83`) · C2 ✅ (`92cb929`) · C3 ✅ (`5d3fc7f`) · C4 ✅ (`d825c4b`) · C5 ✅ (`06f364d`) · C6 ✅ (`ca156f3`) · C7 ✅ (`9e97d53`) · C8 ✅ (`5c87a7a`) · C9 ✅ (`d85a2ce`) · C10 ✅ (`e6dd3d6`) · C11 ✅ (`cb88252`) · C12 ✅ (`d2d9777`) · **Ziel:** Vollumfängliche, geordnete Commit-Reihenfolge für sämtliche uncommitted-Arbeit (196 modified · 36 untracked · 12 staged).
 > **Scope:** 5 % Übersichtstabelle für Jan · 95 % Execution-Detail für LLM.
-> **Quellen:** `git status --porcelain` (2026-08-09 11:2x), `worldmap/02_FRONTEND_REDESIGN.md`, `worldmap/03_CASINO_SUPABASE_CONNECTION.md`, `worldmap/03_01_CASINO_SUPABASE_IMPLEMENTATION_PLAN.md`.
+> **Quellen:** `git status --porcelain` (2026-08-09 11:2x), `worldmap/02_FRONTEND_REDESIGN.md`, `docs/archive/03_CASINO_SUPABASE_CONNECTION.md`, `docs/archive/03_01_CASINO_SUPABASE_IMPLEMENTATION_PLAN.md`, `docs/archive/01b-c1-docs-commit-plan.md`.
 
 ---
 
@@ -12,20 +12,20 @@ Legende Status: 🔴 uncommitted · 🟡 staged (nicht committed) · 🟢 commit
 Legende Risiko: N = Niedrig · M = Mittel · H = Hoch
 Legende Aufwand: S < 1 h · M = 1–4 h · L = 4 h+
 
-| #   | Kategorie / Meilenstein (Future)                                                                                                                                          | Status       | Commit-Block | Risiko | Blockiert durch               | Aufwand |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------ | ------ | ----------------------------- | ------- |
-| 1   | **Docs-Reorganisation** — `worldmap/` → `docs/status-reports/`, Root-Docs → `docs/`, neue Architecture- & Status-Docs, Prototypen, Archive                                | 🟢 committed | C1           | N      | —                             | S       |
-| 2   | **Supabase Schema** — Migrationen 014 (user_stats), 015 (get_leaderboard), 016 (full server-authority expansion: chat/seeds/community/active-round RPCs)                  | 🔴           | C2           | M      | DDL-Rollout (Service-Role)    | S       |
-| 3   | **Supabase Server-Autorität (Code)** — neue API-Routes chat/seeds/community/active-round + `WalletService`-Methoden                                                       | 🔴           | C3           | M      | C2 live                       | M       |
-| 4   | **Store & Gamification Hydration** — `useCasinoStore.initialize()` erweitert, `GamificationProvider`, vip/game-config, Session, `syncToFile()`-Entfernung                 | 🔴           | C4           | H      | C3                            | M       |
-| 5   | **Frontend v2 Sandbox (Cyber-Stealth)** — `app/v2`, `components/v2`, `styles/v2.css`, HTML-Prototypen, Hero-Showcase, Arcade-Grid, WebGL-Canvas, Slots v2                 | 🔴           | C5           | N      | —                             | L       |
-| 6   | **History & Leaderboard Modularisierung** — `components/history/*`, `components/leaderboard/*` + Page-Rewrites (Kohorten 2–3 aus `02_FRONTEND_REDESIGN.md`)               | 🔴           | C6           | M      | C5 (Tokens)                   | M       |
-| 7   | **Slots v2 Assets & Symbols** — `public/images/slots/v2/`, modifizierte `sym-*.png`, `symbols.ts`, `SlotSymbol`/`SlotReel`/`WinLine`                                      | 🔴           | C7           | N      | C5                            | S       |
-| 8   | **Admin Pages Refactor** — 14 Admin-Komponenten + 3 Admin-API-Routes                                                                                                      | 🔴           | C8           | M      | —                             | M       |
-| 9   | **Core-Libs & Security Hardening** — `provably-fair`, `casino-core`, `bet-validator`, `wallet-contract`, `security/admin`, `request-security`, `proxy.ts`, Supabase-Utils | 🔴           | C9           | H      | —                             | M       |
-| 10  | **Game Pages & Shared Components Polish** — Games-Layouts, Casino-UI, UI-Primitives, Home/Social/Layout/Nav, Hooks                                                        | 🔴           | C10          | M      | C5 (Design-Tokens)            | L       |
-| 11  | **Tests & Scripts** — 24 modifizierte Test-Dateien + 2 neue Tests + 8 Scripts                                                                                             | 🔴           | C11          | M      | C2–C10 (je zugehöriger Block) | M       |
-| 12  | **Config/Meta-Docs** — `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `01_WORLDMAP_STATUS.md`                                                                                     | 🔴           | C12          | N      | alle Blöcke                   | S       |
+| #   | Kategorie / Meilenstein (Future)                                                                                                                                          | Status         | Commit-Block | Risiko | Blockiert durch               | Aufwand |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | ------------ | ------ | ----------------------------- | ------- |
+| 1   | **Docs-Reorganisation** — `worldmap/` → `docs/status-reports/`, Root-Docs → `docs/`, neue Architecture- & Status-Docs, Prototypen, Archive                                | 🟢 committed   | C1           | N      | —                             | S       |
+| 2   | **Supabase Schema** — Migrationen 014 (user_stats), 015 (get_leaderboard), 016 (full server-authority expansion: chat/seeds/community/active-round RPCs)                  | 🟢 committed   | C2           | M      | DDL-Rollout (Service-Role)    | S       |
+| 3   | **Supabase Server-Autorität (Code)** — neue API-Routes chat/seeds/community/active-round + `WalletService`-Methoden                                                       | 🟢 committed   | C3           | M      | C2 live                       | M       |
+| 4   | **Store & Gamification Hydration** — `useCasinoStore.initialize()` erweitert, `GamificationProvider`, vip/game-config, Session, `syncToFile()`-Entfernung                 | 🟢 committed   | C4           | H      | C3                            | M       |
+| 5   | **Frontend v2 Sandbox (Cyber-Stealth)** — `app/v2`, `components/v2`, `styles/v2.css`, HTML-Prototypen, Hero-Showcase, Arcade-Grid, WebGL-Canvas, Slots v2                 | 🟢 (`06f364d`) | C5           | N      | —                             | L       |
+| 6   | **History & Leaderboard Modularisierung** — `components/history/*`, `components/leaderboard/*` + Page-Rewrites (Kohorten 2–3 aus `02_FRONTEND_REDESIGN.md`)               | 🟢 (`ca156f3`) | C6           | M      | C5 (Tokens)                   | M       |
+| 7   | **Slots v2 Assets & Symbols** — `public/images/slots/v2/`, modifizierte `sym-*.png`, `symbols.ts`, `SlotSymbol`/`SlotReel`/`WinLine`                                      | 🟢 (`9e97d53`) | C7           | N      | C5                            | S       |
+| 8   | **Admin Pages Refactor** — 14 Admin-Komponenten + 3 Admin-API-Routes                                                                                                      | 🟢 (`5c87a7a`) | C8           | M      | —                             | M       |
+| 9   | **Core-Libs & Security Hardening** — `provably-fair`, `casino-core`, `bet-validator`, `wallet-contract`, `security/admin`, `request-security`, `proxy.ts`, Supabase-Utils | 🟢 (`d85a2ce`) | C9           | H      | —                             | M       |
+| 10  | **Game Pages & Shared Components Polish** — Games-Layouts, Casino-UI, UI-Primitives, Home/Social/Layout/Nav, Hooks                                                        | 🟢 (`e6dd3d6`) | C10          | M      | C5 (Design-Tokens)            | L       |
+| 11  | **Tests & Scripts** — 24 modifizierte Test-Dateien + 2 neue Tests + 8 Scripts                                                                                             | 🟢 (`cb88252`) | C11          | M      | C2–C10 (je zugehöriger Block) | M       |
+| 12  | **Config/Meta-Docs** — `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `01_WORLDMAP_STATUS.md`                                                                                     | 🟢 (`d2d9777`) | C12          | N      | alle Blöcke                   | S       |
 
 **Zusammenfassung:** 12 Commit-Blöcke · 3 kritische Pfade (C2→C3→C4 Supabase-Kette; C9 Security; C4 Wallet-Mutationen) · 2 isolierte Pfad (C1 Docs, C5 v2-Sandbox).
 
@@ -70,15 +70,15 @@ C12 (Meta-Docs)     [zuletzt, reflektiert Endzustand]
 
 ## 3 — Blocker & offene Punkte (vor C2 zu klären)
 
-| #   | Blocker                                                                                             | Warum                            | Aktion                                                                                                                                                                                                                                       |
-| --- | --------------------------------------------------------------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| B1  | ~~Migration 007 remote nicht als live bestätigt~~                                                   | Schema-Abhängigkeit              | ✅ **GELÖST 2026-08-09** — Live-Verifikation via SQL Editor: 003/007/013/014/015 live, 011 angewandt, RLS aktiv. Siehe Verifikation unten.                                                                                                   |
-| B2  | ~~DDL-fähiger Service-Role-Zugang~~                                                                 | `supabase db push` braucht Admin | ✅ **GELÖST** — Jan hat DDL-Zugang via Supabase SQL Editor; Rollout erfolgt direkt im Editor (kein CLI nötig).                                                                                                                               |
-| B3  | `ALLOW_DEV_FALLBACK` in `.env.local` — Dev-Auth-Bypass darf nicht in Produktion landen.             | Security                         | Vor C9-Commit prüfen, dass kein Hardcode-Fallback in produktiven Pfaden.                                                                                                                                                                     |
-| B4  | `communityWagered: 8420.5` Hardcode im Store (laut `03_CASINO_SUPABASE_CONNECTION.md` Abschnitt 2). | Server-Autorität                 | C4 muss `get_community_stats()`-RPC anbinden, Hardcode entfernen.                                                                                                                                                                            |
-| B5  | `syncToFile()` Dev-Methode im Store noch vorhanden.                                                 | Dead-Code / Local-Speicher       | C4 entfernt; prüfen, dass kein Aufruf mehr referenziert.                                                                                                                                                                                     |
-| B6  | Neue v2-Routes (`/v2`) sind WIP/Sandbox — `ClientShell` rendert `/v2` bewusst ohne Shell.           | Prod-Exposition                  | C5: sicherstellen, dass `/v2` nicht in Sitemap/Metadata als Produktivroute deklariert.                                                                                                                                                       |
-| B7  | **Migration 009 nicht remote angewandt** (user_identities/admin_roles/Trigger fehlen).              | Identitäts-Layer                 | **DEFERRED** — `admin.ts` hat Fallback (Email-Allowlist autoritativ); 009 höheres Risiko (Trigger blockiert Sign-ups, Backfill kann aborten). Aktivierung nur nach §3.2-Bedingungen in `worldmap/01a-db-rollout-plan.md`. Nicht Teil von C2. |
+| #   | Blocker                                                                                             | Warum                            | Aktion                                                                                                                                                                                                                                        |
+| --- | --------------------------------------------------------------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| B1  | ~~Migration 007 remote nicht als live bestätigt~~                                                   | Schema-Abhängigkeit              | ✅ **GELÖST 2026-08-09** — Live-Verifikation via SQL Editor: 003/007/013/014/015 live, 011 angewandt, RLS aktiv. Siehe Verifikation unten.                                                                                                    |
+| B2  | ~~DDL-fähiger Service-Role-Zugang~~                                                                 | `supabase db push` braucht Admin | ✅ **GELÖST** — Jan hat DDL-Zugang via Supabase SQL Editor; Rollout erfolgt direkt im Editor (kein CLI nötig).                                                                                                                                |
+| B3  | `ALLOW_DEV_FALLBACK` in `.env.local` — Dev-Auth-Bypass darf nicht in Produktion landen.             | Security                         | Vor C9-Commit prüfen, dass kein Hardcode-Fallback in produktiven Pfaden.                                                                                                                                                                      |
+| B4  | `communityWagered: 8420.5` Hardcode im Store (laut `03_CASINO_SUPABASE_CONNECTION.md` Abschnitt 2). | Server-Autorität                 | C4 muss `get_community_stats()`-RPC anbinden, Hardcode entfernen.                                                                                                                                                                             |
+| B5  | `syncToFile()` Dev-Methode im Store noch vorhanden.                                                 | Dead-Code / Local-Speicher       | C4 entfernt; prüfen, dass kein Aufruf mehr referenziert.                                                                                                                                                                                      |
+| B6  | Neue v2-Routes (`/v2`) sind WIP/Sandbox — `ClientShell` rendert `/v2` bewusst ohne Shell.           | Prod-Exposition                  | C5: sicherstellen, dass `/v2` nicht in Sitemap/Metadata als Produktivroute deklariert.                                                                                                                                                        |
+| B7  | ~~Migration 009 nicht remote angewandt~~ (user_identities/admin_roles/Trigger fehlen).              | Identitäts-Layer                 | ✅ **GELÖST 2026-08-09** — 009 LIVE ausgerollt (Post-Check 14/14: 3 Tabellen + 3 Funktionen + Guard-Trigger + RLS, identity_rows=16 Backfill, quarantine=0, Legacy-RPCs gesperrt). Rollout-Log: `docs/archive/DB_ROLLOUT_PLAN_2026-08-09.md`. |
 
 ### Verifikation 2026-08-09 (Supabase SQL Editor, Projekt `hmqwozhdckbwjqzcmire`)
 
@@ -92,10 +92,10 @@ C12 (Meta-Docs)     [zuletzt, reflektiert Endzustand]
 | 016-Dep B `seeds`-Schema + Unique(`user_id`)                                                    | ✅ kompatibel, `ON CONFLICT (user_id)` sicher                                                                                   |
 | 016-Dep C `game_rounds`-Schema                                                                  | ✅ kompatibel (alle Spalten vorhanden)                                                                                          |
 | 016-Dep D `wallet_transactions.type`                                                            | ⚠ nur `bet_settled`/`round_settled`/`round_started` (kein `bet`) — `get_community_stats` zählt `bet_settled`=306, funktional ok |
-| 009 (`user_identities`/`admin_roles`)                                                           | ❌ nicht live → B7 (DEFERRED)                                                                                                   |
-| 012 (`promo_codes`)                                                                             | ❌ Phantom — kein Code fragt `promo_codes` ab; 012 ist `balance DEFAULT 10000` (Doku in `03` korrigiert)                        |
+| 009 (`user_identities`/`admin_roles`)                                                           | ✅ **live** (ausgerollt 2026-08-09, Post-Check 14/14) → B7 gelöst                                                               |
+| 012 (`promo_codes`)                                                                             | ✅ **live** (ausgerollt 2026-08-09, zero_balance_post=0) — 012 ist `balance DEFAULT 10000` (Doku in `03` korrigiert)            |
 
-**C2-Rollout-Scope final:** nur **016** ausrollen (GO) + optional **012**; **009** deferred. Details: `worldmap/01a-db-rollout-plan.md`.
+**C2-Rollout-Scope final:** **016** ✅ + **009** ✅ + **012** ✅ alle LIVE (2026-08-09). Details: `docs/archive/DB_ROLLOUT_PLAN_2026-08-09.md`.
 
 ---
 
@@ -103,42 +103,50 @@ C12 (Meta-Docs)     [zuletzt, reflektiert Endzustand]
 
 Jeder Block: Scope · Dateien (➕ neu / ✎ modifiziert / ➖ gelöscht) · Commit-Message · Abhängigkeiten · Verifizierung · Risiken · Rollback.
 
-### C1 — Docs-Reorganisation
+### C1 — Docs-Reorganisation ✅
 
+- **Status:** ✅ **Committed `5860f83` (2026-08-09)** — 62 Dateien, +7179/−1429. Vollständiger Plan + Self-Audit: `docs/archive/01b-c1-docs-commit-plan.md` (aus worldmap/ archiviert, C1 abgeschlossen).
 - **Scope:** Reine Doku-Verschiebung/-Anlage. 0 Code-Risiko. Als Erstes committen, um Working-Tree zu entzerren.
-- **Dateien:**
-  - ✎ staged (12): `worldmap/* → docs/status-reports/*` (01–08, 11, 12), `02_CLERK_SUPABASE.md → docs/architecture/`, `DESIGN_SYSTEM_AND_VIBE.md → docs/`, `01_AUTH_WELCOME_BONUS.md → 06_AUTH_WELCOME_BONUS.md`, `11_PERF_MOBILE.md` (RM).
-  - ➖ staged: `CASINO_STABILITY_WORKFLOW.md`.
-  - ➖ unstaged: `CASINO_ROYALE_MARKET_ROADMAP.md` (verschoben nach `docs/`), `OPEN_TASKS.md`.
-  - ➕ neu: `docs/CASINO_ROYALE_MARKET_ROADMAP.md`, `docs/architecture/{03_LEADERBOARD_STATS,05_MOBILE_PERFORMANCE,13_LEADERBOARD_BOT_SIMULATION}.md`, `docs/status-reports/02_STATUS_QUO_KOHORTEN.md`, `docs/crash-visual-tension-plan.md`, `docs/prototypes/` (4 HTML), `docs/archive/04_FRONTEND_REFACTOR.md`.
-- **Commit-Message:** `docs: reorganize worldmap into docs/ (status-reports, architecture, prototypes)`
+- **Tatsächlich committed (62 Dateien, verifiziert):**
+  - Renames: `worldmap/{01–05,08,11,12}` → `docs/status-reports/`, `DESIGN_SYSTEM_AND_VIBE.md`/`02_CLERK_SUPABASE.md` → `docs/`, `docs/architecture/01_AUTH_MIGRATION_…` + `docs/{superpowers,routes}/*` → `docs/archive/` (History via Rename erhalten).
+  - Deletes: `CASINO_STABILITY_WORKFLOW.md`, `OPEN_TASKS.md`, `docs/EVALUATION.md`, `docs/architecture/{CLERK_INTEGRATION_PLAN,MIGRATION_PLAN,SUPABASE_MIGRATION}.md`, `docs/superpowers/{plans,specs}/2026-07-28-backend-private-access*`, unicode `docs/routes/0.2.1…md`.
+  - Neu: `docs/README.md`, `docs/architecture/{05_1.4_login,05_MOBILE_PERFORMANCE,LEADERBOARD_RPC}.md`, `docs/archive/` (17), `docs/prototypes/` (9), `worldmap/{01-offene-commits,01a-db-rollout-plan,01b-c1-docs-commit-plan,02_FRONTEND_REDESIGN,05_1.1_MOBILE_PERFORMANCE,05_ZUKUNFTSPLANUNG,06_ACHIEVEMENTS_CONDITION_ENGINE}.md`.
+  - Mod: `docs/SPIELMECHANIK.md` (Clerk→Supabase-Terminologie).
+- **Commit-Message:** `docs: reorganize docs tree (worldmap->docs/status-reports, archive legacy plans, prototypes & planning docs)`
 - **Abhängigkeiten:** keine.
-- **Verifizierung:** `git status` leer für Docs-Pfade; Markdown-Links intakt (relative Pfade `../docs/...` in `worldmap/02`+`03` prüfen).
-- **Risiken:** R1 — relative Links in bestehenden `worldmap/*.md` zeigen nach Verschiebung ins Leere (insbes. `../docs/prototypes/...`). → Nach Commit Links validieren.
-- **Rollback:** `git revert <hash>` — kein Side-Effect.
+- **Verifizierung:** ✅ Post-Commit-Asserts bestanden — 0 Code-Pfade, 0 C12-Files im Commit; C12 (`01_WORLDMAP_STATUS/CLAUDE/AGENTS/GEMINI`) unberührt unstaged; `docs/`+`worldmap/` Working-Tree sauber. Link-Rotation: 2 stale Meta-Text-Refs in aktiven Docs (`LEADERBOARD_RPC.md:44`, `05_1.4_login.md:237`) + Archive-Tote-Links (F6, akzeptiert) → Folge-Pass.
+- **Risiken realisiert:** R1 (lint-staged-Stash-Restore löschte 3 Prototyp-HTMLs aus Working-Tree) → behoben via `git checkout HEAD -- docs/prototypes/bg_option*.html`.
+- **Rollback:** `git revert 5860f83` — kein Side-Effect.
 
-### C2 — Migrationen 014 / 015 / 016 (Supabase Schema)
+### C2 — Migrationen 014 / 015 / 016 (Supabase Schema) ✅
 
+- **Status:** ✅ **Committed `92cb929` (2026-08-09)** — 4 Dateien, +665 (3 SQL-Dateien Repo-Integrität + `.gitignore`-Eintrag `/supabase/.temp/`). Vollständiger Plan + Self-Audit: `docs/archive/02a-c2-schema-commit-plan.md`.
 - **Scope:** Reines SQL. 016 definiert `chat_messages`, `post_chat_message`, `get_recent_chat_messages`, `get_or_create_user_seed`, `rotate_user_seed`, `get_community_stats`, `get_active_game_round`. 014 = `get_user_stats`/`sync_user_achievement`, 015 = `get_leaderboard`.
-- **Verifizierter Remote-Status (2026-08-09):** 014 + 015 **bereits live**. 016 **LIVE (Post-Check 7/7 bestanden)** — ausgerollt via SQL Editor. 009 **deferred** (B7). 012 optional. Siehe `worldmap/01a-db-rollout-plan.md`.
-- **Dateien:**
-  - ➕ `supabase/migrations/014_fix_user_stats.sql` (Repo-Integrität; remote bereits live)
-  - ➕ `supabase/migrations/015_get_leaderboard.sql` (Repo-Integrität; remote bereits live)
-  - ➕ `supabase/migrations/016_full_server_authority_expansion.sql` (**ausrollen** — GO, idempotent, alle Deps verifiziert)
-  - ➕ (verwerfen) `supabase/.temp/` — Supabase-CLI-Artefakt → `.gitignore`-Eintrag, nicht committen.
-- **Commit-Message:** `feat(db): migrations 014–016 (user_stats, get_leaderboard, full server-authority RPCs)`
-- **Abhängigkeiten:** ~~B1/B2~~ ✅ gelöst.
-- **Rollout (Jan, via SQL Editor):**
-  1. `supabase/migrations/016_full_server_authority_expansion.sql` → SQL Editor → Run.
-  2. `scripts/_tmp_verify_016_post.sql` → Run → Output pasten (LLM bewertet GO/Revert).
-  3. (Optional) `supabase/migrations/012_welcome_bonus.sql` → Run.
-- **Verifizierung:** Post-Check via `_tmp_verify_016_post.sql` (6 RPCs = true, chat_messages RLS = true) + Smoke `get_recent_chat_messages(5)`, `get_community_stats()`; `search_path = public, pg_temp` + `SECURITY DEFINER` in jedem RPC bestätigt (Code-Review 016).
-- **Risiken:** R1 — `get_community_stats` filtert `type IN ('bet','bet_settled')`, `bet` existiert remote nicht → zählt nur `bet_settled`=306 (funktional ok). R2 — `chat_messages`-RLS ohne Policy → Client-Zugriff nur via `service_role` in API-Route (gewollt). Keine R1/R2 aus Vorversion (Deps verifiziert).
-- **Rollback:** `DROP FUNCTION` der 6 neuen RPCs (siehe `01a` §2.6); `chat_messages`-Tabelle **nicht** droppen (existierte vor 016).
+- **Verifizierter Remote-Status (2026-08-09):** 014 + 015 **bereits live**. 016 **LIVE (Post-Check 7/7 bestanden)** — ausgerollt via SQL Editor. 009 **LIVE (Post-Check 14/14)** — B7 gelöst. 012 **LIVE (zero_balance_post=0)**. Siehe `docs/archive/DB_ROLLOUT_PLAN_2026-08-09.md`.
+- **Dateien (committed `92cb929`):**
+  - ➕ `supabase/migrations/014_fix_user_stats.sql` (Repo-Integrität; remote bereits live) ✅
+  - ➕ `supabase/migrations/015_get_leaderboard.sql` (Repo-Integrität; remote bereits live) ✅
+  - ➕ `supabase/migrations/016_full_server_authority_expansion.sql` (remote LIVE — Post-Check 7/7; idempotent, alle Deps verifiziert) ✅
+  - ✎ `.gitignore` — neuer Eintrag `/supabase/.temp/` (R10: CLI-Artefakt `project-ref` etc. dauerhaft ignoriert) ✅
+- **EXKLUDIERT (nicht in C2):** `supabase/migrations/017_achievement_condition_engine.sql` (neue Feature-Migration, eigene Planning-Doc `06_ACHIEVEMENTS_CONDITION_ENGINE.md`, remote-Status ungeprüft → eigener Block/Rollout).
+- **Commit-Message:** `feat(db): migrations 014-016 (user_stats fix, get_leaderboard, full server-authority RPCs)`
+- **Abhängigkeiten:** ~~B1/B2~~ ✅ gelöst. C2 mutiert Remote nicht (Repo-Sync nur).
+- **Rollout (Jan, via SQL Editor) — erledigt vor C2:** 016 ausgerollt + Post-Check 7/7; 014/015 bereits live. C2 = nur Repo-Integrität.
+- **Verifizierung (post-Commit `92cb929`):** ✅ 4 Dateien in HEAD, 0 × `017`/`.temp/`, `.temp`-History-Leak leer, `git check-ignore supabase/.temp/project-ref` = ignored, 017 noch untracked.
+- **Risiken:** R1 — `get_community_stats` filtert `type IN ('bet','bet_settled')`, `bet` existiert remote nicht → zählt nur `bet_settled`=306 (funktional ok). R2 — `chat_messages`-RLS ohne Policy → Client-Zugriff nur via `service_role` in API-Route (gewollt).
+- **Rollback:** `git revert 92cb929` (Repo-only — Remote bleibt live). DB-Rollback der 6 RPCs siehe `01a` §2.6 (nicht C2-Teil).
 
-### C3 — Supabase Server-Autorität (API + Service)
+### C3 — Supabase Server-Autorität (API + Service) ✅
 
+- **Status:** ✅ **Committed `5d3fc7f` (2026-08-09)** — 6 Dateien, +562/−27. Vollständiger Plan + Self-Audit: `docs/archive/03_c3-c6-execution-plan.md` §C3.
 - **Scope:** Neue API-Routes + `WalletService`-Methoden, die die RPCs aus C2 anbinden.
+- **Tatsächlich committed (6 Dateien, verifiziert):**
+  - ➕ `src/app/api/{chat/route,casino/seeds/route,community/route,casino/active-round/route}.ts` (4 Routes, untracked→committed)
+  - ✎ `src/lib/casino/wallet.ts` (+136/−27: 6 neue statische Server-Autoritäts-Methoden `getUserSeeds`/`rotateUserSeed`/`getChatMessages`/`postChatMessage`/`getCommunityStats`/`getGameActiveRound` + prettier-Reformat bestehender Methoden)
+  - ➕ `src/lib/casino/__tests__/leaderboard.test.ts` (Begleit-Test, 4/4 grün)
+- **EXKLUDIERT:** `src/utils/supabase/admin.ts` (` M` = reines EOL-Artefakt, alle diff-Varianten leer → Plan-Bedingung "falls Helper ergänzt" nicht erfüllt; bleibt unstaged).
+- **Security-Gate (inline):** Auth-Enforcement auf chat-POST/seeds-GET+POST/active-round-GET + dev-fallback korrekt gegated (`NODE_ENV==='development' && ALLOW_DEV_FALLBACK && !isExplicitSignedOut` → nicht in Prod-Pfad, B3 erfüllt); Service-Role nur server-side in `WalletService`; Rate-Limit auf Spam-Vektoren (chat+seeds POST 10/60s); Zod auf allen Bodies; keine Secrets/console.logs. Community-GET bewusst public (Aggregat). Kein CRITICAL/HIGH.
+- **Verify-Gates:** `tsc --noEmit` = 0 Fehler; `vitest leaderboard.test.ts` = 4/4; lint-staged (eslint+typecheck+prettier) grün.
 - **Dateien:**
   - ➕ `src/app/api/chat/route.ts` (GET/POST via `post_chat_message`/`get_recent_chat_messages`)
   - ➕ `src/app/api/casino/seeds/route.ts` (GET/POST; Seed-Rotation)
@@ -153,11 +161,20 @@ Jeder Block: Scope · Dateien (➕ neu / ✎ modifiziert / ➖ gelöscht) · Com
 - **Security-Reviewer:** zwingend (API-Boundary, Auth, Rate-Limit).
 - **Rollback:** Routes sind additive; Route-Datei löschen.
 
-### C4 — Store & Gamification Hydration
+### C4 — Store & Gamification Hydration ✅
 
+- **Status:** ✅ **Committed `d825c4b` (2026-08-09)** — 9 Dateien, +1045/−438. Vollständiger Plan + Self-Audit: `docs/archive/03_c3-c6-execution-plan.md` §C4.
 - **Scope:** `useCasinoStore.initialize()` zieht Wallet, Stats, Achievements, Seeds, Community-Ziel, Chat aus Supabase. `syncToFile()`-Entfernung. LocalStorage-Partialize auf UI-Prefs beschränkt.
+- **Tatsächlich committed (9 Dateien, verifiziert):**
+  - ✎ `src/store/useCasinoStore.ts` (+703/−… ) — **ganze Datei C4** (Hunk-Split-Annahme C4.3 widerlegt: kein C10-Redesign-Content im Store; Diff = Hydration + Achievements-Refactor + prettier). `initialize()` parallel-fetch Seeds/Community/Chat (C3-Routes) + HTML-Guards; `syncToFile: () => {}` No-Op (B5 ✓); `partialize` exkludiert `achievementConfigs` (C4 ✓).
+  - ➕ `src/lib/casino/achievements-config.ts` (+244) — **Discovery**: untracked, useCasinoStore-Dependency (Hunk 1-2 importiert `mergeAchievementsWithConfig`/`DEFAULT_ACHIEVEMENT_CONFIGS`/`applyAchievementProgress`/Typen) → MUSS in C4 (sonst C4-in-isolation tsc-Bruch). Gamification-Config = aktuelle Implementierung (017 SQL = zukünftige DB-driven-Variante).
+  - ✎ `src/providers/GamificationProvider.tsx`, `src/lib/casino/{vip-config,vip-config-server,game-config,game-config-server}.ts`, `src/lib/casino/chat-bot.ts`
+  - ✎ `src/store/__tests__/useCasinoStore.test.ts` (Begleit-Test, 68/68 grün)
+- **EXKLUDIERT:** `src/lib/casino/session.ts` (` M` = EOL/stat-only-Artefakt wie `admin.ts`, alle diff-Varianten leer → `git add` no-op, nicht committet); `src/utils/supabase/admin.ts` (C3-Entscheidung fortgeführt); `worldmap/{05_1.1,05_ZUKUNFTSPLANUNG,06_ACHIEVEMENTS_CONDITION_ENGINE}.md` (pre-stagte Docs, via `git reset` unstaged — gehören zu Docs-Block).
+- **B4 `communityWagered`:** Initial-Default `8420.5` bleibt als Pre-Hydration-Platzhalter; `initialize()` überschreibt autoritativ mit `getCommunityStats`-RPC-Wert → funktional erfüllt (Default-Cleanup = Folge-Pass).
+- **Verify-Gates:** `tsc --noEmit` = 0 Fehler (baseline); `vitest useCasinoStore.test` = 68/68; `vibe-check` = ✅; lint-staged eslint+typecheck+prettier grün.
+- **Security-Gate (inline):** `addBalance`/`removeBalance` fail-closed (toast/return-false, keine direkten Wallet-Writes); `initialize()` nur GET-Reads; Wallet-Mutation ausschließlich via `processGameResult`/RPC. Kein CRITICAL/HIGH.
 - **Dateien:**
-  - ✎ `src/store/useCasinoStore.ts` — ⚠ **Hunk-Split nötig** (Redesign-Hunke → C10, Hydration-Hunke → C4).
   - ✎ `src/providers/GamificationProvider.tsx`
   - ✎ `src/lib/casino/{vip-config,vip-config-server,game-config,game-config-server,session}.ts`
   - ✎ `src/lib/casino/chat-bot.ts`
@@ -185,6 +202,7 @@ Jeder Block: Scope · Dateien (➕ neu / ✎ modifiziert / ➖ gelöscht) · Com
 - **Verifizierung:** `npm run build` (kein Build-Bruch durch `/v2`); `/v2` im Browser visuell prüfen; `metadata`-Export in `v2/layout.tsx` (DevOps-Slayer-Regel); WebGL-Canvas graceful Fallback; `whileHover`/`whileTap` auf allen interaktiven Elementen (Design-Guardian).
 - **Risiken:** R1 — `/v2` darf nicht als Produktivroute in Sitemap landen (B6). R2 — WebGL auf Low-End-Mobile → Feature-Detect + Fallback. R3 — Bundle-Größe: WebGL-Canvas dynamisch importieren (Performance-Regel).
 - **Design-Guardian + DevOps-Slayer:** zwingend.
+- ✅ **Committed `06f364d`** — 24 NEW-Files, +3830, 0 Modifications. Verify-Gates: `npm run build` exit 0 (background task b70jcyyis); tsc-Baseline grün; `/v2/layout.tsx` metadata `robots:{index:false,follow:false}` (B6 ✓). Scope-Realität vs Plan: `globals.css`-Hunk-Split **entfiel** — v2-Tokens bestätigt in `src/styles/v2.css` self-scoped (`.v2-root`-Namespace, `--v2-*`-Tokens, Header "Do not reference --primary/--bg-color, nothing leaks"), NICHT in `globals.css`; `globals.css`-58-Hunks = C6/C10-Redesign (bleiben uncommitted). 7 Showcase-Komponenten = additive NEW-Files (Imports: Magnetic, soundManager, framer-motion, lucide, next/image, einander — keine /v2/v2.css/modified-home-Imports); Wiring in `HomeClientV2` = C10. `docs/prototypes/*.html` nicht vorhanden/entfallen. Post-Commit: `git show --name-status` 0 modified, 0 excluded-leak, 0 C3/C4 cross-block. Plan: `docs/archive/03_c3-c6-execution-plan.md` §C5.
 
 ### C6 — History & Leaderboard Modularisierung
 
@@ -199,8 +217,7 @@ Jeder Block: Scope · Dateien (➕ neu / ✎ modifiziert / ➖ gelöscht) · Com
 - **Verifizierung:** `npx tsc --noEmit` (Props-Interfaces); Dateien < 300 Zeilen; 0 Verhaltensänderung an APIs/Store; `whileHover/whileTap` via `VibeMotion`/`Magnetic`; Hydration-Guard für Zeitstempel; `npm run test`.
 - **Risiken:** R1 — Props-Mismatch beim Extrahieren (tsc fängt). R2 — Hydration-Warning `toLocaleString`. R3 — Z-Index-Dropdown-Überlappung.
 - **Design-Guardian + Logic-Architect:** zwingend.
-
-### C7 — Slots v2 Assets & Symbols
+- ✅ **Committed `ca156f3`** — 10 Dateien (6 NEW `create mode` + 4 modified), +940/−668. Verify-Gates: `npm run build` exit 0 (task b70jcyyis kompilierte C6-Baum); tsc-Baseline grün; lint-staged typecheck-staged + prettier grün. Scope-Realität vs Plan: Hunk-Split **entfiel** — alle 4 modified Files reines C6 (Page: Inline → Komponenten-Imports, −668/+175 Extraktion; layout.tsx: reine Prettier-Formatierung, description-wrap + function-collapse, 0 Semantik-Änderung). `grep` nach Design-Tokens (`--primary|--bg-color|backdrop-filter|globals.css`) in Diffs: Treffer **nur in gelöschten** Inline-Zeilen (Code-Verschiebung in Komponenten), 0 neue Tokens, 0 globals.css-Bezug. Container/Presentational-Split verifiziert: 6 Komponenten importieren ausschließlich `react`/`lucide-react`/`framer-motion` (kein `@/store`/`@/lib`/`@/components/auth`); `HistoryRow`/`LeaderRow`-Interfaces aus Komponenten exportiert. `globals.css` bleibt uncommitted (C10, erwartet). Post-Commit: `git show --name-status` 4M+6A, 0 cross-block in HEAD. Plan: `docs/archive/03_c3-c6-execution-plan.md` §C6.
 
 - **Scope:** Slots v2-Code + v2-Symbol-Assets + modifizierte Basis-Symbole.
 - **Dateien:**
@@ -213,6 +230,7 @@ Jeder Block: Scope · Dateien (➕ neu / ✎ modifiziert / ➖ gelöscht) · Com
 - **Verifizierung:** `next/image` mit expliziten `width`/`height`; `unoptimized`-Prop für SVG (laut letztem Commit b442ae3); `npm run build`; visuelle Slot-Symbol-Prüfung.
 - **Risiken:** R1 — Bildgröße vs. gerenderte Größe (Performance). R2 — `next/image`-Konfiguration für `v2/`-Pfad.
 - **Design-Guardian:** zwingend.
+- ✅ **Committed `9e97d53`** — 28 Dateien (14 NEW `create mode` + 14 modified), +1613/−157. Verify-Gates: `npm run build` exit 0 (task b26r9azip); tsc via lint-staged typecheck-staged grün; prettier --write 28 Dateien grün. Scope-Realität vs Plan: Hunk-Split **entfiel** — Diff-Analyse der 6 modified Source-Files: `page.tsx`/`layout.tsx`/`symbols.ts`/`WinLine.tsx` prettier-only (C6-A-Plan2-Präzedenz: in C7 committet, loose-end-Vermeidung); `SlotSymbol.tsx` realer v2-Content (rendert 8 Basis-Symbol-PNGs via `src="/images/slots/sym-*.png"` + `width/height/objectFit`); `SlotReel.tsx` realer Fix (`getComputedStyle(--slot-cell-size)`→`getBoundingClientRect().height/VISIBLE_ROWS`, da clamp() unaufgelöst) + prettier. Keine C10-Redesign-Token-Modifikation (`--slot-cell-size` nur gelesen). Runtime-Deps auf C9 (`bet-validator`/`provably-fair`) + C10 (`GameErrorBoundary`) — alle tracked in HEAD, v2 kompiliert gegen committed base, kein C9/C10-vor-C7-Zwang. 16 PNGs (8 base + 8 v2) binär committed. Post-Commit: `git show --name-status` 14A+14M, 0 cross-block in HEAD, `globals.css` bleibt uncommitted (C10, erwartet). Plan: `docs/archive/04_c7-c9-execution-plan.md` §C7.
 
 ### C8 — Admin Pages Refactor
 
@@ -228,6 +246,7 @@ Jeder Block: Scope · Dateien (➕ neu / ✎ modifiziert / ➖ gelöscht) · Com
 - **Verifizierung:** `npx tsc --noEmit`; `npm run build`; Admin-Auth-Flow (anonym → sign-in, User → 403, Admin → Zugang via `isAdminEmail`); `metadata`-Export je Page.
 - **Risiken:** R1 — React-Hook-Warning (laut Commit 1cefbf3 bereits gefixt — Regression prüfen). R2 — Admin-API Auth-Enforcement.
 - **Security-Reviewer:** zwingend (Admin-Auth-Boundary).
+- ✅ **Committed `5c87a7a`** — 8 Real-Content-Files (8 modified, 0 NEW), +1482/−250. Verify-Gates: `npm run build` exit 0 (task b26r9azip); lint-staged eslint + typecheck-staged + prettier (8 Dateien) grün. Scope-Realität vs Plan: Plan sagte 14+3=17 Files; Realität = 8 Real-Content + **9 EOL-only-Artefakte** (AdminOverviewLoader, forbidden, GamesPageLoader, games/page, admin/page, SimulationPageLoader, simulation/page, UsersPageLoader, users/page) — `git diff --ignore-cr-at-eol` leer, C3/C4-Präzedenz (admin.ts/session.ts) → ausgeschlossen. Hunk-Split entfiel: 4 Clients = Admin-Funktions-Refactor (Simulation-Engine-UI/recharts, Overview/Games/Users-Enhancement), `grep` nach C10-Redesign-Token-Additions leer; `admin/layout.tsx` prettier-only (C6-A-Plan2-Präzedenz → in C8). **Security-Gate (Admin-Auth-Boundary)** verifiziert: alle 3 API-Routes diff-geprüft + post-commit `git show HEAD:...route.ts | grep` — `getUser→401`, `isAdminEmail→403`, `enforceRateLimit` erhalten (games 3 / overview 3 / users 5 auth-Marker in committed HEAD); users-Route POST ergänzt `user_id: targetUserId` Audit-Logging (security-positiv). Math.random in SimulationPageClient = Admin-Simulations-Kontext (kein Provably-Fair-Verstoß). Runtime-Deps auf C9 (`@/lib/security/admin`, `@/utils/supabase/server`) — tracked in HEAD, kompiliert gegen base. 9 EOL-only Files bleiben uncommitted (CRLF-Artefakt, erwartet). Plan: `docs/archive/04_c7-c9-execution-plan.md` §C8.
 
 ### C9 — Core-Libs & Security Hardening
 
@@ -246,6 +265,7 @@ Jeder Block: Scope · Dateien (➕ neu / ✎ modifiziert / ➖ gelöscht) · Com
 - **Risiken:** R1 — Client-seitiges `ProvablyFairEngine.generateServerSeed()` ist Pre-Production-Blocker (AGENTS.md Security-Auditor). R2 — Integer-Overflow-Vektoren. R3 — Mutation außerhalb `processGameResult`.
 - **Security-Reviewer + Logic-Architect:** zwingend (BLOCK, bis 0 CRITICAL/HIGH).
 - **Rollback:** `git revert` — kritisch, da Core.
+- ✅ **Committed `d85a2ce`** — 26 Dateien (25 modified + 1 NEW `proxy-routing.test.ts`), +552/−376. Verify-Gates: `npm run test` **26 Dateien / 265 Tests grün** (pre-Commit + post-Commit HEAD-Konsistenz-Re-run); `npm run vibe-check` ✅ Complete (RNG/Payout); `npm run build` exit 0 (task b26r9azip); lint-staged typecheck-staged + prettier grün. Scope-Realität vs Plan: Plan sagte ~30+ Files; Realität = 26 Real-Content + **10 EOL-only-Artefakte** ausgeschlossen (`perf-monitor`, `wallet-contract`, `casino-core.xp.test`, `helpers/supabase-mock`, `security-surface.test`, `wallet-service-authority.test`, `admin-meta-features.test`, `admin-user-mutations.test`, `utils/supabase/admin`, `time-patch` — `git diff --numstat` leer, C3/C4/C8-Präzedenz) + **2 Gamification-NEW** ausgeschlossen (`achievements-config-server.ts`, `achievements-config.test.ts` — Gamification-Config, nicht Core/Security; Consumer `api/casino/config/route.ts` ist modifiziert, nicht C9; bleiben untracked). **Tests-in-C9-Entscheidung** (statt C11, plan sagte "→ oder C11"): C11 außerhalb /goal-Scope; Tests modifiziert alongside Source → atomar in C9 (dokumentiert §C9.3, analog C4.3/C8.2). **Security-Gate (höchste Sensitivität, 0 CRITICAL/HIGH durch C9):** SG1 `generateServerSeed` vorbestehend in `provably-fair.ts:9` (committed base), C9-diff fügt keine neue Client-Nutzung hinzu (grep `^\+.*generateServerSeed` leer) → vorbestehender Pre-Prod-Blocker, nicht C9-verschärft (O-Item); SG2 `Math.random` in 11 C9-Source-Files = 0 (nur in `chat-bot.ts`/`session.ts`, beide NICHT C9); SG3 `wallet-contract.ts` (Balance-Referenz) EOL-only → keine Balance-Mutation in C9; SG5 `withRefreshedCookies` in HEAD proxy = 4 (alle terminalen Redirect/403 gewrappt); SG6 Admin-Auth-Boundary (`!user→/sign-in`, `!isAdminEmail→403`) erhalten. Post-Commit re-verify in HEAD: generateServerSeed=1 (vorbestehend), Math.random=0 (casino-core/blackjack), withRefreshedCookies=4. 13 ausgeschlossene Files uncommitted (10 EOL-only + 2 Gamification-NEW + globals.css, erwartet). Plan: `docs/archive/04_c7-c9-execution-plan.md` §C9.
 
 ### C10 — Game Pages & Shared Components Polish
 
@@ -270,6 +290,7 @@ Jeder Block: Scope · Dateien (➕ neu / ✎ modifiziert / ➖ gelöscht) · Com
 - **Risiken:** R1 — Größter Block → ggf. in Sub-Commits splitten (Games / Casino-UI / UI-Primitives / Layout / Home). R2 — Hydration-Mismatch. R3 — Bundle-Budget (dynamische Imports für schweren WebGL/GSAP).
 - **Design-Guardian + UI-Animator:** zwingend.
 - **Empfehlung:** In 3–4 Sub-Commits aufteilen (C10a Games, C10b Casino/UI-Primitives, C10c Layout/Nav/Social, C10d Home/Auth) zur Reviewbarkeit.
+- ✅ **Committed `e6dd3d6`** — 81 Dateien (+9938/−3908), 3 NEW (`components/auth/AuthCinematicBackground.tsx`, `hooks/useIsNarrowViewport.ts`, `hooks/useMounted.ts`) + 78 modified. Verify-Gates: `typecheck-staged.mjs` (81 staged Files) **exit 0**; `npx tsc --noEmit` **0 Errors** (Full-Tree, pre+post-Commit); lint-staged (eslint --fix + prettier --write + typecheck-staged) grün; `next build` exit 0 (Full-Tree). **Scope-Realität vs Plan ("Streng nach Plan"):** Plan-Zeile 10 leicht veraltet — 4 nicht-gelistete Dateien sind **harte Build-Abhängigkeiten** plan-gelisteter Importeure (→ INCLUDE als technische Notwendigkeit, kein Scope-Urteil): `useMounted` (← MainLayout/ClientShell), `useIsNarrowViewport` (← HeroCinematicShowcase), `AuthCinematicBackground` (← sign-in/sign-up), `HeroCinematicShowcase` (← HomeClientV2). Import-Graph verifiziert: 0 C10-Datei importiert ein Loose-End-Symbol (`lib/meta`/`lib/security`/`app/api` leer; `lib/casino/*`-Importe alle in C9/HEAD committed; `session`/`chat-bot` 0 Mods). Exkludiert (Loose-Ends, uncommitted gelassen): `app/refactoring/` (nur Pathname-String-Ref in ClientShell, kein Import), `achievements-config-server.ts`+Test (Consumer = app/api), alle `app/api`/`lib/meta`/`app/backend`/`docs`. **v2-sounds-Refactor-Entdeckung:** 4 Spiele-Pages (crash/dice/roulette/blackjack) hatten UNSTAGED v2-sounds-Refactor (lokale `audioRefs`/`playSound` → zentralisiertes `soundManager` mit SoundKey-Enum `crash-launch`/`crash-explode`, passend zu untracked `/sounds/*.mp3` + sound-manager.ts-Loose-End). Beim ersten Commit-Versuch scheiterte lint-staged transient (typecheck-staged SIGKILL mid-flight + stale TS7053/TS2304-Output aus halb-angewendetem Stash-Zustand); Recovery: 4 MM-Dateien (index=OLD audioRefs, working=NEW soundManager) re-staged → index=working=sauberer Refactor → Retry-Commit grün. SIGKILL war transient (Retry komplett clean). **Security-O-Items (nicht C10-blockierend):** `Math.random` in C10-Source = 0 (UI-Polish); 0 Balance-Mutation (reine UI); Admin-Auth-Boundary unberührt. Plan: `docs/archive/05_c10-c12-execution-plan.md` §C10.
 
 ### C11 — Tests & Scripts
 
@@ -286,6 +307,7 @@ Jeder Block: Scope · Dateien (➕ neu / ✎ modifiziert / ➖ gelöscht) · Com
 - **Verifizierung:** `npm run test`; `npm run test:coverage` ≥ 80 %; `npm run vibe-check`.
 - **Risiken:** R1 — Coverage-Regression durch verschobene Tests. R2 — E2E-Tests hängen von lokalem Supabase-Stack ab.
 - **Strategie:** Nur Tests, die keinem anderen Block zugeordnet werden können, im gebündelten C11-Commit; Rest mit jew. Block.
+- ✅ **Committed `cb88252`** — 16 Dateien (+406/−141): 8 `tests/*.spec.ts` (+ `crash-simulation.ts`) + 8 `scripts/*.ts`. Verify-Gates: lint-staged (eslint --fix + prettier --write + `typecheck-staged.mjs` 16 Files) grün; `npm run test` + `npm run vibe-check` (s. Background-Task). **Scope ("Streng nach Plan"):** exakt die C11-Plan-Zeile (8 tests + 8 scripts) — keine Casino/Security/Meta/Store-Unit-Tests (diese waren C3/C4/C9 interleaved committet oder sind Loose-Ends anderer Blöcke). **Import-Analyse:** 2 C11-Dateien importieren aus `lib/casino/{provably-fair,casino-core}` (beide C9-committed → kein Loose-End-Dep, kein Stash-Isolationsrisiko); alle 16 Real-Content (0 EOL-only). **Exkludiert (Loose-Ends, uncommitted):** 8 untracked `scripts/_tmp_*.sql` + `verify-migrations-applied.sql` (Temp/Verify-Artefakte, nicht in Plan). Plan: `docs/archive/05_c10-c12-execution-plan.md` §C11.
 
 ### C12 — Config / Meta-Docs
 
@@ -297,6 +319,17 @@ Jeder Block: Scope · Dateien (➕ neu / ✎ modifiziert / ➖ gelöscht) · Com
 - **Verifizierung:** Konsistenz mit tatsächlich committedem Code-Status; keine veralteten Behauptungen (z. B. 007 live → nur nach B1-Klärung).
 - **Risiken:** R1 — Doku/Code-Drift.
 - **Rollback:** `git revert`.
+- ✅ **Committed `d2d9777`** — 4 Dateien (+288/−225): `CLAUDE.md` (+2/−9), `AGENTS.md` (+3/−3), `GEMINI.md` (+1/−1), `01_WORLDMAP_STATUS.md` (+119/−84). Verify-Gates: lint-staged (prettier --write 4 `.md`; typecheck-staged SKIPPED — keine `.ts/.tsx`) grün. **Scope ("Streng nach Plan"):** exakt die 4 Plan-Dateien, alle Real-Content (0 EOL-only), Content = Jans Endzustand-Doku (server-authority + v2). Kein Doc-Content durch Claude bewertet/umgeschrieben (Memory-Regel: Jan prüft). Plan: `docs/archive/05_c10-c12-execution-plan.md` §C12.
+
+---
+
+## 4b — C10–C12 Abschluss
+
+- **Alle 3 Blöcke 🟢:** C10 `e6dd3d6` (81 Files, +9938/−3908) · C11 `cb88252` (16 Files, +406/−141) · C12 `d2d9777` (4 Files, +288/−225).
+- **Verify-Gates gesamt:** `next build` exit 0 (C10 Full-Tree); `npx tsc --noEmit` 0 Errors (pre+post C10); `typecheck-staged.mjs` grün (C10 81 / C11 16 / C12 n/a); `npm run test` 26 Files / 265 Tests grün (C11); `npm run vibe-check` ✅ Complete (C11). lint-staged (eslint --fix + prettier --write + typecheck-staged) je Block grün.
+- **"Streng nach Plan" umgesetzt:** je Block nur Plan-Zeilen-gelistete Dateien committet. Ausnahme C10: 4 nicht-gelistete aber zwingende Build-Abhängigkeiten (useMounted/useIsNarrowViewport/AuthCinematicBackground + HeroCinematicShowcase) inkludiert — technisch erzwungen (Build-Bruch bei Ausschluss), dokumentiert.
+- **Loose-Ends (84 uncommitted, absichtlich zurückgestellt):** `app/api` (11 Routes), `lib/meta` (6 Files), `lib/casino` (perf-monitor/wallet-contract/sound-manager + Unit-Tests + achievements-config-NEW), `app/backend` (2 DELETED), `app/refactoring` (2 NEW), `docs/*` (diverse), `scripts/_tmp_*.sql` (8), `worldmap/*` (01-offene-commits.md selbst + 05_c10-c12-execution-plan.md). Diese bleiben für einen künftigen /goal.
+- **Plan-Doc-Entscheidung (Jan delegiert):** `docs/archive/05_c10-c12-execution-plan.md` → nach Abschluss in `docs/archive/` verschoben (analog 03/04), Referenzen aktualisiert; nicht gelöscht (enthält §C10.1–§C12 Audit-Trail als Wert).
 
 ---
 

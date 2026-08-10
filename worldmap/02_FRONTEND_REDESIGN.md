@@ -1,6 +1,6 @@
 # 02 — World Map: Frontend Redesign & Komponenten-Modularisierung
 
-> **Erstellt:** 2026-08-09 · **Status:** In Execution — Standard final definiert (Schrift: **Plus Jakarta Sans + JetBrains Mono**, Glas: **Frosted Obsidian + grüner Live-Dot**; siehe Abschnitt 7). Referenz-Skizze `option1_1_cyber_stealth.html` + optimiertes Duplikat `option1_1_cyber_stealth_v2.html` (siehe Abschnitt 8). App-Migration auf Jakarta steht aus. Rest-Kohorten offen. · **Ziel:** Vollumfängliches Redesign & simultane Zerlegung aller Großdateien.
+> **Erstellt:** 2026-08-09 · **Status:** In Execution — Standard final definiert (Schrift: **Plus Jakarta Sans + JetBrains Mono**, Glas: **Frosted Obsidian + grüner Live-Dot**; siehe Abschnitt 7). Referenz-Skizze `option1_1_cyber_stealth.html` + optimiertes Duplikat `option1_1_cyber_stealth_v2.html` (siehe Abschnitt 8). 3D-Wasser-Wellen-Hintergrund als Mockup gebaut, strukturell verifiziert, `Executed` (siehe Abschnitt 9 + [docs/architecture/08_WATER_WAVE_BACKGROUND.md](../docs/architecture/08_WATER_WAVE_BACKGROUND.md)) — Jans visuelle Freigabe steht noch aus. **Eigenständige Lobby-Testseite `/refactoring`** (Three.js + GSAP + Frosted-Obsidian-Glass, komplett eigener Ansatz, nur Startseite) gebaut, strukturell verifiziert, `Executed` (siehe Abschnitt 10) — Jans visuelle Freigabe steht aus. App-Migration auf Jakarta steht aus. Rest-Kohorten offen. · **Ziel:** Vollumfängliches Redesign & simultane Zerlegung aller Großdateien.
 
 ---
 
@@ -31,7 +31,7 @@ Das aktuelle Design weist visuelle Inkonsistenzen auf. Um das Casino auf ein hoc
 - **Option 1 (Cyber-Stealth FinTech)** ist die gewählte Option für die direkte Umsetzung: Wandelt das Casino von einer spielhaften Arcade-Optik in ein Daten-zentriertes, professionelles Terminal.
 - Maximale Lesbarkeit, 0 störender Kitsch, saubere Monospace-Zahlen, klare Kontraste.
 - **Akzent-Pivot (2026-08-09):** Electric Cyan `#00F0FF` → Platinum/Silver `#CBD5E1` (siehe Abschnitt 5).
-- **Typography-Pivot (2026-08-09):** system-ui-Override → IBM Plex Sans + IBM Plex Mono via `next/font` (siehe Abschnitt 6).
+- **Typography-Pivot (2026-08-09):** system-ui-Override → **Plus Jakarta Sans + JetBrains Mono** via `next/font` (verbindlich, siehe Abschnitt 7; IBM Plex aus Abschnitt 6 verworfen).
 
 ---
 
@@ -120,7 +120,9 @@ Die Akzentfarbe von Option 1 (Electric Cyan `#00F0FF`) wurde als zu spielerisch/
 
 ---
 
-## 6 — Typography-Pivot: IBM Plex (2026-08-09)
+## 6 — Typography-Pivot: IBM Plex (2026-08-09) — _superseded by §7_
+
+> **Veraltet (2026-08-09):** IBM Plex war ein Zwischenschritt. Nach Jans visueller Evaluation wurde in **Abschnitt 7 verbindlich** auf **Plus Jakarta Sans + JetBrains Mono** gewechselt. Dieser Abschnitt bleibt als Entscheidungstrail erhalten, ist aber **nicht mehr der aktive Standard** — die App-Migration (Kohorten 1–4) migriert **von IBM Plex auf Plus Jakarta Sans**, nicht auf IBM Plex. Alle "Umsetzung"-Angaben unten beschreiben den ehemals geplanten, inzwischen überschriebenen Schritt.
 
 **Problem-Root-Cause:** `globals.css` überschrieb die `next/font`-Variablen (`--font-inter`, `--font-outfit`, `--font-mono`) mit system-ui-Stacks ("to avoid Google Fonts build-time fetch"). Effektiv renderte also system-ui ohne Charakter — Ursache des "nicht optimal"-Befunds.
 
@@ -236,3 +238,205 @@ Die Favorit-Skizze wurde **sektionsweise evaluiert** (gut/schlecht/Anpassung je 
 ### Nächster Schritt
 
 Nach Jans visueller Freigabe der v2 → App-Migration: `layout.tsx` Font-Importe auf `Plus_Jakarta_Sans` + `JetBrains_Mono` umstellen (Abschnitt 7), Kohorten 1–4 (Abschnitt 2) auf v2-Referenz anwenden.
+
+---
+
+## 9 — 3D-Wasser-Wellen-Hintergrund (2026-08-09)
+
+Der v2-Hintergrund (Raster + Blobs) wurde als zu langweilig bewertet. Neuer Ansatz: der Hintergrund wirkt wie eine tiefe **3D-Wasseroberfläche** — Maus-Bewegung **erzeugt Wellen**, die sich ausbreiten, interferieren und (absorptiv) abklingen. **Kein** Spotlight/Taschenlampe. Wasser liegt **hinter** dem Frosted-Obsidian-Glas; Inhalt bleibt scharf.
+
+Vollständiger Weltklasse-Plan (Recherche · Entscheidung · Implementationsplan · Self-Audit · Level-Ups · Execution-Audit) — `Executed`, nach `docs/architecture/` archiviert: [`docs/architecture/08_WATER_WAVE_BACKGROUND.md`](../docs/architecture/08_WATER_WAVE_BACKGROUND.md).
+
+**Wiederverwendung (2026-08-09):** Technik als kanonisches Playbook extrahiert ([`_Brain/30_Playbooks/water-ripple-background`](../../../_Brain/30_Playbooks/water-ripple-background.md)) + als testbare React-Komponente ins Projekt ReactLandingpages überführt (Subprojekt [`ReactLandingpages/water-ripple/`](../../../ReactLandingpages/water-ripple/) — 16 Vitest-Tests grün, `tsc`/`vite build` sauber; Plan mit Pitfalls + Two-Perspective-Review). Siehe Abschnitt 8 des 08-Docs.
+
+### Artefakte
+
+| Datei                                           | Rolle                                                                                                                                |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `docs/architecture/08_WATER_WAVE_BACKGROUND.md` | Weltklasse-Plan + Self-Audit + Execution-Audit (`Executed`)                                                                          |
+| `docs/prototypes/water_background_v1.html`      | **Mockup** — Canvas-2D-Hugo-Elias-Heightmap, Maus erzeugt Wellen, 3D-Bump-Look, hinter Frosted-Obsidian (375 Zeilen, self-contained) |
+
+### Technik (Mockup)
+
+- **Höhenfeld-Simulation** (Hugo Elias Wellengleichung): 2 Float32-Puffer, 4-Nachbar-Smoothing + Dämpfung (0.988 → ~5s sichtbar), Maus/Touch/Click injizieren Gauß-Bumps → propagierende Wellen.
+- **3D-Look** via Heightmap-Gradient-Bump-Shading + Platinum-Specular auf Kämmen (Palette: Charcoal/Slate/Platinum, kein Neon).
+- **Performant:** internes Grid ≤256 (Mobile ≤160) → Offscreen-Canvas → bilineares Upscale; `visibilitychange`-Pause; `prefers-reduced-motion`-Fallback (statischer Wasser-Gradient); Auto-Seed.
+- **Layering:** Wasser `z-index:0` (`aria-hidden`, `pointer-events:none`), Glas-Content `z-index:1` scharf.
+
+### Produktion (später, nach visueller Freigabe)
+
+WebGL GPGPU Heightmap als Production-Upgrade (GPU, echte Refraktion/Phong), Canvas-2D als Fallback — siehe `08` §3/§4.7. Mockup gilt als visuelle Referenz.
+
+### Visuelle Freigabe → Jan
+
+Wellen-Optik, Specular-Intensität, Damping-Gefühl, Farbe, "Wasser vs. Plasma"-Wirkung, Mobile-Performance → Jans visuelle QA (No-Visual-Check-Regel).
+
+---
+
+## 10 — Eigenständige Lobby-Testseite `/refactoring` (2026-08-09) · `Executed`
+
+Eigenständige Lobby-Konzeption (**nicht** die aktuelle Variante, **nicht** HomeClientV2) mit hochrelevanten **Three.js 3D-Effekten, GSAP, Frosted-Obsidian-Glassmorphism, hohem Kontrast**. **Ausschließlich die Startseite/Lobby** — keine Games-/MyBets-/Leaderboard-/Vault-Routen. Aufrufbar als isolierte Testseite unter `/refactoring`.
+
+> **No-Visual-Check-Regel (verbindlich, siehe §7):** Claude prüft in dieser Konversation **nichts visuell** — kein Browser, keine Screenshots, keine "sieht gut aus"-Aussagen. Nur objektive/strukturelle Verifikation (Build, `tsc`, `lint`, Datei-/Link-Existenz, CSP-Kompatibilität, Token-Konsistenz). Jede visuelle Freigabe liegt bei Jan.
+
+### 10.1 — Ziel & Scope
+
+| Dimension                  | Festlegung                                                                                                                                                                                                     |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Scope**                  | Ausschließlich **Lobby/Startseite** (Header, Hero, Stat-Strip, Spiele-Grid, Live-Feed). **Keine** `/games/*`-Seiten, keine `/history`, `/leaderboard`, `/vault`, kein Spiel-Canvas, kein Wallet-Mutation-Code. |
+| **Ansatz**                 | **Komplett eigenständig** — bewusst **nicht** von `HomeClientV2.tsx` / `option1_1_cyber_stealth_v2.html` inspiriert. Eigene Komposition, eigene 3D-Objekte, eigene Timeline.                                   |
+| **Stack**                  | Three.js (3D-Szene) + GSAP (Entrance-Timeline) + Frosted-Obsidian-Glass + hohem Kontrast.                                                                                                                      |
+| **Farbschema**             | **Cyber-Stealth Platinum** (§7 verbindlich: Charcoal `#0B0E14`, Platinum `#CBD5E1`, Emerald `#00E676`, Crimson `#FF3366`) — "hoher Kontrast" passt zum verbindlichen Standard; keine neue Palette.             |
+| **Abwägung (transparent)** | Layout & 3D-Effekte sind neu/originell; das Farbschema bleibt §7, da ein eigener Ansatz nicht zwingend eine eigene Palette erfordert und §7 verbindlich ist.                                                   |
+| **Route**                  | `/refactoring` — Next.js-Route, die das HTML-Prototype in einem fullscreen-iframe bettet.                                                                                                                      |
+| **Isolation**              | HTML ist **self-contained** in `public/prototypes/` → kein neuer npm-Dep, kein Bundle-/Build-Risiko für die Live-App.                                                                                          |
+
+### 10.2 — Anforderungen (Requirements)
+
+**Funktional**
+
+- R1 — Lobby-Layout: Header (Brand + Balance), Hero (Eyebrow+Live-Dot, Titel, Sub, 2 CTAs), 4-fach Stat-Strip, Spiele-Grid (6 Karten: Crash/Dice/Roulette/Slots/Blackjack + "Mehr bald"), Live-Feed (≥5 Rows).
+- R2 — Three.js-3D-Szene: schwebende niedrig-poly Spielobjekt-Meshes (Icosahedron=Dice, Torus=Roulette-Ring, Box=Karten, Cylinder=Münze/Slot, Dodekaeder-Akzent, Partikel-Würfel) im dunklen Void mit `FogExp2`.
+- R3 — Maus-Parallax: Kamera folgt der Maus weich (Lerp 0.05); Objekte rotieren langsam + sanftes Float.
+- R4 — GSAP-Entrance-Timeline (nur Core `gsap`, kein ScrollTrigger-Plugin): Header → Hero → Stats → Sec-Labels → Game-Cards (staggered) → Feed.
+- R5 — Frosted-Obsidian-Glass auf allen Panels (§7-Standard: `blur(18px) saturate(140%)`, Platinum-Hairline, inset Top-Highlight).
+- R6 — Grüner Live-Dot (§7-Standard, pulsierend) auf Hero-Eyebrow + Crash-Karte.
+- R7 — Hoher Kontrast: `#f1f5f9` auf `#0b0e14` (Text), Emerald/Crimson als Wert-Signale.
+- R8 — Monospace (`JetBrains Mono`) für Balance, Stat-Values, Payouts, Tags, Avatare-Initialen → keine Layout-Flicker (`tabular-nums`).
+
+**Robustheit / Qualität**
+
+- R9 — **WebGL-Fallback:** falls `WebGLRenderer`-Konstruktor wirft → statischer Gradient-Hintergrund + sichtbarer Hinweis-Overlay (kein leeres Schwarzes).
+- R10 — **`prefers-reduced-motion`:** kein RAF-Loop (ein statischer Frame), keine GSAP-Timeline (Content direkt sichtbar), Live-Dot-Animation aus.
+- R11 — **`visibilitychange`-Pause:** RAF wird bei `document.hidden` gestoppt, beim Wiedereintritt fortgesetzt → keine Hintergrund-CPU.
+- R12 — **DPR-Cap:** `Math.min(devicePixelRatio, 1.75)` → keine Over-Render auf HiDPI.
+- R13 — **No-JS-Fallback:** `.no-js`-Body-Klasse → `.reveal`-Elemente direkt sichtbar (kein unsichtbarer Content, falls JS deaktiviert).
+- R14 — **A11y:** Canvas `aria-hidden="true"` (dekorativ); `:focus-visible` Outline; semantisches HTML (`<header>`, `<section>`, `<a>`, `<h1>/<h2>`); iframe `title`.
+- R15 — **CSP-sicher:** Three.js + GSAP **lokal vendored** (kein CDN — Casino-CSP erlaubt kein Script-CDN, siehe `src/proxy.ts`).
+- R16 — **Build-Isolation:** Prototype lebt in `public/prototypes/` → geht nicht in den Next.js-Bundle der Live-App; `/refactoring` ist reiner iframe-Wrapper (keine Casino-Store-/Wallet-Abhängigkeit).
+- R17 — **Route-Freigabe:** `/refactoring` in `PUBLIC_ROUTES` (`src/proxy.ts`) + `ClientShell` behandelt es als bare Sandbox (kein `MainLayout`-Shell).
+- R18 — **Metadaten:** `layout.tsx` (Server-Component) exportiert `metadata` (Title + Description, `robots: noindex`); `page.tsx` (Client-Component) → kein `metadata`-Export möglich.
+- R19 — **Tabular-Numerics:** alle Geld-/Multi-Werte `font-variant-numeric: tabular-nums` → keine Spalten-Jitter.
+
+### 10.3 — Abhängigkeiten (Dependencies)
+
+| Abhängigkeit                                 | Typ                     | Quelle                                               | CSP-Relevanz             |
+| -------------------------------------------- | ----------------------- | ---------------------------------------------------- | ------------------------ |
+| **Three.js r160** (UMD `build/three.min.js`) | Runtime, lokal vendored | `public/prototypes/lib/three.min.js` (669 KB)        | `'self'`-gedeckt (lokal) |
+| **GSAP 3.12.5** (Core, `gsap.min.js`)        | Runtime, lokal vendored | `public/prototypes/lib/gsap.min.js` (72 KB)          | `'self'`-gedeckt (lokal) |
+| Next.js App Router                           | Build-Route             | `src/app/refactoring/{layout,page}.tsx`              | —                        |
+| `src/proxy.ts` `PUBLIC_ROUTES`               | Middleware              | Eintrag `/refactoring(.*)` hinzugefügt               | —                        |
+| `src/components/layout/ClientShell.tsx`      | Shell-Bypass            | `isRefactoring`-Branch → bare render                 | —                        |
+| Frosted-Obsidian-Token                       | Design-System           | §7-Standard (Inline im Prototype, da self-contained) | —                        |
+
+**Kein** neuer `package.json`-Eintrag. **Kein** CDN. **Kein** externer Font (Prototype nutzt System-Fallback-Stack mit Jakarta-/JetBrains-namen — visuelle Finalisierung der echten Webfonts folgt in der App-Migration, nicht hier).
+
+### 10.4 — Mögliche Probleme / Fehler & Handhabung
+
+| #   | Problem / Fehlerfall                                                          | Wahrscheinlichkeit     | Auswirkung                           | Handhabung (im Prototype umgesetzt)                                                                                                                                                          |
+| --- | ----------------------------------------------------------------------------- | ---------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P1  | WebGL nicht verfügbar (alten Browser, Software-Renderer-Block, Kontext-Limit) | Mittel                 | Schwarzer Bildschirm                 | `try/catch` um `new THREE.WebGLRenderer()` → statischer Gradient `#scene-fallback` + Hinweis-Overlay `#no-webgl` (R9)                                                                        |
+| P2  | Three.js/GSAP-Laden schlägt fehl (Pfad, 404)                                  | Niedrig                | `THREE`/`gsap` undefined → JS-Fehler | Lokale, relative Pfade `./lib/*.min.js`; Datei-Existenz strukturell verifiziert (siehe §10.8). IIFE-Wrapper fängt fehlendes `window.gsap` ab (R10-Pfad: direkt sichtbar).                    |
+| P3  | HiDPI-Over-Render (4K+ DPR)                                                   | Mittel                 | CPU/GPU-Spike                        | `setPixelRatio(Math.min(dpr, 1.75))` (R12)                                                                                                                                                   |
+| P4  | `prefers-reduced-motion` ignoriert                                            | Niedrig                | Motion-Sickness, Barriere            | `matchMedia`-Check → statischer Frame + keine Timeline + Dot-Animation aus (R10)                                                                                                             |
+| P5  | RAF läuft weiter im Background-Tab                                            | Hoch (ohne Mitigation) | Akku/CPU-Drain                       | `visibilitychange` → `cancelAnimationFrame`/restart (R11)                                                                                                                                    |
+| P6  | iframe blocked by CSP / `X-Frame-Options`                                     | Niedrig                | `/refactoring` leer                  | `X-Frame-Options: SAMEORIGIN` (gleiche Herkunft erlaubt); Prototype wird von gleicher Origin geliefert. Sandbox-Attribut `allow-same-origin allow-scripts` gesetzt.                          |
+| P7  | CSP blockt lokale Scripts                                                     | Mittel                 | Three/GSAP laden nicht               | Casino-CSP `script-src 'self' 'unsafe-inline' 'unsafe-eval'` → lokale Scripts erlaubt. Middleware-Matcher schließt `.html` aus → Prototype-HTML bekommt **kein** CSP-Header (noch robuster). |
+| P8  | Hydration-Mismatch (`/refactoring` page)                                      | Niedrig                | Console-Warnung                      | `page.tsx` ist pure Client-Component ohne server-gerenderte dynamische Werte; `layout.tsx` (Server) hat statisches `metadata`-Objekt.                                                        |
+| P9  | Stale `.next/dev/types` nach Routen-Add                                       | Mittel                 | `tsc`-Fehler zu `LayoutRoutes`       | Cleanup `.next/dev/types` → `tsc` regeneriert → 0 Fehler (siehe §10.8).                                                                                                                      |
+| P10 | Content unsichtbar bei deaktiviertem JS                                       | Niedrig                | Leere Lobby                          | `.no-js`-Klasse + `.reveal`-Fallback-Regel → Content sichtbar ohne JS (R13)                                                                                                                  |
+| P11 | Z-Index-Konflikt (Canvas vs. Glass)                                           | Niedrig                | Content hinter Canvas                | Canvas `z-index:0` (`pointer-events:none`), Glass `z-index:10` — klare Schichttrennung.                                                                                                      |
+| P12 | Mobile-Performance (viele Meshes + RAF)                                       | Mittel                 | Ruckeln                              | DPR-Cap + begrenzte Mesh-Anzahl (6 Haupt-Objekte + 8 Partikel) + `visibilitychange`-Pause. Mobile-Finaltuning → Jans visuelle QA.                                                            |
+| P13 | Tastatur-Fokus im iframe verloren                                             | Niedrig                | A11y-Lücke                           | iframe hat `title`; Esc im Parent → zurück zu `/` (Helper, keine echte Trap nötig, da Prototype keine internen Routen hat).                                                                  |
+| P14 | `robots` indiziert Testseite                                                  | Niedrig                | SEO-Noise                            | `metadata.robots = { index: false, follow: false }` (R18)                                                                                                                                    |
+| P15 | Veraltete Three.js-UMD-Deprecation-Warnung                                    | Niedrig                | Console-Warnung                      | r160-`three.min.js` hat `console.warn`-Prefix (deprecation-Hinweis); funktional unverändert. Production-Migration → ESM-Modul-Pipeline (siehe §10.9).                                        |
+
+### 10.5 — Architektur-Entscheidung (Warum iframe + lokales Vendoring)
+
+**Entscheidung:** Self-contained HTML-Prototype in `public/prototypes/` + Next.js-Route `/refactoring` als iframe-Wrapper. **Nicht** eine React/TS-Komponente mit `import * as THREE from 'three'`.
+
+**Begründung:**
+
+1. **Build-Isolation:** Three.js (669 KB) + GSAP (72 KB) verlassen **nie** den Next.js-Bundle der Live-App → 0 Bundle-/CWV-Risiko für Spieler-Routen.
+2. **Kein neuer npm-Dep:** kein Lockfile-Drift, keine Security-Advisory-Pflicht, keine `next.config`-Änderung.
+3. **CSP-Sicherheit:** lokale Scripts → Casino-CSP `script-src 'self'` deckt sie ab; kein CDN (verboten). Middleware-Matcher schließt `.html` aus → Prototype sogar ganz ohne CSP-Header.
+4. **Iterierbarkeit:** Prototype ist eine einzelne HTML-Datei → Jan kann visuell iterieren, ohne Dev-Server-Rebuilds der Casino-App.
+5. **Gleicher Isolations-Präzedenz:** wie `option1_1_cyber_stealth*.html` und `water_background_v1.html` — Prototypes leben in `public/prototypes/` (bzw. `docs/prototypes/`), nie im App-Bundle.
+
+**Trade-off (akzeptiert):** iframe ⟹ keine direkte Casino-Store-/Wallet-Kopplung. Für eine reine Lobby-Mockup-Testseite ist das korrekt (keine echten Wetten, keine echten Salden — alle Werte hardcoded Mock-Daten). Bei späterer App-Migration würde die Lobby als echte React-Komponente mit Store-Binding neu gebaut.
+
+### 10.6 — Adversarielles Review (zwei Perspektiven)
+
+#### Perspektive A — "Skeptischer Frontend-Engineer" (Fokus: Robustheit, Performance, Wartbarkeit)
+
+- **A1 — Memory-Leak-Risiko:** RAF-Loop + Event-Listener (`mousemove`, `resize`, `visibilitychange`) werden bei Page-Unmount **nicht** abgeräumt. → **Akzeptiert für Prototype** (Page-Reload clearingt); bei App-Migration zwingend `useEffect`-Cleanup. Dokumentiert in §10.9.
+- **A2 — Partikelanzahl unskaliert auf Mobile:** 8 Partikel-Würfel + 6 Haupt-Meshes sind moderat, aber nicht DPR/Viewport-adaptiv. → **Akzeptiert** (DPR-Cap dämpft); Mobile-Finaltuning → Jan.
+- **A3 — `unsafe-eval`-Abhängigkeit der Casino-CSP:** Three.js UMD nutzt evtl. `eval`-ähnliche Pfade? → **Geklärt:** Prototype-HTML bekommt **keinen** CSP-Header (Matcher schließt `.html` aus), also irrelevant. Casino-App selbst braucht `'unsafe-eval'` ohnehin.
+- **A4 — Kein echter Loading-State-Fallback im iframe:** wenn Three.js hängt, bleibt "lädt …" stehen. → **Akzeptiert**; `onLoad` setzt `loaded=true`; Timeout bewusst weggelassen (lokale Resource, keine nennenswerte Latenz).
+- **A5 — `sandbox` ohne `allow-forms`/`allow-popups-to-escape-sandbox`:** CTAs sind `href="#"`-Anker → keine echte Navigation. → **OK**; `allow-popups` gesetzt, falls später echte Links.
+- **A6 — Hardcoded Mock-Daten (Balance, Feed):** täuschen Live-Verhalten vor. → **Beabsichtigt** (Testseite); im iframe gibt es keinen Store-Zugriff. Als "Mock" im Hero-Text und `robots:noindex` deklariert.
+- **A7 — `no-js`-Klasse nur entfernt, nicht bei JS-Fehler gesetzt:** wenn die IIFE vor `remove('no-js')` wirft → Content unsichtbar. → **Reihenfolge:** `remove('no-js')` ist erste Anweisung in der IIFE vor jedem Three-Code → Fehler später lässt Content sichtbar (CSS-Fallback greift, da `.no-js .reveal` nur bei `no-js` überschreibt; ohne `.no-js` bleibt `.reveal { opacity:0 }`). → **Risiko erkannt:** bei JS-Fehler bleibt `.reveal` bei `opacity:0`. → **Mitigation (eingebaut):** GSAP-Fehl-Pfad (else-Branch) sowie `no-js`-Entfernung ganz am Anfang; zudem setzt ein eventueller Three-Fehler die GSAP-Timeline nicht außer Kraft (GSAP-Block ist unabhängig vom Three-Block). Verbleibendes Restrisiko: gsap _und_ Three-Fehler gleichzeitig → Content unsichtbar. → **Akzeptiert** (lokale vendored Libs, strukturell verifiziert); dokumentiert.
+
+#### Perspektive B — "Security-/Compliance-Reviewer" (Fokus: Angriffsfläche, Isolation, Prod-Nähe)
+
+- **B1 — iframe-Sandbox-Matrix:** `allow-same-origin allow-scripts allow-popups` → kombinierter Flag erlaubt dem iframe, Same-Origin zu sein **und** Scripts zu laufen. Theoretisch könnte Prototype-Code Parent-DOM lesen. → **Risiko niedrig** (Prototype ist eigene, statische, lokal geladerte Datei — kein User-Input, keine externen Inputs). Bei Bedarf strenger: `allow-scripts` ohne `allow-same-origin` → bricht aber WebGL/Kontext. → **Akzeptiert** mit Begründung; dokumentiert.
+- **B2 — Kein User-Input-Vector:** Prototype hat keine Formulare, keine User-Eingaben, keine API-Calls → keine Injection-, XSS-, CSRF-Oberfläche. → **OK.**
+- **B3 — `target="_blank"`/Popups:** CTAs sind `href="#"` (keine externe Navigation). → **OK.**
+- **B4 — Service-Role-/Supabase-Berührung:** Prototype + `/refactoring`-Route berühren **keine** Wallet-/Supabase-/Service-Role-Logik. → **OK** (entspricht Casino-Sicherheitsregel: Wallet-Autorität nur via `processGameResult`/atomare RPCs — hier irrelevant, keine echten Werte).
+- **B5 — PII-Leak:** Live-Feed verwendet erfundene Namen (`_whale.eth`, `cr0nx` …) → keine echten User-Daten. → **OK.**
+- **B6 — Dep-Vendoring-Sicherheit:** lokal vendored Three.js/GSAP = fixe Versionen → kein Supply-Chain-Drift, aber auch keine Auto-Patches. → **Akzeptiert** für Prototype; bei App-Migration auf npm + `npm audit` + Renovate wechseln (§10.9).
+- **B7 — CSP-Header-Abwesenheit für Prototype-HTML:** Middleware-Matcher schließt `.html` aus → kein CSP-Header auf `/prototypes/lobby_v2_refactoring.html`. → **Akzeptiert** (statische, input-lose Ressource, same-origin, im iframe sandboxed); andernfalls würde `unsafe-inline`-CSP für inline `<script>` nötig. Dokumentiert als bewusste Wahl.
+- **B8 — `robots:noindex` korrekt:** verhindert Indexierung der Testseite. → **OK.**
+
+**Konsens beider Perspektiven:** Plan ist für eine **isolierte Testseite** robust genug; die identifizierten Restrisiken (A1 Cleanup, A7 Edge-Fehler, B1 Sandbox-Matrix) sind für den Prototype akzeptiert und in §10.9 als zwingende Voraussetzungen für die App-Migration dokumentiert.
+
+### 10.7 — Self-Audit (Next-Level: was fehlt / Level-Ups)
+
+Eigenes Review des eigenen Plans — nachgelagerte Lücken & Verbesserungen:
+
+| #    | Gefundene Lücke / Level-Up                                                                                                                                                                                                                                                           | Status                    |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
+| SA1  | **Lücke:** §10.2 listet A11y, aber **kein** Keyboard-Test des 3D-Canvas. → Klarstellung: Canvas ist `aria-hidden` + `pointer-events:none` → nicht tastbar, kein Tab-Stop. Tastatur bleibt auf Glass-Content (CTAs, Karten).                                                          | Dokumentiert (R14)        |
+| SA2  | **Level-Up:** DPR-Cap **1.75** ist willkürlich. → Begründung: handelsüblicher Sweet-Spot zwischen Schärfe und Perf (3+→1.75 dämpft ~40%). Bei Mobile-QA ggf. auf 1.5 senken.                                                                                                         | Offen für Jan             |
+| SA3  | **Lücke:** Kein ResizeObserver (nur `window.resize`). iframe-Vollbild → `window.resize` reicht, da iframe viewport-gekoppelt.                                                                                                                                                        | OK (keine Aktion)         |
+| SA4  | **Level-Up:** Partikel-Würfel via `Math.random()` platziert → nicht deterministisch (verletzt Casino-Regel "kein `Math.random()` in Spiel-Logik"). → **Geklärt:** Regel gilt für **Spiel-/Wetlogik** (ProvablyFair), nicht dekorative 3D-Platzierung. Prototype hat keine Wettlogik. | Akzeptiert + begründet    |
+| SA5  | **Lücke:** `metadata` in `layout.tsx` — ist `/refactoring` eine echte "page" im Next-Sinne mit eigener Layout-Route? → **Ja:** `src/app/refactoring/{layout,page}.tsx` erzeugt eine echte Route; `ClientShell`-Bypass vermeidet MainLayout.                                          | Verifiziert (§10.8)       |
+| SA6  | **Level-Up:** Three.js-Deprecation-Warnung (UMD) in Console. → Bei App-Migration ESM-Import + Tree-Shaking.                                                                                                                                                                          | Dokumentiert (P15, §10.9) |
+| SA7  | **Lücke:** Keine Verbindung zu §9 (Wasser-Hintergrund). → Bewusst: §10 ist **eigener Ansatz** (Three.js-Objekte), §9 ist Wasser-Heightmap. Beide sind separate Test-Stränge; evt. spätere Kombination → Jans Entscheidung.                                                           | Dokumentiert              |
+| SA8  | **Level-Up:** Live-Feed ist statisch. Für Prod-Nähe ein Auto-Rotate/Virtual-Stream denkbar. → Out-of-Scope (Testseite, keine API).                                                                                                                                                   | Dokumentiert              |
+| SA9  | **Lücke:** `prefers-reduced-motion`-Ast rendert nur **einen** Frame — aber `mousemove`-Listener bleibt gemountet (wird nie gefeuert, da reduceMotion-Check `start3D` blockt). → **OK**; Listener wird im reduceMotion-Pfad gar nicht erst registriert (Code-Pfad).                   | Verifiziert im Code       |
+| SA10 | **Lücke:** Kein Test (Vitest/Playwright) für die Route. → Prototype ist HTML-iframe-Wrapper ohne Geschäftlogik → Unit-Tests nicht sinnvoll; visuelle/Playwright-Tests → Jans QA + spätere App-Migration.                                                                             | Akzeptiert (keine Logik)  |
+| SA11 | **Level-Up:** §10 sollte auf §7 (verbindlicher Standard) und §6 (IBM Plex verworfen) verlinken, damit der Entscheidungstrail kohärent bleibt. → Done: §6-Header + §10.1 referenzieren §7.                                                                                            | Erledigt                  |
+| SA12 | **Lücke:** Status-Zeile oben erwähnt §10 noch nicht. → Done (Status-Zeile aktualisiert).                                                                                                                                                                                             | Erledigt                  |
+
+### 10.8 — Execution-Audit (strukturell, nicht visuell)
+
+**Gebaut:**
+
+| Datei                                         | Rolle                                                                                                                                                    | Status     |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| `public/prototypes/lobby_v2_refactoring.html` | Self-contained Lobby-Prototype (Three.js + GSAP + Frosted-Obsidian-Glass)                                                                                | ✓ erstellt |
+| `public/prototypes/lib/three.min.js`          | Three.js r160 UMD, lokal vendored (669 KB, `THREE`-Global verifiziert)                                                                                   | ✓ erstellt |
+| `public/prototypes/lib/gsap.min.js`           | GSAP 3.12.5 Core, lokal vendored (72 KB, `window.gsap` verifiziert)                                                                                      | ✓ erstellt |
+| `src/app/refactoring/layout.tsx`              | Server-Component, exportiert `metadata` (Title/Description, `robots:noindex`)                                                                            | ✓ erstellt |
+| `src/app/refactoring/page.tsx`                | Client-Component, fullscreen-iframe-Wrapper (`/prototypes/lobby_v2_refactoring.html`), `sandbox="allow-same-origin allow-scripts allow-popups"`, Esc→`/` | ✓ erstellt |
+| `src/proxy.ts`                                | `/refactoring(.*)` zu `PUBLIC_ROUTES` hinzugefügt                                                                                                        | ✓ geändert |
+| `src/components/layout/ClientShell.tsx`       | `isRefactoring`-Branch → bare render (kein MainLayout)                                                                                                   | ✓ geändert |
+
+**Strukturelle Verifikation (objektiv, nicht visuell):**
+
+- `npx tsc --noEmit` → **0 Fehler** (nach Cleanup der stale `.next/dev/types`, siehe P9).
+- `npx eslint` auf die 4 geänderten/erstellten TS/TSX-Dateien → **0 Fehler, 0 Warnungen** (Repo-weit pre-existing errors unangetastet).
+- Datei-Existenz: `public/prototypes/{lobby_v2_refactoring.html, lib/three.min.js, lib/gsap.min.js}` ✓.
+- Referenz-Auflösung: HTML referenziert `./lib/three.min.js` + `./lib/gsap.min.js` → resolve zu `public/prototypes/lib/*.min.js` ✓.
+- CSP-Kompatibilität: Casino-CSP `script-src 'self' 'unsafe-inline' 'unsafe-eval'` deckt lokale Scripts; Middleware-Matcher schließt `.html` aus → Prototype ohne CSP-Header ✓.
+- `X-Frame-Options: SAMEORIGIN` (gleiche Origin) → iframe-Load erlaubt ✓.
+- Route-Freigabe: `/refactoring` ∈ `PUBLIC_ROUTES` → kein Auth-Redirect ✓; `ClientShell` bare → kein MainLayout ✓.
+
+### 10.9 — Nächster Schritt & Freigabe
+
+**Visuelle Freigabe → Jan** (No-Visual-Check-Regel): 3D-Objekt-Komposition, Maus-Parallax-Feel, GSAP-Entrance-Rhythmus, Glass-Tiefe/Kontrast, Live-Dot-Wirkung, Mobile-Performance, "eigener Ansatz vs. aktuelle Variante"-Eindruck.
+
+**Falls Jan visuell freigibt → App-Migration** (separater Plan, **nicht** hier): Lobby als echte React-Komponente mit Casino-Store-Binding neu bauen; Three.js/GSAP via npm + ESM + Tree-Shaking; `useEffect`-Cleanup (A1); DPR/Partikel adaptiv (A2, SA2); `npm audit`/Renovate (B6); echte Live-Feed-API (SA8); Vitest für Logik + Playwright für Lobby-Flow (SA10).
+
+**Falls Jan ablehnt** → Ansatz verwerfen oder iterieren; dieser §10 bleibt als Entscheidungstrail erhalten.
