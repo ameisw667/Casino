@@ -28,7 +28,11 @@ const requestSchema = z.object({
   target: z.number().finite().optional(),
   condition: z.enum(['OVER', 'UNDER']).optional(),
   bets: z.array(rouletteBetSchema).max(100).optional(),
-  clientSeed: z.string().min(1).max(64).regex(/^[a-zA-Z0-9_-]+$/),
+  clientSeed: z
+    .string()
+    .min(1)
+    .max(64)
+    .regex(/^[a-zA-Z0-9_-]+$/),
   currentNonce: z.number().int().nonnegative(),
   action: z.enum(['START_CRASH', 'CASHOUT_CRASH', 'RESOLVE_CRASH']).optional(),
   roundId: z.string().uuid().optional(),
@@ -51,32 +55,56 @@ export async function POST(request: Request) {
 
   try {
     const supabase = await createClient();
-    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+
+    const cookieHeader = request.headers.get('cookie') || '';
+    const isExplicitSignedOut = cookieHeader.includes('casino_signed_out=1');
+
     let userId = authUser?.id;
-    if (!userId && process.env.NODE_ENV === 'development' && process.env.ALLOW_DEV_FALLBACK === 'true') {
+    if (
+      !userId &&
+      process.env.NODE_ENV === 'development' &&
+      process.env.ALLOW_DEV_FALLBACK === 'true' &&
+      !isExplicitSignedOut
+    ) {
       userId = 'dev_user_fallback';
     }
     if (!userId) return new NextResponse('Unauthorized', { status: 401 });
 
-    const rate = await enforceRateLimit(getClientIdentifier(request, userId), 'casino-bet', 10, 10);
+    const rate = await enforceRateLimit(getClientIdentifier(request, userId), 'casino-bet', 30, 10);
     if (!rate.success) {
+      const retryAfterSeconds = Math.max(1, Math.ceil((rate.reset - Date.now()) / 1000));
       return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) }
+        {
+          error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+          code: rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+          retryAfter: retryAfterSeconds,
+        },
+        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
       );
     }
 
     const parsed = requestSchema.safeParse(await request.json());
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid Request Data', details: parsed.error.flatten() }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid Request Data', details: parsed.error.flatten() },
+        { status: 400 },
+      );
     }
     const params = parsed.data;
     const gameConfig = await loadGameConfig();
 
     if (params.action === 'START_CRASH') {
       if (!params.amount) return NextResponse.json({ error: 'Amount required' }, { status: 400 });
-      if (params.amount > gameConfig.limits.betMax) return NextResponse.json({ error: 'Bet exceeds limit' }, { status: 400 });
-      const crash = await CasinoCore.startCrashRound(params.clientSeed, params.currentNonce, gameConfig);
+      if (params.amount > gameConfig.limits.betMax)
+        return NextResponse.json({ error: 'Bet exceeds limit' }, { status: 400 });
+      const crash = await CasinoCore.startCrashRound(
+        params.clientSeed,
+        params.currentNonce,
+        gameConfig,
+      );
       const round = await WalletService.startRound({
         userId,
         requestId: params.requestId,
@@ -128,24 +156,32 @@ export async function POST(request: Request) {
         xpGain: CasinoCore.calculateXpGain(round.betAmount, 1, gameConfig),
         result,
       });
-      return NextResponse.json({ ...(settlement.result as object), wallet: walletOnly(settlement), replayed: settlement.replayed });
+      return NextResponse.json({
+        ...(settlement.result as object),
+        wallet: walletOnly(settlement),
+        replayed: settlement.replayed,
+      });
     }
 
     if (!params.amount || !params.gameType) {
       return NextResponse.json({ error: 'Game and amount required' }, { status: 400 });
     }
-    if (params.amount > gameConfig.limits.betMax) return NextResponse.json({ error: 'Bet exceeds limit' }, { status: 400 });
+    if (params.amount > gameConfig.limits.betMax)
+      return NextResponse.json({ error: 'Bet exceeds limit' }, { status: 400 });
 
-    const generated = await CasinoCore.placeBet({
-      gameType: params.gameType,
-      amount: params.amount,
-      multiplier: params.multiplier,
-      target: params.target,
-      condition: params.condition,
-      bets: params.bets,
-      clientSeed: params.clientSeed,
-      currentNonce: params.currentNonce,
-    }, gameConfig);
+    const generated = await CasinoCore.placeBet(
+      {
+        gameType: params.gameType,
+        amount: params.amount,
+        multiplier: params.multiplier,
+        target: params.target,
+        condition: params.condition,
+        bets: params.bets,
+        clientSeed: params.clientSeed,
+        currentNonce: params.currentNonce,
+      },
+      gameConfig,
+    );
     const result = {
       ...generated,
       game: params.gameType,
@@ -163,14 +199,25 @@ export async function POST(request: Request) {
       result,
     });
 
-    return NextResponse.json({ ...(settlement.result as object), wallet: walletOnly(settlement), replayed: settlement.replayed });
+    return NextResponse.json({
+      ...(settlement.result as object),
+      wallet: walletOnly(settlement),
+      replayed: settlement.replayed,
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal Server Error';
     CasinoLogger.error('API/Casino/Bet', 'Server-authoritative settlement failed', error);
     const status = message === 'Insufficient balance' ? 409 : 500;
     return NextResponse.json(
-      { error: process.env.NODE_ENV === 'development' ? message : status === 409 ? message : 'Internal Server Error' },
-      { status }
+      {
+        error:
+          process.env.NODE_ENV === 'development'
+            ? message
+            : status === 409
+              ? message
+              : 'Internal Server Error',
+      },
+      { status },
     );
   }
 }
