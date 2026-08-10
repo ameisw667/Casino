@@ -382,7 +382,7 @@ Plan ist nach Prüfung der 10 Prüfungspunkte „Execution-Ready" im Sinne der L
 | C18   | `7e1707e` | Einzeln (security-review)            | ✅ tsc 0, security-reviewer PASS (2 MEDIUM-Hardenings angewandt: `server-only`-Import + idempotente Policy)                                                            |
 | C19   | `49b99da` | Einzeln (security-review, MANDATORY) | ✅ tsc 0, security-reviewer BLOCK→in-scope fixed (H1 rate-limit 30/20 per 10s + M1 `isExplicitSignedOut`-Gate auf bet+blackjack); redeem-code CRITICAL C1 **deferred** |
 | C20   | `bd48ac5` | Einzeln (security-review)            | ✅ tsc 0, security-reviewer PASS (1 MEDIUM-Observability-Fix: `roundsResult.error`-Log + safe-null `?? []`)                                                            |
-| C21   | `6ff3ad8` | Einzeln (Endzustand)                 | ✅ tsc 0, vibe-check ✅ — siehe 9.2                                                                                                                                    |
+| C21   | `f9231f7` | Einzeln (Endzustand)                 | ✅ tsc 0, vibe-check ✅ — siehe 9.2                                                                                                                                    |
 
 ### 9.2 — Verify-Gate-Ergebnisse (Post-Execution)
 
