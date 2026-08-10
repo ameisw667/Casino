@@ -235,54 +235,42 @@ export class WalletService {
     return blackjackActionSchema.parse(data);
   }
 
-  static async creditBonus(params: {
+  static async redeemPromoCode(params: {
     userId: string;
-    amount: number;
     code: string;
-  }): Promise<WalletSnapshot> {
+  }): Promise<
+    { ok: true; amount: number; snapshot: WalletSnapshot } | { ok: false; code: string }
+  > {
     const supabase = createAdminClient();
-
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('balance, xp, level, rank')
-      .eq('id', params.userId)
-      .single();
-
-    if (userError || !user) {
-      // Provision fallback user if needed
-      await supabase
-        .from('users')
-        .upsert(
-          { id: params.userId, username: params.userId.slice(0, 64), balance: 10000.0 },
-          { onConflict: 'id', ignoreDuplicates: true },
-        );
-    }
-
-    const currentBalance = Number(user?.balance ?? 10000.0);
-    const newBalance = Number((currentBalance + params.amount).toFixed(2));
-
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ balance: newBalance })
-      .eq('id', params.userId);
-
-    if (updateError) throw new Error('Bonus credit update failed');
-
-    const { data: transaction } = await supabase
-      .from('wallet_transactions')
-      .select('id')
-      .eq('user_id', params.userId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    return walletSnapshotSchema.parse({
-      balance: newBalance,
-      xp: Number(user?.xp ?? 0),
-      level: Number(user?.level ?? 1),
-      rank: String(user?.rank ?? 'BRONZE'),
-      transactionId: transaction?.id ?? ZERO_TRANSACTION_ID,
+    const { data, error } = await supabase.rpc('redeem_promo_code', {
+      p_user_id: params.userId,
+      p_code: params.code,
     });
+    if (error || !data) {
+      CasinoLogger.error('WalletService/redeemPromoCode', 'RPC failed', error);
+      throw new Error('Redeem RPC failed');
+    }
+    const result = data as {
+      ok: boolean;
+      code?: string;
+      amount?: number;
+      balance?: number;
+      xp?: number;
+      level?: number;
+      rank?: string;
+      transactionId?: string;
+    };
+    if (!result.ok) {
+      return { ok: false, code: String(result.code ?? 'PROMO_INVALID') };
+    }
+    const snapshot = walletSnapshotSchema.parse({
+      balance: Number(result.balance),
+      xp: Number(result.xp ?? 0),
+      level: Number(result.level ?? 1),
+      rank: String(result.rank ?? 'BRONZE'),
+      transactionId: String(result.transactionId),
+    });
+    return { ok: true, amount: Number(result.amount), snapshot };
   }
 
   static async getUserStats(userId: string) {

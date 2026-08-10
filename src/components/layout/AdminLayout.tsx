@@ -12,6 +12,7 @@ import {
   BarChart2,
   FlaskConical,
   LogOut,
+  Ticket,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -30,6 +31,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { icon: <LayoutDashboard size={20} />, label: 'Overview', path: '/admin' },
     { icon: <Users size={20} />, label: 'User Management', path: '/admin/users' },
     { icon: <BarChart2 size={20} />, label: 'Game Stats', path: '/admin/games' },
+    { icon: <Ticket size={20} />, label: 'Promo Codes', path: '/admin/promo-codes' },
     { icon: <FlaskConical size={20} />, label: 'Simulation', path: '/admin/simulation' },
   ];
 
