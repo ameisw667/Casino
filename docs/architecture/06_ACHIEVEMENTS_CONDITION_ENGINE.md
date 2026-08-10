@@ -1,7 +1,7 @@
 # 06 — World Map: Achievements Condition-Engine — Vollständiger Implementationsplan
 
 > **Erstellt:** 2026-08-09 · **Status:** Executed (siehe Abschnitt 8 für Ergebnis) · **Scope:** `supabase/migrations/017_achievement_condition_engine.sql`, `src/lib/casino/achievements-config.ts` (neu), `src/lib/casino/achievements-config-server.ts` (neu), `src/app/api/casino/config/route.ts`, `src/store/useCasinoStore.ts`, zugehörige Tests.
-> **Vorgänger:** [`05_ZUKUNFTSPLANUNG.md`](./05_ZUKUNFTSPLANUNG.md) Initiative 1.5. Die ursprüngliche Optionen-Datei (Option A/B/C-Vergleich) wurde durch diese Datei ersetzt, nachdem Jan sich explizit für **Option C — Condition-Engine** entschieden hat (Begründung: höherer Lerneffekt als A/B).
+> **Vorgänger:** [`05_ZUKUNFTSPLANUNG.md`](../../worldmap/05_ZUKUNFTSPLANUNG.md) Initiative 1.5. Die ursprüngliche Optionen-Datei (Option A/B/C-Vergleich) wurde durch diese Datei ersetzt, nachdem Jan sich explizit für **Option C — Condition-Engine** entschieden hat (Begründung: höherer Lerneffekt als A/B).
 > **Auftrag:** Vollumfänglicher Implementationsplan auf Weltklassenniveau, zweifache Selbstprüfung, danach **direkte Execution ohne Rückfrage** (explizite Freigabe durch Jan für diesen Ablauf).
 
 ---
@@ -190,29 +190,32 @@ Der bestehende serverseitige Persistenzpfad (Migration 013, `sync_user_achieveme
 
 ## 8 — Execution-Ergebnis
 
-_(wird im selben Edit befüllt, in dem die Umsetzung tatsächlich stattfindet — siehe Commits/Diff für den Code-Teil. Kein separater Freigabeschritt vor Start, wie von Jan angewiesen.)_
-
 ### 8.1 Umgesetzte Dateien
 
-- ☐ `supabase/migrations/017_achievement_condition_engine.sql` (neu)
-- ☐ `src/lib/casino/achievements-config.ts` (neu)
-- ☐ `src/lib/casino/__tests__/achievements-config.test.ts` (neu)
-- ☐ `src/lib/casino/achievements-config-server.ts` (neu)
-- ☐ `src/app/api/casino/config/route.ts` (erweitert)
-- ☐ `src/store/useCasinoStore.ts` (refaktoriert)
-- ☐ `src/store/__tests__/useCasinoStore.test.ts` (angepasst)
+- ☑ `supabase/migrations/017_achievement_condition_engine.sql` (neu)
+- ☑ `src/lib/casino/achievements-config.ts` (neu — Typen, `DEFAULT_ACHIEVEMENT_CONFIGS`, `evaluateAchievementConditions()`, `getAchievementProgress()`, `mergeAchievementsWithConfig()`, `applyAchievementProgress()`)
+- ☑ `src/lib/casino/__tests__/achievements-config.test.ts` (neu — 23 Tests, deckt alle 9 Achievements parametrisiert plus Edge Cases)
+- ☑ `src/lib/casino/achievements-config-server.ts` (neu — Supabase-Loader, Zod-Validierung pro Zeile, Icon-Sanitizing E7, Fallback auf Defaults)
+- ☑ `src/app/api/casino/config/route.ts` (erweitert um `achievementConfigs`, keine neue Route — Korrektur aus Abschnitt 6.1)
+- ☑ `src/store/useCasinoStore.ts` (refaktoriert: `INITIAL_ACHIEVEMENTS`-Hardcode entfernt, drei Id-String-Ketten auf einen `applyAchievementProgress()`-Aufruf in `processGameResult()` konsolidiert, `addBet()`/`addCrashHistory()` von toter Duplikat-Logik befreit, `achievementConfigs` + `currentWinStreak` neu, `loadVipConfig()` merged Configs, `partialize` schließt `achievementConfigs` aus)
+- ☑ `src/store/__tests__/useCasinoStore.test.ts` (angepasst: 1 Test korrigiert, der den toten `moon_shot`-Bug absicherte; 4 neue Tests: korrekter `moon_shot`-Schwellwert 100, `lucky_streak`-Winstreak, `first_bet`-Einmaligkeit, Config-Merge in `loadVipConfig`)
 
 ### 8.2 Verifizierung
 
-- ☐ `npx tsc --noEmit`
-- ☐ `npm run lint` (touched files)
-- ☐ `npx vitest run` (betroffene Testdateien)
+- ☑ `npx tsc --noEmit` → 0 Fehler
+- ☑ `npm run lint` → 0 neue Fehler/Warnungen in allen 7 berührten Dateien (1 vorbestehender, unabhängiger `prefer-const`-Fehler bei `syncTimer` in `useCasinoStore.ts:253` per `git show HEAD` verifiziert bereits vor dieser Session vorhanden — nicht Teil dieses Scopes, nicht angefasst)
+- ☑ `npx vitest run` (Gesamtsuite) → **265/265 Tests grün** (26 Dateien), davon 91 in den beiden direkt betroffenen Dateien
+- ☑ `npm run build` → grün (Production-Build inkl. TypeScript-Pass, alle Routen inkl. `/api/casino/config` erzeugt)
 
 ### 8.3 Selbstprüfung der Execution (zweiter Durchgang, nach Code-Fertigstellung)
 
-_(wird nach Abschluss der Implementierung ergänzt)_
+- ✅ Einziger Aufrufpfad für Achievement-Evaluation bestätigt: `grep -rn "applyAchievementProgress"` → nur 1 Aufrufstelle in `processGameResult()`.
+- ✅ IDs unverändert (Abschnitt 3.5) — `git diff` zeigt für alle 9 Achievement-IDs keine Umbenennung, nur Inhaltsänderungen bei `daily_grinder`/`moon_shot`.
+- ✅ Kein Test wurde gelöscht, um ihn zum Grünwerden zu bringen — der einzige geänderte Bestandstest (`addCrashHistory ... moon_shot`) wurde umbenannt und prüft jetzt explizit das neue, korrekte Verhalten (`unlocked: false` über den toten Pfad), nicht entfernt.
+- ✅ `supabase/migrations`-Verzeichnis gegengeprüft: `017` war zum Zeitpunkt der Dateierstellung frei (höchste vorhandene: `016`), keine Kollision.
+- ✅ **2026-08-09, nachträglich:** Migration 017 von Jan im Supabase SQL Editor ausgeführt. Verifiziert in 3 Schichten: (1) Jans eigener Check `SELECT id, title, is_active FROM achievement_configs ORDER BY sort_order` → 9/9 Zeilen korrekt. (2) `anon`-Key-REST-Read gegen `achievement_configs` (testet die RLS-Policy, die Jans Superuser-Query in 1 umgeht) → identische 9 Zeilen, Policy greift wie vorgesehen. (3) `GET http://localhost:3015/api/casino/config` gegen den laufenden Dev-Server → liefert `achievementConfigs` mit allen 9 Einträgen inkl. `conditions`/`progressStat` — bestätigt den vollständigen Pfad `achievements-config-server.ts` → `/api/casino/config` → Store, nicht nur den DB-Layer.
 
 ### 8.4 Nicht ausgeführt / offen für Jan
 
-- Migration 017 gegen Supabase ausrollen (DDL-fähiger Zugang nötig, siehe Abschnitt 7).
+- Vorbestehender, unabhängiger Lint-Fehler `syncTimer` (`useCasinoStore.ts:253`, `prefer-const`) — nicht Teil dieses Auftrags, separat zu entscheiden ob/wann gefixt.
 - Optional: visuelle Prüfung der geänderten Icons/Titel im Vault (Claude prüft laut Projektregel nie selbst visuell).

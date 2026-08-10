@@ -1,6 +1,6 @@
 # 01b — C1 Docs-Reorganisation: Commit-Plan (vollumfänglich)
 
-> **Erstellt:** 2026-08-09 · **Ziel:** Punkt 1 (C1 Docs-Reorganisation) in `worldmap/01-offene-commits.md` Übersichtstabelle von 🟡 staged → 🟢 committed.
+> **Erstellt:** 2026-08-09 · **Status:** ✅ **EXECUTED `5860f83`** (2026-08-09, 62 Dateien, +7179/−1429) · **Ziel:** Punkt 1 (C1 Docs-Reorganisation) in `worldmap/01-offene-commits.md` Übersichtstabelle von 🟡 staged → 🟢 committed.
 > **Scope:** 5 % Übersicht für Jan · 95 % Execution-Detail für LLM.
 > **Quelle:** `git status --porcelain` + `git diff --cached --name-status` (2026-08-09).
 
@@ -182,3 +182,43 @@ docs/: `docs/EVALUATION.md`, `docs/architecture/01_AUTH_MIGRATION_CLERK_TO_SUPAB
 ### 8.4 — Audit-Ergebnis
 
 Plan nach F-Plan1–4, P-Plan1–5, A-Plan1–3 auf Next-Level: vollständige Dateiliste verifiziert, C12-Isolation gesichert, `git add .`/`-u`-Risiken ausgeschlossen, Marker-Update-Reihenfolge fixiert, Post-Commit-Asserts definiert. Ausführbar.
+
+---
+
+## 9 — Execution-Self-Audit (post-Execution, 2026-08-09)
+
+**Ergebnis:** ✅ C1 committed als `5860f83`, 62 Dateien, +7179/−1429. Punkt 1 in `01-offene-commits.md` = 🟢.
+
+### 9.1 — Was lief anders als geplant
+
+| #   | Abweichung                                                                                                              | Auswirkung                                                                      | Auflösung                                                                                    |
+| --- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| E1  | Plan §4.2 sah per-File-Add vor; Execution nutzte pfad-gefilterte Directory-Adds (`git add docs/` + `git add worldmap/`) | Positiv — weniger Tippfehler-Risiko, gleiche C1-Scope, keine Code-Datei erfasst | Beibehalten; beide Asserts (0 Code / 0 C12) grün                                             |
+| E2  | `worldmap/06_ACHIEVEMENTS_CONDITION_ENGINE.md` tauchte neu auf (nach anfänglichem untracked-Scan)                       | C1-Scope-Folge — weitere Planning-Doc                                           | Korrekt von `git add worldmap/` erfasst, committet                                           |
+| E3  | Git erkannte move-to-archive als **Renames** (R091/R100/R090), nicht als Delete+Add                                     | Positiv — History für verschobene Docs erhalten                                 | Akzeptiert, im Commit-Log sichtbar                                                           |
+| E4  | Pre-commit-Hook `lint-staged` lief `prettier --write` auf 42 Files → Markdown-Tabellen formatiert                       | Format-Only, kein Content-Change; committet mit                                 | Akzeptiert; CRLF-Warnungen harmlos                                                           |
+| E5  | `lint-staged`-Stash-Restore löschte 3 Prototyp-HTMLs (`bg_option1/2/3`) aus Working-Tree                                | Working-Tree zeigte `D`, Index/HEAD hatte sie korrekt                           | Behoben via `git checkout HEAD -- docs/prototypes/bg_option*.html`; 9/9 Prototypen wieder da |
+
+### 9.2 — Verifizierte Post-Commit-Asserts
+
+- HEAD-Subject: `docs: reorganize docs tree (…)` ✓
+- Code-Pfade in HEAD (`src/`/`scripts/`/`public/`/`supabase/`): **0** ✓
+- C12-Files in HEAD (`CLAUDE/AGENTS/GEMINI/01_WORLDMAP_STATUS`): **0** ✓
+- C12-Files noch unstaged (C12 intakt): **4** ✓
+- `docs/`+`worldmap/` Working-Tree nach Restore: **leer** ✓
+- Verbleibende Working-Tree-Dateien: 231 (Code C2–C12, erwartet) ✓
+
+### 9.3 — Offene Folge-Items (kein C1-Blocker)
+
+- **O1 — 2 stale Meta-Text-Refs** in aktiven Docs: `docs/architecture/LEADERBOARD_RPC.md:44` (`worldmap/04_docs_ordnung.md`), `docs/architecture/05_1.4_login.md:237` (`worldmap/05_1.4_login.md`). Beide im deskriptiven Planungs-Text, nicht navigationskritisch. → Folge-Pass oder C12.
+- **O2 — Archive-Tote-Links** (7 Dateien in `docs/archive/` referenzieren alte `worldmap/`-Pfade) — per F6 akzeptiert (historischer Kontext).
+- **O3 — `01-offene-commits.md` Quellen-Zeile** hatte stale `worldmap/03_*`-Refs → in Step 6 auf `docs/archive/03_*` korrigiert (lebendes Working-Doc, uncommitted — fließt in Folge-Commits).
+
+### 9.4 — Doku-Updates durchgeführt
+
+- `worldmap/01-offene-commits.md`: §1 C1-Zeile 🟡→🟢; Header-Status "C1 ✅ committed"; Quellen-Zeile korrigiert; §4 C1 durch executed-Reality ersetzt (Hash 5860f83, tatsächliche 62-Dateien-Scope).
+- `worldmap/01b-c1-docs-commit-plan.md` (diese Datei): Status-Zeile → "✅ EXECUTED 5860f83"; §9 Execution-Self-Audit angefügt.
+
+### 9.5 — Fazit
+
+C1 sauber isoliert (0 Code, 0 C12), ein kohärenter `docs:`-Commit, History via Rename-Erkennung erhalten, Working-Tree nach Stash-Restore-Nebenwirkung repariert. Punkt 1 = 🟢 committed. Aufgabe abgeschlossen.

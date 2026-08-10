@@ -1,6 +1,6 @@
 # 01a — World Map: DB-Rollout-Plan 016 / 009 / 012 (verifiziert)
 
-> **Erstellt:** 2026-08-09 · **Status:** 016 ✅ LIVE (Post-Check 7/7) · 009 DEFERRED · 012 OPTIONAL · **Quelle:** Live-Verifikation via Supabase SQL Editor (Projekt `hmqwozhdckbwjqzcmire`), siehe `worldmap/01-offene-commits.md` Abschnitt 3/Verifikation.
+> **Erstellt:** 2026-08-09 · **Status:** AUSGEFÜHRT (016 ✅ + 009 ✅ + 012 ✅ alle LIVE, 2026-08-09) · **Quelle:** Live-Verifikation via Supabase SQL Editor (Projekt `hmqwozhdckbwjqzcmire`). Archiviert nach `docs/archive/DB_ROLLOUT_PLAN_2026-08-09.md` — siehe Execution-Log §9.
 > **Scope:** 5 % Übersicht für Jan · 95 % Execution-Detail für LLM.
 > **Voraussetzung erfüllt:** 003/007/013/014/015 remote live · RLS aktiv · 011 angewandt · 016-Schema-Deps (chat_messages, seeds, game_rounds, wallet_transactions) kompatibel verifiziert.
 
@@ -8,11 +8,11 @@
 
 ## 1 — Übersicht (5 % Scope für Jan)
 
-| #     | Punkt                                                                                        | Remote-Status        | Entscheidung                  | Risiko  | Jan-Aktion                              | LLM-Aktion                                          |
-| ----- | -------------------------------------------------------------------------------------------- | -------------------- | ----------------------------- | ------- | --------------------------------------- | --------------------------------------------------- |
-| **A** | **016** Full Server-Authority Expansion (chat/seeds/community/active-round RPCs)             | nicht ausgerollt     | **GO — jetzt ausrollen**      | Niedrig | SQL-Datei ausführen + Post-Check pasten | Rollout-Datei bereitstellen, Doku aktualisieren     |
-| **B** | **009** Meta-Features / Canonical Identity (user_identities, admin_roles, Trigger, Backfill) | **nicht ausgerollt** | **DEFERRED — nicht jetzt**    | Hoch    | keine (nur Kenntnisnahme)               | Evaluation + Risiko-Doku + Aktivierungs-Bedingungen |
-| **C** | **012** Welcome-Bonus Default (`balance DEFAULT 10000.00` + 0-Balance-Update)                | nicht ausgerollt     | **OPTIONAL — kann ausrollen** | Niedrig | SQL-Datei ausführen (optional)          | Rollout-Datei bereitstellen                         |
+| #     | Punkt                                                                                        | Remote-Status                 | Entscheidung                                                                                              | Risiko  | Jan-Aktion                                 | LLM-Aktion                                                  |
+| ----- | -------------------------------------------------------------------------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------ | ----------------------------------------------------------- |
+| **A** | **016** Full Server-Authority Expansion (chat/seeds/community/active-round RPCs)             | ✅ LIVE (Post-Check 7/7)      | ✅ AUSGEFÜHRT 2026-08-09                                                                                  | Niedrig | SQL-Datei ausgeführt + Post-Check gepastet | Rollout-Datei bereitgestellt, Doku aktualisiert             |
+| **B** | **009** Meta-Features / Canonical Identity (user_identities, admin_roles, Trigger, Backfill) | ✅ LIVE (Post-Check 14/14)    | ✅ AUSGEFÜHRT 2026-08-09 (Pfad A: §3.2-Bedingungen erfüllt — 0 Cross-Provider-Conflicts, Quarantine leer) | Hoch    | SQL-Datei ausgeführt + Post-Check gepastet | Pre-/Post-Checks bereitgestellt, Backfill 16/16 verifiziert |
+| **C** | **012** Welcome-Bonus Default (`balance DEFAULT 10000.00` + 0-Balance-Update)                | ✅ LIVE (zero_balance_post=0) | ✅ AUSGEFÜHRT 2026-08-09 (UPDATE no-op: 0 Zero-Balance-User)                                              | Niedrig | SQL-Datei ausgeführt + Post-Check gepastet | Pre-/Post-Checks bereitgestellt                             |
 
 **Entscheidungslogik:**
 
@@ -225,3 +225,21 @@ B (009) — KEIN Rollout, nur Doku
 ### 8.4 — Audit-Ergebnis
 
 Plan ist nach F1–F4 + P1–P4 + A1–A4 auf Next-Level: 3 Punkte sauber getrennt, je mit Tasks/Workflow/Risiken/Rollback, 009 mit Aktivierungs-Bedingungen statt blindem Rollout, 012 mit Idempotenz-Klarheit, Cross-Referenzen zu C2/C3. Ausprägbar in Reihenfolge §5.
+
+---
+
+## 9 — Execution-Log (2026-08-09, Pfad A: Rollout)
+
+| Punkt                      | Status        | Verifikation                                                                                                                             | Bemerkung                                                  |
+| -------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Backup (Free-Tier-Umweg)   | ✅            | In-DB Snapshot `users_backup_20260809` (16=16) + CSV-Export                                                                              | `scripts/_tmp_009_backup.sql`                              |
+| 009 Pre-Check              | ✅ GO         | A) cross_provider_email_conflicts=0 · B) quarantine_unresolved=0 · C) user_count_pre=16                                                  | `scripts/_tmp_verify_009_pre.sql`                          |
+| 009 Rollout                | ✅            | Success, no rows returned                                                                                                                | `supabase/migrations/009_meta_features.sql` via SQL Editor |
+| 009 Post-Check             | ✅ 14/14      | 3 Tabellen + 3 Funktionen + Guard-Trigger + RLS true · identity_rows=16 · quarantine_unresolved_post=0 · svc_place_bet/settle_exec=false | `scripts/_tmp_verify_009_post.sql`                         |
+| 012 Pre-Check              | ✅ GO         | total_users=16 · zero_balance=0 · positive_balance=16 · already_10k=8 → C1-Risiko=0                                                      | `scripts/_tmp_verify_012_pre.sql`                          |
+| 012 Rollout                | ✅            | Success, no rows returned                                                                                                                | `supabase/migrations/012_welcome_bonus.sql` via SQL Editor |
+| 012 Post-Check             | ✅            | zero_balance_post=0 · balance DEFAULT=10000.00 (Rollout success → ALTER ausgeführt)                                                      | `scripts/_tmp_verify_012_post.sql`                         |
+| Rollback (Sicherheitsnetz) | nicht genutzt | `scripts/_tmp_009_rollback.sql` bereit, nicht angefasst                                                                                  | —                                                          |
+| Backup-Drop (nachträglich) | ✅            | Vorcheck `quarantine_unresolved=0` · `identity_rows=16` · `backup_exists=true` → DROP ausgeführt, `backup_path=null` verifiziert         | `scripts/_tmp_009_drop_backup.sql`                         |
+
+**Finales Ergebnis:** 016 + 009 + 012 alle LIVE. Datei vollumfänglich abgearbeitet → archiviert nach `docs/archive/DB_ROLLOUT_PLAN_2026-08-09.md`. Referenzen in `01-offene-commits.md` (B7/Verifikation/C2) + `docs/archive/03_CASINO_SUPABASE_CONNECTION.md` (009/012-Status) nachgezogen. Backup-Snapshot `users_backup_20260809` nachträglich gedroppt (2026-08-09, Vorcheck erfüllt); Restore-Quelle `users`-Tabelle damit entfernt, 009/012 gelten als stabil verifiziert.

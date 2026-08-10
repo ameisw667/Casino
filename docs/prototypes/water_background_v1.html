@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D-Wasser-Hintergrund — Cyber-Stealth (Maus erzeugt Wellen)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --surface: rgba(20, 25, 35, 0.55);
+      --border: rgba(203, 213, 225, 0.14);
+      --border-bright: rgba(203, 213, 225, 0.28);
+      --text: #f1f5f9;
+      --text-muted: #8a97ad;
+      --text-dim: #6b7689;
+      --accent: #cbd5e1;
+      --emerald: #00e676;
+      --crimson: #ff3366;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+      --sp-1: 8px; --sp-2: 12px; --sp-3: 16px; --sp-4: 20px; --sp-5: 24px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      position: relative; background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 14px; min-height: 100vh;
+      padding: 18px 16px 60px; overflow-x: hidden;
+    }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+    /* ===== Wasser-Canvas (z-index 0, rein dekorativ) ===== */
+    #water {
+      position: fixed; inset: 0; z-index: 0; width: 100vw; height: 100vh;
+      pointer-events: none; display: block;
+    }
+    /* Static fallback gradient (reduced-motion / no-Canvas) */
+    #water-fallback {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none; display: none;
+      background:
+        radial-gradient(ellipse 70% 60% at 30% 30%, rgba(40,52,78,0.5), transparent 60%),
+        radial-gradient(ellipse 60% 50% at 75% 75%, rgba(18,28,40,0.6), transparent 60%),
+        linear-gradient(180deg, #0b0e14, #0d1119);
+    }
+
+    .wrap { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; }
+
+    /* Frosted Obsidian glass */
+    .glass {
+      position: relative; background: var(--surface);
+      backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%);
+      border: 1px solid var(--border); border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .glass::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(180deg, rgba(203,213,225,0.08), transparent 32%); }
+
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); box-shadow: 0 0 12px var(--emerald); display: inline-block; flex: none; animation: pulse 1.6s infinite; }
+    @keyframes pulse { 0%,100%{opacity:0.7; transform:scale(0.92)} 50%{opacity:1; transform:scale(1.25)} }
+
+    /* Header */
+    .header { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; margin-bottom: var(--sp-3); }
+    .brand-logo { font-family: var(--font-mono); font-weight: 700; font-size: 15px; letter-spacing: 0.14em; color: var(--accent); }
+    .balance-box { display: flex; align-items: center; gap: 10px; background: rgba(203,213,225,0.05); border: 1px solid var(--border-bright); padding: 7px 14px; border-radius: 8px; }
+    .balance-box .lbl { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; }
+    .balance-box .val { font-family: var(--font-mono); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    /* Metrics */
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); margin-bottom: var(--sp-3); }
+    .metric { padding: var(--sp-3) var(--sp-4); }
+    .metric .k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; color: var(--text-dim); text-transform: uppercase; }
+    .metric .v-row { display: flex; align-items: baseline; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+    .metric .v { font-family: var(--font-mono); font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .metric .v.acc { color: var(--accent); } .metric .v.up { color: var(--emerald); }
+    .metric .delta { font-family: var(--font-mono); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--emerald); }
+    .metric .d { font-family: var(--font-mono); font-size: 11px; margin-top: 6px; color: var(--text-muted); }
+
+    /* Main grid */
+    .grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: var(--sp-3); }
+    .panel { padding: var(--sp-4) var(--sp-5); }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-3); }
+    .panel-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 9px; }
+    .panel-pill { font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; color: var(--text-dim); border: 1px solid var(--border); padding: 4px 9px; border-radius: 4px; text-transform: uppercase; }
+    .stream-scroll { max-height: 360px; overflow: auto; }
+    .stream { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .stream th { text-align: left; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); padding: 9px 12px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(20,25,35,0.92); backdrop-filter: blur(8px); z-index: 1; }
+    .stream td { padding: 11px 12px; border-bottom: 1px solid rgba(203,213,225,0.06); }
+    .stream td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+    .stream td.win { color: var(--emerald); } .stream td.loss { color: var(--crimson); }
+    .game-tag { font-family: var(--font-mono); font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border); color: var(--text-muted); }
+
+    /* Crash */
+    .side { display: flex; flex-direction: column; gap: var(--sp-3); }
+    .crash-panel { padding: var(--sp-4) var(--sp-5); }
+    .crash-label { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; color: var(--emerald); text-transform: uppercase; }
+    .crash-mult { font-family: var(--font-mono); font-size: 52px; font-weight: 700; letter-spacing: -0.03em; margin: 10px 0; font-variant-numeric: tabular-nums; }
+    .crash-mult .x { color: var(--accent); }
+    .crash-bar { height: 6px; border-radius: 999px; background: rgba(203,213,225,0.08); margin: 14px 0; overflow: hidden; }
+    .crash-bar > i { display: block; height: 100%; width: 64%; background: linear-gradient(90deg, rgba(203,213,225,0.4), var(--accent)); border-radius: 999px; transition: width 0.6s ease; }
+    .payouts { padding: var(--sp-3) var(--sp-5) var(--sp-4); }
+    .payout-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(203,213,225,0.06); }
+    .payout-row:last-child { border-bottom: none; }
+    .payout-row .who { display: flex; align-items: center; gap: 10px; }
+    .pa-avatar { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border-bright); background: rgba(203,213,225,0.08); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 9px; font-weight: 700; color: var(--text-muted); }
+    .payout-row .rank { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); width: 20px; font-variant-numeric: tabular-nums; }
+    .payout-row .name { font-size: 13px; font-weight: 600; }
+    .payout-row .amt { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--emerald); font-variant-numeric: tabular-nums; }
+
+    /* Featured */
+    .featured { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); margin-top: var(--sp-3); }
+    .gcard { padding: var(--sp-3); position: relative; overflow: hidden; transition: transform 0.2s ease, border-color 0.2s ease; }
+    .gcard:hover { transform: translateY(-3px); border-color: var(--border-bright); }
+    .gname { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .ico { width: 28px; height: 28px; border-radius: 7px; background: rgba(203,213,225,0.06); border: 1px solid var(--border-bright); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent); }
+    .gdesc { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .gfoot { display: flex; justify-content: space-between; margin-top: var(--sp-2); }
+    .gpayout { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+    .greward { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .gcard .play { position: absolute; right: 16px; bottom: 14px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; opacity: 0; transform: translateX(8px); transition: opacity 0.2s ease, transform 0.2s ease; }
+    .gcard:hover .play { opacity: 1; transform: translateX(0); }
+
+    .hint { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 2; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; background: rgba(20,25,35,0.6); border: 1px solid var(--border); padding: 6px 14px; border-radius: 999px; backdrop-filter: blur(8px); pointer-events: none; }
+
+    @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } .metrics { grid-template-columns: repeat(2, 1fr); } .featured { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .metrics { grid-template-columns: 1fr; } .featured { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <!-- 3D-Wasser-Canvas (Hintergrund, dekorativ) -->
+  <canvas id="water" aria-hidden="true"></canvas>
+  <div id="water-fallback" aria-hidden="true"></div>
+
+  <div class="wrap">
+    <header class="glass header">
+      <div class="brand-logo">ROYALE.TERMINAL</div>
+      <div class="balance-box"><span class="lbl">Balance</span><span class="val">$12,847.50</span></div>
+    </header>
+
+    <section class="metrics">
+      <div class="glass metric"><div class="k">24H Volume</div><div class="v-row"><span class="v acc">$842,310</span><span class="delta">▲ 14.2%</span></div><div class="d">vs 7d avg</div></div>
+      <div class="glass metric"><div class="k">Net P/L</div><div class="v-row"><span class="v up">+$2,103.75</span><span class="delta">▲ 8.4%</span></div><div class="d">412 bets · 24h</div></div>
+      <div class="glass metric"><div class="k">Win Rate</div><div class="v-row"><span class="v">52.8%</span><span class="delta">▲ 1.2pp</span></div><div class="d">218 / 412</div></div>
+    </section>
+
+    <div class="grid">
+      <section class="glass panel">
+        <div class="panel-head"><div class="panel-title"><span class="live-dot" aria-label="live"></span>BET HISTORY // TERMINAL TAPE</div><span class="panel-pill">LIVE</span></div>
+        <div class="stream-scroll">
+          <table class="stream"><thead><tr><th>Time</th><th>Game</th><th class="num">Bet</th><th class="num">Multi</th><th class="num">Payout</th></tr></thead>
+            <tbody>
+              <tr><td>12:04:21</td><td><span class="game-tag">CRASH</span></td><td class="num">$50.00</td><td class="num">2.41x</td><td class="num win">+$120.50</td></tr>
+              <tr><td>12:03:58</td><td><span class="game-tag">DICE</span></td><td class="num">$25.00</td><td class="num">0.00x</td><td class="num loss">−$25.00</td></tr>
+              <tr><td>12:03:11</td><td><span class="game-tag">ROULETTE</span></td><td class="num">$100.00</td><td class="num">3.00x</td><td class="num win">+$300.00</td></tr>
+              <tr><td>12:02:44</td><td><span class="game-tag">SLOTS</span></td><td class="num">$10.00</td><td class="num">1.50x</td><td class="num win">+$15.00</td></tr>
+              <tr><td>12:01:09</td><td><span class="game-tag">BLACKJACK</span></td><td class="num">$75.00</td><td class="num">0.00x</td><td class="num loss">−$75.00</td></tr>
+              <tr><td>12:00:32</td><td><span class="game-tag">CRASH</span></td><td class="num">$200.00</td><td class="num">1.84x</td><td class="num win">+$368.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <aside class="side">
+        <div class="glass crash-panel">
+          <div class="crash-label"><span class="live-dot" aria-label="live"></span>CRASH // LIVE ROUND</div>
+          <div class="crash-mult">2.41<span class="x">x</span></div>
+          <div class="crash-bar"><i></i></div>
+        </div>
+        <div class="glass payouts">
+          <div class="panel-head" style="margin-bottom: 10px;"><div class="panel-title">TOP PAYOUTS // 24H</div></div>
+          <div class="payout-row"><div class="who"><span class="rank">01</span><span class="pa-avatar">WW</span><span class="name">_whale.eth</span></div><span class="amt">+$48,210</span></div>
+          <div class="payout-row"><div class="who"><span class="rank">02</span><span class="pa-avatar">CR</span><span class="name">cr0nx</span></div><span class="amt">+$31,840</span></div>
+          <div class="payout-row"><div class="who"><span class="rank">03</span><span class="pa-avatar">VX</span><span class="name">vortex_77</span></div><span class="amt">+$22,100</span></div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="featured">
+      <div class="glass gcard"><div class="gname"><span class="ico">CR</span>Crash <span class="live-dot" style="margin-left:auto" aria-label="live"></span></div><div class="gdesc">Cash out before the multiplier busts. Provably-fair curve.</div><div class="gfoot"><span class="gpayout">Top Multi</span><span class="greward">412.8x</span></div><span class="play">PLAY →</span></div>
+      <div class="glass gcard"><div class="gname"><span class="ico">DC</span>Dice</div><div class="gdesc">Roll over / under. 1% house edge, instant settle.</div><div class="gfoot"><span class="gpayout">Top Multi</span><span class="greward">9.90x</span></div><span class="play">PLAY →</span></div>
+      <div class="glass gcard"><div class="gname"><span class="ico">SL</span>Slots</div><div class="gdesc">Per-reel provably-fair indices. Dynamic paylines.</div><div class="gfoot"><span class="gpayout">Top Multi</span><span class="greward">25.0x</span></div><span class="play">PLAY →</span></div>
+    </section>
+  </div>
+
+  <div class="hint">Bewege die Maus über den Hintergrund → Wellen</div>
+
+  <script>
+  (function () {
+    'use strict';
+    var canvas = document.getElementById('water');
+    var fallback = document.getElementById('water-fallback');
+    if (!canvas || !canvas.getContext) { fallback.style.display = 'block'; return; }
+    var ctx = canvas.getContext('2d');
+    if (!ctx) { fallback.style.display = 'block'; return; }
+
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ---- Konfiguration (named constants) ----
+    var MAX_GRID = 256;        // Desktop-cap
+    var MOBILE_GRID = 160;     // Mobile-cap
+    var MOBILE_BREAK = 560;
+    var DAMPING = 0.988;       // Wellen ~5s sichtbar
+    var DROP_RADIUS = 3;       // Maus-Anregungsradius (Grid-Zellen)
+    var DROP_AMP = 0.55;       // Maus-Anregungsamplitude
+    var SPLASH_AMP = 2.2;      // Click-Amplitude
+    var SPLASH_RADIUS = 5;
+    var INJECT_MIN_DIST_SQ = 1; // Maus-Throttle: ≥1 Grid-Zelle
+    // Licht-Richtung (Grid-Raum): Specular auf Kämmen
+    var LIGHT_X = 0.55, LIGHT_Y = -0.55;
+    var SPEC_POWER = 2.2;
+    // Wasser-Palette (Charcoal→Slate, Platinum-Specular)
+    var BASE_R = 11, BASE_G = 14, BASE_B = 20;       // #0b0e14
+    var SLATE_R = 20, SLATE_G = 26, SLATE_B = 40;    // tiefes Slate in Wellentälern-Tendenz
+    var SPEC_R = 203, SPEC_G = 213, SPEC_B = 225;    // Platinum #cbd5e1
+
+    // ---- Puffer ----
+    var GW = 0, GH = 0;
+    var curr = null, prev = null;
+    var off = null, offCtx = null, offImg = null;
+
+    function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+
+    function allocGrid() {
+      var cap = window.innerWidth <= MOBILE_BREAK ? MOBILE_GRID : MAX_GRID;
+      GW = Math.max(64, Math.min(cap, Math.floor(window.innerWidth / 4)));
+      GH = Math.max(36, Math.floor(GW * window.innerHeight / window.innerWidth));
+      curr = new Float32Array(GW * GH);
+      prev = new Float32Array(GW * GH);
+      off = document.createElement('canvas');
+      off.width = GW; off.height = GH;
+      offCtx = off.getContext('2d');
+      offImg = offCtx.createImageData(GW, GH);
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function drop(gx, gy, radius, amp) {
+      var sigma = radius * 0.5;
+      var inv2ss = 1 / (2 * sigma * sigma);
+      var r2 = radius * radius;
+      for (var dy = -radius; dy <= radius; dy++) {
+        var y = gy + dy;
+        if (y < 1 || y >= GH - 1) continue;
+        for (var dx = -radius; dx <= radius; dx++) {
+          var x = gx + dx;
+          if (x < 1 || x >= GW - 1) continue;
+          var d2 = dx * dx + dy * dy;
+          if (d2 > r2) continue;
+          curr[y * GW + x] += amp * Math.exp(-d2 * inv2ss);
+        }
+      }
+    }
+
+    // Wellengleichung (Hugo Elias): new = avg4(curr)*0.5*2 ... - prev, gedämpft
+    function step() {
+      var w = GW, h = GH;
+      for (var y = 1; y < h - 1; y++) {
+        var row = y * w;
+        for (var x = 1; x < w - 1; x++) {
+          var i = row + x;
+          var avg = (curr[i - 1] + curr[i + 1] + curr[i - w] + curr[i + w]) * 0.5;
+          var nv = (avg - prev[i]) * DAMPING;
+          prev[i] = nv;
+        }
+      }
+      // swap: curr <- prev (neu), prev <- curr (alt, wird nächste Runde überschrieben)
+      var tmp = curr; curr = prev; prev = tmp;
+    }
+
+    function render() {
+      var data = offImg.data;
+      var w = GW, h = GH;
+      for (var y = 0; y < h; y++) {
+        var row = y * w;
+        for (var x = 0; x < w; x++) {
+          var i = row + x;
+          // Rand-Nachbarn sichern
+          var il = x > 0 ? i - 1 : i;
+          var ir = x < w - 1 ? i + 1 : i;
+          var iu = y > 0 ? i - w : i;
+          var id = y < h - 1 ? i + w : i;
+          var gx = curr[il] - curr[ir];     // Höhengradient x
+          var gy = curr[iu] - curr[id];     // Höhengradient y
+          // Bump-Shading: Licht aus Richtung (LIGHT_X, LIGHT_Y)
+          var shade = gx * LIGHT_X + gy * LIGHT_Y;
+          // Specular: enger Platinum-Glanz auf Kämmen
+          var spec = Math.max(0, shade);
+          var specP = Math.pow(spec / 1.2, SPEC_POWER); // normalisiert
+          // Höhen-basierte Tiefenmodulation (Wellental dunkler, Berg heller)
+          var height = clamp(curr[i] * 0.04, -0.25, 0.25);
+
+          var r = BASE_R + (SLATE_R - BASE_R) * 0 + shade * 26 + height * 18 + specP * (SPEC_R - BASE_R);
+          var g = BASE_G + (SLATE_G - BASE_G) * 0 + shade * 34 + height * 22 + specP * (SPEC_G - BASE_G);
+          var b = BASE_B + (SLATE_B - BASE_B) * 0 + shade * 46 + height * 30 + specP * (SPEC_B - BASE_B);
+
+          var p = i * 4;
+          data[p]     = clamp(r, 0, 255) | 0;
+          data[p + 1] = clamp(g, 0, 255) | 0;
+          data[p + 2] = clamp(b, 0, 255) | 0;
+          data[p + 3] = 255;
+        }
+      }
+      offCtx.putImageData(offImg, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(off, 0, 0, canvas.width, canvas.height); // bilinear upscale → weiches Wasser
+    }
+
+    // ---- Loop ----
+    var rafId = null;
+    function loop() {
+      step();
+      render();
+      rafId = requestAnimationFrame(loop);
+    }
+    function start() { if (rafId == null) loop(); }
+    function stop() { if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; } }
+
+    // ---- Input (Maus/Touch erzeugen Wellen) ----
+    var lastGX = -999, lastGY = -999;
+    function inject(clientX, clientY, radius, amp) {
+      var gx = Math.floor(clientX / window.innerWidth * GW);
+      var gy = Math.floor(clientY / window.innerHeight * GH);
+      if (radius === DROP_RADIUS) { // Throttle nur bei Maus-Bewegung
+        var ddx = gx - lastGX, ddy = gy - lastGY;
+        if (ddx * ddx + ddy * ddy < INJECT_MIN_DIST_SQ) return;
+      }
+      lastGX = gx; lastGY = gy;
+      drop(gx, gy, radius, amp);
+    }
+    window.addEventListener('mousemove', function (e) { inject(e.clientX, e.clientY, DROP_RADIUS, DROP_AMP); });
+    window.addEventListener('click', function (e) { inject(e.clientX, e.clientY, SPLASH_RADIUS, SPLASH_AMP); });
+    window.addEventListener('touchmove', function (e) {
+      if (e.touches && e.touches[0]) inject(e.touches[0].clientX, e.touches[0].clientY, DROP_RADIUS, DROP_AMP);
+    }, { passive: true });
+    window.addEventListener('touchstart', function (e) {
+      if (e.touches && e.touches[0]) inject(e.touches[0].clientX, e.touches[0].clientY, SPLASH_RADIUS, SPLASH_AMP);
+    }, { passive: true });
+
+    // ---- Resize (debounced) ----
+    var resizeT = null;
+    window.addEventListener('resize', function () {
+      clearTimeout(resizeT);
+      resizeT = setTimeout(function () {
+        var wasRunning = rafId != null;
+        stop();
+        allocGrid();
+        if (wasRunning && !reduceMotion) start();
+      }, 180);
+    });
+
+    // ---- Visibility-Pause ----
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) stop();
+      else if (!reduceMotion) start();
+    });
+
+    // ---- Init ----
+    allocGrid();
+    if (reduceMotion) {
+      // Statisches Wasser: ein Frame + dezente initiale Tropfen, keine Loop
+      drop(Math.floor(GW * 0.3), Math.floor(GH * 0.4), 6, 1.2);
+      drop(Math.floor(GW * 0.7), Math.floor(GH * 0.6), 5, 0.9);
+      step(); render(); // einmal, dann statisch
+      canvas.style.opacity = '0.9';
+    } else {
+      // Auto-Seed: 2 dezente Tropfen, damit Wasser nicht komplett flach startet
+      drop(Math.floor(GW * 0.3), Math.floor(GH * 0.4), 6, 1.0);
+      drop(Math.floor(GW * 0.7), Math.floor(GH * 0.6), 5, 0.8);
+      start();
+    }
+  })();
+  </script>
+</body>
+</html>
