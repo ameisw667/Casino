@@ -17,7 +17,8 @@ describe('performance & mobile optimization', () => {
   it('includes viewportFit: cover in RootLayout viewport export', () => {
     const layoutContent = readFileSync(resolve(root, 'src/app/layout.tsx'), 'utf8');
 
-    expect(layoutContent).toContain('viewportFit: "cover"');
+    // Quote-agnostic so the assertion survives Prettier's singleQuote config.
+    expect(layoutContent).toMatch(/viewportFit:\s*['"]cover['"]/);
   });
 
   it('includes touch-action and mobile-dvh CSS rules in globals.css', () => {
@@ -26,5 +27,34 @@ describe('performance & mobile optimization', () => {
     expect(cssContent).toContain('touch-action: manipulation');
     expect(cssContent).toContain('min-height: 100dvh');
     expect(cssContent).toContain('min-height: 44px');
+  });
+
+  it('bails WebGL water canvas on mobile before init and during JSX render', () => {
+    const webGlContent = readFileSync(
+      resolve(root, 'src/components/home/WebGlWaterRefractionCanvas.tsx'),
+      'utf8',
+    );
+
+    expect(webGlContent).toContain("window.matchMedia('(max-width: 1023px)').matches");
+    expect(webGlContent).toContain('return null;');
+  });
+
+  it('bails ambient background animation loop on mobile', () => {
+    const bgContent = readFileSync(
+      resolve(root, 'src/components/home/LobbyAmbientBackground.tsx'),
+      'utf8',
+    );
+
+    expect(bgContent).toContain("window.matchMedia('(max-width: 1023px)').matches");
+  });
+
+  it('pauses HeroCinematicShowcase timers when tab is hidden or on mobile', () => {
+    const heroContent = readFileSync(
+      resolve(root, 'src/components/home/HeroCinematicShowcase.tsx'),
+      'utf8',
+    );
+
+    expect(heroContent).toContain('visibilitychange');
+    expect(heroContent).toContain("window.matchMedia('(max-width: 1023px)').matches");
   });
 });

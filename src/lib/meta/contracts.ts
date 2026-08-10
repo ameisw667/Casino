@@ -1,7 +1,11 @@
 import { z } from 'zod';
 
 export const PageLimitSchema = z.number().int().min(1).max(100);
-export const CanonicalUserIdSchema = z.string().min(1).max(255).regex(/^[A-Za-z0-9_-]+$/);
+export const CanonicalUserIdSchema = z
+  .string()
+  .min(1)
+  .max(255)
+  .regex(/^[A-Za-z0-9_-]+$/);
 export const GameSchema = z.enum(['dice', 'slots', 'roulette', 'crash', 'blackjack']);
 export const OutcomeSchema = z.enum(['win', 'loss', 'push']);
 export const LeaderboardPeriodSchema = z.enum(['daily', 'weekly', 'monthly', 'all-time']);
@@ -26,7 +30,10 @@ export const LeaderboardRpcParamsSchema = z.object({
   p_metric: LeaderboardMetricSchema,
   p_limit: z.number().int().min(2).max(101),
   p_cursor_value: MetricDecimalSchema.nullable(),
-  p_cursor_player_key: z.string().regex(/^[a-f0-9]{64}$/).nullable(),
+  p_cursor_player_key: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/)
+    .nullable(),
 });
 
 export const AdminAggregateRpcParamsSchema = z.object({
@@ -67,25 +74,33 @@ export const HistoryResultRowSchema = z.object({
   net_amount: SignedMoneyDecimalSchema,
   multiplier: MetricDecimalSchema,
   outcome: OutcomeSchema,
-  server_seed_hash: z.string().regex(/^[a-f0-9]{64}$/i).nullable(),
+  server_seed_hash: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/i)
+    .nullable(),
   settled_at: z.string().datetime({ offset: true }),
 });
 
 export const HistoryPageDataSchema = z.object({
-  items: z.array(z.object({
-    id: z.string().uuid(),
-    game: GameSchema,
-    wagerAmount: MoneyDecimalSchema,
-    payoutAmount: MoneyDecimalSchema,
-    netAmount: SignedMoneyDecimalSchema,
-    multiplier: MetricDecimalSchema,
-    outcome: OutcomeSchema,
-    settledAt: z.string().datetime({ offset: true }),
-    verification: z.discriminatedUnion('status', [
-      z.object({ status: z.literal('hash-available'), serverSeedHash: z.string().regex(/^[a-f0-9]{64}$/i) }),
-      z.object({ status: z.literal('unavailable'), serverSeedHash: z.null() }),
-    ]),
-  })),
+  items: z.array(
+    z.object({
+      id: z.string().uuid(),
+      game: GameSchema,
+      wagerAmount: MoneyDecimalSchema,
+      payoutAmount: MoneyDecimalSchema,
+      netAmount: SignedMoneyDecimalSchema,
+      multiplier: MetricDecimalSchema,
+      outcome: OutcomeSchema,
+      settledAt: z.string().datetime({ offset: true }),
+      verification: z.discriminatedUnion('status', [
+        z.object({
+          status: z.literal('hash-available'),
+          serverSeedHash: z.string().regex(/^[a-f0-9]{64}$/i),
+        }),
+        z.object({ status: z.literal('unavailable'), serverSeedHash: z.null() }),
+      ]),
+    }),
+  ),
   pageSummary: z.object({
     totalWagered: MoneyDecimalSchema,
     totalPayout: MoneyDecimalSchema,
@@ -110,15 +125,17 @@ export const LeaderboardAggregateRowSchema = z.object({
 });
 
 export const LeaderboardPageDataSchema = z.object({
-  entries: z.array(z.object({
-    rank: z.number().int().positive(),
-    publicName: z.string().min(1).max(64),
-    avatarUrl: z.string().url().nullable(),
-    metricValue: MetricDecimalSchema,
-    wageredAmount: MoneyDecimalSchema,
-    biggestWinAmount: MoneyDecimalSchema,
-    highestMultiplier: MetricDecimalSchema,
-  })),
+  entries: z.array(
+    z.object({
+      rank: z.number().int().positive(),
+      publicName: z.string().min(1).max(64),
+      avatarUrl: z.string().url().nullable(),
+      metricValue: MetricDecimalSchema,
+      wageredAmount: MoneyDecimalSchema,
+      biggestWinAmount: MoneyDecimalSchema,
+      highestMultiplier: MetricDecimalSchema,
+    }),
+  ),
   period: LeaderboardPeriodSchema,
   metric: LeaderboardMetricSchema,
   asOf: z.string().datetime({ offset: true }),
@@ -157,57 +174,63 @@ export const AdminGameRowSchema = z.object({
   win_rate: MetricDecimalSchema,
 });
 export const AdminGamesDataSchema = z.object({
-  games: z.array(z.object({
-    game: GameSchema,
-    totalWagered: MoneyDecimalSchema,
-    totalPayout: MoneyDecimalSchema,
-    netAmount: SignedMoneyDecimalSchema,
-    totalResults: z.number().int().nonnegative(),
-    wins: z.number().int().nonnegative(),
-    biggestWin: MoneyDecimalSchema,
-    rtp: MetricDecimalSchema,
-    winRate: MetricDecimalSchema,
-  })),
+  games: z.array(
+    z.object({
+      game: GameSchema,
+      totalWagered: MoneyDecimalSchema,
+      totalPayout: MoneyDecimalSchema,
+      netAmount: SignedMoneyDecimalSchema,
+      totalResults: z.number().int().nonnegative(),
+      wins: z.number().int().nonnegative(),
+      biggestWin: MoneyDecimalSchema,
+      rtp: MetricDecimalSchema,
+      winRate: MetricDecimalSchema,
+    }),
+  ),
   asOf: z.string().datetime({ offset: true }),
 });
 export type AdminGamesData = z.infer<typeof AdminGamesDataSchema>;
 
-export const AdminUserRowSchema = z.object({
-  id: CanonicalUserIdSchema,
-  username: z.string().nullable(),
-  email: z.string().email().nullable(),
-  balance: MoneyDecimalSchema,
-  xp: z.coerce.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
-  level: z.coerce.number().int().positive().max(Number.MAX_SAFE_INTEGER),
-  rank: z.string().min(1).max(64),
-  status: z.enum(['active', 'banned']),
-  created_at: z.string().datetime({ offset: true }),
-  updated_at: z.string().datetime({ offset: true }),
-}).transform((row) => ({
-  id: row.id,
-  username: row.username,
-  email: row.email,
-  balanceAmount: row.balance,
-  xp: row.xp,
-  level: row.level,
-  rank: row.rank,
-  status: row.status,
-  createdAt: row.created_at,
-  updatedAt: row.updated_at,
-}));
-export const AdminUsersDataSchema = z.object({
-  users: z.array(z.object({
+export const AdminUserRowSchema = z
+  .object({
     id: CanonicalUserIdSchema,
     username: z.string().nullable(),
     email: z.string().email().nullable(),
-    balanceAmount: MoneyDecimalSchema,
-    xp: z.number().int().nonnegative(),
-    level: z.number().int().positive(),
-    rank: z.string(),
+    balance: MoneyDecimalSchema,
+    xp: z.coerce.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+    level: z.coerce.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+    rank: z.string().min(1).max(64),
     status: z.enum(['active', 'banned']),
-    createdAt: z.string().datetime({ offset: true }),
-    updatedAt: z.string().datetime({ offset: true }),
-  })),
+    created_at: z.string().datetime({ offset: true }),
+    updated_at: z.string().datetime({ offset: true }),
+  })
+  .transform((row) => ({
+    id: row.id,
+    username: row.username,
+    email: row.email,
+    balanceAmount: row.balance,
+    xp: row.xp,
+    level: row.level,
+    rank: row.rank,
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }));
+export const AdminUsersDataSchema = z.object({
+  users: z.array(
+    z.object({
+      id: CanonicalUserIdSchema,
+      username: z.string().nullable(),
+      email: z.string().email().nullable(),
+      balanceAmount: MoneyDecimalSchema,
+      xp: z.number().int().nonnegative(),
+      level: z.number().int().positive(),
+      rank: z.string(),
+      status: z.enum(['active', 'banned']),
+      createdAt: z.string().datetime({ offset: true }),
+      updatedAt: z.string().datetime({ offset: true }),
+    }),
+  ),
   nextCursor: z.string().nullable(),
   hasMore: z.boolean(),
 });

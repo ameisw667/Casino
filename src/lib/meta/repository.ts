@@ -36,7 +36,8 @@ import {
   encodeLeaderboardCursor,
 } from './cursor';
 
-const HISTORY_SELECT = 'id,game,wager_amount,payout_amount,net_amount,multiplier,outcome,server_seed_hash,settled_at';
+const HISTORY_SELECT =
+  'id,game,wager_amount,payout_amount,net_amount,multiplier,outcome,server_seed_hash,settled_at';
 const ADMIN_USER_SELECT = 'id,username,email,balance,xp,level,rank,status,created_at,updated_at';
 
 type DbResponse = { data: Record<string, unknown>[] | null; error: { message: string } | null };
@@ -55,7 +56,10 @@ export interface MetaQueryClient {
 }
 
 export class MetaRepositoryError extends Error {
-  constructor(readonly code: 'META_DB_ERROR' | 'META_DATA_INVALID', message: string) {
+  constructor(
+    readonly code: 'META_DB_ERROR' | 'META_DATA_INVALID',
+    message: string,
+  ) {
     super(message);
     this.name = 'MetaRepositoryError';
   }
@@ -74,11 +78,16 @@ function from(client: MetaQueryClient, table: string): FromQuery {
 async function rows(query: unknown): Promise<Record<string, unknown>[]> {
   if (!query || typeof (query as { then?: unknown }).then !== 'function') throw dataError();
   const response = await (query as QueryResult);
-  if (response.error || !response.data) throw new MetaRepositoryError('META_DB_ERROR', 'Meta data is unavailable');
+  if (response.error || !response.data)
+    throw new MetaRepositoryError('META_DB_ERROR', 'Meta data is unavailable');
   return response.data;
 }
 
-async function rpcRows(client: MetaQueryClient, name: string, params: Record<string, unknown>): Promise<Record<string, unknown>[]> {
+async function rpcRows(
+  client: MetaQueryClient,
+  name: string,
+  params: Record<string, unknown>,
+): Promise<Record<string, unknown>[]> {
   if (!client.rpc) throw dataError();
   return rows(client.rpc(name, params));
 }
@@ -98,7 +107,10 @@ function periodStart(period: z.infer<typeof LeaderboardPeriodSchema>, asOf: Date
   return start.toISOString();
 }
 
-export function createMetaRepository(client: MetaQueryClient, clock: () => Date = () => new Date()) {
+export function createMetaRepository(
+  client: MetaQueryClient,
+  clock: () => Date = () => new Date(),
+) {
   return {
     async getHistory(input: {
       userId: string;
@@ -121,7 +133,10 @@ export function createMetaRepository(client: MetaQueryClient, clock: () => Date 
         .limit(limit + 1);
       if (game) query = query.eq('game', game);
       if (outcome) query = query.eq('outcome', outcome);
-      if (cursor) query = query.or(`settled_at.lt.${cursor.settledAt},and(settled_at.eq.${cursor.settledAt},id.lt.${cursor.id})`);
+      if (cursor)
+        query = query.or(
+          `settled_at.lt.${cursor.settledAt},and(settled_at.eq.${cursor.settledAt},id.lt.${cursor.id})`,
+        );
 
       const parsed = parseRows(HistoryResultRowSchema, await rows(query));
       if (parsed.length > limit + 1) throw dataError();
@@ -151,7 +166,8 @@ export function createMetaRepository(client: MetaQueryClient, clock: () => Date 
           wins: items.filter((item) => item.outcome === 'win').length,
           total: items.length,
         },
-        nextCursor: hasMore && last ? encodeHistoryCursor({ settledAt: last.settled_at, id: last.id }) : null,
+        nextCursor:
+          hasMore && last ? encodeHistoryCursor({ settledAt: last.settled_at, id: last.id }) : null,
         hasMore,
       });
     },
@@ -165,7 +181,9 @@ export function createMetaRepository(client: MetaQueryClient, clock: () => Date 
       const period = LeaderboardPeriodSchema.parse(input.period);
       const metric = LeaderboardMetricSchema.parse(input.metric);
       const limit = PageLimitSchema.parse(input.limit);
-      const cursor = input.cursor ? decodeLeaderboardCursor(input.cursor, { period, metric }) : null;
+      const cursor = input.cursor
+        ? decodeLeaderboardCursor(input.cursor, { period, metric })
+        : null;
       const asOf = cursor?.asOf ?? clock().toISOString();
       const start = cursor?.periodStart ?? periodStart(period, new Date(asOf));
       const rpcParams = LeaderboardRpcParamsSchema.parse({
@@ -176,7 +194,10 @@ export function createMetaRepository(client: MetaQueryClient, clock: () => Date 
         p_cursor_value: cursor?.value ?? null,
         p_cursor_player_key: cursor?.playerKey ?? null,
       });
-      const aggregateRows = parseRows(LeaderboardAggregateRowSchema, await rpcRows(client, MetaRpcNames.leaderboardPage, rpcParams));
+      const aggregateRows = parseRows(
+        LeaderboardAggregateRowSchema,
+        await rpcRows(client, MetaRpcNames.leaderboardPage, rpcParams),
+      );
       if (aggregateRows.length > limit + 1) throw dataError();
       const hasMore = aggregateRows.length > limit;
       const visible = aggregateRows.slice(0, limit);
@@ -196,21 +217,31 @@ export function createMetaRepository(client: MetaQueryClient, clock: () => Date 
         metric,
         asOf,
         periodStart: start,
-        nextCursor: hasMore && last ? encodeLeaderboardCursor({
-          period,
-          metric,
-          asOf,
-          periodStart: start,
-          value: last.metric_value,
-          playerKey: last.player_key,
-        }) : null,
+        nextCursor:
+          hasMore && last
+            ? encodeLeaderboardCursor({
+                period,
+                metric,
+                asOf,
+                periodStart: start,
+                value: last.metric_value,
+                playerKey: last.player_key,
+              })
+            : null,
         hasMore,
       });
     },
 
     async getAdminOverview(): Promise<AdminOverviewData> {
       const asOf = clock().toISOString();
-      const parsed = parseRows(AdminOverviewRowSchema, await rpcRows(client, MetaRpcNames.adminOverview, AdminAggregateRpcParamsSchema.parse({ p_as_of: asOf })));
+      const parsed = parseRows(
+        AdminOverviewRowSchema,
+        await rpcRows(
+          client,
+          MetaRpcNames.adminOverview,
+          AdminAggregateRpcParamsSchema.parse({ p_as_of: asOf }),
+        ),
+      );
       if (parsed.length !== 1) throw dataError();
       const row = parsed[0];
       return AdminOverviewDataSchema.parse({
@@ -225,7 +256,14 @@ export function createMetaRepository(client: MetaQueryClient, clock: () => Date 
 
     async getAdminGames(): Promise<AdminGamesData> {
       const asOf = clock().toISOString();
-      const parsed = parseRows(AdminGameRowSchema, await rpcRows(client, MetaRpcNames.adminGames, AdminAggregateRpcParamsSchema.parse({ p_as_of: asOf })));
+      const parsed = parseRows(
+        AdminGameRowSchema,
+        await rpcRows(
+          client,
+          MetaRpcNames.adminGames,
+          AdminAggregateRpcParamsSchema.parse({ p_as_of: asOf }),
+        ),
+      );
       return AdminGamesDataSchema.parse({
         games: parsed.map((row) => ({
           game: row.game,
@@ -250,7 +288,10 @@ export function createMetaRepository(client: MetaQueryClient, clock: () => Date 
         .order('updated_at', { ascending: false })
         .order('id', { ascending: false })
         .limit(limit + 1);
-      if (cursor) query = query.or(`updated_at.lt.${cursor.updatedAt},and(updated_at.eq.${cursor.updatedAt},id.lt.${cursor.id})`);
+      if (cursor)
+        query = query.or(
+          `updated_at.lt.${cursor.updatedAt},and(updated_at.eq.${cursor.updatedAt},id.lt.${cursor.id})`,
+        );
       const parsed = parseRows(AdminUserRowSchema, await rows(query));
       if (parsed.length > limit + 1) throw dataError();
       const hasMore = parsed.length > limit;
@@ -258,7 +299,10 @@ export function createMetaRepository(client: MetaQueryClient, clock: () => Date 
       const last = users.at(-1);
       return AdminUsersDataSchema.parse({
         users,
-        nextCursor: hasMore && last ? encodeAdminUsersCursor({ updatedAt: last.updatedAt, id: last.id }) : null,
+        nextCursor:
+          hasMore && last
+            ? encodeAdminUsersCursor({ updatedAt: last.updatedAt, id: last.id })
+            : null,
         hasMore,
       });
     },
