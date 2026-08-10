@@ -242,7 +242,6 @@ export interface CasinoState {
   ) => void;
   _hasHydrated: boolean;
   setHasHydrated: (val: boolean) => void;
-  syncToFile: () => void;
 }
 
 const INITIAL_ACHIEVEMENTS: Achievement[] = mergeAchievementsWithConfig(
@@ -329,7 +328,7 @@ export const useCasinoStore = create<CasinoState>()(
         },
       ],
       allBets: [],
-      communityWagered: 8420.5,
+      communityWagered: 0,
       communityGoal: 25000.0,
       onboardingStep: 'NONE',
       soundEnabled: true,
@@ -361,7 +360,6 @@ export const useCasinoStore = create<CasinoState>()(
           rank: verified.rank,
         });
       },
-      syncToFile: () => {},
 
       processGameResult: (params: {
         game: string;
@@ -541,7 +539,6 @@ export const useCasinoStore = create<CasinoState>()(
             ...crashHistoryUpdate,
           };
         });
-        get().syncToFile();
       },
 
       loadVipConfig: async () => {

@@ -286,7 +286,7 @@ describe('processGameResult — Replay safety', () => {
     expect(state.bets).toHaveLength(1);
     expect(state.allBets).toHaveLength(1);
     expect(state.gameStats.DICE).toEqual({ totalBets: 1, wins: 1, losses: 0, profit: 10 });
-    expect(state.communityWagered).toBe(8430.5);
+    expect(state.communityWagered).toBe(10);
   });
 
   it('ignores a result without a canonical UUID', () => {
@@ -970,25 +970,6 @@ describe('loadVipConfig / loadGameConfig', () => {
     await useCasinoStore.getState().loadGameConfig();
 
     expect(useCasinoStore.getState().gameConfig).toEqual(DEFAULT_GAME_CONFIG);
-  });
-});
-
-describe('syncToFile', () => {
-  it('does nothing outside development', () => {
-    vi.stubEnv('NODE_ENV', 'test');
-    useCasinoStore.getState().syncToFile();
-    vi.advanceTimersByTime(1000);
-    expect(fetch).not.toHaveBeenCalled();
-  });
-
-  it('is a no-op and does not send requests to deprecated local endpoints', () => {
-    vi.stubEnv('NODE_ENV', 'development');
-    vi.mocked(fetch).mockResolvedValue({ ok: true } as unknown as Response);
-
-    useCasinoStore.getState().syncToFile();
-    vi.advanceTimersByTime(500);
-
-    expect(fetch).not.toHaveBeenCalledWith('/api/local/state', expect.anything());
   });
 });
 
