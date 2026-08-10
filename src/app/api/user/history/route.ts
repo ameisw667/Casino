@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { createClient } from '@/utils/supabase/server';
-import { enforceRateLimit, getClientIdentifier, rateLimitHeaders } from '@/lib/security/request-security';
+import {
+  enforceRateLimit,
+  getClientIdentifier,
+  rateLimitHeaders,
+} from '@/lib/security/request-security';
 import { z } from 'zod';
 
 const HistoryRowSchema = z.object({
@@ -22,10 +26,19 @@ export async function GET(request: Request) {
   try {
     // Auth check
     const supabase = await createClient();
-    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
     let userId = authUser?.id;
+    const cookieHeader = request.headers.get('cookie') || '';
+    const isExplicitSignedOut = cookieHeader.includes('casino_signed_out=1');
 
-    if (!userId && process.env.NODE_ENV === 'development' && process.env.ALLOW_DEV_FALLBACK === 'true') {
+    if (
+      !userId &&
+      process.env.NODE_ENV === 'development' &&
+      process.env.ALLOW_DEV_FALLBACK === 'true' &&
+      !isExplicitSignedOut
+    ) {
       userId = 'dev_user_fallback';
     }
     if (!userId) {
@@ -37,12 +50,12 @@ export async function GET(request: Request) {
       getClientIdentifier(request, userId),
       'history-read',
       20,
-      60
+      60,
     );
     if (!rate.success) {
       return NextResponse.json(
         { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) }
+        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
       );
     }
 
@@ -61,7 +74,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'History unavailable' }, { status: 503 });
     }
 
-    const rows = (data ?? []).map(row => ({
+    const rows = (data ?? []).map((row) => ({
       id: String(row.id),
       game: row.game ?? null,
       type: String(row.type ?? ''),
