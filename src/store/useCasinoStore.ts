@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { soundManager } from '@/lib/casino/sound-manager';
+import { soundManager, type SoundKey } from '@/lib/casino/sound-manager';
 import { CasinoLogger } from '@/lib/casino/logger';
 import {
   type VipTier,
@@ -263,6 +263,18 @@ function rememberProcessedResultId(resultId: string): void {
   processedResultIds.add(resultId);
 }
 
+// Per-game win/loss sound keys (worldmap/05_1.6_sounddesign.md §3). CRASH's loss entry is
+// intentionally null — its loss sound already plays at the visual crash moment
+// (createExplosion() in crash/page.tsx, before server settlement confirms), so playing a
+// second sound here would be redundant and out of sync.
+const GAME_RESULT_SOUNDS: Record<string, { win: SoundKey; loss: SoundKey | null }> = {
+  DICE: { win: 'dice-win', loss: 'dice-loss' },
+  SLOTS: { win: 'slots-win', loss: 'slots-loss' },
+  ROULETTE: { win: 'roulette-win', loss: 'roulette-loss' },
+  CRASH: { win: 'crash-win', loss: null },
+  BLACKJACK: { win: 'blackjack-win', loss: 'blackjack-loss' },
+};
+
 export const useCasinoStore = create<CasinoState>()(
   persist(
     (set, get) => ({
@@ -395,8 +407,13 @@ export const useCasinoStore = create<CasinoState>()(
         set((state) => {
           // --- 1. Audio Feedback ---
           if (state.soundEnabled) {
-            if (win) soundManager.play('win');
-            else soundManager.play('loss');
+            const gameSounds = GAME_RESULT_SOUNDS[game];
+            const soundKey = win
+              ? (gameSounds?.win ?? 'win')
+              : gameSounds
+                ? gameSounds.loss
+                : 'loss';
+            if (soundKey) soundManager.play(soundKey);
           }
 
           // Wallet, XP, level and rank are applied separately from the server snapshot.

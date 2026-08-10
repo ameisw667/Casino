@@ -6,6 +6,7 @@ import { useCasinoStore } from '@/store/useCasinoStore';
 import { validateBet } from '@/lib/casino/bet-validator';
 import { sanitizeClientSeed } from '@/lib/casino/provably-fair';
 import { GameErrorBoundary } from '@/components/casino/GameErrorBoundary';
+import { soundManager } from '@/lib/casino/sound-manager';
 import { SlotReel } from '@/components/casino/games/slots/SlotReel';
 import { WinLine } from '@/components/casino/games/slots/WinLine';
 import { GAME_SYMBOLS, STAGGER_DELAYS_MS, TOTAL_SPIN_MS } from './symbols';
@@ -75,35 +76,6 @@ export default function SlotsPage() {
   const [sessionSpins, setSessionSpins] = useState(0);
   const [showTutorial, setShowTutorial] = useState(false);
 
-  const audioRefs = useRef<Record<string, HTMLAudioElement>>({});
-  useEffect(() => {
-    const sounds = {
-      spin: '/sounds/dice-roll.mp3',
-      win: '/sounds/win.mp3',
-      loss: '/sounds/loss.mp3',
-    };
-    const created: HTMLAudioElement[] = [];
-    Object.entries(sounds).forEach(([k, url]) => {
-      const a = new Audio(url);
-      a.volume = 0.3;
-      audioRefs.current[k] = a;
-      created.push(a);
-    });
-    return () =>
-      created.forEach((a) => {
-        a.pause();
-        a.src = '';
-      });
-  }, []);
-
-  const playSound = useCallback((name: string) => {
-    const a = audioRefs.current[name];
-    if (a) {
-      a.currentTime = 0;
-      a.play().catch(() => {});
-    }
-  }, []);
-
   const lastSpinTimeRef = useRef(0);
   const handleSpin = useCallback(async () => {
     if (isSpinning) return;
@@ -123,7 +95,7 @@ export default function SlotsPage() {
     setWinRows(Array(REEL_COUNT).fill(NO_WIN));
     setWinningRowIndex(null);
     setLastResult({ type: 'idle', amount: 0 });
-    playSound('spin');
+    soundManager.play('slots-spin');
 
     const sanitizedSeed = sanitizeClientSeed(provablyFair.clientSeed);
     const controller = new AbortController();
@@ -167,10 +139,8 @@ export default function SlotsPage() {
 
       if (data.payout > 0) {
         setLastResult({ type: 'win', amount: data.payout });
-        playSound('win');
       } else {
         setLastResult({ type: 'loss', amount: betAmount });
-        playSound('loss');
       }
 
       if (data.win && engineSymbols.length > 0) {
@@ -227,7 +197,6 @@ export default function SlotsPage() {
     setPF,
     processResult,
     applyServerWalletSnapshot,
-    playSound,
     setProcessing,
   ]);
 

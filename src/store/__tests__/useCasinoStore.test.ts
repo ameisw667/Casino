@@ -159,7 +159,7 @@ describe('processGameResult — Happy Path', () => {
     const state = useCasinoStore.getState();
     expect(state.bets[0]).toMatchObject({ game: 'DICE', amount: 10, payout: 20, win: true });
     expect(state.gameStats.DICE).toEqual({ totalBets: 1, wins: 1, losses: 0, profit: 10 });
-    expect(soundManager.play).toHaveBeenCalledWith('win');
+    expect(soundManager.play).toHaveBeenCalledWith('dice-win');
   });
 
   it('records a losing bet, updates gameStats and plays the loss sound', () => {
@@ -178,7 +178,7 @@ describe('processGameResult — Happy Path', () => {
       losses: 1,
       profit: -10,
     });
-    expect(soundManager.play).toHaveBeenCalledWith('loss');
+    expect(soundManager.play).toHaveBeenCalledWith('dice-loss');
   });
 
   it('caps the bets history at 50 entries, newest first', () => {
