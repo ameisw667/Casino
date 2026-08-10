@@ -63,3 +63,6 @@ test-results/
 
 # supabase (local CLI artifacts)
 /supabase/.temp/
+
+# one-shot rollout/verify scripts (keep verify-migrations-applied.sql committed)
+scripts/_tmp_*
