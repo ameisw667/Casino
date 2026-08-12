@@ -2,16 +2,21 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, VolumeX, Eye, EyeOff, Sliders } from 'lucide-react';
+import { Volume2, VolumeX, Eye, EyeOff, ShieldCheck, Sliders } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 
 interface SettingsPopoverProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpenProvablyFair?: () => void;
   inline?: boolean;
 }
 
-export default function SettingsPopover({ isOpen, inline: _inline = true }: SettingsPopoverProps) {
+export default function SettingsPopover({
+  isOpen,
+  onOpenProvablyFair,
+  inline: _inline = true,
+}: SettingsPopoverProps) {
   const soundEnabled = useCasinoStore((s) => s.soundEnabled ?? true);
   const soundVolume = useCasinoStore((s) => s.soundVolume ?? 0.5);
   const hideBalance = useCasinoStore((s) => s.hideBalance ?? false);
@@ -68,6 +73,18 @@ export default function SettingsPopover({ isOpen, inline: _inline = true }: Sett
                 QUICK SETTINGS
               </span>
             </div>
+
+            {onOpenProvablyFair && (
+              <button
+                type="button"
+                onClick={onOpenProvablyFair}
+                className="btn btn-ghost"
+                style={{ justifyContent: 'flex-start', gap: '6px' }}
+              >
+                <ShieldCheck size={14} color="hsl(var(--primary))" />
+                <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>Seed-Verifikation</span>
+              </button>
+            )}
 
             {/* Sound Toggle Row */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
