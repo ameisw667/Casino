@@ -23,6 +23,7 @@ import {
   ChevronRight,
   Star,
   Target,
+  BarChart3,
   CheckCircle2,
   AlertCircle,
   Info as InfoIcon,
@@ -37,6 +38,10 @@ import {
 } from 'lucide-react';
 
 const BigWinOverlay = dynamic(() => import('../casino/BigWinOverlay'), { ssr: false });
+const ProvablyFairModal = dynamic(
+  () => import('../casino/ProvablyFairModal').then((mod) => mod.ProvablyFairModal),
+  { ssr: false },
+);
 import SettingsPopover from '../casino/SettingsPopover';
 const RankBenefitsModal = dynamic(() => import('../casino/RankBenefitsModal'), { ssr: false });
 const PlayerProfileModal = dynamic(() => import('@/components/casino/PlayerProfileModal'), {
@@ -163,6 +168,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [bigWin, setBigWin] = useState<{ amount: number; multiplier: number } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showProvablyFair, setShowProvablyFair] = useState(false);
   const [showRankInfo, setShowRankInfo] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
@@ -387,6 +393,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     { icon: <History size={20} />, label: 'My Bets', path: '/history' },
     { icon: <Trophy size={20} />, label: 'Leaderboard', path: '/leaderboard' },
     { icon: <Target size={20} />, label: 'Vault', path: '/vault' },
+    { icon: <BarChart3 size={20} />, label: 'Stats', path: '/stats' },
     {
       icon: <Settings size={20} />,
       label: 'Settings',
@@ -562,6 +569,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                   <SettingsPopover
                     isOpen={showSettings}
                     onClose={() => setShowSettings(false)}
+                    onOpenProvablyFair={() => setShowProvablyFair(true)}
                     inline
                   />
                 )}
@@ -938,6 +946,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       {showProfile && (
         <PlayerProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} />
       )}
+      {showProvablyFair && <ProvablyFairModal isOpen onClose={() => setShowProvablyFair(false)} />}
 
       <GlobalChat />
 
