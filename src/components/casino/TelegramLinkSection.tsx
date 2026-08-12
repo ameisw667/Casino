@@ -20,19 +20,25 @@ const IDLE_STATUS: TelegramStatus = {
 
 export default function TelegramLinkSection() {
   const [status, setStatus] = useState<TelegramStatus>(IDLE_STATUS);
-  const [loaded, setLoaded] = useState(false);
+  // Distinct from "configured: false" (a real, known state from the server): this stays
+  // false while unauthenticated or on a transient error, so the section renders nothing
+  // instead of a misleading "Not available yet" for a case that isn't actually that.
+  const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const refreshStatus = useCallback(async () => {
     try {
       const response = await fetch('/api/telegram/status');
-      if (!response.ok) return;
+      if (!response.ok) {
+        setVisible(false);
+        return;
+      }
       const data = (await response.json()) as TelegramStatus;
       setStatus(data);
+      setVisible(true);
     } catch (error) {
       CasinoLogger.error('TelegramLinkSection', 'Failed to load telegram status', error);
-    } finally {
-      setLoaded(true);
+      setVisible(false);
     }
   }, []);
 
@@ -84,7 +90,7 @@ export default function TelegramLinkSection() {
     }
   }, [status.notificationsEnabled]);
 
-  if (!loaded) return null;
+  if (!visible) return null;
 
   return (
     <div
