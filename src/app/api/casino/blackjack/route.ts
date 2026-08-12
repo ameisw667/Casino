@@ -22,7 +22,6 @@ const dealSchema = z.object({
     .min(1)
     .max(64)
     .regex(/^[a-zA-Z0-9_-]+$/),
-  currentNonce: z.number().int().nonnegative(),
 });
 
 const actionSchema = z.object({
@@ -34,7 +33,7 @@ const actionSchema = z.object({
 
 const requestSchema = z.discriminatedUnion('action', [dealSchema, actionSchema]);
 
-function publicState(state: BlackjackGameState): BlackjackGameState {
+export function publicState(state: BlackjackGameState): BlackjackGameState {
   const hiddenDealerCards = state.dealerHand.cards.map((card, index) =>
     index === 1 && card.faceDown
       ? ({ suit: 'spades', value: 'A', numericValue: 0, faceDown: true } satisfies Card)
@@ -114,8 +113,13 @@ export async function POST(request: Request) {
     if (input.action === 'DEAL') {
       if (input.amount > config.limits.betMax)
         return NextResponse.json({ error: 'Bet exceeds limit' }, { status: 400 });
-      const { seed, hash } = await ProvablyFairEngine.generateServerSeed();
-      const nonce = input.currentNonce + 1;
+      const consumed = await WalletService.consumeActiveSeed({
+        userId,
+        requestId: input.requestId,
+      });
+      const seed = consumed.serverSeed;
+      const hash = consumed.serverSeedHash;
+      const nonce = consumed.nonce;
       const indices = await ProvablyFairEngine.getBlackjackDeal(seed, input.clientSeed, nonce, 312);
       const dealt = BlackjackEngine.deal(
         BlackjackEngine.shuffleDeck(BlackjackEngine.createDeck(6), indices),

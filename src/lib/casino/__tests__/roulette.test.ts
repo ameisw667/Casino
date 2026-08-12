@@ -23,25 +23,27 @@ async function spinOnce(betTypes: RouletteBetType[], totalAmount: number, nonce:
     amount: totalAmount,
     bets: buildBets(betTypes, totalAmount),
     clientSeed: CLIENT_SEED,
-    currentNonce: nonce,
+    serverSeed: `roulette-test-server-seed-${nonce}`,
+    serverSeedHash: `roulette-test-hash-${nonce}`,
+    nonce,
   });
 }
 
 describe('Roulette — three consecutive place-bet simulations', () => {
   it('simulation 1: straight-up number bet resolves cleanly', async () => {
-    const result = await spinOnce([{ type: 'STRAIGHT', value: 17 }], 10, 0);
+    const result = await spinOnce([{ type: 'STRAIGHT', value: 17 }], 10, 1);
 
     expect(result.id).toBeTruthy();
     expect(result.roll).toBeGreaterThanOrEqual(0);
     expect(result.roll).toBeLessThanOrEqual(36);
     expect(Number.isFinite(result.payout)).toBe(true);
     expect(Number.isNaN(result.payout)).toBe(false);
-    expect(result.nonce).toBeGreaterThan(0);
+    expect(result.nonce).toBe(1);
     expect(result.serverSeedHash).toBeTruthy();
   });
 
   it('simulation 2: color bet returns correct payout when it wins', async () => {
-    const result = await spinOnce([{ type: 'COLOR', value: 'RED' }], 50, 1);
+    const result = await spinOnce([{ type: 'COLOR', value: 'RED' }], 50, 2);
 
     expect(result.roll).toBeGreaterThanOrEqual(0);
     expect(result.roll).toBeLessThanOrEqual(36);
@@ -64,7 +66,7 @@ describe('Roulette — three consecutive place-bet simulations', () => {
       { type: 'COLOR', value: 'BLACK' },
       { type: 'RANGE', value: '1-18' },
     ];
-    const result = await spinOnce(bets, 30, 2);
+    const result = await spinOnce(bets, 30, 3);
 
     expect(result.roll).toBeGreaterThanOrEqual(0);
     expect(result.roll).toBeLessThanOrEqual(36);
@@ -76,13 +78,14 @@ describe('Roulette — three consecutive place-bet simulations', () => {
     expect(result.payout).toBeLessThanOrEqual(370);
   });
 
-  it('all three simulations use increasing nonces', async () => {
+  it('echoes back the exact nonce it was given (the seed chain, not CasinoCore, owns incrementing)', async () => {
     const r1 = await spinOnce([{ type: 'STRAIGHT', value: 1 }], 5, 10);
-    const r2 = await spinOnce([{ type: 'STRAIGHT', value: 2 }], 5, r1.nonce);
-    const r3 = await spinOnce([{ type: 'STRAIGHT', value: 3 }], 5, r2.nonce);
+    const r2 = await spinOnce([{ type: 'STRAIGHT', value: 2 }], 5, 11);
+    const r3 = await spinOnce([{ type: 'STRAIGHT', value: 3 }], 5, 12);
 
-    expect(r2.nonce).toBeGreaterThan(r1.nonce);
-    expect(r3.nonce).toBeGreaterThan(r2.nonce);
+    expect(r1.nonce).toBe(10);
+    expect(r2.nonce).toBe(11);
+    expect(r3.nonce).toBe(12);
     expect(r1.roll).not.toBe(r2.roll); // deterministic but extremely unlikely to collide
   });
 });

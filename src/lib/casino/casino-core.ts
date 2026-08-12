@@ -65,13 +65,14 @@ export class CasinoCore {
       payout?: number; // For Blackjack (direct settlement from client)
       win?: boolean; // For Blackjack (direct settlement from client)
       clientSeed: string;
-      currentNonce: number;
+      serverSeed: string;
+      serverSeedHash: string;
+      nonce: number;
     },
     config: GameConfig = DEFAULT_GAME_CONFIG,
   ): Promise<BetResult> {
     try {
-      const { seed, hash } = await ProvablyFairEngine.generateServerSeed();
-      const nonce = params.currentNonce + 1;
+      const { serverSeed, serverSeedHash, nonce, clientSeed } = params;
 
       let roll = 0;
       let win = false;
@@ -81,14 +82,14 @@ export class CasinoCore {
         case 'DICE':
           if (params.target === undefined || params.condition === undefined)
             throw new Error('Dice requires target and condition');
-          roll = await ProvablyFairEngine.getDiceRoll(seed, params.clientSeed, nonce);
+          roll = await ProvablyFairEngine.getDiceRoll(serverSeed, clientSeed, nonce);
           win = params.condition === 'OVER' ? roll > params.target : roll < params.target;
           payout = win ? params.amount * (params.multiplier || 0) : 0;
           break;
 
         case 'ROULETTE':
           if (!params.bets) throw new Error('Roulette requires bets');
-          roll = await ProvablyFairEngine.getRouletteNumber(seed, params.clientSeed, nonce);
+          roll = await ProvablyFairEngine.getRouletteNumber(serverSeed, clientSeed, nonce);
           const rouletteResult = this.calculateRoulettePayout(roll, params.bets, config);
           win = rouletteResult > 0;
           payout = rouletteResult;
@@ -97,8 +98,8 @@ export class CasinoCore {
         case 'CRASH':
           if (params.multiplier === undefined) throw new Error('Crash requires multiplier');
           roll = await ProvablyFairEngine.getCrashMultiplier(
-            seed,
-            params.clientSeed,
+            serverSeed,
+            clientSeed,
             nonce,
             config.crash.houseEdge,
           );
@@ -108,8 +109,8 @@ export class CasinoCore {
 
         case 'SLOTS': {
           const symbols = await ProvablyFairEngine.getSlotsResult(
-            seed,
-            params.clientSeed,
+            serverSeed,
+            clientSeed,
             nonce,
             5,
             8,
@@ -120,8 +121,8 @@ export class CasinoCore {
             roll: 0,
             win: payoutMultiplier > 0,
             payout: params.amount * payoutMultiplier,
-            serverSeedHash: hash,
-            nonce: nonce + 5,
+            serverSeedHash,
+            nonce,
             symbols,
           };
         }
@@ -137,7 +138,7 @@ export class CasinoCore {
         roll,
         win,
         payout,
-        serverSeedHash: hash,
+        serverSeedHash,
         nonce,
       };
     } catch (error) {
@@ -200,19 +201,19 @@ export class CasinoCore {
 
   static async startCrashRound(
     clientSeed: string,
-    currentNonce: number,
+    serverSeed: string,
+    serverSeedHash: string,
+    nonce: number,
     config: GameConfig = DEFAULT_GAME_CONFIG,
   ): Promise<{ crashPoint: number; hash: string; seed: string; nonce: number }> {
     try {
-      const { seed, hash } = await ProvablyFairEngine.generateServerSeed();
-      const nonce = currentNonce + 1;
       const crashPoint = await ProvablyFairEngine.getCrashMultiplier(
-        seed,
+        serverSeed,
         clientSeed,
         nonce,
         config.crash.houseEdge,
       );
-      return { crashPoint, hash, seed, nonce };
+      return { crashPoint, hash: serverSeedHash, seed: serverSeed, nonce };
     } catch (error) {
       CasinoLogger.error('CasinoCore', 'Failed to start Crash round', error);
       throw error;

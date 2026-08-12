@@ -33,7 +33,6 @@ const requestSchema = z.object({
     .min(1)
     .max(64)
     .regex(/^[a-zA-Z0-9_-]+$/),
-  currentNonce: z.number().int().nonnegative(),
   action: z.enum(['START_CRASH', 'CASHOUT_CRASH', 'RESOLVE_CRASH']).optional(),
   roundId: z.string().uuid().optional(),
   cashoutMultiplier: z.number().finite().min(1).max(1_000_000).optional(),
@@ -100,9 +99,15 @@ export async function POST(request: Request) {
       if (!params.amount) return NextResponse.json({ error: 'Amount required' }, { status: 400 });
       if (params.amount > gameConfig.limits.betMax)
         return NextResponse.json({ error: 'Bet exceeds limit' }, { status: 400 });
+      const seed = await WalletService.consumeActiveSeed({
+        userId,
+        requestId: params.requestId,
+      });
       const crash = await CasinoCore.startCrashRound(
         params.clientSeed,
-        params.currentNonce,
+        seed.serverSeed,
+        seed.serverSeedHash,
+        seed.nonce,
         gameConfig,
       );
       const round = await WalletService.startRound({
@@ -133,7 +138,13 @@ export async function POST(request: Request) {
       }
       const round = await WalletService.getActiveRound(userId, params.roundId, 'CRASH');
       const crashPoint = z.coerce.number().positive().parse(round.state.crashPoint);
-      const serverSeed = z.string().min(1).parse(round.state.serverSeed);
+      // Never return the raw serverSeed here: it is the user's shared,
+      // still-active chain seed (reused across Dice/Roulette/Slots/Crash
+      // until the next rotation), not a per-round throwaway anymore. Only
+      // the hash + nonce are safe to disclose; the raw seed is revealed
+      // exclusively via rotate_user_seed()'s seed_history mechanism.
+      const serverSeedHash = z.string().min(1).parse(round.state.serverSeedHash);
+      const crashNonce = z.coerce.number().int().nonnegative().parse(round.state.nonce);
       const requestedMultiplier = params.cashoutMultiplier ?? crashPoint;
       const won = params.action === 'CASHOUT_CRASH' && requestedMultiplier <= crashPoint;
       const payout = won ? Math.round(round.betAmount * requestedMultiplier * 100) / 100 : 0;
@@ -145,7 +156,8 @@ export async function POST(request: Request) {
         payout,
         multiplier: won ? requestedMultiplier : 0,
         crashPoint,
-        serverSeed,
+        serverSeedHash,
+        nonce: crashNonce,
       };
       const settlement = await WalletService.settleRound({
         userId,
@@ -169,6 +181,7 @@ export async function POST(request: Request) {
     if (params.amount > gameConfig.limits.betMax)
       return NextResponse.json({ error: 'Bet exceeds limit' }, { status: 400 });
 
+    const seed = await WalletService.consumeActiveSeed({ userId, requestId: params.requestId });
     const generated = await CasinoCore.placeBet(
       {
         gameType: params.gameType,
@@ -178,7 +191,9 @@ export async function POST(request: Request) {
         condition: params.condition,
         bets: params.bets,
         clientSeed: params.clientSeed,
-        currentNonce: params.currentNonce,
+        serverSeed: seed.serverSeed,
+        serverSeedHash: seed.serverSeedHash,
+        nonce: seed.nonce,
       },
       gameConfig,
     );
@@ -197,6 +212,8 @@ export async function POST(request: Request) {
       payout: generated.payout,
       xpGain: CasinoCore.calculateXpGain(params.amount, 1, gameConfig),
       result,
+      serverSeedHash: generated.serverSeedHash,
+      nonce: generated.nonce,
     });
 
     return NextResponse.json({

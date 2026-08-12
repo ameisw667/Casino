@@ -74,12 +74,6 @@ export default function CrashPage() {
   // to be plain React state + a keyed CSS animation instead of imperative ref mutation.
   const [milestoneFlash, setMilestoneFlash] = useState<{ value: number; key: number } | null>(null);
 
-  // V2 Lever 1: Partial cashout — lets players bank half their stake and "let the rest ride"
-  const [halfCashedOut, setHalfCashedOut] = useState<{ multiplier: number; amount: number } | null>(
-    null,
-  );
-  const halfCashedOutRef = useRef<{ multiplier: number; amount: number } | null>(null);
-
   // V2 Lever 2: Session stats — running profit/loss tracker to encourage longer sessions
   const [sessionStats, setSessionStats] = useState({
     rounds: 0,
@@ -210,9 +204,6 @@ export default function CrashPage() {
     autoBetSettingsRef.current = autoBetSettings;
   }, [autoBetSettings]);
   useEffect(() => {
-    halfCashedOutRef.current = halfCashedOut;
-  }, [halfCashedOut]);
-  useEffect(() => {
     isMobileRef.current = isMobile;
   }, [isMobile]);
 
@@ -224,15 +215,6 @@ export default function CrashPage() {
     if (cameraZoomRef.current) cameraZoomRef.current.style.transform = 'scale(1)';
   }, []);
 
-  // V2 Lever 1: Partial cashout — banks half the stake now, lets the other half ride.
-  // Settled entirely client-side (no server call) since the server holds the full
-  // original stake; the remaining half is reconciled on the final cashout/crash below.
-  const handlePartialCashout = useCallback(() => {
-    addToast(
-      'Partial cashout is disabled until it has a dedicated atomic server transaction.',
-      'info',
-    );
-  }, [addToast]);
   const handleCashout = useCallback(
     (specificMultiplier?: number) => {
       if (status !== 'RUNNING' || cashoutAt || !roundIdRef.current) return;
@@ -395,10 +377,7 @@ export default function CrashPage() {
       }
       pointsRef.current = [{ x: 0, y: 1 }];
       particlesRef.current = [];
-      setCashoutAt(null);
-      cashoutAtRef.current = null;
-      setHalfCashedOut(null);
-      halfCashedOutRef.current = null;
+
       bigWinQueueRef.current = [];
       setBigWin(null);
       // Reseed cosmetic particle PRNG per round so the trail doesn't look identical
@@ -1496,29 +1475,8 @@ export default function CrashPage() {
               disabled={!!cashoutAt}
             >
               {cashoutAt
-                ? `✓ WON $${((halfCashedOut ? betAmount / 2 : betAmount) * cashoutAt).toFixed(2)} @ ${cashoutAt.toFixed(2)}x`
+                ? `✓ WON $${(betAmount * cashoutAt).toFixed(2)} @ ${cashoutAt.toFixed(2)}x`
                 : `CASHOUT`}
-            </button>
-          )}
-          {/* V2 Lever 1: Cash Out Half — bank profit on half the stake, let the rest ride */}
-          {status === 'RUNNING' && !cashoutAt && (
-            <button
-              className="btn btn-secondary"
-              style={{
-                width: '100%',
-                height: isMobile ? '44px' : '50px',
-                fontSize: '0.8rem',
-                fontWeight: 800,
-                borderRadius: '14px',
-                opacity: halfCashedOut ? 0.5 : 1,
-                border: '1px solid rgba(255,255,255,0.1)',
-              }}
-              onClick={handlePartialCashout}
-              disabled={!!halfCashedOut}
-            >
-              {halfCashedOut
-                ? `✓ HALF BANKED: $${halfCashedOut.amount.toFixed(2)} @ ${halfCashedOut.multiplier.toFixed(2)}x`
-                : `CASH OUT HALF ($${(betAmount / 2).toFixed(2)})`}
             </button>
           )}
         </div>

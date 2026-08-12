@@ -6,6 +6,7 @@ import {
   enforceRateLimit,
   getClientIdentifier,
   rateLimitHeaders,
+  validateMutationOrigin,
 } from '@/lib/security/request-security';
 import { z } from 'zod';
 
@@ -47,6 +48,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const originFailure = validateMutationOrigin(request);
+  if (originFailure) return originFailure;
+
   try {
     const supabase = await createClient();
     const {
@@ -90,7 +94,9 @@ export async function POST(request: Request) {
       clientSeed: parsed.data.clientSeed,
     });
 
-    return NextResponse.json(newSeeds);
+    return NextResponse.json(newSeeds, {
+      headers: { 'Cache-Control': 'private, no-store' },
+    });
   } catch (error) {
     CasinoLogger.error('API/Seeds', 'Failed to rotate seeds', error);
     return NextResponse.json({ error: 'Seed rotation failed' }, { status: 500 });

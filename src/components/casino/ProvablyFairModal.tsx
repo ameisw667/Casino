@@ -1,7 +1,18 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ShieldCheck, CheckCircle2, AlertCircle, RefreshCw, X } from 'lucide-react';
-import { ProvablyFairEngine } from '@/lib/casino/provably-fair';
+import {
+  type VerifiableGame,
+  verifySeedHistoryEntry,
+} from '@/lib/casino/seed-history-verification';
+
+interface SeedHistoryEntry {
+  serverSeed: string;
+  serverSeedHash: string;
+  clientSeed: string;
+  nonceAtRotation: number;
+  rotatedAt: string;
+}
 
 interface ProvablyFairModalProps {
   isOpen: boolean;
@@ -21,17 +32,41 @@ export function ProvablyFairModal({
   initialGame = 'dice',
 }: ProvablyFairModalProps) {
   const [serverSeed, setServerSeed] = useState(initialServerSeed);
+  const [serverSeedHash, setServerSeedHash] = useState('');
   const [clientSeed, setClientSeed] = useState(initialClientSeed);
   const [nonce, setNonce] = useState(initialNonce);
-  const [game, setGame] = useState(initialGame);
+  const [game, setGame] = useState<VerifiableGame>(initialGame as VerifiableGame);
+  const [history, setHistory] = useState<SeedHistoryEntry[]>([]);
+  const [selectedHistory, setSelectedHistory] = useState('');
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   const [verifying, setVerifying] = useState(false);
   const [result, setResult] = useState<{
     hash: string;
-    serverSeedHash: string;
     computedOutcome: string;
     verified: boolean;
   } | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const controller = new AbortController();
+    fetch('/api/casino/seeds/history', { cache: 'no-store', signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Seed-Historie konnte nicht geladen werden.');
+        const payload: unknown = await response.json();
+        if (!Array.isArray(payload)) throw new Error('Ungültige Seed-Historie.');
+        setHistory(payload as SeedHistoryEntry[]);
+        setHistoryError(null);
+      })
+      .catch((error: unknown) => {
+        if ((error as { name?: string }).name !== 'AbortError') {
+          setHistoryError(
+            error instanceof Error ? error.message : 'Seed-Historie nicht verfügbar.',
+          );
+        }
+      });
+    return () => controller.abort();
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -41,41 +76,26 @@ export function ProvablyFairModal({
     setResult(null);
 
     try {
-      const sSeed = serverSeed.trim() || 'demo-server-seed-hash-key';
-      const cSeed = clientSeed.trim() || 'casino-player-seed';
-      const n = Math.max(1, Number(nonce) || 1);
-
-      const { hash } = await ProvablyFairEngine.calculateOutcome(sSeed, cSeed, n);
-      const { hash: serverSeedHash } = await ProvablyFairEngine.generateServerSeed();
-
-      let computedOutcome = '';
-      if (game === 'dice') {
-        const roll = await ProvablyFairEngine.getDiceRoll(sSeed, cSeed, n);
-        computedOutcome = `Dice Roll: ${roll.toFixed(2)}`;
-      } else if (game === 'crash') {
-        const mult = await ProvablyFairEngine.getCrashMultiplier(sSeed, cSeed, n);
-        computedOutcome = `Crash Multiplier: ${mult.toFixed(2)}x`;
-      } else if (game === 'roulette') {
-        const num = await ProvablyFairEngine.getRouletteNumber(sSeed, cSeed, n);
-        computedOutcome = `Roulette Number: ${num}`;
-      } else if (game === 'slots') {
-        const reels = await ProvablyFairEngine.getSlotsResult(sSeed, cSeed, n);
-        computedOutcome = `Slot Reels: [${reels.join(', ')}]`;
-      } else {
-        const deal = await ProvablyFairEngine.getBlackjackDeal(sSeed, cSeed, n);
-        computedOutcome = `Blackjack Deck Hash: [${deal.slice(0, 4).join(', ')}...]`;
+      if (!serverSeed.trim() || !serverSeedHash || !clientSeed.trim()) {
+        throw new Error('Wähle einen offenbarten Seed aus der Historie.');
       }
-
-      setResult({
-        hash,
+      const verified = await verifySeedHistoryEntry({
+        game,
+        serverSeed: serverSeed.trim(),
         serverSeedHash,
-        computedOutcome,
-        verified: true,
+        clientSeed: clientSeed.trim(),
+        nonce: Math.max(0, Number(nonce) || 0),
+      });
+      setResult({
+        hash: verified.hmac ?? '—',
+        computedOutcome:
+          verified.computedOutcome ??
+          'Hash-Commitment stimmt nicht mit dem offenbarten Seed überein',
+        verified: verified.hashVerified,
       });
     } catch {
       setResult({
         hash: '—',
-        serverSeedHash: '—',
         computedOutcome: 'Verifikation fehlgeschlagen (Ungültiges Seed-Format)',
         verified: false,
       });
@@ -136,6 +156,61 @@ export function ProvablyFairModal({
           Spielergebnisse.
         </p>
 
+        {historyError && (
+          <p style={{ color: 'hsl(var(--error))', fontSize: '0.8rem' }}>{historyError}</p>
+        )}
+        {history.length === 0 && !historyError && (
+          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.8rem' }}>
+            Noch kein offenbarter Seed. Rotiere deinen Seed, um eine Kette zu verifizieren.
+          </p>
+        )}
+        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.72rem' }}>
+          Bet vor Seed-Siegel-Rollout: nicht verifizierbar.
+        </p>
+
+        {history.length > 0 && (
+          <div style={{ marginBottom: '16px' }}>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '0.75rem',
+                fontWeight: 800,
+                color: '#D4AF37',
+                marginBottom: '6px',
+              }}
+            >
+              Offenbarten Seed auswählen
+            </label>
+            <select
+              value={selectedHistory}
+              onChange={(event) => {
+                const entry = history[Number(event.target.value)];
+                setSelectedHistory(event.target.value);
+                setServerSeed(entry.serverSeed);
+                setServerSeedHash(entry.serverSeedHash);
+                setClientSeed(entry.clientSeed);
+                setNonce(0);
+                setResult(null);
+              }}
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: '#fff',
+              }}
+            >
+              <option value="">Seed-Historie auswählen</option>
+              {history.map((entry, index) => (
+                <option key={`${entry.serverSeedHash}-${entry.rotatedAt}`} value={index}>
+                  {new Date(entry.rotatedAt).toLocaleString()} · Nonce 0–{entry.nonceAtRotation}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <form
           onSubmit={handleVerify}
           style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
@@ -154,7 +229,7 @@ export function ProvablyFairModal({
             </label>
             <select
               value={game}
-              onChange={(e) => setGame(e.target.value)}
+              onChange={(e) => setGame(e.target.value as VerifiableGame)}
               style={{
                 width: '100%',
                 padding: '10px 14px',
@@ -190,8 +265,8 @@ export function ProvablyFairModal({
             <input
               type="text"
               value={serverSeed}
-              onChange={(e) => setServerSeed(e.target.value)}
-              placeholder="z.B. a8f9b2c3d4..."
+              readOnly
+              placeholder="Offenbarten Seed aus der Historie auswählen"
               style={{
                 width: '100%',
                 padding: '10px 14px',
@@ -250,9 +325,15 @@ export function ProvablyFairModal({
               </label>
               <input
                 type="number"
-                min="1"
+                min="0"
+                max={selectedHistory ? history[Number(selectedHistory)]?.nonceAtRotation : 0}
                 value={nonce}
-                onChange={(e) => setNonce(Number(e.target.value))}
+                onChange={(e) => {
+                  const maximum = selectedHistory
+                    ? (history[Number(selectedHistory)]?.nonceAtRotation ?? 0)
+                    : 0;
+                  setNonce(Math.max(0, Math.min(maximum, Number(e.target.value) || 0)));
+                }}
                 style={{
                   width: '100%',
                   padding: '10px 14px',

@@ -78,14 +78,8 @@ export class WalletService {
     if (userError || !user) throw new Error('Wallet could not be loaded');
     if (transactionError) throw new Error('Wallet transaction history could not be loaded');
 
-    let currentBalance = Number(user.balance);
-    if (currentBalance <= 0) {
-      currentBalance = 10000.0;
-      await supabase.from('users').update({ balance: 10000.0 }).eq('id', userId);
-    }
-
     return walletSnapshotSchema.parse({
-      balance: currentBalance,
+      balance: Number(user.balance),
       xp: Number(user.xp),
       level: Number(user.level),
       rank: String(user.rank),
@@ -102,6 +96,8 @@ export class WalletService {
     payout: number;
     xpGain: number;
     result: Record<string, unknown>;
+    serverSeedHash?: string;
+    nonce?: number;
   }): Promise<WalletSettlement> {
     const supabase = createAdminClient();
     const { data, error } = await supabase.rpc('settle_game_bet', {
@@ -113,12 +109,40 @@ export class WalletService {
       p_payout: params.payout,
       p_xp_gain: params.xpGain,
       p_result: params.result,
+      p_server_seed_hash: params.serverSeedHash ?? null,
+      p_nonce: params.nonce ?? null,
     });
     if (error) {
       if (error.message.includes('Insufficient')) throw new Error('Insufficient balance');
       throw new Error('Atomic bet settlement failed');
     }
     return walletFromRpc(data);
+  }
+
+  /**
+   * Consumes the next nonce from the user's active provably-fair seed chain.
+   * Idempotent per (userId, requestId) — a retried request replays the same
+   * seed/nonce instead of burning a new one. Must be called before the RNG
+   * outcome is computed (casino-core.ts), never after settlement.
+   */
+  static async consumeActiveSeed(params: {
+    userId: string;
+    requestId: string;
+  }): Promise<{ serverSeed: string; serverSeedHash: string; nonce: number; replayed: boolean }> {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.rpc('consume_active_seed', {
+      p_user_id: params.userId,
+      p_request_id: params.requestId,
+    });
+    if (error || !data) throw new Error('Failed to consume provably fair seed');
+    return z
+      .object({
+        serverSeed: z.string().min(1),
+        serverSeedHash: z.string().min(1),
+        nonce: z.number().int().nonnegative(),
+        replayed: z.boolean(),
+      })
+      .parse(data);
   }
 
   static async startRound(params: {
@@ -238,6 +262,7 @@ export class WalletService {
   static async redeemPromoCode(params: {
     userId: string;
     code: string;
+    requestId: string;
   }): Promise<
     { ok: true; amount: number; snapshot: WalletSnapshot } | { ok: false; code: string }
   > {
@@ -245,6 +270,7 @@ export class WalletService {
     const { data, error } = await supabase.rpc('redeem_promo_code', {
       p_user_id: params.userId,
       p_code: params.code,
+      p_request_id: params.requestId,
     });
     if (error || !data) {
       CasinoLogger.error('WalletService/redeemPromoCode', 'RPC failed', error);
@@ -278,6 +304,7 @@ export class WalletService {
     const { data, error } = await supabase.rpc('get_user_stats', { p_user_id: userId });
     if (error || !data) {
       // Return safe defaults if RPC is not present or fails
+      CasinoLogger.error('WalletService', 'getUserStats RPC failed', error ?? 'no data returned');
       return {
         totalBets: 0,
         totalWins: 0,
@@ -286,9 +313,10 @@ export class WalletService {
         totalProfit: 0,
         winRate: 0,
         achievements: [],
+        perGame: [],
       };
     }
-    return data as {
+    const parsed = data as {
       totalBets: number;
       totalWins: number;
       totalWagered: number;
@@ -296,7 +324,19 @@ export class WalletService {
       totalProfit: number;
       winRate: number;
       achievements: Array<{ id: string; unlocked: boolean; progress: number }>;
+      perGame?: Array<{
+        game: string;
+        bets: number;
+        wins: number;
+        wagered: number;
+        payout: number;
+        profit: number;
+        winRate: number;
+      }>;
     };
+    // perGame is absent until migration 018 is rolled out on the target DB —
+    // default to an empty array so callers never destructure undefined.
+    return { ...parsed, perGame: parsed.perGame ?? [] };
   }
 
   static async syncAchievement(params: {
@@ -323,6 +363,7 @@ export class WalletService {
       p_user_id: userId,
     });
     if (error || !data) {
+      CasinoLogger.error('WalletService', 'getUserSeeds RPC failed', error ?? 'no data returned');
       return {
         clientSeed: 'vibe-coder-default',
         serverSeedHash: '',
@@ -341,7 +382,31 @@ export class WalletService {
     if (error || !data) {
       throw new Error('Failed to rotate seed');
     }
-    return data as { clientSeed: string; serverSeedHash: string; nonce: number };
+    return data as {
+      clientSeed: string;
+      serverSeedHash: string;
+      nonce: number;
+      revealedSeed: string | null;
+      revealedSeedHash: string | null;
+    };
+  }
+
+  static async getSeedHistory(userId: string) {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from('seed_history')
+      .select('server_seed, server_seed_hash, client_seed, nonce_at_rotation, rotated_at')
+      .eq('user_id', userId)
+      .order('rotated_at', { ascending: false })
+      .limit(50);
+    if (error) throw new Error('Failed to load seed history');
+    return (data ?? []).map((row) => ({
+      serverSeed: row.server_seed as string,
+      serverSeedHash: row.server_seed_hash as string,
+      clientSeed: row.client_seed as string,
+      nonceAtRotation: Number(row.nonce_at_rotation),
+      rotatedAt: row.rotated_at as string,
+    }));
   }
 
   static async getChatMessages(limit = 50) {

@@ -60,6 +60,19 @@ describe('WalletService.getWallet', () => {
     expect(wallet.transactionId).toBe(ZERO_TRANSACTION_ID);
   });
 
+  it('returns an existing zero balance without issuing a wallet update', async () => {
+    mock.state.singleResult = {
+      data: { balance: 0, xp: 0, level: 1, rank: 'Bronze' },
+      error: null,
+    };
+    mock.state.maybeSingleResult = { data: null, error: null };
+
+    const wallet = await WalletService.getWallet(USER_ID);
+
+    expect(wallet.balance).toBe(0);
+    expect(mock.builder.update).not.toHaveBeenCalled();
+  });
+
   it('throws when the transaction lookup itself errors instead of silently falling back to the zero-transaction id (wallet.ts:74)', async () => {
     mock.state.singleResult = {
       data: { balance: 0, xp: 0, level: 1, rank: 'Bronze' },
@@ -135,7 +148,31 @@ describe('WalletService.settleBet', () => {
       p_payout: 19,
       p_xp_gain: 5,
       p_result: { roll: 42 },
+      p_server_seed_hash: null,
+      p_nonce: null,
     });
+  });
+
+  it('forwards serverSeedHash/nonce to settle_game_bet when the seed chain supplied them', async () => {
+    mock.state.rpcResult = {
+      data: {
+        balance: 100,
+        xp: 20,
+        level: 2,
+        rank: 'Bronze',
+        transactionId: TRANSACTION_ID,
+        result: { roll: 42 },
+        replayed: false,
+      },
+      error: null,
+    };
+
+    await WalletService.settleBet({ ...params, serverSeedHash: 'abc123', nonce: 7 });
+
+    expect(mock.client.rpc).toHaveBeenCalledWith(
+      'settle_game_bet',
+      expect.objectContaining({ p_server_seed_hash: 'abc123', p_nonce: 7 }),
+    );
   });
 
   it('returns replayed:true unchanged on an idempotent replay', async () => {
@@ -182,6 +219,36 @@ describe('WalletService.settleBet', () => {
     };
 
     await expect(WalletService.settleBet(params)).rejects.toThrow();
+  });
+});
+
+describe('WalletService.redeemPromoCode', () => {
+  it('forwards the caller idempotency key to the atomic promo RPC', async () => {
+    mock.state.rpcResult = {
+      data: {
+        ok: true,
+        amount: 25,
+        balance: 125,
+        xp: 0,
+        level: 1,
+        rank: 'Bronze',
+        transactionId: TRANSACTION_ID,
+        replayed: false,
+      },
+      error: null,
+    };
+
+    await WalletService.redeemPromoCode({
+      userId: USER_ID,
+      code: 'WELCOME25',
+      requestId: REQUEST_ID,
+    });
+
+    expect(mock.client.rpc).toHaveBeenCalledWith('redeem_promo_code', {
+      p_user_id: USER_ID,
+      p_code: 'WELCOME25',
+      p_request_id: REQUEST_ID,
+    });
   });
 });
 
