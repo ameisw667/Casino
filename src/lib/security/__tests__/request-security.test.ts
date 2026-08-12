@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   enforceRateLimit,
   getClientIdentifier,
@@ -35,6 +35,24 @@ describe('request security', () => {
         }),
       )?.status,
     ).toBe(403);
+  });
+
+  it('fails closed in production when APP_ORIGINS is not configured', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('APP_ORIGINS', '');
+
+    try {
+      expect(
+        validateMutationOrigin(
+          new Request('https://casino.test/api', {
+            method: 'POST',
+            headers: { origin: 'https://casino.test' },
+          }),
+        )?.status,
+      ).toBe(403);
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it('enforces the development in-memory fallback', async () => {

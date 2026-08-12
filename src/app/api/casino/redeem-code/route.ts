@@ -19,6 +19,8 @@ const PROMO_ERROR_MESSAGES: Record<string, string> = {
   PROMO_INACTIVE: 'This promo code is no longer active',
   PROMO_EXPIRED: 'This promo code has expired',
   PROMO_EXHAUSTED: 'This promo code has reached its usage limit',
+  PROMO_ALREADY_REDEEMED: 'You have already redeemed this promo code',
+  PROMO_REQUEST_CONFLICT: 'Promo request conflict',
   PROMO_INVALID: 'Invalid promo code',
 };
 
@@ -72,13 +74,17 @@ export async function POST(request: Request) {
     }
 
     const rawCode = parseResult.data.code.toUpperCase();
+    const requestId = request.headers.get('Idempotency-Key');
+    if (!requestId || !z.string().uuid().safeParse(requestId).success) {
+      return NextResponse.json({ error: 'A valid Idempotency-Key is required' }, { status: 400 });
+    }
 
-    const outcome = await WalletService.redeemPromoCode({ userId, code: rawCode });
+    const outcome = await WalletService.redeemPromoCode({ userId, code: rawCode, requestId });
 
     if (!outcome.ok) {
       return NextResponse.json(
         { error: PROMO_ERROR_MESSAGES[outcome.code] ?? 'Promo code rejected', code: outcome.code },
-        { status: 400 },
+        { status: outcome.code === 'PROMO_REQUEST_CONFLICT' ? 409 : 400 },
       );
     }
 
