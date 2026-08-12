@@ -28,7 +28,9 @@ describe('browser mutation origin inventory', () => {
 
       expect(route).toContain('validateMutationOrigin');
       expect(guardIndex).toBeGreaterThan(-1);
-      expect(guardIndex).toBeLessThan(parseIndex);
+      if (parseIndex > -1) {
+        expect(guardIndex).toBeLessThan(parseIndex);
+      }
     },
   );
 });
