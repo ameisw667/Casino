@@ -53,6 +53,8 @@ export async function POST(request: Request) {
   const originFailure = validateMutationOrigin(request);
   if (originFailure) return originFailure;
 
+  let requestId: string | undefined;
+
   try {
     const supabase = await createClient();
     const {
@@ -94,6 +96,7 @@ export async function POST(request: Request) {
       );
     }
     const params = parsed.data;
+    requestId = params.requestId;
     const gameConfig = await loadGameConfig();
 
     if (params.action === 'START_CRASH') {
@@ -240,7 +243,12 @@ export async function POST(request: Request) {
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal Server Error';
-    CasinoLogger.error('API/Casino/Bet', 'Server-authoritative settlement failed', error);
+    CasinoLogger.error(
+      'API/Casino/Bet',
+      'Server-authoritative settlement failed',
+      error,
+      requestId,
+    );
     const status = message === 'Insufficient balance' ? 409 : 500;
     return NextResponse.json(
       {

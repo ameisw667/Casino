@@ -1,0 +1,172 @@
+# Isolierter Self-Hosted-Supabase-Stack für Resilience-/Chaos-Testing (Initiative 1.10).
+# Details/Begründung: worldmap/05_1.10 Resilience Chaos Testing.md
+#
+# WICHTIG vor dem ersten Deploy:
+#   - Image-Tags unten sind ein Startpunkt, kein Digest-Pin. Vor echtem Deployment gegen
+#     die aktuelle Version von https://github.com/supabase/supabase/blob/master/docker/docker-compose.yml
+#     abgleichen und auf konkrete Digests (`image@sha256:...`) umstellen (R-C1/Supply-Chain, siehe Plan Abschnitt 3.2).
+#   - Alle Ports sind an 127.0.0.1 gebunden. NIEMALS auf "0.0.0.0:PORT:PORT" ändern (R-C2).
+#   - Nur mit "-p casino-chaos" starten/stoppen, nie mit host-weiten Docker-Befehlen (R-C3).
+#   - restart: "no" ist Absicht (R-C6) — nach einem Host-Reboot bleibt der Stack unten.
+
+name: casino-chaos
+
+networks:
+  casino-chaos-net:
+    name: casino-chaos-net
+    driver: bridge
+
+volumes:
+  casino-chaos-db-data:
+    name: casino-chaos-db-data
+  casino-chaos-db-data-storage:
+    name: casino-chaos-db-data-storage
+
+x-chaos-defaults: &chaos-defaults
+  restart: "no"
+  networks:
+    - casino-chaos-net
+
+services:
+  db:
+    <<: *chaos-defaults
+    image: supabase/postgres:15.1.1.78
+    container_name: casino-chaos-db
+    ports:
+      - "127.0.0.1:15432:5432"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - casino-chaos-db-data:/var/lib/postgresql/data
+    mem_limit: 2g
+    cpus: 1.0
+    blkio_config:
+      weight: 100
+      device_write_bps:
+        - path: /dev/sda
+          rate: "20mb"
+      device_read_bps:
+        - path: /dev/sda
+          rate: "20mb"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  auth:
+    <<: *chaos-defaults
+    image: supabase/gotrue:v2.143.0
+    container_name: casino-chaos-auth
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: http://127.0.0.1:13000
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_DISABLE_SIGNUP: "false"
+    mem_limit: 512m
+    cpus: 0.5
+
+  rest:
+    <<: *chaos-defaults
+    image: postgrest/postgrest:v12.0.1
+    container_name: casino-chaos-rest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+    mem_limit: 512m
+    cpus: 0.5
+
+  realtime:
+    <<: *chaos-defaults
+    image: supabase/realtime:v2.28.0
+    container_name: casino-chaos-realtime
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: postgres
+      DB_USER: supabase_admin
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      SECRET_KEY_BASE: ${REALTIME_SECRET_KEY_BASE}
+    mem_limit: 512m
+    cpus: 0.5
+
+  storage:
+    <<: *chaos-defaults
+    image: supabase/storage-api:v0.46.4
+    container_name: casino-chaos-storage
+    depends_on:
+      db:
+        condition: service_healthy
+      rest:
+        condition: service_started
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - casino-chaos-db-data-storage:/var/lib/storage
+    mem_limit: 512m
+    cpus: 0.5
+
+  kong:
+    <<: *chaos-defaults
+    image: kong:2.8.1
+    container_name: casino-chaos-kong
+    depends_on:
+      - auth
+      - rest
+      - realtime
+      - storage
+    ports:
+      - "127.0.0.1:18000:8000"
+      - "127.0.0.1:18443:8443"
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl
+    volumes:
+      - ./kong.yml:/var/lib/kong/kong.yml:ro
+    mem_limit: 256m
+    cpus: 0.25
+
+  studio:
+    <<: *chaos-defaults
+    image: supabase/studio:20240311-2a4b5c4
+    container_name: casino-chaos-studio
+    depends_on:
+      - kong
+    ports:
+      - "127.0.0.1:13000:3000"
+    environment:
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      # Pflichtfeld — verhindert unauthentifizierten Dashboard-Zugriff, falls die
+      # 127.0.0.1-Bindung je versehentlich auf 0.0.0.0 geändert wird (siehe R-C2/Plan 3.2).
+      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
+    mem_limit: 512m
+    cpus: 0.5

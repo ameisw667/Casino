@@ -834,7 +834,8 @@ export const useCasinoStore = create<CasinoState>()(
             }
           }
 
-          if (seedsRes && seedsRes.ok) {
+          const isSeedsHtml = seedsRes?.headers?.get?.('content-type')?.includes('text/html');
+          if (seedsRes && seedsRes.ok && !isSeedsHtml) {
             const seedsData = await seedsRes.json();
             if (seedsData?.clientSeed && seedsData?.serverSeedHash !== undefined) {
               set({
@@ -847,7 +848,10 @@ export const useCasinoStore = create<CasinoState>()(
             }
           }
 
-          if (communityRes && communityRes.ok) {
+          const isCommunityHtml = communityRes?.headers
+            ?.get?.('content-type')
+            ?.includes('text/html');
+          if (communityRes && communityRes.ok && !isCommunityHtml) {
             const commData = await communityRes.json();
             if (commData?.communityWagered !== undefined) {
               set({
@@ -858,7 +862,8 @@ export const useCasinoStore = create<CasinoState>()(
             }
           }
 
-          if (chatRes && chatRes.ok) {
+          const isChatHtml = chatRes?.headers?.get?.('content-type')?.includes('text/html');
+          if (chatRes && chatRes.ok && !isChatHtml) {
             const chatData = await chatRes.json();
             if (Array.isArray(chatData?.messages) && chatData.messages.length > 0) {
               set({ chatMessages: chatData.messages });

@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/nextjs';
+
 /**
  * Structured Logger for Casino Royale
  * Standardizes event tracking and debugging across games and core services.
@@ -20,9 +22,20 @@ export class CasinoLogger {
     console.warn(`[${module}] ⚠️ ${message}`, data || '');
   }
 
-  static error(module: string, message: string, error?: unknown) {
+  static error(module: string, message: string, error?: unknown, requestId?: string) {
     // We always log errors, but we might want to sanitize them in prod
     console.error(`%c[${module}] 🚨 ${message}`, 'color: #ff4d4d; font-weight: bold;', error || '');
+
+    try {
+      const tags = requestId ? { module, request_id: requestId } : { module };
+      if (error instanceof Error) {
+        Sentry.captureException(error, { tags });
+      } else {
+        Sentry.captureMessage(message, { level: 'error', tags });
+      }
+    } catch {
+      // A Sentry SDK failure must never break the caller's error path.
+    }
   }
 
   static bet(game: string, amount: number, win: boolean, payout: number) {

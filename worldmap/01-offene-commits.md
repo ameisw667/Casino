@@ -1,6 +1,6 @@
 # 01 — World Map: Offene Commits — Konsolidierung & Execution Roadmap
 
-> **Erstellt:** 2026-08-09 · **Status:** R1 C1 ✅ (`5860f83`) · C2 ✅ (`92cb929`) · C3 ✅ (`5d3fc7f`) · C4 ✅ (`d825c4b`) · C5 ✅ (`06f364d`) · C6 ✅ (`ca156f3`) · C7 ✅ (`9e97d53`) · C8 ✅ (`5c87a7a`) · C9 ✅ (`d85a2ce`) · C10 ✅ (`e6dd3d6`) · C11 ✅ (`cb88252`) · C12 ✅ (`d2d9777`) · **R2** C13 ✅ (`e44d712`) · C14 ✅ (`c7f9bc8`) · C15 ✅ (`eb209d9`) · C16 ✅ (`615c45a`) · C17 ✅ (`0b84e34`) · C18 ✅ (`7e1707e`) · C19 ✅ (`49b99da`) · C20 ✅ (`bd48ac5`) · C21 ✅ (`f9231f7`) · **Post-R2 C1** ✅ (`ca2a389`) · **R3** C22 ✅ (`2ed7c42`) · C23 ✅ (`5442c54`) · C24 ✅ (`28b2923`) · C25 ✅ (`fad10ef`) · C26 ✅ (`82860d0`) · C27 ✅ (`b1a5584`) · C28 ✅ (`6ab9207`). **Single-Source-of-Truth** — R1 + R2 + R3 vollständig konsolidiert und committed. **Offen:** B6 (`/v2`-Sitemap) · M21 (Migrationen 018–025 remote im Supabase SQL Editor ausführen).
+> **Erstellt:** 2026-08-09 · **Letztes Update:** 2026-08-12 · **Status:** R1 C1 ✅ (`5860f83`) · C2 ✅ (`92cb929`) · C3 ✅ (`5d3fc7f`) · C4 ✅ (`d825c4b`) · C5 ✅ (`06f364d`) · C6 ✅ (`ca156f3`) · C7 ✅ (`9e97d53`) · C8 ✅ (`5c87a7a`) · C9 ✅ (`d85a2ce`) · C10 ✅ (`e6dd3d6`) · C11 ✅ (`cb88252`) · C12 ✅ (`d2d9777`) · **R2** C13 ✅ (`e44d712`) · C14 ✅ (`c7f9bc8`) · C15 ✅ (`eb209d9`) · C16 ✅ (`615c45a`) · C17 ✅ (`0b84e34`) · C18 ✅ (`7e1707e`) · C19 ✅ (`49b99da`) · C20 ✅ (`bd48ac5`) · C21 ✅ (`f9231f7`) · **Post-R2 C1** ✅ (`ca2a389`) · **R3** C22 ✅ (`2ed7c42`) · C23 ✅ (`5442c54`) · C24 ✅ (`28b2923`) · C25 ✅ (`fad10ef`) · C26 ✅ (`82860d0`) · C27 ✅ (`b1a5584`) · C28 ✅ (`6ab9207`). **Single-Source-of-Truth** — R1 + R2 + R3 vollständig konsolidiert und committed. **Offen (Stand 2026-08-12):** B6 (`/v2`-Sitemap) · M21 (Migrationen 018–025 remote ausführen) · **Post-R3 uncommitted:** N1 Sentry Error-Tracking · N2 Telegram-Hardening · N3 Chaos-Infra · N4 Production-QA-Doc — siehe §11.
 > **Scope:** 5 % Übersichtstabelle für Jan · 95 % Execution-Detail für LLM.
 > **Quellen:** `git status --porcelain`, `worldmap/02_FRONTEND_REDESIGN.md`, `docs/archive/03_CASINO_SUPABASE_CONNECTION.md`, `docs/archive/03_01_CASINO_SUPABASE_IMPLEMENTATION_PLAN.md`, `docs/archive/01b-c1-docs-commit-plan.md`.
 
@@ -499,11 +499,15 @@ Plan ist nach Ergänzung von F1–F4, P1–P7 und A1–A7 auf „Next-Level": vo
 
 ## 9 — Verbleibend offene Punkte (Stand 2026-08-12)
 
-| #   | Punkt                                                                | Status                              | Aktion                                                                               |
-| --- | -------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
-| B6  | `/v2`-Routes nicht als Produktivroute in Sitemap/Metadata deklariert | ⏳ **OFFEN**                        | C5-Verifikation: `app/v2`-Sitemap/Metadata prüfen, ggf. `noindex`/Sitemap-Exclusion. |
-| M21 | Remote Migrationen 018–025 ausführen                                 | ⏳ **committed, remote ausstehend** | Via Supabase SQL Editor (DDL-fähiger Zugang für Jan). Siehe Migrations-Ordner.       |
-| R3  | Initiativen R3-1 bis R3-7                                            | ✅ **VOLLSTÄNDIG COMMITTED**        | Commits C22–C28 erfolgreich erstellt und verifiziert (391/391 Tests grün, tsc 0).    |
+| #   | Punkt                                                                | Status                              | Aktion                                                                                                      |
+| --- | -------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| B6  | `/v2`-Routes nicht als Produktivroute in Sitemap/Metadata deklariert | ⏳ **OFFEN**                        | C5-Verifikation: `app/v2`-Sitemap/Metadata prüfen, ggf. `noindex`/Sitemap-Exclusion.                        |
+| M21 | Remote Migrationen 018–025 ausführen                                 | ⏳ **committed, remote ausstehend** | Via Supabase SQL Editor (DDL-fähiger Zugang für Jan). Siehe Migrations-Ordner. **025 neu dazu** (Telegram). |
+| R3  | Initiativen R3-1 bis R3-7                                            | ✅ **VOLLSTÄNDIG COMMITTED**        | Commits C22–C28 erfolgreich erstellt und verifiziert (391/391 Tests grün, tsc 0).                           |
+| N1  | Sentry Error-Tracking (Initiative 05.1.9)                            | 🔴 **uncommitted**                  | Siehe §11.N1 — `next.config.ts`, `package*.json`, `sentry-scrub.ts`+Test.                                   |
+| N2  | Telegram-Hardening (post-R3-7 Security-Review-Fix)                   | 🔴 **uncommitted**                  | Siehe §11.N2 — `status`-Rate-Limit, `webhook`-`.int()`-Validierung, Doc-Sync.                               |
+| N3  | Resilience/Chaos-Infra (Initiative 05.1.10)                          | 🔴 **uncommitted**                  | Siehe §11.N3 — `infra/chaos/*` + Doc. VPS-Deployment blockiert auf Jan (§11.N3 M9).                         |
+| N4  | Production-QA-Report-Doc                                             | 🔴 **uncommitted**                  | Siehe §11.N4 — `worldmap/10_production_bugs.md` (Skeleton, leer).                                           |
 
 ---
 
@@ -523,3 +527,85 @@ Plan ist nach Ergänzung von F1–F4, P1–P7 und A1–A7 auf „Next-Level": vo
 
 - `src/app/refactoring/` — Lobby-v2-Testseite (Jan-Weisung).
 - `public/prototypes/` — Three.js/GSAP Assets der Testseite.
+
+---
+
+## 11 — Post-R3 Uncommitted Workstreams (Stand 2026-08-12)
+
+> **Kontext:** R3 (C22–C28) ist vollständig committed. Danach sind in separaten Sessions vier neue Workstreams im Working-Tree entstanden — alle noch 🔴 uncommitted. Diese Sektion ist die Übersicht für die Next-Step-Planung. Detail-Status in den jeweiligen Worldmap-Docs.
+
+### 11.0 — Übersichtstabelle für Jan
+
+| #   | Workstream                           | Dateien (M / NEW)                                                                                                            | Status lokal          | Blocker / Abhängigkeit                                                      | Risiko | Aufwand | Empfohlener Commit-Typ                                               |
+| --- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- | --------------------- | --------------------------------------------------------------------------- | ------ | ------- | -------------------------------------------------------------------- |
+| N1  | **Sentry Error-Tracking** (05.1.9)   | `next.config.ts` (M) · `package.json` (M) · `package-lock.json` (M) · `sentry-scrub.ts` (NEW) · `sentry-scrub.test.ts` (NEW) | ✅ Code + Test fertig | Go-Live: `SENTRY_DSN`/`SENTRY_AUTH_TOKEN`/`SENTRY_ORG`/`SENTRY_PROJECT` env | M      | S       | `feat(obs): sentry error-tracking + pii scrubbing`                   |
+| N2  | **Telegram-Hardening** (post-R3-7)   | `api/telegram/status/route.ts` (M) · `api/telegram/webhook/route.ts` (M) · `worldmap/05_2.2_telegram.md` (M)                 | ✅ Code fertig        | — (additiv, keine Migration)                                                | N      | S       | `fix(security): rate-limit telegram status + chat.id int validation` |
+| N3  | **Resilience/Chaos-Infra** (05.1.10) | `infra/chaos/{docker-compose,kong.yml,.env.chaos.example,README}` (4 NEW) · `worldmap/05_1.10 …md` (M)                       | ✅ Artefakte fertig   | M9 VPS-Deployment braucht Jans SSH (blockiert, nicht autonom)               | M      | M       | `chore(infra): self-hosted supabase chaos stack + runbook`           |
+| N4  | **Production-QA-Report**             | `worldmap/10_production_bugs.md` (NEW)                                                                                       | ⬜ Skeleton (leer)    | Wird während Live-QA befüllt — noch kein Content                            | N      | S       | `docs: add production QA report skeleton`                            |
+
+**⛔ Bewusst ausgeschlossen (Jan-Weisung, nicht committen — fortgelten):** `src/app/refactoring/` · `public/prototypes/`.
+
+### 11.1 — N1 Sentry Error-Tracking (Initiative 05.1.9)
+
+- **Scope:** Applikationsweites Error-Tracking via `@sentry/nextjs` (server/edge/client), PII/Secret-Scrubbing im globalen `beforeSend`.
+- **Dateien:**
+  - ✎ `next.config.ts` — `withSentryConfig`-Wrapper (org/project/authToken via env, `silent: !CI`).
+  - ✎ `package.json` + `package-lock.json` — `@sentry/nextjs` ^10.70.0.
+  - ➕ `src/lib/casino/sentry-scrub.ts` — `scrubSentryEvent`: löscht `request.headers`/`cookies` wholesale (kein Allowlist-Under-Redaction), `user.ip_address`/`email`, tiefe Scrub-Recursion auf `extra`/`contexts`/`breadcrumbs.data` gegen Sensitiv-Key-Pattern (authorization, cookie, serverseed, password, token, secret, api_key, service_role_key, session), Depth-Limit 6.
+  - ➕ `src/lib/casino/__tests__/sentry-scrub.test.ts` — Unit-Tests für Scrubbing.
+- **Verify-Gates (lokal):** `tsc --noEmit` 0 · `vitest sentry-scrub.test.ts` grün · `npm run build` grün.
+- **Go-Live-Gates (offen, Jan):** `SENTRY_DSN` + `SENTRY_AUTH_TOKEN` + `SENTRY_ORG` + `SENTRY_PROJECT` in `.env.local` + Hosting setzen. Fehlender `SENTRY_AUTH_TOKEN` überspringt nur Source-Map-Upload, kein Build-Bruch.
+- **Security-Gate:** `sentry-scrub.ts` ist der zentrale PII-Guard — vor Commit `security-reviewer` über Scrubbing-Vollständigkeit laufen lassen (Header/Cookie wholesale-delete statt Allowlist ist bewusste Entscheidung, dokumentiert).
+- **Offene Frage an Jan:** Ist `05_1.9 Applikationsweites Error-Tracking.md` als Worldmap-Doc final, oder fehlt dort der Execution-Status-Sync? (Doc selbst derzeit unmodified/committed.)
+
+### 11.2 — N2 Telegram-Hardening (post-R3-7 Security-Review)
+
+- **Scope:** Zwei nachträgliche Hardening-Fixes aus dem R3-7 Security-Review + Doc-Sync der `05_2.2_telegram.md` auf Execution-Status.
+- **Dateien:**
+  - ✎ `src/app/api/telegram/status/route.ts` — `enforceRateLimit` (30/60s) + `rateLimitHeaders` nachgezogen (vorher unrated).
+  - ✎ `src/app/api/telegram/webhook/route.ts` — `chat.id: z.number().int()` (Integer-Validierung, verhindert Float-Injection).
+  - ✎ `worldmap/05_2.2_telegram.md` — VERIFY-Checkboxes auf `[x] … grün` gesetzt, §9 Go-Live-Runbook (6 Schritte: Migration, Secrets, `setWebhook`-curl, Purge-Cron, E2E-Test, Status-Lift) + §10 Execution-Ergebnis-Tabelle ergänzt.
+- **Verify-Gates (laut Doc):** `npm run test` 415/415 · `tsc` 0 · `eslint` 0 · `vibe-check` keine neuen Findings · `build` grün (5 `/api/telegram/*`-Routen im Manifest).
+- **Abhängigkeit:** keine (additiv, keine neue Migration — 025 bereits in R3-7 committed, nur remote ausstehend → M21).
+- **Security-Gate:** `security-reviewer` über die beiden Route-Diffs (Rate-Limit + Int-Validation) — beide sind Hardening-Additions, geringes Risiko.
+
+### 11.3 — N3 Resilience/Chaos-Infra (Initiative 05.1.10)
+
+- **Scope:** Self-Hosted Supabase-Stack auf Jans Hostinger-VPS (KVM 2, 2 vCPU, 8 GB, Ubuntu 24.04, Docker aktiv für n8n) für Chaos-Testing ohne Cloud-Slot-Verbrauch. Isoliertes Netzwerk, kein öffentlicher DB-/API-Port.
+- **Dateien:**
+  - ➕ `infra/chaos/docker-compose.yml` — Supabase-Stack-Definition.
+  - ➕ `infra/chaos/kong.yml` — Kong-API-Gateway-Konfig (Firewall/Isolation).
+  - ➕ `infra/chaos/.env.chaos.example` — env-Vorlage (keine echten Secrets).
+  - ➕ `infra/chaos/README.md` — Runbook.
+  - ✎ `worldmap/05_1.10 Resilience Chaos Testing.md` — Doc auf Execution-Status (M1–M8 ✅, M9–M11 ⬜).
+- **Status lokal:** M1–M8 fertig (Architektur, Firewall, Migrations-Sync, Chaos-Skripte Supabase-URL/Upstash-Invalidierung, Prod-Schutz-Guard, 2 Reviews). **M9 VPS-Deployment blockiert** auf Jans SSH-Session — nicht autonom übernehmbar (siehe Doc Abschnitt 13).
+- **Security-Gate:** `infra/chaos/` ist Infra-Definition — `security-reviewer` über Netzwerk-Isolation + Prod-Schutz-Guard (Allowlist + Marker-Variable, R-C1/R9) vor Commit.
+- **Offene Frage an Jan:** M9 (VPS hochfahren, Migrationen ausrollen, Firewall setzen) — willst du das vor oder nach Commit von N3 angehen? Artefakte können unabhängig committet werden (reine Infra-Doku/Compose, kein Runtime-Code).
+
+### 11.4 — N4 Production-QA-Report
+
+- **Scope:** Live-QA der Production-Site (`casino-xi-six.vercel.app`) — Registrierung, Navigation, alle 5 Spiele × 5 Runden, Console-/Netzwerk-Monitoring, Bug-Dokumentation, Quick-Fixes < 5 Min.
+- **Datei:** ➕ `worldmap/10_production_bugs.md` — **nur Skeleton/Template**, Status-Tabelle + Testplan leer (`_wird während Testing befüllt_`).
+- **Status:** ⬜ Noch keine Ausführung, kein Content.
+- **Offene Frage an Jan:** Soll N4 als separates Doc-Commit (Skeleton) vorab committet werden, oder erst nach dem ersten echten QA-Durchlauf mit Content? Skeleton-Commit ist risikofrei (`docs:`).
+
+### 11.5 — Next-Step-Planung (Vorschlag für Jan)
+
+**Reihenfolge-Empfehlung für die 4 uncommitted Workstreams:**
+
+1. **N2 (Telegram-Hardening)** — kleinstes Risiko, keine Migration, keine externen Gates. `fix(security):`-Commit. Sofert Go-Live von R3-7 nicht blockiert (Status-Route ist jetzt rated, webhook robuster).
+2. **N4 (QA-Skeleton)** — risikofreier `docs:`-Commit, entzerren Working-Tree. Oder warten bis QA-Content existiert.
+3. **N1 (Sentry)** — `feat(obs):`-Commit. Code fertig + getestet; Go-Live nur env. `security-reviewer` über `sentry-scrub.ts` vor Commit empfohlen.
+4. **N3 (Chaos-Infra)** — `chore(infra):`-Commit der Artefakte. M9 (VPS-Deployment) unabhängig davon planen — braucht Jans SSH.
+
+**Querschnitt-Aktionen:**
+
+- `git add -p` nicht nötig — kein Datei-Overlap zwischen N1/N2/N3/N4 (jeweils disjunkte Dateimengen).
+- Vor jedem Commit: `tsc --noEmit` + relevante Tests + `npm run vibe-check`.
+- M21 (Migrationen 018–025 remote) bleibt paralleler Jan-Task, unabhängig von N1–N4.
+
+**Zu klären mit Jan:**
+
+- N1: Ist `05_1.9`-Doc final?
+- N3: M9 vor oder nach N3-Commit?
+- N4: Skeleton-Commit jetzt oder mit Content später?

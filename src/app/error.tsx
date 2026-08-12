@@ -4,6 +4,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 export default function Error({
   error,
@@ -15,6 +16,11 @@ export default function Error({
   useEffect(() => {
     if (typeof console !== 'undefined') {
       console.error('CasinoError: Unhandled route error', error);
+    }
+    try {
+      Sentry.captureException(error);
+    } catch {
+      // A Sentry SDK failure must never break this error boundary itself.
     }
   }, [error]);
 

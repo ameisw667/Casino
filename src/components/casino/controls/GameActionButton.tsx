@@ -64,7 +64,7 @@ export function GameActionButton({
         textTransform: 'uppercase',
         letterSpacing: '0.08em',
         cursor: disabled || loading ? 'not-allowed' : 'pointer',
-        boxShadow: loading ? 'none' : '0 4px 20px rgba(229, 193, 88, 0.25)',
+        boxShadow: loading ? 'none' : '0 4px 14px rgba(0, 0, 0, 0.6)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

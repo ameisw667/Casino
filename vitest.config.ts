@@ -19,6 +19,7 @@ export default defineConfig({
         'src/lib/casino/casino-core.ts',
         'src/lib/casino/wallet.ts',
         'src/store/useCasinoStore.ts',
+        'src/lib/casino/sentry-scrub.ts',
       ],
       exclude: ['src/lib/casino/__tests__/**', 'src/store/__tests__/**'],
       thresholds: {

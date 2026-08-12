@@ -9,7 +9,7 @@ const updateSchema = z.object({
   message: z
     .object({
       text: z.string().max(4096).optional(),
-      chat: z.object({ id: z.number() }),
+      chat: z.object({ id: z.number().int() }),
       from: z.object({ username: z.string().optional() }).optional(),
     })
     .optional(),

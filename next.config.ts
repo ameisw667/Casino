@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import { withSentryConfig } from '@sentry/nextjs';
 
 const nextConfig: NextConfig = {
   images: {
@@ -14,4 +15,10 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ['localhost', '127.0.0.1', '192.168.178.34'],
 };
 
-export default nextConfig;
+// org/project/authToken are read from SENTRY_ORG/SENTRY_PROJECT/SENTRY_AUTH_TOKEN
+// (see worldmap/05_1.9 Applikationsweites Error-Tracking.md, M1). A missing
+// SENTRY_AUTH_TOKEN only skips source map upload, it does not fail the build.
+export default withSentryConfig(nextConfig, {
+  silent: !process.env.CI,
+  widenClientFileUpload: false,
+});

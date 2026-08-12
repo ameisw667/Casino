@@ -827,7 +827,7 @@ export default function GameActionButtonTestingClient() {
                       textTransform: 'uppercase',
                       letterSpacing: '0.08em',
                       cursor: opt1b1Loading ? 'not-allowed' : 'pointer',
-                      boxShadow: opt1b1Loading ? 'none' : '0 4px 20px rgba(229, 193, 88, 0.25)',
+                      boxShadow: opt1b1Loading ? 'none' : '0 4px 14px rgba(0, 0, 0, 0.6)',
                       transition: 'all 0.2s ease',
                       display: 'flex',
                       alignItems: 'center',

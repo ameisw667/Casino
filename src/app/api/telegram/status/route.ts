@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { getTelegramLinkStatus } from '@/lib/casino/telegram-link';
 import { CasinoLogger } from '@/lib/casino/logger';
+import {
+  enforceRateLimit,
+  getClientIdentifier,
+  rateLimitHeaders,
+} from '@/lib/security/request-security';
 
 const PRIVATE_NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
@@ -31,8 +36,26 @@ export async function GET(request: Request) {
       );
     }
 
+    const rate = await enforceRateLimit(
+      getClientIdentifier(request, userId),
+      'telegram-status',
+      30,
+      60,
+    );
+    if (!rate.success) {
+      return NextResponse.json(
+        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
+        {
+          status: rate.unavailable ? 503 : 429,
+          headers: { ...PRIVATE_NO_STORE_HEADERS, ...rateLimitHeaders(rate) },
+        },
+      );
+    }
+
     const status = await getTelegramLinkStatus(userId);
-    return NextResponse.json(status, { headers: PRIVATE_NO_STORE_HEADERS });
+    return NextResponse.json(status, {
+      headers: { ...PRIVATE_NO_STORE_HEADERS, ...rateLimitHeaders(rate) },
+    });
   } catch (error) {
     CasinoLogger.error('API/Telegram/Status', 'Failed to read telegram link status', error);
     return NextResponse.json(

@@ -1,5 +1,6 @@
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
+import * as Sentry from '@sentry/nextjs';
 
 export interface RateLimitDecision {
   success: boolean;
@@ -11,6 +12,20 @@ export interface RateLimitDecision {
 
 const localWindows = new Map<string, { count: number; reset: number }>();
 const remoteLimiters = new Map<string, Ratelimit>();
+
+// Controlled fail-closed 503s never throw, so they'd otherwise never reach
+// Sentry — this is the 1.9 dependency 1.10 (chaos testing) relies on to
+// observe simulated Upstash outages (worldmap/05_1.9, Abschnitt 3).
+function reportRateLimiterUnavailable(scope: string): void {
+  try {
+    Sentry.captureMessage('Rate limiter unavailable, failing closed', {
+      level: 'error',
+      tags: { scope },
+    });
+  } catch {
+    // A Sentry SDK failure must never affect the fail-closed rate limit decision.
+  }
+}
 
 export function getClientIdentifier(request: Request, userId?: string | null): string {
   if (userId) return `user:${userId}`;
@@ -95,6 +110,7 @@ export async function enforceRateLimit(
         reset: result.reset,
       };
     } catch {
+      reportRateLimiterUnavailable(scope);
       return {
         success: false,
         unavailable: true,
@@ -105,6 +121,7 @@ export async function enforceRateLimit(
     }
   }
   if (process.env.NODE_ENV === 'production') {
+    reportRateLimiterUnavailable(scope);
     return {
       success: false,
       unavailable: true,

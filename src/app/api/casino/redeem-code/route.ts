@@ -28,6 +28,8 @@ export async function POST(request: Request) {
   const originFailure = validateMutationOrigin(request);
   if (originFailure) return originFailure;
 
+  const requestIdHeader = request.headers.get('Idempotency-Key');
+
   try {
     const supabase = await createClient();
     const {
@@ -74,7 +76,7 @@ export async function POST(request: Request) {
     }
 
     const rawCode = parseResult.data.code.toUpperCase();
-    const requestId = request.headers.get('Idempotency-Key');
+    const requestId = requestIdHeader;
     if (!requestId || !z.string().uuid().safeParse(requestId).success) {
       return NextResponse.json({ error: 'A valid Idempotency-Key is required' }, { status: 400 });
     }
@@ -102,7 +104,12 @@ export async function POST(request: Request) {
       snapshot: outcome.snapshot,
     });
   } catch (error) {
-    CasinoLogger.error('API/RedeemCode', 'Code redemption failed', error);
+    CasinoLogger.error(
+      'API/RedeemCode',
+      'Code redemption failed',
+      error,
+      requestIdHeader ?? undefined,
+    );
     return NextResponse.json({ error: 'Failed to redeem voucher code' }, { status: 500 });
   }
 }

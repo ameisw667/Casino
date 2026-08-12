@@ -16,12 +16,29 @@ import {
   Check,
 } from 'lucide-react';
 import { BetModeTabs } from '@/components/casino/controls/BetModeTabs';
+import { BetInputGroup } from '@/components/casino/controls/BetInputGroup';
 import { GameActionButton } from '@/components/casino/controls/GameActionButton';
+import { VibeSlider } from '@/components/casino/controls/VibeSlider';
+import { AutoBetDrawer, AutoBetConfig } from '@/components/casino/controls/AutoBetDrawer';
+import { GameStatsPanel } from '@/components/casino/controls/GameStatsPanel';
 import { soundManager } from '@/lib/casino/sound-manager';
 
 export default function BrandShowcaseClient() {
   // Live State for Approved BetModeTabs (7.1)
   const [betMode, setBetMode] = useState<'manual' | 'auto'>('manual');
+
+  // Live State for VibeSlider (7.4)
+  const [sliderChance, setSliderChance] = useState<number>(50);
+
+  // Live State for AutoBetDrawer (7.5)
+  const [autoConfig, setAutoConfig] = useState<AutoBetConfig>({
+    numberOfBets: 10,
+    onWinIncrease: 0,
+    onLossIncrease: 100,
+    stopProfit: 50,
+    stopLoss: 20,
+  });
+  const [isAutoRunning, setIsAutoRunning] = useState(false);
 
   // Live State for BetInputGroup Preview (7.2)
   const [betAmount, setBetAmount] = useState<number>(10.0);
@@ -915,12 +932,224 @@ const [mode, setMode] = useState<'manual' | 'auto'>('manual');
               >
                 <li>Feste Höhe von 56px (`h-14`) für optimale Touch-Bedienung auf Smartphones.</li>
                 <li>
-                  Gold-Gradient (`#f59e0b` → `#d4af37`) mit dunkler Fett-Typografie (`font-extrabold
-                  uppercase`).
+                  Satter Obsidian-Dark Untergrund (`#141108`) mit 1.5px Champagne Gold Rahmen
+                  (`#e5c158`) ohne blasse Transparenzen.
                 </li>
                 <li>Framer Motion Spring-Hover & Tap Scaling.</li>
               </ul>
             </div>
+          </div>
+        </section>
+
+        {/* COMPONENT CATEGORY 7.4: VIBE SLIDER */}
+        <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '32px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+              }}
+            >
+              <div>
+                <span
+                  style={{
+                    fontSize: '0.7rem',
+                    fontFamily: 'var(--font-mono)',
+                    color: '#34d399',
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  Initiative 7.4 · Bestätigter Standard
+                </span>
+                <h2
+                  style={{
+                    fontSize: '1.6rem',
+                    fontWeight: 800,
+                    color: '#ffffff',
+                    margin: '4px 0 0 0',
+                  }}
+                >
+                  &lt;VibeSlider /&gt; — Universal Brand Slider
+                </h2>
+              </div>
+              <span
+                style={{
+                  padding: '4px 12px',
+                  background: 'rgba(16, 185, 129, 0.15)',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  color: '#34d399',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  borderRadius: '8px',
+                }}
+              >
+                ✅ Gewinner: Option 1-b1 Obsidian Gold Dual-Stat
+              </span>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+              gap: '24px',
+            }}
+          >
+            <div
+              style={{
+                background: '#0b0e14',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '20px',
+                padding: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+              }}
+            >
+              <VibeSlider value={sliderChance} onChange={setSliderChance} />
+            </div>
+          </div>
+        </section>
+
+        {/* COMPONENT CATEGORY 7.5: AUTO BET DRAWER */}
+        <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '32px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+              }}
+            >
+              <div>
+                <span
+                  style={{
+                    fontSize: '0.7rem',
+                    fontFamily: 'var(--font-mono)',
+                    color: '#34d399',
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  Initiative 7.5 · Bestätigter Standard
+                </span>
+                <h2
+                  style={{
+                    fontSize: '1.6rem',
+                    fontWeight: 800,
+                    color: '#ffffff',
+                    margin: '4px 0 0 0',
+                  }}
+                >
+                  &lt;AutoBetDrawer /&gt; — Auto-Wett Konfiguration
+                </h2>
+              </div>
+              <span
+                style={{
+                  padding: '4px 12px',
+                  background: 'rgba(16, 185, 129, 0.15)',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  color: '#34d399',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  borderRadius: '8px',
+                }}
+              >
+                ✅ Standardisiert
+              </span>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+              gap: '24px',
+            }}
+          >
+            <div style={{ maxWidth: '440px' }}>
+              <AutoBetDrawer
+                config={autoConfig}
+                onChange={setAutoConfig}
+                isAutoRunning={isAutoRunning}
+                onStartAuto={() => setIsAutoRunning(true)}
+                onStopAuto={() => setIsAutoRunning(false)}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* COMPONENT CATEGORY 7.6: GAME STATS PANEL */}
+        <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '32px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+              }}
+            >
+              <div>
+                <span
+                  style={{
+                    fontSize: '0.7rem',
+                    fontFamily: 'var(--font-mono)',
+                    color: '#34d399',
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  Initiative 7.6 · Bestätigter Standard
+                </span>
+                <h2
+                  style={{
+                    fontSize: '1.6rem',
+                    fontWeight: 800,
+                    color: '#ffffff',
+                    margin: '4px 0 0 0',
+                  }}
+                >
+                  &lt;GameStatsPanel /&gt; — Session Statistiken
+                </h2>
+              </div>
+              <span
+                style={{
+                  padding: '4px 12px',
+                  background: 'rgba(16, 185, 129, 0.15)',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  color: '#34d399',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  borderRadius: '8px',
+                }}
+              >
+                ✅ Standardisiert
+              </span>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+              gap: '24px',
+            }}
+          >
+            <GameStatsPanel totalWagered={450.0} netProfit={124.5} betsCount={32} winRate={58} />
           </div>
         </section>
 

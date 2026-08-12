@@ -26,6 +26,7 @@ const PUBLIC_ROUTES = [
   // These handlers perform their own Supabase auth and return API-shaped 401/503 responses.
   '/api/casino/(.*)',
   '/api/chat/bot-response',
+  '/api/community',
   '/api/user/(.*)',
   '/api/admin/users',
   '/api/webhooks/clerk(.*)',
@@ -119,7 +120,10 @@ export default async function proxy(req: NextRequest) {
     response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     response.headers.set(
       'Content-Security-Policy',
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io; frame-ancestors 'none';",
+      // Sentry ingest host is the exact host from this project's DSN (o4511899214020608.ingest.de.sentry.io),
+      // not a *.ingest.de.sentry.io wildcard — a wildcard would also permit exfiltration to any other
+      // Sentry customer's project on the same region (worldmap/05_1.9, M7 security review finding #1).
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io https://o4511899214020608.ingest.de.sentry.io; frame-ancestors 'none';",
     );
     return response;
   } catch (error) {

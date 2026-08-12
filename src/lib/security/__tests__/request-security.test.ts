@@ -1,4 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
+const { captureMessage } = vi.hoisted(() => ({ captureMessage: vi.fn() }));
+vi.mock('@sentry/nextjs', () => ({ captureMessage }));
+
 import {
   enforceRateLimit,
   getClientIdentifier,
@@ -7,7 +11,10 @@ import {
   validateMutationOrigin,
 } from '../request-security';
 
-afterEach(() => resetLocalRateLimitsForTests());
+afterEach(() => {
+  resetLocalRateLimitsForTests();
+  captureMessage.mockReset();
+});
 
 describe('request security', () => {
   it('uses authenticated user identity before proxy IP', () => {
@@ -61,6 +68,23 @@ describe('request security', () => {
     expect((await enforceRateLimit('user:test', 'bet', 1, 10)).success).toBe(true);
     expect((await enforceRateLimit('user:test', 'bet', 1, 10)).success).toBe(false);
     Object.assign(process.env, { NODE_ENV: previous });
+  });
+
+  it('reports a Sentry event when the rate limiter is unavailable and fails closed', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('UPSTASH_REDIS_REST_URL', '');
+    vi.stubEnv('UPSTASH_REDIS_REST_TOKEN', '');
+
+    try {
+      const decision = await enforceRateLimit('user:test', 'casino-bet', 30, 10);
+      expect(decision.unavailable).toBe(true);
+      expect(captureMessage).toHaveBeenCalledWith(
+        'Rate limiter unavailable, failing closed',
+        expect.objectContaining({ level: 'error', tags: { scope: 'casino-bet' } }),
+      );
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it('generates correct rate limit headers on failure', async () => {

@@ -5,6 +5,7 @@ import { BlackjackEngine, type BlackjackGameState, type Card } from '@/lib/games
 import { ProvablyFairEngine } from '@/lib/casino/provably-fair';
 import { WalletService } from '@/lib/casino/wallet';
 import { CasinoCore } from '@/lib/casino/casino-core';
+import { CasinoLogger } from '@/lib/casino/logger';
 import { loadGameConfig } from '@/lib/casino/game-config-server';
 import { notifyBigWinIfEligible } from '@/lib/casino/telegram-notifier';
 import {
@@ -67,6 +68,8 @@ export async function POST(request: Request) {
   const originFailure = validateMutationOrigin(request);
   if (originFailure) return originFailure;
 
+  let requestId: string | undefined;
+
   try {
     const supabase = await createClient();
     const {
@@ -109,6 +112,7 @@ export async function POST(request: Request) {
     if (!parsed.success)
       return NextResponse.json({ error: 'Invalid blackjack action' }, { status: 400 });
     const input = parsed.data;
+    requestId = input.requestId;
     const config = await loadGameConfig();
 
     if (input.action === 'DEAL') {
@@ -216,6 +220,7 @@ export async function POST(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Blackjack action failed';
     const status = message === 'Insufficient balance' || message.startsWith('Stale') ? 409 : 500;
+    CasinoLogger.error('API/Casino/Blackjack', 'Blackjack action failed', error, requestId);
     return NextResponse.json(
       { error: process.env.NODE_ENV === 'development' ? message : 'Blackjack action failed' },
       { status },
