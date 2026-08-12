@@ -10,6 +10,7 @@ import LoadingOverlay from '@/components/casino/LoadingOverlay';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { CasinoLogger } from '@/lib/casino/logger';
 import { getOrCreateSessionId } from '@/lib/casino/session';
+import { isBigWin } from '@/lib/casino/big-win';
 import { useMounted } from '@/hooks/useMounted';
 
 import {
@@ -315,7 +316,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         const multiplier =
           latestBet.multiplier || (latestBet.amount ? latestBet.payout / latestBet.amount : 0);
 
-        if (multiplier >= 20 || amount >= 500) {
+        if (isBigWin({ payout: amount, multiplier })) {
           const lastNotified = localStorage.getItem('last_big_win_bet');
           if (lastNotified !== latestBet.id) {
             // eslint-disable-next-line react-hooks/set-state-in-effect

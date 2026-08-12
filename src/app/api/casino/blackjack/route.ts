@@ -6,6 +6,7 @@ import { ProvablyFairEngine } from '@/lib/casino/provably-fair';
 import { WalletService } from '@/lib/casino/wallet';
 import { CasinoCore } from '@/lib/casino/casino-core';
 import { loadGameConfig } from '@/lib/casino/game-config-server';
+import { notifyBigWinIfEligible } from '@/lib/casino/telegram-notifier';
 import {
   enforceRateLimit,
   getClientIdentifier,
@@ -191,6 +192,17 @@ export async function POST(request: Request) {
       xpGain: settled ? CasinoCore.calculateXpGain(totalBet, 1, config) : 0,
       result,
     });
+
+    if (settled) {
+      await notifyBigWinIfEligible({
+        userId,
+        game: 'BLACKJACK',
+        payout,
+        multiplier: next.payoutMultiplier,
+        win: payout > totalBet,
+        replayed: advanced.replayed,
+      });
+    }
 
     return NextResponse.json({
       roundId: input.roundId,

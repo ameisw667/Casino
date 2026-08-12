@@ -590,10 +590,30 @@ describe('Fail-closed lokale Finanz-/Progressions-Aktionen (Regressionsschutz)',
     expect(useCasinoStore.getState().balance).toBe(50);
   });
 
-  it('redeemCode handles promo code redemption response', async () => {
+  it('redeemCode sends one UUID idempotency key with a promo request', async () => {
+    vi.stubGlobal('crypto', { randomUUID: vi.fn(() => SAMPLE_TRANSACTION_ID) });
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Redeemed',
+          snapshot: makeSnapshot(),
+        }),
+        { headers: { 'content-type': 'application/json' } },
+      ),
+    );
+
     const result = await useCasinoStore.getState().redeemCode('FREEBIE');
-    expect(typeof result.success).toBe('boolean');
-    expect(typeof result.message).toBe('string');
+
+    expect(result).toEqual({ success: true, message: 'Redeemed' });
+    expect(fetch).toHaveBeenCalledWith('/api/casino/redeem-code', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Idempotency-Key': SAMPLE_TRANSACTION_ID,
+      },
+      body: JSON.stringify({ code: 'FREEBIE' }),
+    });
   });
 });
 

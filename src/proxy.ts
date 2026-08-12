@@ -8,6 +8,9 @@ const PUBLIC_ROUTES = [
   '/v3',
   '/v4',
   '/v5',
+  // Eigenständige Lobby-Testseite (Three.js+GSAP Prototype im iframe, siehe 02_FRONTEND_REDESIGN.md §10)
+  '/refactoring(.*)',
+  '/testing(.*)',
   // Retired route must reach Next.js so it returns a real 404 instead of an auth redirect.
   '/fairness',
   '/sign-in(.*)',
@@ -16,14 +19,17 @@ const PUBLIC_ROUTES = [
   '/history(.*)',
   '/leaderboard(.*)',
   '/vault(.*)',
+  '/stats(.*)',
   '/affiliate(.*)',
   '/auth/callback(.*)',
   '/api/public/(.*)',
   // These handlers perform their own Supabase auth and return API-shaped 401/503 responses.
   '/api/casino/(.*)',
+  '/api/chat/bot-response',
   '/api/user/(.*)',
   '/api/admin/users',
   '/api/webhooks/clerk(.*)',
+  '/api/telegram/(.*)',
   '/sounds/(.*)',
   '/images/(.*)',
 ];
@@ -61,7 +67,8 @@ function withRefreshedCookies(from: NextResponse, terminal: NextResponse): NextR
 export default async function proxy(req: NextRequest) {
   try {
     const pathname = req.nextUrl.pathname;
-    const isWebhook = pathname.startsWith('/api/webhooks/clerk');
+    const isWebhook =
+      pathname.startsWith('/api/webhooks/clerk') || pathname.startsWith('/api/telegram/webhook');
 
     // Webhooks use their signature as authenticity proof and do not send browser Origin headers.
     if (!isWebhook && !['GET', 'HEAD', 'OPTIONS'].includes(req.method) && !hasValidOrigin(req)) {

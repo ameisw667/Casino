@@ -5,6 +5,7 @@ import { CasinoCore } from '@/lib/casino/casino-core';
 import { WalletService } from '@/lib/casino/wallet';
 import { CasinoLogger } from '@/lib/casino/logger';
 import { loadGameConfig } from '@/lib/casino/game-config-server';
+import { notifyBigWinIfEligible } from '@/lib/casino/telegram-notifier';
 import {
   enforceRateLimit,
   getClientIdentifier,
@@ -168,6 +169,14 @@ export async function POST(request: Request) {
         xpGain: CasinoCore.calculateXpGain(round.betAmount, 1, gameConfig),
         result,
       });
+      await notifyBigWinIfEligible({
+        userId,
+        game: 'CRASH',
+        payout: result.payout,
+        multiplier: result.multiplier,
+        win: result.win,
+        replayed: settlement.replayed,
+      });
       return NextResponse.json({
         ...(settlement.result as object),
         wallet: walletOnly(settlement),
@@ -214,6 +223,14 @@ export async function POST(request: Request) {
       result,
       serverSeedHash: generated.serverSeedHash,
       nonce: generated.nonce,
+    });
+    await notifyBigWinIfEligible({
+      userId,
+      game: params.gameType,
+      payout: result.payout,
+      multiplier: result.multiplier,
+      win: result.win,
+      replayed: settlement.replayed,
     });
 
     return NextResponse.json({

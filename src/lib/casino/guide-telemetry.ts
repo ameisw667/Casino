@@ -7,6 +7,7 @@ import { CasinoLogger } from '@/lib/casino/logger';
 const TELEMETRY_WRITE_TIMEOUT_MS = 250;
 const MAX_LATENCY_MS = 120_000;
 const MAX_MODEL_LENGTH = 128;
+const MIN_HMAC_SECRET_BYTES = 32;
 const MICRO_USD_PER_USD = 1_000_000;
 const ONE_MILLION_TOKENS = 1_000_000;
 
@@ -86,7 +87,13 @@ export function normalizeGuideUsage(value: unknown): GuideUsage | null {
 function readHmacConfiguration(): { secret: string; version: number } | null {
   const secret = process.env.GUIDE_TELEMETRY_HMAC_SECRET?.trim();
   const version = Number(process.env.GUIDE_TELEMETRY_HMAC_VERSION);
-  if (!secret || secret.length < 32 || !Number.isSafeInteger(version) || version < 1) return null;
+  if (
+    !secret ||
+    Buffer.byteLength(secret, 'utf8') < MIN_HMAC_SECRET_BYTES ||
+    !Number.isSafeInteger(version) ||
+    version < 1
+  )
+    return null;
   return { secret, version };
 }
 

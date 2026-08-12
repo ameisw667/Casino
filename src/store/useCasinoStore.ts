@@ -873,9 +873,13 @@ export const useCasinoStore = create<CasinoState>()(
 
       redeemCode: async (code: string) => {
         try {
+          const idempotencyKey = crypto.randomUUID();
           const response = await fetch('/api/casino/redeem-code', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'Idempotency-Key': idempotencyKey,
+            },
             body: JSON.stringify({ code }),
           });
 

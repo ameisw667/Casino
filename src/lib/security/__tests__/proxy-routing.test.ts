@@ -30,6 +30,20 @@ describe('isPublicRoute pattern matching', () => {
     expect(isPublicRoute('/api/public/ping')).toBe(true);
   });
 
+  it('exposes only the guide response handler, not the existing public chat feed', () => {
+    expect(isPublicRoute('/api/chat/bot-response')).toBe(true);
+    expect(isPublicRoute('/api/chat')).toBe(false);
+    expect(isPublicRoute('/api/chat/other')).toBe(false);
+  });
+
+  it('exposes the telegram routes, which self-handle auth/secret validation', () => {
+    expect(isPublicRoute('/api/telegram/link')).toBe(true);
+    expect(isPublicRoute('/api/telegram/status')).toBe(true);
+    expect(isPublicRoute('/api/telegram/unlink')).toBe(true);
+    expect(isPublicRoute('/api/telegram/toggle')).toBe(true);
+    expect(isPublicRoute('/api/telegram/webhook')).toBe(true);
+  });
+
   it('correctly matches page routes', () => {
     expect(isPublicRoute('/')).toBe(true);
     expect(isPublicRoute('/sign-in')).toBe(true);

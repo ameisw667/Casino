@@ -13,6 +13,9 @@ const protectedMutationRoutes = [
   'src/app/api/chat/bot-response/route.ts',
   'src/app/api/chat/route.ts',
   'src/app/api/user/stats/route.ts',
+  'src/app/api/telegram/link/route.ts',
+  'src/app/api/telegram/unlink/route.ts',
+  'src/app/api/telegram/toggle/route.ts',
 ];
 
 describe('browser mutation origin inventory', () => {
