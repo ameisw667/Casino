@@ -1,8 +1,8 @@
 # 01 — World Map: Offene Commits — Konsolidierung & Execution Roadmap
 
-> **Erstellt:** 2026-08-09 · **Status:** R1 C1 ✅ (`5860f83`) · C2 ✅ (`92cb929`) · C3 ✅ (`5d3fc7f`) · C4 ✅ (`d825c4b`) · C5 ✅ (`06f364d`) · C6 ✅ (`ca156f3`) · C7 ✅ (`9e97d53`) · C8 ✅ (`5c87a7a`) · C9 ✅ (`d85a2ce`) · C10 ✅ (`e6dd3d6`) · C11 ✅ (`cb88252`) · C12 ✅ (`d2d9777`) · **R2** C13 ✅ (`e44d712`) · C14 ✅ (`c7f9bc8`) · C15 ✅ (`eb209d9`) · C16 ✅ (`615c45a`) · C17 ✅ (`0b84e34`) · C18 ✅ (`7e1707e`) · C19 ✅ (`49b99da`) · C20 ✅ (`bd48ac5`) · C21 ✅ (`f9231f7`) · **Post-R2 C1** ✅ (`ca2a389`). **Single-Source-of-Truth** — ehemalige `02-offene-commits-r2.md` konsolidiert in §8 (2026-08-10). **Offen:** B6 (`/v2`-Sitemap), M21 (Migration 021 remote rollout) — siehe §9.
+> **Erstellt:** 2026-08-09 · **Status:** R1 C1 ✅ (`5860f83`) · C2 ✅ (`92cb929`) · C3 ✅ (`5d3fc7f`) · C4 ✅ (`d825c4b`) · C5 ✅ (`06f364d`) · C6 ✅ (`ca156f3`) · C7 ✅ (`9e97d53`) · C8 ✅ (`5c87a7a`) · C9 ✅ (`d85a2ce`) · C10 ✅ (`e6dd3d6`) · C11 ✅ (`cb88252`) · C12 ✅ (`d2d9777`) · **R2** C13 ✅ (`e44d712`) · C14 ✅ (`c7f9bc8`) · C15 ✅ (`eb209d9`) · C16 ✅ (`615c45a`) · C17 ✅ (`0b84e34`) · C18 ✅ (`7e1707e`) · C19 ✅ (`49b99da`) · C20 ✅ (`bd48ac5`) · C21 ✅ (`f9231f7`) · **Post-R2 C1** ✅ (`ca2a389`) · **R3** C22 ✅ (`2ed7c42`) · C23 ✅ (`5442c54`) · C24 ✅ (`28b2923`) · C25 ✅ (`fad10ef`) · C26 ✅ (`82860d0`) · C27 ✅ (`b1a5584`) · C28 ✅ (`6ab9207`). **Single-Source-of-Truth** — R1 + R2 + R3 vollständig konsolidiert und committed. **Offen:** B6 (`/v2`-Sitemap) · M21 (Migrationen 018–025 remote im Supabase SQL Editor ausführen).
 > **Scope:** 5 % Übersichtstabelle für Jan · 95 % Execution-Detail für LLM.
-> **Quellen:** `git status --porcelain` (2026-08-09 11:2x), `worldmap/02_FRONTEND_REDESIGN.md`, `docs/archive/03_CASINO_SUPABASE_CONNECTION.md`, `docs/archive/03_01_CASINO_SUPABASE_IMPLEMENTATION_PLAN.md`, `docs/archive/01b-c1-docs-commit-plan.md`.
+> **Quellen:** `git status --porcelain`, `worldmap/02_FRONTEND_REDESIGN.md`, `docs/archive/03_CASINO_SUPABASE_CONNECTION.md`, `docs/archive/03_01_CASINO_SUPABASE_IMPLEMENTATION_PLAN.md`, `docs/archive/01b-c1-docs-commit-plan.md`.
 
 ---
 
@@ -27,7 +27,19 @@ Legende Aufwand: S < 1 h · M = 1–4 h · L = 4 h+
 | 11  | **Tests & Scripts** — 24 modifizierte Test-Dateien + 2 neue Tests + 8 Scripts                                                                                             | 🟢 (`cb88252`) | C11          | M      | C2–C10 (je zugehöriger Block) | M       |
 | 12  | **Config/Meta-Docs** — `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `01_WORLDMAP_STATUS.md`                                                                                     | 🟢 (`d2d9777`) | C12          | N      | alle Blöcke                   | S       |
 
-**Zusammenfassung:** 12 Commit-Blöcke · 3 kritische Pfade (C2→C3→C4 Supabase-Kette; C9 Security; C4 Wallet-Mutationen) · 2 isolierte Pfad (C1 Docs, C5 v2-Sandbox).
+**R3 — Neue Initiativen (Stand 2026-08-12 — alle committed)**
+
+| #    | Initiative                                                                                                                                | Status       | Commit                      | Aufwand |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------ | --------------------------- | ------- |
+| R3-1 | **Commit-Reveal 1.2** — Provably-Fair Seed-Kette (`casino-core`, `wallet.consumeActiveSeed`, Migrations 019/021/022, `ProvablyFairModal`) | 🟢 committed | C23 (`5442c54`)             | L       |
+| R3-2 | **Stats 1.7** — `/stats`-Page, `perGame`, `stats-derivation`, Migration 018/020, `MainLayout`-Nav                                         | 🟢 committed | C24 (`28b2923`)             | M       |
+| R3-3 | **Security 06** — P0-Audit + Promo Ledger + Mutation Origin (`06_0`-Batch, `verify-security`, Migration 023, Tests)                       | 🟢 committed | C22 (`2ed7c42`)             | L       |
+| R3-4 | **Chatbot 2.4 & Guide 2.7** — `CasinoGuidePanel`, `/api/chat/bot-response`, `chat-guide.ts`, `guide-telemetry.ts`, Migration 024          | 🟢 committed | C25 (`fad10ef`)             | M       |
+| R3-5 | **Admin-BI 2.5** — `/admin/analytics`, `/api/admin/analytics`, `src/lib/admin/`                                                           | 🟢 committed | C26 (`82860d0`)             | M       |
+| R3-6 | **Brand 07** — Control-Harmonisierung (`BetModeTabs`/`BetInputGroup`/`GameActionButton`/`VibeSlider` + Showcase)                          | 🟢 committed | C27 (`b1a5584`)             | L       |
+| R3-7 | **Telegram & Core Wiring** — Big-Win Telemetry, Bot-Integration, Proxy & Store Idempotency                                                | 🟢 committed | C28 (`6ab9207` + `686ed4b`) | M       |
+
+**Zusammenfassung:** R1 (C1–C12) ✅ + R2 (C13–C21) ✅ + Post-R2 C1 ✅ + R3 (C22–C28) ✅ **alle committed**. Alle 46 Testdateien / 391 Tests grün. `npx tsc --noEmit` fehlerfrei.
 
 ---
 
@@ -485,9 +497,29 @@ Plan ist nach Ergänzung von F1–F4, P1–P7 und A1–A7 auf „Next-Level": vo
 
 ---
 
-## 9 — Verbleibend offene Punkte (Stand 2026-08-10)
+## 9 — Verbleibend offene Punkte (Stand 2026-08-12)
 
-| #   | Punkt                                                                    | Status                             | Aktion                                                                               |
-| --- | ------------------------------------------------------------------------ | ---------------------------------- | ------------------------------------------------------------------------------------ |
-| B6  | `/v2`-Routes nicht als Produktivroute in Sitemap/Metadata deklariert     | ⏳ **OFFEN**                       | C5-Verifikation: `app/v2`-Sitemap/Metadata prüfen, ggf. `noindex`/Sitemap-Exclusion. |
-| M21 | Migration 021 (`promo_codes` + `redeem_promo_code`-RPC) remote ausrollen | ⏳ **committed, nicht ausgerollt** | Via Supabase SQL Editor (DDL-fähiger Zugang). Vor Wallet-Redeem-Tests. Siehe §8.7.   |
+| #   | Punkt                                                                | Status                              | Aktion                                                                               |
+| --- | -------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
+| B6  | `/v2`-Routes nicht als Produktivroute in Sitemap/Metadata deklariert | ⏳ **OFFEN**                        | C5-Verifikation: `app/v2`-Sitemap/Metadata prüfen, ggf. `noindex`/Sitemap-Exclusion. |
+| M21 | Remote Migrationen 018–025 ausführen                                 | ⏳ **committed, remote ausstehend** | Via Supabase SQL Editor (DDL-fähiger Zugang für Jan). Siehe Migrations-Ordner.       |
+| R3  | Initiativen R3-1 bis R3-7                                            | ✅ **VOLLSTÄNDIG COMMITTED**        | Commits C22–C28 erfolgreich erstellt und verifiziert (391/391 Tests grün, tsc 0).    |
+
+---
+
+## 10 — R3: Abgeschlossene Initiativen & Commits (Stand 2026-08-12)
+
+| ID   | Initiative                         | Status           | Commit                      | Inhalt & Verifikation                                                                                             |
+| ---- | ---------------------------------- | ---------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| R3-1 | **Commit-Reveal 1.2 / Seed-Kette** | ✅ **Committed** | C23 (`5442c54`)             | `casino-core.ts`, `wallet.ts`, `seeds/history`, `ProvablyFairModal.tsx`, Migrationen 019/021/022, 29 Tests        |
+| R3-2 | **Stats 1.7**                      | ✅ **Committed** | C24 (`28b2923`)             | `src/app/stats/`, `src/components/stats/`, `stats-derivation.ts`, `MainLayout.tsx`, Migrationen 018/020, 11 Tests |
+| R3-3 | **Security 06 (P0-Audit)**         | ✅ **Committed** | C22 (`2ed7c42`)             | Promo Redemption Ledger (023), Origin-Validierung, Audit-Verifikation, 15 Tests                                   |
+| R3-4 | **Chatbot 2.4 & Guide 2.7**        | ✅ **Committed** | C25 (`fad10ef`)             | `CasinoGuidePanel`, `/api/chat/bot-response`, `chat-guide.ts`, `guide-telemetry.ts`, Migration 024, 21 Tests      |
+| R3-5 | **Admin-BI 2.5**                   | ✅ **Committed** | C26 (`82860d0`)             | `/admin/analytics`, `src/lib/admin/`, `api/admin/analytics/`, 11 Tests                                            |
+| R3-6 | **Brand 07**                       | ✅ **Committed** | C27 (`b1a5584`)             | `BetModeTabs`, `BetInputGroup`, `GameActionButton`, `VibeSlider`, Brand Showcase                                  |
+| R3-7 | **Telegram & Core Wiring**         | ✅ **Committed** | C28 (`6ab9207` + `686ed4b`) | Telegram Bot & Account Linking (025), Big-Win Notifications, Proxy & Store Wiring, 32 Tests                       |
+
+### 10.2 — ⛔ Ausgeschlossene Menge (isoliert gelassen)
+
+- `src/app/refactoring/` — Lobby-v2-Testseite (Jan-Weisung).
+- `public/prototypes/` — Three.js/GSAP Assets der Testseite.

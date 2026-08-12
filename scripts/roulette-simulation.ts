@@ -25,7 +25,9 @@ async function runSimulation(
     amount: totalAmount,
     bets,
     clientSeed: CLIENT_SEED,
-    currentNonce: nonce,
+    serverSeed: `roulette-simulation-server-seed-${nonce}`,
+    serverSeedHash: `roulette-simulation-hash-${nonce}`,
+    nonce,
   });
 
   console.log(`\n--- ${name} ---`);

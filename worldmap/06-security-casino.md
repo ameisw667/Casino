@@ -25,8 +25,11 @@
 | 1     | P1.1 | 🔴 Geplant             | Wallet-Ledger-Invarianten und Admin-Audit prüfen                             |         7 |   78 |     90 | Hoch       |     40 |      75 | Ja         | P0.4                            | Ja                        |
 | 1     | P1.2 | 🔴 Geplant             | Abuse-, Mehrfachkonto- und Bonus-Fraud-Signale prüfen                        |         9 |   68 |     75 | Hoch       |     35 |      75 | Ja         | P0.4, P1.1                      | Ja                        |
 | 1     | P1.3 | 🔴 Geplant             | Staging-Sicherheitsregression für RLS, Parallelität und Idempotenz           |         8 |   73 |     80 | Hoch       |     30 |      80 | Ja         | P0.1–P0.5                       | Ja                        |
+| 1     | P1.4 | 🔴 Geplant             | Red-Team-Angriffsklassen: Rate-Limit-Bypass & IDOR auf Admin-Routen          |        12 |  100 |     70 | Sehr Hoch  |     30 |      40 | Ja         | P0.1–P0.5, P1.3 empfohlen       | Ja                        |
 | 2     | P2.1 | 🔴 Geplant             | Monitoring, Alarmierung, Incident-Runbook und Secret-Rotation prüfen         |        10 |   56 |     70 | Mittel     |     40 |      85 | Indirekt   | P1.1, P1.3                      | Ja                        |
 | 2     | P2.2 | 🔴 Geplant             | Öffentlicher Launch-/Echtgeld-Gate: WAF, Pentest, Rechts-/Compliance-Prüfung |        11 |   41 |     95 | Hoch       |     70 |      90 | Ja         | P2.1                            | Extern + Security-Auditor |
+
+**Ergänzt (2026-08-12):** P1.4 übernimmt die frühere Initiative `1.11` aus `worldmap/05_ZUKUNFTSPLANUNG.md` (Security-Red-Teaming Wallet-/Auth-System) — dort entfernt, um die Überschneidung mit P1.3 (parallele Money-Requests/Replay ist dort bereits Scope) nicht doppelt zu planen. P1.4 deckt gezielt nur die zwei Angriffsklassen ab, die P1.3 nicht erfasst: Rate-Limit-Bypass (bewusste Umgehung, nicht nur Ausfallverhalten wie in P2.1) und IDOR auf Admin-Routen. Priorität 12 einfach ans bisherige Maximum (11) angehängt, keine globale Neusortierung — gleiche Begründung wie bei 1.9/1.10 in der Zukunftsplanung: würde bestehende, teils aus anderen Sessions stammende Ränge verschieben.
 
 ### 1.2 — Bestätigte Sicherheitsbefunde (separat von der Prüfmatrix)
 
@@ -229,6 +232,19 @@ Diese Checkliste ist die erste Arbeit eines ausführenden Agents. Jeder Punkt er
 - **Abnahmekriterien:** Die Tests schlagen vor einem absichtlichen RLS-/Grant-/Idempotenz-Bruch fehl und sind in CI verpflichtend.
 - **Verifizierung:** Wiederholbare CI-Ausführung gegen ephemeres Staging; Ergebnisartefakte ohne sensible Daten.
 
+#### P1.4 — Red-Team-Angriffsklassen: Rate-Limit-Bypass & IDOR auf Admin-Routen
+
+> Übernimmt die frühere Initiative `1.11` aus `worldmap/05_ZUKUNFTSPLANUNG.md` (dort entfernt, siehe Anmerkung dort). Deckt gezielt nur die zwei Angriffsklassen ab, die P1.3 nicht erfasst — Retry/Replay/parallele Money-Requests bleiben ausschließlich Scope von P1.3, keine Doppelprüfung hier.
+
+- **Ziel:** Beweisen, dass Rate-Limits nicht gezielt umgangen werden können (bewusster Bypass-Versuch, nicht das in P2.1 geprüfte Ausfallverhalten) und dass Admin-Routen keinen IDOR zulassen — ein Angreifer darf über eine Admin-Route nie ein Objekt (User, Wallet, Wette) außerhalb der eigenen Berechtigung per manipulierter ID erreichen.
+- **Scope:** neues Skript-Verzeichnis `scripts/red-team/`, Zielrouten `src/app/api/casino/bet/route.ts`, `src/app/api/casino/blackjack/route.ts`, `src/app/api/admin/**`, `src/proxy.ts` — **ausschließlich gegen isolierte Dev-/Test-Instanz mit synthetischen Test-Accounts**.
+- **Neue DB-Objekte:** keine.
+- **Ablauf:** Rate-Limit-Bypass-Versuche (parallele Header-/IP-Varianten, fehlende oder mehrfache Idempotency-Keys) gegen Upstash-gestützte Routen; IDOR-Testmatrix je Admin-Route (fremde User-ID/Objekt-ID in Pfad oder Body einsetzen, erwartete 403/404 statt Datenzugriff dokumentieren).
+- **Abhängigkeit:** P0.1–P0.5 (bereits abgeschlossen); P1.3 empfohlen, nicht zwingend.
+- **Abnahmekriterien:** Kein Rate-Limit-Bypass-Versuch führt zu mehr Requests als der konfigurierte Grenzwert; jede getestete Admin-Route lehnt fremde Objekt-IDs ohne Berechtigung ab.
+- **Verifizierung:** dokumentierter Testfall-Katalog je Schwachstellenklasse mit Ergebnis (blockiert/nicht blockiert), reproduzierbar über `scripts/red-team/`.
+- **Security-Reviewer:** Pflicht (AGENTS.md Security-Auditor-Scope, Admin-/API-Boundary).
+
 ### Prüfpfad P2 — Launch-Governance
 
 #### P2.1 — Monitoring, Alarmierung, Incident-Runbook und Secret-Rotation
@@ -249,14 +265,15 @@ Diese Checkliste ist die erste Arbeit eines ausführenden Agents. Jeder Punkt er
 
 ## 5 — Risiko-Register und Entscheidungsregeln
 
-| Risiko                                 | Stufe    | Entscheidung bis zur Behebung                                                                    |
-| -------------------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
-| Guthaben-Recreation bei Nullsaldo      | Kritisch | Keine Aussage „manipulationssicher“; 1.1 vor jedem Bonus-/Echtgeld-Feature.                      |
-| Freie, wiederholbare Promo-Credits     | Kritisch | `redeem-code` bis 1.2 nur deaktiviert oder serverseitig vollständig allowlist-basiert betreiben. |
-| CSRF-/Origin-Lücken                    | Hoch     | Betroffene Mutationen vor öffentlichem Launch mit 1.3 absichern.                                 |
-| Nicht ausgerollte Seed-Schutzmaßnahmen | Hoch     | 1.4 vor Fairness-/Provably-Fair-Behauptungen.                                                    |
-| High-Severity-Abhängigkeiten           | Hoch     | 0.1 als Release-Gate; Upgrade nur mit Regressionstest.                                           |
-| Keine echte DB-/Concurrency-Prüfung    | Hoch     | 0.2 und 2.3 vor Echtwert-/Multiplayer-Pfaden.                                                    |
+| Risiko                                                                          | Stufe    | Entscheidung bis zur Behebung                                                                                                                         |
+| ------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Guthaben-Recreation bei Nullsaldo                                               | Kritisch | Keine Aussage „manipulationssicher“; 1.1 vor jedem Bonus-/Echtgeld-Feature.                                                                           |
+| Freie, wiederholbare Promo-Credits                                              | Kritisch | `redeem-code` bis 1.2 nur deaktiviert oder serverseitig vollständig allowlist-basiert betreiben.                                                      |
+| CSRF-/Origin-Lücken                                                             | Hoch     | Betroffene Mutationen vor öffentlichem Launch mit 1.3 absichern.                                                                                      |
+| Nicht ausgerollte Seed-Schutzmaßnahmen                                          | Hoch     | 1.4 vor Fairness-/Provably-Fair-Behauptungen.                                                                                                         |
+| High-Severity-Abhängigkeiten                                                    | Hoch     | 0.1 als Release-Gate; Upgrade nur mit Regressionstest.                                                                                                |
+| Keine echte DB-/Concurrency-Prüfung                                             | Hoch     | 0.2 und 2.3 vor Echtwert-/Multiplayer-Pfaden.                                                                                                         |
+| Red-Team-Tests (P1.4) laufen versehentlich gegen echte Produktionsdaten/-nutzer | Hoch     | Zwingend nur gegen isolierte Dev-/Test-Instanz mit synthetischen Test-Accounts, niemals gegen Live-DB; expliziter Umgebungs-Check vor jedem Testlauf. |
 
 **Kill-Switch-Regel:** Bei Verdacht auf unautorisierte Guthabenmutation zuerst Voucher- und betroffene Bonuspfade serverseitig deaktivieren, dann Logs und Ledger sichern; niemals Tabellen oder Auditdaten löschen, um ein Symptom zu kaschieren.
 

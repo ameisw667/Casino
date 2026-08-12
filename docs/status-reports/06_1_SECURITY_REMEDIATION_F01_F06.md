@@ -286,6 +286,7 @@ sowie den vorhandenen Import erweitern.
 
 | Befehl                           | Ergebnis                                                                                                                                                                                                                       |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Gezielte Nachprüfung, 2026-08-12 | 116/116 Tests grün: Wallet, Migrationsvertrag, Origin-Policy/-Inventar/-Routen und Store-Idempotenz.                                                                                                                           |
 | Gezielter Red-Lauf               | 8 erwartete Fehlschläge: Nullsaldo-Reset, fehlender Promo-Request-Key, drei fehlende Guards, zwei fehlende SQL-Verträge, fehlender Store-Key.                                                                                  |
 | Erweiterte Security-Suite        | 113/113 Tests grün.                                                                                                                                                                                                            |
 | Vollständige Suite               | 343/343 Tests grün.                                                                                                                                                                                                            |
@@ -309,4 +310,4 @@ sowie den vorhandenen Import erweitern.
 - [x] F-05 bleibt unverändert und schützt die benötigte `pgcrypto`-Basis.
 - [x] Lokale und Remote-Evidenz bleiben getrennt; keine L2-Aussage wird vor Rollout, Rollencheck und Paralleltest als erfüllt markiert.
 
-**Nächster externer Schritt:** Migrationen 022 und 023 in der freigegebenen Supabase-Zielinstanz anwenden; danach `scripts/verify-security-remediations-l2.sql` sowie die im jeweiligen F-Abschnitt aufgeführten HTTP-/Paralleltests ausführen und erst dann F-01/F-02/F-03/F-06 auf 🟢 setzen.
+**Nächster externer Schritt:** Für F-02 eine Staging-Testidentität mit isoliertem Promo-Code für den 20er-Paralleltest bereitstellen; für F-01/F-03 eine echte Staging-Session für Nullsaldo-Dreifachread und erlaubte/fremde Origin-Matrix nutzen. Erst nach diesen Nachweisen F-01/F-02/F-03 auf 🟢 setzen; F-06 ist bereits remote verifiziert.
