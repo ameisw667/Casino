@@ -6,6 +6,7 @@ import {
   enforceRateLimit,
   getClientIdentifier,
   rateLimitHeaders,
+  validateMutationOrigin,
 } from '@/lib/security/request-security';
 import { z } from 'zod';
 
@@ -29,6 +30,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const originFailure = validateMutationOrigin(request);
+  if (originFailure) return originFailure;
+
   try {
     const supabase = await createClient();
     const {

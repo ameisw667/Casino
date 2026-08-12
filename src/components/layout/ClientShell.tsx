@@ -12,11 +12,12 @@ export default function ClientShell({ children }: { children: React.ReactNode })
   const isAdmin = pathname?.startsWith('/admin');
   const isSandboxV2 = pathname === '/v2' || pathname?.startsWith('/v2/');
   const isRefactoring = pathname === '/refactoring' || pathname?.startsWith('/refactoring/');
+  const isTesting = pathname === '/testing' || pathname?.startsWith('/testing/');
   const mounted = useMounted();
 
-  // Standalone design-sandbox routes: render their own header/sidebar/hero,
+  // Standalone design-sandbox & testing routes: render their own header/sidebar/hero,
   // must never inherit the live app's MainLayout nav.
-  if (isSandboxV2 || isRefactoring) {
+  if (isSandboxV2 || isRefactoring || isTesting) {
     return <>{children}</>;
   }
 
