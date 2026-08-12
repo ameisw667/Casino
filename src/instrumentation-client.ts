@@ -9,3 +9,9 @@ Sentry.init({
   tracesSampleRate: 0,
   beforeSend: scrubSentryEvent,
 });
+
+// The SDK's build step nags for `onRouterTransitionStart` (navigation breadcrumbs).
+// Deliberately not wired: Sentry's own docs describe it as forwarding the full
+// navigation URL, which could include query strings such as the OAuth `code` on
+// /auth/callback — that's new capture surface the M7 security-review gate hasn't
+// seen. Revisit only alongside its own reviewed redaction rule, not as a build-nag fix.
