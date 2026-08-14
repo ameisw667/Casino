@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { Magnetic } from '@/components/ui/Magnetic';
+import { validateAuthCredentials } from './auth-validation';
 
 interface AuthFormProps {
   mode: 'sign-in' | 'sign-up';
@@ -93,6 +94,7 @@ function AuthField({
   value,
   onChange,
   autoComplete,
+  error,
 }: {
   id: string;
   label: string;
@@ -101,6 +103,7 @@ function AuthField({
   value: string;
   onChange: (v: string) => void;
   autoComplete?: string;
+  error?: string;
 }) {
   const [focused, setFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -130,6 +133,8 @@ function AuthField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           required
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? `${id}-error` : undefined}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           style={{
@@ -175,8 +180,49 @@ function AuthField({
           </motion.button>
         )}
       </div>
+      {error && (
+        <p
+          id={`${id}-error`}
+          role="alert"
+          style={{ margin: 0, color: 'hsl(0,85%,65%)', fontSize: '0.75rem' }}
+        >
+          {error}
+        </p>
+      )}
     </div>
   );
+}
+
+export function formatAuthError(message: string): string {
+  const normalized = message.toLowerCase();
+  if (normalized.includes('invalid api key') || normalized.includes('api key')) {
+    return 'Konfigurationsfehler: Der API-Schlüssel ist ungültig oder abgelaufen. Bitte versuche es später erneut.';
+  }
+  if (normalized.includes('user already registered') || normalized.includes('already registered')) {
+    return 'Ein Konto mit dieser E-Mail-Adresse existiert bereits. Bitte melde dich an.';
+  }
+  if (
+    normalized.includes('invalid login credentials') ||
+    normalized.includes('invalid credentials')
+  ) {
+    return 'Ungültige Anmeldedaten. Bitte überprüfe deine E-Mail-Adresse und dein Passwort.';
+  }
+  if (
+    normalized.includes('password should be at least') ||
+    (normalized.includes('password') && normalized.includes('characters'))
+  ) {
+    return 'Das Passwort muss mindestens 6 Zeichen lang sein.';
+  }
+  if (normalized.includes('email not confirmed')) {
+    return 'Deine E-Mail-Adresse wurde noch nicht bestätigt. Bitte prüfe dein Postfach.';
+  }
+  if (normalized.includes('rate limit') || normalized.includes('too many requests')) {
+    return 'Zu viele Versuche. Bitte warte einen kurzen Moment und versuche es erneut.';
+  }
+  if (normalized.includes('network') || normalized.includes('failed to fetch')) {
+    return 'Netzwerkfehler: Verbindung zum Server konnte nicht hergestellt werden.';
+  }
+  return `Fehler: ${message}`;
 }
 
 export function AuthForm({ mode }: AuthFormProps) {
@@ -189,15 +235,21 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    const validationErrors = validateAuthCredentials(email, password);
+    if (Object.keys(validationErrors).length > 0) {
+      setStatus(Object.values(validationErrors)[0] ?? null);
+      return;
+    }
     setLoading(true);
     setStatus(null);
+    const normalizedEmail = email.trim();
     try {
       const { error } =
         mode === 'sign-up'
-          ? await supabase.auth.signUp({ email, password })
-          : await supabase.auth.signInWithPassword({ email, password });
+          ? await supabase.auth.signUp({ email: normalizedEmail, password })
+          : await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
       if (error) {
-        setStatus(`Fehler: ${error.message}`);
+        setStatus(formatAuthError(error.message));
         return;
       }
       router.push('/');
@@ -218,7 +270,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         options: { redirectTo: `${window.location.origin}/auth/callback?next=/` },
       });
       if (error) {
-        setStatus(`Fehler: ${error.message}`);
+        setStatus(formatAuthError(error.message));
         setLoading(false);
       }
     } catch {
@@ -227,7 +279,8 @@ export function AuthForm({ mode }: AuthFormProps) {
     }
   }
 
-  const isFormReady = email.length > 0 && password.length > 0;
+  const validationErrors = validateAuthCredentials(email, password);
+  const isFormReady = Object.keys(validationErrors).length === 0;
   const isSignUp = mode === 'sign-up';
 
   return (
@@ -293,6 +346,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             value={email}
             onChange={setEmail}
             autoComplete="email"
+            error={email.length > 0 ? validationErrors.email : undefined}
           />
           <AuthField
             id="auth-password"
@@ -302,6 +356,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             value={password}
             onChange={setPassword}
             autoComplete={isSignUp ? 'new-password' : 'current-password'}
+            error={password.length > 0 ? validationErrors.password : undefined}
           />
 
           {/* Submit Button with Animated Spinner Loader */}
