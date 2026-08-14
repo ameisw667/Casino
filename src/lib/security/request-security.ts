@@ -15,7 +15,7 @@ const remoteLimiters = new Map<string, Ratelimit>();
 
 // Controlled fail-closed 503s never throw, so they'd otherwise never reach
 // Sentry — this is the 1.9 dependency 1.10 (chaos testing) relies on to
-// observe simulated Upstash outages (worldmap/05_1.9, Abschnitt 3).
+// observe simulated Upstash outages (docs/architecture/05_1.9_ERROR_TRACKING_SENTRY.md, Abschnitt 3).
 function reportRateLimiterUnavailable(scope: string): void {
   try {
     Sentry.captureMessage('Rate limiter unavailable, failing closed', {

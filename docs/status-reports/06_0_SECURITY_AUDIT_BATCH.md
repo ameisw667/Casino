@@ -1,6 +1,6 @@
 # 06_0 — Security Casino: Phase-0 Audit-Batch
 
-> **Status:** Executed (archiviert) · **Erstellt:** 2026-08-10 · **Abgeschlossen:** 2026-08-11 · **Verweis:** `worldmap/06-security-casino.md`, Prüfmatrix P0.1–P0.5.
+> **Status:** Executed (archiviert) · **Erstellt:** 2026-08-10 · **Abgeschlossen:** 2026-08-11 · **Verweis:** `docs/architecture/06_SECURITY_CASINO_LOCAL_CLOSURE.md`, Prüfmatrix P0.1–P0.5.
 > **Zweck:** Ein zusammenhängender, evidenzbasierter Durchlauf aller Phase-0-Prüfungen. Er repariert keine bestätigten Befunde stillschweigend; neue Befunde erhalten eine B-ID in der Hauptroadmap, ihre Behebung bleibt ein separater F-Task.
 > **Ausführungsregel:** Jeder Schritt liefert entweder einen reproduzierbaren Nachweis oder ein klar bezeichnetes, externes Hindernis. Fehlende Credentials, Staging oder Netzwerkzugriff werden nie als „bestanden“ interpretiert.
 

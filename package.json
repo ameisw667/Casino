@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "verify:supabase": "tsx scripts/verify-supabase-env.ts",
     "vibe-check": "tsx scripts/vibe-check.ts",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,mjs,json,css}\" \"scripts/**/*.{ts,js,mjs}\" \"tests/**/*.{ts,tsx,js}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,mjs,json,css}\" \"scripts/**/*.{ts,js,mjs}\" \"tests/**/*.{ts,tsx,js}\"",

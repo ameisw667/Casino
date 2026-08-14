@@ -1,0 +1,29 @@
+name: Security red team probes
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  red-team:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PHASE1_TARGET_CONFIRMED: ${{ secrets.PHASE1_TARGET_CONFIRMED }}
+      PHASE1_STAGING_URL: ${{ secrets.PHASE1_STAGING_URL }}
+      RED_TEAM_AUTH_COOKIE: ${{ secrets.RED_TEAM_AUTH_COOKIE }}
+      RED_TEAM_NON_ADMIN_COOKIE: ${{ secrets.RED_TEAM_NON_ADMIN_COOKIE }}
+      RED_TEAM_FOREIGN_USER_ID: ${{ secrets.RED_TEAM_FOREIGN_USER_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test -- src/lib/security/__tests__/red-team-contract.test.ts
+      - run: npx tsx scripts/red-team/target-guard.ts
+      - run: npx tsx scripts/red-team/rate-limit-bypass.ts
+      - run: npx tsx scripts/red-team/admin-idor.ts

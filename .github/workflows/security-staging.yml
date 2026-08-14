@@ -1,0 +1,35 @@
+name: Security staging regression
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'supabase/migrations/**'
+      - 'scripts/verify-security-phase1.sql'
+      - 'scripts/phase1-*.ts'
+      - 'src/lib/casino/**'
+      - 'src/lib/security/**'
+
+permissions:
+  contents: read
+
+jobs:
+  security-staging:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PHASE1_TARGET_CONFIRMED: ${{ secrets.PHASE1_TARGET_CONFIRMED }}
+      PHASE1_STAGING_URL: ${{ secrets.PHASE1_STAGING_URL }}
+      PHASE1_STAGING_DATABASE_URL: ${{ secrets.PHASE1_STAGING_DATABASE_URL }}
+      PHASE1_STAGING_SERVICE_ROLE_KEY: ${{ secrets.PHASE1_STAGING_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test -- src/lib/security/__tests__/staging-regression-contract.test.ts
+      - run: npx tsx scripts/phase1-target-guard.ts
+      - run: psql "$PHASE1_STAGING_DATABASE_URL" -v phase1_target_confirmed="$PHASE1_TARGET_CONFIRMED" -f scripts/verify-security-phase1.sql
+      - run: npx tsx scripts/phase1-concurrency.ts

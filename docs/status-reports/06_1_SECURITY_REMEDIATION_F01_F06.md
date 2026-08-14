@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` oder `superpowers:subagent-driven-development`. Schritte sind mit Checkboxen nachverfolgbar.
 >
-> **Scope:** ausschließlich die bestätigten Fixes F-01, F-02, F-03, F-04 und F-06 aus `worldmap/06-security-casino.md` §1.3; F-05 bleibt als bereits remote verifizierter Referenzfix enthalten. Befunde und Prüfungen bleiben in eigenen Tabellen der Roadmap.
+> **Scope:** ausschließlich die bestätigten Fixes F-01, F-02, F-03, F-04 und F-06 aus `docs/architecture/06_SECURITY_CASINO_LOCAL_CLOSURE.md`; F-05 bleibt als bereits remote verifizierter Referenzfix enthalten. Befunde und Prüfungen bleiben in eigenen Tabellen der Roadmap.
 >
 > **Startstatus:** 2026-08-11 · F-01, F-02, F-03, F-04 und F-06 offen · F-05 remote verifiziert.
 
@@ -225,7 +225,7 @@ sowie den vorhandenen Import erweitern.
 **Dateien und Schnittstellen:**
 
 - Modify only if audit requires it: `package.json`, `package-lock.json`, die durch den Upgrade betroffenen Tests/Konfigurationen
-- Modify: dieses Protokoll und `worldmap/06-security-casino.md` nach frischer Evidenz
+- Modify: dieses Protokoll und `docs/architecture/06_SECURITY_CASINO_LOCAL_CLOSURE.md` nach frischer Evidenz
 
 **Abhängigkeiten:** Keine.
 
@@ -252,7 +252,7 @@ sowie den vorhandenen Import erweitern.
 
 **Befund / Status:** B-05 · remote verifiziert.
 
-**Referenzartefakte:** `supabase/migrations/021_require_pgcrypto_for_seed_chain.sql`, `src/lib/casino/__tests__/pgcrypto-seed-migration.test.ts`, Phase-0-Protokoll §8 P0.5.
+**Referenzartefakte:** `supabase/migrations/026_require_pgcrypto_for_seed_chain.sql` (lokal am 2026-08-12 von `021` auf `026` umnummeriert — Kollision mit dem bereits vergebenen `021_promo_codes.sql` entdeckt bei Initiative 1.10, siehe `worldmap/05_1.10 ...md` Abschnitt 15; Dateiinhalt unverändert, remote bereits unter dem alten Namen `021_...` angewendet — Postgres trackt keine lokalen Dateinamen, der Remote-Zustand ist davon unberührt), `src/lib/casino/__tests__/pgcrypto-seed-migration.test.ts`, Phase-0-Protokoll §8 P0.5.
 
 **Erhaltungsprüfung:** Die neue F-06-Migration darf weder die service-role-only-Grants für `consume_active_seed`/`rotate_user_seed` noch die qualifizierten `extensions.gen_random_bytes`/`extensions.digest`-Aufrufe verändern. Remote-Regression: `required_pgcrypto_installed = true`, erster Seed-Konsum nicht replayed, identischer Request replayed und gleiche Nonce.
 
