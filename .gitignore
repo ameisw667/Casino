@@ -43,7 +43,6 @@ next-env.d.ts
 # temp logs
 *.txt
 *.json
-*.mjs
 scratch/
 errors/
 database/
@@ -66,3 +65,4 @@ test-results/
 
 # one-shot rollout/verify scripts (keep verify-migrations-applied.sql committed)
 scripts/_tmp_*
+.qa-tmp/
