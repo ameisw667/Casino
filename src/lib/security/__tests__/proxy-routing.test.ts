@@ -53,6 +53,10 @@ describe('isPublicRoute pattern matching', () => {
     expect(isPublicRoute('/fairness')).toBe(true);
   });
 
+  it('exposes the internal cron-alert route, which self-handles secret validation', () => {
+    expect(isPublicRoute('/api/internal/cron-alert')).toBe(true);
+  });
+
   it('correctly blocks protected non-public routes', () => {
     expect(isPublicRoute('/admin')).toBe(false);
     expect(isPublicRoute('/admin/users')).toBe(false);

@@ -4,6 +4,8 @@ import { isAdminEmail } from '@/lib/security/admin';
 
 const PUBLIC_ROUTES = [
   '/',
+  '/robots.txt',
+  '/sitemap.xml',
   '/v2',
   '/v3',
   '/v4',
@@ -31,6 +33,7 @@ const PUBLIC_ROUTES = [
   '/api/admin/users',
   '/api/webhooks/clerk(.*)',
   '/api/telegram/(.*)',
+  '/api/internal/cron-alert',
   '/sounds/(.*)',
   '/images/(.*)',
 ];
@@ -69,7 +72,9 @@ export default async function proxy(req: NextRequest) {
   try {
     const pathname = req.nextUrl.pathname;
     const isWebhook =
-      pathname.startsWith('/api/webhooks/clerk') || pathname.startsWith('/api/telegram/webhook');
+      pathname.startsWith('/api/webhooks/clerk') ||
+      pathname.startsWith('/api/telegram/webhook') ||
+      pathname.startsWith('/api/internal/cron-alert');
 
     // Webhooks use their signature as authenticity proof and do not send browser Origin headers.
     if (!isWebhook && !['GET', 'HEAD', 'OPTIONS'].includes(req.method) && !hasValidOrigin(req)) {
@@ -122,7 +127,7 @@ export default async function proxy(req: NextRequest) {
       'Content-Security-Policy',
       // Sentry ingest host is the exact host from this project's DSN (o4511899214020608.ingest.de.sentry.io),
       // not a *.ingest.de.sentry.io wildcard — a wildcard would also permit exfiltration to any other
-      // Sentry customer's project on the same region (worldmap/05_1.9, M7 security review finding #1).
+      // Sentry customer's project on the same region (docs/architecture/05_1.9_ERROR_TRACKING_SENTRY.md, M7 security review finding #1).
       "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io https://o4511899214020608.ingest.de.sentry.io; frame-ancestors 'none';",
     );
     return response;
