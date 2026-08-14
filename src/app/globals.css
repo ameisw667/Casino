@@ -2680,6 +2680,44 @@ input[type='range']:focus {
   color: hsla(0, 0%, 100%, 0.6);
 }
 
+/* QA/design surfaces remain usable when opened from a phone-sized viewport. */
+.qa-route-nav,
+.qa-route-nav > div,
+.qa-showcase-bet-row {
+  min-width: 0;
+}
+
+.qa-route-nav > div {
+  flex-wrap: wrap;
+}
+
+.qa-showcase-bet-row > input {
+  min-width: 0;
+  flex: 1 1 140px;
+}
+
+.qa-showcase-bet-row > div {
+  display: flex;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .qa-route-nav {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .qa-route-nav > div {
+    width: 100%;
+  }
+
+  .qa-showcase-bet-row {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}
+
 @media (max-width: 1200px) {
   .slot-v2-reels-frame {
     --slot-v2-cell-size: clamp(78px, min(15vw, 13vh), 118px);

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { Crown, Percent, Gem, type LucideIcon } from 'lucide-react';
 import type { V2Promo } from './v2-data';
 
@@ -28,9 +29,9 @@ export function V2PromoCard({ promo }: V2PromoCardProps) {
         <Icon size={48} color="rgba(0,0,0,0.55)" strokeWidth={1.5} />
       </div>
       <h3 className="v2-promo-title">{promo.title}</h3>
-      <button type="button" className="v2-btn v2-btn-fill v2-promo-cta">
+      <Link href={promo.href} className="v2-btn v2-btn-fill v2-promo-cta">
         {promo.cta}
-      </button>
+      </Link>
     </motion.div>
   );
 }

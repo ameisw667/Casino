@@ -57,4 +57,64 @@ describe('performance & mobile optimization', () => {
     expect(heroContent).toContain('visibilitychange');
     expect(heroContent).toContain("window.matchMedia('(max-width: 1023px)').matches");
   });
+
+  it('constrains the games hub root inside the mobile scroll wrapper', () => {
+    const gamesContent = readFileSync(resolve(root, 'src/app/games/page.tsx'), 'utf8');
+
+    expect(gamesContent).toMatch(
+      /maxWidth: '1400px',[\s\S]{0,120}width: '100%',[\s\S]{0,80}minWidth: 0/,
+    );
+  });
+
+  it('constrains the dice game root before its mobile column layout applies', () => {
+    const diceContent = readFileSync(resolve(root, 'src/app/games/dice/page.tsx'), 'utf8');
+
+    expect(diceContent).toMatch(
+      /maxWidth: '1600px',[\s\S]{0,120}width: '100%',[\s\S]{0,80}minWidth: 0/,
+    );
+  });
+
+  it('stretches dice columns to the mobile container width', () => {
+    const diceContent = readFileSync(resolve(root, 'src/app/games/dice/page.tsx'), 'utf8');
+
+    expect(diceContent).toMatch(/\.dice-sidebar\s*\{[\s\S]*min-width:\s*0\s*!important;/);
+    expect(diceContent).toMatch(/\.dice-main\s*\{[\s\S]*width:\s*100%\s*!important;/);
+    expect(diceContent).toMatch(/\.dice-container\s*\{[\s\S]*flex-wrap:\s*nowrap\s*!important;/);
+    expect(diceContent).toMatch(
+      /\.dice-stat-grid\s*\{[\s\S]*grid-template-columns:\s*1fr 1fr\s*!important;/,
+    );
+    expect(diceContent).toContain('.dice-stat-grid > div:last-child');
+    expect(diceContent).toContain('.dice-stat-grid > div {');
+  });
+
+  it('allows the roulette center to shrink before the board scrolls horizontally', () => {
+    const rouletteContent = readFileSync(
+      resolve(root, 'src/app/games/roulette/RouletteClient.tsx'),
+      'utf8',
+    );
+
+    expect(rouletteContent).toMatch(
+      /\.roulette-center\s*\{[\s\S]*min-width:\s*0;[\s\S]*width:\s*100%;/,
+    );
+  });
+
+  it('keeps exposed QA navigation and showcase presets responsive', () => {
+    for (const file of [
+      'src/app/testing/7.3/GameActionButtonTestingClient.tsx',
+      'src/app/testing/7.4/VibeSliderTestingClient.tsx',
+      'src/app/testing/brand-showcase/BrandShowcaseClient.tsx',
+    ]) {
+      expect(readFileSync(resolve(root, file), 'utf8')).toContain('className="qa-route-nav"');
+    }
+
+    const showcase = readFileSync(
+      resolve(root, 'src/app/testing/brand-showcase/BrandShowcaseClient.tsx'),
+      'utf8',
+    );
+    const css = readFileSync(resolve(root, 'src/app/globals.css'), 'utf8');
+
+    expect(showcase).toContain('className="qa-showcase-bet-row"');
+    expect(css).toContain('.qa-route-nav > div');
+    expect(css).toContain('.qa-showcase-bet-row');
+  });
 });

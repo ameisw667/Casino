@@ -1210,6 +1210,8 @@ export function RouletteClient() {
             }
             .roulette-center {
               order: 1;
+              min-width: 0;
+              width: 100%;
             }
             .roulette-right {
               order: 2;

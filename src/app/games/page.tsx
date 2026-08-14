@@ -135,6 +135,9 @@ export default function GamesPage() {
     <div
       style={{
         maxWidth: '1400px',
+        width: '100%',
+        minWidth: 0,
+        boxSizing: 'border-box',
         margin: '0 auto',
         display: 'flex',
         flexDirection: 'column',

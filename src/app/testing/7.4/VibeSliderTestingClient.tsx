@@ -82,6 +82,7 @@ export default function VibeSliderTestingClient() {
       >
         {/* Navigation Bar */}
         <nav
+          className="qa-route-nav"
           style={{
             display: 'flex',
             alignItems: 'center',

@@ -373,6 +373,9 @@ export default function DicePage() {
         className="dice-container"
         style={{
           maxWidth: '1600px',
+          width: '100%',
+          minWidth: 0,
+          boxSizing: 'border-box',
           margin: '0 auto',
           display: 'flex',
           flexWrap: 'wrap',
@@ -390,17 +393,32 @@ export default function DicePage() {
           @media (max-width: 1024px) {
             .dice-container {
               flex-direction: column !important;
+              flex-wrap: nowrap !important;
               min-height: auto !important;
             }
             .dice-sidebar {
               width: 100% !important;
+              min-width: 0 !important;
+              box-sizing: border-box !important;
               order: 2 !important;
               border-right: none !important;
               border-top: 1px solid var(--glass-border) !important;
             }
             .dice-main {
+              width: 100% !important;
+              align-self: stretch !important;
               order: 1 !important;
               padding: var(--space-md) !important;
+            }
+            .dice-stat-grid {
+              grid-template-columns: 1fr 1fr !important;
+              min-width: 0 !important;
+            }
+            .dice-stat-grid > div {
+              min-width: 0 !important;
+            }
+            .dice-stat-grid > div:last-child {
+              grid-column: span 2 !important;
             }
           }
         `}</style>
@@ -1009,6 +1027,7 @@ export default function DicePage() {
 
             {/* Target Inputs (Bottom Row) — fused glass bar */}
             <div
+              className="dice-stat-grid"
               style={{
                 display: 'grid',
                 gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)',

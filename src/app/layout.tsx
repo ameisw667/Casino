@@ -3,6 +3,7 @@ import { IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google';
 import './globals.css';
 import { ClientProviders } from '@/components/auth/ClientProviders';
 import ClientShell from '@/components/layout/ClientShell';
+import { SITE_URL } from '@/lib/site-url';
 
 // Prevent static prerendering — the proxy middleware reads/refreshes the Supabase session per request
 export const dynamic = 'force-dynamic';
@@ -23,7 +24,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://casino-royale.vibe'),
+  metadataBase: SITE_URL,
   title: {
     default: 'Casino Royale | Premium Provably Fair Gaming',
     template: '%s | Casino Royale',
@@ -36,7 +37,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Casino Royale | Premium Provably Fair Gaming',
     description: 'The next generation of online gambling with a high-fidelity interface.',
-    url: 'https://casino-royale.vibe',
+    url: SITE_URL.toString(),
     siteName: 'Casino Royale',
     images: [
       {

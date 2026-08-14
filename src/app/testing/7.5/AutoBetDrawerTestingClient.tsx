@@ -28,7 +28,7 @@ export interface AutoBetConfig {
 }
 
 export default function AutoBetDrawerTestingClient() {
-  const [configOpt1, setConfigOpt1] = useState<AutoBetConfig>({
+  const [configOpt1a, setConfigOpt1a] = useState<AutoBetConfig>({
     numberOfBets: 10,
     onWinIncrease: 0,
     onLossIncrease: 100,
@@ -36,7 +36,7 @@ export default function AutoBetDrawerTestingClient() {
     stopLoss: 20,
   });
 
-  const [configOpt1a, setConfigOpt1a] = useState<AutoBetConfig>({
+  const [configOpt1, setConfigOpt1] = useState<AutoBetConfig>({
     numberOfBets: 10,
     onWinIncrease: 0,
     onLossIncrease: 100,
@@ -52,8 +52,8 @@ export default function AutoBetDrawerTestingClient() {
     stopLoss: 20,
   });
 
-  const [isAutoRunningOpt1, setIsAutoRunningOpt1] = useState(false);
   const [isAutoRunningOpt1a, setIsAutoRunningOpt1a] = useState(false);
+  const [isAutoRunningOpt1, setIsAutoRunningOpt1] = useState(false);
   const [isAutoRunningOpt1b, setIsAutoRunningOpt1b] = useState(false);
 
   const [isSoundMuted, setIsSoundMuted] = useState(false);
@@ -185,24 +185,24 @@ export default function AutoBetDrawerTestingClient() {
                 fontFamily: 'var(--font-mono)',
               }}
             >
-              <Sparkles size={14} /> Muted VIP Refinement (Option 1-a & 1-b)
+              <Sparkles size={14} /> Full Functionality Layout Comparison
             </span>
           </div>
 
           <h1 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
-            Initiative 7.5: &lt;AutoBetDrawer /&gt; Muted VIP Refinements
+            Initiative 7.5: &lt;AutoBetDrawer /&gt; Complete Controls Comparison
           </h1>
           <p style={{ color: '#94a3b8', fontSize: '1rem', margin: '12px 0 0 0' }}>
-            Reduzierung übertriebener Farbakzente für ein beruhigtes, übersichtliches
-            VIP-Erscheinungsbild.
+            Alle 3 Varianten bieten nun den identischen vollen Funktionsumfang (Wettanzahl, Bei
+            Gewinn, Bei Verlust, Stop Profit, Stop Loss).
           </p>
         </header>
 
-        {/* SECTION 2: DREI REFINED OPTIONS */}
+        {/* SECTION 2: DREI REFINED OPTIONS WITH FULL CONTROLS */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
-            <Flame size={22} style={{ color: '#d4af37' }} /> Drei veredelte Varianten basierend auf
-            Option 1
+            <Flame size={22} style={{ color: '#d4af37' }} /> Drei Layout-Varianten mit vollem
+            Menü-Funktionsumfang
           </h2>
 
           <div
@@ -242,7 +242,6 @@ export default function AutoBetDrawerTestingClient() {
                   boxShadow: '0 12px 32px rgba(0, 0, 0, 0.6)',
                 }}
               >
-                {/* Header */}
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
@@ -273,7 +272,6 @@ export default function AutoBetDrawerTestingClient() {
                   </span>
                 </div>
 
-                {/* Preset Bar */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label
                     style={{
@@ -325,7 +323,6 @@ export default function AutoBetDrawerTestingClient() {
                   </div>
                 </div>
 
-                {/* Muted Strategy Inputs */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <label
@@ -411,7 +408,6 @@ export default function AutoBetDrawerTestingClient() {
                   </div>
                 </div>
 
-                {/* Muted Limits */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <label
@@ -504,7 +500,7 @@ export default function AutoBetDrawerTestingClient() {
               </div>
             </div>
 
-            {/* OPTION 1: BASELINE (URSPRÜNGLICH) */}
+            {/* OPTION 1: COLORED BADGES WITH FULL CONTROLS */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div
                 style={{
@@ -517,7 +513,7 @@ export default function AutoBetDrawerTestingClient() {
                   borderRadius: '8px',
                 }}
               >
-                Option 1: Baseline (Farbelemente)
+                Option 1: Baseline (Farbelemente & Volle Werte)
               </div>
               <div
                 style={{
@@ -543,7 +539,157 @@ export default function AutoBetDrawerTestingClient() {
                   >
                     AUTO-WETT KONFIGURATION
                   </span>
+                  <span
+                    style={{
+                      padding: '2px 8px',
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      color: '#f87171',
+                      borderRadius: '6px',
+                      fontSize: '0.7rem',
+                      fontFamily: 'var(--font-mono)',
+                      fontWeight: 800,
+                    }}
+                  >
+                    STANDBY
+                  </span>
                 </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label
+                    style={{
+                      fontSize: '0.7rem',
+                      color: '#94a3b8',
+                      fontFamily: 'var(--font-mono)',
+                      fontWeight: 700,
+                    }}
+                  >
+                    ANZAHL DER WETTEN
+                  </label>
+                  <div
+                    style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}
+                  >
+                    {[
+                      { label: '∞', val: 0 },
+                      { label: '10', val: 10 },
+                      { label: '50', val: 50 },
+                      { label: '100', val: 100 },
+                    ].map((preset) => (
+                      <button
+                        key={preset.val}
+                        onClick={() => setConfigOpt1({ ...configOpt1, numberOfBets: preset.val })}
+                        style={{
+                          padding: '8px 0',
+                          background:
+                            configOpt1.numberOfBets === preset.val
+                              ? 'rgba(212, 175, 55, 0.2)'
+                              : '#0b0f18',
+                          border:
+                            configOpt1.numberOfBets === preset.val
+                              ? '1px solid rgba(212, 175, 55, 0.6)'
+                              : '1px solid rgba(255, 255, 255, 0.06)',
+                          borderRadius: '8px',
+                          color: configOpt1.numberOfBets === preset.val ? '#e5c158' : '#cbd5e1',
+                          fontSize: '0.8rem',
+                          fontWeight: 800,
+                          fontFamily: 'var(--font-mono)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {preset.label === '∞' ? (
+                          <InfinityIcon size={14} style={{ margin: '0 auto' }} />
+                        ) : (
+                          preset.label
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label
+                      style={{
+                        fontSize: '0.68rem',
+                        color: '#34d399',
+                        fontFamily: 'var(--font-mono)',
+                        fontWeight: 700,
+                      }}
+                    >
+                      BEI GEWINN (+%)
+                    </label>
+                    <div
+                      style={{
+                        display: 'flex',
+                        background: '#0b0f18',
+                        border: '1px solid rgba(16, 185, 129, 0.25)',
+                        borderRadius: '8px',
+                        padding: '4px 8px',
+                      }}
+                    >
+                      <input
+                        type="number"
+                        value={configOpt1.onWinIncrease}
+                        onChange={(e) =>
+                          setConfigOpt1({
+                            ...configOpt1,
+                            onWinIncrease: parseFloat(e.target.value) || 0,
+                          })
+                        }
+                        style={{
+                          width: '100%',
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#fff',
+                          fontFamily: 'var(--font-mono)',
+                          fontWeight: 800,
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label
+                      style={{
+                        fontSize: '0.68rem',
+                        color: '#f87171',
+                        fontFamily: 'var(--font-mono)',
+                        fontWeight: 700,
+                      }}
+                    >
+                      BEI VERLUST (+%)
+                    </label>
+                    <div
+                      style={{
+                        display: 'flex',
+                        background: '#0b0f18',
+                        border: '1px solid rgba(239, 68, 68, 0.25)',
+                        borderRadius: '8px',
+                        padding: '4px 8px',
+                      }}
+                    >
+                      <input
+                        type="number"
+                        value={configOpt1.onLossIncrease}
+                        onChange={(e) =>
+                          setConfigOpt1({
+                            ...configOpt1,
+                            onLossIncrease: parseFloat(e.target.value) || 0,
+                          })
+                        }
+                        style={{
+                          width: '100%',
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#fff',
+                          fontFamily: 'var(--font-mono)',
+                          fontWeight: 800,
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <GameActionButton
                   label={isAutoRunningOpt1 ? 'STOP AUTO BET' : 'START AUTO BET'}
                   onClick={() => setIsAutoRunningOpt1(!isAutoRunningOpt1)}
@@ -551,7 +697,7 @@ export default function AutoBetDrawerTestingClient() {
               </div>
             </div>
 
-            {/* OPTION 1-B: OBSIDIAN GOLD COMPACT VIP DRAWER */}
+            {/* OPTION 1-B: COMPACT FULL CONTROLS */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div
                 style={{
@@ -564,7 +710,7 @@ export default function AutoBetDrawerTestingClient() {
                   borderRadius: '8px',
                 }}
               >
-                Option 1-b: Compact Ultra-Clean Drawer
+                Option 1-b: Compact (Volle Menüwerte)
               </div>
               <div
                 style={{
@@ -578,15 +724,56 @@ export default function AutoBetDrawerTestingClient() {
                 }}
               >
                 <div
-                  style={{
-                    fontSize: '0.75rem',
-                    fontWeight: 800,
-                    color: '#94a3b8',
-                    fontFamily: 'var(--font-mono)',
-                  }}
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
-                  COMPACT AUTO MODE
+                  <span
+                    style={{
+                      fontSize: '0.75rem',
+                      fontWeight: 800,
+                      color: '#94a3b8',
+                      fontFamily: 'var(--font-mono)',
+                    }}
+                  >
+                    COMPACT AUTO MODE
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '0.75rem',
+                      color: '#e5c158',
+                      fontFamily: 'var(--font-mono)',
+                    }}
+                  >
+                    {configOpt1b.numberOfBets} BETS
+                  </span>
                 </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div
+                    style={{
+                      padding: '8px',
+                      background: '#0b0f18',
+                      borderRadius: '6px',
+                      fontSize: '0.7rem',
+                      color: '#cbd5e1',
+                      fontFamily: 'var(--font-mono)',
+                    }}
+                  >
+                    WIN: +{configOpt1b.onWinIncrease}%
+                  </div>
+                  <div
+                    style={{
+                      padding: '8px',
+                      background: '#0b0f18',
+                      borderRadius: '6px',
+                      fontSize: '0.7rem',
+                      color: '#cbd5e1',
+                      fontFamily: 'var(--font-mono)',
+                    }}
+                  >
+                    LOSS: +{configOpt1b.onLossIncrease}%
+                  </div>
+                </div>
+
                 <GameActionButton
                   label={isAutoRunningOpt1b ? 'STOP AUTO BET' : 'START AUTO BET'}
                   onClick={() => setIsAutoRunningOpt1b(!isAutoRunningOpt1b)}

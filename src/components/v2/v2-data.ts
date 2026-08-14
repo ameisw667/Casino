@@ -18,6 +18,7 @@ export interface V2Promo {
   tone: 'navy' | 'violet' | 'forest';
   title: string;
   cta: string;
+  href: string;
   artColor: string;
 }
 
@@ -27,6 +28,7 @@ export const V2_PROMOS: V2Promo[] = [
     tone: 'navy',
     title: 'Become King of the Table — win $100,000',
     cta: 'Enter Now',
+    href: '/leaderboard',
     artColor: 'linear-gradient(155deg, hsl(43 88% 60%), hsl(30 90% 45%))',
   },
   {
@@ -34,6 +36,7 @@ export const V2_PROMOS: V2Promo[] = [
     tone: 'violet',
     title: 'Get up to 62.5% rakeback on every bet',
     cta: 'Play Now',
+    href: '/games',
     artColor: 'linear-gradient(155deg, hsl(268 70% 68%), hsl(280 60% 40%))',
   },
   {
@@ -41,6 +44,7 @@ export const V2_PROMOS: V2Promo[] = [
     tone: 'forest',
     title: 'Unmatched rebate rewards, paid weekly',
     cta: 'Claim Now',
+    href: '/vault',
     artColor: 'linear-gradient(155deg, hsl(120 72% 52%), hsl(120 60% 28%))',
   },
 ];

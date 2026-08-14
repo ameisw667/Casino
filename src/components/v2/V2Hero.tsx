@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import {
   ShieldCheck,
   Crown,
@@ -58,19 +59,19 @@ export function V2Hero() {
         <p className="v2-highlight">Earn up to 62.5% rakeback on every bet.</p>
 
         <div className="v2-cta-row">
-          <motion.button
-            type="button"
-            className="v2-btn v2-btn-fill"
+          <motion.div
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 420, damping: 28 }}
           >
-            <UserPlus size={18} />
-            Register Now
-          </motion.button>
-          <button type="button" className="v2-btn v2-btn-ghost">
+            <Link href="/sign-up" className="v2-btn v2-btn-fill">
+              <UserPlus size={18} />
+              Register Now
+            </Link>
+          </motion.div>
+          <Link href="/games" className="v2-btn v2-btn-ghost">
             <span>Start playing now →</span>
-          </button>
+          </Link>
         </div>
 
         <div className="v2-pay-strip">

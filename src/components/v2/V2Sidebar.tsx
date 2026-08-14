@@ -92,7 +92,7 @@ export function V2Sidebar({ isOpen, onClose, level, rank }: V2SidebarProps) {
         </div>
 
         <div className="v2-sidebar-foot">
-          <Link href="/affiliate" className="v2-nav-item">
+          <Link href="/sign-up" className="v2-nav-item">
             <Users size={18} />
             Affiliate Program
           </Link>

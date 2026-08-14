@@ -96,6 +96,7 @@ export default function BrandShowcaseClient() {
       >
         {/* Navigation Bar */}
         <nav
+          className="qa-route-nav"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -696,6 +697,7 @@ const [mode, setMode] = useState<'manual' | 'auto'>('manual');
                 </div>
 
                 <div
+                  className="qa-showcase-bet-row"
                   style={{
                     display: 'flex',
                     alignItems: 'center',

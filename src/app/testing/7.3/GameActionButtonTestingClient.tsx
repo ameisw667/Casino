@@ -89,6 +89,7 @@ export default function GameActionButtonTestingClient() {
       >
         {/* Navigation Bar */}
         <nav
+          className="qa-route-nav"
           style={{
             display: 'flex',
             alignItems: 'center',
