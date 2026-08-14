@@ -2,35 +2,49 @@
 
 Gehört zu Initiative 1.10, Detailplan: [`worldmap/05_1.10 Resilience Chaos Testing.md`](../../worldmap/05_1.10%20Resilience%20Chaos%20Testing.md).
 
-## Sicherheitsvoraussetzungen (vor jedem Lauf)
+**Update 2026-08-15:** Reine Prozess-Isolation (nur "URL von Anfang an ungültig") ersetzt durch einen echten Fault-Injection-Proxy mit 4 Modi (`pass`/`hang`/`reset`/`502`/`504`) — realistischere Fehlerbilder, siehe Plan Abschnitt 2/3.
 
-1. `infra/chaos`-Stack muss auf dem VPS laufen (siehe [`infra/chaos/README.md`](../../infra/chaos/README.md)).
-2. SSH-Tunnel zum VPS muss aktiv sein (Schritt 7 dort).
-3. `.env.chaos` im Repo-Root muss existieren, mit `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:<Tunnel-Port>` und `CHAOS_TARGET_CONFIRMED=true`.
-4. **Jedes Skript bricht sofort ab**, wenn Punkt 3 nicht stimmt — das ist Absicht (R-C1), keine Fehlermeldung ignorieren oder umgehen.
+## Wichtige Voraussetzung: kein zweiter `next dev`-Prozess möglich
 
-## Skripte
+Next.js erlaubt nur einen `next dev`-Prozess pro Projekt, auch auf unterschiedlichen Ports (Singleton-Lock, siehe Plan Abschnitt 3.7 — beim ersten echten Testlauf entdeckt). **Schließe `npm run dev` (Port 3015), bevor du einen Chaos-Testlauf startest.** Das Skript erkennt diesen Fall und gibt eine klare Fehlermeldung statt eines stillen Timeouts.
 
-| Skript                         | Prüft                                                                                                                                       |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `invalidate-supabase-url.mjs`  | `POST /api/casino/bet` antwortet mit `503`, nicht `200`/unbehandeltem `500`, wenn Supabase unerreichbar ist.                                |
-| `invalidate-upstash-token.mjs` | Rate-Limiter fällt bei ungültigem Upstash-Token auf den In-Memory-Fallback zurück, ohne abzustürzen oder Requests unbegrenzt durchzulassen. |
+## Sicherheitsvoraussetzungen
 
-```bash
-node scripts/chaos/invalidate-supabase-url.mjs
-node scripts/chaos/invalidate-upstash-token.mjs
-```
+1. `NODE_ENV` darf nicht `production` sein.
+2. `CHAOS_CONFIRM=yes` muss gesetzt sein.
+3. `.env.local` muss `NEXT_PUBLIC_SUPABASE_URL`/`UPSTASH_REDIS_REST_URL` enthalten (wird nur gelesen, nie verändert).
+4. Für den authentifizierten Nachweis: `CHAOS_SESSION_COOKIE` (Cookie-Header eines eingeloggten synthetischen Test-Accounts, per DevTools kopiert — siehe Plan Abschnitt 6 der Vorgänger-Runde, unverändert gültig).
 
-## Für einen vollständigen (authentifizierten) Nachweis
-
-Beide Skripte laufen auch ohne aktive Session, prüfen dann aber nur, dass der Server grundsätzlich antwortet — nicht zwingend den DB-Fail-Pfad, falls der Auth-Check vor dem DB-Zugriff greift. Für einen vollständigen Nachweis:
+## Nutzung
 
 ```bash
-CHAOS_SESSION_COOKIE="<echte Cookie-Header-Zeile eines eingeloggten Chaos-Test-Accounts>" node scripts/chaos/invalidate-supabase-url.mjs
+CHAOS_CONFIRM=yes CHAOS_TARGET=supabase CHAOS_MODE=reset \
+  CHAOS_SESSION_COOKIE="<Cookie-Header>" \
+  node scripts/chaos/run-fault-test.mjs
 ```
 
-Nutze dafür einen synthetischen Test-Account auf der Chaos-Instanz — nie einen echten Prod-Account.
+| Env-Var                | Werte                                                    | Bedeutung                                                                            |
+| ---------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `CHAOS_TARGET`         | `supabase` (Standard) \| `upstash`                       | Welcher der beiden Proxys bekommt den Fault-Modus. Der jeweils andere bleibt `pass`. |
+| `CHAOS_MODE`           | `hang` \| `reset` (Standard) \| `502` \| `504` \| `pass` | Der zu testende Fehlermodus.                                                         |
+| `CHAOS_SESSION_COOKIE` | —                                                        | Optional, für authentifizierten Nachweis.                                            |
 
-## Jedes Skript ist selbst-isolierend
+## Was das Skript prüft
 
-Beide Skripte starten einen eigenen `next dev`-Prozess auf einem separaten Port (3098/3099) statt Jans laufenden Dev-Server (Port 3015) zu beeinflussen, und beenden ihn in jedem Fall (`finally`-Block) wieder — auch bei Fehlern während des Laufs.
+- `POST /api/casino/bet` antwortet mit einem 5xx-Code, nie `200`, unter dem gewählten Fault-Modus.
+- Health-Check direkt danach: reagiert der isolierte Prozess noch, oder hängt er nach einem `hang`-Test global fest? (Wichtiger Unterschied zu "nur das Testskript timeoutet" — siehe Plan Abschnitt 2/4.2.)
+
+## Sicherheits-/Architektur-Details (siehe Plan für Begründung)
+
+- Proxy bindet ausschließlich an `127.0.0.1`, loggt nur `{method, path, status, durationMs}` — nie Header/Cookies/Body.
+- Sentry ist im isolierten Testprozess deaktiviert (kein Leak-Risiko über Error-Breadcrumbs).
+- Kein `.env.chaos` mehr — `.env.local` wird nur gelesen, nie verändert oder committed.
+- Kein neuer `npm`-Dependency — Proxy nutzt ausschließlich Node-Bordmittel (`http`/`https`).
+
+## Proxy-Selbsttest (ohne echtes Supabase)
+
+```bash
+node scripts/chaos/lib/fault-proxy.selftest.mjs
+```
+
+Prüft alle 4 Modi gegen einen lokalen Dummy-Server, inkl. Moduswechsel-Konsistenz zwischen zwei Requests.

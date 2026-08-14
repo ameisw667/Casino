@@ -1,6 +1,8 @@
-# Chaos-Testing-Stack — Deployment-Anleitung
+> **⚠️ ARCHIVIERT / VERWORFEN (2026-08-14):** Dieser VPS-basierte Ansatz wird nicht umgesetzt — siehe [`worldmap/05_1.10 Resilience Chaos Testing.md`](../../worldmap/05_1.10%20Resilience%20Chaos%20Testing.md) Abschnitt 10 für die Begründung und den aktiv verfolgten, lokalen Ersatz-Ansatz. Diese Datei bleibt als Referenz erhalten, falls eine spätere Initiative (z. B. 1.11 Security-Red-Teaming) doch eine eigene isolierte VPS-Instanz braucht.
 
-Gehört zu Initiative 1.10, Detailplan: [`worldmap/05_1.10 Resilience Chaos Testing.md`](../../worldmap/05_1.10%20Resilience%20Chaos%20Testing.md).
+# Chaos-Testing-Stack — Deployment-Anleitung (archiviert)
+
+Gehörte zu Initiative 1.10, Detailplan: [`worldmap/05_1.10 Resilience Chaos Testing.md`](../../worldmap/05_1.10%20Resilience%20Chaos%20Testing.md).
 
 **Ziel-Umgebung:** Hostinger-VPS, auf dem bereits ein produktiver n8n-Container läuft. Jeder Schritt hier ist so geschrieben, dass er n8n nicht beeinträchtigt — bei Abweichung von dieser Anleitung ist das nicht mehr garantiert.
 
