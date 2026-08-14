@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { WalletService } from '@/lib/casino/wallet';
 import { CasinoLogger } from '@/lib/casino/logger';
+import { recordRiskEventBestEffort } from '@/lib/casino/risk-event-store';
 import {
   enforceRateLimit,
   getClientIdentifier,
@@ -60,6 +61,13 @@ export async function POST(request: Request) {
       60,
     );
     if (!rate.success) {
+      await recordRiskEventBestEffort({
+        subjectUserId: userId,
+        signalType: 'rate_limit_hit',
+        severity: 'medium',
+        windowStart: new Date(rate.reset - 60_000).toISOString(),
+        evidence: { scope: 'wallet-redeem', limit: rate.limit },
+      });
       return NextResponse.json(
         { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
         { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
@@ -84,6 +92,23 @@ export async function POST(request: Request) {
     const outcome = await WalletService.redeemPromoCode({ userId, code: rawCode, requestId });
 
     if (!outcome.ok) {
+      if (outcome.code === 'PROMO_REQUEST_CONFLICT') {
+        await recordRiskEventBestEffort({
+          subjectUserId: userId,
+          signalType: 'idempotency_conflict',
+          severity: 'medium',
+          windowStart: new Date().toISOString(),
+          evidence: { scope: 'wallet-redeem', outcome: outcome.code },
+        });
+      } else if (outcome.code === 'PROMO_ALREADY_REDEEMED' || outcome.code === 'PROMO_EXHAUSTED') {
+        await recordRiskEventBestEffort({
+          subjectUserId: userId,
+          signalType: 'voucher_velocity',
+          severity: 'low',
+          windowStart: new Date().toISOString(),
+          evidence: { scope: 'wallet-redeem', outcome: outcome.code },
+        });
+      }
       return NextResponse.json(
         { error: PROMO_ERROR_MESSAGES[outcome.code] ?? 'Promo code rejected', code: outcome.code },
         { status: outcome.code === 'PROMO_REQUEST_CONFLICT' ? 409 : 400 },

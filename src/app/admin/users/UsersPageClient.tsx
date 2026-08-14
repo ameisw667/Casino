@@ -47,6 +47,7 @@ export default function UsersPageClient() {
   const [editBalance, setEditBalance] = useState('');
   const [editXp, setEditXp] = useState('');
   const [editLevel, setEditLevel] = useState('');
+  const [editReason, setEditReason] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
@@ -88,6 +89,7 @@ export default function UsersPageClient() {
     setEditBalance(String(u.balance));
     setEditXp(String(u.xp));
     setEditLevel(String(u.level));
+    setEditReason('');
     setSaveSuccess(null);
   };
 
@@ -101,9 +103,13 @@ export default function UsersPageClient() {
     try {
       const res = await fetch('/api/admin/users', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': crypto.randomUUID(),
+        },
         body: JSON.stringify({
           targetUserId: editingUser.id,
+          reason: editReason,
           balance: parseFloat(editBalance),
           xp: parseFloat(editXp),
           level: parseInt(editLevel, 10),
@@ -572,6 +578,40 @@ export default function UsersPageClient() {
                   min="1"
                   value={editLevel}
                   onChange={(e) => setEditLevel(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#fff',
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    outline: 'none',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    color: '#D4AF37',
+                    marginBottom: '6px',
+                  }}
+                >
+                  Grund (Audit-Log)
+                </label>
+                <input
+                  type="text"
+                  required
+                  minLength={1}
+                  maxLength={500}
+                  value={editReason}
+                  onChange={(e) => setEditReason(e.target.value)}
+                  placeholder="z. B. Support-Ticket #1234, Kompensation…"
                   style={{
                     width: '100%',
                     padding: '10px 14px',

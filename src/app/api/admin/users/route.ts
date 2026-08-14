@@ -84,8 +84,9 @@ export async function GET(request: Request) {
 
 const adminUpdateUserSchema = z.object({
   targetUserId: z.string().min(1),
+  reason: z.string().trim().min(1).max(500),
   balance: z.number().finite().nonnegative().optional(),
-  xp: z.number().finite().nonnegative().optional(),
+  xp: z.number().int().nonnegative().optional(),
   level: z.number().int().positive().optional(),
   rank: z.string().min(1).optional(),
 });
@@ -93,6 +94,11 @@ const adminUpdateUserSchema = z.object({
 export async function PATCH(request: Request) {
   const originFailure = validateMutationOrigin(request);
   if (originFailure) return originFailure;
+
+  const requestId = z.string().uuid().safeParse(request.headers.get('Idempotency-Key'));
+  if (!requestId.success) {
+    return NextResponse.json({ error: 'A valid Idempotency-Key is required' }, { status: 400 });
+  }
 
   try {
     const supabase = await createClient();
@@ -121,46 +127,39 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Invalid input parameters' }, { status: 400 });
     }
 
-    const { targetUserId, ...updates } = parsed.data;
+    const { targetUserId, reason, ...updates } = parsed.data;
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: 'No update fields provided' }, { status: 400 });
     }
 
     const admin = createAdminClient();
-    const { data, error } = await admin
-      .from('users')
-      .update(updates)
-      .eq('id', targetUserId)
-      .select('id, username, email, balance, xp, level, rank, created_at')
-      .single();
+    const { data, error } = await admin.rpc('admin_update_user', {
+      p_actor_id: user.id,
+      p_target_user_id: targetUserId,
+      p_request_id: requestId.data,
+      p_reason: reason,
+      p_balance: updates.balance ?? null,
+      p_xp: updates.xp ?? null,
+      p_level: updates.level ?? null,
+      p_rank: updates.rank ?? null,
+    });
 
     if (error || !data) {
       CasinoLogger.error('API/Admin/Users', `Admin user update failed for ${targetUserId}`, error);
       return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
     }
 
-    if (updates.balance !== undefined) {
-      try {
-        await admin.from('wallet_transactions').insert({
-          user_id: targetUserId,
-          game: 'admin',
-          type: 'admin_adjust',
-          amount: Number(updates.balance),
-          balance_after: Number(data.balance),
-          metadata: { admin_email: user.email, updated_fields: Object.keys(updates) },
-        });
-      } catch (err) {
-        CasinoLogger.error('API/Admin/Users', 'Failed to insert admin adjustment audit log', err);
-      }
-    }
+    CasinoLogger.info('API/Admin/Users', `Admin ${user.email} updated user ${targetUserId}`, {
+      fields: Object.keys(updates),
+      replayed: data.replayed,
+    });
 
-    CasinoLogger.info(
-      'API/Admin/Users',
-      `Admin ${user.email} updated user ${targetUserId}`,
-      updates,
-    );
-
-    return NextResponse.json({ success: true, user: data });
+    return NextResponse.json({
+      success: true,
+      user: data.user,
+      transactionId: data.transactionId,
+      replayed: data.replayed,
+    });
   } catch (error) {
     CasinoLogger.error('API/Admin/Users', 'Admin user update unexpected failure', error);
     return NextResponse.json({ error: 'User update unavailable' }, { status: 503 });
