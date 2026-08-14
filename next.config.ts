@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
 };
 
 // org/project/authToken are read from SENTRY_ORG/SENTRY_PROJECT/SENTRY_AUTH_TOKEN
-// (see worldmap/05_1.9 Applikationsweites Error-Tracking.md, M1). A missing
+// (see docs/architecture/05_1.9_ERROR_TRACKING_SENTRY.md, M1). A missing
 // SENTRY_AUTH_TOKEN only skips source map upload, it does not fail the build.
 export default withSentryConfig(nextConfig, {
   silent: !process.env.CI,
