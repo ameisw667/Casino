@@ -24,6 +24,59 @@ Das aktuelle Design weist visuelle Inkonsistenzen auf. Um das Casino auf ein hoc
 - 📋 **Eval-Mockups (Entscheidungstrail, keine Varianten):** [`fonts_evaluation_6.html`](../docs/prototypes/fonts_evaluation_6.html), [`fonts_top3.html`](../docs/prototypes/fonts_top3.html), [`glassmorphism_top3.html`](../docs/prototypes/glassmorphism_top3.html)
 - ⚙️ **Optimierungs-Plan & Audits:** [`option1_1_optimization.md`](../docs/prototypes/option1_1_optimization.md)
 
+### Direkte Browser-URLs für die visuelle Prüfung
+
+**Lokale Basis-URL:** `http://localhost:3015`
+Start des Dev-Servers: `npm run dev`
+
+#### A — Redesign- und Lobby-Prototypen
+
+| Variante / Testseite                              | Vollständige URL                                                                                                                             | Zweck                                                             |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Cyber-Stealth Lobby — isolierte Next.js-Testseite | [http://localhost:3015/refactoring](http://localhost:3015/refactoring)                                                                       | Eigenständige Lobby mit Three.js, GSAP und Frosted-Obsidian-Glass |
+| Cyber-Stealth Lobby — direktes HTML               | [http://localhost:3015/prototypes/lobby_v2_refactoring.html](http://localhost:3015/prototypes/lobby_v2_refactoring.html)                     | Direkter Aufruf des isolierten HTML-Prototyps ohne App-Wrapper    |
+| Cyber-Stealth Favorit                             | [V:/VibeCoding/Casino/docs/prototypes/option1_1_cyber_stealth.html](V:/VibeCoding/Casino/docs/prototypes/option1_1_cyber_stealth.html)       | Ursprüngliche Referenz-Skizze                                     |
+| Cyber-Stealth v2                                  | [V:/VibeCoding/Casino/docs/prototypes/option1_1_cyber_stealth_v2.html](V:/VibeCoding/Casino/docs/prototypes/option1_1_cyber_stealth_v2.html) | Optimierte Referenz-Skizze                                        |
+| Wasser-Wellen-Hintergrund                         | [V:/VibeCoding/Casino/docs/prototypes/water_background_v1.html](V:/VibeCoding/Casino/docs/prototypes/water_background_v1.html)               | Separater 3D-Wasser-/Ripple-Hintergrund-Mockup                    |
+
+Die drei folgenden Dateien sind reine Evaluationsseiten und keine eigenständigen Casino-Lobbys:
+
+| Evaluationsseite      | Vollständige lokale Datei                                                                                                    | Zweck                                     |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| Fonts — 6 Kandidaten  | [V:/VibeCoding/Casino/docs/prototypes/fonts_evaluation_6.html](V:/VibeCoding/Casino/docs/prototypes/fonts_evaluation_6.html) | Vergleich der sechs Schriftkombinationen  |
+| Fonts — Top 3         | [V:/VibeCoding/Casino/docs/prototypes/fonts_top3.html](V:/VibeCoding/Casino/docs/prototypes/fonts_top3.html)                 | Verdichtete Schriftarten-Auswahl          |
+| Glassmorphism — Top 3 | [V:/VibeCoding/Casino/docs/prototypes/glassmorphism_top3.html](V:/VibeCoding/Casino/docs/prototypes/glassmorphism_top3.html) | Vergleich der drei Glas-/Panel-Richtungen |
+
+> **Hinweis:** Die Dateien unter `docs/prototypes/` sind aktuell Quelldateien und keine HTTP-Routen. Die beiden Lobby-Varianten unter `public/prototypes/` sind direkt über `localhost:3015` erreichbar. Für die `docs/prototypes/`-Dateien muss die Datei lokal im Browser geöffnet oder zunächst über einen statischen File-Server bereitgestellt werden.
+
+#### B — Vorhandene visuelle App- und Komponenten-Testseiten
+
+| Testseite              | Vollständige URL                                                                             | Zweck                                    |
+| ---------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| V2-Startseite          | [http://localhost:3015/v2](http://localhost:3015/v2)                                         | Bestehende V2-Lobby-Variante             |
+| Brand Showcase         | [http://localhost:3015/testing/brand-showcase](http://localhost:3015/testing/brand-showcase) | Zentrale Brand- und Komponentenübersicht |
+| 7.1 — BetModeTabs      | [http://localhost:3015/testing/7.1](http://localhost:3015/testing/7.1)                       | Harmonisierung der Bet-Mode-Tabs         |
+| 7.2 — BetInputGroup    | [http://localhost:3015/testing/7.2](http://localhost:3015/testing/7.2)                       | Harmonisierung der Bet-Inputs            |
+| 7.3 — GameActionButton | [http://localhost:3015/testing/7.3](http://localhost:3015/testing/7.3)                       | Harmonisierung der primären Spielaktion  |
+| 7.4 — VibeSlider       | [http://localhost:3015/testing/7.4](http://localhost:3015/testing/7.4)                       | Evaluierung des Slider-Verhaltens        |
+| 7.5 — AutoBetDrawer    | [http://localhost:3015/testing/7.5](http://localhost:3015/testing/7.5)                       | Evaluierung des Auto-Bet-Drawers         |
+| 7.6 — GameStatsPanel   | [http://localhost:3015/testing/7.6](http://localhost:3015/testing/7.6)                       | Evaluierung des Statistik-Panels         |
+
+#### C — Relevante Live-Seiten für den Gesamtvergleich
+
+| Seite              | Vollständige URL                                                               |
+| ------------------ | ------------------------------------------------------------------------------ |
+| Startseite / Lobby | [http://localhost:3015/](http://localhost:3015/)                               |
+| Spiele-Übersicht   | [http://localhost:3015/games](http://localhost:3015/games)                     |
+| Crash              | [http://localhost:3015/games/crash](http://localhost:3015/games/crash)         |
+| Dice               | [http://localhost:3015/games/dice](http://localhost:3015/games/dice)           |
+| Roulette           | [http://localhost:3015/games/roulette](http://localhost:3015/games/roulette)   |
+| Slots              | [http://localhost:3015/games/slots](http://localhost:3015/games/slots)         |
+| Blackjack          | [http://localhost:3015/games/blackjack](http://localhost:3015/games/blackjack) |
+| Leaderboard        | [http://localhost:3015/leaderboard](http://localhost:3015/leaderboard)         |
+| Wetthistorie       | [http://localhost:3015/history](http://localhost:3015/history)                 |
+| VIP Vault          | [http://localhost:3015/vault](http://localhost:3015/vault)                     |
+
 ---
 
 ### Empfehlungs-Begründung
@@ -440,3 +493,297 @@ Eigenes Review des eigenen Plans — nachgelagerte Lücken & Verbesserungen:
 **Falls Jan visuell freigibt → App-Migration** (separater Plan, **nicht** hier): Lobby als echte React-Komponente mit Casino-Store-Binding neu bauen; Three.js/GSAP via npm + ESM + Tree-Shaking; `useEffect`-Cleanup (A1); DPR/Partikel adaptiv (A2, SA2); `npm audit`/Renovate (B6); echte Live-Feed-API (SA8); Vitest für Logik + Playwright für Lobby-Flow (SA10).
 
 **Falls Jan ablehnt** → Ansatz verwerfen oder iterieren; dieser §10 bleibt als Entscheidungstrail erhalten.
+
+---
+
+## 11 — Unabhängige Awwwards-Benchmark-Landingpage: „House of Signal“ (2026-08-14) · `Executed`
+
+> **Status:** `Executed` — eigenständiger Design-Prototype als zusätzliche Testseite gebaut, im Browser auf Desktop und Mobile geprüft, Production-Build und TypeScript erfolgreich verifiziert. **Wichtig:** Dieser Ansatz ist bewusst nicht aus den Cyber-Stealth-, Frosted-Obsidian-, Wasser- oder bestehenden V2-Seiten aus §§1–10 abgeleitet. [Awwwards](https://www.awwwards.com/) wurde ausschließlich als allgemeiner Benchmark für kuratierte, interaktionsorientierte Web-Erlebnisse betrachtet.
+
+### 11.1 — Ziel & eigenständige Designentscheidung
+
+Die neue Seite testet eine vollständig andere visuelle Sprache für Casino Royale:
+
+- **Paper-first statt Dark-first:** warme Papierfläche (`#f4f0e8`) als Grundfläche, dunkle Tinte nur für Hierarchie und eine einzelne Trust-Sektion.
+- **Editorial Signal:** übergroße typografische Komposition, asymmetrisches Raster, klare horizontale Ticker-Linie und wenige, bewusste Akzentfarben (Cobalt, Lime, Coral).
+- **Mixed Glass:** nur eine transluzente „Room temperature“-Karte mit begrenztem `backdrop-filter`; kein flächendeckendes Glassmorphism-System.
+- **Interaction as meaning:** Pointer-Orb, dezentes Tilt-Verhalten, Metric Count-up und scroll-basierter „Commit → Play → Verify“-Storytelling-Fluss.
+- **Casino ohne Kitsch:** keine Emojis, keine Neon-Glow-Wolken, keine 3D-Library und kein bestehendes Casino-Layout als visuelle Referenz.
+
+### 11.2 — Vollumfänglicher Implementationsplan
+
+| Bereich                | Umsetzung                                                                                                                             | Qualitätsziel                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| **Artefakt-Isolation** | Self-contained HTML unter `public/prototypes/awwwards_signal_landing.html`; keine Änderung am Live-Store, Wallet, API oder App-Bundle | Prototype bleibt gefahrlos lösch-/vergleichbar                       |
+| **Layout**             | 1440px-Editorial-Raster, mobile Breakpoints bei 900px/560px, Hero → Metrics → Rooms → Proof → Manifesto                               | Hierarchie bleibt auf Desktop und Mobile stabil                      |
+| **Visual System**      | Paper/ink foundation, Cobalt/Lime/Coral accents, Hairline borders, ein kontrolliertes Frosted-Panel                                   | Helles Theme mit hohem Kontrast und klarer Markenpersönlichkeit      |
+| **Motion**             | CSS ticker, reveal transitions, deterministic metric animation, pointer tilt/orb, IntersectionObserver-Fallback                       | Bewegung unterstützt Orientierung statt Dekoration                   |
+| **Storytelling**       | Proof-Sektion mit sticky Visual und drei sichtbaren Zuständen: Commit, Play, Verify                                                   | Fairness wird als Teil der Nutzerreise verständlich                  |
+| **Accessibility**      | Skip-Link, semantische H1/H2/H3-Hierarchie, benannte Links, `:focus-visible`, Rollen für Signal-Visuals, `prefers-reduced-motion`     | Tastatur- und reduzierte-Bewegung-Nutzung bleibt vollständig möglich |
+| **Performance**        | Keine neuen npm-Abhängigkeiten, keine externen Bilder, keine WebGL-/GSAP-Laufzeit, Pointer-Updates via `requestAnimationFrame`        | Schneller, deterministischer Visual-Prototype                        |
+| **Fallbacks**          | IntersectionObserver nicht verfügbar → Inhalte und Metriken sofort sichtbar; reduced motion → keine animierte Bewegung                | Kein leeres oder unsichtbares Layout bei eingeschränkter Runtime     |
+
+### 11.3 — Selbstprüfung aus drei Stakeholder-Perspektiven
+
+| Perspektive                            | Prüf-Fragen                                                                                                                                        | Ergebnis / Entscheidung                                                                                                                  |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **A — Creative Director / Brand**      | Ist der Ansatz eigenständig? Wirkt das Theme hell, hochwertig und nicht verspielt? Gibt es eine klare visuelle Idee statt einer UI-Sammlung?       | **Bestanden:** Editorial „signal before decision“-Idee, Paper-first-Grundfläche, kontrolliertes Mixed Theme und eigene Komposition.      |
+| **B — Frontend-/Performance-Engineer** | Gibt es neue Bundle-Abhängigkeiten? Sind Motion und Fallbacks deterministisch? Kann die Seite auf Mobile ohne horizontales Clipping funktionieren? | **Bestanden:** eine statische Datei, keine neuen Dependencies, Pointer-Raf-Bündelung, Observer-Fallback, Mobile-Smoke ohne `overflow-x`. |
+| **C — Accessibility-/Trust-Reviewer**  | Sind CTA, Navigation und Proof-Inhalt verständlich? Was passiert bei Tastatur, reduced motion oder fehlender Observer-API?                         | **Bestanden:** Skip-Link, Fokus-Ringe, klare Linktexte, semantische Signalrollen, reduced-motion-Regel und sofort sichtbarer Fallback.   |
+
+### 11.4 — Self-Audit nach der ersten Implementationsrunde
+
+| Fundstelle                                                                                      | Korrektur / Verstärkung                                                                                    | Status   |
+| ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------- |
+| IntersectionObserver hätte bei älteren Browsern die `.reveal`-Elemente unsichtbar lassen können | Observer-Erkennung ergänzt; ohne Observer werden Reveal-Inhalte und Metriken sofort sichtbar               | Erledigt |
+| Pointer-Events hätten bei schneller Mausbewegung unnötig viele Style-Updates erzeugt            | Cursor- und Hintergrundupdates via `requestAnimationFrame` zusammengeführt                                 | Erledigt |
+| Dekorative Signalflächen hatten nur `aria-label` auf generischen `div`s                         | `role="img"` für Hero-Stage und Multiplier-Core ergänzt                                                    | Erledigt |
+| Die Testseite durfte keine produktive Abhängigkeit vortäuschen                                  | Direkter Static-Prototype ohne Store/API/Wallet-Verbindung; Produktionsmigration ausdrücklich out of scope | Erledigt |
+| Motion durfte nicht zum Pflichtbestandteil der Erfahrung werden                                 | `prefers-reduced-motion` deaktiviert Ticker-/Pointer-/Reveal-Animationen                                   | Erledigt |
+
+### 11.5 — Execution-Audit
+
+| Artefakt / Prüfung                               | Ergebnis                                                                                                                                                                              |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `public/prototypes/awwwards_signal_landing.html` | Erstellt, self-contained, 1 HTML-Datei, keine neuen npm-Pakete                                                                                                                        |
+| HTTP-Aufruf                                      | `200 OK` auf `http://localhost:3015/prototypes/awwwards_signal_landing.html`                                                                                                          |
+| Browser-Desktop                                  | Titel, Hero, Metrics, Rooms, Proof und Manifesto gerendert; Console ohne Fehler/Warnungen                                                                                             |
+| Browser-Mobile (390×844)                         | `overflow-x: false`, ein H1, CTA sichtbar, Rooms sichtbar, reduced-motion-Regel vorhanden; Console ohne Fehler/Warnungen                                                              |
+| Navigation / Storytelling                        | `Rooms` und `Proof` scrollen korrekt; Proof-Schritte werden beobachtet; Metric-Werte erscheinen als `1.37s`, `100%`, `24/7`                                                           |
+| Inline-JavaScript                                | `vm.Script`-Parse erfolgreich                                                                                                                                                         |
+| `npx tsc --noEmit --incremental false`           | **0 Fehler**                                                                                                                                                                          |
+| `npm run build`                                  | **Erfolgreich**, 29 statische Seiten generiert                                                                                                                                        |
+| `npm run lint`                                   | Repo-weiter Lauf bleibt wegen bestehender Fehler in vendorten `public/prototypes/lib/*.js` und vorhandenen App-Dateien rot; keine neue TS/TSX-Datei durch diesen Prototype eingeführt |
+
+### 11.6 — Direkte visuelle Prüf-URL & Übergabe
+
+**Direkte URL:** [http://localhost:3015/prototypes/awwwards_signal_landing.html](http://localhost:3015/prototypes/awwwards_signal_landing.html)
+
+Dev-Server starten:
+
+```bash
+npm run dev
+```
+
+**Bewusste Grenze:** „House of Signal“ ist ein eigenständiger visueller Spike/Test und noch keine Migration der bestehenden Lobby. Erst wenn die visuelle Richtung freigegeben ist, wäre der nächste separate Plan die Überführung in eine echte React-Seite mit echten Casino-Daten, Navigation, Auth-States und Game-Links.
+
+---
+
+## 12 — Drei neue Landingpage-Richtungen zur Auswahl (2026-08-14) · `Superseded`
+
+> **Korrektur des vorherigen Versuchs:** „House of Signal“ aus §11 wurde als Stilrichtung verworfen. Die drei folgenden Mockups sind neue, bewusst deutlich anders gedachte Spikes. Sie sind keine Produktionsseiten und verwenden keine bestehende Redesign-Seite als Vorlage.
+
+> **Status aktualisiert 2026-08-14:** Die Optionen A/B/C aus diesem Abschnitt wurden auf Wunsch verworfen und die drei zugehörigen HTML-Dateien entfernt. Die gültigen, referenznahen Nachfolger stehen in §13.
+
+### 12.1 — Auswahlmatrix
+
+| Option | Stilrichtung      | Visuelle Idee                                                                                                         | Geeignet, wenn …                                                                  | Trade-off                                                                                        | Direkte HTML-Mockup-URL                                                                                                                      |
+| ------ | ----------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A**  | **Quiet Luxury**  | Warmes Ivory, Graphit, feine Goldlinien, Serifenschrift und eine private-room-artige Bühne. Sehr wenig Glassmorphism. | das Casino ruhig, hochwertig und erwachsen wirken soll.                           | Weniger „digital“ und weniger datenintensiv; Spielspannung muss über Content und Motion kommen.  | [http://localhost:3015/prototypes/landing_option_a_quiet_luxury.html](http://localhost:3015/prototypes/landing_option_a_quiet_luxury.html)   |
+| **B**  | **Pearl Glass**   | Helles Mint-/Pearl-Grunddesign, milchige Glasflächen, Aqua-/Cobalt-Akzente und weiche Live-Datenkarten.               | ein helles Mixed Theme mit Atmosphäre und sichtbarem Glassmorphism gewünscht ist. | Kann bei zu vielen transparenten Flächen wieder zu „soft“ oder verspielt werden.                 | [http://localhost:3015/prototypes/landing_option_b_pearl_glass.html](http://localhost:3015/prototypes/landing_option_b_pearl_glass.html)     |
+| **C**  | **Cobalt Studio** | Weißes Canvas, Navy, Cobalt-Blau, klare Live-Board-Grafik und strikt strukturierte Karten.                            | Professionalität, Kontrast und Nutzbarkeit wichtiger sind als Club-/Luxusgefühl.  | Weniger emotional und weniger einzigartig als A oder B; näher an einem Premium-Produktinterface. | [http://localhost:3015/prototypes/landing_option_c_cobalt_studio.html](http://localhost:3015/prototypes/landing_option_c_cobalt_studio.html) |
+
+### 12.2 — Erstellte Mockup-Dateien
+
+| Datei                                                   | Status   | Enthält                                                                      |
+| ------------------------------------------------------- | -------- | ---------------------------------------------------------------------------- |
+| `public/prototypes/landing_option_a_quiet_luxury.html`  | Erstellt | Hero, Private-Room-Visual, Chip, Rooms-Liste, responsive Layout              |
+| `public/prototypes/landing_option_b_pearl_glass.html`   | Erstellt | Pearl-Glass-Hero, Live-Pulse, Sparkline-Karte, Room-Cards, responsive Layout |
+| `public/prototypes/landing_option_c_cobalt_studio.html` | Erstellt | Live-Board, Graph, KPI-Bar, asymmetrisches Room-Grid, responsive Layout      |
+
+### 12.3 — Gemeinsame Qualitätsgrenzen der drei Spikes
+
+- Kein Dark-Theme als Grundfläche.
+- Keine neuen npm-Abhängigkeiten, keine Store-/Wallet-/API-Anbindung.
+- Direkte Game-Links sind nur visuelle Platzhalter für die bestehende App.
+- `prefers-reduced-motion` ist in allen drei Mockups berücksichtigt.
+- Alle drei Varianten wurden auf Desktop und 390×844 Mobile ohne horizontales Overflow geprüft.
+
+### 12.4 — Nächster Entscheidungs-Check
+
+Die drei Seiten sollten mit identischen Fragen verglichen werden:
+
+1. Welche Variante fühlt sich am wenigsten verspielt und trotzdem nach Casino an?
+2. Welche Variante funktioniert für Lobby, Games, History und Leaderboard als gemeinsames System?
+3. Welche Variante bleibt auf Mobile klar, ohne ihren Charakter zu verlieren?
+
+Erst nach der Auswahl einer Richtung folgt ein eigener Produktionsplan für Tokens, echte React-Komponenten und die Migration der bestehenden Seiten.
+
+---
+
+## 13 — Referenznahe Casino-Dashboard-Mockups (2026-08-14) · `Option 1 selected / Option 2 removed`
+
+> **Ziel:** Die drei gelieferten Referenzen wurden auf ihre gemeinsame visuelle Sprache reduziert: dunkle Navy-/Teal-Grundflächen, farbintensive Purple-/Blue-Flächen, neonartige Akzente, linke Dashboard-Navigation, starke Hero-Bühne und große illustrative Karten. Die Umsetzung bleibt eigenständig: eigene Texte, eigene CSS-Visuals, keine kopierten Dribbble-Assets und keine Produktionsanbindung.
+
+> **Status aktualisiert:** Option 2 / Night Crest wurde auf Wunsch entfernt. Option 1 / Neon Arcade wird als aktive Richtung optimiert; Option 3 / Bet Circuit bleibt als Vergleichsrichtung erhalten.
+
+### 13.1 — Analyse der drei Referenzrichtungen
+
+| Referenz                  | Beobachtete Leitidee                                                                                     | Übertragene Struktur                                                                                                           |
+| ------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| JACKPOP / Crypto Casino   | Maximale Energie, Purple-/Cyan-Umgebung, Lime-CTA, 3D-Charakter-/Coin-Anmutung, drei breite Promo-Karten | Neon Arcade: kompakte Casino-Sidebar, große zweifarbige Hero-Bühne, CSS-Mascot/Burst/Coin-Art und drei farbige Kampagnenkarten |
+| Ninja Blaze / Casino      | Fantasy-Spielwelt, tiefe Blue-/Violet-Flächen, große Featured Games, Community-Chat                      | Night Crest: Hero mit Mond-/Turm-Szene, 2 Featured Games, 3 kommende Spiele und rechte Live-Lounge                             |
+| EarnBet / Casino Redesign | Finanz-/Rewards-Anmutung, Teal-Grundfläche, Roulette-/Wheel-Visual, VIP-Status, klare Bonus-Cards        | Bet Circuit: Level-/VIP-Hero, CSS-Roulette-Wheel, Feature-Bullets, Lime-CTA und drei Rewards-/Cashback-Karten                  |
+
+### 13.2 — Neue Testseiten
+
+| Option | Stilrichtung    | Kurze Beschreibung                                                                                                                                     | Direkte URL                                                                                                                                  |
+| ------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1**  | **Neon Arcade** | Energetische JACKPOP-nahe Casino-Lobby mit Sidebar, „Play loud. Win brighter.“-Hero, abstrakter CSS-Mascot-Szene und drei farbigen Promo-Karten.       | [http://localhost:3015/prototypes/reference_option_1_neon_arcade.html](http://localhost:3015/prototypes/reference_option_1_neon_arcade.html) |
+| **3**  | **Bet Circuit** | Rewards-/Trading-inspirierte Lobby mit „Zero waiting. All action.“-Hero, CSS-Roulette-Wheel, VIP-Levelkarte, Feature-Bullets und drei Kampagnenkarten. | [http://localhost:3015/prototypes/reference_option_3_bet_circuit.html](http://localhost:3015/prototypes/reference_option_3_bet_circuit.html) |
+
+**Entfernt:** `public/prototypes/reference_option_2_night_crest.html` · Status: verworfen.
+
+### 13.3 — Gemeinsame Umsetzungsgrenzen
+
+| Bereich           | Entscheidung                                                                                                                             |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Artefakt**      | Zwei verbleibende self-contained HTML-Dateien unter `public/prototypes/`; keine Änderung an Store, Wallet, API oder App-Bundle           |
+| **Visuals**       | CSS-only Shapes, Gradients und Typografie; keine externen Bilder, Fonts oder neuen npm-Abhängigkeiten                                    |
+| **Interaction**   | Kleine lokale Nav-State-Interaktion; Chat-Eingabe bleibt bewusst ein nicht-sendendes Mockup                                              |
+| **Responsive**    | Desktop-Dashboard mit kompakter Sidebar; bei 390×844 wird die Sidebar ausgeblendet und die Karten werden in ein mobiles Raster überführt |
+| **Accessibility** | Ein H1 je Seite, benannte Buttons/Input, `:focus`-fähige native Controls und `prefers-reduced-motion`                                    |
+
+### 13.4 — Prüfung aus drei Perspektiven
+
+| Perspektive                            | Prüffrage                                                                                           | Ergebnis                                                                                                                            |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **A — Creative Director**              | Sind die Varianten klar näher an den Referenzen und trotzdem eigenständig?                          | **Bestanden:** drei unterschiedliche Schwerpunkte, aber gemeinsame Referenzsprache; keine kopierten Assets/Texte.                   |
+| **B — Frontend-/Performance-Engineer** | Sind die Testseiten isoliert, deterministisch und ohne neue Abhängigkeiten?                         | **Bestanden:** statische HTML-Spikes, keine Netzwerk-Assets, keine Runtime-Dependencies, keine neuen TS/TSX-Dateien.                |
+| **C — Accessibility-/Trust-Reviewer**  | Bleibt die Struktur auf Mobile verständlich und wird kein echter Casino-/Wallet-State vorgetäuscht? | **Bestanden:** klare Demo-Texte, kein Store/API-Call, Mobile ohne horizontales Overflow, Chat und CTA bleiben als Mockup erkennbar. |
+
+### 13.5 — Execution-Audit
+
+| Prüfung                    | Ergebnis                                                                                                                                                                                   |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Veraltete A/B/C-Dateien    | Entfernt: `landing_option_a_quiet_luxury.html`, `landing_option_b_pearl_glass.html`, `landing_option_c_cobalt_studio.html`                                                                 |
+| HTTP-Erreichbarkeit        | Option 1 und Option 3 liefern `200 OK`; Option 2 ist absichtlich entfernt                                                                                                                  |
+| Browser-Desktop            | Option 1 final bei 1280×720 geprüft; 1 H1, sichtbarer Hero, keine Console-Fehler/Warnungen, kein horizontales Overflow                                                                     |
+| Browser-Mobile             | Option 1 final bei 390×844 geprüft; 1 H1, Hero-Karte innerhalb des Viewports, Sidebar ausgeblendet, drei Karten lesbar, keine Console-Fehler/Warnungen                                     |
+| Visuelle Kontrolle         | Option 1 vor der Überarbeitung sowie nach Runde 1 und Runde 2 als gerenderte Desktop-/Mobile-Ansicht kontrolliert                                                                          |
+| Inline-HTML-Parse / Diff   | Beide verbleibenden HTML-Scripts per `vm.Script` geparst; `git diff --check` ohne Whitespace-Fehler                                                                                        |
+| TypeScript-/Build-Baseline | Ausgeführt, aber bestehender Importfehler auf die nicht vorhandene `src/components/auth/auth-validation` blockiert beide Läufe; keine betroffene `src`-Datei durch diese Aufgabe verändert |
+| Scope                      | Option 2 entfernt, Option 1 optimiert, Option 3 unverändert; Produktionsmigration bleibt ein späterer, separater Schritt                                                                   |
+
+---
+
+## 14 — Neon Arcade Optimierungsdurchlauf (2026-08-14) · `Executed`
+
+> **Arbeitsplan:** [Neon Arcade Visual Optimization Plan](../docs/superpowers/plans/2026-08-14-neon-arcade-optimization.md)
+
+### 14.1 — Signifikanz- und Umsetzungsstatus
+
+| Runde           | Umfang                                                                                                                            | Ergebnis                                         |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Ausgangsanalyse | 15 Optimierungshebel nach Signifikanz bewertet                                                                                    | Abgeschlossen; Top 10 für Runde 1 ausgewählt     |
+| Runde 1         | Colorway, Hero-Art, Typografie, Kartenmotive, Layout-Rhythmus, Canvas-Tiefe, Branding, Shape-System, Interactions, Utility-Header | Umgesetzt und per Desktop-/Mobile-Render geprüft |
+| Self-Review     | 10 weitere Potenziale aus Creative-, Frontend- und Accessibility-Perspektive bewertet                                             | Abgeschlossen; Top 7 für Runde 2 ausgewählt      |
+| Runde 2         | Mobile-Crop, Mini-Artefakte, Copy/Status, Motion, Kontrast/Fokus, kompakte Shell, Materialität                                    | Umgesetzt und abschließend verifiziert           |
+
+### 14.2 — Finale Option-1-URL
+
+[http://localhost:3015/prototypes/reference_option_1_neon_arcade.html](http://localhost:3015/prototypes/reference_option_1_neon_arcade.html)
+
+---
+
+## 15 — Neon Arcade Dashboard-Komponente (2026-08-14) · `Executed / Isolated Test Page`
+
+> **Scope-Korrektur:** Die ausgewählte Richtung wurde bewusst **nicht** auf die produktive Startseite `/` übertragen. Sie lebt als eigenständige React-Testkomponente unter `/testing/neon-arcade-dashboard`; `src/app/page.tsx` und das produktive `ClientShell` blieben unverändert.
+
+> **Design-Spezifikation:** [Neon Arcade Dashboard Design Specification](../docs/superpowers/specs/2026-08-14-neon-arcade-dashboard-design.md) · **Implementationsplan:** [Neon Arcade Dashboard Implementation Plan](../docs/superpowers/plans/2026-08-14-neon-arcade-dashboard.md)
+
+### 15.1 — Direkte URL
+
+[http://localhost:3015/testing/neon-arcade-dashboard](http://localhost:3015/testing/neon-arcade-dashboard)
+
+### 15.2 — Gemeinsame Entscheidung aus drei Stakeholder-Perspektiven
+
+| Perspektive                      | Priorität                                                               | Umgesetzter gemeinsamer Nenner                                                                                                                         |
+| -------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Player / Product                 | Spielauswahl, Status und Live-Aktivität sofort verständlich             | Hero mit zwei klaren CTAs, fünf echte Game-Ziele, Session-Pulse, Live Floor und Community Run                                                          |
+| Creative / Brand                 | Classy-playful ohne grelle Dauer-Neons                                  | Petrol-/Ink-Basis, gedämpftes Lime nur für primäre Aktionen, Terrakotta/Aubergine/Teal als kontrollierte Visual-Akzente                                |
+| Frontend / Accessibility / Trust | Isolation, reale Daten, verständliche Zustände und mobile Bedienbarkeit | `/testing/*`-Standalone-Shell, Zustand-Store/API-Anbindung, semantische Navigation, benannte Controls, Escape-Drawer, Fokus- und Reduced-Motion-Regeln |
+
+### 15.3 — Implementierte Artefakte
+
+| Datei                                                           | Verantwortung                                                                      |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `src/app/testing/neon-arcade-dashboard/page.tsx`                | Isolierter Next.js-Testseiten-Entry und Metadata                                   |
+| `src/components/home/NeonArcadeDashboard.tsx`                   | Casino-Store/Auth-Anbindung sowie lokaler Filter-, Drawer- und Balance-State       |
+| `src/components/home/NeonArcadeDashboardView.tsx`               | Testbare Dashboard-View mit Sidebar, Topbar, Hero, Game Floor und Insights         |
+| `src/components/home/NeonArcadeDashboard.module.css`            | Tokens, Responsive Shell, Kontrastrollen und CSS-/SVG-Visualisierungen             |
+| `src/components/home/neon-arcade-dashboard-model.ts`            | Fünf Game-Konfigurationen, robuste Kennzahlenableitung und Money-Formatierung      |
+| `src/components/home/__tests__/neon-arcade-dashboard-*.test.ts` | Modell- und Renderverträge für Daten, Navigation, Filter, Drawer und Balance-Maske |
+
+### 15.4 — Relevante Visualisierungen
+
+- Crash Atelier: eigene SVG-Trajektorie mit Live-Multiplikator.
+- Royale Roulette: CSS-Rad mit Segmenten, Track, Hub und Kugel.
+- Velvet Blackjack: gestaffelter Kartenfächer mit Dealer-Signal.
+- Dice Studio: Wahrscheinlichkeitsverteilung plus modelliertes Würfelpaar.
+- Afterglow 777: dreispaltiges Reel-Fenster mit Payline und Progressive-Pool.
+- Session- und Community-Bereich: Activity-Bars, Rank-Fortschritt, Live-Win-Tabelle und radialer Community-Fortschritt.
+
+### 15.5 — Execution- und Self-Review-Audit
+
+| Gate                | Evidenz / Ergebnis                                                                                                    |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| TDD RED             | View-Test schlug erwartungsgemäß fehl, solange `NeonArcadeDashboardView` noch nicht existierte                        |
+| TDD GREEN           | 3 Testdateien, 23 Tests bestanden                                                                                     |
+| Gezieltes ESLint    | Ohne Befund                                                                                                           |
+| TypeScript          | `npx tsc --noEmit --incremental false` bestanden                                                                      |
+| Production Build    | `npm run build` bestanden; Route `/testing/neon-arcade-dashboard` im Build-Manifest enthalten                         |
+| Desktop 1280×720    | Eigenständige Sidebar/Topbar, Hero/Floor Pulse, kein altes Gold-/Foto-Design und kein horizontales Overflow           |
+| Tablet 1024×768     | Kompakte zweispaltige Bühne und sichtbarer Beginn des Game Floors, kein horizontales Overflow                         |
+| Mobile 390×844      | Einspaltige Komposition, geschlossener Drawer, alle fünf Spielkarten und Insights geprüft, kein horizontales Overflow |
+| Interaktionen       | Featured/Fast/Table/All, Drawer öffnen/schließen, Escape-Key und Balance-Maske geprüft                                |
+| Kontrast-Stichprobe | Warm Ink/Canvas 16.49:1, Muted/Surface 6.69:1, CTA-Text/Lime 10.99:1, Terrakotta/Surface 4.95:1                       |
+| Browser-Konsole     | Keine Errors oder Warnings                                                                                            |
+| Self-Review-Fix     | Mobile Account-Block vom Next.js-Entwicklungsindikator weggerückt; anschließend erneut visuell geprüft                |
+| Produktionsschutz   | `/` rendert weiterhin `HomeClientV2`; `ClientShell` weist keinen Dashboard-Diff auf                                   |
+
+---
+
+## 16 — Neon Arcade Dashboard Optimization Pass 2 (2026-08-14) · `Executed`
+
+> **Auslöser:** Der erste React-Pass war funktional, wirkte aber zu statisch und zu stark wie ein gleichförmiges Bento-Dashboard. Besonders European Table und Private Table waren visuell zu abstrakt; Lime-Aktionen wurden durch eine CSS-Kaskadenkollision teilweise mit weißem Text gerendert.
+
+> **Design-Spezifikation:** [Optimization Design Specification](../docs/superpowers/specs/2026-08-14-neon-arcade-dashboard-optimization-design.md) · **Implementationsplan:** [Optimization Implementation Plan](../docs/superpowers/plans/2026-08-14-neon-arcade-dashboard-optimization.md)
+
+### 16.1 — Direkte URL
+
+[http://localhost:3015/testing/neon-arcade-dashboard](http://localhost:3015/testing/neon-arcade-dashboard)
+
+### 16.2 — Umgesetzte Top 8
+
+| Rang | Optimierungshebel                     | Signifikanz | Resultat                                                                                 |
+| ---- | ------------------------------------- | ----------: | ---------------------------------------------------------------------------------------- |
+| 1    | CSS-Kaskade und Control-Kontrast      |       10/10 | Scoped Selektoren; dunkler Text auf allen Lime-Aktionen, gemessen mit mindestens 12,66:1 |
+| 2    | European Table als vollständige Szene |        9/10 | Top-down-Wheel, Ballbahn, Zero-Segment und Betting Board statt Mini-Rad                  |
+| 3    | Private Table als vollständige Szene  |        9/10 | Halbrundes Felt, Dealer-/Player-Zonen, Hände, Scores und Chipstack statt Kartenfächer    |
+| 4    | Bento-Grid zur Game Runway            |       10/10 | Ein großes aktives Spotlight plus interaktiver Room Index ohne tote Rasterfläche         |
+| 5    | Reichere semantische Farbwelt         |        9/10 | Spruce/Teal/Ivory mit Lime, Coral, Saffron und Iris statt fahler Einfarbigkeit           |
+| 6    | Bedeutungsvolle Motion                |        8/10 | Chart Draw, Ball Orbit, Card Deal und Spotlight Entry mit Reduced-Motion-Fallback        |
+| 7    | Editorialere Typografie               |        8/10 | Kompakterer Hero, stärkere Größenkontraste und klarere Meta-Hierarchie                   |
+| 8    | Material und Tiefe                    |        8/10 | Felt, Hairlines, Tischkanten und gerichtete Flächen statt uniformer Bento-Karten         |
+
+### 16.3 — Bewusst zurückgestellt
+
+| Hebel                           | Grund                                                                                                        |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Vollständiger Sidebar-IA-Umbau  | Kein direkter Hebel gegen die aktuelle Hauptkritik; bestehende Navigation bleibt funktional und verständlich |
+| Neue Datenstruktur für Insights | Würde Produkt-/Daten-Scope erweitern, ohne die zentrale Game-Floor-Wirkung proportional zu verbessern        |
+
+### 16.4 — Execution- und Self-Review-Audit
+
+| Gate                        | Ergebnis                                                                                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Tests                       | 2 gezielte Testdateien, 12/12 Tests bestanden                                                                                              |
+| ESLint / TypeScript / Build | Alle bestanden; `/testing/neon-arcade-dashboard` im Next.js-Build-Manifest                                                                 |
+| Desktop / Tablet / Mobile   | 1280×720, 1024×768 und 390×844 visuell geprüft; jeweils kein horizontaler Seitenüberlauf                                                   |
+| Interaktionen               | Featured/Fast rounds/Table/All und alle Room-Selectoren halten den aktiven Zustand konsistent                                              |
+| Kontrast                    | Active Nav 12,66:1; Sign-in 12,68:1; Primary CTA 12,68:1; aktiver Filter 12,70:1                                                           |
+| Reduced Motion              | Laufende CSSOM-Regeln deaktivieren neue Animationen, Hover-Transforms und Übergänge                                                        |
+| Browser-Konsole             | Keine Errors oder Warnings                                                                                                                 |
+| Self-Review-Fixes           | Blackjack-Regelnotiz vom Player-Label entkoppelt; Roulette-Ballradius responsive gemacht; nativer Tablet-/Mobile-Scrollbalken ausgeblendet |
+| Scope                       | Ausschließlich isolierte Testseite, Dashboard-Komponenten, Tests und Dokumentation; produktive Startseite und `ClientShell` unverändert    |
