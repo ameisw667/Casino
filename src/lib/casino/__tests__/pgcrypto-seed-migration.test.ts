@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const root = resolve(__dirname, '../../../..');
-const migrationPath = resolve(root, 'supabase/migrations/021_require_pgcrypto_for_seed_chain.sql');
+const migrationPath = resolve(root, 'supabase/migrations/026_require_pgcrypto_for_seed_chain.sql');
 
 describe('seed chain pgcrypto prerequisite', () => {
   it('installs pgcrypto and recreates both seed functions with schema-qualified crypto calls', () => {

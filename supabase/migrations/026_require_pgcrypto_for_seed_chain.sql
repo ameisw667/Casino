@@ -1,4 +1,6 @@
--- Migration 021: pgcrypto is a hard prerequisite for the seed chain.
+-- Migration 026: pgcrypto is a hard prerequisite for the seed chain.
+-- (Renumbert von 021 -> 026 am 2026-08-12: Nummer 021 war bereits durch
+-- 021_promo_codes.sql belegt, siehe worldmap/05_1.10 ...md Abschnitt 15.)
 --
 -- Root cause: Migration 019 created functions that call gen_random_bytes()
 -- and digest(), but it never installed pgcrypto. PostgreSQL therefore deferred
