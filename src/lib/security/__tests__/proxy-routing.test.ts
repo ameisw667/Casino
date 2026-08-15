@@ -57,6 +57,10 @@ describe('isPublicRoute pattern matching', () => {
     expect(isPublicRoute('/api/internal/cron-alert')).toBe(true);
   });
 
+  it('does not list /api/health in PUBLIC_ROUTES — it bypasses proxy() before the Supabase client is created instead (see the dedicated source-order test)', () => {
+    expect(isPublicRoute('/api/health')).toBe(false);
+  });
+
   it('correctly blocks protected non-public routes', () => {
     expect(isPublicRoute('/admin')).toBe(false);
     expect(isPublicRoute('/admin/users')).toBe(false);

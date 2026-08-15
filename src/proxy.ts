@@ -71,6 +71,30 @@ function withRefreshedCookies(from: NextResponse, terminal: NextResponse): NextR
 export default async function proxy(req: NextRequest) {
   try {
     const pathname = req.nextUrl.pathname;
+
+    // Liveness probe for external uptime monitoring (05_1.13): must never depend on
+    // Supabase reachability, so it is bypassed here, before the client below is even
+    // created — a misconfigured/unreachable Supabase project on staging must not make
+    // this route report the app as "down" for an unrelated reason. This is the single
+    // source of truth for the route's public/no-auth status (deliberately not also
+    // listed in PUBLIC_ROUTES, to avoid the two declarations drifting apart).
+    if (pathname === '/api/health') {
+      return NextResponse.next({ request: req });
+    }
+
+    // Staging never accepts mutating API calls — it shares Production's Supabase project
+    // (05_1.13 §5.3/N5), so this is a hard technical block, not just a documented
+    // convention. VERCEL_GIT_COMMIT_REF is Vercel's own automatic env var (the deploying
+    // branch name); nothing to configure by hand, so it cannot be forgotten.
+    const isMutatingMethod = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);
+    if (
+      isMutatingMethod &&
+      pathname.startsWith('/api/') &&
+      process.env.VERCEL_GIT_COMMIT_REF === 'staging'
+    ) {
+      return new NextResponse('Staging accepts no API mutations (05_1.13, R5).', { status: 503 });
+    }
+
     const isWebhook =
       pathname.startsWith('/api/webhooks/clerk') ||
       pathname.startsWith('/api/telegram/webhook') ||
