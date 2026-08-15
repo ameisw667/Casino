@@ -66,3 +66,7 @@ test-results/
 # one-shot rollout/verify scripts (keep verify-migrations-applied.sql committed)
 scripts/_tmp_*
 .qa-tmp/
+
+# local scratch/build directories (never commit)
+Workroom/
+web/
