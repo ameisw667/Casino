@@ -5,6 +5,8 @@
 > **Vorgänger:** [01_WORLDMAP_STATUS.md](../01_WORLDMAP_STATUS.md) Abschnitt 2 — dort steht nur Status, keine Ideen/Brainstorming. Diese Datei ist der bewusst ausgelagerte Ort dafür.
 > **Auslöser:** Alle 12 Kategorien aus `01_WORLDMAP_STATUS.md` sind Top 15–40 %, Prod-Ready Ja (Stand 2026-08-09) — die Supabase-Server-Autorität (Migration 007–016) trägt. Diese Datei beantwortet die Anschlussfrage „was baut man auf diesem Fundament als Nächstes", nicht „was ist kaputt".
 
+> **R5 Offene-Commits-Tracker abgeschlossen (2026-08-15):** Der konsolidierte Living-Tracker `worldmap/04-offene-commits-r5.md` wurde vollumfänglich abgearbeitet und aus dem Worldmap-Ordner entfernt. Ausgeführt und auf `origin/main` gepusht: C44 `chore: ignore local scratch dirs` (inkl. Drop des konsolidierten R4-Trackers `03-offene-commits-r4.md`); C43 `feat: add neon arcade lobby snapshot and rewards model` (TDD-GREEN des R4-Carry-forward-Stubs, 514/514 Tests, `tsc`/`lint`/`build`/`vibe-check` grün); C45 Push aller lokalen Commits. Bewusst ausgeklammert und uncommitted bleiben die laufenden Weltmap-Initiativen 1.10 Chaos, 1.13 Uptime-Kuma, 1.14 Upstash, 2.8 Anti-Fraud, 2.9 PostHog — deren Code und Docs werden erst mit Abschluss der jeweiligen Initiative committet.
+
 ---
 
 ## 1 — Übersicht für Jan (5 % Scope)
