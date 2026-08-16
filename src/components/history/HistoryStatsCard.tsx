@@ -1,7 +1,6 @@
 'use client';
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Wallet, TrendingUp, Target, Zap, LucideIcon } from 'lucide-react';
 
 interface HistoryStatsCardProps {
   loading: boolean;
@@ -16,7 +15,7 @@ interface StatItem {
   label: string;
   value: string;
   color: string;
-  icon: LucideIcon;
+  sublabel?: string;
 }
 
 export function HistoryStatsCard({
@@ -27,34 +26,32 @@ export function HistoryStatsCard({
   totalBets,
   isMobile,
 }: HistoryStatsCardProps) {
+  const isProfit = netProfit >= 0;
+
   const stats: StatItem[] = [
     {
-      label: 'TOTAL WAGERED',
+      label: 'GESAMTER EINSATZ',
       value: loading
         ? '…'
-        : `$${totalWagered.toLocaleString('en-US', { maximumFractionDigits: 2 })}`,
-      color: 'var(--stealth-accent, #cbd5e1)',
-      icon: Wallet,
+        : `$${totalWagered.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      color: '#D4AF37',
     },
     {
-      label: 'NET PROFIT',
+      label: 'NETTO PROFIT',
       value: loading
         ? '…'
-        : `${netProfit >= 0 ? '+' : '-'}$${Math.abs(netProfit).toLocaleString('en-US', { maximumFractionDigits: 2 })}`,
-      color: netProfit >= 0 ? 'var(--stealth-emerald, #00e676)' : 'var(--stealth-crimson, #ff3366)',
-      icon: TrendingUp,
+        : `${isProfit ? '+' : '-'}$${Math.abs(netProfit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      color: isProfit ? '#10b981' : '#ef4444',
     },
     {
-      label: 'WIN RATE',
+      label: 'GEWINNQUOTE',
       value: loading ? '…' : `${winRate}%`,
-      color: 'var(--stealth-accent, #cbd5e1)',
-      icon: Target,
+      color: '#ffffff',
     },
     {
-      label: 'TOTAL BETS',
-      value: loading ? '…' : totalBets.toString(),
-      color: 'var(--stealth-accent, #cbd5e1)',
-      icon: Zap,
+      label: 'WETTEN GESAMT',
+      value: loading ? '…' : totalBets.toLocaleString('en-US'),
+      color: '#ffffff',
     },
   ];
 
@@ -66,66 +63,53 @@ export function HistoryStatsCard({
       style={{
         display: 'grid',
         gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
-        gap: isMobile ? '10px' : '14px',
+        gap: isMobile ? '10px' : '12px',
       }}
     >
-      {stats.map((stat, i) => {
-        const IconComponent = stat.icon;
-        return (
+      {stats.map((stat, i) => (
+        <div
+          key={i}
+          style={{
+            padding: isMobile ? '14px 16px' : '16px 20px',
+            borderRadius: '14px',
+            background: 'rgba(255, 255, 255, 0.025)',
+            border: '1px solid rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
+        >
           <div
-            key={i}
             style={{
-              padding: isMobile ? '12px 14px' : '16px 18px',
-              borderRadius: '8px',
-              background: 'var(--stealth-surface, #141923)',
-              border: '1px solid var(--stealth-border, #1e2638)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              fontSize: '0.6rem',
+              fontWeight: 700,
+              color: 'rgba(255, 255, 255, 0.35)',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              marginBottom: '6px',
             }}
           >
-            <div>
-              <div
-                style={{
-                  fontSize: '0.65rem',
-                  fontWeight: 800,
-                  color: 'hsl(var(--text-dim))',
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {stat.label}
-              </div>
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: isMobile ? '1.1rem' : '1.35rem',
-                  fontWeight: 800,
-                  color: stat.color,
-                  marginTop: '4px',
-                }}
-              >
-                {stat.value}
-              </div>
-            </div>
-            <div
-              style={{
-                width: '34px',
-                height: '34px',
-                borderRadius: '6px',
-                background: 'rgba(203, 213, 225, 0.06)',
-                border: '1px solid rgba(203, 213, 225, 0.12)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: stat.color,
-              }}
-            >
-              <IconComponent size={18} />
-            </div>
+            {stat.label}
           </div>
-        );
-      })}
+          <div
+            style={{
+              fontFamily: 'var(--font-mono, monospace)',
+              fontSize: isMobile ? '1.15rem' : '1.35rem',
+              fontWeight: 900,
+              color: stat.color,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.1,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {stat.value}
+          </div>
+        </div>
+      ))}
     </motion.div>
   );
 }

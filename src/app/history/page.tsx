@@ -103,18 +103,53 @@ export default function HistoryPage() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: '8px',
+        }}
       >
-        <h1
-          style={{
-            fontSize: isMobile ? '1.4rem' : '1.7rem',
-            fontWeight: 900,
-            letterSpacing: '-0.01em',
-            color: 'var(--stealth-accent, #cbd5e1)',
-          }}
-        >
-          BET HISTORY // TERMINAL TAPE
-        </h1>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h1
+              style={{
+                fontSize: isMobile ? '1.4rem' : '1.75rem',
+                fontWeight: 900,
+                letterSpacing: '-0.02em',
+                color: '#ffffff',
+              }}
+            >
+              MEINE WETTEN
+            </h1>
+            <span
+              style={{
+                background: 'rgba(212, 175, 55, 0.12)',
+                border: '1px solid rgba(212, 175, 55, 0.25)',
+                color: '#D4AF37',
+                fontSize: '0.58rem',
+                fontWeight: 800,
+                padding: '2px 8px',
+                borderRadius: '4px',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+              }}
+            >
+              VIP HISTORY
+            </span>
+          </div>
+          <p
+            style={{
+              fontSize: '0.8rem',
+              color: 'rgba(255, 255, 255, 0.45)',
+              marginTop: '4px',
+              fontWeight: 500,
+            }}
+          >
+            Vollständige Historie aller gespielten Runden mit kryptografischer Verifikation.
+          </p>
+        </div>
       </motion.div>
 
       <HistoryStatsCard
@@ -132,14 +167,7 @@ export default function HistoryPage() {
         filteredCount={filteredRows.length}
       />
 
-      <div
-        style={{
-          background: 'var(--stealth-surface, #141923)',
-          border: '1px solid var(--stealth-border, #1e2638)',
-          borderRadius: '8px',
-          overflow: 'hidden',
-        }}
-      >
+      <div>
         <HistoryTableStream loading={loading} rows={filteredRows} isMobile={isMobile} />
       </div>
     </div>
