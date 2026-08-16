@@ -2,7 +2,6 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, Tooltip, ResponsiveContainer, XAxis, YAxis } from 'recharts';
-import { Clock } from 'lucide-react';
 import { buildDailyActivity, type HistoryRow } from '@/lib/casino/stats-derivation';
 
 interface SessionLengthChartProps {
@@ -29,13 +28,15 @@ export function SessionLengthChart({ loading, rows, isMobile }: SessionLengthCha
       transition={{ delay: 0.25 }}
       style={{
         gridColumn: isMobile ? 'span 1' : 'span 2',
-        padding: isMobile ? '16px' : '24px',
-        borderRadius: '12px',
-        background: 'var(--stealth-surface, #141923)',
-        border: '1px solid var(--stealth-border, #1e2638)',
+        padding: isMobile ? '16px' : '20px 24px',
+        borderRadius: '16px',
+        background: 'rgba(12, 12, 14, 0.7)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid rgba(255, 255, 255, 0.05)',
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '260px',
+        minHeight: '270px',
       }}
     >
       <div
@@ -50,26 +51,26 @@ export function SessionLengthChart({ loading, rows, isMobile }: SessionLengthCha
       >
         <div
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            color: 'var(--stealth-accent, #cbd5e1)',
+            fontSize: '0.62rem',
+            fontWeight: 700,
+            color: 'rgba(255, 255, 255, 0.35)',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
           }}
         >
-          <Clock size={16} />
-          <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>SESSION-LÄNGE</span>
+          SESSION-LÄNGE
         </div>
         <span
-          title="Näherungswert: Zeitspanne zwischen erstem und letztem Bet pro Tag — zählt Pausen zwischen Bets mit."
+          title="Näherungswert: Zeitspanne zwischen erstem und letztem Bet pro Tag."
           style={{
-            fontSize: '0.6rem',
+            fontSize: '0.58rem',
             fontWeight: 800,
-            color: 'hsl(var(--text-dim))',
-            background: 'rgba(203, 213, 225, 0.08)',
-            border: '1px solid var(--stealth-border, #1e2638)',
-            borderRadius: '999px',
-            padding: '3px 8px',
-            letterSpacing: '0.04em',
+            color: '#D4AF37',
+            background: 'rgba(212, 175, 55, 0.1)',
+            border: '1px solid rgba(212, 175, 55, 0.2)',
+            borderRadius: '4px',
+            padding: '2px 6px',
+            letterSpacing: '0.06em',
             cursor: 'help',
           }}
         >
@@ -79,12 +80,14 @@ export function SessionLengthChart({ loading, rows, isMobile }: SessionLengthCha
 
       {loading ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ color: 'hsl(var(--text-dim))', fontSize: '0.85rem' }}>Lädt…</span>
+          <span style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '0.85rem' }}>Lädt…</span>
         </div>
       ) : activity.length < 2 ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ color: 'hsl(var(--text-dim))', fontSize: '0.85rem', textAlign: 'center' }}>
-            Noch nicht genug Daten für einen Verlauf — spiel an mehreren Tagen.
+          <span
+            style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '0.85rem', textAlign: 'center' }}
+          >
+            Noch nicht genug Daten für einen Verlauf.
           </span>
         </div>
       ) : (
@@ -93,18 +96,24 @@ export function SessionLengthChart({ loading, rows, isMobile }: SessionLengthCha
             <XAxis
               dataKey="date"
               tickFormatter={formatDay}
-              stroke="rgba(203,213,225,0.3)"
+              stroke="rgba(255, 255, 255, 0.2)"
               fontSize={10}
+              tickLine={false}
             />
-            <YAxis stroke="rgba(203,213,225,0.3)" fontSize={10} width={40} />
+            <YAxis stroke="rgba(255, 255, 255, 0.2)" fontSize={10} width={40} tickLine={false} />
             <Tooltip
+              cursor={{ fill: 'rgba(255, 255, 255, 0.04)' }}
               contentStyle={{
-                background: '#0b0e14',
-                border: '1px solid var(--stealth-border, #1e2638)',
+                background: '#0e0e12',
+                border: '1px solid rgba(212, 175, 55, 0.3)',
                 borderRadius: '8px',
                 fontSize: '0.8rem',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)',
+                color: '#ffffff',
               }}
-              formatter={(value) => [`${value ?? 0} min`, 'Session-Länge (≈)']}
+              itemStyle={{ color: '#ffffff' }}
+              labelStyle={{ color: '#D4AF37', fontWeight: 800, marginBottom: '2px' }}
+              formatter={(value) => [`${value ?? 0} min`, 'Session-Dauer']}
               labelFormatter={(label) => formatDay(String(label ?? ''))}
             />
             <Bar dataKey="spanMinutes" fill="#D4AF37" radius={[4, 4, 0, 0]} />

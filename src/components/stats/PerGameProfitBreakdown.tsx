@@ -2,7 +2,6 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, Cell, Tooltip, ResponsiveContainer, XAxis, YAxis } from 'recharts';
-import { BarChart3 } from 'lucide-react';
 import type { PerGameStat } from '@/lib/casino/stats-derivation';
 import { getGameMeta } from './gameMeta';
 
@@ -34,56 +33,66 @@ export function PerGameProfitBreakdown({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
       style={{
-        padding: isMobile ? '16px' : '24px',
-        borderRadius: '12px',
-        background: 'var(--stealth-surface, #141923)',
-        border: '1px solid var(--stealth-border, #1e2638)',
+        padding: isMobile ? '16px' : '20px 24px',
+        borderRadius: '16px',
+        background: 'rgba(12, 12, 14, 0.7)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid rgba(255, 255, 255, 0.05)',
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '260px',
+        minHeight: '270px',
       }}
     >
       <div
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
+          fontSize: '0.62rem',
+          fontWeight: 700,
+          color: 'rgba(255, 255, 255, 0.35)',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
           marginBottom: '16px',
-          color: 'var(--stealth-accent, #cbd5e1)',
         }}
       >
-        <BarChart3 size={16} />
-        <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>PROFIT JE SPIEL</span>
+        PROFIT JE SPIEL
       </div>
 
       {loading ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ color: 'hsl(var(--text-dim))', fontSize: '0.85rem' }}>Lädt…</span>
+          <span style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '0.85rem' }}>Lädt…</span>
         </div>
       ) : chartData.length === 0 ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ color: 'hsl(var(--text-dim))', fontSize: '0.85rem', textAlign: 'center' }}>
-            Noch keine Bets — spiel dein erstes Spiel!
+          <span
+            style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '0.85rem', textAlign: 'center' }}
+          >
+            Noch keine Wetten vorhanden.
           </span>
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 16 }}>
-            <XAxis type="number" stroke="rgba(203,213,225,0.3)" fontSize={10} />
+            <XAxis type="number" stroke="rgba(255, 255, 255, 0.2)" fontSize={10} tickLine={false} />
             <YAxis
               type="category"
               dataKey="name"
-              stroke="rgba(203,213,225,0.3)"
+              stroke="rgba(255, 255, 255, 0.5)"
               fontSize={11}
-              width={72}
+              width={76}
+              tickLine={false}
             />
             <Tooltip
+              cursor={{ fill: 'rgba(255, 255, 255, 0.04)' }}
               contentStyle={{
-                background: '#0b0e14',
-                border: '1px solid var(--stealth-border, #1e2638)',
+                background: '#0e0e12',
+                border: '1px solid rgba(212, 175, 55, 0.3)',
                 borderRadius: '8px',
                 fontSize: '0.8rem',
+                color: '#ffffff',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)',
               }}
+              itemStyle={{ color: '#ffffff' }}
+              labelStyle={{ color: '#D4AF37', fontWeight: 800, marginBottom: '2px' }}
               formatter={(value) => {
                 const num = Number(value ?? 0);
                 return [`${num >= 0 ? '+' : ''}$${num.toFixed(2)}`, 'Profit'];
@@ -91,7 +100,7 @@ export function PerGameProfitBreakdown({
             />
             <Bar dataKey="profit" radius={[0, 4, 4, 0]}>
               {chartData.map((entry) => (
-                <Cell key={entry.name} fill={entry.profit >= 0 ? '#00e676' : '#ff3366'} />
+                <Cell key={entry.name} fill={entry.profit >= 0 ? '#10b981' : '#ef4444'} />
               ))}
             </Bar>
           </BarChart>

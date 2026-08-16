@@ -2,7 +2,6 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, Tooltip, ResponsiveContainer, XAxis, YAxis } from 'recharts';
-import { TrendingUp } from 'lucide-react';
 import { buildProfitSeries, type HistoryRow } from '@/lib/casino/stats-derivation';
 
 interface ProfitHistoryChartProps {
@@ -22,7 +21,7 @@ function formatTick(iso: string) {
 export function ProfitHistoryChart({ loading, rows, isMobile }: ProfitHistoryChartProps) {
   const series = useMemo(() => buildProfitSeries(rows), [rows]);
   const isPositive = (series.at(-1)?.cumulativeProfit ?? 0) >= 0;
-  const lineColor = isPositive ? '#00e676' : '#ff3366';
+  const lineColor = isPositive ? '#10b981' : '#ef4444';
   const hasEnoughData = series.length >= 2;
 
   return (
@@ -32,46 +31,49 @@ export function ProfitHistoryChart({ loading, rows, isMobile }: ProfitHistoryCha
       transition={{ delay: 0.1 }}
       style={{
         gridColumn: isMobile ? 'span 1' : 'span 2',
-        padding: isMobile ? '16px' : '24px',
-        borderRadius: '12px',
-        background: 'var(--stealth-surface, #141923)',
-        border: '1px solid var(--stealth-border, #1e2638)',
+        padding: isMobile ? '16px' : '20px 24px',
+        borderRadius: '16px',
+        background: 'rgba(12, 12, 14, 0.7)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid rgba(255, 255, 255, 0.05)',
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '280px',
+        minHeight: '290px',
       }}
     >
       <div
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
+          fontSize: '0.62rem',
+          fontWeight: 700,
+          color: 'rgba(255, 255, 255, 0.35)',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
           marginBottom: '4px',
-          color: 'var(--stealth-accent, #cbd5e1)',
         }}
       >
-        <TrendingUp size={16} />
-        <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>PROFIT VERLAUF</span>
+        PROFIT-VERLAUF
       </div>
       <div
         style={{
-          fontSize: '0.7rem',
-          fontWeight: 700,
-          color: 'hsl(var(--text-dim))',
+          fontSize: '0.72rem',
+          color: 'rgba(255, 255, 255, 0.45)',
           marginBottom: '16px',
         }}
       >
-        Letzte {rows.length} Bets
+        Kumulativer Gewinn/Verlust ({rows.length} Wetten)
       </div>
 
       {loading ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ color: 'hsl(var(--text-dim))', fontSize: '0.85rem' }}>Lädt…</span>
+          <span style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '0.85rem' }}>Lädt…</span>
         </div>
       ) : !hasEnoughData ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ color: 'hsl(var(--text-dim))', fontSize: '0.85rem', textAlign: 'center' }}>
-            Noch nicht genug Daten für einen Verlauf — spiel ein paar Runden.
+          <span
+            style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '0.85rem', textAlign: 'center' }}
+          >
+            Noch nicht genug Daten für einen Verlauf.
           </span>
         </div>
       ) : (
@@ -86,18 +88,23 @@ export function ProfitHistoryChart({ loading, rows, isMobile }: ProfitHistoryCha
             <XAxis
               dataKey="time"
               tickFormatter={formatTick}
-              stroke="rgba(203,213,225,0.3)"
+              stroke="rgba(255, 255, 255, 0.2)"
               fontSize={10}
               minTickGap={30}
+              tickLine={false}
             />
-            <YAxis stroke="rgba(203,213,225,0.3)" fontSize={10} width={48} />
+            <YAxis stroke="rgba(255, 255, 255, 0.2)" fontSize={10} width={48} tickLine={false} />
             <Tooltip
               contentStyle={{
-                background: '#0b0e14',
-                border: '1px solid var(--stealth-border, #1e2638)',
+                background: '#0e0e12',
+                border: '1px solid rgba(212, 175, 55, 0.3)',
                 borderRadius: '8px',
                 fontSize: '0.8rem',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)',
+                color: '#ffffff',
               }}
+              itemStyle={{ color: '#ffffff' }}
+              labelStyle={{ color: '#D4AF37', fontWeight: 800, marginBottom: '2px' }}
               formatter={(value) => [`$${Number(value ?? 0).toFixed(2)}`, 'Profit']}
               labelFormatter={(label) => formatTick(String(label ?? ''))}
             />
