@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
-import { Crown, Trophy } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Trophy } from 'lucide-react';
 
 export interface LeaderRow {
   username: string;
@@ -15,18 +16,49 @@ interface LeaderboardStreamTableProps {
   rows: LeaderRow[];
 }
 
+function getRankBadge(tier: string) {
+  const t = (tier ?? '').toLowerCase();
+  if (t.includes('diamond')) {
+    return { bg: 'rgba(56, 189, 248, 0.1)', border: 'rgba(56, 189, 248, 0.25)', color: '#38bdf8' };
+  }
+  if (t.includes('platinum')) {
+    return {
+      bg: 'rgba(226, 232, 240, 0.1)',
+      border: 'rgba(226, 232, 240, 0.25)',
+      color: '#e2e8f0',
+    };
+  }
+  if (t.includes('gold')) {
+    return { bg: 'rgba(212, 175, 55, 0.12)', border: 'rgba(212, 175, 55, 0.3)', color: '#D4AF37' };
+  }
+  if (t.includes('silver')) {
+    return { bg: 'rgba(148, 163, 184, 0.1)', border: 'rgba(148, 163, 184, 0.2)', color: '#94a3b8' };
+  }
+  return { bg: 'rgba(180, 83, 9, 0.1)', border: 'rgba(180, 83, 9, 0.2)', color: '#d97706' };
+}
+
 export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTableProps) {
   if (loading) {
     return (
-      <div style={{ padding: '24px' }}>
+      <div
+        style={{
+          background: 'rgba(12, 12, 14, 0.7)',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          borderRadius: '16px',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        }}
+      >
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
             style={{
               height: '42px',
-              borderRadius: '6px',
-              background: 'rgba(255, 255, 255, 0.03)',
-              marginBottom: '8px',
+              borderRadius: '8px',
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid rgba(255, 255, 255, 0.03)',
             }}
           />
         ))}
@@ -34,122 +66,308 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
     );
   }
 
+  if (rows.length === 0) {
+    return (
+      <div
+        style={{
+          padding: '60px 24px',
+          textAlign: 'center',
+          background: 'rgba(12, 12, 14, 0.7)',
+          borderRadius: '16px',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '10px',
+        }}
+      >
+        <div style={{ color: 'rgba(255, 255, 255, 0.2)' }}>
+          <Trophy size={32} />
+        </div>
+        <div style={{ fontWeight: 800, fontSize: '1rem', color: '#fff' }}>
+          Leaderboard wird aktualisiert
+        </div>
+        <div style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.4)', maxWidth: '340px' }}>
+          Sobald Einsätze getätigt werden, werden die Top High Roller hier gelistet.
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ overflowX: 'auto', width: '100%' }}>
+    <div
+      style={{
+        background: 'rgba(12, 12, 14, 0.7)',
+        border: '1px solid rgba(255, 255, 255, 0.05)',
+        borderRadius: '16px',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        overflowX: 'auto',
+        width: '100%',
+      }}
+    >
       <table
         style={{
           width: '100%',
           borderCollapse: 'collapse',
           textAlign: 'left',
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.82rem',
         }}
       >
         <thead>
-          <tr
-            style={{
-              background: 'var(--stealth-surface, #141923)',
-              borderBottom: '1px solid var(--stealth-border, #1e2638)',
-            }}
-          >
+          <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
             <th
               style={{
-                padding: '12px 16px',
-                color: 'hsl(var(--text-dim))',
-                fontSize: '0.65rem',
-                fontWeight: 800,
+                padding: '14px 20px',
+                color: 'rgba(255, 255, 255, 0.35)',
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                width: '100px',
               }}
             >
-              RANK
+              RANG
             </th>
             <th
               style={{
-                padding: '12px 16px',
-                color: 'hsl(var(--text-dim))',
-                fontSize: '0.65rem',
-                fontWeight: 800,
+                padding: '14px 20px',
+                color: 'rgba(255, 255, 255, 0.35)',
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
               }}
             >
-              PLAYER
+              SPIELER
             </th>
             <th
               style={{
-                padding: '12px 16px',
-                color: 'hsl(var(--text-dim))',
-                fontSize: '0.65rem',
-                fontWeight: 800,
+                padding: '14px 20px',
+                color: 'rgba(255, 255, 255, 0.35)',
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
               }}
             >
-              TIER
+              VIP TIER
             </th>
             <th
               style={{
-                padding: '12px 16px',
-                color: 'hsl(var(--text-dim))',
-                fontSize: '0.65rem',
-                fontWeight: 800,
+                padding: '14px 20px',
+                color: 'rgba(255, 255, 255, 0.35)',
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
               }}
             >
-              TOTAL WAGERED
+              GESAMTER EINSATZ
             </th>
             <th
               style={{
-                padding: '12px 16px',
-                color: 'hsl(var(--text-dim))',
-                fontSize: '0.65rem',
-                fontWeight: 800,
+                padding: '14px 20px',
+                color: 'rgba(255, 255, 255, 0.35)',
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                textAlign: 'right',
               }}
             >
-              BIGGEST WIN
+              HÖCHSTER GEWINN
             </th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((r, i) => {
-            const isTop3 = i < 3;
-            return (
-              <tr
-                key={r.username + i}
-                style={{
-                  borderBottom: '1px solid var(--stealth-border, #1e2638)',
-                  background: isTop3 ? 'rgba(203, 213, 225, 0.02)' : 'transparent',
-                }}
-              >
-                <td style={{ padding: '12px 16px', fontWeight: 800 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {i === 0 && <Crown size={14} color="var(--stealth-accent, #cbd5e1)" />}
-                    {i === 1 && <Trophy size={14} color="var(--stealth-emerald, #00e676)" />}
-                    {i === 2 && <Trophy size={14} color="hsl(var(--text-muted))" />}
-                    <span>#{i + 1}</span>
-                  </div>
-                </td>
-                <td style={{ padding: '12px 16px', fontWeight: 700, color: 'var(--text-main)' }}>
-                  {r.username}
-                </td>
-                <td style={{ padding: '12px 16px', color: 'hsl(var(--text-dim))' }}>
-                  LVL {r.level} • {r.rank}
-                </td>
-                <td
+          <AnimatePresence mode="popLayout">
+            {rows.map((r, i) => {
+              const isFirst = i === 0;
+              const isSecond = i === 1;
+              const isThird = i === 2;
+              const badgeStyle = getRankBadge(r.rank);
+              const isLast = i === rows.length - 1;
+
+              return (
+                <motion.tr
+                  key={r.username + i}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.02)' }}
                   style={{
-                    padding: '12px 16px',
-                    fontWeight: 800,
-                    color: 'var(--stealth-accent, #cbd5e1)',
+                    borderBottom: isLast ? 'none' : '1px solid rgba(255, 255, 255, 0.04)',
+                    transition: 'background-color 0.15s ease',
                   }}
                 >
-                  ${r.total_wagered.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                </td>
-                <td
-                  style={{
-                    padding: '12px 16px',
-                    fontWeight: 800,
-                    color: 'var(--stealth-emerald, #00e676)',
-                  }}
-                >
-                  ${r.biggest_win.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                </td>
-              </tr>
-            );
-          })}
+                  {/* Rank Column */}
+                  <td style={{ padding: '14px 20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {isFirst ? (
+                        <span
+                          style={{
+                            fontFamily: 'var(--font-mono, monospace)',
+                            fontWeight: 900,
+                            fontSize: '0.85rem',
+                            color: '#D4AF37',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: '6px',
+                              height: '6px',
+                              borderRadius: '50%',
+                              background: '#D4AF37',
+                              boxShadow: '0 0 6px #D4AF37',
+                            }}
+                          />
+                          #1
+                        </span>
+                      ) : isSecond ? (
+                        <span
+                          style={{
+                            fontFamily: 'var(--font-mono, monospace)',
+                            fontWeight: 900,
+                            fontSize: '0.85rem',
+                            color: '#e2e8f0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: '6px',
+                              height: '6px',
+                              borderRadius: '50%',
+                              background: '#e2e8f0',
+                            }}
+                          />
+                          #2
+                        </span>
+                      ) : isThird ? (
+                        <span
+                          style={{
+                            fontFamily: 'var(--font-mono, monospace)',
+                            fontWeight: 900,
+                            fontSize: '0.85rem',
+                            color: '#f59e0b',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: '6px',
+                              height: '6px',
+                              borderRadius: '50%',
+                              background: '#f59e0b',
+                            }}
+                          />
+                          #3
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            fontFamily: 'var(--font-mono, monospace)',
+                            fontWeight: 700,
+                            fontSize: '0.82rem',
+                            color: 'rgba(255, 255, 255, 0.35)',
+                            paddingLeft: '11px',
+                          }}
+                        >
+                          #{i + 1}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+
+                  {/* Player Name */}
+                  <td style={{ padding: '14px 20px' }}>
+                    <span
+                      style={{
+                        fontWeight: 700,
+                        fontSize: '0.9rem',
+                        color: isFirst ? '#D4AF37' : '#ffffff',
+                      }}
+                    >
+                      {r.username}
+                    </span>
+                  </td>
+
+                  {/* VIP Tier Badge (Vault Style) */}
+                  <td style={{ padding: '14px 20px' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <span
+                        style={{
+                          fontSize: '0.55rem',
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          background: badgeStyle.bg,
+                          color: badgeStyle.color,
+                          border: `1px solid ${badgeStyle.border}`,
+                          letterSpacing: '0.08em',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        {r.rank}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '0.62rem',
+                          fontWeight: 700,
+                          color: 'rgba(255,255,255,0.3)',
+                        }}
+                      >
+                        LVL {r.level}
+                      </span>
+                    </div>
+                  </td>
+
+                  {/* Total Wagered */}
+                  <td
+                    style={{
+                      padding: '14px 20px',
+                      fontFamily: 'var(--font-mono, monospace)',
+                      fontWeight: 800,
+                      color: isFirst ? '#D4AF37' : '#ffffff',
+                      fontSize: '0.88rem',
+                    }}
+                  >
+                    $
+                    {r.total_wagered.toLocaleString('en-US', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </td>
+
+                  {/* Biggest Win */}
+                  <td
+                    style={{
+                      padding: '14px 20px',
+                      textAlign: 'right',
+                      fontFamily: 'var(--font-mono, monospace)',
+                      fontWeight: 800,
+                      fontSize: '0.88rem',
+                      color: '#10b981',
+                    }}
+                  >
+                    $
+                    {r.biggest_win.toLocaleString('en-US', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </td>
+                </motion.tr>
+              );
+            })}
+          </AnimatePresence>
         </tbody>
       </table>
     </div>

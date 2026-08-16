@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Trophy, Crown, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface LeaderboardHeroStatsProps {
   totalWagered: number;
@@ -17,125 +17,81 @@ export function LeaderboardHeroStats({
   topWinnerName,
   isMobile,
 }: LeaderboardHeroStatsProps) {
+  const cards = [
+    {
+      title: 'GESAMTES VOLUMEN',
+      value: `$${totalWagered.toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
+      color: '#D4AF37',
+    },
+    {
+      title: 'TOP HIGH ROLLER',
+      value: topWinnerName
+        ? `${topWinnerName} ($${topWinnerWager.toLocaleString('en-US', { maximumFractionDigits: 0 })})`
+        : '—',
+      color: '#10B981',
+    },
+    {
+      title: 'AKTIVE SPIELER',
+      value: `${activePlayersCount} High Roller`,
+      color: '#ffffff',
+    },
+  ];
+
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.05 }}
       style={{
         display: 'grid',
         gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-        gap: isMobile ? '10px' : '14px',
+        gap: isMobile ? '10px' : '12px',
       }}
     >
-      <div
-        style={{
-          background: 'var(--stealth-surface, #141923)',
-          border: '1px solid var(--stealth-border, #1e2638)',
-          borderRadius: '8px',
-          padding: '16px 20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <div>
+      {cards.map((c, i) => (
+        <div
+          key={i}
+          style={{
+            padding: isMobile ? '14px 16px' : '16px 20px',
+            borderRadius: '14px',
+            background: 'rgba(255, 255, 255, 0.025)',
+            border: '1px solid rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
+        >
           <div
             style={{
-              fontSize: '0.65rem',
-              fontWeight: 800,
-              color: 'hsl(var(--text-dim))',
+              fontSize: '0.6rem',
+              fontWeight: 700,
+              color: 'rgba(255, 255, 255, 0.35)',
               letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              marginBottom: '6px',
             }}
           >
-            VOLUME INDEX
+            {c.title}
           </div>
           <div
             style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '1.4rem',
-              fontWeight: 800,
-              color: 'var(--stealth-accent, #cbd5e1)',
-              marginTop: '4px',
+              fontFamily: 'var(--font-mono, monospace)',
+              fontSize: isMobile ? '1.15rem' : '1.35rem',
+              fontWeight: 900,
+              color: c.color,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.1,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
             }}
           >
-            ${totalWagered.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+            {c.value}
           </div>
         </div>
-        <Zap size={22} color="var(--stealth-accent, #cbd5e1)" />
-      </div>
-
-      <div
-        style={{
-          background: 'var(--stealth-surface, #141923)',
-          border: '1px solid var(--stealth-border, #1e2638)',
-          borderRadius: '8px',
-          padding: '16px 20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <div>
-          <div
-            style={{
-              fontSize: '0.65rem',
-              fontWeight: 800,
-              color: 'hsl(var(--text-dim))',
-              letterSpacing: '0.08em',
-            }}
-          >
-            TOP HIGH ROLLER
-          </div>
-          <div
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '1.4rem',
-              fontWeight: 800,
-              color: 'var(--stealth-emerald, #00e676)',
-              marginTop: '4px',
-            }}
-          >
-            {topWinnerName || '—'} ($
-            {topWinnerWager.toLocaleString('en-US', { maximumFractionDigits: 0 })})
-          </div>
-        </div>
-        <Crown size={22} color="var(--stealth-emerald, #00e676)" />
-      </div>
-
-      <div
-        style={{
-          background: 'var(--stealth-surface, #141923)',
-          border: '1px solid var(--stealth-border, #1e2638)',
-          borderRadius: '8px',
-          padding: '16px 20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <div>
-          <div
-            style={{
-              fontSize: '0.65rem',
-              fontWeight: 800,
-              color: 'hsl(var(--text-dim))',
-              letterSpacing: '0.08em',
-            }}
-          >
-            RANKED PLAYERS
-          </div>
-          <div
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '1.4rem',
-              fontWeight: 800,
-              color: 'var(--stealth-accent, #cbd5e1)',
-              marginTop: '4px',
-            }}
-          >
-            {activePlayersCount} PARTICIPANTS
-          </div>
-        </div>
-        <Trophy size={22} color="var(--stealth-accent, #cbd5e1)" />
-      </div>
-    </div>
+      ))}
+    </motion.div>
   );
 }

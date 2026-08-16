@@ -65,18 +65,53 @@ export default function LeaderboardPage() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: '8px',
+        }}
       >
-        <h1
-          style={{
-            fontSize: isMobile ? '1.4rem' : '1.7rem',
-            fontWeight: 900,
-            letterSpacing: '-0.01em',
-            color: 'var(--stealth-accent, #cbd5e1)',
-          }}
-        >
-          GLOBAL LEADERBOARD // HIGH-FREQUENCY RANKINGS
-        </h1>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h1
+              style={{
+                fontSize: isMobile ? '1.4rem' : '1.75rem',
+                fontWeight: 900,
+                letterSpacing: '-0.02em',
+                color: '#ffffff',
+              }}
+            >
+              GLOBAL LEADERBOARD
+            </h1>
+            <span
+              style={{
+                background: 'rgba(212, 175, 55, 0.12)',
+                border: '1px solid rgba(212, 175, 55, 0.25)',
+                color: '#D4AF37',
+                fontSize: '0.58rem',
+                fontWeight: 800,
+                padding: '2px 8px',
+                borderRadius: '4px',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+              }}
+            >
+              HIGH ROLLER
+            </span>
+          </div>
+          <p
+            style={{
+              fontSize: '0.8rem',
+              color: 'rgba(255, 255, 255, 0.45)',
+              marginTop: '4px',
+              fontWeight: 500,
+            }}
+          >
+            Die erfolgreichsten VIP-Spieler und High Roller im Live-Vergleich.
+          </p>
+        </div>
       </motion.div>
 
       <LeaderboardHeroStats
@@ -87,14 +122,7 @@ export default function LeaderboardPage() {
         isMobile={isMobile}
       />
 
-      <div
-        style={{
-          background: 'var(--stealth-surface, #141923)',
-          border: '1px solid var(--stealth-border, #1e2638)',
-          borderRadius: '8px',
-          overflow: 'hidden',
-        }}
-      >
+      <div>
         <LeaderboardStreamTable loading={loading} rows={rows} />
       </div>
 

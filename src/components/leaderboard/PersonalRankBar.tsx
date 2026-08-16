@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { motion } from 'framer-motion';
 
 interface PersonalRankBarProps {
   username: string;
@@ -10,50 +11,78 @@ interface PersonalRankBarProps {
 
 export function PersonalRankBar({ username, rank, level, wagered }: PersonalRankBarProps) {
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
       style={{
         position: 'sticky',
         bottom: '20px',
         zIndex: 20,
-        background: 'var(--stealth-surface, #141923)',
-        border: '1px solid var(--stealth-accent, #cbd5e1)',
-        boxShadow: '0 4px 20px rgba(203, 213, 225, 0.15)',
-        borderRadius: '8px',
+        background: 'rgba(12, 12, 14, 0.92)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(212, 175, 55, 0.25)',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6), 0 0 16px rgba(212, 175, 55, 0.08)',
+        borderRadius: '14px',
         padding: '12px 20px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '10px',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div
+        <span
           style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.8rem',
+            fontSize: '0.58rem',
             fontWeight: 800,
-            color: 'var(--stealth-accent, #cbd5e1)',
-            padding: '2px 8px',
+            color: '#D4AF37',
+            background: 'rgba(212, 175, 55, 0.12)',
+            border: '1px solid rgba(212, 175, 55, 0.25)',
+            padding: '3px 8px',
             borderRadius: '4px',
-            background: 'rgba(203, 213, 225, 0.1)',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
           }}
         >
-          YOUR RANK
-        </div>
-        <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{username || 'Anonymous'}</span>
-        <span style={{ fontSize: '0.75rem', color: 'hsl(var(--text-dim))' }}>
-          LVL {level} • {rank}
+          DEIN RANG
         </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#ffffff' }}>
+            {username || 'VIP Spieler'}
+          </span>
+          <span
+            style={{
+              fontSize: '0.62rem',
+              color: 'rgba(255, 255, 255, 0.4)',
+              background: 'rgba(255, 255, 255, 0.04)',
+              padding: '2px 6px',
+              borderRadius: '4px',
+              fontWeight: 700,
+            }}
+          >
+            LVL {level} • {rank}
+          </span>
+        </div>
       </div>
-      <div
-        style={{
-          fontFamily: 'var(--font-mono)',
-          fontWeight: 800,
-          color: 'var(--stealth-emerald, #00e676)',
-          fontSize: '0.95rem',
-        }}
-      >
-        ${wagered.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span style={{ fontSize: '0.72rem', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 600 }}>
+          Dein Einsatz:
+        </span>
+        <div
+          style={{
+            fontFamily: 'var(--font-mono, monospace)',
+            fontWeight: 900,
+            color: '#D4AF37',
+            fontSize: '1.05rem',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          ${wagered.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
