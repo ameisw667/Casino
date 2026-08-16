@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { VibeMotion } from '@/components/ui/VibeMotion';
 import { HeroCinematicShowcase } from '@/components/home/HeroCinematicShowcase';
+import { LiveHighrollerTickerBar } from '@/components/home/LiveHighrollerTickerBar';
 import { InteractiveArcadeGrid } from '@/components/home/InteractiveArcadeGrid';
 
 const LiveActivityFeedV2 = dynamic(
@@ -30,6 +31,10 @@ const VipProgressTeaser = dynamic(
   () => import('@/components/home/VipProgressTeaser').then((mod) => mod.VipProgressTeaser),
   { ssr: false },
 );
+const VipLiveStreamRail = dynamic(
+  () => import('@/components/home/VipLiveStreamRail').then((mod) => mod.VipLiveStreamRail),
+  { ssr: false },
+);
 
 export function HomeClientV2() {
   const startOnboarding = useCasinoStore((s) => s.startOnboarding);
@@ -44,43 +49,51 @@ export function HomeClientV2() {
   return (
     <main
       className="vibe-mesh"
-      style={{ paddingBottom: '100px', minHeight: '100vh', position: 'relative' }}
+      style={{ paddingBottom: '80px', minHeight: '100vh', position: 'relative' }}
     >
       {/* Global Ambient Background Stack (Liquid Glasswater + Gold Dust + Noise) */}
       <LobbyAmbientBackground />
 
-      {/* 1. Hero Cinematic 3D Showcase */}
+      {/* Option 3: Collapsible VIP Live Stream Right Rail */}
+      <VipLiveStreamRail />
+
+      {/* 1. Hero Cinematic 3D Showcase (Option 1: 3-Column Architecture on 1560px Canvas) */}
       <HeroCinematicShowcase
         isMobile={isMobile}
         startOnboarding={startOnboarding}
         liveWithdrawals={liveWithdrawals}
       />
 
+      {/* 2. Live Highroller & Payout Ticker Bar */}
+      <VibeMotion variant="reveal" delay={0.15}>
+        <LiveHighrollerTickerBar />
+      </VibeMotion>
+
       <div
         className="container"
-        style={{ width: '100%', maxWidth: '1400px', margin: '0 auto', padding: '0 20px' }}
+        style={{ width: '100%', maxWidth: '1560px', margin: '0 auto', padding: '0 24px' }}
       >
-        {/* 2. Interactive Arcade Game Cards Grid */}
+        {/* 3. Interactive Arcade Game Cards Grid (Option 2: 5-Column Scaled Layout on 1560px) */}
         <VibeMotion variant="reveal" delay={0.2}>
           <InteractiveArcadeGrid isMobile={isMobile} />
         </VibeMotion>
 
-        {/* 3. Progressive Jackpot & Platform Stats Grid */}
+        {/* 4. Progressive Jackpot & Platform Stats Grid */}
         <VibeMotion variant="reveal" delay={0.3}>
           <ProgressiveJackpotSection isMobile={isMobile} />
         </VibeMotion>
 
-        {/* 4. $10,000 Daily Race / Tournament Teaser */}
+        {/* 5. $10,000 Daily Race / Tournament Teaser */}
         <VibeMotion variant="reveal" delay={0.4}>
           <DailyTournamentTeaser isMobile={isMobile} />
         </VibeMotion>
 
-        {/* 5. VIP Tier Roadmap & Rakeback Teaser */}
+        {/* 6. VIP Tier Roadmap & Rakeback Teaser */}
         <VibeMotion variant="reveal" delay={0.5}>
           <VipProgressTeaser isMobile={isMobile} />
         </VibeMotion>
 
-        {/* 6. Live Activity Feed V2 */}
+        {/* 7. Live Activity Feed V2 */}
         <VibeMotion variant="reveal" delay={0.6}>
           <LiveActivityFeedV2 />
         </VibeMotion>

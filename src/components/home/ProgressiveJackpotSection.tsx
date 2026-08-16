@@ -1,150 +1,179 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Coins, Zap, ShieldCheck, Activity } from 'lucide-react';
+import { Trophy, Coins, Zap, ShieldCheck, Activity, Sparkles } from 'lucide-react';
+import { useProgressiveJackpot } from '@/hooks/useProgressiveJackpot';
 
 export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
   isMobile = false,
 }) => {
-  const [jackpot, setJackpot] = useState<number>(1489254.8);
-
-  // Slowly increment jackpot value every 2 seconds for live atmosphere
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setJackpot((prev) => prev + Math.random() * 2.45 + 0.15);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
+  const { formatted: jackpotFormatted } = useProgressiveJackpot();
 
   const stats = [
     { label: 'GESAMT AUSGEZAHLT', value: '$14,280,450+', icon: Coins, color: '#D4AF37' },
     { label: 'DURCHSCHN. AUSZAHLUNG', value: '1.8 SEKUNDEN', icon: Zap, color: '#00E701' },
     { label: 'PLATZIERTE WETTEN', value: '4,892,100+', icon: Activity, color: '#00B67A' },
-    { label: 'PROVABLY FAIR', value: '100% TRANSPARENT', icon: ShieldCheck, color: '#9370DB' },
+    { label: 'PROVABLY FAIR', value: '100% TRANSPARENT', icon: ShieldCheck, color: '#D4AF37' },
   ];
 
   return (
-    <section style={{ marginBottom: '60px' }}>
-      {/* Main Jackpot Counter Box */}
+    <section
+      style={{
+        position: 'relative',
+        width: '100%',
+        margin: '0 auto 64px',
+        padding: isMobile ? '24px 16px' : '40px 24px',
+      }}
+    >
+      {/* Floating Horizon Ambient Light Beam */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '40%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '80%',
+          maxWidth: '900px',
+          height: '240px',
+          background:
+            'radial-gradient(ellipse at center, rgba(212, 175, 55, 0.12) 0%, rgba(212, 175, 55, 0.03) 50%, transparent 75%)',
+          filter: 'blur(50px)',
+          pointerEvents: 'none',
+          zIndex: 1,
+        }}
+      />
+
+      {/* Top Hairline Horizon */}
+      <div
+        style={{
+          width: '100%',
+          height: '1px',
+          background:
+            'linear-gradient(90deg, transparent 0%, rgba(212, 175, 55, 0.35) 50%, transparent 100%)',
+          marginBottom: '32px',
+        }}
+      />
+
+      {/* Center Frameless Jackpot Stage */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        whileInView={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
         style={{
           position: 'relative',
-          borderRadius: '24px',
-          background:
-            'linear-gradient(135deg, rgba(24, 22, 16, 0.78) 0%, rgba(12, 12, 18, 0.88) 100%)',
-          backdropFilter: 'blur(16px)',
-          border: '1px solid rgba(212, 175, 55, 0.4)',
-          boxShadow:
-            'inset 0 1px 2px rgba(255, 255, 255, 0.25), 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 50px rgba(212, 175, 55, 0.2)',
-          padding: isMobile ? '32px 20px' : '48px 40px',
+          zIndex: 2,
           textAlign: 'center',
-          overflow: 'hidden',
-          marginBottom: '32px',
+          marginBottom: '36px',
         }}
       >
-        {/* Glow Effects */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '400px',
-            height: '200px',
-            background: 'radial-gradient(circle, rgba(212, 175, 55, 0.18) 0%, transparent 70%)',
-            filter: 'blur(60px)',
-            pointerEvents: 'none',
-          }}
-        />
-
+        {/* Badge */}
         <div
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '10px',
-            padding: '8px 18px',
+            gap: '8px',
+            padding: '6px 16px',
             borderRadius: '20px',
-            background: 'rgba(212, 175, 55, 0.15)',
-            border: '1px solid rgba(212, 175, 55, 0.3)',
+            background: 'rgba(212, 175, 55, 0.1)',
+            border: '1px solid rgba(212, 175, 55, 0.25)',
             color: '#D4AF37',
-            fontSize: '0.8rem',
+            fontSize: '0.75rem',
             fontWeight: 900,
             letterSpacing: '0.12em',
-            marginBottom: '16px',
+            textTransform: 'uppercase',
+            marginBottom: '12px',
+            boxShadow: '0 0 20px rgba(212, 175, 55, 0.15)',
           }}
         >
-          <Trophy size={16} /> LIVE PROGRESSIVE JACKPOT
+          <Trophy size={14} />
+          <span>LIVE PROGRESSIVE JACKPOT</span>
         </div>
 
-        {/* Big Animated Amount */}
+        {/* Big Liquid Gold Typographic Headline */}
         <div
           style={{
-            fontSize: isMobile ? 'clamp(2.2rem, 8vw, 3rem)' : 'clamp(3.5rem, 6vw, 5.2rem)',
+            fontSize: isMobile ? 'clamp(2.4rem, 8.5vw, 3.4rem)' : 'clamp(3.8rem, 5.5vw, 5.2rem)',
             fontWeight: 1000,
             fontFamily: 'monospace',
-            color: '#ffffff',
-            letterSpacing: '-0.04em',
-            lineHeight: 1,
-            textShadow: '0 0 40px rgba(212, 175, 55, 0.6), 0 0 80px rgba(212, 175, 55, 0.3)',
-            marginBottom: '12px',
+            letterSpacing: '-0.03em',
+            lineHeight: 1.05,
+            background:
+              'linear-gradient(135deg, #FFFFFF 0%, #F5E08C 35%, #D4AF37 70%, #997517 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            filter: 'drop-shadow(0 0 35px rgba(212, 175, 55, 0.45))',
+            marginBottom: '10px',
           }}
         >
-          ${jackpot.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {jackpotFormatted}
         </div>
 
         <p
           style={{
-            fontSize: '0.9rem',
-            color: 'rgba(255, 255, 255, 0.6)',
+            fontSize: isMobile ? '0.82rem' : '0.92rem',
+            color: 'rgba(255, 255, 255, 0.65)',
             margin: 0,
-            fontWeight: 600,
+            fontWeight: 500,
+            letterSpacing: '0.02em',
           }}
         >
           Auszahlung erfolgt automatisch bei Treffer aller VIP Jackpot-Kombinationen.
         </p>
       </motion.div>
 
-      {/* Platform Stats Grid */}
+      {/* Frameless Floating Metrics Strip (0 Nested Boxes) */}
       <div
         style={{
+          position: 'relative',
+          zIndex: 2,
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)',
-          gap: '16px',
+          gap: isMobile ? '16px' : '0',
+          padding: isMobile ? '16px 0' : '20px 0',
+          borderRadius: '16px',
+          background: 'rgba(12, 12, 18, 0.45)',
+          backdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.4)',
         }}
       >
         {stats.map((stat, i) => {
           const Icon = stat.icon;
+          const isLast = i === stats.length - 1;
           return (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 15 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              whileHover={{ y: -4 }}
+              transition={{ delay: i * 0.08 }}
               style={{
-                borderRadius: '16px',
-                background: 'rgba(15, 15, 20, 0.8)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                backdropFilter: 'blur(12px)',
-                padding: '20px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '8px',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                padding: isMobile ? '8px 12px' : '6px 24px',
+                borderRight: !isMobile && !isLast ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Icon size={18} color={stat.color} />
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  marginBottom: '4px',
+                }}
+              >
+                <Icon size={14} color={stat.color} />
                 <span
                   style={{
-                    fontSize: '0.7rem',
+                    fontSize: '0.68rem',
                     fontWeight: 900,
-                    color: 'rgba(255, 255, 255, 0.5)',
+                    color: 'rgba(255, 255, 255, 0.55)',
                     letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
                   }}
                 >
                   {stat.label}
@@ -165,6 +194,17 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
           );
         })}
       </div>
+
+      {/* Bottom Hairline Horizon */}
+      <div
+        style={{
+          width: '100%',
+          height: '1px',
+          background:
+            'linear-gradient(90deg, transparent 0%, rgba(212, 175, 55, 0.25) 50%, transparent 100%)',
+          marginTop: '32px',
+        }}
+      />
     </section>
   );
 };

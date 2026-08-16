@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Flame } from 'lucide-react';
+import { Play, Flame, Sparkles, ChevronRight } from 'lucide-react';
 import { soundManager } from '@/lib/casino/sound-manager';
 
 interface GameItem {
@@ -35,7 +35,7 @@ const GAMES: GameItem[] = [
     name: 'VIP BLACKJACK',
     category: 'table',
     path: '/games/blackjack',
-    image: '/images/game-roulette-new.png',
+    image: '/images/game-blackjack-new.png',
     maxPayout: '2.5x',
     badge: 'HIGH STAKES',
     description: 'Klassisches 21 mit Dealer. Double Down & Split Strategien.',
@@ -84,25 +84,34 @@ const CATEGORIES = [
 ];
 
 export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobile = false }) => {
-  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [hoveredGame, setHoveredGame] = useState<string | null>(null);
 
   const filteredGames = GAMES.filter((g) => {
-    if (activeCategory === 'all') return true;
-    return g.category === activeCategory;
+    if (selectedCategory === 'all') return true;
+    return g.category === selectedCategory;
   });
 
   return (
-    <section style={{ marginBottom: '60px' }}>
-      {/* Header & Category Tabs */}
+    <section
+      style={{
+        position: 'relative',
+        zIndex: 5,
+        width: '100%',
+        maxWidth: '1560px',
+        margin: '0 auto',
+        padding: '0 24px 36px',
+      }}
+    >
+      {/* Grid Header with Category Filters */}
       <div
         style={{
           display: 'flex',
           flexDirection: isMobile ? 'column' : 'row',
           justifyContent: 'space-between',
           alignItems: isMobile ? 'flex-start' : 'center',
-          gap: '20px',
-          marginBottom: '32px',
+          gap: '12px',
+          marginBottom: '18px',
         }}
       >
         <div>
@@ -110,61 +119,62 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '6px',
               color: '#D4AF37',
-              fontSize: '0.8rem',
+              fontSize: '0.72rem',
               fontWeight: 900,
               letterSpacing: '0.1em',
-              marginBottom: '6px',
+              textTransform: 'uppercase',
+              marginBottom: '2px',
             }}
           >
-            <Flame size={16} /> CASINO ORIGINALS
+            <Sparkles size={12} /> INTERAKTIVE SPIELHALLE
           </div>
           <h2
             style={{
-              fontSize: isMobile ? '1.8rem' : '2.4rem',
+              fontSize: isMobile ? '1.3rem' : '1.75rem',
               fontWeight: 1000,
               color: '#ffffff',
               letterSpacing: '-0.03em',
-              margin: 0,
             }}
           >
-            INTERAKTIVE SPIELHALLEN
+            CASINO ORIGINALS
           </h2>
         </div>
 
-        {/* Category Buttons */}
+        {/* Category Pills */}
         <div
           style={{
             display: 'flex',
-            gap: '8px',
+            alignItems: 'center',
+            gap: '6px',
             overflowX: 'auto',
-            maxWidth: '100%',
-            paddingBottom: '4px',
+            width: isMobile ? '100%' : 'auto',
+            paddingBottom: isMobile ? '4px' : '0',
           }}
         >
           {CATEGORIES.map((cat) => {
-            const isActive = activeCategory === cat.id;
+            const isActive = selectedCategory === cat.id;
             return (
               <motion.button
                 key={cat.id}
                 onClick={() => {
                   soundManager.playClick();
-                  setActiveCategory(cat.id);
+                  setSelectedCategory(cat.id);
                 }}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 style={{
-                  padding: '10px 18px',
-                  borderRadius: '12px',
+                  padding: '6px 14px',
+                  borderRadius: '20px',
                   background: isActive
                     ? 'linear-gradient(135deg, #D4AF37 0%, #AA7C11 100%)'
                     : 'rgba(255, 255, 255, 0.05)',
                   border: isActive ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
                   color: isActive ? '#000' : 'rgba(255, 255, 255, 0.75)',
-                  fontSize: '0.75rem',
+                  fontSize: '0.74rem',
                   fontWeight: 900,
-                  letterSpacing: '0.05em',
+                  letterSpacing: '0.04em',
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                   boxShadow: isActive ? '0 4px 20px rgba(212, 175, 55, 0.3)' : 'none',
@@ -177,12 +187,12 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
         </div>
       </div>
 
-      {/* Game Cards Grid */}
+      {/* Game Cards Grid (5 Columns on Desktop) */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))',
-          gap: '24px',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(5, minmax(0, 1fr))',
+          gap: '16px',
         }}
       >
         <AnimatePresence mode="popLayout">
@@ -192,38 +202,49 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
               <motion.div
                 key={game.id}
                 layout
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                initial={{ opacity: 0, scale: 0.9, y: 15 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.4, delay: idx * 0.08 }}
+                transition={{ duration: 0.35, delay: idx * 0.05 }}
                 onMouseEnter={() => {
                   soundManager.playHover();
                   setHoveredGame(game.id);
+                  if (typeof document !== 'undefined') {
+                    document.documentElement.style.setProperty(
+                      '--lobby-hover-accent',
+                      game.accentColor,
+                    );
+                  }
                 }}
-                onMouseLeave={() => setHoveredGame(null)}
+                onMouseLeave={() => {
+                  setHoveredGame(null);
+                  if (typeof document !== 'undefined') {
+                    document.documentElement.style.removeProperty('--lobby-hover-accent');
+                  }
+                }}
                 style={{ position: 'relative' }}
               >
                 <Link href={game.path} style={{ textDecoration: 'none', outline: 'none' }}>
                   <motion.div
-                    whileHover={{ y: -8, scale: 1.02 }}
+                    whileHover={{ y: -6, scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     style={{
                       position: 'relative',
-                      borderRadius: '20px',
+                      borderRadius: '18px',
                       background:
                         'linear-gradient(145deg, rgba(24, 24, 32, 0.78) 0%, rgba(12, 12, 18, 0.88) 100%)',
                       backdropFilter: 'blur(16px)',
-                      border: `1px solid ${isHovered ? game.accentColor : 'rgba(255, 255, 255, 0.12)'}`,
+                      border: `1px solid ${isHovered ? game.accentColor : 'rgba(255, 255, 255, 0.1)'}`,
                       overflow: 'hidden',
-                      padding: '20px',
+                      padding: '16px 14px',
                       boxShadow: isHovered
-                        ? `inset 0 1px 2px rgba(255, 255, 255, 0.3), 0 20px 50px -10px ${game.accentColor}40, 0 0 30px ${game.accentColor}20`
-                        : 'inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 15px 35px rgba(0, 0, 0, 0.6)',
+                        ? `inset 0 1px 2px rgba(255, 255, 255, 0.3), 0 16px 40px -8px ${game.accentColor}35, 0 0 25px ${game.accentColor}20`
+                        : 'inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 12px 28px rgba(0, 0, 0, 0.55)',
                       transition: 'border 0.3s ease, box-shadow 0.3s ease',
                       display: 'flex',
                       flexDirection: 'column',
                       height: '100%',
-                      minHeight: '340px',
+                      minHeight: '305px',
                       justifyContent: 'space-between',
                       textDecoration: 'none',
                     }}
@@ -234,11 +255,11 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
                         position: 'absolute',
                         top: '-30%',
                         right: '-20%',
-                        width: '200px',
-                        height: '200px',
+                        width: '180px',
+                        height: '180px',
                         borderRadius: '50%',
                         background: `radial-gradient(circle, ${game.accentColor}25 0%, transparent 70%)`,
-                        filter: 'blur(40px)',
+                        filter: 'blur(35px)',
                         pointerEvents: 'none',
                       }}
                     />
@@ -249,19 +270,21 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
+                        gap: '6px',
                         zIndex: 2,
                       }}
                     >
                       <span
                         style={{
-                          padding: '4px 10px',
-                          borderRadius: '8px',
+                          padding: '2px 7px',
+                          borderRadius: '5px',
                           background: 'rgba(255, 255, 255, 0.08)',
                           border: '1px solid rgba(255, 255, 255, 0.12)',
                           color: game.accentColor,
-                          fontSize: '0.7rem',
+                          fontSize: '0.64rem',
                           fontWeight: 900,
-                          letterSpacing: '0.06em',
+                          letterSpacing: '0.04em',
+                          whiteSpace: 'nowrap',
                         }}
                       >
                         {game.badge}
@@ -269,14 +292,14 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
 
                       <div
                         style={{
-                          display: 'flex',
-                          gap: '12px',
-                          fontSize: '0.75rem',
+                          fontSize: '0.68rem',
                           fontWeight: 800,
+                          color: 'rgba(255, 255, 255, 0.65)',
+                          fontFamily: 'monospace',
+                          whiteSpace: 'nowrap',
                         }}
                       >
-                        <span style={{ color: '#00E701' }}>PROVABLY FAIR</span>
-                        <span style={{ color: 'rgba(255,255,255,0.6)' }}>Max {game.maxPayout}</span>
+                        Max {game.maxPayout}
                       </div>
                     </div>
 
@@ -285,8 +308,8 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
                       style={{
                         position: 'relative',
                         width: '100%',
-                        height: '160px',
-                        margin: '12px 0',
+                        height: '135px',
+                        margin: '10px 0',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -295,10 +318,10 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
                       <motion.div
                         animate={
                           isHovered
-                            ? { scale: 1.1, rotate: [0, -2, 2, 0] }
+                            ? { scale: 1.08, rotate: [0, -1.5, 1.5, 0] }
                             : { scale: 1, rotate: 0 }
                         }
-                        transition={{ duration: 0.4 }}
+                        transition={{ duration: 0.35 }}
                         style={{
                           position: 'relative',
                           width: '100%',
@@ -311,7 +334,7 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
                           src={game.image}
                           alt={game.name}
                           fill
-                          sizes="300px"
+                          sizes="280px"
                           style={{ objectFit: 'cover' }}
                         />
                       </motion.div>
@@ -331,26 +354,26 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              borderRadius: '12px',
+                              borderRadius: '10px',
                             }}
                           >
                             <div
                               style={{
-                                width: '56px',
-                                height: '56px',
+                                width: '46px',
+                                height: '46px',
                                 borderRadius: '50%',
                                 background: `linear-gradient(135deg, ${game.accentColor} 0%, #000 150%)`,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                boxShadow: `0 0 30px ${game.accentColor}`,
+                                boxShadow: `0 0 24px ${game.accentColor}`,
                               }}
                             >
                               <Play
-                                size={24}
+                                size={20}
                                 fill="#000"
                                 color="#000"
-                                style={{ marginLeft: '3px' }}
+                                style={{ marginLeft: '2px' }}
                               />
                             </div>
                           </motion.div>
@@ -362,25 +385,61 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
                     <div style={{ zIndex: 2 }}>
                       <div
                         style={{
-                          fontSize: '1.2rem',
+                          fontSize: '0.96rem',
                           fontWeight: 1000,
                           color: '#ffffff',
                           letterSpacing: '-0.02em',
-                          marginBottom: '4px',
+                          marginBottom: '2px',
                         }}
                       >
                         {game.name}
                       </div>
-                      <p
+
+                      <div
                         style={{
-                          fontSize: '0.8rem',
-                          color: 'rgba(255, 255, 255, 0.6)',
-                          margin: 0,
+                          fontSize: '0.66rem',
+                          color: 'rgba(255, 255, 255, 0.58)',
                           lineHeight: 1.35,
+                          height: '2.7em',
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          marginBottom: '8px',
                         }}
                       >
                         {game.description}
-                      </p>
+                      </div>
+
+                      {/* Launch Trigger Button */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          paddingTop: '6px',
+                          borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '0.62rem',
+                            fontWeight: 800,
+                            color: game.accentColor,
+                            letterSpacing: '0.04em',
+                          }}
+                        >
+                          SPIELEN
+                        </span>
+                        <ChevronRight
+                          size={14}
+                          color={game.accentColor}
+                          style={{
+                            transform: isHovered ? 'translateX(3px)' : 'none',
+                            transition: 'transform 0.2s ease',
+                          }}
+                        />
+                      </div>
                     </div>
                   </motion.div>
                 </Link>
