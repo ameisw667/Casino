@@ -155,3 +155,12 @@ Dice, Slots und Roulette nutzen `/api/casino/bet`; Crash nutzt persistente Serve
 | `src/utils/supabase/admin.ts`            | Server-only Service-Role-Client                                                 |
 
 Remote-Status: 3/3 Supabase-ENV-Werte konfiguriert; Live-GET am 2026-08-05 wegen DNS-Auflösungsfehler nicht möglich. Daher weder 8/8 Tabellen noch Migration 007 als live behaupten.
+
+## Workflow: (Jan-Execution)
+
+- Implementaionsplan auf Weltklasse Niveau, immer aus 2x verschiednene Perspektiven prüfen, alle Abhäniggkeiten, Alle Anforderungen, alle möglcihen Fehler/ Prlobleme + wie damit umgegagenen.
+
+- Sobald Weltklasse Niveau, Anschließend den gesamten Implementationsplan selber prüfen auf Fehler, Verbesserungen
+- Anschließend Execution, ohne nach Bestätigung von meiner Seite zu erfragen
+- Anschließend Execution selber prüfen
+  _ Erste wenn Execution erfolgreich geprüft + Implementationdatei aktualsiert, erst dann Bescheid geben, erst dann ist die Aufgabe abgeschlossen.

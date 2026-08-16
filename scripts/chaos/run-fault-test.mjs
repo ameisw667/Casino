@@ -125,6 +125,9 @@ async function main() {
       } else {
         console.error('\nLetzte Prozess-Ausgabe:\n' + childOutput.slice(-1500));
       }
+      // Direkt setzen, nicht nur die lokale Variable: ein früher `return` hier
+      // überspringt die `process.exitCode = exitCode`-Zeile nach dem try/finally.
+      process.exitCode = 1;
       return;
     }
 
@@ -142,12 +145,19 @@ async function main() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          // validateMutationOrigin() verlangt einen Origin-Header, der im Dev-Fallback
+          // (kein APP_ORIGINS gesetzt) exakt der eigenen Request-Origin entsprechen muss.
+          Origin: `http://127.0.0.1:${APP_PORT}`,
           ...(sessionCookie ? { Cookie: sessionCookie } : {}),
         },
         body: JSON.stringify({ game: 'dice', amount: 1, requestId: crypto.randomUUID() }),
         signal: AbortSignal.timeout(10_000),
       });
-      console.log(`Antwort: HTTP ${res.status}`);
+      const bodyText = await res
+        .clone()
+        .text()
+        .catch(() => '(Body nicht lesbar)');
+      console.log(`Antwort: HTTP ${res.status} — Body: ${bodyText.slice(0, 200)}`);
     } catch (err) {
       console.log(
         `Request lief in einen Client-seitigen Timeout/Abbruch (${err.name}) — erwartet bei mode=hang.`,
