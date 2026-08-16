@@ -5,7 +5,9 @@ export type RiskSignalType =
   | 'multi_account_indicator'
   | 'idempotency_conflict'
   | 'rate_limit_hit'
-  | 'balance_correction';
+  | 'balance_correction'
+  | 'bet_velocity'
+  | 'win_rate_anomaly';
 
 export type RiskSeverity = 'low' | 'medium' | 'high';
 

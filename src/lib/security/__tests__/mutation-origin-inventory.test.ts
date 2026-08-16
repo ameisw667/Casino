@@ -6,6 +6,8 @@ const root = resolve(__dirname, '../../../..');
 const protectedMutationRoutes = [
   'src/app/api/admin/promo-codes/route.ts',
   'src/app/api/admin/users/route.ts',
+  'src/app/api/admin/fraud/route.ts',
+  'src/app/api/admin/fraud/scan/route.ts',
   'src/app/api/casino/bet/route.ts',
   'src/app/api/casino/blackjack/route.ts',
   'src/app/api/casino/redeem-code/route.ts',

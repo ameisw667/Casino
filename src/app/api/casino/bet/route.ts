@@ -1,17 +1,19 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 import { CasinoCore } from '@/lib/casino/casino-core';
-import { WalletService } from '@/lib/casino/wallet';
+import { WalletService, isFirstBetSignal } from '@/lib/casino/wallet';
 import { CasinoLogger } from '@/lib/casino/logger';
 import { loadGameConfig } from '@/lib/casino/game-config-server';
 import { notifyBigWinIfEligible } from '@/lib/casino/telegram-notifier';
+import { recordBetNetworkFingerprintBestEffort } from '@/lib/casino/network-fingerprint';
 import {
   enforceRateLimit,
   getClientIdentifier,
   rateLimitHeaders,
   validateMutationOrigin,
 } from '@/lib/security/request-security';
+import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
 
 const rouletteBetSchema = z.object({
   type: z.object({
@@ -51,7 +53,13 @@ function walletOnly(settlement: Awaited<ReturnType<typeof WalletService.settleBe
 
 export async function POST(request: Request) {
   const originFailure = validateMutationOrigin(request);
-  if (originFailure) return originFailure;
+  if (originFailure) {
+    return apiErrorResponse(
+      APP_ERROR_CODES.PERMISSION_DENIED,
+      'Keine Berechtigung.',
+      originFailure.status || 403,
+    );
+  }
 
   let requestId: string | undefined;
 
@@ -73,36 +81,51 @@ export async function POST(request: Request) {
     ) {
       userId = 'dev_user_fallback';
     }
-    if (!userId) return new NextResponse('Unauthorized', { status: 401 });
+    if (!userId) {
+      return apiErrorResponse(APP_ERROR_CODES.AUTHENTICATION_REQUIRED, 'Bitte melde dich an.', 401);
+    }
 
     const rate = await enforceRateLimit(getClientIdentifier(request, userId), 'casino-bet', 30, 10);
     if (!rate.success) {
       const retryAfterSeconds = Math.max(1, Math.ceil((rate.reset - Date.now()) / 1000));
-      return NextResponse.json(
-        {
-          error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
-          code: rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
-          retryAfter: retryAfterSeconds,
-        },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? APP_ERROR_CODES.SERVICE_UNAVAILABLE : APP_ERROR_CODES.RATE_LIMITED,
+        rate.unavailable
+          ? 'Der Dienst ist vorübergehend nicht verfügbar.'
+          : 'Zu viele Anfragen. Bitte versuche es später erneut.',
+        rate.unavailable ? 503 : 429,
+        { headers: rateLimitHeaders(rate), extra: { retryAfter: retryAfterSeconds } },
       );
     }
 
+    // Fraud-signal observability only (P2.8) — deferred via after() so it never adds latency
+    // to or can affect the settlement response below. Fail-open, best-effort.
+    after(() => recordBetNetworkFingerprintBestEffort(userId, request));
+
     const parsed = requestSchema.safeParse(await request.json());
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid Request Data', details: parsed.error.flatten() },
-        { status: 400 },
-      );
+      return zodErrorResponse(parsed.error, 400);
     }
     const params = parsed.data;
     requestId = params.requestId;
     const gameConfig = await loadGameConfig();
 
     if (params.action === 'START_CRASH') {
-      if (!params.amount) return NextResponse.json({ error: 'Amount required' }, { status: 400 });
+      if (!params.amount) {
+        return apiErrorResponse(
+          APP_ERROR_CODES.VALIDATION_FAILED,
+          'Ein gültiger Einsatz ist erforderlich.',
+          400,
+          { requestId: params.requestId },
+        );
+      }
       if (params.amount > gameConfig.limits.betMax)
-        return NextResponse.json({ error: 'Bet exceeds limit' }, { status: 400 });
+        return apiErrorResponse(
+          APP_ERROR_CODES.BET_LIMIT_EXCEEDED,
+          'Der Einsatz überschreitet das erlaubte Limit.',
+          400,
+          { requestId: params.requestId },
+        );
       const seed = await WalletService.consumeActiveSeed({
         userId,
         requestId: params.requestId,
@@ -126,6 +149,7 @@ export async function POST(request: Request) {
           nonce: crash.nonce,
         },
       });
+      const isFirstBet = await isFirstBetSignal(userId, round.replayed);
       return NextResponse.json({
         roundId: round.roundId,
         crashPoint: crash.crashPoint,
@@ -133,12 +157,18 @@ export async function POST(request: Request) {
         nonce: crash.nonce,
         wallet: walletOnly({ ...round, result: undefined }),
         replayed: round.replayed,
+        isFirstBet,
       });
     }
 
     if (params.action === 'CASHOUT_CRASH' || params.action === 'RESOLVE_CRASH') {
       if (!params.roundId || (params.action === 'CASHOUT_CRASH' && !params.cashoutMultiplier)) {
-        return NextResponse.json({ error: 'Round and multiplier required' }, { status: 400 });
+        return apiErrorResponse(
+          APP_ERROR_CODES.VALIDATION_FAILED,
+          'Runde und Multiplikator sind erforderlich.',
+          400,
+          { requestId: params.requestId },
+        );
       }
       const round = await WalletService.getActiveRound(userId, params.roundId, 'CRASH');
       const crashPoint = z.coerce.number().positive().parse(round.state.crashPoint);
@@ -188,10 +218,20 @@ export async function POST(request: Request) {
     }
 
     if (!params.amount || !params.gameType) {
-      return NextResponse.json({ error: 'Game and amount required' }, { status: 400 });
+      return apiErrorResponse(
+        APP_ERROR_CODES.VALIDATION_FAILED,
+        'Spiel und Einsatz sind erforderlich.',
+        400,
+        { requestId: params.requestId },
+      );
     }
     if (params.amount > gameConfig.limits.betMax)
-      return NextResponse.json({ error: 'Bet exceeds limit' }, { status: 400 });
+      return apiErrorResponse(
+        APP_ERROR_CODES.BET_LIMIT_EXCEEDED,
+        'Der Einsatz überschreitet das erlaubte Limit.',
+        400,
+        { requestId: params.requestId },
+      );
 
     const seed = await WalletService.consumeActiveSeed({ userId, requestId: params.requestId });
     const generated = await CasinoCore.placeBet(
@@ -235,11 +275,13 @@ export async function POST(request: Request) {
       win: result.win,
       replayed: settlement.replayed,
     });
+    const isFirstBet = await isFirstBetSignal(userId, settlement.replayed);
 
     return NextResponse.json({
       ...(settlement.result as object),
       wallet: walletOnly(settlement),
       replayed: settlement.replayed,
+      isFirstBet,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal Server Error';
@@ -249,17 +291,14 @@ export async function POST(request: Request) {
       error,
       requestId,
     );
-    const status = message === 'Insufficient balance' ? 409 : 500;
-    return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === 'development'
-            ? message
-            : status === 409
-              ? message
-              : 'Internal Server Error',
-      },
-      { status },
+    const insufficientBalance = message === 'Insufficient balance';
+    return apiErrorResponse(
+      insufficientBalance ? APP_ERROR_CODES.INSUFFICIENT_BALANCE : APP_ERROR_CODES.INTERNAL_ERROR,
+      insufficientBalance
+        ? 'Dein Guthaben reicht für diesen Einsatz nicht aus.'
+        : 'Die Spielaktion konnte nicht verarbeitet werden.',
+      insufficientBalance ? 409 : 500,
+      { requestId },
     );
   }
 }

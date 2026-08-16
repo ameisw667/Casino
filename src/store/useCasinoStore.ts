@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { soundManager, type SoundKey } from '@/lib/casino/sound-manager';
 import { CasinoLogger } from '@/lib/casino/logger';
+import { getApiErrorMessage } from '@/lib/security/form-errors';
 import {
   type VipTier,
   type Rank,
@@ -897,7 +898,7 @@ export const useCasinoStore = create<CasinoState>()(
 
           const data = await response.json();
           if (!response.ok || !data.success) {
-            const errMsg = data.error || data.message || 'Invalid promo code';
+            const errMsg = getApiErrorMessage(data, 'Invalid promo code');
             get().addToast(errMsg, 'error');
             return { success: false, message: errMsg };
           }

@@ -551,3 +551,41 @@ describe('WalletService.advanceBlackjackRound', () => {
     await expect(WalletService.advanceBlackjackRound(params)).rejects.toThrow();
   });
 });
+
+describe('WalletService.isFirstEverBet', () => {
+  it('returns true when exactly one bet-placement row exists (the one just committed)', async () => {
+    mock.state.listResult = { data: [{ id: TRANSACTION_ID }], error: null };
+    await expect(WalletService.isFirstEverBet(USER_ID)).resolves.toBe(true);
+    expect(mock.client.from).toHaveBeenCalledWith('wallet_transactions');
+    expect(mock.builder.eq).toHaveBeenCalledWith('user_id', USER_ID);
+    expect(mock.builder.limit).toHaveBeenCalledWith(2);
+  });
+
+  it('returns true when zero rows exist (defensive edge case)', async () => {
+    mock.state.listResult = { data: [], error: null };
+    await expect(WalletService.isFirstEverBet(USER_ID)).resolves.toBe(true);
+  });
+
+  it('returns false when a prior bet-placement row already exists', async () => {
+    mock.state.listResult = {
+      data: [{ id: TRANSACTION_ID }, { id: RESULT_ID }],
+      error: null,
+    };
+    await expect(WalletService.isFirstEverBet(USER_ID)).resolves.toBe(false);
+  });
+
+  it('filters to bet-placement types only (bet_settled, round_started) — not every wallet_transactions row', async () => {
+    // Regression test for a real bug found in code review: an unfiltered row count would
+    // permanently return false for a user who redeemed a promo code (type 'bonus',
+    // 021_promo_codes.sql) or received an admin credit (type 'admin_adjust',
+    // 028_wallet_ledger_invariants.sql) before ever placing a bet.
+    mock.state.listResult = { data: [{ id: TRANSACTION_ID }], error: null };
+    await WalletService.isFirstEverBet(USER_ID);
+    expect(mock.builder.in).toHaveBeenCalledWith('type', ['bet_settled', 'round_started']);
+  });
+
+  it('fails safe to false when the lookup errors, without throwing', async () => {
+    mock.state.listResult = { data: null, error: new Error('db down') };
+    await expect(WalletService.isFirstEverBet(USER_ID)).resolves.toBe(false);
+  });
+});

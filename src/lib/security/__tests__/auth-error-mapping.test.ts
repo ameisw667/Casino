@@ -50,7 +50,9 @@ describe('formatAuthError', () => {
     );
   });
 
-  it('falls back to raw error prefix if message is unknown', () => {
-    expect(formatAuthError('Custom error message')).toBe('Fehler: Custom error message');
+  it('falls back to a safe generic message if the provider message is unknown', () => {
+    expect(formatAuthError('Custom error message')).toBe(
+      'Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.',
+    );
   });
 });

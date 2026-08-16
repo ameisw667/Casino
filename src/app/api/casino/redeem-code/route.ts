@@ -10,6 +10,7 @@ import {
   validateMutationOrigin,
 } from '@/lib/security/request-security';
 import { createClient } from '@/utils/supabase/server';
+import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
 
 const redeemSchema = z.object({
   code: z.string().trim().min(1, 'Please enter a promo code').max(32, 'Code too long'),
@@ -27,9 +28,18 @@ const PROMO_ERROR_MESSAGES: Record<string, string> = {
 
 export async function POST(request: Request) {
   const originFailure = validateMutationOrigin(request);
-  if (originFailure) return originFailure;
+  if (originFailure) {
+    return apiErrorResponse(
+      APP_ERROR_CODES.PERMISSION_DENIED,
+      'Keine Berechtigung.',
+      originFailure.status || 403,
+    );
+  }
 
   const requestIdHeader = request.headers.get('Idempotency-Key');
+  const validRequestId = z.string().uuid().safeParse(requestIdHeader).success
+    ? (requestIdHeader ?? undefined)
+    : undefined;
 
   try {
     const supabase = await createClient();
@@ -51,7 +61,7 @@ export async function POST(request: Request) {
     }
 
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return apiErrorResponse(APP_ERROR_CODES.AUTHENTICATION_REQUIRED, 'Bitte melde dich an.', 401);
     }
 
     const rate = await enforceRateLimit(
@@ -68,25 +78,33 @@ export async function POST(request: Request) {
         windowStart: new Date(rate.reset - 60_000).toISOString(),
         evidence: { scope: 'wallet-redeem', limit: rate.limit },
       });
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? APP_ERROR_CODES.SERVICE_UNAVAILABLE : APP_ERROR_CODES.RATE_LIMITED,
+        rate.unavailable
+          ? 'Der Dienst ist vorübergehend nicht verfügbar.'
+          : 'Zu viele Anfragen. Bitte versuche es später erneut.',
+        rate.unavailable ? 503 : 429,
+        {
+          headers: rateLimitHeaders(rate),
+          extra: { retryAfter: Math.max(1, Math.ceil((rate.reset - Date.now()) / 1000)) },
+        },
       );
     }
 
     const body = await request.json().catch(() => ({}));
     const parseResult = redeemSchema.safeParse(body);
     if (!parseResult.success) {
-      return NextResponse.json(
-        { error: parseResult.error.issues[0]?.message || 'Invalid promo code' },
-        { status: 400 },
-      );
+      return zodErrorResponse(parseResult.error, 400);
     }
 
     const rawCode = parseResult.data.code.toUpperCase();
-    const requestId = requestIdHeader;
-    if (!requestId || !z.string().uuid().safeParse(requestId).success) {
-      return NextResponse.json({ error: 'A valid Idempotency-Key is required' }, { status: 400 });
+    const requestId = validRequestId;
+    if (!requestId) {
+      return apiErrorResponse(
+        APP_ERROR_CODES.VALIDATION_FAILED,
+        'Eine gültige Idempotency-Key-Angabe ist erforderlich.',
+        400,
+      );
     }
 
     const outcome = await WalletService.redeemPromoCode({ userId, code: rawCode, requestId });
@@ -109,9 +127,16 @@ export async function POST(request: Request) {
           evidence: { scope: 'wallet-redeem', outcome: outcome.code },
         });
       }
-      return NextResponse.json(
-        { error: PROMO_ERROR_MESSAGES[outcome.code] ?? 'Promo code rejected', code: outcome.code },
-        { status: outcome.code === 'PROMO_REQUEST_CONFLICT' ? 409 : 400 },
+      const code = Object.values(APP_ERROR_CODES).includes(
+        outcome.code as (typeof APP_ERROR_CODES)[keyof typeof APP_ERROR_CODES],
+      )
+        ? (outcome.code as (typeof APP_ERROR_CODES)[keyof typeof APP_ERROR_CODES])
+        : APP_ERROR_CODES.PROMO_INVALID;
+      return apiErrorResponse(
+        code,
+        PROMO_ERROR_MESSAGES[outcome.code] ?? 'Promo-Code abgelehnt.',
+        outcome.code === 'PROMO_REQUEST_CONFLICT' ? 409 : 400,
+        { requestId },
       );
     }
 
@@ -135,6 +160,11 @@ export async function POST(request: Request) {
       error,
       requestIdHeader ?? undefined,
     );
-    return NextResponse.json({ error: 'Failed to redeem voucher code' }, { status: 500 });
+    return apiErrorResponse(
+      APP_ERROR_CODES.INTERNAL_ERROR,
+      'Der Promo-Code konnte nicht eingelöst werden.',
+      500,
+      { requestId: validRequestId },
+    );
   }
 }

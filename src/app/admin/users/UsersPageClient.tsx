@@ -11,6 +11,7 @@ import {
   Edit2,
   X,
 } from 'lucide-react';
+import { getApiErrorMessage } from '@/lib/security/form-errors';
 
 interface AdminUser {
   id: string;
@@ -118,7 +119,7 @@ export default function UsersPageClient() {
 
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
-        throw new Error(json.error || `HTTP ${res.status}`);
+        throw new Error(getApiErrorMessage(json, `HTTP ${res.status}`));
       }
 
       setSaveSuccess(

@@ -51,6 +51,16 @@ function walletFromRpc(data: unknown): WalletSettlement {
   };
 }
 
+/**
+ * Additive analytics signal only (2.9, worldmap/05_2.9_PostHog_Analytics.md §3.4) — shared by
+ * bet/route.ts and blackjack/route.ts so the replayed-gate + lookup logic exists in one place.
+ * Never affects settlement response fields otherwise, never a network call to a third party.
+ */
+export async function isFirstBetSignal(userId: string, replayed: boolean): Promise<boolean> {
+  if (replayed) return false;
+  return WalletService.isFirstEverBet(userId);
+}
+
 export class WalletService {
   static async getWallet(userId: string): Promise<WalletSnapshot> {
     const supabase = createAdminClient();
@@ -463,6 +473,44 @@ export class WalletService {
       communityGoal: number;
       communityGoalReached: boolean;
     };
+  }
+
+  /**
+   * Whether the user has never placed a bet before. Checked after a bet-placement RPC
+   * (settleBet/startRound) commits — those insert exactly one wallet_transactions row per
+   * call, so <=1 matching row means this was the first. Deliberately NOT checked after
+   * settlement-only RPCs (settleRound/advanceBlackjackRound): advanceBlackjackRound inserts one
+   * row per action (HIT/STAND/...), so counting rows there would undercount "first game" for any
+   * Blackjack round with more than one action. Relies on migration 007's per-user
+   * pg_advisory_xact_lock serializing concurrent bet-placement calls for the same user
+   * (05_2.9_PostHog_Analytics.md §3.4).
+   *
+   * Filtered to the two bet-placement `type` values from 007_server_authority.sql
+   * ('bet_settled' from settle_game_bet, 'round_started' from start_game_round) — NOT an
+   * unfiltered row count. wallet_transactions also holds non-bet rows (promo redemptions:
+   * 021_promo_codes.sql 'bonus'; admin adjustments: 028_wallet_ledger_invariants.sql
+   * 'admin_adjust') that a user can accumulate before ever placing a bet; counting those would
+   * make this permanently return false for anyone who redeemed a code first (code-review finding).
+   */
+  static async isFirstEverBet(userId: string): Promise<boolean> {
+    const supabase = createAdminClient();
+    try {
+      const { data, error } = await supabase
+        .from('wallet_transactions')
+        .select('id')
+        .eq('user_id', userId)
+        .in('type', ['bet_settled', 'round_started'])
+        .limit(2);
+      if (error) throw error;
+      return (data?.length ?? 0) <= 1;
+    } catch (error) {
+      CasinoLogger.error(
+        'WalletService/isFirstEverBet',
+        'Lookup failed, defaulting to false',
+        error,
+      );
+      return false;
+    }
   }
 
   static async getGameActiveRound(params: { userId: string; game: 'CRASH' | 'BLACKJACK' }) {

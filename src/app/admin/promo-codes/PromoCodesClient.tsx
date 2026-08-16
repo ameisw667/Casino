@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { Ticket, Plus, RefreshCw, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import { getApiErrorMessage } from '@/lib/security/form-errors';
 
 interface PromoCode {
   code: string;
@@ -68,9 +69,9 @@ export default function PromoCodesClient() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const json = (await res.json()) as { error?: string; code?: PromoCode };
+      const json = (await res.json()) as { error?: unknown; message?: string; code?: PromoCode };
       if (!res.ok) {
-        setSubmitMsg({ kind: 'err', text: json.error ?? 'Anlegen fehlgeschlagen' });
+        setSubmitMsg({ kind: 'err', text: getApiErrorMessage(json, 'Anlegen fehlgeschlagen') });
         return;
       }
       setSubmitMsg({ kind: 'ok', text: `Code ${json.code?.code} angelegt` });

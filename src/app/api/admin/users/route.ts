@@ -10,6 +10,7 @@ import {
   rateLimitHeaders,
   validateMutationOrigin,
 } from '@/lib/security/request-security';
+import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
 
 const USER_LIST_LIMIT = 200;
 
@@ -93,11 +94,21 @@ const adminUpdateUserSchema = z.object({
 
 export async function PATCH(request: Request) {
   const originFailure = validateMutationOrigin(request);
-  if (originFailure) return originFailure;
+  if (originFailure) {
+    return apiErrorResponse(
+      APP_ERROR_CODES.PERMISSION_DENIED,
+      'Keine Berechtigung.',
+      originFailure.status || 403,
+    );
+  }
 
   const requestId = z.string().uuid().safeParse(request.headers.get('Idempotency-Key'));
   if (!requestId.success) {
-    return NextResponse.json({ error: 'A valid Idempotency-Key is required' }, { status: 400 });
+    return apiErrorResponse(
+      APP_ERROR_CODES.VALIDATION_FAILED,
+      'Eine gültige Idempotency-Key-Angabe ist erforderlich.',
+      400,
+    );
   }
 
   try {
@@ -105,8 +116,12 @@ export async function PATCH(request: Request) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return new NextResponse('Unauthorized', { status: 401 });
-    if (!isAdminEmail(user.email)) return new NextResponse('Forbidden', { status: 403 });
+    if (!user) {
+      return apiErrorResponse(APP_ERROR_CODES.AUTHENTICATION_REQUIRED, 'Bitte melde dich an.', 401);
+    }
+    if (!isAdminEmail(user.email)) {
+      return apiErrorResponse(APP_ERROR_CODES.PERMISSION_DENIED, 'Keine Berechtigung.', 403);
+    }
 
     const rate = await enforceRateLimit(
       getClientIdentifier(request, user.id),
@@ -115,21 +130,30 @@ export async function PATCH(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? APP_ERROR_CODES.SERVICE_UNAVAILABLE : APP_ERROR_CODES.RATE_LIMITED,
+        rate.unavailable
+          ? 'Der Dienst ist vorübergehend nicht verfügbar.'
+          : 'Zu viele Anfragen. Bitte versuche es später erneut.',
+        rate.unavailable ? 503 : 429,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
     const body = await request.json().catch(() => null);
     const parsed = adminUpdateUserSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid input parameters' }, { status: 400 });
+      return zodErrorResponse(parsed.error, 400, { requestId: requestId.data });
     }
 
     const { targetUserId, reason, ...updates } = parsed.data;
     if (Object.keys(updates).length === 0) {
-      return NextResponse.json({ error: 'No update fields provided' }, { status: 400 });
+      return apiErrorResponse(
+        APP_ERROR_CODES.VALIDATION_FAILED,
+        'Mindestens ein Änderungsfeld ist erforderlich.',
+        400,
+        { requestId: requestId.data },
+      );
     }
 
     const admin = createAdminClient();
@@ -146,7 +170,12 @@ export async function PATCH(request: Request) {
 
     if (error || !data) {
       CasinoLogger.error('API/Admin/Users', `Admin user update failed for ${targetUserId}`, error);
-      return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+      return apiErrorResponse(
+        APP_ERROR_CODES.INTERNAL_ERROR,
+        'Die Nutzeränderung konnte nicht verarbeitet werden.',
+        500,
+        { requestId: requestId.data },
+      );
     }
 
     CasinoLogger.info('API/Admin/Users', `Admin ${user.email} updated user ${targetUserId}`, {
@@ -162,6 +191,10 @@ export async function PATCH(request: Request) {
     });
   } catch (error) {
     CasinoLogger.error('API/Admin/Users', 'Admin user update unexpected failure', error);
-    return NextResponse.json({ error: 'User update unavailable' }, { status: 503 });
+    return apiErrorResponse(
+      APP_ERROR_CODES.SERVICE_UNAVAILABLE,
+      'Die Nutzerverwaltung ist vorübergehend nicht verfügbar.',
+      503,
+    );
   }
 }

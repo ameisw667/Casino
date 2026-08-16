@@ -10,6 +10,7 @@ import {
   rateLimitHeaders,
   validateMutationOrigin,
 } from '@/lib/security/request-security';
+import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
 
 const createSchema = z.object({
   code: z
@@ -67,15 +68,25 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const originFailure = validateMutationOrigin(request);
-  if (originFailure) return originFailure;
+  if (originFailure) {
+    return apiErrorResponse(
+      APP_ERROR_CODES.PERMISSION_DENIED,
+      'Keine Berechtigung.',
+      originFailure.status || 403,
+    );
+  }
 
   try {
     const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return new NextResponse('Unauthorized', { status: 401 });
-    if (!isAdminEmail(user.email)) return new NextResponse('Forbidden', { status: 403 });
+    if (!user) {
+      return apiErrorResponse(APP_ERROR_CODES.AUTHENTICATION_REQUIRED, 'Bitte melde dich an.', 401);
+    }
+    if (!isAdminEmail(user.email)) {
+      return apiErrorResponse(APP_ERROR_CODES.PERMISSION_DENIED, 'Keine Berechtigung.', 403);
+    }
 
     const rate = await enforceRateLimit(
       getClientIdentifier(request, user.id),
@@ -84,19 +95,20 @@ export async function POST(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? APP_ERROR_CODES.SERVICE_UNAVAILABLE : APP_ERROR_CODES.RATE_LIMITED,
+        rate.unavailable
+          ? 'Der Dienst ist vorübergehend nicht verfügbar.'
+          : 'Zu viele Anfragen. Bitte versuche es später erneut.',
+        rate.unavailable ? 503 : 429,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
     const body = await request.json().catch(() => null);
     const parsed = createSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? 'Invalid promo code payload' },
-        { status: 400 },
-      );
+      return zodErrorResponse(parsed.error, 400);
     }
 
     const admin = createAdminClient();
@@ -116,10 +128,18 @@ export async function POST(request: Request) {
     if (error) {
       const msg = (error as { message?: string }).message ?? '';
       if (msg.includes('duplicate') || msg.includes('unique') || msg.includes('23505')) {
-        return NextResponse.json({ error: 'Promo code already exists' }, { status: 409 });
+        return apiErrorResponse(
+          APP_ERROR_CODES.CONFLICT,
+          'Dieser Promo-Code existiert bereits.',
+          409,
+        );
       }
       CasinoLogger.error('API/Admin/PromoCodes', 'Create failed', error);
-      return NextResponse.json({ error: 'Failed to create promo code' }, { status: 500 });
+      return apiErrorResponse(
+        APP_ERROR_CODES.INTERNAL_ERROR,
+        'Der Promo-Code konnte nicht erstellt werden.',
+        500,
+      );
     }
 
     CasinoLogger.info('API/Admin/PromoCodes', `Admin ${user.email} created code ${data.code}`, {
@@ -130,6 +150,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, code: data });
   } catch (error) {
     CasinoLogger.error('API/Admin/PromoCodes', 'Create unexpected failure', error);
-    return NextResponse.json({ error: 'Promo code creation unavailable' }, { status: 503 });
+    return apiErrorResponse(
+      APP_ERROR_CODES.SERVICE_UNAVAILABLE,
+      'Die Promo-Code-Verwaltung ist vorübergehend nicht verfügbar.',
+      503,
+    );
   }
 }

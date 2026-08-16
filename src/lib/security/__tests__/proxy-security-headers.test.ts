@@ -35,4 +35,12 @@ describe('proxy security headers & CSP', () => {
     expect(proxyContent).toContain('https://*.upstash.io');
     expect(proxyContent).toContain("frame-ancestors 'none'");
   });
+
+  it('scopes the PostHog connect-src entry to the exact ingest host, never a wildcard (2.9)', () => {
+    const proxyContent = readFileSync(resolve(root, 'src/proxy.ts'), 'utf8');
+
+    expect(proxyContent).toContain('https://us.i.posthog.com');
+    expect(proxyContent).not.toContain('*.posthog.com');
+    expect(proxyContent).not.toContain('*.i.posthog.com');
+  });
 });

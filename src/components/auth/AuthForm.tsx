@@ -8,6 +8,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { Magnetic } from '@/components/ui/Magnetic';
 import { validateAuthCredentials } from './auth-validation';
+import { mapAuthError } from '@/lib/security/form-errors';
 
 interface AuthFormProps {
   mode: 'sign-in' | 'sign-up';
@@ -194,35 +195,7 @@ function AuthField({
 }
 
 export function formatAuthError(message: string): string {
-  const normalized = message.toLowerCase();
-  if (normalized.includes('invalid api key') || normalized.includes('api key')) {
-    return 'Konfigurationsfehler: Der API-Schlüssel ist ungültig oder abgelaufen. Bitte versuche es später erneut.';
-  }
-  if (normalized.includes('user already registered') || normalized.includes('already registered')) {
-    return 'Ein Konto mit dieser E-Mail-Adresse existiert bereits. Bitte melde dich an.';
-  }
-  if (
-    normalized.includes('invalid login credentials') ||
-    normalized.includes('invalid credentials')
-  ) {
-    return 'Ungültige Anmeldedaten. Bitte überprüfe deine E-Mail-Adresse und dein Passwort.';
-  }
-  if (
-    normalized.includes('password should be at least') ||
-    (normalized.includes('password') && normalized.includes('characters'))
-  ) {
-    return 'Das Passwort muss mindestens 6 Zeichen lang sein.';
-  }
-  if (normalized.includes('email not confirmed')) {
-    return 'Deine E-Mail-Adresse wurde noch nicht bestätigt. Bitte prüfe dein Postfach.';
-  }
-  if (normalized.includes('rate limit') || normalized.includes('too many requests')) {
-    return 'Zu viele Versuche. Bitte warte einen kurzen Moment und versuche es erneut.';
-  }
-  if (normalized.includes('network') || normalized.includes('failed to fetch')) {
-    return 'Netzwerkfehler: Verbindung zum Server konnte nicht hergestellt werden.';
-  }
-  return `Fehler: ${message}`;
+  return mapAuthError(message).message;
 }
 
 export function AuthForm({ mode }: AuthFormProps) {
