@@ -1,52 +1,62 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Info, Zap } from 'lucide-react';
+import { Info, Zap, TrendingUp, Sparkles, Sliders, ShieldCheck } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { GameErrorBoundary } from '@/components/casino/GameErrorBoundary';
 import { sanitizeClientSeed } from '@/lib/casino/provably-fair';
 import { CasinoLogger } from '@/lib/casino/logger';
 import { soundManager } from '@/lib/casino/sound-manager';
-// Types for the particle system
+
+// Types for the particle & background system
 interface Particle {
   x: number;
   y: number;
   vx: number;
   vy: number;
   life: number;
+  maxLife: number;
   color: string;
   size: number;
+  type: 'exhaust' | 'spark' | 'smoke' | 'explosion' | 'cashout' | 'shockwave';
 }
+
+interface Star {
+  x: number;
+  y: number;
+  size: number;
+  speed: number;
+  layer: number; // 1 (far), 2 (mid), 3 (near)
+  opacity: number;
+  twinklePhase: number;
+}
+
 interface LiveBet {
   user: string;
   amount: number;
   multiplier: number | null;
   payout: number | null;
-  _target?: number; // deterministic cashout target, not shown in UI
+  _target?: number;
 }
+
 function formatMultiplier(mult: number): string {
   if (mult >= 100000) return `${(mult / 1000).toFixed(0)}k+x`;
   if (mult >= 10000) return `${(mult / 1000).toFixed(1)}kx`;
   return `${mult.toFixed(2)}x`;
 }
 
-// Cosmetic-only deterministic PRNG (linear congruential generator) for particle jitter.
-// Never touches game outcome — crash point/payout come exclusively from ProvablyFairEngine
-// on the server. Kept separate so it's obviously not a game-logic RNG on audit.
+// Cosmetic PRNG for visual particles
 function pseudoRandom(seedRef: React.MutableRefObject<number>): number {
   seedRef.current = (seedRef.current * 1103515245 + 12345) & 0x7fffffff;
   return seedRef.current / 0x7fffffff;
 }
 
-// Asymptotic 0..1 "how tense does this feel" curve — crosses ~0.5 around 3.9x, approaches
-// 1 at very high multipliers but never quite reaches it. Purely cosmetic (vignette/pulse/
-// zoom intensity); has no bearing on odds, payout, or the real (server-set) crash point.
+// Risk factor curve: 0..1
 const RISK_ESCALATION_RATE = 0.35;
 function getRiskFactor(multiplier: number): number {
   return 1 - 1 / (1 + Math.max(0, multiplier - 1) * RISK_ESCALATION_RATE);
 }
 
-// Camera Dynamics: milestone multipliers that trigger a one-off popup as they're crossed.
-// Module-level (not component-scope) so it's a stable reference across renders.
+// Milestone multipliers that trigger a golden horizon line & pop
 const MILESTONE_VALUES = [2, 5, 10, 25, 50, 100, 250, 500, 1000];
 
 export default function CrashPage() {
@@ -62,6 +72,7 @@ export default function CrashPage() {
   const setIsProcessing = useCasinoStore((state) => state.setIsProcessing);
   const allBets = useCasinoStore((state) => state.allBets);
   const { betMin, betMax } = useCasinoStore((state) => state.gameConfig.limits);
+
   const [betAmount, setBetAmount] = useState(10);
   const [multiplier, setMultiplier] = useState(1.0);
   const [status, setStatus] = useState<'IDLE' | 'RUNNING' | 'CRASHED' | 'CASHED_OUT'>('IDLE');
@@ -70,11 +81,9 @@ export default function CrashPage() {
   const [_liveBets, setLiveBets] = useState<LiveBet[]>([]);
   const [showTutorial, setShowTutorial] = useState(false);
   const [bigWin, setBigWin] = useState<{ amount: number; multiplier: number } | null>(null);
-  // Camera Dynamics: transient milestone popup (2x, 5x, 10x, ...), low-frequency enough
-  // to be plain React state + a keyed CSS animation instead of imperative ref mutation.
   const [milestoneFlash, setMilestoneFlash] = useState<{ value: number; key: number } | null>(null);
 
-  // V2 Lever 2: Session stats — running profit/loss tracker to encourage longer sessions
+  // Session stats tracker
   const [sessionStats, setSessionStats] = useState({
     rounds: 0,
     wins: 0,
@@ -99,37 +108,29 @@ export default function CrashPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
   const particlesRef = useRef<Particle[]>([]);
+  const starsRef = useRef<Star[]>([]);
   const lastUpdateRef = useRef<number>(0);
   const pointsRef = useRef<{ x: number; y: number }[]>([]);
   const autoCountRef = useRef<number>(0);
   const rocketImgRef = useRef<HTMLImageElement | null>(null);
   const autoRestartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const crashPointRef = useRef<number>(2.0);
-  // Synchronous one-shot lock: whichever resolution path (natural crash in the RAF
-  // loop, or a confirmed cashout in the async handler) reaches this first wins. Needed
-  // because `statusRef`/`cashoutAtRef` are only synced via a useEffect (post-commit),
-  // which lags behind these two code paths racing directly against each other.
   const roundResolvedRef = useRef(false);
   const bigWinQueueRef = useRef<Array<{ amount: number; multiplier: number }>>([]);
   const multiplierDisplayRef = useRef<HTMLHeadingElement>(null);
+  const liveProfitDisplayRef = useRef<HTMLDivElement>(null);
+  const cashoutButtonRef = useRef<HTMLButtonElement>(null);
   const multiplierRef = useRef<number>(1.0);
   const roundIdRef = useRef<string | null>(null);
-  // Risk Escalation + Camera Dynamics: DOM refs updated imperatively (60fps) so they
-  // never touch React's render cycle — same pattern as multiplierDisplayRef above.
   const vignetteRef = useRef<HTMLDivElement>(null);
   const cameraZoomRef = useRef<HTMLDivElement>(null);
-  // Cosmetic-only PRNG seed for the particle trail/explosion (see pseudoRandom above).
   const prngSeedRef = useRef(1);
-  // Next index into MILESTONE_VALUES still to be announced this round.
   const lastMilestoneIndexRef = useRef(0);
-  // Accessibility: mirrors OS-level prefers-reduced-motion so the pulse/zoom (real motion)
-  // can be suppressed while the risk vignette (a color/intensity cue, not motion) stays on.
   const prefersReducedMotionRef = useRef(false);
-  // Mobile perf: scales down (not off) particle count/zoom/pulse — same pattern as the
-  // other *Ref mirrors below, needed because gameLoop reads refs only, never React state.
   const isMobileRef = useRef(false);
+  const shakeRef = useRef<{ intensity: number }>({ intensity: 0 });
 
-  // Refs to avoid stale closures in the game loop
+  // Refs for stable RAF loop
   const statusRef = useRef<'IDLE' | 'RUNNING' | 'CRASHED' | 'CASHED_OUT'>('IDLE');
   const cashoutAtRef = useRef<number | null>(null);
   const isAutoCashoutEnabledRef = useRef(false);
@@ -139,24 +140,43 @@ export default function CrashPage() {
   const handleCashoutRef = useRef<(m?: number) => void>(() => {});
 
   // Game constants
-  const GROWTH_FACTOR = 0.003; // ~3.7s to 2x at 60fps (market standard: Stake ~4s, Bustabit ~3s)
+  const GROWTH_FACTOR = 0.003;
   const MAX_POINTS = 500;
-  // Camera follow: only the last WINDOW_POINTS are drawn, mapped so the newest point (rocket)
-  // always lands at ROCKET_X_FRACTION of the canvas width instead of drifting to the edge.
   const WINDOW_POINTS = 180;
   const ROCKET_X_FRACTION = 0.62;
-  const CASHOUT_RESOLVE_DELAY_MS = 1000; // brief pause after a confirmed cashout before the next round can start
-  // Risk Escalation: the multiplier number only starts pulsing once risk is meaningfully
-  // above zero, so the calm 1.00x-1.4x range stays visually quiet.
-  const MULTIPLIER_PULSE_RISK_THRESHOLD = 0.12;
+  const CASHOUT_RESOLVE_DELAY_MS = 1200;
 
+  // Initialize stars and load vector rocket asset
   useEffect(() => {
     const img = new window.Image();
-    img.src = '/images/crash/crash-rocket.png';
-    rocketImgRef.current = img;
+    img.src = '/images/crash/crash-rocket.svg';
+    img.onload = () => {
+      rocketImgRef.current = img;
+    };
+    img.onerror = () => {
+      // Fallback to existing asset if SVG load fails
+      const fallback = new window.Image();
+      fallback.src = '/images/crash/crash-rocket.png';
+      rocketImgRef.current = fallback;
+    };
+
+    // Initialize 70 cosmic stars
+    const initialStars: Star[] = [];
+    for (let i = 0; i < 70; i++) {
+      initialStars.push({
+        x: Math.random() * 1200,
+        y: Math.random() * 800,
+        size: Math.random() * 2 + 0.8,
+        speed: Math.random() * 0.8 + 0.3,
+        layer: Math.floor(Math.random() * 3) + 1,
+        opacity: Math.random() * 0.7 + 0.3,
+        twinklePhase: Math.random() * Math.PI * 2,
+      });
+    }
+    starsRef.current = initialStars;
   }, []);
-  // Accessibility: track prefers-reduced-motion live (not just on mount) so toggling the
-  // OS setting mid-round takes effect immediately.
+
+  // Motion accessibility
   useEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)');
     prefersReducedMotionRef.current = query.matches;
@@ -166,7 +186,8 @@ export default function CrashPage() {
     query.addEventListener('change', handleChange);
     return () => query.removeEventListener('change', handleChange);
   }, []);
-  // BigWin queue: auto-dismiss after 3s and show next queued win
+
+  // BigWin queue
   useEffect(() => {
     if (!bigWin) return;
     const timer = setTimeout(() => {
@@ -175,16 +196,15 @@ export default function CrashPage() {
     }, 3000);
     return () => clearTimeout(timer);
   }, [bigWin]);
-  // Milestone popup: timeout-based dismissal (not onAnimationEnd) so it also clears
-  // correctly under prefers-reduced-motion, where the CSS animation is disabled and no
-  // animationend event would ever fire.
+
+  // Milestone flash dismiss
   useEffect(() => {
     if (!milestoneFlash) return;
-    const timer = setTimeout(() => setMilestoneFlash(null), 1100);
+    const timer = setTimeout(() => setMilestoneFlash(null), 1200);
     return () => clearTimeout(timer);
   }, [milestoneFlash]);
 
-  // Keep refs in sync with state/props (handleCashoutRef synced after handleCashout is declared)
+  // Sync refs
   useEffect(() => {
     statusRef.current = status;
   }, [status]);
@@ -207,14 +227,15 @@ export default function CrashPage() {
     isMobileRef.current = isMobile;
   }, [isMobile]);
 
-  // Clears the risk-driven pulse/vignette/zoom back to neutral. Called on round start and
-  // the instant a round resolves, so nothing freezes mid-pulse on a stale risk level.
+  // Reset visual effects on neutral state
   const resetRiskVisuals = useCallback(() => {
     if (multiplierDisplayRef.current) multiplierDisplayRef.current.style.transform = 'scale(1)';
     if (vignetteRef.current) vignetteRef.current.style.opacity = '0';
     if (cameraZoomRef.current) cameraZoomRef.current.style.transform = 'scale(1)';
+    shakeRef.current.intensity = 0;
   }, []);
 
+  // Cashout handling
   const handleCashout = useCallback(
     (specificMultiplier?: number) => {
       if (status !== 'RUNNING' || cashoutAt || !roundIdRef.current) return;
@@ -257,12 +278,6 @@ export default function CrashPage() {
             biggestMultiplier: Math.max(previous.biggestMultiplier, data.multiplier),
           }));
 
-          // Instant resolve: freeze the curve at the confirmed result instead of animating
-          // up to the round's real (predetermined) crash point. Guarded on the synchronous
-          // roundResolvedRef lock so a natural crash that already landed during this
-          // request (rare, sub-second window) is left untouched — it already recorded its
-          // own history entry. (crashHistory itself is already updated by processGameResult
-          // above via crashMultiplier — no need to push it again here.)
           if (!roundResolvedRef.current) {
             roundResolvedRef.current = true;
             resetRiskVisuals();
@@ -271,17 +286,42 @@ export default function CrashPage() {
               if (multiplierDisplayRef.current) {
                 multiplierDisplayRef.current.innerText = formatMultiplier(requestedMultiplier);
                 multiplierDisplayRef.current.style.color = '#4ade80';
+                multiplierDisplayRef.current.style.textShadow = '0 0 40px rgba(74, 222, 128, 0.7)';
               }
               setStatus('CASHED_OUT');
+              soundManager.play('win');
+
+              // Spawn gold coin celebration particles at rocket location
+              const canvas = canvasRef.current;
+              if (canvas) {
+                const w = canvas.clientWidth;
+                const h = canvas.clientHeight;
+                const rX = w * ROCKET_X_FRACTION;
+                const sY = h / Math.max(5, requestedMultiplier + 1);
+                const rY = h - (requestedMultiplier - 1) * sY;
+                for (let i = 0; i < 35; i++) {
+                  const angle = Math.random() * Math.PI * 2;
+                  const speed = 2 + Math.random() * 4;
+                  particlesRef.current.push({
+                    x: rX,
+                    y: rY,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 1.5,
+                    life: 1,
+                    maxLife: 1,
+                    color: Math.random() > 0.4 ? '#FFD700' : '#4ade80',
+                    size: 2.5 + Math.random() * 3,
+                    type: 'cashout',
+                  });
+                }
+              }
             } else {
-              // Server determined the round had already crashed before this cashout
-              // landed (e.g. an auto-cashout target at/above the real crash point) —
-              // resolve as a loss, same as the normal crash flow.
               multiplierRef.current = crashPointRef.current;
               setMultiplier(crashPointRef.current);
               if (multiplierDisplayRef.current) {
                 multiplierDisplayRef.current.innerText = formatMultiplier(crashPointRef.current);
                 multiplierDisplayRef.current.style.color = 'hsl(0, 85%, 60%)';
+                multiplierDisplayRef.current.style.textShadow = '0 0 50px rgba(255, 60, 60, 0.8)';
               }
               setStatus('CRASHED');
             }
@@ -308,13 +348,13 @@ export default function CrashPage() {
       resetRiskVisuals,
     ],
   );
-  // Sync handleCashout ref after it's declared
+
   useEffect(() => {
     handleCashoutRef.current = handleCashout;
   }, [handleCashout]);
 
+  // Round start
   const handleStart = useCallback(async () => {
-    // Guard: only start when truly idle and not already processing
     if (status !== 'IDLE' || isProcessing) return;
 
     if (betAmount < betMin || betAmount > betMax) {
@@ -363,31 +403,36 @@ export default function CrashPage() {
       applyServerWalletSnapshot(data.wallet);
       roundIdRef.current = data.roundId;
 
-      // Persist server seed hash + advance nonce for next round
       setProvablyFairSettings({ serverSeedHash: data.hash, nonce: data.nonce });
 
-      // Reset all game state BEFORE setting status to RUNNING
+      // Reset all round state BEFORE starting new flight
+      setCashoutAt(null);
+      cashoutAtRef.current = null;
       crashPointRef.current = data.crashPoint;
       roundResolvedRef.current = false;
       multiplierRef.current = 1.0;
       lastUpdateRef.current = performance.now();
       if (multiplierDisplayRef.current) {
         multiplierDisplayRef.current.innerText = '1.00x';
-        multiplierDisplayRef.current.style.color = '#fff';
+        multiplierDisplayRef.current.style.color = '#FFFDF0';
+        multiplierDisplayRef.current.style.textShadow = '0 0 35px rgba(212, 175, 55, 0.6)';
+      }
+      if (liveProfitDisplayRef.current) {
+        liveProfitDisplayRef.current.innerText = `+$0.00`;
+      }
+      if (cashoutButtonRef.current) {
+        cashoutButtonRef.current.innerText = `CASHOUT $${betAmount.toFixed(2)}`;
       }
       pointsRef.current = [{ x: 0, y: 1 }];
       particlesRef.current = [];
 
       bigWinQueueRef.current = [];
       setBigWin(null);
-      // Reseed cosmetic particle PRNG per round so the trail doesn't look identical
-      // round to round (never affects the crash point — that comes from the server above).
       prngSeedRef.current = Date.now() % 0x7fffffff || 1;
       lastMilestoneIndexRef.current = 0;
       setMilestoneFlash(null);
       resetRiskVisuals();
 
-      // Use real allBets from store (Zustand)
       const recentBets = allBets
         .filter((b) => b.game === 'CRASH')
         .slice(0, 10)
@@ -402,13 +447,11 @@ export default function CrashPage() {
         setLiveBets(recentBets);
       }
 
-      // NOW start the game loop — crashPointRef and multiplierRef are fresh
       setIsProcessing(false);
       setStatus('RUNNING');
       soundManager.play('crash-launch');
     } catch (error: unknown) {
       CasinoLogger.error('Crash', 'Start error', error);
-      // The server transaction is authoritative; there is no optimistic debit to restore.
       setIsProcessing(false);
       if (error instanceof Error && error.message.startsWith('RATE_LIMIT:')) {
         const retrySec = error.message.split(':')[1] || '2';
@@ -422,6 +465,9 @@ export default function CrashPage() {
     isProcessing,
     betAmount,
     balance,
+    betMin,
+    betMax,
+    allBets,
     provablyFairSettings,
     addToast,
     applyServerWalletSnapshot,
@@ -474,15 +520,15 @@ export default function CrashPage() {
     [addToast, applyServerWalletSnapshot, processGameResult, provablyFairSettings],
   );
 
-  // Hotkeys
+  // Hotkeys: Space & Enter
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        document.activeElement?.tagName === 'INPUT' ||
+        document.activeElement?.tagName === 'TEXTAREA'
+      )
+        return;
       if (e.code === 'Space' || e.code === 'Enter') {
-        if (
-          document.activeElement?.tagName === 'INPUT' ||
-          document.activeElement?.tagName === 'TEXTAREA'
-        )
-          return;
         e.preventDefault();
         if (status !== 'RUNNING') handleStart();
         else handleCashout();
@@ -491,7 +537,8 @@ export default function CrashPage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [status, handleStart, handleCashout]);
-  // Handle auto-restart or auto-betting logic
+
+  // Auto-bet / status transitions
   useEffect(() => {
     if (status === 'IDLE') {
       if (isAutoBetting) {
@@ -502,7 +549,7 @@ export default function CrashPage() {
         }
         if (balance >= betAmount) {
           autoCountRef.current += 1;
-          autoRestartTimerRef.current = setTimeout(handleStart, 2000);
+          autoRestartTimerRef.current = setTimeout(handleStart, 1800);
         } else {
           // eslint-disable-next-line react-hooks/set-state-in-effect
           setIsAutoBetting(false);
@@ -517,6 +564,8 @@ export default function CrashPage() {
       const t2 = setTimeout(() => setCountdown(1), 2000);
       const t3 = setTimeout(() => {
         setCountdown(null);
+        setCashoutAt(null);
+        cashoutAtRef.current = null;
         setStatus('IDLE');
         setLiveBets([]);
       }, 3000);
@@ -527,6 +576,8 @@ export default function CrashPage() {
       };
     } else if (status === 'CASHED_OUT') {
       const t = setTimeout(() => {
+        setCashoutAt(null);
+        cashoutAtRef.current = null;
         setStatus('IDLE');
         setLiveBets([]);
       }, CASHOUT_RESOLVE_DELAY_MS);
@@ -537,79 +588,122 @@ export default function CrashPage() {
     };
   }, [status, isAutoBetting, balance, betAmount, addToast, handleStart]);
 
-  // Update live bets — deterministic cashout based on each player's _target
-  useEffect(() => {
-    if (status === 'RUNNING') {
-      const interval = setInterval(() => {
-        const liveM = multiplierRef.current;
-        setLiveBets((prev) =>
-          prev.map((bet) => {
-            if (bet.multiplier === null && bet._target !== undefined && liveM >= bet._target) {
-              return { ...bet, multiplier: bet._target, payout: bet.amount * bet._target };
-            }
-            return bet;
-          }),
-        );
-      }, 200);
-      return () => clearInterval(interval);
-    }
-  }, [status]);
-
-  // Particle System Logic (deterministic PRNG — see pseudoRandom above, cosmetic only)
-  const EXPLOSION_COLORS = ['#ff3b30', '#ff6b35', '#ffae42'];
+  // Explosions & Thruster Particle Physics
   const createExplosion = (x: number, y: number) => {
-    const MAX_PARTICLES = 200;
-
-    // Limit existing particles to make room for the explosion
-    if (particlesRef.current.length > MAX_PARTICLES - 50) {
-      particlesRef.current = particlesRef.current.slice(-(MAX_PARTICLES - 50));
+    if (!prefersReducedMotionRef.current) {
+      shakeRef.current.intensity = 18;
     }
-    // Fewer particles on mobile — cheaper canvas rendering on typically weaker GPUs.
-    const particleCount = isMobileRef.current ? 20 : 40;
+    const particleCount = isMobileRef.current ? 25 : 55;
+    const colors = ['#FFF', '#FFD700', '#FF8800', '#FF3B30', '#B91C1C'];
+
+    // Add expanding shockwave ring
+    particlesRef.current.push({
+      x,
+      y,
+      vx: 0,
+      vy: 0,
+      life: 1,
+      maxLife: 1,
+      color: 'rgba(255, 100, 50, 0.8)',
+      size: 10,
+      type: 'shockwave',
+    });
+
     for (let i = 0; i < particleCount; i++) {
       const angle = pseudoRandom(prngSeedRef) * Math.PI * 2;
-      const speed = 1.5 + pseudoRandom(prngSeedRef) * 4;
+      const speed = 2 + pseudoRandom(prngSeedRef) * 6;
       particlesRef.current.push({
         x,
         y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
-        life: 0.6 + pseudoRandom(prngSeedRef) * 0.4,
-        color: EXPLOSION_COLORS[Math.floor(pseudoRandom(prngSeedRef) * EXPLOSION_COLORS.length)],
-        size: 1.5 + pseudoRandom(prngSeedRef) * 2.5,
+        life: 1,
+        maxLife: 0.6 + pseudoRandom(prngSeedRef) * 0.6,
+        color: colors[Math.floor(pseudoRandom(prngSeedRef) * colors.length)],
+        size: 2 + pseudoRandom(prngSeedRef) * 3.5,
+        type: 'explosion',
       });
     }
     soundManager.play('crash-explode');
   };
-  const createTail = (x: number, y: number, riskFactor: number, color: string) => {
-    // Lower steady-state trail population on mobile — same reasoning as the explosion above.
-    if (particlesRef.current.length > (isMobileRef.current ? 150 : 300)) return;
-    const speed = 0.4 + riskFactor * 0.8;
-    const drift = (pseudoRandom(prngSeedRef) - 0.5) * speed;
-    particlesRef.current.push({
-      x,
-      y,
-      vx: -speed - pseudoRandom(prngSeedRef) * 0.5,
-      vy: drift,
-      life: 0.5 + pseudoRandom(prngSeedRef) * 0.3,
-      color,
-      size: 1 + pseudoRandom(prngSeedRef) * 1.5,
-    });
+
+  const createTail = (x: number, y: number, angle: number, riskFactor: number) => {
+    if (particlesRef.current.length > (isMobileRef.current ? 120 : 250)) return;
+
+    // Direction opposite to rocket heading
+    const backAngle = angle + Math.PI;
+    const exhaustSpread = 0.45;
+    const count = isMobileRef.current ? 1 : 2;
+
+    for (let k = 0; k < count; k++) {
+      const spreadAngle = backAngle + (pseudoRandom(prngSeedRef) - 0.5) * exhaustSpread;
+      const speed = 2.0 + riskFactor * 2.5 + pseudoRandom(prngSeedRef) * 2;
+
+      // Glow plasma core / amber sparks / smoke puffs
+      const isSpark = pseudoRandom(prngSeedRef) > 0.4;
+      const color = isSpark
+        ? pseudoRandom(prngSeedRef) > 0.5
+          ? '#FFFDF0'
+          : '#FFD700'
+        : pseudoRandom(prngSeedRef) > 0.5
+          ? '#FF8C00'
+          : 'rgba(120, 110, 100, 0.4)';
+
+      particlesRef.current.push({
+        x: x + (pseudoRandom(prngSeedRef) - 0.5) * 4,
+        y: y + (pseudoRandom(prngSeedRef) - 0.5) * 4,
+        vx: Math.cos(spreadAngle) * speed,
+        vy: Math.sin(spreadAngle) * speed + (pseudoRandom(prngSeedRef) - 0.5) * 0.6,
+        life: 1,
+        maxLife: isSpark ? 0.35 + pseudoRandom(prngSeedRef) * 0.25 : 0.65,
+        color,
+        size: isSpark ? 1.5 + pseudoRandom(prngSeedRef) * 2 : 3 + pseudoRandom(prngSeedRef) * 4,
+        type: isSpark ? 'spark' : 'smoke',
+      });
+    }
   };
-  const updateParticles = (ctx: CanvasRenderingContext2D) => {
+
+  const updateAndDrawParticles = (ctx: CanvasRenderingContext2D) => {
     particlesRef.current = particlesRef.current.filter((p) => p.life > 0);
     particlesRef.current.forEach((p) => {
       p.x += p.vx;
       p.y += p.vy;
-      p.life -= 0.012;
+
+      if (p.type === 'shockwave') {
+        p.size += 6;
+        p.life -= 0.04;
+        ctx.save();
+        ctx.strokeStyle = `rgba(255, 120, 50, ${p.life * 0.7})`;
+        ctx.lineWidth = 3;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#FF8800';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+        return;
+      }
+
+      if (p.type === 'cashout') {
+        p.vy += 0.08; // gravity for coins
+        p.life -= 0.015;
+      } else if (p.type === 'smoke') {
+        p.size += 0.15; // expanding smoke
+        p.life -= 0.02;
+      } else {
+        p.life -= 0.025;
+      }
+
       ctx.fillStyle = p.color;
-      ctx.globalAlpha = p.life;
+      ctx.globalAlpha = Math.max(0, p.life);
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
     });
     ctx.globalAlpha = 1.0;
   };
+
+  // Main Canvas Draw Method
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -630,73 +724,134 @@ export default function CrashPage() {
     const height = displayHeight;
     ctx.clearRect(0, 0, width, height);
 
+    // Apply Trauma-based Screen Shake during crash
+    if (shakeRef.current.intensity > 0.1) {
+      const shakeX = (pseudoRandom(prngSeedRef) - 0.5) * shakeRef.current.intensity;
+      const shakeY = (pseudoRandom(prngSeedRef) - 0.5) * shakeRef.current.intensity;
+      ctx.translate(shakeX, shakeY);
+      shakeRef.current.intensity *= 0.9;
+    }
+
     const m = multiplierRef.current;
     const isCrashed = status === 'CRASHED';
     const isCashedOut = status === 'CASHED_OUT';
-    const riskFactor = status === 'RUNNING' ? getRiskFactor(m) : 0;
+    const isRunning = status === 'RUNNING';
+    const riskFactor = isRunning ? getRiskFactor(m) : 0;
 
-    // Dynamic line color based on multiplier
-    const lineHue = isCrashed ? 0 : m > 10 ? 45 : m > 5 ? 280 : m > 2 ? 200 : 180;
-    const lineColor = isCrashed
-      ? 'hsl(0, 90%, 60%)'
-      : isCashedOut
-        ? 'hsl(145, 80%, 55%)'
-        : `hsl(${lineHue}, 100%, 65%)`;
-    const glowColor = isCrashed
-      ? 'rgba(255,50,50,0.8)'
-      : isCashedOut
-        ? 'rgba(34,197,94,0.8)'
-        : m > 10
-          ? 'rgba(255,215,0,0.8)'
-          : m > 5
-            ? 'rgba(200,50,255,0.8)'
-            : 'rgba(0,255,255,0.8)';
-
-    // Ambient background — desaturated, drifts cool-to-warm with risk instead of a static grid.
-    // Kept low-alpha/low-saturation on purpose so it reads as mood lighting, not a color block.
-    const bgHue = isCrashed ? 0 : isCashedOut ? 145 : 200 - riskFactor * 150;
-    const bgAlpha = isCrashed
-      ? 0.16
-      : isCashedOut
-        ? 0.09
-        : Math.min(0.14, 0.04 + riskFactor * 0.12);
-    const bgGradient = ctx.createRadialGradient(
-      width * 0.5,
-      height * 0.95,
-      0,
-      width * 0.5,
-      height * 0.95,
-      Math.max(width, height) * 0.95,
-    );
-    bgGradient.addColorStop(0, `hsla(${bgHue}, 30%, 20%, ${bgAlpha})`);
-    bgGradient.addColorStop(1, 'transparent');
+    // 1. LEVER 2: DYNAMIC BACKGROUND & ALTITUDE PROGRESSION
+    // Altitude 1: 1.00x - 2.00x (Launchpad / Surface Troposphere)
+    // Altitude 2: 2.00x - 10.00x (Stratosphere / Mesosphere)
+    // Altitude 3: > 10.00x (Deep Space & Golden Nebula)
+    const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
+    if (isCrashed) {
+      bgGradient.addColorStop(0, '#100305');
+      bgGradient.addColorStop(1, '#050102');
+    } else if (isCashedOut) {
+      bgGradient.addColorStop(0, '#020f08');
+      bgGradient.addColorStop(1, '#010503');
+    } else if (m < 2.0) {
+      // Warm launchpad horizon glow
+      bgGradient.addColorStop(0, '#060a12');
+      bgGradient.addColorStop(0.7, '#070f1a');
+      bgGradient.addColorStop(1, '#0a1424');
+    } else if (m < 10.0) {
+      // Stratosphere transition
+      const stratT = (m - 2.0) / 8.0;
+      bgGradient.addColorStop(0, '#03050c');
+      bgGradient.addColorStop(0.6, `hsla(225, 45%, ${Math.round(8 - stratT * 4)}%, 1)`);
+      bgGradient.addColorStop(1, '#020409');
+    } else {
+      // Deep Space Obsidian with subtle gold cosmic dust
+      bgGradient.addColorStop(0, '#020306');
+      bgGradient.addColorStop(0.5, '#04060c');
+      bgGradient.addColorStop(1, '#010204');
+    }
     ctx.fillStyle = bgGradient;
     ctx.fillRect(0, 0, width, height);
 
+    // Launchpad floor perspective grid (only during launch 1.0x - 2.5x or IDLE)
+    if (m < 2.5 || status === 'IDLE') {
+      const gridAlpha = status === 'IDLE' ? 0.08 : Math.max(0, 0.12 - (m - 1.0) * 0.08);
+      ctx.strokeStyle = `rgba(212, 175, 55, ${gridAlpha})`;
+      ctx.lineWidth = 1;
+
+      const floorY = height * 0.95;
+      for (let x = -width; x < width * 2; x += 60) {
+        ctx.beginPath();
+        ctx.moveTo(x, height);
+        ctx.lineTo(width * 0.5 + (x - width * 0.5) * 0.2, floorY - 50);
+        ctx.stroke();
+      }
+      for (let hOff = 0; hOff < 50; hOff += 12) {
+        ctx.beginPath();
+        ctx.moveTo(0, height - hOff);
+        ctx.lineTo(width, height - hOff);
+        ctx.stroke();
+      }
+    }
+
+    // Parallax Starfield & Cosmic Hyper-Space Trails
+    const starSpeed = isRunning ? 0.8 + riskFactor * 5 : 0.3;
+    starsRef.current.forEach((star) => {
+      if (isRunning) {
+        // Drift diagonally down-left as rocket ascends up-right
+        star.x -= star.speed * star.layer * starSpeed;
+        star.y += star.speed * star.layer * (starSpeed * 0.5);
+
+        // Wrap around canvas
+        if (star.x < 0) star.x = width + Math.random() * 20;
+        if (star.y > height) star.y = -10;
+      }
+
+      star.twinklePhase += 0.03;
+      const alpha = star.opacity * (0.6 + Math.sin(star.twinklePhase) * 0.4);
+
+      if (isRunning && m > 10.0 && star.layer === 3) {
+        // Hyperspace warp streak
+        ctx.strokeStyle = `rgba(255, 240, 200, ${alpha * 0.8})`;
+        ctx.lineWidth = star.size * 0.9;
+        ctx.beginPath();
+        ctx.moveTo(star.x, star.y);
+        ctx.lineTo(star.x + 12 * riskFactor, star.y - 6 * riskFactor);
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = star.layer === 3 ? '#FFD700' : '#FFFFFF';
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+      }
+    });
+
     const scaleY = height / Math.max(5, (m || 1) + 1);
 
-    // Milestone lines — only the thresholds in MILESTONE_VALUES get a line/label, and only
-    // while they're within the currently visible multiplier range. Already-crossed milestones
-    // (lastMilestoneIndexRef) render in gold to match the Obsidian & Gold system; upcoming ones
-    // stay near-invisible so they don't compete with the curve.
-    ctx.font = '600 10px monospace';
+    // 2. MILESTONE HORIZON LINES (Obsidian & Gold standard)
+    ctx.font = '700 11px monospace';
     ctx.textAlign = 'left';
     MILESTONE_VALUES.forEach((milestoneValue, index) => {
       const y = height - (milestoneValue - 1) * scaleY;
       if (y < 0 || y > height) return;
       const isReached = index < lastMilestoneIndexRef.current;
-      ctx.strokeStyle = isReached ? 'rgba(212,175,55,0.16)' : 'rgba(255,255,255,0.05)';
-      ctx.lineWidth = 1;
+
+      ctx.strokeStyle = isReached ? 'rgba(212, 175, 55, 0.35)' : 'rgba(255, 255, 255, 0.07)';
+      ctx.lineWidth = isReached ? 1.5 : 1;
+      ctx.setLineDash(isReached ? [] : [4, 6]);
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(width, y);
       ctx.stroke();
-      ctx.fillStyle = isReached ? 'rgba(212,175,55,0.55)' : 'rgba(255,255,255,0.22)';
-      ctx.fillText(`${milestoneValue}x`, 8, y - 4 < 12 ? y + 14 : y - 4);
+      ctx.setLineDash([]);
+
+      // Gold milestone chip tag
+      ctx.fillStyle = isReached ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255, 255, 255, 0.03)';
+      ctx.fillRect(8, y - 10, 36, 16);
+      ctx.fillStyle = isReached ? '#FFD700' : 'rgba(255, 255, 255, 0.4)';
+      ctx.fillText(`${milestoneValue}x`, 12, y + 2);
     });
 
     if (pointsRef.current.length < 2) {
-      updateParticles(ctx);
+      updateAndDrawParticles(ctx);
       ctx.restore();
       return;
     }
@@ -707,152 +862,166 @@ export default function CrashPage() {
     const visiblePoints = pointsRef.current.slice(windowStart);
     const xForIndex = (index: number) => index * windowScaleX;
 
-    // Helper to trace the curve path
-    const tracePath = () => {
-      ctx.moveTo(0, height - (visiblePoints[0].y - 1) * scaleY);
-      visiblePoints.forEach((p, i) => {
-        ctx.lineTo(xForIndex(i), height - (p.y - 1) * scaleY);
-      });
-    };
+    // 3. FLIGHT CURVE RENDERING (Luxury Gold / Emerald / Ruby)
+    const curveGradient = ctx.createLinearGradient(0, height, rocketPixelX, 0);
+    if (isCrashed) {
+      curveGradient.addColorStop(0, '#7f1d1d');
+      curveGradient.addColorStop(1, '#ef4444');
+    } else if (isCashedOut) {
+      curveGradient.addColorStop(0, '#065f46');
+      curveGradient.addColorStop(1, '#10b981');
+    } else {
+      // Obsidian & Gold 24k Palette
+      curveGradient.addColorStop(0, 'rgba(212, 175, 55, 0.6)');
+      curveGradient.addColorStop(0.7, '#D4AF37');
+      curveGradient.addColorStop(1, '#FFF5C0');
+    }
 
-    // Area fill — stronger gradient
+    // Curve area fill
     ctx.beginPath();
     ctx.moveTo(0, height);
     visiblePoints.forEach((p, i) => ctx.lineTo(xForIndex(i), height - (p.y - 1) * scaleY));
     ctx.lineTo(xForIndex(visiblePoints.length - 1), height);
-    const areaGradient = ctx.createLinearGradient(0, 0, 0, height);
-    areaGradient.addColorStop(
-      0,
-      isCrashed
-        ? 'rgba(255,50,50,0.22)'
-        : isCashedOut
-          ? 'rgba(34,197,94,0.22)'
-          : m > 5
-            ? 'rgba(200,50,255,0.2)'
-            : 'rgba(0,255,255,0.18)',
-    );
-    areaGradient.addColorStop(
-      0.6,
-      isCrashed
-        ? 'rgba(255,50,50,0.05)'
-        : isCashedOut
-          ? 'rgba(34,197,94,0.05)'
-          : 'rgba(0,255,255,0.04)',
-    );
-    areaGradient.addColorStop(1, 'transparent');
-    ctx.fillStyle = areaGradient;
+    const areaGrad = ctx.createLinearGradient(0, 0, 0, height);
+    if (isCrashed) {
+      areaGrad.addColorStop(0, 'rgba(239, 68, 68, 0.25)');
+      areaGrad.addColorStop(1, 'transparent');
+    } else if (isCashedOut) {
+      areaGrad.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
+      areaGrad.addColorStop(1, 'transparent');
+    } else {
+      areaGrad.addColorStop(0, 'rgba(212, 175, 55, 0.22)');
+      areaGrad.addColorStop(0.6, 'rgba(212, 175, 55, 0.05)');
+      areaGrad.addColorStop(1, 'transparent');
+    }
+    ctx.fillStyle = areaGrad;
     ctx.fill();
 
-    // Glow layer — wide, blurry, low opacity
+    // Outer Glow Layer
     ctx.save();
-    ctx.globalAlpha = 0.25;
-    ctx.lineWidth = 18;
+    ctx.lineWidth = 10;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = lineColor;
-    ctx.beginPath();
-    tracePath();
-    ctx.stroke();
-    ctx.restore();
-
-    // Mid glow layer
-    ctx.save();
-    ctx.globalAlpha = 0.5;
-    ctx.lineWidth = 8;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = glowColor;
-    ctx.strokeStyle = lineColor;
-    ctx.beginPath();
-    tracePath();
-    ctx.stroke();
-    ctx.restore();
-
-    // Sharp core line — glow widens slightly as risk escalates
-    ctx.save();
-    ctx.globalAlpha = 1;
-    ctx.lineWidth = 3;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.shadowBlur = 20 + riskFactor * 15;
-    ctx.shadowColor = glowColor;
-    const gradient = ctx.createLinearGradient(0, height, width, 0);
-    gradient.addColorStop(0, 'hsl(180,100%,60%)');
-    gradient.addColorStop(1, lineColor);
-    ctx.strokeStyle = gradient;
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = isCrashed
+      ? 'rgba(239, 68, 68, 0.8)'
+      : isCashedOut
+        ? 'rgba(16, 185, 129, 0.8)'
+        : 'rgba(212, 175, 55, 0.8)';
+    ctx.strokeStyle = curveGradient;
     ctx.beginPath();
     visiblePoints.forEach((p, i) => {
       const x = xForIndex(i);
       const y = height - (p.y - 1) * scaleY;
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
-      if (status === 'RUNNING' && i === visiblePoints.length - 1)
-        createTail(x, y, riskFactor, lineColor);
     });
     ctx.stroke();
     ctx.restore();
 
-    // Rocket with dynamic glow (stays visible, frozen, once cashed out) — fixed at rocketPixelX
-    // once the round outgrows the visible window, so it never gets pinned to the canvas edge.
-    if (status === 'RUNNING' || isCashedOut) {
+    // Sharp Core Flight Line
+    ctx.save();
+    ctx.lineWidth = 3.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = curveGradient;
+    ctx.beginPath();
+    visiblePoints.forEach((p, i) => {
+      const x = xForIndex(i);
+      const y = height - (p.y - 1) * scaleY;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.restore();
+
+    // 4. LEVER 1: ROCKET SPRITE & DYNAMIC PLASMA JET ENGINE
+    if (isRunning || isCashedOut) {
       const last = visiblePoints[visiblePoints.length - 1];
+      const prev = visiblePoints[Math.max(0, visiblePoints.length - 3)] || last;
       const rocketX = xForIndex(visiblePoints.length - 1);
       const rocketY = height - (last.y - 1) * scaleY;
-      const glowSize = Math.min(80, 25 + m * 4);
+      const prevX = xForIndex(Math.max(0, visiblePoints.length - 3));
+      const prevY = height - (prev.y - 1) * scaleY;
+
+      // Smooth flight tangent angle
+      const flightAngle = Math.atan2(rocketY - prevY, rocketX - prevX);
+
+      // Spawn dynamic particle exhaust trail
+      if (isRunning) {
+        createTail(rocketX, rocketY, flightAngle, riskFactor);
+      }
+
       ctx.save();
       ctx.translate(rocketX, rocketY);
-      ctx.rotate(-Math.atan2(scaleY, windowScaleX) * 1.5);
+      ctx.rotate(flightAngle);
 
-      // Outer pulse ring
-      ctx.shadowBlur = glowSize;
-      ctx.shadowColor = glowColor;
-      ctx.globalAlpha = 0.6;
-      ctx.fillStyle = glowColor;
+      // Radial thruster glow behind nozzle
+      const thrusterGlow = ctx.createRadialGradient(-24, 0, 2, -24, 0, 45);
+      thrusterGlow.addColorStop(
+        0,
+        isCashedOut ? 'rgba(74, 222, 128, 0.8)' : 'rgba(255, 215, 0, 0.85)',
+      );
+      thrusterGlow.addColorStop(0.5, 'rgba(255, 120, 0, 0.4)');
+      thrusterGlow.addColorStop(1, 'transparent');
+      ctx.fillStyle = thrusterGlow;
       ctx.beginPath();
-      ctx.arc(0, 0, 5, 0, Math.PI * 2);
+      ctx.arc(-24, 0, 45, 0, Math.PI * 2);
       ctx.fill();
 
-      // Rocket body
-      ctx.globalAlpha = 1;
-      ctx.shadowBlur = glowSize;
-      ctx.shadowColor = isCashedOut ? '#4ade80' : m > 5 ? 'magenta' : 'cyan';
-      if (rocketImgRef.current && rocketImgRef.current.complete) {
-        ctx.drawImage(rocketImgRef.current, -24, -16, 48, 32);
-      } else {
-        ctx.fillStyle = '#fff';
+      // Dynamic Oscillating Plasma Jet Flame
+      if (isRunning) {
+        const flamePulse = Math.sin(performance.now() * 0.04) * 6;
+        const flameLength = 32 + riskFactor * 25 + flamePulse;
+
+        // Outer Flame (Orange)
+        ctx.fillStyle = '#FF6B00';
         ctx.beginPath();
-        ctx.ellipse(0, 0, 16, 9, 0, 0, Math.PI * 2);
+        ctx.moveTo(-18, -6);
+        ctx.lineTo(-18 - flameLength, 0);
+        ctx.lineTo(-18, 6);
+        ctx.closePath();
+        ctx.fill();
+
+        // Inner Core Flame (White/Yellow Plasma)
+        ctx.fillStyle = '#FFF5C0';
+        ctx.beginPath();
+        ctx.moveTo(-18, -3);
+        ctx.lineTo(-18 - flameLength * 0.65, 0);
+        ctx.lineTo(-18, 3);
+        ctx.closePath();
         ctx.fill();
       }
 
-      // Flame/thruster
-      ctx.shadowBlur = 15;
-      ctx.shadowColor = 'orange';
-      ctx.fillStyle = m > 5 ? '#ff66ff' : 'orange';
-      ctx.beginPath();
-      ctx.moveTo(-16, 0);
-      ctx.lineTo(-30, -7);
-      ctx.lineTo(-24, 0);
-      ctx.lineTo(-30, 7);
-      ctx.closePath();
-      ctx.fill();
+      // Render Clean Vector Rocket
+      if (rocketImgRef.current && rocketImgRef.current.complete) {
+        // Draw centered rocket SVG
+        ctx.drawImage(rocketImgRef.current, -32, -16, 64, 32);
+      } else {
+        // Procedural crisp vector fallback
+        ctx.fillStyle = '#14141a';
+        ctx.strokeStyle = '#D4AF37';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 20, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+
       ctx.restore();
     }
 
-    updateParticles(ctx);
+    updateAndDrawParticles(ctx);
     ctx.restore();
-  }, [multiplier, status]);
+  }, [status]);
 
   const gameLoopRef = useRef<((ts: number) => void) | null>(null);
 
-  // Stable game loop — reads all game state from refs to avoid stale closures.
-  // RAF is started once on mount and never restarted on state changes.
+  // High-performance stable RAF Loop (reads refs)
   const gameLoop = useCallback(
     (timestamp: number) => {
       if (!lastUpdateRef.current) lastUpdateRef.current = timestamp;
-      const deltaTime = Math.min(timestamp - lastUpdateRef.current, 50); // cap to prevent huge jumps after tab switch
+      const deltaTime = Math.min(timestamp - lastUpdateRef.current, 50);
       lastUpdateRef.current = timestamp;
 
       if (statusRef.current === 'RUNNING') {
@@ -862,46 +1031,50 @@ export default function CrashPage() {
 
         const riskFactor = getRiskFactor(next);
 
+        // 3. LEVER 3: MULTIPLIER & LIVE PROFIT HUD UPDATE
         if (multiplierDisplayRef.current) {
           multiplierDisplayRef.current.innerText = formatMultiplier(next);
-          const hue = next > 10 ? 45 : next > 5 ? 280 : next > 2 ? 200 : 180;
-          multiplierDisplayRef.current.style.color = `hsl(${hue}, 100%, 70%)`;
-          const glow = Math.min(60, 10 + next * 3);
-          multiplierDisplayRef.current.style.textShadow = `0 0 ${glow}px hsl(${hue}, 100%, 60%), 0 0 ${glow * 2}px hsl(${hue}, 80%, 50%)`;
 
-          // Risk Escalation: the number's pulse speeds up and widens as risk climbs.
-          // Suppressed under prefers-reduced-motion — this is real scale motion, not just
-          // a color/intensity cue, so it's the one that has to respect the OS setting.
-          // Scaled down (not off) on mobile — smaller/handheld screens read scale motion
-          // more strongly than desktop at the same amplitude.
-          const mobileMotionScale = isMobileRef.current ? 0.6 : 1;
-          const pulseAmplitude =
-            !prefersReducedMotionRef.current && riskFactor > MULTIPLIER_PULSE_RISK_THRESHOLD
-              ? (0.02 + riskFactor * 0.05) * mobileMotionScale
-              : 0;
+          // Obsidian & Gold Color Progression
+          if (next >= 10.0) {
+            multiplierDisplayRef.current.style.color = '#FFD700';
+            multiplierDisplayRef.current.style.textShadow =
+              '0 0 35px rgba(255, 215, 0, 0.9), 0 0 70px rgba(212, 175, 55, 0.5)';
+          } else if (next >= 2.0) {
+            multiplierDisplayRef.current.style.color = '#FCE881';
+            multiplierDisplayRef.current.style.textShadow =
+              '0 0 30px rgba(212, 175, 55, 0.7), 0 0 60px rgba(212, 175, 55, 0.3)';
+          } else {
+            multiplierDisplayRef.current.style.color = '#FFFDF0';
+            multiplierDisplayRef.current.style.textShadow = '0 0 25px rgba(255, 255, 255, 0.4)';
+          }
+
+          // Scale dynamics with motion preference check
+          const pulseAmplitude = !prefersReducedMotionRef.current ? 0.02 + riskFactor * 0.04 : 0;
           const pulseFreq = 0.003 + riskFactor * 0.006;
           multiplierDisplayRef.current.style.transform = `scale(${1 + Math.sin(timestamp * pulseFreq) * pulseAmplitude})`;
         }
+
+        // Live Profit update in HUD & Cashout Button
+        const currentProfit = (next - 1) * betAmountRef.current;
+        const currentPayout = next * betAmountRef.current;
+        if (liveProfitDisplayRef.current) {
+          liveProfitDisplayRef.current.innerText = `+${currentProfit.toFixed(2)}`;
+        }
+        if (cashoutButtonRef.current && !cashoutAtRef.current) {
+          cashoutButtonRef.current.innerText = `CASHOUT $${currentPayout.toFixed(2)}`;
+        }
+
         if (vignetteRef.current) {
-          // Risk Escalation: a warm edge-vignette that intensifies as risk climbs. Kept
-          // active under reduced-motion — it's an opacity/color cue, not motion.
-          vignetteRef.current.style.opacity = String(Math.min(0.85, riskFactor * 0.95));
+          vignetteRef.current.style.opacity = String(Math.min(0.8, riskFactor * 0.9));
         }
         if (cameraZoomRef.current) {
-          // Camera Dynamics: subtle breathing zoom on the curve/rocket only — the HUD
-          // (multiplier text, vignette) stays fixed so it's never affected by this.
-          // Suppressed under prefers-reduced-motion, same reasoning as the pulse above.
-          const breatheAmplitude = prefersReducedMotionRef.current
-            ? 0
-            : (0.006 + riskFactor * 0.01) * (isMobileRef.current ? 0.6 : 1);
-          const breatheFreq = 0.0015 + riskFactor * 0.002;
-          const zoomScale = 1 + Math.sin(timestamp * breatheFreq) * breatheAmplitude;
+          const breatheAmp = prefersReducedMotionRef.current ? 0 : 0.006 + riskFactor * 0.012;
+          const zoomScale = 1 + Math.sin(timestamp * 0.002) * breatheAmp;
           cameraZoomRef.current.style.transform = `scale(${zoomScale})`;
         }
 
-        // Camera Dynamics: one-off popup the instant a milestone multiplier is crossed.
-        // A while-loop (not if) so a rare multi-milestone jump in a single frame still
-        // ends on the highest one reached instead of getting stuck mid-sequence.
+        // Milestone Announcements
         while (
           lastMilestoneIndexRef.current < MILESTONE_VALUES.length &&
           next >= MILESTONE_VALUES[lastMilestoneIndexRef.current]
@@ -911,6 +1084,7 @@ export default function CrashPage() {
           setMilestoneFlash({ value: hitValue, key: Date.now() });
         }
 
+        // Auto Cashout trigger
         if (
           isAutoCashoutEnabledRef.current &&
           !cashoutAtRef.current &&
@@ -919,6 +1093,7 @@ export default function CrashPage() {
           handleCashoutRef.current(next);
         }
 
+        // Crash Resolution Check
         if (next >= crashPointRef.current && !roundResolvedRef.current) {
           roundResolvedRef.current = true;
           resetRiskVisuals();
@@ -928,17 +1103,19 @@ export default function CrashPage() {
           if (multiplierDisplayRef.current) {
             multiplierDisplayRef.current.innerText = formatMultiplier(next);
             multiplierDisplayRef.current.style.color = 'hsl(0, 85%, 60%)';
+            multiplierDisplayRef.current.style.textShadow = '0 0 50px rgba(255, 60, 60, 0.8)';
           }
 
           if (!cashoutAtRef.current) {
             void settleCrashedRound(parseFloat(next.toFixed(2)));
             if (isAutoBettingRef.current) {
-              if (autoBetSettingsRef.current.onLoss === 'DOUBLE')
+              if (autoBetSettingsRef.current.onLoss === 'DOUBLE') {
                 setBetAmount((amount) => amount * 2);
-              else setBetAmount(autoBetSettingsRef.current.amount);
+              } else {
+                setBetAmount(autoBetSettingsRef.current.amount);
+              }
             }
-            // Explosion/crash sound only makes sense for an actual loss — a player who
-            // already secured a cashout should never see/hear a "crashed" outcome.
+
             const canvas = canvasRef.current;
             if (canvas) {
               const width = canvas.clientWidth;
@@ -971,7 +1148,6 @@ export default function CrashPage() {
     gameLoopRef.current = gameLoop;
   }, [gameLoop]);
 
-  // RAF runs once on mount — stable loop via gameLoopRef
   useEffect(() => {
     const loop = (ts: number) => {
       gameLoopRef.current?.(ts);
@@ -983,9 +1159,15 @@ export default function CrashPage() {
     };
   }, []);
 
-  // A round occupies the "active" (non-idle, non-crashed) UI state either while the
-  // curve is still climbing, or during the brief resolve pause right after a cashout.
   const isRoundActive = status === 'RUNNING' || status === 'CASHED_OUT';
+
+  // Quick Bet presets helper
+  const handleQuickBet = (amt: number) => {
+    if (isRoundActive) return;
+    const clamped = Math.max(betMin, Math.min(betMax, Math.min(balance, amt)));
+    setBetAmount(clamped);
+    updateAutoSettings({ amount: clamped });
+  };
 
   return (
     <GameErrorBoundary gameName="Crash">
@@ -993,172 +1175,314 @@ export default function CrashPage() {
         className="crash-container"
         style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '320px 1fr',
-          gap: isMobile ? '12px' : '16px',
-          padding: isMobile ? '12px' : '16px 20px 16px 16px',
+          gridTemplateColumns: isMobile ? '1fr' : '330px 1fr',
+          gap: isMobile ? '12px' : '20px',
+          padding: isMobile ? '12px' : '20px',
+          maxWidth: '1600px',
+          margin: '0 auto',
         }}
       >
         <style>{`
         .crash-container {
           display: grid;
-          grid-template-columns: 320px 1fr;
-          gap: 16px;
-          padding: 16px 20px 16px 16px;
+          grid-template-columns: 330px 1fr;
+          gap: 20px;
         }
-        @media (max-width: 900px) {
+        @media (max-width: 960px) {
           .crash-container {
             grid-template-columns: 1fr;
           }
           .sidebar-left { order: 2; }
           .game-area { order: 1; }
         }
-        .big-win-overlay {
-          position: fixed;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background: rgba(0,0,0,0.8);
-          z-index: 2000;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          animation: fadeIn 0.5s ease;
-          padding: 20px;
+        .obsidian-glass {
+          background: rgba(14, 14, 20, 0.85);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(212, 175, 55, 0.15);
+          box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05);
         }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes pulse-glow {
-          0%, 100% { opacity: 0.5; }
-          50% { opacity: 1; }
+        .gold-btn {
+          background: linear-gradient(135deg, #FFD700 0%, #D4AF37 50%, #B8860B 100%);
+          color: #050508;
+          font-weight: 900;
+          box-shadow: 0 6px 25px rgba(212, 175, 55, 0.35);
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .multiplier-idle {
-          animation: pulse-glow 1.5s ease-in-out infinite;
+        .gold-btn:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 30px rgba(212, 175, 55, 0.5);
+          filter: brightness(1.1);
+        }
+        .emerald-btn {
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          color: #ffffff;
+          font-weight: 900;
+          box-shadow: 0 6px 30px rgba(16, 185, 129, 0.45);
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .emerald-btn:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 35px rgba(16, 185, 129, 0.6);
+          filter: brightness(1.1);
+        }
+        .quick-chip {
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          color: #cbd5e1;
+          font-weight: 700;
+          font-size: 0.75rem;
+          padding: 7px 0;
+          border-radius: 8px;
+          transition: all 0.15s ease;
+          cursor: pointer;
+        }
+        .quick-chip:hover:not(:disabled) {
+          background: rgba(212, 175, 55, 0.15);
+          border-color: rgba(212, 175, 55, 0.4);
+          color: #FFD700;
+          transform: translateY(-1px);
+        }
+        .quick-chip:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
         }
         @keyframes milestone-pop {
           0% { opacity: 0; transform: translate(-50%, -40%) scale(0.6); }
-          18% { opacity: 1; transform: translate(-50%, -55%) scale(1.15); }
-          35% { transform: translate(-50%, -50%) scale(1); }
-          75% { opacity: 1; transform: translate(-50%, -70%) scale(1); }
-          100% { opacity: 0; transform: translate(-50%, -95%) scale(0.92); }
+          20% { opacity: 1; transform: translate(-50%, -55%) scale(1.15); }
+          40% { transform: translate(-50%, -50%) scale(1); }
+          75% { opacity: 1; transform: translate(-50%, -65%) scale(1); }
+          100% { opacity: 0; transform: translate(-50%, -90%) scale(0.9); }
         }
         .milestone-pop {
-          animation: milestone-pop 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          animation: milestone-pop 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        @media (prefers-reduced-motion: reduce) {
-          .milestone-pop {
-            animation: none;
-            opacity: 1;
-            transform: translate(-50%, -50%);
-          }
+        @keyframes radar-pulse {
+          0% { transform: scale(0.95); opacity: 0.5; }
+          50% { transform: scale(1.05); opacity: 0.9; }
+          100% { transform: scale(0.95); opacity: 0.5; }
+        }
+        .radar-glow {
+          animation: radar-pulse 2.5s ease-in-out infinite;
         }
       `}</style>
+
         {/* Tutorial Modal */}
         {showTutorial && (
-          <div className="big-win-overlay" onClick={() => setShowTutorial(false)}>
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.85)',
+              backdropFilter: 'blur(8px)',
+              zIndex: 2000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+            }}
+            onClick={() => setShowTutorial(false)}
+          >
             <div
-              className="glass-card"
+              className="obsidian-glass"
               style={{
-                maxWidth: '500px',
+                maxWidth: '520px',
                 width: '100%',
-                padding: 'clamp(24px, 5vw, 40px)',
+                padding: '32px',
+                borderRadius: '24px',
                 textAlign: 'center',
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <Info
-                size={48}
-                color="hsl(var(--primary))"
-                style={{ marginBottom: '24px', margin: '0 auto' }}
-              />
-              <h2 style={{ marginBottom: '16px', fontSize: 'clamp(1.2rem, 5vw, 2rem)' }}>
-                HOW TO PLAY
-              </h2>
-              <p
+              <div
                 style={{
-                  color: 'hsl(var(--text-muted))',
-                  lineHeight: '1.6',
-                  fontSize: 'clamp(0.85rem, 3vw, 1rem)',
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '28px',
+                  background: 'rgba(212, 175, 55, 0.15)',
+                  border: '1px solid rgba(212, 175, 55, 0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 20px',
                 }}
               >
-                1. Place your bet before the rocket takes off.
-                <br />
-                2. Watch the multiplier grow higher and higher.
-                <br />
-                3. Cash out before the rocket explodes to win!
-                <br />
-                4. If the rocket crashes first, you lose your bet.
-              </p>
+                <Sparkles size={28} color="#FFD700" />
+              </div>
+              <h2
+                style={{
+                  fontSize: '1.6rem',
+                  fontWeight: 900,
+                  color: '#FFD700',
+                  letterSpacing: '1px',
+                  marginBottom: '16px',
+                }}
+              >
+                CRASH FLIGHT RULES
+              </h2>
+              <div
+                style={{
+                  textAlign: 'left',
+                  color: '#94a3b8',
+                  fontSize: '0.9rem',
+                  lineHeight: '1.7',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                  <span style={{ color: '#FFD700', fontWeight: 900 }}>01.</span>
+                  <span>Set your wager and launch before the rocket begins its ascent.</span>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                  <span style={{ color: '#FFD700', fontWeight: 900 }}>02.</span>
+                  <span>
+                    Watch the multiplier skyrocket from 1.00x into deep space in real-time.
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                  <span style={{ color: '#10b981', fontWeight: 900 }}>03.</span>
+                  <span>
+                    Hit <strong style={{ color: '#4ade80' }}>CASHOUT</strong> before the rocket
+                    explodes to lock in your multiplied payout!
+                  </span>
+                </div>
+              </div>
               <button
-                className="btn btn-primary"
-                style={{ marginTop: '24px', width: '100%', height: '56px' }}
+                className="gold-btn"
+                style={{
+                  marginTop: '28px',
+                  width: '100%',
+                  height: '50px',
+                  borderRadius: '14px',
+                  fontSize: '1rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
                 onClick={() => setShowTutorial(false)}
               >
-                GOT IT!
+                READY TO FLY
               </button>
             </div>
           </div>
         )}
+
         {/* Big Win Celebration */}
         {bigWin && (
-          <div className="big-win-overlay" onClick={() => setBigWin(null)}>
-            <div className="animate-bounce" style={{ textAlign: 'center' }}>
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.85)',
+              zIndex: 2000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            onClick={() => setBigWin(null)}
+          >
+            <div style={{ textAlign: 'center' }}>
               <h1
                 style={{
-                  fontSize: 'clamp(3rem, 15vw, 6rem)',
-                  color: 'gold',
-                  textShadow: '0 0 50px gold',
+                  fontSize: 'clamp(3rem, 12vw, 5.5rem)',
+                  color: '#FFD700',
+                  textShadow: '0 0 60px rgba(255, 215, 0, 0.9)',
+                  fontWeight: 900,
+                  margin: 0,
                 }}
               >
                 BIG WIN!
               </h1>
-              <h2 style={{ fontSize: 'clamp(1.5rem, 8vw, 3rem)', color: '#fff' }}>
+              <h2
+                style={{
+                  fontSize: 'clamp(1.8rem, 6vw, 3.2rem)',
+                  color: '#FFF',
+                  fontFamily: 'monospace',
+                  margin: '10px 0',
+                }}
+              >
                 ${bigWin.amount.toFixed(2)}
               </h2>
-              <div style={{ fontSize: 'clamp(1.2rem, 5vw, 2rem)', color: 'hsl(var(--success))' }}>
+              <div
+                style={{
+                  fontSize: '1.5rem',
+                  color: '#4ade80',
+                  fontWeight: 800,
+                  fontFamily: 'monospace',
+                }}
+              >
                 {bigWin.multiplier.toFixed(2)}x
               </div>
             </div>
           </div>
         )}
 
-        {/* Sidebar Left: Control Panel */}
+        {/* 4. LEVER 4: OBSIDIAN & GOLD VIP CONTROL SIDEBAR */}
         <div
-          className="sidebar-left glass-card"
+          className="sidebar-left obsidian-glass"
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: isMobile ? '16px' : '20px',
-            padding: isMobile ? '20px 16px' : '24px',
+            gap: '16px',
+            padding: '20px',
             borderRadius: '24px',
             order: isMobile ? 2 : 1,
           }}
         >
+          {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Zap size={20} color="hsl(var(--primary))" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '10px',
+                  background: 'rgba(212, 175, 55, 0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1px solid rgba(212, 175, 55, 0.3)',
+                }}
+              >
+                <Zap size={18} color="#FFD700" />
+              </div>
               <h3
                 style={{
                   margin: 0,
-                  letterSpacing: '1px',
-                  fontSize: isMobile ? '0.9rem' : '1.1rem',
+                  letterSpacing: '1.5px',
+                  fontSize: '1rem',
+                  fontWeight: 900,
+                  color: '#FFF',
                 }}
               >
-                CONTROL
+                FLIGHT CONTROLS
               </h3>
             </div>
             <button
-              className="btn btn-secondary"
-              style={{ padding: '8px' }}
+              style={{
+                padding: '8px',
+                borderRadius: '8px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                color: '#94a3b8',
+                cursor: 'pointer',
+              }}
               onClick={() => setShowTutorial(true)}
             >
               <Info size={16} />
             </button>
           </div>
+
+          {/* Mode Switcher: Manual / Auto */}
           <div
             style={{
               display: 'flex',
-              background: '#0f212e',
+              background: 'rgba(0, 0, 0, 0.4)',
               padding: '4px',
-              borderRadius: '8px',
-              opacity: isRoundActive ? 0.4 : 1,
+              borderRadius: '12px',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              opacity: isRoundActive ? 0.5 : 1,
             }}
           >
             <button
@@ -1169,13 +1493,16 @@ export default function CrashPage() {
               style={{
                 flex: 1,
                 padding: '10px',
-                borderRadius: '6px',
-                fontSize: '0.75rem',
+                borderRadius: '8px',
+                fontSize: '0.8rem',
                 fontWeight: 800,
-                background: !isAutoBetting ? '#2f4553' : 'transparent',
-                color: !isAutoBetting ? '#fff' : '#b1bad3',
-                border: 'none',
+                background: !isAutoBetting
+                  ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(212, 175, 55, 0.1) 100%)'
+                  : 'transparent',
+                color: !isAutoBetting ? '#FFD700' : '#64748b',
+                border: !isAutoBetting ? '1px solid rgba(212, 175, 55, 0.4)' : 'none',
                 cursor: isRoundActive ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s ease',
               }}
             >
               Manual
@@ -1188,75 +1515,128 @@ export default function CrashPage() {
               style={{
                 flex: 1,
                 padding: '10px',
-                borderRadius: '6px',
-                fontSize: '0.75rem',
+                borderRadius: '8px',
+                fontSize: '0.8rem',
                 fontWeight: 800,
-                background: isAutoBetting ? '#2f4553' : 'transparent',
-                color: isAutoBetting ? '#fff' : '#b1bad3',
-                border: 'none',
+                background: isAutoBetting
+                  ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(212, 175, 55, 0.1) 100%)'
+                  : 'transparent',
+                color: isAutoBetting ? '#FFD700' : '#64748b',
+                border: isAutoBetting ? '1px solid rgba(212, 175, 55, 0.4)' : 'none',
                 cursor: isRoundActive ? 'not-allowed' : 'pointer',
+                transition: 'all 0.15s ease',
               }}
             >
-              Auto
+              Auto Pilot
             </button>
           </div>
+
+          {/* Bet Amount Input & Presets */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
               <label
                 style={{
-                  fontSize: '0.65rem',
-                  fontWeight: 700,
-                  color: 'hsl(var(--text-muted))',
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  color: '#94a3b8',
                   letterSpacing: '1px',
                 }}
               >
                 BET AMOUNT
               </label>
-              <span className="mono" style={{ fontSize: '0.65rem', color: 'hsl(var(--text-dim))' }}>
+              <span
+                style={{
+                  fontSize: '0.75rem',
+                  color: '#FFD700',
+                  fontFamily: 'monospace',
+                  fontWeight: 700,
+                }}
+              >
                 ${balance.toFixed(2)}
               </span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input
-                  type="number"
-                  className="input mono"
-                  value={betAmount}
-                  style={{
-                    fontSize: isMobile ? '1rem' : '1.1rem',
-                    fontWeight: 700,
-                    flex: 1,
-                    minHeight: isMobile ? '48px' : '56px',
-                  }}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value) || 0;
-                    setBetAmount(val);
-                    updateAutoSettings({ amount: val });
-                  }}
-                />
-                {!isMobile && (
-                  <>
-                    <button
-                      className="btn btn-secondary"
-                      style={{ padding: '0 10px' }}
-                      onClick={() => setBetAmount((prev) => prev / 2)}
-                    >
-                      1/2
-                    </button>
-                    <button
-                      className="btn btn-secondary"
-                      style={{ padding: '0 10px' }}
-                      onClick={() => setBetAmount((prev) => prev * 2)}
-                    >
-                      2x
-                    </button>
-                  </>
-                )}
-              </div>
+
+            <div style={{ position: 'relative', marginBottom: '8px' }}>
+              <input
+                type="number"
+                disabled={isRoundActive}
+                value={betAmount}
+                style={{
+                  width: '100%',
+                  height: '48px',
+                  background: 'rgba(0, 0, 0, 0.5)',
+                  border: '1px solid rgba(212, 175, 55, 0.25)',
+                  borderRadius: '12px',
+                  padding: '0 16px',
+                  fontSize: '1.1rem',
+                  fontWeight: 800,
+                  color: '#FFF',
+                  fontFamily: 'monospace',
+                  outline: 'none',
+                }}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value) || 0;
+                  setBetAmount(val);
+                  updateAutoSettings({ amount: val });
+                }}
+              />
+            </div>
+
+            {/* Quick Bet Preset Chips */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(5, 1fr)',
+                gap: '6px',
+                marginBottom: '6px',
+              }}
+            >
+              {[1, 5, 10, 50, 100].map((amt) => (
+                <button
+                  key={amt}
+                  className="quick-chip"
+                  disabled={isRoundActive}
+                  onClick={() => handleQuickBet(amt)}
+                >
+                  ${amt}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+              <button
+                className="quick-chip"
+                disabled={isRoundActive}
+                onClick={() => handleQuickBet(betAmount / 2)}
+              >
+                ½ Bet
+              </button>
+              <button
+                className="quick-chip"
+                disabled={isRoundActive}
+                onClick={() => handleQuickBet(betAmount * 2)}
+              >
+                2× Bet
+              </button>
+              <button
+                className="quick-chip"
+                disabled={isRoundActive}
+                onClick={() => handleQuickBet(balance)}
+                style={{ color: '#FFD700' }}
+              >
+                MAX
+              </button>
             </div>
           </div>
-          {/* Auto-Cashout — available in both Manual and Auto tabs */}
-          <div className="glass" style={{ padding: '12px', borderRadius: '12px' }}>
+
+          {/* Auto Cashout Section */}
+          <div
+            style={{
+              padding: '14px',
+              borderRadius: '14px',
+              background: 'rgba(0, 0, 0, 0.35)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+            }}
+          >
             <div
               style={{
                 display: 'flex',
@@ -1265,28 +1645,29 @@ export default function CrashPage() {
                 marginBottom: isAutoCashoutEnabled ? '10px' : 0,
               }}
             >
-              <label
-                style={{
-                  fontSize: '0.65rem',
-                  fontWeight: 700,
-                  color: 'hsl(var(--text-muted))',
-                  letterSpacing: '1px',
-                }}
-              >
-                AUTO CASHOUT
-              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sliders size={14} color="#94a3b8" />
+                <label
+                  style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                    color: '#94a3b8',
+                    letterSpacing: '1px',
+                  }}
+                >
+                  AUTO CASHOUT
+                </label>
+              </div>
               <button
                 onClick={() => setIsAutoCashoutEnabled((v) => !v)}
                 style={{
-                  width: '40px',
-                  height: '22px',
-                  borderRadius: '11px',
+                  width: '42px',
+                  height: '24px',
+                  borderRadius: '12px',
                   border: 'none',
                   cursor: 'pointer',
                   position: 'relative',
-                  background: isAutoCashoutEnabled
-                    ? 'hsl(var(--success))'
-                    : 'rgba(255,255,255,0.1)',
+                  background: isAutoCashoutEnabled ? '#10b981' : 'rgba(255,255,255,0.1)',
                   transition: 'background 0.2s',
                 }}
               >
@@ -1294,48 +1675,64 @@ export default function CrashPage() {
                   style={{
                     position: 'absolute',
                     top: '3px',
-                    width: '16px',
-                    height: '16px',
+                    width: '18px',
+                    height: '18px',
                     borderRadius: '50%',
-                    background: '#fff',
+                    background: '#FFF',
                     transition: 'left 0.2s',
                     left: isAutoCashoutEnabled ? '21px' : '3px',
+                    boxShadow: '0 2px 5px rgba(0,0,0,0.4)',
                   }}
                 />
               </button>
             </div>
+
             {isAutoCashoutEnabled && (
-              <>
+              <div style={{ marginTop: '10px' }}>
                 <input
                   type="number"
-                  className="input mono"
-                  value={autoBetSettings.cashoutAt}
                   step="0.1"
                   min="1.1"
-                  style={{ fontSize: '0.9rem', width: '100%', minHeight: '40px' }}
+                  value={autoBetSettings.cashoutAt}
+                  style={{
+                    width: '100%',
+                    height: '40px',
+                    background: 'rgba(0, 0, 0, 0.5)',
+                    border: '1px solid rgba(16, 185, 129, 0.4)',
+                    borderRadius: '10px',
+                    padding: '0 12px',
+                    fontSize: '0.95rem',
+                    fontWeight: 800,
+                    color: '#4ade80',
+                    fontFamily: 'monospace',
+                    outline: 'none',
+                  }}
                   onChange={(e) =>
                     updateAutoSettings({ cashoutAt: parseFloat(e.target.value) || 1.1 })
                   }
                 />
-                {/* V2 Lever 3: one-tap target presets — removes the friction of typing a target every round */}
-                <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
-                  {[1.5, 2, 3, 5, 10].map((preset) => (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(5, 1fr)',
+                    gap: '5px',
+                    marginTop: '8px',
+                  }}
+                >
+                  {[1.2, 1.5, 2.0, 5.0, 10.0].map((preset) => (
                     <button
                       key={preset}
-                      className="btn btn-secondary"
+                      className="quick-chip"
                       style={{
-                        flex: 1,
-                        padding: '6px 0',
-                        fontSize: '0.7rem',
-                        fontWeight: 800,
                         background:
                           autoBetSettings.cashoutAt === preset
-                            ? 'hsl(var(--primary) / 0.25)'
-                            : 'transparent',
+                            ? 'rgba(16, 185, 129, 0.2)'
+                            : 'rgba(255, 255, 255, 0.04)',
                         border:
                           autoBetSettings.cashoutAt === preset
-                            ? '1px solid hsl(var(--primary) / 0.5)'
-                            : '1px solid rgba(255,255,255,0.08)',
+                            ? '1px solid rgba(16, 185, 129, 0.5)'
+                            : '1px solid rgba(255, 255, 255, 0.08)',
+                        color: autoBetSettings.cashoutAt === preset ? '#4ade80' : '#cbd5e1',
                       }}
                       onClick={() => updateAutoSettings({ cashoutAt: preset })}
                     >
@@ -1343,131 +1740,125 @@ export default function CrashPage() {
                     </button>
                   ))}
                 </div>
-              </>
+              </div>
             )}
           </div>
 
-          {/* V2 Lever 2: Session stats — running profit tracker keeps players oriented across rounds */}
-          <div className="glass" style={{ padding: '12px', borderRadius: '12px' }}>
-            <label
+          {/* Session Performance Stats */}
+          <div
+            style={{
+              padding: '14px',
+              borderRadius: '14px',
+              background: 'rgba(0, 0, 0, 0.35)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+            }}
+          >
+            <div
               style={{
-                fontSize: '0.65rem',
-                fontWeight: 700,
-                color: 'hsl(var(--text-muted))',
-                letterSpacing: '1px',
-                display: 'block',
-                marginBottom: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                marginBottom: '10px',
               }}
             >
-              SESSION STATS
-            </label>
+              <TrendingUp size={14} color="#94a3b8" />
+              <label
+                style={{
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  color: '#94a3b8',
+                  letterSpacing: '1px',
+                }}
+              >
+                SESSION PERFORMANCE
+              </label>
+            </div>
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr',
-                gap: '8px',
-                fontSize: '0.8rem',
+                gap: '10px',
               }}
             >
               <div>
-                <div style={{ color: 'hsl(var(--text-dim))', fontSize: '0.6rem' }}>ROUNDS</div>
-                <div className="mono" style={{ fontWeight: 800 }}>
-                  {sessionStats.rounds}
+                <div style={{ color: '#64748b', fontSize: '0.65rem', fontWeight: 700 }}>
+                  ROUNDS / WIN RATE
                 </div>
-              </div>
-              <div>
-                <div style={{ color: 'hsl(var(--text-dim))', fontSize: '0.6rem' }}>WIN RATE</div>
-                <div className="mono" style={{ fontWeight: 800 }}>
-                  {sessionStats.rounds > 0
-                    ? `${((sessionStats.wins / sessionStats.rounds) * 100).toFixed(0)}%`
-                    : '—'}
-                </div>
-              </div>
-              <div>
-                <div style={{ color: 'hsl(var(--text-dim))', fontSize: '0.6rem' }}>PROFIT</div>
                 <div
-                  className="mono"
                   style={{
+                    fontFamily: 'monospace',
                     fontWeight: 800,
-                    color: sessionStats.profit >= 0 ? 'hsl(var(--success))' : 'hsl(var(--error))',
+                    color: '#FFF',
+                    fontSize: '0.85rem',
                   }}
                 >
-                  {sessionStats.profit >= 0 ? '+' : ''}
-                  {sessionStats.profit.toFixed(2)}
+                  {sessionStats.rounds}{' '}
+                  <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>
+                    (
+                    {sessionStats.rounds > 0
+                      ? `${((sessionStats.wins / sessionStats.rounds) * 100).toFixed(0)}%`
+                      : '—'}
+                    )
+                  </span>
                 </div>
               </div>
               <div>
-                <div style={{ color: 'hsl(var(--text-dim))', fontSize: '0.6rem' }}>BEST</div>
-                <div className="mono" style={{ fontWeight: 800 }}>
-                  {sessionStats.biggestMultiplier > 0
-                    ? `${sessionStats.biggestMultiplier.toFixed(2)}x`
-                    : '—'}
+                <div style={{ color: '#64748b', fontSize: '0.65rem', fontWeight: 700 }}>
+                  NET PROFIT
+                </div>
+                <div
+                  style={{
+                    fontFamily: 'monospace',
+                    fontWeight: 800,
+                    fontSize: '0.85rem',
+                    color: sessionStats.profit >= 0 ? '#4ade80' : '#f87171',
+                  }}
+                >
+                  {sessionStats.profit >= 0 ? '+' : ''}${sessionStats.profit.toFixed(2)}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Auto Settings */}
-          {isAutoBetting && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  className="btn btn-secondary"
-                  style={{
-                    flex: 1,
-                    fontSize: '0.65rem',
-                    background: autoBetSettings.onLoss === 'RESET' ? '#2f4553' : 'transparent',
-                  }}
-                  onClick={() => updateAutoSettings({ onLoss: 'RESET' })}
-                >
-                  ON LOSS: RESET
-                </button>
-                <button
-                  className="btn btn-secondary"
-                  style={{
-                    flex: 1,
-                    fontSize: '0.65rem',
-                    background: autoBetSettings.onLoss === 'DOUBLE' ? '#2f4553' : 'transparent',
-                  }}
-                  onClick={() => updateAutoSettings({ onLoss: 'DOUBLE' })}
-                >
-                  ON LOSS: 2X
-                </button>
-              </div>
-            </div>
-          )}
+          {/* Primary Action Button (BET / CASHOUT) */}
           {!isRoundActive ? (
             <button
-              className="btn btn-primary"
+              key="action-btn-bet"
+              className="gold-btn"
               style={{
                 width: '100%',
-                height: isMobile ? '60px' : '70px',
-                fontSize: isMobile ? '1.25rem' : '1.5rem',
-                fontWeight: 900,
-                borderRadius: '20px',
+                height: isMobile ? '60px' : '68px',
+                fontSize: '1.25rem',
+                borderRadius: '18px',
+                border: 'none',
+                cursor: isProcessing ? 'not-allowed' : 'pointer',
                 opacity: isProcessing ? 0.7 : 1,
-                background: isProcessing ? 'rgba(212,175,55,0.3)' : undefined,
-                border: isProcessing ? '2px solid rgba(212,175,55,0.5)' : undefined,
               }}
               onClick={handleStart}
               disabled={isProcessing}
             >
-              {isProcessing ? '⏳ LAUNCHING...' : isAutoBetting ? '🎰 AUTO ON' : 'BET'}
+              {isProcessing
+                ? 'ARMING THRUSTERS...'
+                : isAutoBetting
+                  ? 'AUTO FLIGHT ON'
+                  : `LAUNCH BET ($${betAmount.toFixed(2)})`}
             </button>
           ) : (
             <button
-              className="btn btn-primary"
+              key="action-btn-cashout"
+              ref={cashoutButtonRef}
+              className="emerald-btn"
               style={{
                 width: '100%',
-                height: isMobile ? '60px' : '70px',
-                fontSize: isMobile ? '1.1rem' : '1.3rem',
-                fontWeight: 900,
-                borderRadius: '20px',
-                background: cashoutAt ? 'rgba(34, 197, 94, 0.12)' : 'hsl(var(--success))',
-                border: cashoutAt ? '2px solid rgba(34,197,94,0.6)' : 'none',
-                boxShadow: cashoutAt ? 'none' : '0 10px 40px hsla(145, 80%, 50%, 0.4)',
-                color: cashoutAt ? '#4ade80' : '#000',
+                height: isMobile ? '60px' : '68px',
+                fontSize: '1.15rem',
+                borderRadius: '18px',
+                border: cashoutAt ? '1px solid rgba(74, 222, 128, 0.6)' : 'none',
                 cursor: cashoutAt ? 'default' : 'pointer',
+                background: cashoutAt
+                  ? 'rgba(16, 185, 129, 0.2)'
+                  : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: cashoutAt ? '#4ade80' : '#FFF',
               }}
               onClick={() => {
                 if (!cashoutAt) handleCashout();
@@ -1475,74 +1866,104 @@ export default function CrashPage() {
               disabled={!!cashoutAt}
             >
               {cashoutAt
-                ? `✓ WON $${(betAmount * cashoutAt).toFixed(2)} @ ${cashoutAt.toFixed(2)}x`
-                : `CASHOUT`}
+                ? `✓ SECURED $${(betAmount * cashoutAt).toFixed(2)} @ ${cashoutAt.toFixed(2)}x`
+                : `CASHOUT $${(betAmount * multiplier).toFixed(2)}`}
             </button>
           )}
+
+          {/* Provably Fair Badge */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              color: '#64748b',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+            }}
+          >
+            <ShieldCheck size={14} color="#D4AF37" />
+            <span>PROVABLY FAIR SYSTEM ACTIVE</span>
+          </div>
         </div>
-        {/* Main Center: Game Area */}
+
+        {/* Main Center: Game Area & Canvas Stage */}
         <div
           className="game-area"
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: isMobile ? '16px' : '20px',
+            gap: '16px',
             order: isMobile ? 1 : 2,
           }}
         >
+          {/* History Pills Bar */}
           <div
             style={{
               display: 'flex',
-              gap: '5px',
+              gap: '6px',
               overflowX: 'auto',
               paddingBottom: '4px',
               scrollbarWidth: 'none',
             }}
           >
-            {crashHistory.slice(0, 20).map((h, i) => (
+            {crashHistory.slice(0, 22).map((h, i) => (
               <div
                 key={i}
-                className="glass"
                 style={{
-                  padding: '3px 8px',
-                  borderRadius: '10px',
-                  fontSize: '0.7rem',
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  fontSize: '0.75rem',
                   fontWeight: 800,
                   flexShrink: 0,
-                  color: h >= 10 ? '#FFD700' : h >= 5 ? '#c084fc' : h >= 2 ? '#60a5fa' : '#f87171',
-                  border: `1px solid ${h >= 10 ? 'rgba(255,215,0,0.25)' : h >= 5 ? 'rgba(192,132,252,0.25)' : h >= 2 ? 'rgba(96,165,250,0.25)' : 'rgba(248,113,113,0.25)'}`,
+                  fontFamily: 'monospace',
+                  color:
+                    h >= 10
+                      ? '#FFD700'
+                      : h >= 5
+                        ? '#c084fc'
+                        : h >= 2
+                          ? '#60a5fa'
+                          : 'rgba(255,255,255,0.45)',
                   background:
                     h >= 10
-                      ? 'rgba(255,215,0,0.08)'
+                      ? 'rgba(255,215,0,0.12)'
                       : h >= 5
-                        ? 'rgba(192,132,252,0.08)'
+                        ? 'rgba(192,132,252,0.12)'
                         : h >= 2
-                          ? 'rgba(96,165,250,0.08)'
-                          : 'rgba(248,113,113,0.08)',
-                  textAlign: 'center',
-                  fontFamily: 'monospace',
+                          ? 'rgba(96,165,250,0.12)'
+                          : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${
+                    h >= 10
+                      ? 'rgba(255,215,0,0.3)'
+                      : h >= 5
+                        ? 'rgba(192,132,252,0.3)'
+                        : h >= 2
+                          ? 'rgba(96,165,250,0.3)'
+                          : 'rgba(255,255,255,0.08)'
+                  }`,
                 }}
               >
                 {h.toFixed(2)}x
               </div>
             ))}
           </div>
+
+          {/* 5. LEVER 5: STAGE CANVAS & IMMERSIVE STAGE HUD */}
           <div
-            className="glass-card"
+            className="obsidian-glass"
             style={{
               position: 'relative',
               flex: 1,
-              minHeight: isMobile ? '300px' : 'clamp(300px, 50vh, 550px)',
+              minHeight: isMobile ? '340px' : 'clamp(380px, 55vh, 600px)',
               padding: 0,
               overflow: 'hidden',
-              // V2: flat, low-contrast backdrop (no busy texture) so the multiplier curve & HUD stay legible at all times
-              background:
-                'radial-gradient(circle at 50% 100%, #0c1620 0%, #050a10 60%, #02050a 100%)',
-              borderRadius: '32px',
-              border: '1px solid rgba(255,255,255,0.05)',
+              borderRadius: '28px',
+              border: '1px solid rgba(212, 175, 55, 0.2)',
             }}
           >
-            {/* Camera Dynamics: only the curve/rocket breathes with risk — the HUD below stays fixed */}
+            {/* Camera Zoom & Canvas Layer */}
             <div
               ref={cameraZoomRef}
               style={{ position: 'absolute', inset: 0, transformOrigin: 'center', zIndex: 1 }}
@@ -1554,7 +1975,8 @@ export default function CrashPage() {
                 style={{ width: '100%', height: '100%', display: 'block' }}
               />
             </div>
-            {/* Risk Escalation: warm edge-vignette, intensity driven imperatively from gameLoop */}
+
+            {/* Red Risk Edge Vignette */}
             <div
               ref={vignetteRef}
               style={{
@@ -1564,9 +1986,12 @@ export default function CrashPage() {
                 pointerEvents: 'none',
                 opacity: 0,
                 boxShadow:
-                  'inset 0 0 40px 10px rgba(255,60,40,0.5), inset 0 0 140px 20px rgba(255,30,20,0.5)',
+                  'inset 0 0 50px 15px rgba(255,60,40,0.5), inset 0 0 160px 30px rgba(255,20,10,0.4)',
+                transition: 'opacity 0.1s ease',
               }}
             />
+
+            {/* Central Stage Multiplier & Status Display */}
             <div
               style={{
                 position: 'absolute',
@@ -1577,75 +2002,132 @@ export default function CrashPage() {
                 zIndex: 10,
                 pointerEvents: 'none',
                 width: '100%',
-                // V2: soft backdrop plate so the multiplier stays readable regardless of curve color/position
-                padding: isMobile ? '16px 24px' : '24px 48px',
-                borderRadius: '24px',
-                background: 'radial-gradient(circle, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 75%)',
+                padding: '24px',
               }}
             >
+              {/* Idle State with radar indicator */}
               {status === 'IDLE' && !isProcessing && (
                 <div
-                  className="multiplier-idle"
+                  className="radar-glow"
                   style={{
-                    fontSize: isMobile ? '1rem' : '1.4rem',
-                    fontWeight: 700,
-                    color: 'rgba(0,255,255,0.5)',
-                    letterSpacing: '4px',
-                    marginBottom: '8px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 20px',
+                    borderRadius: '20px',
+                    background: 'rgba(212, 175, 55, 0.12)',
+                    border: '1px solid rgba(212, 175, 55, 0.3)',
+                    color: '#FFD700',
+                    fontSize: isMobile ? '0.85rem' : '1.1rem',
+                    fontWeight: 800,
+                    letterSpacing: '3px',
+                    marginBottom: '12px',
                   }}
                 >
-                  WAITING FOR BETS
+                  <Sparkles size={16} color="#FFD700" />
+                  <span>WAITING FOR NEXT LAUNCH</span>
                 </div>
               )}
+
+              {/* Processing / Arming State */}
               {status === 'IDLE' && isProcessing && (
                 <div
-                  className="multiplier-idle"
                   style={{
-                    fontSize: isMobile ? '1rem' : '1.4rem',
-                    fontWeight: 700,
-                    color: 'rgba(212,175,55,0.7)',
-                    letterSpacing: '4px',
-                    marginBottom: '8px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 20px',
+                    borderRadius: '20px',
+                    background: 'rgba(212, 175, 55, 0.2)',
+                    border: '1px solid rgba(212, 175, 55, 0.5)',
+                    color: '#FFD700',
+                    fontSize: isMobile ? '0.85rem' : '1.1rem',
+                    fontWeight: 800,
+                    letterSpacing: '3px',
+                    marginBottom: '12px',
                   }}
                 >
-                  LAUNCHING...
+                  <span>ARMING THRUSTERS...</span>
                 </div>
               )}
+
+              {/* Big Multiplier Number */}
               <h1
                 ref={multiplierDisplayRef}
-                className={status === 'IDLE' ? 'multiplier-idle' : ''}
                 style={{
-                  fontSize: isMobile ? '4.5rem' : 'min(10rem, 20vw)',
+                  fontSize: isMobile ? '4.8rem' : 'min(9.5rem, 18vw)',
                   fontWeight: 900,
-                  textShadow:
-                    status === 'CRASHED'
-                      ? '0 0 60px rgba(255,50,50,0.8)'
-                      : status === 'CASHED_OUT'
-                        ? '0 0 50px rgba(74,222,128,0.6)'
-                        : '0 0 40px rgba(0,255,255,0.4)',
                   margin: 0,
                   fontFamily: 'monospace',
                   fontVariantNumeric: 'tabular-nums',
                   lineHeight: 1,
                   color:
                     status === 'IDLE'
-                      ? 'rgba(255,255,255,0.3)'
+                      ? 'rgba(255, 255, 255, 0.35)'
                       : status === 'CRASHED'
-                        ? 'hsl(0,90%,60%)'
+                        ? '#ef4444'
                         : status === 'CASHED_OUT'
                           ? '#4ade80'
-                          : '#fff',
+                          : '#FFFDF0',
+                  textShadow:
+                    status === 'IDLE'
+                      ? 'none'
+                      : status === 'CRASHED'
+                        ? '0 0 60px rgba(239, 68, 68, 0.8)'
+                        : status === 'CASHED_OUT'
+                          ? '0 0 50px rgba(74, 222, 128, 0.7)'
+                          : '0 0 40px rgba(212, 175, 55, 0.65)',
                 }}
-              />
-              {status === 'CRASHED' && (
-                <div style={{ marginTop: '8px' }}>
+              >
+                {status === 'IDLE' ? '1.00x' : ''}
+              </h1>
+
+              {/* Live Running Profit Pill (Lever 3) */}
+              {status === 'RUNNING' && (
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    marginTop: '12px',
+                    background: 'rgba(14, 14, 20, 0.85)',
+                    border: '1px solid rgba(212, 175, 55, 0.4)',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.6)',
+                    borderRadius: '16px',
+                    padding: '6px 18px',
+                  }}
+                >
+                  <span style={{ color: '#94a3b8', fontSize: '0.8rem', fontWeight: 700 }}>
+                    CURRENT PROFIT:
+                  </span>
                   <div
-                    className="animate-slide-up"
+                    ref={liveProfitDisplayRef}
                     style={{
-                      fontSize: isMobile ? '0.85rem' : '1.5rem',
-                      fontWeight: 800,
-                      color: 'hsl(var(--error))',
-                      letterSpacing: isMobile ? '2px' : '8px',
+                      fontFamily: 'monospace',
+                      fontWeight: 900,
+                      fontSize: '1.05rem',
+                      color: '#4ade80',
+                    }}
+                  >
+                    +$0.00
+                  </div>
+                </div>
+              )}
+
+              {/* Crashed State Feedback */}
+              {status === 'CRASHED' && (
+                <div style={{ marginTop: '12px' }}>
+                  <div
+                    style={{
+                      display: 'inline-block',
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      border: '1px solid rgba(239, 68, 68, 0.5)',
+                      borderRadius: '12px',
+                      padding: '8px 24px',
+                      color: '#ef4444',
+                      fontWeight: 900,
+                      fontSize: isMobile ? '1rem' : '1.3rem',
+                      letterSpacing: '4px',
                     }}
                   >
                     CRASHED
@@ -1653,58 +2135,63 @@ export default function CrashPage() {
                   {countdown !== null && (
                     <div
                       style={{
-                        fontSize: isMobile ? '0.75rem' : '1rem',
-                        color: 'rgba(255,255,255,0.4)',
-                        marginTop: '8px',
-                        letterSpacing: '2px',
+                        fontSize: '0.85rem',
+                        color: '#94a3b8',
+                        marginTop: '10px',
+                        letterSpacing: '1px',
+                        fontFamily: 'monospace',
                       }}
                     >
-                      Next round in {countdown}…
+                      Next launch sequence in {countdown}s…
                     </div>
                   )}
                 </div>
               )}
-              {/* #16: Cashout success feedback */}
+
+              {/* Cashout Success Feedback */}
               {isRoundActive && cashoutAt && (
                 <div
                   style={{
-                    marginTop: '12px',
+                    marginTop: '14px',
                     display: 'inline-block',
-                    background: 'hsla(145, 80%, 30%, 0.85)',
-                    border: '1px solid hsl(var(--success))',
-                    borderRadius: '12px',
-                    padding: '8px 20px',
-                    color: 'hsl(var(--success))',
-                    fontWeight: 800,
-                    fontSize: isMobile ? '0.85rem' : '1.1rem',
+                    background: 'rgba(16, 185, 129, 0.18)',
+                    border: '1px solid rgba(74, 222, 128, 0.6)',
+                    boxShadow: '0 6px 25px rgba(16, 185, 129, 0.35)',
+                    borderRadius: '16px',
+                    padding: '10px 24px',
+                    color: '#4ade80',
+                    fontWeight: 900,
+                    fontSize: isMobile ? '0.95rem' : '1.25rem',
                     letterSpacing: '1px',
                   }}
                 >
-                  ✓ CASHED OUT @ {cashoutAt.toFixed(2)}x — +${(betAmount * cashoutAt).toFixed(2)}
+                  ✓ SECURED @ {cashoutAt.toFixed(2)}x — +$
+                  {(betAmount * cashoutAt - betAmount).toFixed(2)}
                 </div>
               )}
             </div>
-            {/* Camera Dynamics: milestone popup (2x, 5x, 10x, ...) */}
+
+            {/* Milestone Flash Celebration Popup */}
             {milestoneFlash && (
               <div
                 key={milestoneFlash.key}
                 className="milestone-pop"
                 style={{
                   position: 'absolute',
-                  top: '20%',
+                  top: '22%',
                   left: '50%',
-                  zIndex: 11,
+                  zIndex: 15,
                   pointerEvents: 'none',
-                  fontSize: isMobile ? '1.5rem' : '2.4rem',
+                  fontSize: isMobile ? '1.8rem' : '2.8rem',
                   fontWeight: 900,
                   fontFamily: 'monospace',
                   letterSpacing: '2px',
                   whiteSpace: 'nowrap',
                   color: '#FFD700',
-                  textShadow: '0 0 30px rgba(255,215,0,0.8), 0 0 60px rgba(255,215,0,0.4)',
+                  textShadow: '0 0 35px rgba(255, 215, 0, 0.9), 0 0 70px rgba(212, 175, 55, 0.5)',
                 }}
               >
-                {milestoneFlash.value}×
+                {milestoneFlash.value}× MILESTONE REACHED!
               </div>
             )}
           </div>

@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 60" width="120" height="60">
+  <defs>
+    <!-- Metallic Obsidian Body Gradient -->
+    <linearGradient id="obsidianGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2a2a35" />
+      <stop offset="40%" stop-color="#14141a" />
+      <stop offset="100%" stop-color="#0a0a0e" />
+    </linearGradient>
+
+    <!-- 24k Gold Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FCE881" />
+      <stop offset="50%" stop-color="#D4AF37" />
+      <stop offset="100%" stop-color="#AA820A" />
+    </linearGradient>
+
+    <!-- Cockpit Glass Gradient -->
+    <linearGradient id="cockpitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFDF0" />
+      <stop offset="30%" stop-color="#FFD700" />
+      <stop offset="70%" stop-color="#E5A910" />
+      <stop offset="100%" stop-color="#8B6508" />
+    </linearGradient>
+
+    <!-- Engine Thruster Metal -->
+    <linearGradient id="engineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#555566" />
+      <stop offset="50%" stop-color="#22222b" />
+      <stop offset="100%" stop-color="#444455" />
+    </linearGradient>
+
+    <!-- Wing Top/Bottom Gold Highlight -->
+    <linearGradient id="wingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1c1c24" />
+      <stop offset="60%" stop-color="#101016" />
+      <stop offset="100%" stop-color="#08080c" />
+    </linearGradient>
+
+    <!-- Plasma Core Glow Filter -->
+    <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <g transform="translate(4, 0)">
+    <!-- Top Fin / Wing -->
+    <path d="M 28,18 L 10,2 L 32,10 L 48,19 Z" fill="url(#wingGrad)" stroke="url(#goldGrad)" stroke-width="1.2" stroke-linejoin="round" />
+    <path d="M 12,3 L 30,10" stroke="#FFF" stroke-width="0.8" opacity="0.6" />
+
+    <!-- Bottom Fin / Wing -->
+    <path d="M 28,42 L 10,58 L 32,50 L 48,41 Z" fill="url(#wingGrad)" stroke="url(#goldGrad)" stroke-width="1.2" stroke-linejoin="round" />
+    <path d="M 12,57 L 30,50" stroke="#AA820A" stroke-width="0.8" opacity="0.6" />
+
+    <!-- Main Engine Nozzle -->
+    <path d="M 12,22 L 4,20 L 4,40 L 12,38 Z" fill="url(#engineGrad)" stroke="#111" stroke-width="1" />
+    <ellipse cx="4" cy="30" rx="2.5" ry="9.5" fill="#FF8800" filter="url(#goldGlow)" opacity="0.9" />
+    <ellipse cx="4" cy="30" rx="1.5" ry="6" fill="#FFF" />
+
+    <!-- Main Fuselage -->
+    <path d="M 12,22 Q 45,18 78,25 Q 96,28 106,30 Q 96,32 78,35 Q 45,42 12,38 Z" fill="url(#obsidianGrad)" stroke="url(#goldGrad)" stroke-width="1.5" stroke-linejoin="round" />
+
+    <!-- Gold Accent Trim Lines along Fuselage -->
+    <path d="M 24,24 Q 52,22 80,27" fill="none" stroke="url(#goldGrad)" stroke-width="1" opacity="0.9" />
+    <path d="M 24,36 Q 52,38 80,33" fill="none" stroke="url(#goldGrad)" stroke-width="1" opacity="0.9" />
+
+    <!-- Sleek High-Tech Cockpit Canopy -->
+    <path d="M 54,26 Q 72,25 84,30 Q 72,32 54,31 Q 50,28 54,26 Z" fill="url(#cockpitGrad)" stroke="#FFE899" stroke-width="0.8" filter="url(#goldGlow)" />
+    <!-- Cockpit Glare Reflection -->
+    <path d="M 58,27 Q 70,26 78,29" fill="none" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" opacity="0.85" />
+
+    <!-- Center Wing / Dorsal Stripe -->
+    <polygon points="26,29 46,27 46,33 26,31" fill="url(#goldGrad)" opacity="0.8" />
+
+    <!-- Nose Cone Tip Needle -->
+    <line x1="106" y1="30" x2="114" y2="30" stroke="url(#goldGrad)" stroke-width="1.5" stroke-linecap="round" />
+    <circle cx="114" cy="30" r="1.2" fill="#FFF" filter="url(#goldGlow)" />
+  </g>
+</svg>

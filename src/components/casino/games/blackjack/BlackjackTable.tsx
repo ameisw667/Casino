@@ -1,22 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import CardHand from './CardHand';
-
-interface Card {
-  suit: 'spades' | 'clubs' | 'hearts' | 'diamonds';
-  value: 'A' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K';
-  numericValue: number;
-  faceDown?: boolean;
-}
-
-interface BlackjackHand {
-  cards: Card[];
-  score: number;
-  isBust: boolean;
-  isBlackjack: boolean;
-  isSoft: boolean;
-}
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Zap } from 'lucide-react';
+import CardHand, { type BlackjackHand } from './CardHand';
 
 interface BlackjackTableProps {
   dealerHand: BlackjackHand | null;
@@ -30,38 +17,6 @@ interface BlackjackTableProps {
   isProcessing?: boolean;
 }
 
-const getResultColor = (result?: string) => {
-  switch (result) {
-    case 'WIN':
-    case 'BLACKJACK':
-      return 'from-emerald-500 to-green-600';
-    case 'LOSS':
-    case 'BUST':
-      return 'from-red-500 to-red-600';
-    case 'PUSH':
-      return 'from-amber-500 to-yellow-600';
-    default:
-      return 'from-blue-500 to-blue-600';
-  }
-};
-
-const getResultLabel = (result?: string) => {
-  switch (result) {
-    case 'WIN':
-      return '🎉 YOU WIN';
-    case 'LOSS':
-      return '😞 YOU LOSE';
-    case 'PUSH':
-      return '🤝 PUSH';
-    case 'BLACKJACK':
-      return '✨ BLACKJACK!';
-    case 'BUST':
-      return '💥 BUST';
-    default:
-      return '';
-  }
-};
-
 export default function BlackjackTable({
   dealerHand,
   playerHand,
@@ -69,178 +24,200 @@ export default function BlackjackTable({
   activeHandIndex = 0,
   betAmount,
   result,
-  result2,
   payout,
-  isProcessing = false,
 }: BlackjackTableProps) {
+  const hasResult = Boolean(result);
+  const isWin = result === 'WIN' || result === 'BLACKJACK';
+
   return (
-    <div className="mx-auto w-full max-w-2xl">
-      {/* Table Container */}
-      <motion.div
-        className="relative overflow-hidden rounded-2xl"
+    <div
+      style={{
+        width: '100%',
+        position: 'relative',
+        borderRadius: '24px',
+        background: 'radial-gradient(ellipse at 50% 30%, #0d3827 0%, #062217 50%, #03120c 100%)',
+        border: '2px solid rgba(212, 175, 55, 0.45)',
+        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.85), inset 0 0 40px rgba(0, 0, 0, 0.9)',
+        padding: '24px 20px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: '440px',
+        boxSizing: 'border-box',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Decorative Felt Background Arch */}
+      <div
         style={{
-          background: `linear-gradient(135deg, hsla(var(--surface-color), 0.95) 0%, hsla(145, 30%, 15%, 0.4) 100%)`,
-          backdropFilter: 'blur(10px)',
-          border: '2px solid hsla(45, 80%, 50%, 0.2)',
+          position: 'absolute',
+          top: '40px',
+          left: '5%',
+          right: '5%',
+          height: '240px',
+          borderRadius: '50%',
+          border: '1.5px solid rgba(212, 175, 55, 0.15)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Table Slogan Text */}
+      <div
+        style={{
+          textAlign: 'center',
+          userSelect: 'none',
+          pointerEvents: 'none',
+          marginBottom: '8px',
         }}
       >
-        {/* Dealer Area */}
-        <div className="p-8 pt-10">
-          <div className="flex justify-center">
-            <CardHand
-              hand={dealerHand}
-              label="Dealer"
-              isActive={false}
-              hideScore={dealerHand?.cards.some((c) => c.faceDown) ?? false}
-            />
-          </div>
-        </div>
-
-        {/* Separator Line with Text */}
-        <motion.div
-          className="relative py-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
+        <div
+          style={{
+            fontSize: '0.82rem',
+            fontWeight: 900,
+            letterSpacing: '2px',
+            color: '#D4AF37',
+            textShadow: '0 0 10px rgba(212, 175, 55, 0.4)',
+          }}
         >
-          <div className="flex items-center justify-center gap-4">
-            <div
-              className="h-px flex-1"
-              style={{
-                background:
-                  'linear-gradient(90deg, transparent, hsla(45, 80%, 50%, 0.3), transparent)',
-              }}
-            />
-            <div className="text-sm font-bold tracking-widest whitespace-nowrap text-yellow-600/80 uppercase">
-              Blackjack Pays 3:2
-            </div>
-            <div
-              className="h-px flex-1"
-              style={{
-                background:
-                  'linear-gradient(90deg, transparent, hsla(45, 80%, 50%, 0.3), transparent)',
-              }}
-            />
-          </div>
-        </motion.div>
-
-        {/* Player Area (One or Two Hands) */}
-        <div className="p-8 pb-10">
-          {playerHand2 ? (
-            // Split Hands Layout
-            <div className="flex justify-center gap-12">
-              <motion.div
-                animate={{
-                  scale: activeHandIndex === 0 ? 1.05 : 0.95,
-                  filter: activeHandIndex === 0 ? 'brightness(1)' : 'brightness(0.7)',
-                }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div className="text-xs font-bold tracking-wide text-yellow-600/70 uppercase">
-                    Hand 1 {activeHandIndex === 0 && '→ Active'}
-                  </div>
-                  <CardHand
-                    hand={playerHand}
-                    label="Player"
-                    isActive={activeHandIndex === 0}
-                    hideScore={false}
-                  />
-                </div>
-              </motion.div>
-
-              <motion.div
-                animate={{
-                  scale: activeHandIndex === 1 ? 1.05 : 0.95,
-                  filter: activeHandIndex === 1 ? 'brightness(1)' : 'brightness(0.7)',
-                }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div className="text-xs font-bold tracking-wide text-yellow-600/70 uppercase">
-                    Hand 2 {activeHandIndex === 1 && '→ Active'}
-                  </div>
-                  <CardHand
-                    hand={playerHand2}
-                    label="Player"
-                    isActive={activeHandIndex === 1}
-                    hideScore={false}
-                  />
-                </div>
-              </motion.div>
-            </div>
-          ) : (
-            // Single Hand Layout
-            <div className="flex justify-center">
-              <CardHand hand={playerHand} label="Player" isActive={true} hideScore={false} />
-            </div>
-          )}
-
-          {/* Bet Chip Display */}
-          {betAmount > 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5 }}
-              className="mt-6 flex justify-center"
-            >
-              <div
-                className="rounded-full px-6 py-3 font-bold text-white"
-                style={{
-                  background: 'linear-gradient(135deg, hsl(45, 80%, 50%), hsl(40, 90%, 60%))',
-                  boxShadow: '0 0 20px hsla(45, 80%, 50%, 0.5)',
-                }}
-              >
-                Bet: ${betAmount}
-              </div>
-            </motion.div>
-          )}
+          BLACKJACK PAYS 3 TO 2
         </div>
+        <div
+          style={{
+            fontSize: '0.64rem',
+            fontWeight: 800,
+            letterSpacing: '1.5px',
+            color: 'rgba(212, 175, 55, 0.65)',
+            marginTop: '2px',
+          }}
+        >
+          DEALER MUST STAND ON 17 • INSURANCE PAYS 2 TO 1
+        </div>
+      </div>
 
-        {/* Result Overlays */}
-        {result && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="pointer-events-none absolute inset-0 flex items-center justify-center"
-          >
+      {/* 1. DEALER AREA */}
+      <div style={{ zIndex: 10, width: '100%', display: 'flex', justifyContent: 'center' }}>
+        <CardHand
+          hand={dealerHand}
+          label="Dealer"
+          isActive={false}
+          hideScore={dealerHand?.cards.some((c) => c.faceDown) ?? false}
+        />
+      </div>
+
+      {/* 2. CENTER BETTING SPOT & RESULT BANNER */}
+      <div
+        style={{
+          position: 'relative',
+          margin: '12px 0',
+          zIndex: 20,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {/* Dynamic Win Banner */}
+        <AnimatePresence>
+          {hasResult && (
             <motion.div
-              className={`bg-gradient-to-r ${getResultColor(result)} rounded-xl px-8 py-4 text-lg font-bold tracking-wider text-white uppercase shadow-2xl`}
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 1, repeat: Infinity }}
+              initial={{ opacity: 0, scale: 0.7, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ type: 'spring', bounce: 0.5, duration: 0.4 }}
+              style={{
+                position: 'absolute',
+                top: '-45px',
+                zIndex: 30,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 20px',
+                borderRadius: '999px',
+                background:
+                  result === 'BLACKJACK'
+                    ? 'linear-gradient(135deg, #FFD700 0%, #D4AF37 50%, #B8860B 100%)'
+                    : isWin
+                      ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
+                      : result === 'PUSH'
+                        ? 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)'
+                        : 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)',
+                boxShadow: isWin
+                  ? '0 0 30px rgba(255, 215, 0, 0.8)'
+                  : '0 0 20px rgba(0, 0, 0, 0.7)',
+                color: result === 'BLACKJACK' ? '#000' : '#FFF',
+                fontWeight: 900,
+                fontFamily: 'monospace',
+                fontSize: '1rem',
+                letterSpacing: '0.5px',
+                whiteSpace: 'nowrap',
+              }}
             >
-              {getResultLabel(result)}
-              {payout > 0 && <div className="mt-2 font-mono text-sm">+${payout}</div>}
+              {isWin && <Zap size={16} fill={result === 'BLACKJACK' ? '#000' : '#FFF'} />}
+              <span>
+                {result === 'BLACKJACK' && `BLACKJACK! +$${payout.toFixed(2)} (3:2)`}
+                {result === 'WIN' && `YOU WIN +$${payout.toFixed(2)}`}
+                {result === 'PUSH' && 'PUSH (BET RETURNED)'}
+                {result === 'BUST' && 'BUST! (DEALER WINS)'}
+                {result === 'LOSS' && 'DEALER WINS'}
+              </span>
+              {isWin && <Zap size={16} fill={result === 'BLACKJACK' ? '#000' : '#FFF'} />}
             </motion.div>
-          </motion.div>
-        )}
+          )}
+        </AnimatePresence>
 
-        {result2 && playerHand2 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute right-4 bottom-4 rounded-lg px-3 py-2 text-xs font-bold tracking-wider uppercase"
+        {/* Circular Betting Spot */}
+        <div
+          style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            border: '2px dashed rgba(212, 175, 55, 0.45)',
+            background: 'rgba(0, 0, 0, 0.4)',
+            boxShadow: 'inset 0 0 12px rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+          }}
+        >
+          <span
             style={{
-              background: `linear-gradient(135deg, ${getResultColor(result2)})`,
-              color: 'white',
+              color: '#D4AF37',
+              fontSize: '0.55rem',
+              fontWeight: 900,
+              letterSpacing: '0.5px',
             }}
           >
-            Hand 2: {getResultLabel(result2)}
-          </motion.div>
-        )}
+            BET
+          </span>
+          <span
+            style={{ color: '#FFF', fontFamily: 'monospace', fontSize: '0.78rem', fontWeight: 900 }}
+          >
+            ${betAmount.toFixed(0)}
+          </span>
+        </div>
+      </div>
 
-        {/* Loading Overlay */}
-        {isProcessing && (
-          <motion.div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              className="h-8 w-8 rounded-full border-3 border-yellow-500/50 border-t-yellow-500"
-            />
-          </motion.div>
+      {/* 3. PLAYER HANDS AREA */}
+      <div
+        style={{
+          zIndex: 10,
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '24px',
+        }}
+      >
+        <CardHand
+          hand={playerHand}
+          label={playerHand2 ? 'Hand 1' : 'Player'}
+          isActive={activeHandIndex === 0}
+        />
+        {playerHand2 && (
+          <CardHand hand={playerHand2} label="Hand 2 (Split)" isActive={activeHandIndex === 1} />
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

@@ -145,40 +145,50 @@ export default function GamesPage() {
         padding: isMobile ? '16px 16px 80px' : '12px 24px 24px',
       }}
     >
-      {/* Slim header */}
+      {/* Vault-Monolith Header */}
       <header
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '20px',
+          gap: '16px',
           flexWrap: 'wrap',
-          padding: '14px 20px',
-          borderRadius: '8px',
-          border: '1px solid var(--stealth-border, #1e2638)',
-          background: 'var(--stealth-surface, #141923)',
+          padding: isMobile ? '14px 16px' : '16px 22px',
+          borderRadius: '16px',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          background: 'rgba(12, 12, 14, 0.7)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              color: 'var(--stealth-accent, #cbd5e1)',
-              fontSize: '0.7rem',
-              fontWeight: 900,
-              letterSpacing: '0.08em',
-            }}
-          >
-            <Flame size={14} className="animate-pulse" /> PROVABLY FAIR · 5 ORIGINALS
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: 'rgba(212, 175, 55, 0.12)',
+                border: '1px solid rgba(212, 175, 55, 0.25)',
+                color: '#D4AF37',
+                fontSize: '0.58rem',
+                fontWeight: 800,
+                padding: '2px 8px',
+                borderRadius: '4px',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+              }}
+            >
+              <Flame size={12} /> PROVABLY FAIR · 5 ORIGINALS
+            </span>
           </div>
           <h1
             style={{
-              fontSize: 'clamp(1.6rem, 2.2vw, 2.1rem)',
-              fontWeight: 950,
-              lineHeight: 1.05,
-              fontFamily: 'var(--font-inter), sans-serif',
+              fontSize: isMobile ? '1.4rem' : '1.75rem',
+              fontWeight: 900,
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+              color: '#ffffff',
               margin: 0,
             }}
           >
@@ -186,24 +196,27 @@ export default function GamesPage() {
           </h1>
         </div>
 
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-          <Stat label="MIN STAKE" value={MIN_STAKE} />
+        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+          <Stat label="MIN STAKE" value={MIN_STAKE} highlight />
           <Stat label="YOUR ROUNDS" value={String(totalBets)} />
           {!isMobile && (
             <div
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '12px',
-                background: 'hsla(var(--success), 0.1)',
-                color: 'hsl(var(--success))',
-                fontSize: '0.7rem',
-                fontWeight: 900,
+                gap: '5px',
+                padding: '5px 10px',
+                borderRadius: '6px',
+                background: 'rgba(16, 185, 129, 0.08)',
+                border: '1px solid rgba(16, 185, 129, 0.15)',
+                color: '#10b981',
+                fontSize: '0.62rem',
+                fontWeight: 800,
+                letterSpacing: '0.04em',
               }}
             >
-              <ShieldCheck size={14} /> INSTANT PAYOUT
+              <ShieldCheck size={12} />
+              <span>INSTANT PAYOUT</span>
             </div>
           )}
         </div>
@@ -670,17 +683,33 @@ function LiveWinRibbon() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({
+  label,
+  value,
+  highlight = false,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
   return (
     <div
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.1 }}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        lineHeight: 1.1,
+      }}
     >
       <span
         style={{
-          fontSize: '0.58rem',
-          fontWeight: 900,
-          color: 'hsl(var(--text-dim))',
-          letterSpacing: '0.06em',
+          fontSize: '0.6rem',
+          fontWeight: 700,
+          color: 'rgba(255, 255, 255, 0.35)',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          marginBottom: '3px',
         }}
       >
         {label}
@@ -688,9 +717,10 @@ function Stat({ label, value }: { label: string; value: string }) {
       <span
         style={{
           fontSize: '0.95rem',
-          fontWeight: 950,
-          color: '#fff',
-          fontFamily: 'var(--font-mono), monospace',
+          fontWeight: 900,
+          color: highlight ? '#D4AF37' : '#ffffff',
+          fontFamily: 'var(--font-mono, monospace)',
+          letterSpacing: '-0.01em',
         }}
       >
         {value}

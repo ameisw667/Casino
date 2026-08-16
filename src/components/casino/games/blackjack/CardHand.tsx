@@ -1,16 +1,10 @@
 'use client';
 
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import PlayingCard from './PlayingCard';
+import PlayingCard, { type Card } from './PlayingCard';
 
-interface Card {
-  suit: 'spades' | 'clubs' | 'hearts' | 'diamonds';
-  value: 'A' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K';
-  numericValue: number;
-  faceDown?: boolean;
-}
-
-interface BlackjackHand {
+export interface BlackjackHand {
   cards: Card[];
   score: number;
   isBust: boolean;
@@ -20,7 +14,7 @@ interface BlackjackHand {
 
 interface CardHandProps {
   hand: BlackjackHand | null;
-  label: 'Dealer' | 'Player';
+  label: string;
   isActive?: boolean;
   hideScore?: boolean;
 }
@@ -31,65 +25,145 @@ export default function CardHand({
   isActive = false,
   hideScore = false,
 }: CardHandProps) {
-  if (!hand) {
+  if (!hand || hand.cards.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-2">
-        <div className="text-sm font-semibold text-gray-400">{label}</div>
-        <div className="flex h-28 w-20 items-center justify-center rounded-lg border-2 border-dashed border-gray-600/30">
-          <span className="text-xs text-gray-500">Empty</span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+        <div
+          style={{
+            fontSize: '0.75rem',
+            fontWeight: 800,
+            color: '#64748b',
+            letterSpacing: '1px',
+            textTransform: 'uppercase',
+          }}
+        >
+          {label}
+        </div>
+        <div
+          style={{
+            width: '88px',
+            height: '124px',
+            borderRadius: '12px',
+            border: '2px dashed rgba(255, 255, 255, 0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#475569',
+            fontSize: '0.72rem',
+            fontFamily: 'monospace',
+          }}
+        >
+          WAITING
         </div>
       </div>
     );
   }
 
-  // Score Badge Color Logic
-  let badgeBgColor = 'bg-gray-700';
-  let badgeTextColor = 'text-white';
+  // Determine score display & badge styling
+  let badgeText = `${hand.score}`;
+  let badgeBg = 'rgba(30, 41, 59, 0.8)';
+  let badgeBorder = 'rgba(255, 255, 255, 0.15)';
+  let badgeColor = '#FFF';
 
-  if (hand.isBust) {
-    badgeBgColor = 'bg-red-900/80';
-    badgeTextColor = 'text-red-200';
-  } else if (hand.isBlackjack || hand.score === 21) {
-    badgeBgColor = 'bg-emerald-600/80';
-    badgeTextColor = 'text-emerald-100';
-  } else if (isActive) {
-    badgeBgColor = 'bg-yellow-600/80';
-    badgeTextColor = 'text-yellow-100';
-  } else {
-    badgeBgColor = 'bg-blue-900/60';
-    badgeTextColor = 'text-blue-100';
+  if (hideScore) {
+    // Show only first card score
+    const firstCardScore = hand.cards[0]?.numericValue ?? 0;
+    badgeText = firstCardScore === 11 ? '1 / 11' : `${firstCardScore}`;
+    badgeColor = '#cbd5e1';
+  } else if (hand.isBlackjack) {
+    badgeText = 'BLACKJACK!';
+    badgeBg = 'linear-gradient(135deg, #FFD700 0%, #B8860B 100%)';
+    badgeBorder = '#FFE066';
+    badgeColor = '#000';
+  } else if (hand.isBust) {
+    badgeText = `BUST (${hand.score})`;
+    badgeBg = 'linear-gradient(135deg, #DC2626 0%, #991B1B 100%)';
+    badgeBorder = '#FCA5A5';
+    badgeColor = '#FFF';
+  } else if (hand.score === 21) {
+    badgeText = '21';
+    badgeBg = 'linear-gradient(135deg, #059669 0%, #065F46 100%)';
+    badgeBorder = '#6EE7B7';
+    badgeColor = '#FFF';
+  } else if (hand.isSoft && hand.score > 0) {
+    badgeText = `SOFT ${hand.score}`;
+    badgeBg = 'rgba(37, 99, 235, 0.85)';
+    badgeBorder = 'rgba(147, 197, 253, 0.5)';
+    badgeColor = '#FFF';
   }
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      {/* Label */}
-      <motion.div
-        className="text-sm font-semibold tracking-wide uppercase"
-        animate={{
-          color: isActive ? 'hsl(45, 80%, 50%)' : 'rgb(209, 213, 219)',
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '10px',
+        position: 'relative',
+      }}
+    >
+      {/* Hand Label & Score Badge */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span
+          style={{
+            fontSize: '0.78rem',
+            fontWeight: 900,
+            letterSpacing: '1px',
+            color: isActive ? '#FFD700' : '#94a3b8',
+            textTransform: 'uppercase',
+            textShadow: isActive ? '0 0 8px rgba(255, 215, 0, 0.6)' : 'none',
+          }}
+        >
+          {label}
+        </span>
+
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          style={{
+            padding: '2px 8px',
+            borderRadius: '6px',
+            background: badgeBg,
+            border: `1px solid ${badgeBorder}`,
+            color: badgeColor,
+            fontFamily: 'monospace',
+            fontWeight: 900,
+            fontSize: '0.75rem',
+            letterSpacing: '0.5px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
+          }}
+        >
+          {badgeText}
+        </motion.div>
+      </div>
+
+      {/* Overlapping Cards Container */}
+      <div
+        style={{
+          position: 'relative',
+          height: '124px',
+          width: `${88 + (hand.cards.length - 1) * 32}px`,
+          minWidth: '88px',
+          display: 'flex',
+          justifyContent: 'center',
         }}
       >
-        {label}
-      </motion.div>
-
-      {/* Cards Container */}
-      <div className="relative flex h-32 items-center justify-center">
         <AnimatePresence>
           {hand.cards.map((card, index) => (
             <motion.div
               key={`${card.suit}-${card.value}-${index}`}
-              initial={{ opacity: 0, y: -50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: -40, scale: 0.85 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20 }}
               transition={{
-                duration: 0.4,
-                delay: index * 0.1,
-                ease: 'easeOut',
+                duration: 0.35,
+                delay: index * 0.08,
+                ease: [0.16, 1, 0.3, 1],
               }}
               style={{
                 position: 'absolute',
-                left: `${index * 35}px`,
-                zIndex: index,
+                left: `${index * 32}px`,
+                zIndex: index + 1,
               }}
             >
               <PlayingCard card={card} faceDown={card.faceDown || false} size="md" />
@@ -97,38 +171,6 @@ export default function CardHand({
           ))}
         </AnimatePresence>
       </div>
-
-      {/* Score Badge */}
-      {!hideScore && (
-        <motion.div
-          className={`rounded-full px-4 py-2 text-center font-mono font-bold ${badgeBgColor} ${badgeTextColor} min-w-20 border border-white/20 backdrop-blur-md`}
-          animate={{
-            scale: isActive ? 1.1 : 1,
-            y: isActive ? -2 : 0,
-          }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="text-lg">{hand.score}</div>
-          {hand.isBust && <div className="mt-0.5 text-xs leading-none">BUST</div>}
-          {hand.isBlackjack && !hand.isBust && (
-            <div className="mt-0.5 text-xs leading-none">BJ</div>
-          )}
-          {hand.isSoft && !hand.isBust && hand.score !== 21 && (
-            <div className="mt-0.5 text-xs leading-none">Soft</div>
-          )}
-        </motion.div>
-      )}
-
-      {/* Soft 17 Indicator (Dealer Only) */}
-      {label === 'Dealer' && hand.isSoft && hand.score === 17 && !hand.isBust && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-xs font-semibold tracking-wider text-yellow-400/70 uppercase"
-        >
-          Soft 17 (Must Hit)
-        </motion.div>
-      )}
     </div>
   );
 }

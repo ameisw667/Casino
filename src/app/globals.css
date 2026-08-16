@@ -64,10 +64,8 @@
   /* Physics */
   --spring-physics: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --mesh-gradient:
-    radial-gradient(at 10% 0%, hsl(var(--primary) / 0.16) 0px, transparent 50%),
-    radial-gradient(at 90% 20%, hsl(var(--secondary) / 0.12) 0px, transparent 55%),
-    radial-gradient(at 50% 60%, hsl(var(--accent) / 0.08) 0px, transparent 60%),
-    radial-gradient(at 20% 95%, hsla(45, 100%, 50%, 0.06) 0px, transparent 50%);
+    radial-gradient(at 15% 10%, rgba(212, 175, 55, 0.035) 0px, transparent 50%),
+    radial-gradient(at 85% 60%, rgba(212, 175, 55, 0.025) 0px, transparent 50%), #050508;
 
   /* Responsive Breakpoints */
   --screen-sm: 640px;
@@ -433,35 +431,7 @@ p {
 
 /* Dice Game Optimizations */
 .dice-container {
-  display: grid;
-  grid-template-columns: 320px 1fr 300px;
-  gap: 2px;
-  background: #0f212e;
-  min-height: 80vh;
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-@media (max-width: 1200px) {
-  .dice-container {
-    grid-template-columns: 300px 1fr;
-  }
-  .live-bets-sidebar {
-    display: none;
-  }
-}
-
-@media (max-width: 900px) {
-  .dice-container {
-    grid-template-columns: 1fr;
-  }
-  .dice-sidebar {
-    order: 2;
-  }
-  .dice-main {
-    order: 1;
-    min-height: 400px;
-  }
+  background: transparent;
 }
 
 .confetti {

@@ -8,6 +8,7 @@ import { sanitizeClientSeed } from '@/lib/casino/provably-fair';
 import { GameErrorBoundary } from '@/components/casino/GameErrorBoundary';
 import { SlotCabinetV2 } from '@/components/casino/games/slots/v2/SlotCabinetV2';
 import { GAME_SYMBOLS, STAGGER_DELAYS_MS, TOTAL_SPIN_MS } from '../symbols';
+import { getApiErrorMessage } from '@/lib/security/form-errors';
 import type { SymbolType } from '@/components/casino/SlotSymbol';
 
 const REEL_COUNT = 5;
@@ -140,12 +141,12 @@ export default function SlotsV2Page() {
 
       clearTimeout(timeoutId);
       if (!res.ok) {
-        if (res.status === 429) {
-          const errData = await res.json().catch(() => ({}));
+        const errData = await res.json().catch(() => ({}));
+        if (res.status === 429 || errData.error?.code === 'RATE_LIMITED') {
           const retry = errData.retryAfter || 2;
           throw new Error(`RATE_LIMIT:${retry}`);
         }
-        throw new Error('API error');
+        throw new Error(getApiErrorMessage(errData, 'Der Spin konnte nicht verarbeitet werden.'));
       }
       const data = await res.json();
 
