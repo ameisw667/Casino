@@ -6,6 +6,7 @@ import { GameErrorBoundary } from '@/components/casino/GameErrorBoundary';
 import { sanitizeClientSeed } from '@/lib/casino/provably-fair';
 import { CasinoLogger } from '@/lib/casino/logger';
 import { soundManager } from '@/lib/casino/sound-manager';
+import { trackAllowedEvent } from '@/lib/analytics/events';
 
 // Types for the particle & background system
 interface Particle {
@@ -401,6 +402,12 @@ export default function CrashPage() {
       }
       const data = await response.json();
       applyServerWalletSnapshot(data.wallet);
+      // Crash's START_CRASH response, not settlement, is where isFirstBet actually appears
+      // (server-side: bet/route.ts's START_CRASH branch) — no processGameResult() call happens
+      // here at all (a round start isn't a win/loss result yet), so this must fire directly.
+      if (data.isFirstBet) {
+        void trackAllowedEvent({ name: 'first_game_started', props: { game: 'CRASH' } });
+      }
       roundIdRef.current = data.roundId;
 
       setProvablyFairSettings({ serverSeedHash: data.hash, nonce: data.nonce });
@@ -793,15 +800,14 @@ export default function CrashPage() {
     // Parallax Starfield & Cosmic Hyper-Space Trails
     const starSpeed = isRunning ? 0.8 + riskFactor * 5 : 0.3;
     starsRef.current.forEach((star) => {
-      if (isRunning) {
-        // Drift diagonally down-left as rocket ascends up-right
-        star.x -= star.speed * star.layer * starSpeed;
-        star.y += star.speed * star.layer * (starSpeed * 0.5);
+      // Drift diagonally down-left (ambient drift during IDLE)
+      const currentSpeed = isRunning ? starSpeed : 0.25;
+      star.x -= star.speed * star.layer * currentSpeed;
+      star.y += star.speed * star.layer * (currentSpeed * 0.4);
 
-        // Wrap around canvas
-        if (star.x < 0) star.x = width + Math.random() * 20;
-        if (star.y > height) star.y = -10;
-      }
+      // Wrap around canvas
+      if (star.x < 0) star.x = width + Math.random() * 20;
+      if (star.y > height) star.y = -10;
 
       star.twinklePhase += 0.03;
       const alpha = star.opacity * (0.6 + Math.sin(star.twinklePhase) * 0.4);
@@ -851,6 +857,66 @@ export default function CrashPage() {
     });
 
     if (pointsRef.current.length < 2) {
+      if (status === 'IDLE') {
+        const padX = width * 0.16;
+        const padY = height * 0.84;
+
+        // Launchpad Standby Base Structure
+        ctx.save();
+        ctx.fillStyle = 'rgba(20, 20, 30, 0.9)';
+        ctx.strokeStyle = 'rgba(212, 175, 55, 0.4)';
+        ctx.lineWidth = 1.5;
+
+        // Platform base
+        ctx.beginPath();
+        ctx.moveTo(padX - 45, padY + 18);
+        ctx.lineTo(padX + 45, padY + 18);
+        ctx.lineTo(padX + 35, padY + 32);
+        ctx.lineTo(padX - 35, padY + 32);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Support clamp arm
+        ctx.strokeStyle = 'rgba(212, 175, 55, 0.3)';
+        ctx.beginPath();
+        ctx.moveTo(padX - 25, padY + 18);
+        ctx.lineTo(padX - 25, padY - 8);
+        ctx.lineTo(padX - 15, padY - 8);
+        ctx.stroke();
+
+        // Standby Rocket on pad
+        ctx.save();
+        ctx.translate(padX, padY);
+        ctx.rotate(-Math.PI * 0.16); // Tilted ~29° pointing up-right ready for launch
+
+        // Warm thruster standby idle glow
+        const idlePulse = Math.sin(performance.now() * 0.005) * 0.2 + 0.5;
+        const thrusterIdleGlow = ctx.createRadialGradient(-20, 0, 1, -20, 0, 26);
+        thrusterIdleGlow.addColorStop(0, `rgba(255, 180, 50, ${0.45 * idlePulse})`);
+        thrusterIdleGlow.addColorStop(0.6, `rgba(212, 175, 55, ${0.18 * idlePulse})`);
+        thrusterIdleGlow.addColorStop(1, 'transparent');
+        ctx.fillStyle = thrusterIdleGlow;
+        ctx.beginPath();
+        ctx.arc(-20, 0, 26, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Render Rocket Vector
+        if (rocketImgRef.current && rocketImgRef.current.complete) {
+          ctx.drawImage(rocketImgRef.current, -32, -16, 64, 32);
+        } else {
+          ctx.fillStyle = '#14141a';
+          ctx.strokeStyle = '#D4AF37';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 20, 8, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+        ctx.restore();
+        ctx.restore();
+      }
+
       updateAndDrawParticles(ctx);
       ctx.restore();
       return;
@@ -1176,6 +1242,7 @@ export default function CrashPage() {
         style={{
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : '330px 1fr',
+          alignItems: 'start',
           gap: isMobile ? '12px' : '20px',
           padding: isMobile ? '12px' : '20px',
           maxWidth: '1600px',
@@ -1186,6 +1253,7 @@ export default function CrashPage() {
         .crash-container {
           display: grid;
           grid-template-columns: 330px 1fr;
+          align-items: start;
           gap: 20px;
         }
         @media (max-width: 960px) {
@@ -1956,7 +2024,8 @@ export default function CrashPage() {
             style={{
               position: 'relative',
               flex: 1,
-              minHeight: isMobile ? '340px' : 'clamp(380px, 55vh, 600px)',
+              height: isMobile ? '360px' : '520px',
+              minHeight: isMobile ? '360px' : '520px',
               padding: 0,
               overflow: 'hidden',
               borderRadius: '28px',
