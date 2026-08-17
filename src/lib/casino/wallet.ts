@@ -52,7 +52,7 @@ function walletFromRpc(data: unknown): WalletSettlement {
 }
 
 /**
- * Additive analytics signal only (2.9, worldmap/05_2.9_PostHog_Analytics.md §3.4) — shared by
+ * Additive analytics signal only (2.9, docs/archive/05_2.9_PostHog_Analytics.md §3.4) — shared by
  * bet/route.ts and blackjack/route.ts so the replayed-gate + lookup logic exists in one place.
  * Never affects settlement response fields otherwise, never a network call to a third party.
  */
@@ -277,11 +277,49 @@ export class WalletService {
     { ok: true; amount: number; snapshot: WalletSnapshot } | { ok: false; code: string }
   > {
     const supabase = createAdminClient();
-    const { data, error } = await supabase.rpc('redeem_promo_code', {
+    const normCode = params.code.trim().toUpperCase();
+    let { data, error } = await supabase.rpc('redeem_promo_code', {
       p_user_id: params.userId,
-      p_code: params.code,
+      p_code: normCode,
       p_request_id: params.requestId,
     });
+
+    // Auto-provision standard welcome promo code if not yet present in database
+    if (
+      (data as { ok?: boolean; code?: string } | null)?.code === 'PROMO_NOT_FOUND' &&
+      normCode === 'VIPPRO'
+    ) {
+      try {
+        await supabase.from('promo_codes').upsert(
+          {
+            code: 'VIPPRO',
+            amount: 500.0,
+            max_uses: 10000,
+            used_count: 0,
+            active: true,
+            created_by: 'system_welcome',
+          },
+          { onConflict: 'code' },
+        );
+
+        const retry = await supabase.rpc('redeem_promo_code', {
+          p_user_id: params.userId,
+          p_code: normCode,
+          p_request_id: params.requestId,
+        });
+        if (retry.data && !retry.error) {
+          data = retry.data;
+          error = null;
+        }
+      } catch (upsertErr) {
+        CasinoLogger.error(
+          'WalletService/redeemPromoCode',
+          'Auto-provision VIPPRO failed',
+          upsertErr,
+        );
+      }
+    }
+
     if (error || !data) {
       CasinoLogger.error('WalletService/redeemPromoCode', 'RPC failed', error);
       throw new Error('Redeem RPC failed');

@@ -250,6 +250,57 @@ describe('WalletService.redeemPromoCode', () => {
       p_request_id: REQUEST_ID,
     });
   });
+
+  it('auto-provisions VIPPRO when initial RPC returns PROMO_NOT_FOUND and retries', async () => {
+    mock.client.rpc = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: { ok: false, code: 'PROMO_NOT_FOUND' },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: {
+          ok: true,
+          amount: 500,
+          balance: 500,
+          xp: 0,
+          level: 1,
+          rank: 'BRONZE',
+          transactionId: TRANSACTION_ID,
+        },
+        error: null,
+      });
+
+    const result = await WalletService.redeemPromoCode({
+      userId: USER_ID,
+      code: 'VIPPRO',
+      requestId: REQUEST_ID,
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      amount: 500,
+      snapshot: {
+        balance: 500,
+        xp: 0,
+        level: 1,
+        rank: 'BRONZE',
+        transactionId: TRANSACTION_ID,
+      },
+    });
+    expect(mock.client.from).toHaveBeenCalledWith('promo_codes');
+    expect(mock.builder.upsert).toHaveBeenCalledWith(
+      {
+        code: 'VIPPRO',
+        amount: 500.0,
+        max_uses: 10000,
+        used_count: 0,
+        active: true,
+        created_by: 'system_welcome',
+      },
+      { onConflict: 'code' },
+    );
+  });
 });
 
 describe('WalletService.startRound', () => {
