@@ -1246,6 +1246,9 @@ export default function CrashPage() {
           gap: isMobile ? '12px' : '20px',
           padding: isMobile ? '12px' : '20px',
           maxWidth: '1600px',
+          width: '100%',
+          minWidth: 0,
+          boxSizing: 'border-box',
           margin: '0 auto',
         }}
       >
@@ -1255,13 +1258,18 @@ export default function CrashPage() {
           grid-template-columns: 330px 1fr;
           align-items: start;
           gap: 20px;
+          width: 100%;
+          max-width: 1600px;
+          min-width: 0;
+          box-sizing: border-box;
+          margin: 0 auto;
         }
         @media (max-width: 960px) {
           .crash-container {
             grid-template-columns: 1fr;
           }
-          .sidebar-left { order: 2; }
-          .game-area { order: 1; }
+          .sidebar-left { order: 2; width: 100%; min-width: 0; }
+          .game-area { order: 1; width: 100%; min-width: 0; }
         }
         .obsidian-glass {
           background: rgba(14, 14, 20, 0.85);
@@ -1496,6 +1504,9 @@ export default function CrashPage() {
             padding: '20px',
             borderRadius: '24px',
             order: isMobile ? 2 : 1,
+            width: '100%',
+            minWidth: 0,
+            boxSizing: 'border-box',
           }}
         >
           {/* Header */}
@@ -1964,6 +1975,8 @@ export default function CrashPage() {
             flexDirection: 'column',
             gap: '16px',
             order: isMobile ? 1 : 2,
+            width: '100%',
+            minWidth: 0,
           }}
         >
           {/* History Pills Bar */}
@@ -2035,7 +2048,14 @@ export default function CrashPage() {
             {/* Camera Zoom & Canvas Layer */}
             <div
               ref={cameraZoomRef}
-              style={{ position: 'absolute', inset: 0, transformOrigin: 'center', zIndex: 1 }}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                transformOrigin: 'center',
+                zIndex: 1,
+              }}
             >
               <canvas
                 ref={canvasRef}
