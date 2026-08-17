@@ -2,6 +2,8 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useCasinoStore } from '@/store/useCasinoStore';
 import {
   motion,
   AnimatePresence,
@@ -17,7 +19,6 @@ import {
   Flame,
   Play,
   Sparkles,
-  Coins,
   Users,
   Crown,
   ArrowRight,
@@ -151,11 +152,26 @@ const FLOATING_PARTICLES = Array.from({ length: 16 }, (_, i) => ({
 
 export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
   isMobile = false,
-  startOnboarding,
+  startOnboarding: _startOnboarding,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const addToast = useCasinoStore((s) => s.addToast);
   const [activeTab, setActiveTab] = useState<GameTabConfig>(GAME_TABS[0]);
   const [tickerIndex, setTickerIndex] = useState<number>(0);
+
+  const handleBonusActivate = async () => {
+    soundManager.playClick();
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText('VIPPRO');
+        addToast('Code VIPPRO kopiert! Leite weiter zum Vault...', 'info');
+      }
+    } catch {
+      // ignore clipboard error
+    }
+    router.push('/vault?code=VIPPRO');
+  };
 
   // Live Multiplier Engine States
   const [crashMult, setCrashMult] = useState<number>(1.0);
@@ -461,7 +477,7 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
               {/* Bonus Claim Button */}
               <Magnetic>
                 <motion.button
-                  onClick={startOnboarding}
+                  onClick={handleBonusActivate}
                   onMouseEnter={() => soundManager.playHover()}
                   whileHover={{ scale: 1.04, boxShadow: '0 0 25px rgba(212, 175, 55, 0.55)' }}
                   whileTap={{ scale: 0.96 }}

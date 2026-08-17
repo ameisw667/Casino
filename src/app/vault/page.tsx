@@ -1,8 +1,8 @@
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import { useCasinoStore } from '@/store/useCasinoStore';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Lock,
   Rocket,
@@ -17,19 +17,22 @@ import {
   X,
   CheckCircle2,
 } from 'lucide-react';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useSupabaseSession } from '@/components/auth/SupabaseSessionProvider';
 
-export default function VaultPage() {
+function VaultContent() {
   const { balance, xp, level, vipTiers, achievements, isMobile, redeemCode, gameStats, analytics } =
     useCasinoStore();
 
   const sessionContext = useSupabaseSession();
   const user = sessionContext?.user ?? null;
 
+  const searchParams = useSearchParams();
+  const codeParam = searchParams.get('code');
+  const redeemInputRef = useRef<HTMLInputElement>(null);
+
   const [mounted, setMounted] = React.useState(false);
-  const [voucherCode, setVoucherCode] = useState('');
+  const [voucherCode, setVoucherCode] = useState(() => (codeParam ? codeParam.toUpperCase() : ''));
   const [isRedeeming, setIsRedeeming] = useState(false);
   const [showAllAchievementsModal, setShowAllAchievementsModal] = useState(false);
   const [serverStats, setServerStats] = useState<{
@@ -41,6 +44,12 @@ export default function VaultPage() {
     winRate: number;
   } | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    if (codeParam) {
+      redeemInputRef.current?.focus();
+    }
+  }, [codeParam]);
 
   React.useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
@@ -718,6 +727,7 @@ export default function VaultPage() {
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
+                ref={redeemInputRef}
                 type="text"
                 value={voucherCode}
                 onChange={(e) => setVoucherCode(e.target.value)}
@@ -1011,5 +1021,13 @@ export default function VaultPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function VaultPage() {
+  return (
+    <Suspense fallback={null}>
+      <VaultContent />
+    </Suspense>
   );
 }
