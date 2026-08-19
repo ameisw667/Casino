@@ -34,6 +34,10 @@ const tmpTsconfig = {
   compilerOptions: {
     ...tsconfig.compilerOptions,
     baseUrl: path.resolve('.'),
+    // The tmp tsconfig lives outside the project tree, so TS's default
+    // typeRoots lookup (relative to the tsconfig's own directory) never
+    // finds this project's node_modules/@types — pin it explicitly.
+    typeRoots: [path.resolve('node_modules/@types')],
     skipLibCheck: true,
     incremental: false,
   },
