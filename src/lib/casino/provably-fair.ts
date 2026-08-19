@@ -71,6 +71,23 @@ export class ProvablyFairEngine {
   }
 
   /**
+   * Progressive-jackpot trigger roll (worldmap/01_LiveProgressiveJackpot.md, L3).
+   * Domain-separated from the game's own roll via a ':jackpot' suffix on the
+   * client seed input, so the outcome is cryptographically independent of
+   * the game result while staying deterministic/reproducible from the same
+   * seed triple for later verification. Returns a value between 0 and 1;
+   * the server compares it against the authoritative win_probability.
+   */
+  static async getJackpotRoll(
+    serverSeed: string,
+    clientSeed: string,
+    nonce: number,
+  ): Promise<number> {
+    const { result } = await this.calculateOutcome(serverSeed, `${clientSeed}:jackpot`, nonce);
+    return result;
+  }
+
+  /**
    * Helper to generate HMAC for UI display
    */
   static async generateHMAC(serverSeed: string, data: string): Promise<string> {

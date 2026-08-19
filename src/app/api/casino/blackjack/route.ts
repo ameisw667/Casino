@@ -43,8 +43,21 @@ export function publicState(state: BlackjackGameState): BlackjackGameState {
       ? ({ suit: 'spades', value: 'A', numericValue: 0, faceDown: true } satisfies Card)
       : card,
   );
+  // Round state carries provably-fair seed material server-side between
+  // actions (serverSeed is the shared, still-active chain seed reused
+  // across Dice/Roulette/Slots/Crash/Blackjack until rotation — never a
+  // per-round throwaway; see seed-chain-security-surface.test.ts). Strip it
+  // here, the one choke point every HIT/STAND/DOUBLE/SPLIT/DEAL and
+  // active-round response already passes through, instead of relying on
+  // each caller to remember to sanitize first — every action route below
+  // used to call this directly without doing so.
+  const {
+    serverSeed: _serverSeed,
+    clientSeed: _clientSeed,
+    ...withoutSeeds
+  } = state as unknown as Record<string, unknown>;
   return {
-    ...state,
+    ...(withoutSeeds as unknown as BlackjackGameState),
     deck: [],
     dealerHand: { ...state.dealerHand, cards: hiddenDealerCards },
   };
@@ -153,7 +166,13 @@ export async function POST(request: Request) {
         requestId: input.requestId,
         game: 'BLACKJACK',
         amount: input.amount,
-        state: { ...state, serverSeed: seed, serverSeedHash: hash, nonce },
+        state: {
+          ...state,
+          serverSeed: seed,
+          serverSeedHash: hash,
+          nonce,
+          clientSeed: input.clientSeed,
+        },
       });
       const isFirstBet = await isFirstBetSignal(userId, round.replayed);
       return NextResponse.json({
@@ -196,6 +215,17 @@ export async function POST(request: Request) {
     const totalBet = round.betAmount + additionalBet;
     const payout = settled ? Math.round(next.payoutMultiplier * totalBet * 100) / 100 : 0;
     const resultId = crypto.randomUUID();
+    let jackpotRoll: number | undefined;
+    if (settled) {
+      // Raw serverSeed handling stays inside WalletService (same seed-chain
+      // security boundary as the Crash cashout/resolve path) rather than
+      // being read directly in the route handler — see
+      // WalletService.computeRoundJackpotRoll for the rationale.
+      const roundNonce = z.coerce.number().int().nonnegative().safeParse(round.state.nonce);
+      if (roundNonce.success) {
+        jackpotRoll = await WalletService.computeRoundJackpotRoll(round.state, roundNonce.data);
+      }
+    }
     const result = settled
       ? {
           id: resultId,
@@ -205,6 +235,7 @@ export async function POST(request: Request) {
           multiplier: next.payoutMultiplier,
           result: next.result,
           result2: next.result2,
+          jackpotRoll,
         }
       : { id: resultId, game: 'BLACKJACK', action: input.action };
 

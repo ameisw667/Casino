@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { type WalletSnapshot, walletSnapshotSchema } from './wallet-contract';
 import { CasinoLogger } from './logger';
+import { ProvablyFairEngine } from './provably-fair';
 
 const ZERO_TRANSACTION_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -209,6 +210,26 @@ export class WalletService {
       version: Number(data.version),
     };
   }
+  /**
+   * Progressive-jackpot trigger roll for a persisted CRASH/BLACKJACK round
+   * (worldmap/01_LiveProgressiveJackpot.md, L3). Reads the round's raw
+   * serverSeed server-side only, here in the wallet service boundary rather
+   * than in the route handler — the Crash cashout/resolve route is a
+   * verified security surface (seed-chain-security-surface.test.ts) that
+   * must never itself read the shared, still-active serverSeed back out of
+   * round state. Returns undefined (no trigger possible) for a round dealt
+   * before clientSeed was persisted in round state.
+   */
+  static async computeRoundJackpotRoll(
+    state: Record<string, unknown>,
+    nonce: number,
+  ): Promise<number | undefined> {
+    const serverSeed = z.string().min(1).safeParse(state.serverSeed);
+    const clientSeed = z.string().min(1).safeParse(state.clientSeed);
+    if (!serverSeed.success || !clientSeed.success) return undefined;
+    return ProvablyFairEngine.getJackpotRoll(serverSeed.data, clientSeed.data, nonce);
+  }
+
   static async settleRound(params: {
     userId: string;
     roundId: string;
@@ -511,6 +532,21 @@ export class WalletService {
       communityGoal: number;
       communityGoalReached: boolean;
     };
+  }
+
+  /**
+   * Progressive jackpot pool read (worldmap/01_LiveProgressiveJackpot.md, L4).
+   * Narrow field allowlist enforced server-side by get_jackpot_pool_public() —
+   * last_winner_id, contribution_rate, win_probability and seed_amount never
+   * leave the database. Falls back to a safe zero, never a fabricated amount.
+   */
+  static async getJackpotPool(): Promise<{ currentAmount: number; lastWonAt: string | null }> {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.rpc('get_jackpot_pool_public');
+    if (error || !data) {
+      return { currentAmount: 0, lastWonAt: null };
+    }
+    return data as { currentAmount: number; lastWonAt: string | null };
   }
 
   /**

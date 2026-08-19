@@ -2,6 +2,7 @@ import { NextResponse, after } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 import { CasinoCore } from '@/lib/casino/casino-core';
+import { ProvablyFairEngine } from '@/lib/casino/provably-fair';
 import { WalletService, isFirstBetSignal } from '@/lib/casino/wallet';
 import { CasinoLogger } from '@/lib/casino/logger';
 import { loadGameConfig } from '@/lib/casino/game-config-server';
@@ -147,6 +148,7 @@ export async function POST(request: Request) {
           serverSeed: crash.seed,
           serverSeedHash: crash.hash,
           nonce: crash.nonce,
+          clientSeed: params.clientSeed,
         },
       });
       const isFirstBet = await isFirstBetSignal(userId, round.replayed);
@@ -183,6 +185,7 @@ export async function POST(request: Request) {
       const won = params.action === 'CASHOUT_CRASH' && requestedMultiplier <= crashPoint;
       const payout = won ? Math.round(round.betAmount * requestedMultiplier * 100) / 100 : 0;
       const resultId = crypto.randomUUID();
+      const jackpotRoll = await WalletService.computeRoundJackpotRoll(round.state, crashNonce);
       const result = {
         id: resultId,
         game: 'CRASH',
@@ -192,6 +195,7 @@ export async function POST(request: Request) {
         crashPoint,
         serverSeedHash,
         nonce: crashNonce,
+        jackpotRoll,
       };
       const settlement = await WalletService.settleRound({
         userId,
@@ -249,11 +253,17 @@ export async function POST(request: Request) {
       },
       gameConfig,
     );
+    const jackpotRoll = await ProvablyFairEngine.getJackpotRoll(
+      seed.serverSeed,
+      params.clientSeed,
+      seed.nonce,
+    );
     const result = {
       ...generated,
       game: params.gameType,
       amount: params.amount,
       multiplier: params.amount > 0 ? generated.payout / params.amount : 0,
+      jackpotRoll,
     };
     const settlement = await WalletService.settleBet({
       userId,
