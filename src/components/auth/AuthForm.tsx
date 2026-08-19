@@ -9,6 +9,7 @@ import { createClient } from '@/utils/supabase/client';
 import { Magnetic } from '@/components/ui/Magnetic';
 import { validateAuthCredentials } from './auth-validation';
 import { mapAuthError } from '@/lib/security/form-errors';
+import { trackAllowedEvent } from '@/lib/analytics/events';
 
 interface AuthFormProps {
   mode: 'sign-in' | 'sign-up';
@@ -224,6 +225,9 @@ export function AuthForm({ mode }: AuthFormProps) {
       if (error) {
         setStatus(formatAuthError(error.message));
         return;
+      }
+      if (mode === 'sign-up') {
+        void trackAllowedEvent({ name: 'sign_up_completed' });
       }
       router.push('/');
       router.refresh();

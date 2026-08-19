@@ -26,6 +26,7 @@ import { GameErrorBoundary } from '@/components/casino/GameErrorBoundary';
 import { soundManager } from '@/lib/casino/sound-manager';
 import { getApiErrorMessage } from '@/lib/security/form-errors';
 import { CasinoLogger } from '@/lib/casino/logger';
+import { trackAllowedEvent } from '@/lib/analytics/events';
 
 interface ChipDef {
   amount: number;
@@ -270,10 +271,17 @@ export default function BlackjackPage() {
         result?: { id: string; win: boolean; payout: number; multiplier: number };
         serverSeedHash?: string;
         nonce?: number;
+        isFirstBet?: boolean;
       },
       totalBet: number,
     ) => {
       applyServerWalletSnapshot(data.wallet);
+      // Only ever true on the DEAL response (server-side: blackjack/route.ts's DEAL branch) —
+      // the HIT/STAND/DOUBLE/SPLIT responses that also funnel through this same handler never
+      // set it, so this check is safe as a single trigger point for both call sites.
+      if (data.isFirstBet) {
+        void trackAllowedEvent({ name: 'first_game_started', props: { game: 'BLACKJACK' } });
+      }
       roundIdRef.current = data.roundId;
       roundVersionRef.current = data.version;
       setGameState(data.gameState);

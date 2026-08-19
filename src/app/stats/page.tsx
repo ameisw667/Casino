@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import type { HistoryRow, PerGameStat } from '@/lib/casino/stats-derivation';
+import { trackAllowedEvent } from '@/lib/analytics/events';
 import { StatsSummaryTiles } from '@/components/stats/StatsSummaryTiles';
 import { ProfitHistoryChart } from '@/components/stats/ProfitHistoryChart';
 import { FavoriteGameCard } from '@/components/stats/FavoriteGameCard';
@@ -31,6 +32,12 @@ export default function StatsPage() {
   const [serverStats, setServerStats] = useState<ServerStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Decoupled from the data-load effect below: the page was viewed regardless of whether
+    // /api/user/history or /api/user/stats succeeds.
+    void trackAllowedEvent({ name: 'stats_viewed' });
+  }, []);
 
   useEffect(() => {
     let cancelled = false;

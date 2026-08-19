@@ -471,6 +471,7 @@ export default function SlotsPage() {
         payout: data.payout ?? 0,
         win: data.win ?? false,
         resultId: data.id ?? Math.random().toString(36).slice(2),
+        isFirstBet: data.isFirstBet,
       });
     } catch (error) {
       clearTimeout(timeoutId);

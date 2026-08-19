@@ -1,7 +1,8 @@
 'use client';
-import React from 'react';
+import React, { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useCasinoStore } from '@/store/useCasinoStore';
+import { trackAllowedEvent } from '@/lib/analytics/events';
 import { VibeMotion } from '@/components/ui/VibeMotion';
 import { HeroCinematicShowcase } from '@/components/home/HeroCinematicShowcase';
 import { LiveHighrollerTickerBar } from '@/components/home/LiveHighrollerTickerBar';
@@ -45,6 +46,10 @@ export function HomeClientV2() {
     .filter((b) => b.isWin)
     .slice(0, 5)
     .map((b) => ({ user: b.user, amount: b.payout }));
+
+  useEffect(() => {
+    void trackAllowedEvent({ name: 'landing_viewed' });
+  }, []);
 
   return (
     <main

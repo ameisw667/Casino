@@ -22,8 +22,12 @@ vi.mock('@/lib/casino/sound-manager', () => ({
     setVolume: vi.fn(),
   },
 }));
+vi.mock('@/lib/analytics/events', () => ({
+  trackAllowedEvent: vi.fn(),
+}));
 
 import { soundManager } from '@/lib/casino/sound-manager';
+import { trackAllowedEvent } from '@/lib/analytics/events';
 
 const INITIAL_STATE = useCasinoStore.getState();
 const SAMPLE_TRANSACTION_ID = '11111111-1111-4111-8111-111111111111';
@@ -93,6 +97,15 @@ describe('applyServerWalletSnapshot', () => {
     ).toThrow();
 
     expect(useCasinoStore.getState().balance).toBe(0);
+  });
+});
+
+describe('startOnboarding', () => {
+  it('fires cta_play_now_clicked and sets the onboarding step to WELCOME', () => {
+    useCasinoStore.getState().startOnboarding();
+
+    expect(trackAllowedEvent).toHaveBeenCalledWith({ name: 'cta_play_now_clicked' });
+    expect(useCasinoStore.getState().onboardingStep).toBe('WELCOME');
   });
 });
 
@@ -265,6 +278,68 @@ describe('processGameResult — Happy Path', () => {
       resultId: resultId(8),
     });
     expect(dispatchSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('processGameResult — first_game_started analytics (2.9 M18)', () => {
+  it('fires first_game_started with the game type when isFirstBet is true', () => {
+    useCasinoStore.getState().processGameResult({
+      game: 'DICE',
+      amount: 10,
+      multiplier: 2,
+      payout: 20,
+      win: true,
+      resultId: resultId(50),
+      isFirstBet: true,
+    });
+
+    expect(trackAllowedEvent).toHaveBeenCalledWith({
+      name: 'first_game_started',
+      props: { game: 'DICE' },
+    });
+  });
+
+  it('does not fire first_game_started when isFirstBet is false', () => {
+    useCasinoStore.getState().processGameResult({
+      game: 'DICE',
+      amount: 10,
+      multiplier: 2,
+      payout: 20,
+      win: true,
+      resultId: resultId(51),
+      isFirstBet: false,
+    });
+
+    expect(trackAllowedEvent).not.toHaveBeenCalled();
+  });
+
+  it('does not fire first_game_started when isFirstBet is omitted (existing call sites unaffected)', () => {
+    useCasinoStore.getState().processGameResult({
+      game: 'DICE',
+      amount: 10,
+      multiplier: 2,
+      payout: 20,
+      win: true,
+      resultId: resultId(52),
+    });
+
+    expect(trackAllowedEvent).not.toHaveBeenCalled();
+  });
+
+  it('never fires twice for a replayed resultId, even if isFirstBet is true both times', () => {
+    const params = {
+      game: 'DICE' as const,
+      amount: 10,
+      multiplier: 2,
+      payout: 20,
+      win: true,
+      resultId: resultId(53),
+      isFirstBet: true,
+    };
+    useCasinoStore.getState().processGameResult(params);
+    useCasinoStore.getState().processGameResult(params);
+
+    expect(trackAllowedEvent).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { soundManager, type SoundKey } from '@/lib/casino/sound-manager';
 import { CasinoLogger } from '@/lib/casino/logger';
+import { trackAllowedEvent, type GameType as AnalyticsGameType } from '@/lib/analytics/events';
 import { getApiErrorMessage } from '@/lib/security/form-errors';
 import {
   type VipTier,
@@ -156,6 +157,7 @@ export interface CasinoState {
     resultId: string;
     crashMultiplier?: number;
     isSettlement?: boolean;
+    isFirstBet?: boolean;
   }) => void;
 
   // VIP / Rank config
@@ -275,6 +277,17 @@ const GAME_RESULT_SOUNDS: Record<string, { win: SoundKey; loss: SoundKey | null 
   BLACKJACK: { win: 'blackjack-win', loss: 'blackjack-loss' },
 };
 
+// Guards the `game as AnalyticsGameType` cast below: a future new game (or any unexpected
+// string) fails this check explicitly instead of silently no-op'ing deep inside
+// trackAllowedEvent()'s own Zod validation (code-review finding).
+const ANALYTICS_GAME_TYPES: readonly AnalyticsGameType[] = [
+  'DICE',
+  'SLOTS',
+  'ROULETTE',
+  'CRASH',
+  'BLACKJACK',
+];
+
 export const useCasinoStore = create<CasinoState>()(
   persist(
     (set, get) => ({
@@ -371,8 +384,10 @@ export const useCasinoStore = create<CasinoState>()(
         resultId: string;
         crashMultiplier?: number;
         isSettlement?: boolean; // If true, doesn't subtract amount (it was already subtracted)
+        isFirstBet?: boolean;
       }) => {
-        const { game, amount, multiplier, payout, win, resultId, crashMultiplier } = params;
+        const { game, amount, multiplier, payout, win, resultId, crashMultiplier, isFirstBet } =
+          params;
         const config = get().gameConfig;
 
         // --- 1. Validation & Security ---
@@ -402,6 +417,18 @@ export const useCasinoStore = create<CasinoState>()(
 
         if (processedResultIds.has(resultId)) return;
         rememberProcessedResultId(resultId);
+
+        // Additive analytics signal only (2.9) — outside set() since trackAllowedEvent() is
+        // async; the resultId dedup guard above already ensures this fires at most once per
+        // settlement. Explicitly validated against ANALYTICS_GAME_TYPES before the cast, so an
+        // unexpected `game` value is a deliberate no-op here, not a silent drop inside
+        // trackAllowedEvent()'s own Zod validation.
+        if (isFirstBet && (ANALYTICS_GAME_TYPES as readonly string[]).includes(game)) {
+          void trackAllowedEvent({
+            name: 'first_game_started',
+            props: { game: game as AnalyticsGameType },
+          });
+        }
 
         set((state) => {
           // --- 1. Audio Feedback ---
@@ -693,6 +720,7 @@ export const useCasinoStore = create<CasinoState>()(
         })),
 
       startOnboarding: () => {
+        void trackAllowedEvent({ name: 'cta_play_now_clicked' });
         set({ onboardingStep: 'WELCOME' });
       },
 

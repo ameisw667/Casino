@@ -254,6 +254,7 @@ export default function DicePage() {
         payout: result.payout,
         win: result.win,
         resultId: result.id,
+        isFirstBet: result.isFirstBet,
       });
 
       // Update session statistics
