@@ -1,7 +1,7 @@
 // Consent-Gate for PostHog product analytics (2.9). Versioned via the key name itself: bump
 // CONSENT_STORAGE_KEY to a new suffix (e.g. .v2) when the privacy policy changes — the banner
 // then reappears automatically since readConsent() finds nothing under the new key. See
-// worldmap/05_2.9_PostHog_Analytics.md §3.1.
+// docs/archive/05_2.9_PostHog_Analytics.md §3.1.
 
 export const CONSENT_STORAGE_KEY = 'consent.posthog.v1';
 

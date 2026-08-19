@@ -65,6 +65,10 @@ describe('posthog-client', () => {
       disable_session_recording: true,
       ip: false,
       persistence: 'localStorage',
+      // M18 live-test finding (2026-08-17): without this, the SDK's remote-config bootstrap
+      // fetches a second, CSP-unlisted host (`<region>-assets.i.posthog.com`) and silently
+      // never completes init — no event would ever reach PostHog.
+      advanced_disable_flags: true,
     });
     expect(options.property_denylist).toEqual(
       expect.arrayContaining(['$current_url', '$referrer', '$referring_domain', '$pathname']),

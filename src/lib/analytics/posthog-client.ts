@@ -32,6 +32,13 @@ async function initClient(): Promise<PostHog | null> {
     autocapture: false,
     capture_pageview: false,
     disable_session_recording: true,
+    // We use none of feature flags/surveys/session replay/toolbar — this also stops the SDK
+    // from fetching its remote-config bootstrap script from a *second* host
+    // (`<region>-assets.i.posthog.com`, distinct from api_host) that our CSP `connect-src`/
+    // `script-src` deliberately never allowlisted (M18 live-test finding, 2026-08-17: without
+    // this flag the fetch is CSP-blocked, which otherwise silently prevented the client from
+    // ever completing init — no event would ever have reached PostHog).
+    advanced_disable_flags: true,
     // Already the library default, set explicitly anyway — R13.7: never rely on a library
     // default silently changing in a future minor version.
     ip: false,
