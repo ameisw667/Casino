@@ -20,6 +20,8 @@ const eslintConfig = defineConfig([
     // Vendored third-party minified bundles for the redesign prototypes —
     // not source code we own, and minified output trips rules like no-this-alias.
     'public/prototypes/lib/**',
+    // Local Trigger.dev build cache (gitignored) — minified bundled output, not source.
+    '.trigger/**',
   ]),
   {
     rules: {

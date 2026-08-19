@@ -30,8 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# local environment files; the safe template is versioned deliberately
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -40,9 +41,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# temp logs
+# temporary local reports
 *.txt
-*.json
+eslint_report.json
+tsconfig.staged-*.json
 scratch/
 errors/
 database/
@@ -54,6 +56,7 @@ CASINO_ULTIMATE_MASTER_PLAN.md
 .gstack/
 .superpowers/
 test-results/
+.playwright-mcp/
 
 # claude code
 .claude/worktrees/
@@ -63,6 +66,9 @@ test-results/
 # supabase (local CLI artifacts)
 /supabase/.temp/
 
+# sentry-cli (local, project-scoped auth token from `sentry-cli login`)
+.sentryclirc
+
 # one-shot rollout/verify scripts (keep verify-migrations-applied.sql committed)
 scripts/_tmp_*
 .qa-tmp/
@@ -70,3 +76,6 @@ scripts/_tmp_*
 # local scratch/build directories (never commit)
 Workroom/
 web/
+.env*
+
+.trigger

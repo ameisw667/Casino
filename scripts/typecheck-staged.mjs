@@ -12,8 +12,9 @@
 // shell-spawn issue on any platform.
 
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import os from 'node:os';
 import path from 'node:path';
 
 const require = createRequire(import.meta.url);
@@ -26,17 +27,17 @@ if (files.length === 0) {
 const tsconfigPath = path.resolve('tsconfig.json');
 const tsconfig = JSON.parse(readFileSync(tsconfigPath, 'utf8'));
 
-const tmpTsconfigPath = path.resolve(
-  `tsconfig.staged-${Date.now()}-${Math.random().toString(36).slice(2)}.json`,
-);
+const tmpDirectory = mkdtempSync(path.join(os.tmpdir(), 'casino-typecheck-'));
+const tmpTsconfigPath = path.join(tmpDirectory, 'tsconfig.json');
 const tmpTsconfig = {
   ...tsconfig,
   compilerOptions: {
     ...tsconfig.compilerOptions,
+    baseUrl: path.resolve('.'),
     skipLibCheck: true,
     incremental: false,
   },
-  files,
+  files: files.map((file) => path.resolve(file)),
   include: [],
 };
 writeFileSync(tmpTsconfigPath, JSON.stringify(tmpTsconfig, null, 2));
@@ -54,7 +55,7 @@ try {
     status = result.status ?? 1;
   }
 } finally {
-  unlinkSync(tmpTsconfigPath);
+  rmSync(tmpDirectory, { recursive: true, force: true });
 }
 
 process.exit(status);
