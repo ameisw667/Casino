@@ -29,7 +29,7 @@ vi.mock('@/lib/security/request-security', () => ({
   rateLimitHeaders: mocks.rateLimitHeaders,
 }));
 vi.mock('@/lib/casino/chat-guide', () => ({
-  CASINO_GUIDE_CONTEXT_VERSION: '2026-08-10',
+  CASINO_GUIDE_CONTEXT_VERSION: '2026-08-17',
   CasinoGuideError: mocks.GuideError,
   requestCasinoGuideAnswer: mocks.requestCasinoGuideAnswer,
 }));
@@ -64,7 +64,7 @@ beforeEach(() => {
   });
   mocks.requestCasinoGuideAnswer.mockResolvedValue({
     answer: 'Set a target before you roll.',
-    model: 'gpt-5-mini',
+    model: 'gpt-4o-mini',
     usage: null,
   });
 });
@@ -100,13 +100,13 @@ describe('chat guide response route', () => {
     expect(response.headers.get('X-RateLimit-Limit')).toBe('10');
     await expect(response.json()).resolves.toEqual({
       answer: 'Set a target before you roll.',
-      contextVersion: '2026-08-10',
+      contextVersion: '2026-08-17',
     });
     expect(mocks.recordGuideTelemetry).toHaveBeenCalledWith(
       expect.objectContaining({
         actorId: 'player-1',
         outcome: 'success',
-        model: 'gpt-5-mini',
+        model: 'gpt-4o-mini',
         usage: null,
       }),
     );

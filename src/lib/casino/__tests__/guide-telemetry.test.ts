@@ -117,6 +117,45 @@ describe('guide telemetry', () => {
     );
   });
 
+  it('records correct telemetry and cost for gpt-4o-mini', async () => {
+    process.env.GUIDE_TELEMETRY_HMAC_SECRET = '0123456789abcdef0123456789abcdef';
+    process.env.GUIDE_TELEMETRY_HMAC_VERSION = '1';
+    const upsert = vi.fn(async (_payload?: unknown) => ({ error: null }));
+    mocks.from.mockReturnValue({ upsert });
+
+    await expect(
+      recordGuideTelemetry({
+        actorId: 'player-42',
+        outcome: 'success',
+        latencyMs: 80,
+        model: 'gpt-4o-mini',
+        usage: {
+          inputTokens: 1_000_000,
+          cachedInputTokens: 0,
+          outputTokens: 1_000_000,
+          reasoningTokens: 0,
+          totalTokens: 2_000_000,
+        },
+      }),
+    ).resolves.toBe('recorded');
+
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actor_hash: expect.stringMatching(/^[a-f0-9]{64}$/),
+        actor_hash_version: 1,
+        outcome: 'success',
+        input_tokens: 1_000_000,
+        output_tokens: 1_000_000,
+        estimated_cost_microusd: 750_000,
+        pricing_version: 'gpt-4o-mini-2026-08-17',
+      }),
+      {
+        onConflict: 'actor_hash,actor_hash_version,outcome,rate_limit_window_started_at',
+        ignoreDuplicates: true,
+      },
+    );
+  });
+
   it('skips safely when telemetry is not configured or its write fails', async () => {
     await expect(
       recordGuideTelemetry({

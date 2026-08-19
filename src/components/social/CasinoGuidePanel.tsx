@@ -60,7 +60,14 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
           : undefined;
 
       if (!response.ok || typeof answer !== 'string' || !answer.trim()) {
-        throw new Error('Guide response unavailable');
+        let text = 'Royale Guide is temporarily unavailable. Please try again in a moment.';
+        if (response.status === 401) {
+          text = 'Please sign in to use Royale Guide.';
+        } else if (response.status === 429) {
+          text = 'Too many requests. Please wait a moment.';
+        }
+        setTurns((current) => [...current, { id: nextTurnId('guide'), role: 'guide', text }]);
+        return;
       }
 
       setTurns((current) => [

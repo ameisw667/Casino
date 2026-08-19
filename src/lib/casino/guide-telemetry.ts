@@ -30,6 +30,13 @@ type GuidePricing = {
 };
 
 const GUIDE_PRICING: Record<string, GuidePricing> = {
+  // Verified against https://developers.openai.com/api/docs/models/gpt-4o-mini on 2026-08-17.
+  'gpt-4o-mini': {
+    version: 'gpt-4o-mini-2026-08-17',
+    inputMicrousdPerMillion: 150_000,
+    cachedInputMicrousdPerMillion: 75_000,
+    outputMicrousdPerMillion: 600_000,
+  },
   // Verified against https://developers.openai.com/api/docs/models/gpt-5-mini on 2026-08-12.
   'gpt-5-mini': {
     version: 'gpt-5-mini-2026-08-12',
