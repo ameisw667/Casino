@@ -3,7 +3,7 @@
 > **Für Jan:** nur die Tabelle + die Reihenfolge direkt unten lesen. Alles danach ist LLM-Arbeitsnotiz.
 > Setzt auf [13_AUTH_MIGRATION](../archive/AUTH_MIGRATION_PRE_HISTORY.md) auf — dort ist der Stand bis inkl. `/backend`-Sandbox (E-Mail/Passwort + Google-OAuth, live verifiziert) dokumentiert. Dieses Dokument beschreibt ausschließlich den nächsten, größeren Schritt: die **Haupt-App** (Proxy, API-Routen, Layout, Admin) von Clerk auf die bereits funktionierende Supabase-Auth umzustellen.
 
-Laufender Gesamtstatus des Projekts: siehe [01_WORLDMAP_STATUS.md](../../01_WORLDMAP_STATUS.md), Kategorie 13.
+Laufender Gesamtstatus des Projekts: siehe [00_WORLDMAP_STATUS.md](../../worldmap/00_WORLDMAP_STATUS.md), Kategorie 13.
 
 Entschieden (nicht mehr offen):
 

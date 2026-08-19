@@ -246,7 +246,7 @@ export default function FraudPageClient() {
                       {SIGNAL_LABELS[ev.signal_type] ?? ev.signal_type}
                       {ev.signal_type === 'multi_account_indicator' && (
                         <span
-                          title="Basiert auf x-forwarded-for; Vertrauenswürdigkeit dieses Headers auf der Deployment-Plattform noch nicht verifiziert (worldmap/05_2.8_Anti_Fraud.md N7/R22). Beobachtend, nicht beweiskräftig."
+                          title="Basiert auf x-forwarded-for; Vertrauenswürdigkeit dieses Headers auf der Deployment-Plattform noch nicht verifiziert (docs/archive/05_2.8_Anti_Fraud.md N7/R22). Beobachtend, nicht beweiskräftig."
                           style={{
                             marginLeft: '0.4rem',
                             fontSize: '0.7rem',

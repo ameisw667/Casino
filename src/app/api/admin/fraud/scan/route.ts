@@ -11,7 +11,7 @@ import {
   validateMutationOrigin,
 } from '@/lib/security/request-security';
 
-// Stricter than other admin writes (N6 in worldmap/05_2.8_Anti_Fraud.md): each scan runs three
+// Stricter than other admin writes (N6 in docs/archive/05_2.8_Anti_Fraud.md): each scan runs three
 // aggregation queries against wallet_transactions/bet_network_fingerprints, so this guards
 // against accidental repeated-click query load, on top of the lock below.
 const SCAN_RATE_LIMIT = 1;

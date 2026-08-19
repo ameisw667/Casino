@@ -10,7 +10,7 @@ import {
   writeConsent,
 } from '@/lib/analytics/consent';
 
-// Copy draft from worldmap/05_2.9_PostHog_Analytics.md §14 — Claude-Entwurf, nicht rechtlich
+// Copy draft from docs/archive/05_2.9_PostHog_Analytics.md §14 — Claude-Entwurf, nicht rechtlich
 // geprüft. Jan gibt die finale Fassung frei (§11.3 / Go-Live-Gate §9b).
 const BANNER_TITLE = 'Nutzungsdaten für Produktverbesserung';
 const BANNER_TEXT =

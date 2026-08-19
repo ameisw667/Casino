@@ -2,7 +2,7 @@
 
 > **Erstellt:** 2026-08-09 · **Status:** 11/11 🟢 (M1–M11 alle ausgeführt) · **Scope:** ausschließlich `V:\VibeCoding\Casino\docs\` (kein `src/`, kein Code).
 > **Marker-Datei.** 5 % Jan-Übersicht (Abschnitt 1) / 95 % LLM-Implementationsplan (Abschnitte 2–8).
-> **Vorgänger:** [01_WORLDMAP_STATUS.md](../../01_WORLDMAP_STATUS.md) · Kategorie 10 (Repo-Hygiene & Doku).
+> **Vorgänger:** [00_WORLDMAP_STATUS.md](../../worldmap/00_WORLDMAP_STATUS.md) · Kategorie 10 (Repo-Hygiene & Doku).
 
 ---
 

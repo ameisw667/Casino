@@ -14,7 +14,7 @@
 | **Nächster Schritt**     | Entscheidung: `users.id` auf `UUID`/`auth.users` umstellen, dann RLS-Policies + Haupt-App migrieren                                                                                                           |
 | **Zuletzt aktualisiert** | 2026-07-28 (5-Punkte-Plan abgearbeitet, siehe unten)                                                                                                                                                          |
 
-Laufender Gesamtstatus des Projekts: siehe [01_WORLDMAP_STATUS.md](../../01_WORLDMAP_STATUS.md), Kategorie 13.
+Laufender Gesamtstatus des Projekts: siehe [00_WORLDMAP_STATUS.md](../../worldmap/00_WORLDMAP_STATUS.md), Kategorie 13.
 
 ---
 

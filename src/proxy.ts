@@ -141,7 +141,7 @@ export default async function proxy(req: NextRequest) {
       // not a *.ingest.de.sentry.io wildcard — a wildcard would also permit exfiltration to any other
       // Sentry customer's project on the same region (docs/architecture/05_1.9_ERROR_TRACKING_SENTRY.md, M7 security review finding #1).
       // PostHog ingest host (us.i.posthog.com) is likewise the exact host, not a wildcarded
-      // subdomain pattern (worldmap/05_2.9_PostHog_Analytics.md §3.6). posthog-js is an npm
+      // subdomain pattern (docs/archive/05_2.9_PostHog_Analytics.md §3.6). posthog-js is an npm
       // import, not a CDN <script>, so script-src needs no change.
       "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io https://o4511899214020608.ingest.de.sentry.io https://us.i.posthog.com; frame-ancestors 'none';",
     );

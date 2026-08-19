@@ -17,11 +17,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Bei offenen/unklaren Punkten nicht selbst bewerten oder entscheiden — immer zuerst nachfragen.
 - Gilt für Architektur-Entscheidungen, Scope-Grenzen, Reihenfolge von Migrationen und alles, wo mehrere Lesarten zu unterschiedlicher Arbeit führen würden.
 
+## Doku-Aktualität
+
+- Architektur-Änderungen (neue Services, API-Routes, Admin-Pages, Migrationen) werden im selben Schritt wie der Code auch in diese Datei nachgezogen — betrifft insbesondere die Tabellen Service Layer, API Routes, Admin Pages sowie die Supabase-Sektion.
+- Bei Unklarheit, ob eine Änderung dokumentationsrelevant ist: lieber dokumentieren als auslassen — Drift zwischen Code und CLAUDE.md ist die Fehlerquelle, nicht Redundanz.
+- Quelle für Live-/Prod-Status bleibt [00_WORLDMAP_STATUS.md](worldmap/00_WORLDMAP_STATUS.md); diese Datei zitiert dort nur, behauptet nichts Abweichendes.
+
 ## Supabase
 
 - **Aktives Projekt (seit 2026-07-28)**: dediziertes Supabase-Projekt ausschließlich für Casino (`hmqwozhdckbwjqzcmire`, siehe `.env.local`). Keine geteilte Master-DB mehr für dieses Projekt — deshalb **kein** `casino_`-Präfix nötig, Tabellen heißen schlicht `users`, `wallet_transactions`, etc.
-- **Alte Master-DB (mehrere Vibe-Coding-Projekte, ein Supabase-Account)**: wird noch für den Übergang referenziert. Regel dort weiterhin gültig: nur Tabellen mit `casino_`-Präfix ansehen/anfassen, nie `SELECT *` ohne diesen Filter. Ziel: Daten ins neue Projekt migrieren, danach die alten Casino-Tabellen in der Master-DB löschen.
-- `.env.local` enthält 3/3 Supabase-Variablen. Der Live-Status ist wegen DNS-Auflösungsfehler des konfigurierten Hosts unbewiesen. Migration `007_server_authority.sql` muss vor Wallet-Tests mit einem DDL-fähigen Zugang ausgerollt werden.
+- **Alte Master-DB (mehrere Vibe-Coding-Projekte, ein Supabase-Account)**: Migrations-/Löschstatus der alten `casino_`-Tabellen dort ist **ungeklärt** (Stand 2026-08-17, letzter dokumentierter Stand 2026-07-28 = "offen", weder Repo-Doku noch Jan können den aktuellen Stand bestätigen). Bis zur Klärung: nur Tabellen mit `casino_`-Präfix ansehen/anfassen, nie `SELECT *` ohne diesen Filter — Vorsicht bei jedem Zugriff auf die Master-DB, unabhängig vom tatsächlichen Migrationsstand.
+- `.env.local` enthält 3/3 Supabase-Variablen. 30 Migrationen (`001`–`030`, aktuell `030_fraud_signal_detection.sql`) liegen im Repo. Laut [00_WORLDMAP_STATUS.md](worldmap/00_WORLDMAP_STATUS.md) sind alle 12 Kategorien Prod-Ready: Ja, Server-Authority (Migration 007) produktiv. Der frühere DNS-Auflösungsfehler ist laut [docs/status-reports/04_WALLET_ECONOMY.md](docs/status-reports/04_WALLET_ECONOMY.md) live widerlegt.
 
 ## Commands
 
@@ -64,15 +70,35 @@ Next.js 16 App Router · React 19 · TypeScript · Zustand 5 (persist) · Framer
 
 All business logic lives here, never in page components.
 
-| File               | Purpose                                                                                                                                                                                                                                                                                           |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `casino-core.ts`   | `CasinoCore` — single entry point for all bets. `placeBet()` routes by `GameType`, calls `ProvablyFairEngine`, returns `BetResult`. Also exposes `startCrashRound()`, `calculateXpGain()`, `calculateLevel()`.                                                                                    |
-| `provably-fair.ts` | `ProvablyFairEngine` — isomorphic, uses Web Crypto API only (no Node crypto). HMAC-SHA256 with format `serverSeed:clientSeed:nonce`. Game-specific helpers: `getDiceRoll()` (0–100), `getCrashMultiplier()` (1% house edge), `getRouletteNumber()` (0–36), `getSlotsResult()` (per-reel indices). |
-| `bet-validator.ts` | `validateBet()` — pure function, validates bet range ($0.10–$10,000) and sufficient balance. Call before `placeBet()`.                                                                                                                                                                            |
-| `sound-manager.ts` | `soundManager` singleton — wraps Audio API with volume and mute control.                                                                                                                                                                                                                          |
-| `chat-bot.ts`      | `ChatBotService` — command parsing for chat (`/tip`, `/leaderboard` etc.).                                                                                                                                                                                                                        |
-| `logger.ts`        | `CasinoLogger` — structured bet logging, dev-only stack traces.                                                                                                                                                                                                                                   |
-| `wallet.ts`        | `WalletService` — all balance ops via Supabase RPC.                                                                                                                                                                                                                                               |
+| File                                                                                               | Purpose                                                                                                                                                                                                                                                                                           |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `casino-core.ts`                                                                                   | `CasinoCore` — single entry point for all bets. `placeBet()` routes by `GameType`, calls `ProvablyFairEngine`, returns `BetResult`. Also exposes `startCrashRound()`, `calculateXpGain()`, `calculateLevel()`.                                                                                    |
+| `provably-fair.ts`                                                                                 | `ProvablyFairEngine` — isomorphic, uses Web Crypto API only (no Node crypto). HMAC-SHA256 with format `serverSeed:clientSeed:nonce`. Game-specific helpers: `getDiceRoll()` (0–100), `getCrashMultiplier()` (1% house edge), `getRouletteNumber()` (0–36), `getSlotsResult()` (per-reel indices). |
+| `bet-validator.ts`                                                                                 | `validateBet()` — pure function, validates bet range ($0.10–$10,000) and sufficient balance. Call before `placeBet()`.                                                                                                                                                                            |
+| `sound-manager.ts`                                                                                 | `soundManager` singleton — wraps Audio API with volume and mute control.                                                                                                                                                                                                                          |
+| `chat-bot.ts`                                                                                      | `ChatBotService` — command parsing for chat (`/tip`, `/leaderboard` etc.).                                                                                                                                                                                                                        |
+| `logger.ts`                                                                                        | `CasinoLogger` — structured bet logging, dev-only stack traces.                                                                                                                                                                                                                                   |
+| `wallet.ts`                                                                                        | `WalletService` — all balance ops via Supabase RPC. Zusätzlich `isFirstEverBet()`/`isFirstBetSignal()` (additives PostHog-Erstwett-Signal, ändert nie das Settlement).                                                                                                                            |
+| `fraud-detection.ts`                                                                               | Fraud-Signal-Scoring (Bet-Velocity, Multi-Account-Cluster, Win-Rate-Anomalie) für `/api/admin/fraud`. Thresholds sind unkalibrierte Erstwerte (R11, `worldmap/05_ZUKUNFTSPLANUNG.md`).                                                                                                            |
+| `risk-signals.ts`, `risk-event-store.ts`, `network-fingerprint.ts`                                 | Risk-Event-Typen, Persistenz (`risk_events`-Tabelle, Migration 029) und Netzwerk-Fingerprinting als Fraud-Detection-Bausteine.                                                                                                                                                                    |
+| `game-config(.ts/-server.ts)`, `vip-config(.ts/-server.ts)`, `achievements-config(.ts/-server.ts)` | Config-Layer-Pattern: `*.ts` = Typen + Hardcoded-Defaults (client-safe), `*-server.ts` = Supabase-Cache-Loader (5-Min-TTL) mit Fallback auf die Defaults. Kategorie-12-Outsourcing: "Parameter raus, Algorithmus bleibt".                                                                         |
+| `telegram-api.ts`, `telegram-notifier.ts`, `telegram-link.ts`                                      | Opt-in Big-Win-Benachrichtigungen: Bot-API-Wrapper, Notify-Trigger (`isBigWin()`-Threshold), Link-/Opt-in-Status. Migration 025.                                                                                                                                                                  |
+| `chat-guide.ts`, `guide-telemetry.ts`                                                              | OpenAI-Responses-API-Casino-Guide (`gpt-4o-mini`) + Telemetry (Kosten/Latenz/Outcome); Purge-Cron Migration 027.                                                                                                                                                                                  |
+| `sentry-scrub.ts`, `perf-monitor.ts`                                                               | Sentry-PII-Redaction (entfernt Secrets/Tokens vor Versand) und client-seitiges Performance-Marking.                                                                                                                                                                                               |
+| `stats-derivation.ts`, `seed-history-verification.ts`                                              | Client-seitige Ableitung von Profit-Verlauf/Session-Länge aus History-Zeilen; Provably-Fair-Nachverifikation gespeicherter Seeds.                                                                                                                                                                 |
+| `session.ts`, `big-win.ts`, `wallet-contract.ts`                                                   | Anonyme Browser-Session-ID, geteilter Big-Win-Threshold (Client+Server), Zod-Schemas für Wallet-/Settlement-Contracts.                                                                                                                                                                            |
+
+### Analytics — `src/lib/analytics/`
+
+Consent-gesteuerte PostHog-Integration (Detail: `docs/archive/05_2.9_PostHog_Analytics.md`, abgeschlossen).
+
+| File                              | Purpose                                                                                     |
+| --------------------------------- | ------------------------------------------------------------------------------------------- |
+| `consent.ts`                      | Consent-Gate (`useSyncExternalStore`), vor jedem Analytics-Call geprüft                     |
+| `posthog-client.ts`               | Lazy PostHog-SDK-Init, IP/Autocapture/Session-Recording aus                                 |
+| `identity-hmac.ts`, `identify.ts` | HMAC-basierte User-Identity über `/api/analytics/identity` — nie die rohe User-ID im Client |
+| `events.ts`                       | Event-Allowlist (`z.strictObject`)                                                          |
+| `posthog-erasure.ts`              | Erasure-Funktion, aktuell unverdrahtet (kein bestehender Nutzerlöschprozess in der App)     |
 
 ### State — `src/store/useCasinoStore.ts`
 
@@ -85,13 +111,22 @@ Zustand hält UI-, Historien- und Einstellungszustand. `balance`, `xp`, `level` 
 
 ### API Routes — `src/app/api/`
 
-| Route                                              | Notes                                                                                                                            |
-| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /api/casino/bet`                             | Serverberechnung für Dice/Slots/Roulette sowie Crash Start/Cashout/Resolve; UUID-Idempotenz; atomare RPCs; kein Client-Fallback. |
-| `POST /api/casino/blackjack`                       | Serverzustand für Deal/Hit/Stand/Double/Split; versionierte, idempotente Runde; Client sendet keine Auszahlung.                  |
-| `GET /api/user/balance`                            | Provisioniert fehlenden Supabase-User und liefert typisierten Snapshot; DB-Fehler ergeben 503.                                   |
-| `POST /api/webhooks/clerk`                         | 410; Clerk-User-Provisioning wurde durch den nativen `auth.users`-Trigger (Migration 008) ersetzt.                               |
-| `POST /api/casino/session-sync`, `migrate-session` | 410; clientseitige Progressionsmigration wurde entfernt.                                                                         |
+| Route                                                                                                                                      | Notes                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /api/casino/bet`                                                                                                                     | Serverberechnung für Dice/Slots/Roulette sowie Crash Start/Cashout/Resolve; UUID-Idempotenz; atomare RPCs; kein Client-Fallback.                                        |
+| `POST /api/casino/blackjack`                                                                                                               | Serverzustand für Deal/Hit/Stand/Double/Split; versionierte, idempotente Runde; Client sendet keine Auszahlung.                                                         |
+| `GET /api/user/balance`                                                                                                                    | Provisioniert fehlenden Supabase-User und liefert typisierten Snapshot; DB-Fehler ergeben 503.                                                                          |
+| `POST /api/webhooks/clerk`                                                                                                                 | 410; Clerk-User-Provisioning wurde durch den nativen `auth.users`-Trigger (Migration 008) ersetzt.                                                                      |
+| `POST /api/casino/session-sync`, `migrate-session`                                                                                         | 410; clientseitige Progressionsmigration wurde entfernt.                                                                                                                |
+| `GET /api/analytics/identity`                                                                                                              | Liefert HMAC-`distinctId` für PostHog-`identify()`; nie die rohe User-ID.                                                                                               |
+| `GET/POST /api/admin/fraud`, `POST /api/admin/fraud/scan`                                                                                  | Fraud-Signal-Übersicht und manueller Scan-Trigger (Admin-only).                                                                                                         |
+| `GET/POST /api/admin/promo-codes`                                                                                                          | Promo-Code-Verwaltung: Erstellung, Status (Admin-only, Migration 021).                                                                                                  |
+| `POST /api/casino/redeem-code`                                                                                                             | Promo-Code-Einlösung durch Nutzer, schreibt Redemption-Ledger (Migration 023).                                                                                          |
+| `GET /api/admin/overview`, `/games`, `/analytics`, `/users`                                                                                | Admin-Dashboard-Datenquellen: DB-Aggregate für Overview/Games/Cohort-Analytics; User-/Wallet-Management (Admin-only).                                                   |
+| `/api/telegram/link`, `/unlink`, `/toggle`, `/status`, `/webhook`                                                                          | Telegram-Opt-in-Flow + eingehender Bot-Webhook (Shared-Secret statt Origin-Check, wie `/api/internal/cron-alert`).                                                      |
+| `POST /api/chat`, `/api/chat/bot-response`                                                                                                 | Casino-Guide-Chat (OpenAI) und GlobalChat-Bot-Kommandos (`/tip`, `/leaderboard`).                                                                                       |
+| `GET /api/leaderboard`, `/user/history`, `/user/stats`, `/casino/seeds(+/history)`, `/casino/active-round`, `/casino/config`, `/community` | Read-only: Ranking, Wetthistorie, Stats-Ableitung, Seed-Reveal/-Historie, aktive Crash-/Blackjack-Runde, Client-Config (VIP/Game/Achievements), Community-Wagered-Ziel. |
+| `GET /api/health`, `POST /api/internal/cron-alert`                                                                                         | Öffentlicher Liveness-Probe (kein DB-Zugriff) und interner Cron-Failure-Alert (Shared-Secret-Auth, `pg_net`-Aufrufer aus Migration 027).                                |
 
 ### Middleware — `src/proxy.ts`
 
@@ -111,12 +146,15 @@ Dice, Slots und Roulette nutzen `/api/casino/bet`; Crash nutzt persistente Serve
 
 ### Admin Pages — `src/app/admin/`
 
-| Route               | Notes                       |
-| ------------------- | --------------------------- |
-| `/admin`            | Dashboard overview          |
-| `/admin/games`      | Per-game stats and controls |
-| `/admin/users`      | User management             |
-| `/admin/simulation` | Bet simulation tooling      |
+| Route                | Notes                                        |
+| -------------------- | -------------------------------------------- |
+| `/admin`             | Dashboard overview                           |
+| `/admin/games`       | Per-game stats and controls                  |
+| `/admin/users`       | User management                              |
+| `/admin/simulation`  | Bet simulation tooling                       |
+| `/admin/fraud`       | Fraud-Signal-Dashboard & manueller Scan      |
+| `/admin/promo-codes` | Promo-Code-Verwaltung                        |
+| `/admin/analytics`   | Cohort/Retention/Funnel/GGR/VIP-BI-Dashboard |
 
 ### Design System Rules (enforced by Design-Guardian)
 
@@ -147,20 +185,103 @@ Dice, Slots und Roulette nutzen `/api/casino/bet`; Crash nutzt persistente Serve
 
 ### Database Architecture (Supabase)
 
-| Datei                                    | Zweck                                                                           |
-| ---------------------------------------- | ------------------------------------------------------------------------------- |
-| `001_users.sql` – `006_game_configs.sql` | Basistabellen und bestehende Konfiguration                                      |
-| `007_server_authority.sql`               | Idempotente Standard-Settlements, Crash-/Blackjack-Runden, atomare Aktions-RPCs |
-| `src/lib/casino/wallet.ts`               | Strikt validierter Service-Role-Zugriff; keine Hardcoded-Fallbacks              |
-| `src/utils/supabase/admin.ts`            | Server-only Service-Role-Client                                                 |
+| Datei                                                    | Zweck                                                                                                                                       |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `001_users.sql` – `006_game_configs.sql`                 | Basistabellen und bestehende Konfiguration                                                                                                  |
+| `007_server_authority.sql`                               | Idempotente Standard-Settlements, Crash-/Blackjack-Runden, atomare Aktions-RPCs                                                             |
+| `008`–`020`                                              | Auth-Bridge, Meta-Features, Welcome-Bonus, Achievements, Leaderboard-RPC — Details: [00_WORLDMAP_STATUS.md](worldmap/00_WORLDMAP_STATUS.md) |
+| `021_promo_codes.sql`, `023_promo_redemption_ledger.sql` | Promo-Code-Erstellung und -Einlösung (Ledger)                                                                                               |
+| `024`–`029`                                              | Guide-Telemetry, Telegram-Link, Wallet-Ledger-Invarianten, Risk-Events                                                                      |
+| `030_fraud_signal_detection.sql`                         | Fraud-Signal-Persistenz für `/api/admin/fraud`                                                                                              |
+| `src/lib/casino/wallet.ts`                               | Strikt validierter Service-Role-Zugriff; keine Hardcoded-Fallbacks                                                                          |
+| `src/utils/supabase/admin.ts`                            | Server-only Service-Role-Client                                                                                                             |
 
-Remote-Status: 3/3 Supabase-ENV-Werte konfiguriert; Live-GET am 2026-08-05 wegen DNS-Auflösungsfehler nicht möglich. Daher weder 8/8 Tabellen noch Migration 007 als live behaupten.
+Remote-Status: siehe Supabase-Sektion oben — laut [00_WORLDMAP_STATUS.md](worldmap/00_WORLDMAP_STATUS.md) alle 12 Kategorien Prod-Ready: Ja, Migrationen `001`–`030` live.
 
-## Workflow: (Jan-Execution)
+## Workflow: Jan-Execution
 
-- Implementaionsplan auf Weltklasse Niveau, immer aus 2x verschiednene Perspektiven prüfen, alle Abhäniggkeiten, Alle Anforderungen, alle möglcihen Fehler/ Prlobleme + wie damit umgegagenen.
+### 1 — Planung
 
-- Sobald Weltklasse Niveau, Anschließend den gesamten Implementationsplan selber prüfen auf Fehler, Verbesserungen
-- Anschließend Execution, ohne nach Bestätigung von meiner Seite zu erfragen
-- Anschließend Execution selber prüfen
-  _ Erste wenn Execution erfolgreich geprüft + Implementationdatei aktualsiert, erst dann Bescheid geben, erst dann ist die Aufgabe abgeschlossen.
+Implementationsplan aus 2 Perspektiven prüfen (je nach Kontext wählen, z. B. Architektur vs. Security,
+oder Business-Logik vs. UX). Pflichtpunkte je Perspektive:
+
+- Abhängigkeiten
+- Alle Anforderungen (vollständig)
+- Aufgabenverteilung (Jan oder LLM?) -> So viel wie möglich soll von den LLM verarbeitet werden, damit Jan möglichst wenig hat.
+- Fehler-/Problemfälle + Umgang damit, wenn diese auftreten
+
+### 2 — Plan-Selbstprüfung
+
+Gesamten Plan gegen Schritt 1 nochmal selbst prüfen: Fehler, Lücken, Verbesserungen.
+
+- Ziel der Plan-Selbstprüfung ist, den Implementationsplan einfach noch mal auf das nächste Level anzuheben.
+
+### 3 — Execution
+
+Ausführen ohne Rückfrage — **außer** bei:
+
+- Architektur-Entscheidungen, Scope-Grenzen, Migrationsreihenfolge (siehe "Klärung offener Punkte")
+- destruktiven/schwer umkehrbaren Aktionen (siehe globale Safety-Regeln)
+
+Bei Auth-/DB-/Payment-/User-Input-Code: zusätzlich `security-reviewer`-Agent.
+
+### 4 — Execution-Selbstprüfung
+
+Tests, Build, Lint laufen lassen + Diff gegen Plan review. Nicht nur lesen.
+
+### 5 — Doku-Update + Abschluss
+
+Implementationsdatei aktualisieren (Kopftabelle-Status + Detailabschnitt, siehe Markdown-Planungsdateien-Regel):
+
+- Plan fertig (Schritt 2) → 🟡 Execution-Ready
+- Execution läuft (Schritt 3) → 🟡 In Execution
+- Execution geprüft (Schritt 4 grün) → 🟢 Executed
+
+Erst nach aktualisierter Datei + grüner Prüfung: Aufgabe abgeschlossen, dann Bescheid geben.
+
+## Markdown-Planungsdateien: Jan-Planungs-Schemata
+
+**Ablage:** Aktive Planungsdateien liegen in `worldmap/`. Eine Marker-Datei enthält nur Status, Reihenfolge und Verweise; ein fachlich eigenständiger Plan erhält eine eigene Datei.
+
+**Status und Archivierung:** Jede neue Datei trägt in der Kopfzeile genau einen Status aus `Geplant`, `Execution-Ready`, `In Execution` oder `Executed (archiviert)`. Nach `Executed` wird sie standardmäßig nach `docs/archive/` verschoben; Löschen nur bei einem nachweislich wertlosen Gerüst ohne Entscheidungs- oder Verifikationswert.
+
+### Kopfbereich (Pflicht, zuerst, für Jan)
+
+```markdown
+# NN — <Thema>
+
+> **Status:** Geplant · **Stand:** YYYY-MM-DD · **Owner:** Jan/LLM · **Scope:** <klare Grenze>
+
+## 1 — Übersicht für Jan
+
+| Nummer | Kategorie/Meilenstein | Status      | Nächster Schritt | Zuständigkeit |
+| ------ | --------------------- | ----------- | ---------------- | ------------- |
+| L0     | ...                   | 🟢 Executed | ...              | LLM           |
+| L1     | ...                   | 🔴 Geplant  | ...              | Jan + LLM     |
+```
+
+**Ampel-Definition:** 🔴 Geplant = nicht gestartet; 🟡 In Execution = gestartet, nicht verifiziert; 🟢 Executed = verifiziert abgeschlossen. Die sichtbare Ampel ergänzt, ersetzt aber nicht den festen Kopfstatus.
+
+**Update-Pflicht:** Kopfstatus, Jan-Tabelle und zugehöriger Detailabschnitt werden im selben Edit aktualisiert. Eine Marker-Datei und ihr Detailplan erhalten im selben Edit konsistente Verweise.
+
+### Detailbereich (ab zweiter Überschrift, für LLM)
+
+Jeder Meilenstein enthält mindestens Ziel, Nutzen, Scope (bestehende und geplante Dateien), Datenklassen, Abhängigkeiten, Freigabe-Gate, Verifizierung und Overengineering-/Nicht-Scope-Grenze.
+
+Bei LLM-, Live-Daten- oder Retrieval-Plänen zusätzlich:
+
+- erlaubte und verbotene Datenklassen;
+- serverseitige Allowlist und read-only-Grenze;
+- Positiv- und Negativtests pro Datenklasse;
+- Ausfall-/Fallback-Verhalten und sichtbare Aktualitätsregel;
+- Security-Review vor Live-Daten, Retrieval oder jedem neuen API-Boundary;
+- keine freie Datenbanksuche, keine privaten Nutzerkontexte und keine Schreibtools, solange dies nicht als separates Projekt freigegeben wurde.
+
+Bei Wallet-/Auth-/DB-Schreibpfaden zusätzlich: `Money-Pfad: Ja/Nein` und `Security-Review: Pflicht/Nein`.
+
+### Plan-Selbstprüfung (Pflicht vor `Execution-Ready`)
+
+- Alle Levels sind in Reihenfolge und mit Abhängigkeiten beschrieben.
+- Jeder Datenzugriff besitzt eine explizite Allowlist und einen Negativtest.
+- Ausgeschlossene spätere Funktionen sind als solche markiert, nicht als impliziter Folgeschritt.
+- Die Marker-Datei enthält keine widersprüchliche Reihenfolge oder Scope-Aussage.

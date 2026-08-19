@@ -3,7 +3,7 @@
 > **Marker-Datei.** 95 % LLM-Input / 5 % Jan-Übersicht.
 > Messdatum: **2026-08-09** · Kohorten = die 9 Aufsichts-Rollen aus `AGENTS.md`.
 > Alle Werte aus dieser Session ausgeführten Befehlen (Abschnitt 4), nicht aus dem Bauch.
-> Vorgänger: [01_WORLDMAP_STATUS.md](../../01_WORLDMAP_STATUS.md) (12 Kategorien, Stand 2026-08-09).
+> Vorgänger: [00_WORLDMAP_STATUS.md](../../worldmap/00_WORLDMAP_STATUS.md) (12 Kategorien, Stand 2026-08-09).
 
 ---
 
@@ -32,15 +32,15 @@
 
 ## 2 — Gesamtbewertung
 
-| Metrik                     | Wert                                                     | Quelle                                                           |
-| -------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------- |
-| Tests                      | 231/231 grün, 24 Dateien, 0 Fehler                       | `npm run test`, sauberer Run                                     |
-| TypeScript                 | 0 Fehler                                                 | `npm run typecheck`                                              |
-| ESLint                     | 0 Fehler, 33 Warnings                                    | `npm run lint`                                                   |
-| Build                      | grün (nicht diese Session neu gemessen)                  | [02_BUILD_TOOLCHAIN.md](../status-reports/02_BUILD_TOOLCHAIN.md) |
-| Uncommittet                | 65 Pfade, ~1850 Einfügungen / 952 Löschungen, 43 Dateien | `git status --porcelain`                                         |
-| Prod-Ready (12 Kategorien) | 12/12 Ja, Niveau Top 15–40 %                             | [01_WORLDMAP_STATUS.md](../../01_WORLDMAP_STATUS.md) Abschnitt 1 |
-| Offene manuelle Schritte   | 2 (Migration 014 rollout; Upstash-ENV)                   | diese Datei                                                      |
+| Metrik                     | Wert                                                     | Quelle                                                                    |
+| -------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Tests                      | 231/231 grün, 24 Dateien, 0 Fehler                       | `npm run test`, sauberer Run                                              |
+| TypeScript                 | 0 Fehler                                                 | `npm run typecheck`                                                       |
+| ESLint                     | 0 Fehler, 33 Warnings                                    | `npm run lint`                                                            |
+| Build                      | grün (nicht diese Session neu gemessen)                  | [02_BUILD_TOOLCHAIN.md](../status-reports/02_BUILD_TOOLCHAIN.md)          |
+| Uncommittet                | 65 Pfade, ~1850 Einfügungen / 952 Löschungen, 43 Dateien | `git status --porcelain`                                                  |
+| Prod-Ready (12 Kategorien) | 12/12 Ja, Niveau Top 15–40 %                             | [00_WORLDMAP_STATUS.md](../../worldmap/00_WORLDMAP_STATUS.md) Abschnitt 1 |
+| Offene manuelle Schritte   | 2 (Migration 014 rollout; Upstash-ENV)                   | diese Datei                                                               |
 
 **Stärken:** Server-autoritäres Wallet (atomare RPCs, Idempotenz), Provably-Fair-HMAC für 5 Spiele, Clerk vollständig entfernt, Auth live regressionsgetestet, Pre-Commit-Gate aktiv, 231 grüne Tests.
 
