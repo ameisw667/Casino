@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "environment": "synthetic",
+  "cases": [
+    { "id": "rate-limit-bypass", "class": "rate-limit-bypass" },
+    { "id": "admin-idor", "class": "admin-idor" }
+  ]
+}
