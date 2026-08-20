@@ -41,6 +41,14 @@ npm run test:coverage # Vitest with coverage
 npm run vibe-check   # Custom audit script: tsx scripts/vibe-check.ts
 ```
 
+### Auto-Allow & Execution Policy (Antigravity)
+
+- **K1/K2 Auto-Allow**: Read-only (`git status`, `git diff`, `git log`) und CI/Test-Befehle (`npm test`, `npm run lint`, `npx tsc`, `npm run build`, `npm run vibe-check`) werden global auf Auto-Allow gesetzt (Option 4 im Bestätigungsdialog).
+- **Non-Interactive Execution**: Befehle immer mit non-interactive Flags ausführen (`--yes`, `-y`, `CI=true`), um CLI-Hangs zu verhindern.
+- **No-Pager**: `PAGER=cat` oder `--no-pager` für Git-Befehle nutzen.
+- **K5 Block**: Destruktive/Live-Befehle (`git push --force`, `rm -rf`, `supabase db reset`) erfordern immer explizite manuelle Bestätigung.
+- **Detail-Plan**: Siehe [worldmap/01_Antigravity_Workflow_Optimization.md](worldmap/01_Antigravity_Workflow_Optimization.md).
+
 Tests live in `src/lib/casino/__tests__/` (service layer) and `src/store/__tests__/` (Zustand store). Run `npm run vibe-check` after significant changes — checks balance integrity, RNG distribution, and payout math.
 
 For dev auth bypass, set `ALLOW_DEV_FALLBACK=true` in `.env.local`.

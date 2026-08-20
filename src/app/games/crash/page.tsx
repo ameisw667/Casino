@@ -239,11 +239,33 @@ export default function CrashPage() {
   // Cashout handling
   const handleCashout = useCallback(
     (specificMultiplier?: number) => {
-      if (status !== 'RUNNING' || cashoutAt || !roundIdRef.current) return;
+      if (status !== 'RUNNING' || cashoutAt || cashoutAtRef.current || !roundIdRef.current) return;
       const requestedMultiplier = specificMultiplier || multiplierRef.current;
+      cashoutAtRef.current = requestedMultiplier;
+      multiplierRef.current = requestedMultiplier;
       setCashoutAt(requestedMultiplier);
       setMultiplier(requestedMultiplier);
       setIsProcessing(true);
+      resetRiskVisuals();
+
+      // Immediate optimistic visual lock (0ms perceived latency)
+      if (multiplierDisplayRef.current) {
+        multiplierDisplayRef.current.innerText = formatMultiplier(requestedMultiplier);
+        multiplierDisplayRef.current.style.color = '#4ade80';
+        multiplierDisplayRef.current.style.textShadow = '0 0 40px rgba(74, 222, 128, 0.7)';
+        multiplierDisplayRef.current.style.transform = 'scale(1)';
+      }
+      if (liveProfitDisplayRef.current) {
+        const profit = (requestedMultiplier - 1) * betAmount;
+        liveProfitDisplayRef.current.innerText = `+${profit >= 0 ? '' : '-'}$${Math.abs(profit).toFixed(2)}`;
+      }
+      if (cashoutButtonRef.current) {
+        cashoutButtonRef.current.innerText = `✓ SECURED $${(betAmount * requestedMultiplier).toFixed(2)} @ ${requestedMultiplier.toFixed(2)}x`;
+        cashoutButtonRef.current.style.background = 'rgba(16, 185, 129, 0.2)';
+        cashoutButtonRef.current.style.color = '#4ade80';
+        cashoutButtonRef.current.style.border = '1px solid rgba(74, 222, 128, 0.6)';
+        cashoutButtonRef.current.style.cursor = 'default';
+      }
 
       void (async () => {
         try {
@@ -1091,117 +1113,127 @@ export default function CrashPage() {
       lastUpdateRef.current = timestamp;
 
       if (statusRef.current === 'RUNNING') {
-        const next =
-          multiplierRef.current + multiplierRef.current * GROWTH_FACTOR * (deltaTime / 16);
-        multiplierRef.current = next;
-
-        const riskFactor = getRiskFactor(next);
-
-        // 3. LEVER 3: MULTIPLIER & LIVE PROFIT HUD UPDATE
-        if (multiplierDisplayRef.current) {
-          multiplierDisplayRef.current.innerText = formatMultiplier(next);
-
-          // Obsidian & Gold Color Progression
-          if (next >= 10.0) {
-            multiplierDisplayRef.current.style.color = '#FFD700';
-            multiplierDisplayRef.current.style.textShadow =
-              '0 0 35px rgba(255, 215, 0, 0.9), 0 0 70px rgba(212, 175, 55, 0.5)';
-          } else if (next >= 2.0) {
-            multiplierDisplayRef.current.style.color = '#FCE881';
-            multiplierDisplayRef.current.style.textShadow =
-              '0 0 30px rgba(212, 175, 55, 0.7), 0 0 60px rgba(212, 175, 55, 0.3)';
-          } else {
-            multiplierDisplayRef.current.style.color = '#FFFDF0';
-            multiplierDisplayRef.current.style.textShadow = '0 0 25px rgba(255, 255, 255, 0.4)';
+        if (cashoutAtRef.current !== null) {
+          // Cashout already locked in optimistically: keep HUD locked on secured multiplier
+          if (multiplierDisplayRef.current) {
+            multiplierDisplayRef.current.innerText = formatMultiplier(cashoutAtRef.current);
+            multiplierDisplayRef.current.style.color = '#4ade80';
+            multiplierDisplayRef.current.style.textShadow = '0 0 40px rgba(74, 222, 128, 0.7)';
+            multiplierDisplayRef.current.style.transform = 'scale(1)';
           }
+        } else {
+          const next =
+            multiplierRef.current + multiplierRef.current * GROWTH_FACTOR * (deltaTime / 16);
+          multiplierRef.current = next;
 
-          // Scale dynamics with motion preference check
-          const pulseAmplitude = !prefersReducedMotionRef.current ? 0.02 + riskFactor * 0.04 : 0;
-          const pulseFreq = 0.003 + riskFactor * 0.006;
-          multiplierDisplayRef.current.style.transform = `scale(${1 + Math.sin(timestamp * pulseFreq) * pulseAmplitude})`;
-        }
+          const riskFactor = getRiskFactor(next);
 
-        // Live Profit update in HUD & Cashout Button
-        const currentProfit = (next - 1) * betAmountRef.current;
-        const currentPayout = next * betAmountRef.current;
-        if (liveProfitDisplayRef.current) {
-          liveProfitDisplayRef.current.innerText = `+${currentProfit.toFixed(2)}`;
-        }
-        if (cashoutButtonRef.current && !cashoutAtRef.current) {
-          cashoutButtonRef.current.innerText = `CASHOUT $${currentPayout.toFixed(2)}`;
-        }
-
-        if (vignetteRef.current) {
-          vignetteRef.current.style.opacity = String(Math.min(0.8, riskFactor * 0.9));
-        }
-        if (cameraZoomRef.current) {
-          const breatheAmp = prefersReducedMotionRef.current ? 0 : 0.006 + riskFactor * 0.012;
-          const zoomScale = 1 + Math.sin(timestamp * 0.002) * breatheAmp;
-          cameraZoomRef.current.style.transform = `scale(${zoomScale})`;
-        }
-
-        // Milestone Announcements
-        while (
-          lastMilestoneIndexRef.current < MILESTONE_VALUES.length &&
-          next >= MILESTONE_VALUES[lastMilestoneIndexRef.current]
-        ) {
-          const hitValue = MILESTONE_VALUES[lastMilestoneIndexRef.current];
-          lastMilestoneIndexRef.current += 1;
-          setMilestoneFlash({ value: hitValue, key: Date.now() });
-        }
-
-        // Auto Cashout trigger
-        if (
-          isAutoCashoutEnabledRef.current &&
-          !cashoutAtRef.current &&
-          next >= autoBetSettingsRef.current.cashoutAt
-        ) {
-          handleCashoutRef.current(next);
-        }
-
-        // Crash Resolution Check
-        if (next >= crashPointRef.current && !roundResolvedRef.current) {
-          roundResolvedRef.current = true;
-          resetRiskVisuals();
-          setStatus('CRASHED');
-          setMultiplier(next);
-
+          // 3. LEVER 3: MULTIPLIER & LIVE PROFIT HUD UPDATE
           if (multiplierDisplayRef.current) {
             multiplierDisplayRef.current.innerText = formatMultiplier(next);
-            multiplierDisplayRef.current.style.color = 'hsl(0, 85%, 60%)';
-            multiplierDisplayRef.current.style.textShadow = '0 0 50px rgba(255, 60, 60, 0.8)';
+
+            // Obsidian & Gold Color Progression
+            if (next >= 10.0) {
+              multiplierDisplayRef.current.style.color = '#FFD700';
+              multiplierDisplayRef.current.style.textShadow =
+                '0 0 35px rgba(255, 215, 0, 0.9), 0 0 70px rgba(212, 175, 55, 0.5)';
+            } else if (next >= 2.0) {
+              multiplierDisplayRef.current.style.color = '#FCE881';
+              multiplierDisplayRef.current.style.textShadow =
+                '0 0 30px rgba(212, 175, 55, 0.7), 0 0 60px rgba(212, 175, 55, 0.3)';
+            } else {
+              multiplierDisplayRef.current.style.color = '#FFFDF0';
+              multiplierDisplayRef.current.style.textShadow = '0 0 25px rgba(255, 255, 255, 0.4)';
+            }
+
+            // Scale dynamics with motion preference check
+            const pulseAmplitude = !prefersReducedMotionRef.current ? 0.02 + riskFactor * 0.04 : 0;
+            const pulseFreq = 0.003 + riskFactor * 0.006;
+            multiplierDisplayRef.current.style.transform = `scale(${1 + Math.sin(timestamp * pulseFreq) * pulseAmplitude})`;
           }
 
-          if (!cashoutAtRef.current) {
-            void settleCrashedRound(parseFloat(next.toFixed(2)));
-            if (isAutoBettingRef.current) {
-              if (autoBetSettingsRef.current.onLoss === 'DOUBLE') {
-                setBetAmount((amount) => amount * 2);
-              } else {
-                setBetAmount(autoBetSettingsRef.current.amount);
+          // Live Profit update in HUD & Cashout Button
+          const currentProfit = (next - 1) * betAmountRef.current;
+          const currentPayout = next * betAmountRef.current;
+          if (liveProfitDisplayRef.current) {
+            liveProfitDisplayRef.current.innerText = `+${currentProfit.toFixed(2)}`;
+          }
+          if (cashoutButtonRef.current && !cashoutAtRef.current) {
+            cashoutButtonRef.current.innerText = `CASHOUT $${currentPayout.toFixed(2)}`;
+          }
+
+          if (vignetteRef.current) {
+            vignetteRef.current.style.opacity = String(Math.min(0.8, riskFactor * 0.9));
+          }
+          if (cameraZoomRef.current) {
+            const breatheAmp = prefersReducedMotionRef.current ? 0 : 0.006 + riskFactor * 0.012;
+            const zoomScale = 1 + Math.sin(timestamp * 0.002) * breatheAmp;
+            cameraZoomRef.current.style.transform = `scale(${zoomScale})`;
+          }
+
+          // Milestone Announcements
+          while (
+            lastMilestoneIndexRef.current < MILESTONE_VALUES.length &&
+            next >= MILESTONE_VALUES[lastMilestoneIndexRef.current]
+          ) {
+            const hitValue = MILESTONE_VALUES[lastMilestoneIndexRef.current];
+            lastMilestoneIndexRef.current += 1;
+            setMilestoneFlash({ value: hitValue, key: Date.now() });
+          }
+
+          // Auto Cashout trigger
+          if (
+            isAutoCashoutEnabledRef.current &&
+            !cashoutAtRef.current &&
+            next >= autoBetSettingsRef.current.cashoutAt
+          ) {
+            handleCashoutRef.current(next);
+          }
+
+          // Crash Resolution Check
+          if (next >= crashPointRef.current && !roundResolvedRef.current) {
+            roundResolvedRef.current = true;
+            resetRiskVisuals();
+            setStatus('CRASHED');
+            setMultiplier(next);
+
+            if (multiplierDisplayRef.current) {
+              multiplierDisplayRef.current.innerText = formatMultiplier(next);
+              multiplierDisplayRef.current.style.color = 'hsl(0, 85%, 60%)';
+              multiplierDisplayRef.current.style.textShadow = '0 0 50px rgba(255, 60, 60, 0.8)';
+            }
+
+            if (!cashoutAtRef.current) {
+              void settleCrashedRound(parseFloat(next.toFixed(2)));
+              if (isAutoBettingRef.current) {
+                if (autoBetSettingsRef.current.onLoss === 'DOUBLE') {
+                  setBetAmount((amount) => amount * 2);
+                } else {
+                  setBetAmount(autoBetSettingsRef.current.amount);
+                }
               }
-            }
 
-            const canvas = canvasRef.current;
-            if (canvas) {
-              const width = canvas.clientWidth;
-              const height = canvas.clientHeight;
-              const rocketPixelX = width * ROCKET_X_FRACTION;
-              const windowScaleX = rocketPixelX / WINDOW_POINTS;
-              const explosionX =
-                Math.min(pointsRef.current.length - 1, WINDOW_POINTS - 1) * windowScaleX;
-              const scaleY = height / Math.max(5, next + 1);
-              createExplosion(explosionX, height - (next - 1) * scaleY);
+              const canvas = canvasRef.current;
+              if (canvas) {
+                const width = canvas.clientWidth;
+                const height = canvas.clientHeight;
+                const rocketPixelX = width * ROCKET_X_FRACTION;
+                const windowScaleX = rocketPixelX / WINDOW_POINTS;
+                const explosionX =
+                  Math.min(pointsRef.current.length - 1, WINDOW_POINTS - 1) * windowScaleX;
+                const scaleY = height / Math.max(5, next + 1);
+                createExplosion(explosionX, height - (next - 1) * scaleY);
+              }
+            } else {
+              const finalPoint = parseFloat(next.toFixed(2));
+              useCasinoStore.setState((state) => ({
+                crashHistory: [finalPoint, ...state.crashHistory].slice(0, 50),
+              }));
             }
-          } else {
-            const finalPoint = parseFloat(next.toFixed(2));
-            useCasinoStore.setState((state) => ({
-              crashHistory: [finalPoint, ...state.crashHistory].slice(0, 50),
-            }));
+          } else if (next < crashPointRef.current) {
+            pointsRef.current.push({ x: pointsRef.current.length, y: next });
+            if (pointsRef.current.length > MAX_POINTS) pointsRef.current.shift();
           }
-        } else if (next < crashPointRef.current) {
-          pointsRef.current.push({ x: pointsRef.current.length, y: next });
-          if (pointsRef.current.length > MAX_POINTS) pointsRef.current.shift();
         }
       }
 

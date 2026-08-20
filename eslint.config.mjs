@@ -22,6 +22,9 @@ const eslintConfig = defineConfig([
     'public/prototypes/lib/**',
     // Local Trigger.dev build cache (gitignored) — minified bundled output, not source.
     '.trigger/**',
+    // Supabase CLI local runtime generated temp files (gitignored)
+    'supabase/.temp/**',
+    'supabase/.branches/**',
   ]),
   {
     rules: {
