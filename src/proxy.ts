@@ -35,6 +35,7 @@ const PUBLIC_ROUTES = [
   '/api/webhooks/clerk(.*)',
   '/api/telegram/(.*)',
   '/api/internal/cron-alert',
+  '/api/internal/wallet-events',
   '/sounds/(.*)',
   '/images/(.*)',
 ];
@@ -86,7 +87,8 @@ export default async function proxy(req: NextRequest) {
     const isWebhook =
       pathname.startsWith('/api/webhooks/clerk') ||
       pathname.startsWith('/api/telegram/webhook') ||
-      pathname.startsWith('/api/internal/cron-alert');
+      pathname.startsWith('/api/internal/cron-alert') ||
+      pathname.startsWith('/api/internal/wallet-events');
 
     // Webhooks use their signature as authenticity proof and do not send browser Origin headers.
     if (!isWebhook && !['GET', 'HEAD', 'OPTIONS'].includes(req.method) && !hasValidOrigin(req)) {

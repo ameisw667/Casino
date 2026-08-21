@@ -265,6 +265,37 @@ function rememberProcessedResultId(resultId: string): void {
   processedResultIds.add(resultId);
 }
 
+// XP/level/rank are now applied asynchronously by the wallet_events outbox consumer
+// (worldmap/05_OutboxWallet.md) instead of synchronously inside the settlement RPC response.
+// This polls the existing balance endpoint for a few seconds after each bet until the applied
+// value lands. A single interval is shared across rapid-fire bets (autobet) — each new bet just
+// resets the remaining attempt budget instead of starting a second poller.
+const XP_POLL_INTERVAL_MS = 1200;
+const XP_POLL_MAX_ATTEMPTS = 5;
+let xpPollTimer: ReturnType<typeof setInterval> | null = null;
+let xpPollAttemptsLeft = 0;
+
+function scheduleXpSync(): void {
+  if (typeof window === 'undefined' || typeof fetch !== 'function') return;
+  xpPollAttemptsLeft = XP_POLL_MAX_ATTEMPTS;
+  if (xpPollTimer) return;
+
+  xpPollTimer = setInterval(() => {
+    xpPollAttemptsLeft -= 1;
+    fetch('/api/user/balance', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((snapshot) => {
+        if (snapshot) useCasinoStore.getState().applyServerWalletSnapshot(snapshot);
+      })
+      .catch(() => {});
+
+    if (xpPollAttemptsLeft <= 0 && xpPollTimer) {
+      clearInterval(xpPollTimer);
+      xpPollTimer = null;
+    }
+  }, XP_POLL_INTERVAL_MS);
+}
+
 // Per-game win/loss sound keys (worldmap/05_1.6_sounddesign.md §3). CRASH's loss entry is
 // intentionally null — its loss sound already plays at the visual crash moment
 // (createExplosion() in crash/page.tsx, before server settlement confirms), so playing a
@@ -417,6 +448,7 @@ export const useCasinoStore = create<CasinoState>()(
 
         if (processedResultIds.has(resultId)) return;
         rememberProcessedResultId(resultId);
+        scheduleXpSync();
 
         // Additive analytics signal only (2.9) — outside set() since trackAllowedEvent() is
         // async; the resultId dedup guard above already ensures this fires at most once per
