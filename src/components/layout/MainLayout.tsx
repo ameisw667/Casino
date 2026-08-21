@@ -12,6 +12,7 @@ import { CasinoLogger } from '@/lib/casino/logger';
 import { getOrCreateSessionId } from '@/lib/casino/session';
 import { isBigWin } from '@/lib/casino/big-win';
 import { useMounted } from '@/hooks/useMounted';
+import { KeyboardShortcutProvider, useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import {
@@ -150,6 +151,33 @@ function IconBadge({
       {children}
     </div>
   );
+}
+
+// ─── Global Navigation Shortcuts (Easter egg — no visible UI change) ──────────
+function NavigationShortcuts({
+  navigate,
+  toggleSettings,
+}: {
+  navigate: (path: string) => void;
+  toggleSettings: () => void;
+}) {
+  const { registerShortcut, unregisterShortcut } = useKeyboardShortcuts();
+
+  useEffect(() => {
+    const shortcuts: Array<[string, string, () => void]> = [
+      ['nav-lobby', '1', () => navigate('/')],
+      ['nav-games', '2', () => navigate('/games')],
+      ['nav-history', '3', () => navigate('/history')],
+      ['nav-leaderboard', '4', () => navigate('/leaderboard')],
+      ['nav-vault', '5', () => navigate('/vault')],
+      ['nav-stats', '6', () => navigate('/stats')],
+      ['nav-settings', 's', toggleSettings],
+    ];
+    shortcuts.forEach(([id, combo, handler]) => registerShortcut(id, { combo, handler }));
+    return () => shortcuts.forEach(([id]) => unregisterShortcut(id));
+  }, [navigate, toggleSettings, registerShortcut, unregisterShortcut]);
+
+  return null;
 }
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -461,6 +489,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
+    <KeyboardShortcutProvider>
     <div
       className="theme-gold"
       style={{
@@ -471,6 +500,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         position: 'relative',
       }}
     >
+      <NavigationShortcuts
+        navigate={navigate}
+        toggleSettings={() => setShowSettings((prev) => !prev)}
+      />
       <LoadingOverlay />
 
       {/* Mobile Drawer Overlay with Adaptive Blur */}
@@ -1131,5 +1164,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         ))}
       </div>
     </div>
+    </KeyboardShortcutProvider>
   );
 }

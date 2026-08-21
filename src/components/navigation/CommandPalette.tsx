@@ -1,26 +1,18 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, User, Wallet, Zap, Rocket, Dice6, RotateCcw, LayoutGrid } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCasinoStore } from '@/store/useCasinoStore';
+import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcuts';
 export function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const router = useRouter();
   const soundEnabled = useCasinoStore((s) => s.soundEnabled);
   const toggleSound = useCasinoStore((s) => s.toggleSound);
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsOpen((prev) => !prev);
-      }
-      if (e.key === 'Escape') setIsOpen(false);
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  useKeyboardShortcut('command-palette-toggle', 'mod+k', () => setIsOpen((prev) => !prev));
+  useKeyboardShortcut('command-palette-close', 'escape', () => setIsOpen(false), isOpen);
   const commands = [
     {
       id: 'crash',

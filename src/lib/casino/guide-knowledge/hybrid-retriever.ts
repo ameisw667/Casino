@@ -76,9 +76,28 @@ export async function retrieveKnowledgeDocs(
     };
   }
 
-  // --- Stage 2: In-Memory Vector Search (Semantic Fallback) ---
+  // --- Stage 2: Database pgvector or In-Memory Vector Search (Semantic Fallback) ---
   try {
     const queryEmbedding = await fetchQueryEmbedding(normalizedQuery, apiKey, fetchFn);
+
+    // Stage 2a: Supabase PostgreSQL pgvector search
+    if (typeof window === 'undefined') {
+      try {
+        const { searchDatabaseDocuments } = await import('./pgvector-store');
+        const dbDocs = await searchDatabaseDocuments(queryEmbedding, 0.35, maxDocs);
+        if (dbDocs && dbDocs.length > 0) {
+          return {
+            docs: dbDocs.slice(0, maxDocs),
+            strategy: 'vector-semantic',
+            topScore: 0.85,
+          };
+        }
+      } catch {
+        // Fallback directly to in-memory vector search
+      }
+    }
+
+    // Stage 2b: In-Memory Vector Search
     const chunkMatches = searchVectorChunks(queryEmbedding, {
       topK: 4,
       sources,
