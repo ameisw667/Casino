@@ -16,12 +16,12 @@
 | Observability  | 🟢     | Top 10–15%    | 3/3             | Sentry SDK, Sentry CLI, Sentry MCP                                                                                       |
 | Tests          | 🟢/✅  | Top 15%       | 2/2             | Playwright E2E, Playwright CLI/MCP                                                                                       |
 | Datenbank      | 🟢/⬜  | Top 12–90%    | 2/3             | Supabase-Migrationen, Supabase CLI, Supabase MCP                                                                         |
-| Dokumentation  | 🟡/⬜  | Top 45–90%    | 0/2             | Context7 MCP, DeepWiki MCP                                                                                               |
+| Dokumentation  | 🟢/⬜  | Top 20–90%    | 1/2             | Context7 MCP, DeepWiki MCP                                                                                               |
 | Hosting        | 🟢/⬜  | Top 80–85%    | 1/2             | Vercel CLI/API, Vercel MCP (read-only)                                                                                   |
-| Repository     | 🟡/⬜  | Top 25–90%    | 0/2             | GitHub CLI/MCP, Dependabot/GitHub Security Advisories                                                                    |
+| Repository     | 🟢/⬜  | Top 25–90%    | 1/2             | GitHub CLI/MCP, Dependabot/GitHub Security Advisories                                                                    |
 | Produktanalyse | 🟢     | Top 65%       | 1/1             | PostHog                                                                                                                  |
 | Betrieb        | 🟢/⬜  | Top 20–85%    | 1/4             | Production-Monitoring (Health-Route + UptimeRobot), Telegram-Ops-Alerts, Vercel Runtime Logs/Errors, Synthetic API-Check |
-| Automation     | 🟡/⬜  | Top 40–90%    | 0/5             | Trigger.dev, Vercel Cron Jobs, n8n, Supabase pg_cron/pg_net, GitHub Actions Scheduled Workflows                          |
+| Automation     | 🟢/⬜  | Top 20–90%    | 1/5             | Trigger.dev, Vercel Cron Jobs, n8n, Supabase pg_cron/pg_net, GitHub Actions Scheduled Workflows                          |
 
 > **Skalen:** Niveau = Top 1 % (Referenzniveau, kaum verbesserbar) bis Top 100 % (nicht gestartet). Bewertung = R (Risiko) · I (Impact) · L (Lerneffekt) · A (Aufwand), jeweils Niedrig/Mittel/Hoch — Niveau ist die primäre Kennzahl, Bewertung liefert nur Zusatzkontext. Alle Werte sind eine LLM-Einschätzung auf Basis der Belege in Abschnitt 1–4 dieser Datei, keine Messung. Lange Status-Begründungen stehen in Abschnitt 3/4 bzw. den verlinkten Detaildateien.
 
@@ -63,7 +63,7 @@
 
 | Nr. | Meilenstein                                                         | Status                                                                                                        | Niveau  | Bewertung                                        |
 | --- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| 19  | Context7 MCP für aktuelle Library-Dokumentation im Agenten-Workflow | 🟡 Config gesetzt, Neustart-Verifikation/Pilot/Fehlerfall offen — Details: [`01_context7.md`](01_context7.md) | Top 45% | R: Niedrig · I: Mittel · L: Niedrig · A: Niedrig |
+| 19  | Context7 MCP für aktuelle Library-Dokumentation im Agenten-Workflow | 🟢 Abgeschlossen (2026-08-21) — Details: `docs/archive/01_context7.md` | Top 20% | R: Niedrig · I: Mittel · L: Niedrig · A: Niedrig |
 | 29  | DeepWiki MCP für GitHub-Repo-Wikis/Docs                             | ⬜ Vorschlag, noch nicht eingerichtet                                                                         | Top 90% | R: Niedrig · I: Niedrig · L: Mittel · A: Niedrig |
 
 #### Hosting
@@ -77,7 +77,7 @@
 
 | Nr. | Meilenstein                                       | Status                                                                                                            | Niveau  | Bewertung                                       |
 | --- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------- |
-| 14  | GitHub CLI/MCP für Issues, Actions und PR-Kontext | 🟡 CLI+PAT+3 MCP-Server verbunden (2026-08-19), Vergleich+Runbook offen — Details: [`01_github.md`](01_github.md) | Top 25% | R: Niedrig · I: Mittel · L: Mittel · A: Niedrig |
+| 14  | GitHub CLI/MCP für Issues, Actions und PR-Kontext | 🟢 Executed (2026-08-21): CLI, 3 MCP-Server, Datenvergleich und 401-Negativtest verifiziert — Details: `docs/archive/01_github.md` | Top 25% | R: Niedrig · I: Mittel · L: Mittel · A: Niedrig |
 | 27  | Dependabot/GitHub Security Advisories aktivieren  | ⬜ Vorschlag, noch nicht eingerichtet                                                                             | Top 90% | R: Niedrig · I: Hoch · L: Mittel · A: Niedrig   |
 
 #### Produktanalyse
@@ -99,7 +99,7 @@
 
 | Nr. | Meilenstein                                                    | Status                                                                                                                                                                                                                                                                                                                                                       | Niveau  | Bewertung                                       |
 | --- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- | ----------------------------------------------- |
-| 17  | Trigger.dev SDK/CLI                                            | 🟢 Abgeschlossen und deployed (2026-08-19) — Task implementiert, manueller Testlauf + Telegram-Zustellung verifiziert, Retry real ausgelöst, Security-Review ohne CRITICAL/HIGH, deklarativer Cron (`0 8 * * *` Europe/Berlin, nur Production) deployed; erster automatischer Lauf noch nicht abgewartet — Details: [`01_Trigger.dev.md`](01_Trigger.dev.md) | Top 20% | R: Niedrig · I: Mittel · L: Hoch · A: Niedrig   |
+| 17  | Trigger.dev SDK/CLI                                            | 🟢 Abgeschlossen und verifiziert (2026-08-21) — Task implementiert, Telegram-Zustellung verifiziert, Retry real ausgelöst, Security-Review ohne CRITICAL/HIGH, deklarativer Cron (`0 8 * * *` Europe/Berlin, Production) deployed, Node-21-WebSocket-Bug gefunden und behoben, erster echter automatischer Lauf bestätigt — Details: `docs/archive/01_Trigger.dev.md` | Top 15% | R: Niedrig · I: Mittel · L: Hoch · A: Niedrig   |
 | 20  | Vercel Cron Jobs (Vergleichsbaustein zu Trigger.dev)           | ⬜ Vorschlag, noch nicht eingerichtet                                                                                                                                                                                                                                                                                                                        | Top 85% | R: Niedrig · I: Mittel · L: Hoch · A: Niedrig   |
 | 21  | n8n als visuelle Workflow-Automation                           | ⬜ Vorschlag, noch nicht eingerichtet                                                                                                                                                                                                                                                                                                                        | Top 90% | R: Niedrig · I: Mittel · L: Hoch · A: Mittel    |
 | 22  | Supabase `pg_cron`/`pg_net` als eigener Automation-Meilenstein | 🟡 Technisch bereits vorhanden, noch nicht dokumentiert                                                                                                                                                                                                                                                                                                      | Top 40% | R: Niedrig · I: Mittel · L: Mittel · A: Niedrig |
@@ -115,7 +115,7 @@
 | 2   | Codequalität  | knip CLI zum Aufspüren toter Dateien, unused Exports und ungenutzter Dependencies                                  | knip                    | ⬜ Vorschlag                                                                                                     | Ein Kommandozeilen-Tool, das automatisch ungenutzten Code und nicht mehr gebrauchte npm-Pakete findet — einmal ausführen, Liste lesen, aufräumen.     | Top 90% | 🟢 Niedrig | 🟢 Passend           |
 | 3   | Performance   | `@next/bundle-analyzer` als offizielles Next.js-Plugin zur Visualisierung der JS-Bundle-Größe pro Route            | Next.js Bundle Analyzer | ⬜ Vorschlag                                                                                                     | Zeigt als interaktive Grafik, welche Pakete wie viel vom JavaScript jeder Seite belegen — direkt gekoppelt an das Bundle-Budget aus deiner CLAUDE.md. | Top 90% | 🟡 Mittel  | 🟢 Passend           |
 | 4   | Performance   | Lighthouse CI / Chrome DevTools MCP für reproduzierbare Core-Web-Vitals-Messung (LCP/INP/CLS)                      | Lighthouse CI           | ⬜ Vorschlag                                                                                                     | Misst automatisch, wie schnell und flüssig sich die Website für echte Besucher anfühlt (Ladezeit, Ruckeln, Layout-Sprünge).                           | Top 90% | 🟡 Mittel  | 🟢 Passend           |
-| 5   | Dokumentation | Context7 MCP für aktuelle Library-Dokumentation direkt im Agenten-Workflow statt Trainingsdaten                    | Context7                | ✅ Übernommen in Übersicht Zeile 19 — Option A (Minimal-Pilot) geplant, siehe [`01_context7.md`](01_context7.md) | Liefert dem KI-Assistenten die aktuelle Anleitung einer Bibliothek, statt sich auf veraltetes Trainingswissen zu verlassen.                           | Top 85% | 🟢 Niedrig | 🟢 Passend           |
+| 5   | Dokumentation | Context7 MCP für aktuelle Library-Dokumentation direkt im Agenten-Workflow statt Trainingsdaten                    | Context7                | ✅ Abgeschlossen — Übersicht Zeile 19, siehe `docs/archive/01_context7.md` | Liefert dem KI-Assistenten die aktuelle Anleitung einer Bibliothek, statt sich auf veraltetes Trainingswissen zu verlassen.                           | Top 20% | 🟢 Niedrig | 🟢 Passend           |
 | 6   | Sicherheit    | Socket.dev CLI/API für Supply-Chain-Scan der npm-Dependencies vor jedem Release                                    | Socket.dev              | ⬜ Vorschlag                                                                                                     | Prüft automatisch, ob eine neu installierte Programmierbibliothek verdächtigen Code enthält — wie ein Virenscanner für Dependencies.                  | Top 90% | 🟡 Mittel  | 🟡 Bedingt passend   |
 | 7   | Sicherheit    | Semgrep CLI/MCP für statische Codeanalyse (OWASP-Muster, Secrets-Scan)                                             | Semgrep                 | ⬜ Vorschlag                                                                                                     | Durchsucht den eigenen Code automatisch nach bekannten Sicherheitsfehlern und versehentlich eingecheckten Passwörtern.                                | Top 90% | 🟡 Mittel  | 🟡 Bedingt passend   |
 | 8   | Infrastruktur | Docker CLI/MCP als formalisierter Zugriff auf den bestehenden lokalen Stack (Chaos-Tests, lokale Supabase-Instanz) | Docker                  | ⬜ Vorschlag                                                                                                     | Startet eine abgeschottete Kopie von App/Datenbank auf dem eigenen Rechner zum Testen, ohne die echte Datenbank zu berühren.                          | Top 90% | 🟡 Mittel  | 🟡 Bedingt passend   |
@@ -327,7 +327,7 @@ Die Lücke zwischen „wir nutzen Supabase" und „wir beherrschen Supabase als 
 
 ### 4.5 GitHub CLI/MCP — mittlere Priorität
 
-**Aktueller Stand:** GitHub Actions sind im Repository vorhanden; `gh` ist lokal nicht nachgewiesen.
+**Aktueller Stand:** 🟢 Executed (2026-08-21) — `gh` installiert/authentifiziert, vier read-only npm-Wrapper, drei read-only MCP-Server (Issues/PRs/Actions) verbunden, Datenvergleich und 401-Negativtest verifiziert. Details: `docs/archive/01_github.md`.
 
 **Möglicher Pilot:** Workflow-Status, offene Issues und Pull-Request-Kontext lesen. Schreibaktionen wie Merge, Labeling oder Kommentar erst nach separater Entscheidung.
 
@@ -351,31 +351,31 @@ Die Lücke zwischen „wir nutzen Supabase" und „wir beherrschen Supabase als 
 
 **Nutzen für das Spiel:** Erkennt, ob die Website/API erreichbar ist, auch wenn die App selbst noch keinen Fehler an Sentry gesendet hat.
 
-### 4.8 Trigger.dev — Background-Workflow-Kandidat
+### 4.8 Trigger.dev — abgeschlossen
 
-**Aktueller Stand:** Nahezu abgeschlossen (2026-08-19, siehe [`01_Trigger.dev.md`](01_Trigger.dev.md)) — Account, CLI, Secrets, Task-Implementierung, manueller Testlauf mit Telegram-Zustellung, Retry-Nachweis, Security-Review und Deploy mit deklarativem Cron (Production, täglich 08:00 Europe/Berlin) sind alle verifiziert abgeschlossen. Einzig offen: der erste **echte automatische** Lauf ist noch nicht abgewartet/bestätigt — Archivierung nach `docs/archive/` erfolgt erst danach.
+**Aktueller Stand:** Vollständig abgeschlossen und verifiziert (2026-08-21, siehe `docs/archive/01_Trigger.dev.md`) — Account, CLI, Secrets, Task-Implementierung, Telegram-Zustellung, Retry-Nachweis, Security-Review und Deploy mit deklarativem Cron (Production, täglich 08:00 Europe/Berlin) abgeschlossen. Unterwegs gefunden und behoben: ein Node-21-Kompatibilitätsbug in `@supabase/supabase-js` (fehlendes globales `WebSocket`), der die ersten beiden echten Cron-Läufe scheitern ließ — zentral in `createAdminClient()` per `ws`-Paket gefixt. Erster echter automatischer Lauf über einen temporären Test-Schedule verifiziert (Telegram-Zustellung bestätigt).
 
 **Lernziel:** Retries, Run-Status, Background-Execution und Idempotenz außerhalb des synchronen Request-Pfads.
 
 **Aktueller Scope (ersetzt den ursprünglichen Wochenreport-Vorschlag):** Täglicher automatisierter `daily-activity-digest`-Task — liest Spiel-/Business-Aktivität (aktive User, Bets, GGR, Top-Spiel) direkt per Supabase-Service-Role-Client, Zustellung per Telegram an Jan. Kein Wallet-Settlement, keine Auszahlung, kein Resend/E-Mail, keine Server-/Fehler-Health-Daten, keine neue DB-Persistenz. Detail-Scope, IST-Stand, Anforderungen und Execution-Plan in [`01_Trigger.dev.md`](01_Trigger.dev.md).
 
-### 4.9 Context7 MCP — Doku-Lookup-Kandidat
+### 4.9 Context7 MCP — abgeschlossen
 
-**Aktueller Stand:** Execution-Ready (2026-08-19, siehe [`01_context7.md`](01_context7.md)) — Option A (Minimal-Pilot ohne Account/API-Key) per Rückfrage bestätigt, Recherche zu Paketname/Config/Rate-Limit abgeschlossen; `.mcp.json`-Änderung selbst noch nicht ausgeführt (bleibt Jan-freigabepflichtig, persistente Konfigurationsänderung).
+**Aktueller Stand:** Vollständig abgeschlossen und verifiziert (2026-08-21, siehe `docs/archive/01_context7.md`) — Option A (Minimal-Pilot ohne Account/API-Key) umgesetzt: `.mcp.json`-Eintrag ohne Secret, nach Session-Neustart verbunden, Tool-Namen (`mcp__context7__resolve-library-id`, `mcp__context7__query-docs`) exakt deckungsgleich mit der vorab bestehenden `docs-lookup`-Agenten-Definition, read-only-Pilot gegen Next.js-Doku erfolgreich, ungültige Library-ID als Fehlerfall sauber abgefangen.
 
 **Lernziel:** Aktuelle Library-Dokumentation strukturiert per MCP abrufen statt auf Trainingsdaten zu vertrauen; Unterschied zwischen kostenlosem Basis-Kontingent und API-Key-Kontingent praktisch verstehen.
 
-**Pilot (geplant):**
+**Pilot (erledigt):**
 
-- `@upstash/context7-mcp` per `npx` ohne API-Key in `.mcp.json` registrieren.
-- Nach Session-Neustart MCP-Tool-Verfügbarkeit und exakte Tool-Namen verifizieren.
-- Eine im Projekt tatsächlich genutzte Library nachschlagen (z. B. Next.js, Zod oder Supabase-JS).
-- Tool-Namen gegen den bestehenden globalen `docs-lookup`-Agenten abgleichen (der bereits `mcp__context7__resolve-library-id`/`mcp__context7__query-docs` referenziert, aktuell aber unverdrahtet).
-- Mindestens einen Fehlerfall (Rate-Limit von recherchiert 60 Requests/Std. ohne Key, oder ungültige Library-ID) real auslösen und dokumentieren.
+- `@upstash/context7-mcp` per `npx` ohne API-Key in `.mcp.json` registriert. ✅
+- Nach Session-Neustart MCP-Tool-Verfügbarkeit und exakte Tool-Namen verifiziert. ✅
+- Next.js nachgeschlagen (`resolve-library-id` → `/vercel/next.js`, `query-docs` → Route-Handler-POST-Beispiele). ✅
+- Tool-Namen gegen `docs-lookup`-Agenten-Definition abgeglichen — exakte Übereinstimmung, keine Abweichung. ✅
+- Fehlerfall (erfundene Library-ID) real ausgelöst und dokumentiert. ✅
 
 **Sicherheitsgrenze:** Kein API-Key/Account in diesem Scope, keine Indexierung privater Repos, read-only (Context7 bietet ohnehin keine Schreibtools).
 
-**Nutzen für das Spiel:** Reduziert veraltete/halluzinierte Library-Antworten bei Framework-/Dependency-Fragen (z. B. Next.js 16, Supabase-JS), ohne Geldpfad- oder Datenbankzugriff.
+**Nutzen für das Spiel:** Reduziert veraltete/halluzinierte Library-Antworten bei Framework-/Dependency-Fragen (z. B. Next.js 16, Supabase-JS), ohne Geldpfad- oder Datenbankzugriff. Der globale `docs-lookup`-Agent ist ab sofort funktionsfähig.
 
 ## 5. Empfohlene Reihenfolge
 
@@ -387,11 +387,11 @@ Die Lücke zwischen „wir nutzen Supabase" und „wir beherrschen Supabase als 
 | P3    | Playwright CLI              | 🟢 Erledigt (2026-08-17) — lokale Browser-Session, Snapshot, Trace und Screenshot reproduzierbar erstellt                                                                                                                  |
 | P4    | Playwright MCP verifizieren | 🟢 Erledigt (2026-08-19) — Agenten-Browserkontrolle nach Session-Neustart verifiziert, `/fairness`-404-Befund als Testfall überführt, Dev-Server-Fehlerfall real ausgelöst — siehe `docs/archive/01_Playwright-CLI-MCP.md` |
 | P5    | Vercel CLI/API              | 🟢 Erledigt (2026-08-18) — Preview/Logs/Deployment-Metadaten gelesen, keine Secrets ausgegeben                                                                                                                             |
-| P6    | GitHub CLI/MCP              | CI-/Issue-Kontext read-only zusammengeführt                                                                                                                                                                                |
+| P6    | GitHub CLI/MCP              | 🟢 Erledigt (2026-08-21) — CI-/Issue-/PR-Kontext read-only zusammengeführt, CLI-vs-MCP-Vergleich deckungsgleich, 401-Negativtest dokumentiert — siehe `docs/archive/01_github.md`                                         |
 | P7    | PostHog                     | 🟢 Erledigt (2026-08-17) — Consent-, PII- und Datenresidenz-Gates erfüllt; Erasure-Pfad bewusst unverdrahtet, Pflicht-Trigger sobald weitere Nutzer Zugriff bekommen                                                       |
 | P8    | Uptime Kuma                 | Health-Route, Down-Alarm, Recovery-Alarm und Runbook vollständig                                                                                                                                                           |
 | P9    | Trigger.dev                 | Nicht-monetärer Reportjob mit Retry und idempotentem Ergebnis                                                                                                                                                              |
-| P10   | Context7 MCP (Option A)     | 🟡 Execution-Ready (2026-08-19) — `.mcp.json`-Eintrag ohne Key, read-only-Pilot gegen eine echte Library, Tool-Namen-Abgleich mit `docs-lookup`-Agent, ein Fehlerfall dokumentiert — siehe `01_context7.md`                |
+| P10   | Context7 MCP (Option A)     | 🟢 Erledigt (2026-08-21) — `.mcp.json`-Eintrag ohne Key, Tool-Namen nach Neustart verifiziert und deckungsgleich mit `docs-lookup`-Agent, read-only-Pilot gegen Next.js-Doku, Fehlerfall (ungültige Library-ID) dokumentiert — siehe `docs/archive/01_context7.md` |
 
 ## 6. Supabase-Fokus: Was im zweiten Schritt konkret verifiziert werden muss
 
@@ -512,12 +512,12 @@ Die jeweilige Integration gilt erst dann als abgeschlossen, wenn:
 - [`docs/archive/01_SentryCLI_SentryMCP.md`](../docs/archive/01_SentryCLI_SentryMCP.md) — Sentry-CLI-/MCP-Detailplan (abgeschlossen, archiviert)
 - [`docs/archive/01_Playwright-CLI-MCP.md`](../docs/archive/01_Playwright-CLI-MCP.md) — Playwright-CLI-/MCP-Detailplan (abgeschlossen, archiviert)
 - [`tests/fairness-404.spec.ts`](../tests/fairness-404.spec.ts) — Regressionstest aus dem Playwright-MCP-Pilot
-- [`worldmap/01_github.md`](01_github.md) — GitHub-CLI-/MCP-Detailplan (Execution-Ready, noch nicht gestartet)
-- [`worldmap/01_Trigger.dev.md`](01_Trigger.dev.md) — Trigger.dev-Tagesreport-Detailplan (Execution-Ready, noch nicht gestartet)
-- [`worldmap/01_context7.md`](01_context7.md) — Context7-MCP-Detailplan, Option A (Execution-Ready, noch nicht gestartet)
+- [`docs/archive/01_github.md`](../docs/archive/01_github.md) — GitHub-CLI-/MCP-Detailplan (abgeschlossen, archiviert)
+- [`docs/archive/01_context7.md`](../docs/archive/01_context7.md) — Context7-MCP-Detailplan, Option A (abgeschlossen, archiviert)
+- [`docs/archive/01_Trigger.dev.md`](../docs/archive/01_Trigger.dev.md) — Trigger.dev-Tagesreport-Detailplan (abgeschlossen, archiviert)
 - [`worldmap/05_1.13_Uptime-Kuma-Monitoring.md`](05_1.13_Uptime-Kuma-Monitoring.md) — Uptime-Kuma-Detailplan
 - [`worldmap/05_ZUKUNFTSPLANUNG.md`](05_ZUKUNFTSPLANUNG.md) — übergeordnete Zukunftsplanung
 
 ## LLM-Hinweis
 
-Bei einer späteren Fortsetzung zuerst den Status dieser Datei **und** der noch aktiven Einzelpläne (`01_github.md`, `01_Trigger.dev.md`, `01_context7.md`) erneut prüfen — diese Übersichtsdatei führt nur Status und Reihenfolge, die tagesaktuelle Wahrheit steht in den Einzelplänen (siehe Abschnitt 10 und Erfahrung vom 2026-08-18: diese Datei war zuvor mehrere Tage hinter den Einzelplänen zurück). Supabase-CLI, Sentry-CLI/MCP und Playwright-CLI/MCP sind abgeschlossen und nach `docs/archive/` verschoben (`01_Supabase-CLI.md`, `01_SentryCLI_SentryMCP.md`, `01_Playwright-CLI-MCP.md`). Context7 (`01_context7.md`) ist Execution-Ready, die `.mcp.json`-Änderung selbst ist noch nicht ausgeführt. Keine schreibende Aktion aus den Vorschlägen ableiten, bevor Jan den konkreten Meilenstein bestätigt hat.
+Bei einer späteren Fortsetzung zuerst den Status dieser Datei erneut prüfen — diese Übersichtsdatei führt nur Status und Reihenfolge, die tagesaktuelle Wahrheit steht in den Einzelplänen (siehe Abschnitt 10 und Erfahrung vom 2026-08-18: diese Datei war zuvor mehrere Tage hinter den Einzelplänen zurück). Supabase-CLI, Sentry-CLI/MCP, Playwright-CLI/MCP, GitHub-CLI/MCP, Context7-MCP und Trigger.dev sind abgeschlossen und nach `docs/archive/` verschoben (`01_Supabase-CLI.md`, `01_SentryCLI_SentryMCP.md`, `01_Playwright-CLI-MCP.md`, `01_github.md`, `01_context7.md`, `01_Trigger.dev.md`). Keine schreibende Aktion aus den Vorschlägen ableiten, bevor Jan den konkreten Meilenstein bestätigt hat.

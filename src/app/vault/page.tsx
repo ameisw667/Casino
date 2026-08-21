@@ -129,9 +129,12 @@ function VaultContent() {
 
   const card = (extra?: React.CSSProperties): React.CSSProperties => ({
     borderRadius: '16px',
-    background: 'rgba(12,12,14,0.7)',
-    border: '1px solid rgba(255,255,255,0.05)',
-    backdropFilter: 'blur(12px)',
+    background:
+      'linear-gradient(145deg, rgba(24, 24, 32, 0.7) 0%, rgba(12, 12, 18, 0.88) 100%)',
+    border: '1px solid rgba(212, 175, 55, 0.12)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    boxShadow: '0 12px 32px rgba(0, 0, 0, 0.45)',
     ...extra,
   });
 
@@ -165,7 +168,7 @@ function VaultContent() {
             right: '10%',
             width: '220px',
             height: '220px',
-            background: `radial-gradient(circle, ${currentTier.color}0d 0%, transparent 70%)`,
+            background: `radial-gradient(circle, ${currentTier.color}18 0%, transparent 70%)`,
             pointerEvents: 'none',
           }}
         />
@@ -481,21 +484,21 @@ function VaultContent() {
             <div style={{ marginTop: '28px' }}>
               <div
                 style={{
-                  height: '5px',
-                  borderRadius: '3px',
-                  background: 'rgba(255,255,255,0.03)',
+                  height: '6px',
+                  borderRadius: '4px',
+                  background: 'rgba(255,255,255,0.04)',
                   overflow: 'hidden',
                 }}
               >
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min(tierProgress, 100)}%` }}
-                  transition={{ duration: 1, ease: 'easeOut' }}
+                  transition={{ type: 'spring', damping: 18, stiffness: 120 }}
                   style={{
                     height: '100%',
-                    borderRadius: '3px',
+                    borderRadius: '4px',
                     background: `linear-gradient(90deg, ${currentTier.color}, ${nextTier.color})`,
-                    boxShadow: `0 0 8px ${currentTier.color}30`,
+                    boxShadow: `0 0 12px ${currentTier.color}60`,
                   }}
                 />
               </div>
@@ -572,6 +575,180 @@ function VaultContent() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* ──── ROW 2.5: Neumorphic Metallic Tier Showcase ──── */}
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+          <Star size={16} color="#D4AF37" fill="#D4AF37" />
+          <span
+            style={{
+              fontSize: '0.8rem',
+              fontWeight: 800,
+              color: '#fff',
+              letterSpacing: '0.02em',
+            }}
+          >
+            VIP TIERS & BENEFITS
+          </span>
+        </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)',
+            gap: isMobile ? '10px' : '12px',
+          }}
+        >
+          {vipTiers.map((tier) => {
+            const isCurrent = tier.name === currentTier.name;
+            const isUnlocked = xp >= tier.minXp;
+
+            let metallicBg =
+              'linear-gradient(145deg, rgba(24, 24, 32, 0.7) 0%, rgba(12, 12, 18, 0.88) 100%)';
+            let metallicBorder = '1px solid rgba(255, 255, 255, 0.06)';
+            let glowShadow = 'none';
+
+            if (tier.name === 'BRONZE') {
+              metallicBg =
+                'radial-gradient(circle at 100% 0%, rgba(205, 127, 50, 0.22) 0%, transparent 60%), linear-gradient(145deg, rgba(38, 26, 18, 0.8) 0%, rgba(18, 14, 12, 0.9) 100%)';
+              metallicBorder = `1px solid ${isCurrent ? '#cd7f32' : 'rgba(205, 127, 50, 0.35)'}`;
+              glowShadow = isCurrent ? '0 0 20px rgba(205, 127, 50, 0.25)' : 'none';
+            } else if (tier.name === 'SILVER') {
+              metallicBg =
+                'radial-gradient(circle at 100% 0%, rgba(226, 232, 240, 0.22) 0%, transparent 60%), linear-gradient(145deg, rgba(35, 38, 45, 0.8) 0%, rgba(16, 18, 22, 0.9) 100%)';
+              metallicBorder = `1px solid ${isCurrent ? '#e2e8f0' : 'rgba(226, 232, 240, 0.35)'}`;
+              glowShadow = isCurrent ? '0 0 20px rgba(226, 232, 240, 0.25)' : 'none';
+            } else if (tier.name === 'GOLD') {
+              metallicBg =
+                'radial-gradient(circle at 100% 0%, rgba(212, 175, 55, 0.28) 0%, transparent 60%), linear-gradient(145deg, rgba(45, 36, 14, 0.85) 0%, rgba(20, 16, 8, 0.92) 100%)';
+              metallicBorder = `1px solid ${isCurrent ? '#D4AF37' : 'rgba(212, 175, 55, 0.45)'}`;
+              glowShadow = isCurrent ? '0 0 24px rgba(212, 175, 55, 0.35)' : 'none';
+            } else if (tier.name === 'PLATINUM') {
+              metallicBg =
+                'radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.22) 0%, transparent 60%), linear-gradient(145deg, rgba(20, 36, 48, 0.8) 0%, rgba(12, 18, 26, 0.9) 100%)';
+              metallicBorder = `1px solid ${isCurrent ? '#38bdf8' : 'rgba(56, 189, 248, 0.35)'}`;
+              glowShadow = isCurrent ? '0 0 20px rgba(56, 189, 248, 0.25)' : 'none';
+            } else if (tier.name === 'DIAMOND') {
+              metallicBg =
+                'radial-gradient(circle at 100% 0%, rgba(185, 242, 255, 0.28) 0%, transparent 60%), linear-gradient(145deg, rgba(25, 42, 58, 0.85) 0%, rgba(12, 20, 32, 0.92) 100%)';
+              metallicBorder = `1px solid ${isCurrent ? '#b9f2ff' : 'rgba(185, 242, 255, 0.45)'}`;
+              glowShadow = isCurrent ? '0 0 24px rgba(185, 242, 255, 0.35)' : 'none';
+            }
+
+            return (
+              <motion.div
+                key={tier.name}
+                whileHover={{ scale: 1.02, y: -3 }}
+                transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+                style={{
+                  padding: isMobile ? '16px 14px' : '18px 16px',
+                  borderRadius: '16px',
+                  background: metallicBg,
+                  border: metallicBorder,
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  boxShadow:
+                    glowShadow !== 'none' ? glowShadow : '0 8px 24px rgba(0, 0, 0, 0.4)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: '135px',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono, monospace)',
+                        fontSize: '0.85rem',
+                        fontWeight: 900,
+                        color: tier.color,
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      {tier.name}
+                    </span>
+                    {isCurrent ? (
+                      <span
+                        style={{
+                          fontSize: '0.52rem',
+                          fontWeight: 800,
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          background: `${tier.color}25`,
+                          color: tier.color,
+                          border: `1px solid ${tier.color}50`,
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        AKTIV
+                      </span>
+                    ) : isUnlocked ? (
+                      <CheckCircle2 size={13} color={tier.color} />
+                    ) : (
+                      <Lock size={12} color="rgba(255, 255, 255, 0.3)" />
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '0.62rem',
+                      color: 'rgba(255, 255, 255, 0.4)',
+                      fontWeight: 600,
+                    }}
+                  >
+                    ab {tier.minXp.toLocaleString()} XP
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    marginTop: '12px',
+                    paddingTop: '10px',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '0.58rem',
+                        fontWeight: 700,
+                        color: 'rgba(255, 255, 255, 0.35)',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Rakeback
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-mono, monospace)',
+                        fontSize: '0.85rem',
+                        fontWeight: 900,
+                        color: '#D4AF37',
+                      }}
+                    >
+                      {(tier.rakeback * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
 

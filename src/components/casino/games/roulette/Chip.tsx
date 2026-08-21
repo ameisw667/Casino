@@ -50,10 +50,13 @@ export const Chip: React.FC<ChipProps> = ({
           key={i}
           data-testid={i === stackCount - 1 ? `chip-${amount}` : undefined}
           onClick={i === stackCount - 1 ? onClick : undefined}
+          initial={stacked ? { scale: 0.5, y: -20, opacity: 0 } : false}
+          animate={{ scale: 1, y: 0, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 18, mass: 0.8 }}
           whileHover={
-            i === stackCount - 1 ? { scale: 1.15, translateY: -6, filter: 'brightness(1.1)' } : {}
+            i === stackCount - 1 ? { scale: 1.18, translateY: -6, filter: 'brightness(1.15)' } : {}
           }
-          whileTap={i === stackCount - 1 ? { scale: 0.9 } : {}}
+          whileTap={i === stackCount - 1 ? { scale: 0.92 } : {}}
           className={`chip-coin vibe-tap absolute flex items-center justify-center rounded-full border-2 border-dashed border-black/20 font-black transition-all duration-300 ${active ? 'ring-2 ring-white ring-offset-2 ring-offset-transparent' : ''}`}
           style={{
             width: size,
@@ -67,8 +70,8 @@ export const Chip: React.FC<ChipProps> = ({
             pointerEvents: i === stackCount - 1 ? 'auto' : 'none',
             transform: `translateY(${-i * 2}px) ${active ? 'scale(1.15) translateY(-6px)' : stacked ? `translateY(${-index * 2}px) scale(${1 - index * 0.05})` : 'scale(1)'}`,
             boxShadow: active
-              ? `0 10px 20px hsla(${hslValue.replace('var(', '').replace(')', '')}, 0.4), inset 0 0 8px rgba(0,0,0,0.4)`
-              : '0 4px 10px rgba(0,0,0,0.3), inset 0 0 5px rgba(0,0,0,0.2)',
+              ? `0 12px 24px hsla(${hslValue.replace('var(', '').replace(')', '')}, 0.5), inset 0 0 8px rgba(0,0,0,0.4)`
+              : '0 8px 16px rgba(0,0,0,0.45), inset 0 0 5px rgba(0,0,0,0.25)',
           }}
         >
           {/* Inner Ring */}

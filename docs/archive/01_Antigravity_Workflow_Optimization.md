@@ -180,9 +180,9 @@ Folgende Direktiven stellen sicher, dass der Agent niemals in interaktive CLI-Ha
 
 ## 5 — Verifikations- und Rollout-Matrix
 
-| Schritt | Aktion                                       | Verifikation                                                                                |     Status     |
-| :-----: | :------------------------------------------- | :------------------------------------------------------------------------------------------ | :------------: |
-| **S1**  | Dokumentation & Klassifizierung in Worldmap  | [01_Antigravity_Workflow_Optimization.md](01_Antigravity_Workflow_Optimization.md) erstellt |  ✅ Erledigt   |
-| **S2**  | Agent-Regel-Update in AGENTS.md / GEMINI.md  | Non-interactive & Pager-Regeln verankert                                                    |  ✅ Erledigt   |
-| **S3**  | Dialog-Bestätigung (Option 4 / Option 3)     | K1 & K2 Commands global auto-allowed                                                        |    🟡 Aktiv    |
-| **S4**  | Multi-Projekt-Check (Casino & Wispr/Weitere) | Unterbrechungsfreier Testlauf (`npm test`, `npm run vibe-check`)                            | 🟢 Verifiziert |
+| Schritt | Aktion                                       | Verifikation                                                                                              |     Status     |
+| :-----: | :------------------------------------------- | :-------------------------------------------------------------------------------------------------------- | :------------: |
+| **S1**  | Dokumentation & Klassifizierung in Worldmap  | [01_Antigravity_Workflow_Optimization.md](01_Antigravity_Workflow_Optimization.md) erstellt & archiviert |  ✅ Erledigt   |
+| **S2**  | Agent-Regel-Update in AGENTS.md / GEMINI.md  | Non-interactive & Pager-Regeln verankert                                                                  |  ✅ Erledigt   |
+| **S3**  | Dialog-Bestätigung (Option 4 / Option 3)     | K1 & K2 Commands global auto-allowed                                                                      |    🟡 Aktiv    |
+| **S4**  | Multi-Projekt-Check (Casino & Wispr/Weitere) | Unterbrechungsfreier Testlauf (`npm test`, `npm run vibe-check`)                                          | 🟢 Verifiziert |

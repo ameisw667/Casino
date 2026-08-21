@@ -29,7 +29,7 @@ vi.mock('@/lib/security/request-security', () => ({
   rateLimitHeaders: mocks.rateLimitHeaders,
 }));
 vi.mock('@/lib/casino/chat-guide', () => ({
-  CASINO_GUIDE_CONTEXT_VERSION: '2026-08-17',
+  CASINO_GUIDE_CONTEXT_VERSION: '2026-08-21',
   CasinoGuideError: mocks.GuideError,
   requestCasinoGuideAnswer: mocks.requestCasinoGuideAnswer,
 }));
@@ -100,7 +100,7 @@ describe('chat guide response route', () => {
     expect(response.headers.get('X-RateLimit-Limit')).toBe('10');
     await expect(response.json()).resolves.toEqual({
       answer: 'Set a target before you roll.',
-      contextVersion: '2026-08-17',
+      contextVersion: '2026-08-21',
     });
     expect(mocks.recordGuideTelemetry).toHaveBeenCalledWith(
       expect.objectContaining({

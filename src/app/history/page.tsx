@@ -3,8 +3,14 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { HistoryStatsCard } from '@/components/history/HistoryStatsCard';
-import { HistoryFilterBar } from '@/components/history/HistoryFilterBar';
+import {
+  HistoryFilterBar,
+  GameFilterType,
+  TimeFilterType,
+  OutcomeFilterType,
+} from '@/components/history/HistoryFilterBar';
 import { HistoryTableStream, HistoryRow } from '@/components/history/HistoryTableStream';
+import { BetReceiptModal } from '@/components/history/BetReceiptModal';
 
 interface HistoryResponse {
   rows: HistoryRow[];
@@ -22,14 +28,16 @@ interface ServerStats {
 
 export default function HistoryPage() {
   const isMobile = useCasinoStore((s) => s.isMobile);
-  const storeBets = useCasinoStore((s) => s.bets);
-  const analytics = useCasinoStore((s) => s.analytics);
 
   const [rows, setRows] = useState<HistoryRow[]>([]);
   const [serverStats, setServerStats] = useState<ServerStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [_error, setError] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState('ALL');
+  const [gameFilter, setGameFilter] = useState<GameFilterType>('ALL');
+  const [timeFilter, setTimeFilter] = useState<TimeFilterType>('ALL');
+  const [outcomeFilter, setOutcomeFilter] = useState<OutcomeFilterType>('ALL');
+  const [dataLoadedAt, setDataLoadedAt] = useState<number>(0);
+  const [selectedRow, setSelectedRow] = useState<HistoryRow | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -48,7 +56,10 @@ export default function HistoryPage() {
 
         if (histRes.ok) {
           const histJson = (await histRes.json()) as HistoryResponse;
-          if (!cancelled) setRows(histJson.rows ?? []);
+          if (!cancelled) {
+            setRows(histJson.rows ?? []);
+            setDataLoadedAt(Date.now());
+          }
         }
 
         if (statsRes.ok) {
@@ -67,26 +78,51 @@ export default function HistoryPage() {
     };
   }, []);
 
-  const totalWagered =
-    serverStats && serverStats.totalWagered > 0
+  // Multi-Filter criteria
+  const filteredRows = rows.filter((r) => {
+    // 1. Game filter
+    if (gameFilter !== 'ALL') {
+      const g = (r.game ?? r.type ?? '').toLowerCase();
+      if (!g.includes(gameFilter.toLowerCase())) return false;
+    }
+
+    // 2. Time filter
+    if (timeFilter !== 'ALL' && dataLoadedAt > 0) {
+      const betTime = new Date(r.created_at).getTime();
+      const diffMs = dataLoadedAt - betTime;
+      if (timeFilter === 'TODAY' && diffMs > 24 * 60 * 60 * 1000) return false;
+      if (timeFilter === 'WEEK' && diffMs > 7 * 24 * 60 * 60 * 1000) return false;
+      if (timeFilter === 'MONTH' && diffMs > 30 * 24 * 60 * 60 * 1000) return false;
+    }
+
+    // 3. Outcome filter
+    if (outcomeFilter === 'WINS' && r.amount <= 0) return false;
+    if (outcomeFilter === 'LOSSES' && r.amount >= 0) return false;
+
+    return true;
+  });
+
+  // Dynamic Live Stats derivation based on filtered rows
+  const isFiltered = gameFilter !== 'ALL' || timeFilter !== 'ALL' || outcomeFilter !== 'ALL';
+
+  const totalWagered = isFiltered
+    ? filteredRows.reduce((acc, r) => acc + (r.amount < 0 ? Math.abs(r.amount) : 0), 0)
+    : serverStats && serverStats.totalWagered > 0
       ? serverStats.totalWagered
-      : (analytics?.totalWagered ??
-        rows.reduce((acc, r) => acc + (r.amount < 0 ? Math.abs(r.amount) : 0), 0));
+      : rows.reduce((acc, r) => acc + (r.amount < 0 ? Math.abs(r.amount) : 0), 0);
 
-  const netProfit = serverStats
-    ? serverStats.totalProfit
-    : analytics
-      ? analytics.totalPayout - analytics.totalWagered
-      : 0;
+  const netProfit = isFiltered
+    ? filteredRows.reduce((acc, r) => acc + r.amount, 0)
+    : serverStats
+      ? serverStats.totalProfit
+      : rows.reduce((acc, r) => acc + r.amount, 0);
 
-  const winRate = serverStats
-    ? serverStats.winRate.toFixed(1)
-    : rows.length > 0
-      ? ((rows.filter((r) => r.amount > 0).length / rows.length) * 100).toFixed(1)
+  const winRate =
+    filteredRows.length > 0
+      ? ((filteredRows.filter((r) => r.amount > 0).length / filteredRows.length) * 100).toFixed(1)
       : '0.0';
 
-  const totalBets = serverStats ? serverStats.totalBets : Math.max(storeBets.length, rows.length);
-  const filteredRows = activeFilter === 'WINS' ? rows.filter((r) => r.amount > 0) : rows;
+  const totalBets = filteredRows.length;
 
   return (
     <div
@@ -162,14 +198,27 @@ export default function HistoryPage() {
       />
 
       <HistoryFilterBar
-        activeFilter={activeFilter}
-        setActiveFilter={setActiveFilter}
+        gameFilter={gameFilter}
+        setGameFilter={setGameFilter}
+        timeFilter={timeFilter}
+        setTimeFilter={setTimeFilter}
+        outcomeFilter={outcomeFilter}
+        setOutcomeFilter={setOutcomeFilter}
         filteredCount={filteredRows.length}
+        isMobile={isMobile}
       />
 
       <div>
-        <HistoryTableStream loading={loading} rows={filteredRows} isMobile={isMobile} />
+        <HistoryTableStream
+          loading={loading}
+          rows={filteredRows}
+          isMobile={isMobile}
+          onSelectRow={(row) => setSelectedRow(row)}
+        />
       </div>
+
+      {/* VIP Bet Receipt Modal (NP-4) */}
+      <BetReceiptModal row={selectedRow} onClose={() => setSelectedRow(null)} />
     </div>
   );
 }

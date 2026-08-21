@@ -54,10 +54,12 @@ export function LeaderboardHeroStats({
           style={{
             padding: isMobile ? '14px 16px' : '16px 20px',
             borderRadius: '14px',
-            background: 'rgba(255, 255, 255, 0.025)',
-            border: '1px solid rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
+            background:
+              'linear-gradient(145deg, rgba(24, 24, 32, 0.7) 0%, rgba(12, 12, 18, 0.85) 100%)',
+            border: '1px solid rgba(212, 175, 55, 0.12)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',

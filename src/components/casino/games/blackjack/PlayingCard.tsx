@@ -49,7 +49,8 @@ export default function PlayingCard({ card, faceDown = false, size = 'md' }: Pla
           position: 'relative',
           transformStyle: 'preserve-3d',
           borderRadius: '12px',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.65), 0 2px 6px rgba(0, 0, 0, 0.4)',
+          boxShadow:
+            '0 18px 36px -4px rgba(0, 0, 0, 0.85), 0 8px 16px rgba(0, 0, 0, 0.6), 0 0 1px rgba(255, 255, 255, 0.25)',
         }}
       >
         {/* Front Face (Face Up) */}
@@ -59,9 +60,10 @@ export default function PlayingCard({ card, faceDown = false, size = 'md' }: Pla
             inset: 0,
             backfaceVisibility: 'hidden',
             borderRadius: '12px',
-            background: 'linear-gradient(145deg, #FFFFFF 0%, #F5F5F7 60%, #E8E8EC 100%)',
-            border: '1.5px solid rgba(212, 175, 55, 0.5)',
-            boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.9), inset 0 -1px 2px rgba(0,0,0,0.1)',
+            background: 'linear-gradient(145deg, #FFFFFF 0%, #F8F8FA 60%, #EEEEF2 100%)',
+            border: '1.5px solid rgba(212, 175, 55, 0.55)',
+            boxShadow:
+              'inset 0 1px 3px rgba(255,255,255,1), inset 0 -1px 2px rgba(0,0,0,0.12)',
             padding: '8px',
             display: 'flex',
             flexDirection: 'column',

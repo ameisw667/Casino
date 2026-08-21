@@ -47,7 +47,7 @@ npm run vibe-check   # Custom audit script: tsx scripts/vibe-check.ts
 - **Non-Interactive Execution**: Befehle immer mit non-interactive Flags ausführen (`--yes`, `-y`, `CI=true`), um CLI-Hangs zu verhindern.
 - **No-Pager**: `PAGER=cat` oder `--no-pager` für Git-Befehle nutzen.
 - **K5 Block**: Destruktive/Live-Befehle (`git push --force`, `rm -rf`, `supabase db reset`) erfordern immer explizite manuelle Bestätigung.
-- **Detail-Plan**: Siehe [worldmap/01_Antigravity_Workflow_Optimization.md](worldmap/01_Antigravity_Workflow_Optimization.md).
+- **Detail-Plan**: Siehe [docs/archive/01_Antigravity_Workflow_Optimization.md](docs/archive/01_Antigravity_Workflow_Optimization.md).
 
 Tests live in `src/lib/casino/__tests__/` (service layer) and `src/store/__tests__/` (Zustand store). Run `npm run vibe-check` after significant changes — checks balance integrity, RNG distribution, and payout math.
 

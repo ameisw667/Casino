@@ -16,6 +16,7 @@ interface HistoryTableStreamProps {
   loading: boolean;
   rows: HistoryRow[];
   isMobile?: boolean;
+  onSelectRow?: (row: HistoryRow) => void;
 }
 
 function formatTime(iso: string) {
@@ -50,7 +51,12 @@ function getGameDotColor(game: string | null) {
   }
 }
 
-export function HistoryTableStream({ loading, rows, isMobile }: HistoryTableStreamProps) {
+export function HistoryTableStream({
+  loading,
+  rows,
+  isMobile: _isMobile,
+  onSelectRow,
+}: HistoryTableStreamProps) {
   if (loading) {
     return (
       <div
@@ -207,10 +213,12 @@ export function HistoryTableStream({ loading, rows, isMobile }: HistoryTableStre
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.02)' }}
+                  onClick={() => onSelectRow?.(r)}
+                  whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.04)' }}
                   style={{
                     borderBottom: isLast ? 'none' : '1px solid rgba(255, 255, 255, 0.04)',
                     transition: 'background-color 0.15s ease',
+                    cursor: onSelectRow ? 'pointer' : 'default',
                   }}
                 >
                   {/* Game Column with clean status dot */}
@@ -251,18 +259,66 @@ export function HistoryTableStream({ loading, rows, isMobile }: HistoryTableStre
                     {formatTime(r.created_at)}
                   </td>
 
-                  {/* Payout / Amount */}
+                  {/* Payout / Multiplier Sheen Badge (NP-6) */}
                   <td style={{ padding: '14px 20px' }}>
-                    <div
-                      style={{
-                        fontFamily: 'var(--font-mono, monospace)',
-                        fontWeight: 800,
-                        fontSize: '0.88rem',
-                        color: isWin ? '#10b981' : '#f87171',
-                      }}
-                    >
-                      {isWin ? `+$${r.amount.toFixed(2)}` : `-$${Math.abs(r.amount).toFixed(2)}`}
-                    </div>
+                    {isWin ? (
+                      r.amount >= 25 ? (
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            background:
+                              'linear-gradient(135deg, rgba(212, 175, 55, 0.22) 0%, rgba(212, 175, 55, 0.08) 100%)',
+                            border: '1px solid rgba(212, 175, 55, 0.5)',
+                            boxShadow: '0 0 12px rgba(212, 175, 55, 0.25)',
+                            fontFamily: 'var(--font-mono, monospace)',
+                            fontWeight: 900,
+                            fontSize: '0.86rem',
+                            color: '#D4AF37',
+                          }}
+                        >
+                          <span style={{ fontSize: '0.7rem' }}>⚡</span>
+                          <span>+${r.amount.toFixed(2)}</span>
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            background: 'rgba(16, 185, 129, 0.12)',
+                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                            fontFamily: 'var(--font-mono, monospace)',
+                            fontWeight: 800,
+                            fontSize: '0.85rem',
+                            color: '#10b981',
+                          }}
+                        >
+                          +${r.amount.toFixed(2)}
+                        </div>
+                      )
+                    ) : (
+                      <div
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          background: 'rgba(239, 68, 68, 0.08)',
+                          border: '1px solid rgba(239, 68, 68, 0.2)',
+                          fontFamily: 'var(--font-mono, monospace)',
+                          fontWeight: 700,
+                          fontSize: '0.85rem',
+                          color: '#f87171',
+                        }}
+                      >
+                        -${Math.abs(r.amount).toFixed(2)}
+                      </div>
+                    )}
                   </td>
 
                   {/* Balance After */}
@@ -282,17 +338,17 @@ export function HistoryTableStream({ loading, rows, isMobile }: HistoryTableStre
                     })}
                   </td>
 
-                  {/* Verification Badge */}
+                  {/* Verification & Receipt Badge */}
                   <td style={{ padding: '14px 20px', textAlign: 'right' }}>
                     <div
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '4px',
+                        gap: '6px',
                         padding: '4px 8px',
                         borderRadius: '6px',
                         background: 'rgba(16, 185, 129, 0.08)',
-                        border: '1px solid rgba(16, 185, 129, 0.15)',
+                        border: '1px solid rgba(16, 185, 129, 0.18)',
                         color: '#10b981',
                         fontSize: '0.62rem',
                         fontWeight: 800,

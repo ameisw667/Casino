@@ -12,6 +12,7 @@ import { CasinoLogger } from '@/lib/casino/logger';
 import { getOrCreateSessionId } from '@/lib/casino/session';
 import { isBigWin } from '@/lib/casino/big-win';
 import { useMounted } from '@/hooks/useMounted';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import {
   Home,
@@ -302,6 +303,37 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, [setIsMobile]);
+
+  // Body scroll lock on mobile when drawer is open
+  useEffect(() => {
+    if (isMobile && mobileSidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobile, mobileSidebarOpen]);
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    if (mobileSidebarOpen) {
+      setMobileSidebarOpen(false);
+    }
+  }, [pathname, mobileSidebarOpen]);
+
+  // Close mobile sidebar on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && mobileSidebarOpen) {
+        setMobileSidebarOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileSidebarOpen]);
+
   useEffect(() => {
     const root = document.documentElement;
     root.style.setProperty('--primary', '45 100% 50%');
@@ -355,6 +387,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   // 4. Activity Simulator & server-authoritative wallet initialization
   const initialize = useCasinoStore((state) => state.initialize);
   const startActivitySimulator = useCasinoStore((state) => state.startActivitySimulator);
+  const mainRef = React.useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     initialize();
@@ -386,6 +419,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     };
   }, [initialize, startActivitySimulator]);
 
+  const showExpandedSidebar = isMobile ? true : sidebarOpen;
   const nextLevelXp = Math.pow(level, 2) * 100;
   const progress = Math.min(100, (xp / nextLevelXp) * 100);
   const menuItems = [
@@ -438,109 +472,170 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     >
       <LoadingOverlay />
 
-      {/* Mobile Drawer Overlay */}
-      {mobileSidebarOpen && (
-        <div
-          onClick={() => setMobileSidebarOpen(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 100,
-          }}
-        />
-      )}
+      {/* Mobile Drawer Overlay with Adaptive Blur */}
+      <AnimatePresence>
+        {isMobile && mobileSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            onClick={() => setMobileSidebarOpen(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0, 0, 0, 0.75)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              zIndex: 145,
+            }}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* Sidebar */}
-      <aside
-        className="glass"
+      {/* Sidebar / Mobile Slide Drawer */}
+      <motion.aside
+        className="glass-sidebar"
+        initial={false}
+        animate={
+          isMobile
+            ? { x: mobileSidebarOpen ? 0 : '-100%' }
+            : { x: 0, width: sidebarOpen ? 240 : 80 }
+        }
+        transition={{
+          type: 'spring',
+          damping: isMobile ? 24 : 28,
+          stiffness: isMobile ? 300 : 320,
+        }}
+        onWheel={(e) => {
+          if (!isMobile && mainRef.current) {
+            mainRef.current.scrollTop += e.deltaY;
+          }
+        }}
         style={{
-          width: isMobile ? (mobileSidebarOpen ? '280px' : '0px') : sidebarOpen ? '240px' : '80px',
+          width: isMobile ? '280px' : undefined,
           flexShrink: 0,
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           display: 'flex',
           flexDirection: 'column',
-          borderRight: '1px solid var(--glass-border)',
           zIndex: 150,
           height: '100vh',
+          maxHeight: '100vh',
           position: isMobile ? 'fixed' : 'sticky',
           left: 0,
           top: 0,
           overflow: 'hidden',
-          background: 'hsl(var(--bg-color))',
+          overscrollBehavior: 'none',
         }}
       >
-        <Link
-          href="/"
+        <div
           style={{
-            padding: '24px',
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
-            textDecoration: 'none',
-            color: 'inherit',
+            justifyContent: 'space-between',
+            paddingRight: isMobile ? '12px' : '0',
+            flexShrink: 0,
           }}
         >
-          <div style={{ width: '40px', height: '40px', position: 'relative', flexShrink: 0 }}>
-            <Image
-              src="/images/brand-medallion-3d.png"
-              alt="Casino Royale"
-              fill
-              sizes="100px"
-              style={{ objectFit: 'contain' }}
-              className="animate-pulse"
-            />
-          </div>
-          {sidebarOpen && (
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Link
+            href="/"
+            onClick={() => {
+              if (isMobile) setMobileSidebarOpen(false);
+            }}
+            style={{
+              padding: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
+          >
+            <div style={{ width: '40px', height: '40px', position: 'relative', flexShrink: 0 }}>
+              <Image
+                src="/images/brand-medallion-3d.png"
+                alt="Casino Royale"
+                fill
+                sizes="100px"
+                style={{ objectFit: 'contain' }}
+                className="animate-pulse"
+              />
+            </div>
+            {showExpandedSidebar && (
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span
+                    style={{
+                      fontWeight: 900,
+                      fontSize: '1.2rem',
+                      letterSpacing: '-1px',
+                      lineHeight: 1,
+                    }}
+                  >
+                    CASINO
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '0.6rem',
+                      fontWeight: 900,
+                      background: 'hsl(var(--primary))',
+                      color: 'black',
+                      padding: '1px 4px',
+                      borderRadius: '3px',
+                      transform: 'translateY(-2px)',
+                    }}
+                  >
+                    PRO
+                  </span>
+                </div>
                 <span
                   style={{
                     fontWeight: 900,
-                    fontSize: '1.2rem',
-                    letterSpacing: '-1px',
-                    lineHeight: 1,
+                    fontSize: '0.65rem',
+                    color: 'hsl(var(--primary))',
+                    letterSpacing: '0.2em',
+                    marginTop: '2px',
                   }}
                 >
-                  CASINO
-                </span>
-                <span
-                  style={{
-                    fontSize: '0.6rem',
-                    fontWeight: 900,
-                    background: 'hsl(var(--primary))',
-                    color: 'black',
-                    padding: '1px 4px',
-                    borderRadius: '3px',
-                    transform: 'translateY(-2px)',
-                  }}
-                >
-                  PRO
+                  ROYALE
                 </span>
               </div>
-              <span
-                style={{
-                  fontWeight: 900,
-                  fontSize: '0.65rem',
-                  color: 'hsl(var(--primary))',
-                  letterSpacing: '0.2em',
-                  marginTop: '2px',
-                }}
-              >
-                ROYALE
-              </span>
-            </div>
+            )}
+          </Link>
+          {isMobile && (
+            <button
+              onClick={() => setMobileSidebarOpen(false)}
+              className="btn btn-ghost"
+              aria-label="Close navigation menu"
+              style={{
+                width: '36px',
+                height: '36px',
+                padding: '0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '8px',
+                color: 'rgba(255, 255, 255, 0.7)',
+              }}
+            >
+              <X size={20} />
+            </button>
           )}
-        </Link>
-        <nav style={{ flex: 1, padding: '12px', overflowY: 'auto' }}>
+        </div>
+
+        <nav style={{
+          flex: '1 1 0%',
+          minHeight: 0,
+          padding: '12px',
+          overflowY: isMobile ? 'auto' : 'hidden',
+          overscrollBehavior: 'contain',
+        }}>
           {menuItems.map((item) => {
             const active = item.path === '/' ? pathname === '/' : pathname.startsWith(item.path);
             const isSettings = item.label === 'Settings';
             const content = (
               <>
                 {item.icon}
-                {sidebarOpen && <span>{item.label}</span>}
+                {showExpandedSidebar && <span>{item.label}</span>}
               </>
             );
             return (
@@ -550,18 +645,28 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                   className="btn btn-ghost"
                   aria-label={item.label}
                   style={{
-                    justifyContent: sidebarOpen ? 'flex-start' : 'center',
+                    justifyContent: showExpandedSidebar ? 'flex-start' : 'center',
                     width: '100%',
                     marginBottom: '4px',
                     color:
                       active || (isSettings && showSettings)
-                        ? 'hsl(var(--primary))'
-                        : 'hsl(var(--text-muted))',
+                        ? '#D4AF37'
+                        : 'rgba(255, 255, 255, 0.72)',
                     background:
                       active || (isSettings && showSettings)
-                        ? 'hsla(0, 0%, 100%, 0.05)'
+                        ? 'linear-gradient(90deg, rgba(212, 175, 55, 0.16) 0%, rgba(212, 175, 55, 0.03) 100%)'
                         : 'transparent',
-                    padding: sidebarOpen ? '12px 16px' : '12px',
+                    borderLeft:
+                      active || (isSettings && showSettings)
+                        ? '3px solid #D4AF37'
+                        : '3px solid transparent',
+                    boxShadow:
+                      active || (isSettings && showSettings)
+                        ? '0 0 16px rgba(212, 175, 55, 0.12)'
+                        : 'none',
+                    padding: showExpandedSidebar ? '10px 14px' : '10px',
+                    borderRadius: '8px',
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
                 >
                   {content}
@@ -579,9 +684,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           })}
         </nav>
 
-        {sidebarOpen && (
+        {showExpandedSidebar && (
           <div
             style={{
+              flexShrink: 0,
               margin: '20px',
               padding: '16px',
               background: 'hsla(0,0%,100%,0.02)',
@@ -616,17 +722,29 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="btn btn-ghost"
             aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-            style={{ margin: '12px', justifyContent: 'center' }}
+            style={{
+              flexShrink: 0,
+              margin: '12px',
+              padding: '12px',
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(255,255,255,0.05)',
+              borderRadius: '12px',
+              color: 'rgba(255,255,255,0.4)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
           >
             {sidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
           </button>
         )}
-      </aside>
+      </motion.aside>
 
       <CommandPalette />
 
       {/* Main Content */}
       <main
+        ref={mainRef}
         style={{
           flex: 1,
           minWidth: 0,
@@ -635,23 +753,21 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           height: '100vh',
           overflowY: 'auto',
           overflowX: 'hidden',
+          position: 'relative',
         }}
       >
         <header
-          className="glass"
+          className="glass-header"
           style={{
             height: isMobile ? '64px' : '72px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: isMobile ? '0 8px' : '0 24px',
-            borderBottom: '1px solid var(--glass-border)',
             flexShrink: 0,
             position: 'sticky',
             top: 0,
             zIndex: 40,
-            background: 'hsla(var(--bg-color), 0.8)',
-            backdropFilter: 'blur(20px)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px' }}>

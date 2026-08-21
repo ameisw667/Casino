@@ -98,11 +98,13 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
   return (
     <div
       style={{
-        background: 'rgba(12, 12, 14, 0.7)',
-        border: '1px solid rgba(255, 255, 255, 0.05)',
+        background:
+          'linear-gradient(145deg, rgba(20, 20, 28, 0.75) 0%, rgba(10, 10, 15, 0.9) 100%)',
+        border: '1px solid rgba(212, 175, 55, 0.12)',
         borderRadius: '16px',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        boxShadow: '0 16px 40px rgba(0, 0, 0, 0.5)',
         overflowX: 'auto',
         width: '100%',
       }}
@@ -115,7 +117,7 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
         }}
       >
         <thead>
-          <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+          <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
             <th
               style={{
                 padding: '14px 20px',
@@ -189,14 +191,32 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
               const badgeStyle = getRankBadge(r.rank);
               const isLast = i === rows.length - 1;
 
+              const rowBackground = isFirst
+                ? 'linear-gradient(90deg, rgba(212, 175, 55, 0.16) 0%, rgba(212, 175, 55, 0.04) 50%, transparent 100%)'
+                : isSecond
+                  ? 'linear-gradient(90deg, rgba(226, 232, 240, 0.12) 0%, rgba(226, 232, 240, 0.03) 50%, transparent 100%)'
+                  : isThird
+                    ? 'linear-gradient(90deg, rgba(217, 119, 6, 0.12) 0%, rgba(217, 119, 6, 0.03) 50%, transparent 100%)'
+                    : 'transparent';
+
+              const borderLeftColor = isFirst
+                ? '3px solid #D4AF37'
+                : isSecond
+                  ? '3px solid #e2e8f0'
+                  : isThird
+                    ? '3px solid #d97706'
+                    : '3px solid transparent';
+
               return (
                 <motion.tr
                   key={r.username + i}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.02)' }}
+                  whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.03)' }}
                   style={{
+                    background: rowBackground,
+                    borderLeft: borderLeftColor,
                     borderBottom: isLast ? 'none' : '1px solid rgba(255, 255, 255, 0.04)',
                     transition: 'background-color 0.15s ease',
                   }}
@@ -214,17 +234,10 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                             display: 'flex',
                             alignItems: 'center',
                             gap: '5px',
+                            textShadow: '0 0 10px rgba(212, 175, 55, 0.5)',
                           }}
                         >
-                          <span
-                            style={{
-                              width: '6px',
-                              height: '6px',
-                              borderRadius: '50%',
-                              background: '#D4AF37',
-                              boxShadow: '0 0 6px #D4AF37',
-                            }}
-                          />
+                          <Trophy size={14} color="#D4AF37" />
                           #1
                         </span>
                       ) : isSecond ? (
@@ -241,10 +254,11 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                         >
                           <span
                             style={{
-                              width: '6px',
-                              height: '6px',
+                              width: '8px',
+                              height: '8px',
                               borderRadius: '50%',
                               background: '#e2e8f0',
+                              boxShadow: '0 0 6px rgba(226, 232, 240, 0.6)',
                             }}
                           />
                           #2
@@ -263,10 +277,11 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                         >
                           <span
                             style={{
-                              width: '6px',
-                              height: '6px',
+                              width: '8px',
+                              height: '8px',
                               borderRadius: '50%',
                               background: '#f59e0b',
+                              boxShadow: '0 0 6px rgba(245, 158, 11, 0.6)',
                             }}
                           />
                           #3

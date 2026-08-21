@@ -33,10 +33,12 @@ export function ProfitHistoryChart({ loading, rows, isMobile }: ProfitHistoryCha
         gridColumn: isMobile ? 'span 1' : 'span 2',
         padding: isMobile ? '16px' : '20px 24px',
         borderRadius: '16px',
-        background: 'rgba(12, 12, 14, 0.7)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.05)',
+        background:
+          'linear-gradient(145deg, rgba(24, 24, 32, 0.7) 0%, rgba(12, 12, 18, 0.88) 100%)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: '1px solid rgba(212, 175, 55, 0.12)',
+        boxShadow: '0 12px 32px rgba(0, 0, 0, 0.45)',
         display: 'flex',
         flexDirection: 'column',
         minHeight: '290px',
@@ -81,8 +83,9 @@ export function ProfitHistoryChart({ loading, rows, isMobile }: ProfitHistoryCha
           <AreaChart data={series}>
             <defs>
               <linearGradient id="statsProfitGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={lineColor} stopOpacity={0.35} />
-                <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
+                <stop offset="0%" stopColor={lineColor} stopOpacity={0.45} />
+                <stop offset="60%" stopColor={lineColor} stopOpacity={0.12} />
+                <stop offset="100%" stopColor={lineColor} stopOpacity={0} />
               </linearGradient>
             </defs>
             <XAxis
@@ -96,11 +99,13 @@ export function ProfitHistoryChart({ loading, rows, isMobile }: ProfitHistoryCha
             <YAxis stroke="rgba(255, 255, 255, 0.2)" fontSize={10} width={48} tickLine={false} />
             <Tooltip
               contentStyle={{
-                background: '#0e0e12',
+                background: 'rgba(11, 14, 20, 0.92)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
                 border: '1px solid rgba(212, 175, 55, 0.3)',
-                borderRadius: '8px',
+                borderRadius: '10px',
                 fontSize: '0.8rem',
-                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.65)',
                 color: '#ffffff',
               }}
               itemStyle={{ color: '#ffffff' }}
@@ -114,7 +119,7 @@ export function ProfitHistoryChart({ loading, rows, isMobile }: ProfitHistoryCha
               stroke={lineColor}
               fillOpacity={1}
               fill="url(#statsProfitGradient)"
-              strokeWidth={2}
+              strokeWidth={2.5}
             />
           </AreaChart>
         </ResponsiveContainer>

@@ -20,7 +20,7 @@ Skala: **Aufwand/Risiko/Impact jetzt 1–100** (Methodik siehe unten), Lerneffek
 
 Die Jan-Tabelle ist bewusst kompakt. Ausführliche ROI-, Security-, Reversibilitäts- und Abhängigkeitshinweise bleiben in Abschnitt 3 und den Detail-/Archivdateien; die Übersicht wiederholt sie nicht.
 
-**Jans aktive Themen (Stand 2026-08-18):** Die Jan-Tabelle zeigt ausschließlich offene, in Arbeit befindliche oder noch nicht abschließend verifizierte Initiativen. Die dreizehn abgeschlossenen Punkte `1.1`, `1.2`, `1.4`, `1.5`, `1.6`, `1.7`, `1.9`, `1.13`, `1.14`, `2.2`, `2.5`, `2.7` und `2.9` sowie der bereits abgeschlossene `2.4` und neu `3.3`/`3.4` (Live Progressive Jackpot, kombiniert ausgeführt) stehen im [Archivindex](../docs/archive/05_ZUKUNFTSPLANUNG_ARCHIV.md). `2.7` wird dort als technisch produktiv abgeschlossen geführt; die zeitbedingte Kostenplausibilisierung bleibt als Archivhinweis sichtbar. `1.11` bleibt ausschließlich als lokale Ausschlussnotiz im [Security-Archiv](../docs/architecture/06_SECURITY_CASINO_LOCAL_CLOSURE.md).
+**Jans aktive Themen (Stand 2026-08-21):** Die Jan-Tabelle zeigt ausschließlich offene, in Arbeit befindliche oder noch nicht abschließend verifizierte Initiativen. Die dreizehn abgeschlossenen Punkte `1.1`, `1.2`, `1.4`, `1.5`, `1.6`, `1.7`, `1.9`, `1.13`, `1.14`, `2.2`, `2.5`, `2.7` und `2.9` sowie der bereits abgeschlossene `2.4`, `3.3`/`3.4` (Live Progressive Jackpot, kombiniert ausgeführt) und neu `4.2` (Trigger.dev-Tagesreport) stehen im [Archivindex](../docs/archive/05_ZUKUNFTSPLANUNG_ARCHIV.md). `2.7` wird dort als technisch produktiv abgeschlossen geführt; die zeitbedingte Kostenplausibilisierung bleibt als Archivhinweis sichtbar. `1.11` bleibt ausschließlich als lokale Ausschlussnotiz im [Security-Archiv](../docs/architecture/06_SECURITY_CASINO_LOCAL_CLOSURE.md).
 
 ---
 
@@ -30,15 +30,15 @@ Die Jan-Tabelle ist bewusst kompakt. Ausführliche ROI-, Security-, Reversibilit
 | ----- | ----: | ---: | ------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------: | -----: | -----: | ---------- | ------------ | ---------- | ----------------- |
 | P12   |     2 |  2.6 | 🟡 Blockiert (L1+L2 Executed, L3 blockiert) | Guide mit Live-Daten         | Kein aktiver Schritt — L3 wartet auf echten Nutzungs-/Fehlernachweis aus 2.7-Telemetrie (Details: [05_2.6_llmerweiterung.md](../docs/archive/05_2.6_llmerweiterung.md)) |      60 |     40 |     45 | Hoch       | Nein         | Nein       | Additiv           |
 | P23   |     2 | 2.10 | 🟡 Blockiert (Jan-Entscheidung 2026-08-18)  | Kontrolliertes RAG           | Identisch mit 2.6-L3 — wartet auf denselben Nutzungsnachweis                                                                                                            |      48 |     25 |     70 | Sehr Hoch  | Nein         | Nein       | Additiv           |
+| P26   |     2 | 2.11 | 🔴 Geplant (Zukunft / Backlog)              | Dynamisches Tägliches Turnier| Konzeption: Aggregation der aktivsten Spieler des Tages via DB-RPC & automatisierter täglicher Belohnungs-Ausschüttung                                                         |      45 |     30 |     65 | Hoch       | Ja           | Ja         | Additiv           |
 | P14   |     3 |  3.1 | ⬜ Nicht gestartet                          | Multiplayer-Crash            | Concurrency- und Realtime-Plan erstellen                                                                                                                                |      75 |     65 |     75 | Hoch       | Nein         | Ja         | Verändert Bestand |
 | P18   |     4 |  4.1 | ⬜ Nicht gestartet                          | Outbox Wallet-Nebenwirkungen | Idempotenten Event-Consumer entwerfen — 3.3-Lasttest (Klärungspunkt 8, archiviert) empfiehlt dies als Folgeschritt bei steigendem Bet-Volumen                           |      60 |     45 |     40 | Sehr Hoch  | Ja           | Ja         | Verändert Bestand |
-| P22   |     4 |  4.2 | 🟡 Fast fertig (2026-08-19)                 | Trigger.dev-Tagesreport      | Ersten echten automatischen Lauf abwarten (08:00 Europe/Berlin), dann archivieren                                                                                       |      55 |     30 |     60 | Sehr Hoch  | Nein         | Nein       | Additiv           |
 
 **Aktive Jan-Übersicht:** Die Tabelle enthält bewusst nur Arbeitsentscheidungen: Punkt, Phase/Nr., Status, kurze Idee, nächster Schritt, Aufwand/Risiko/Impact, Lerneffekt, DB-Migration, Money-Pfad und Go-Live-Typ. Detail-Scope, Security-Review, Reversibilität, ROI-Begründung und Abhängigkeiten stehen im jeweiligen Abschnitt 3 oder im Archivindex — sie werden hier nicht doppelt geführt.
 
 **Archivregel:** Abgeschlossene Initiativen werden aus dieser Tabelle und aus dem aktiven Detailplan entfernt, aber nicht gelöscht. Ergebnis, offene Restprüfung und Detailnachweis bleiben unter [docs/archive/05_ZUKUNFTSPLANUNG_ARCHIV.md](../docs/archive/05_ZUKUNFTSPLANUNG_ARCHIV.md) erhalten.
 
-**Empfohlene Reihenfolge (Stand 2026-08-19):** 2.9, L1+L2 des Royale Guide (Nachweise: [L1](../docs/archive/05_2.6_llmerweiterung_l1.md), [L2](../docs/archive/05_2.6_llmerweiterung_l2.md)) sowie 3.3/3.4 (Live Progressive Jackpot) sind abgeschlossen. 2.6-L3 und 2.10 (kontrolliertes Retrieval) sind bewusst pausiert — Jan hat entschieden, erst bei belegtem Nutzungs-/Fehlerbedarf aus der 2.7-Telemetrie weiterzuplanen. Aktiver nächster Schritt ist **4.2 Trigger.dev** (P22, bereits 🟡 in Arbeit): Schritt 3 (Secrets im Trigger.dev-Dashboard hinterlegen) ist Jans Aufgabe, siehe [`01_Trigger.dev.md`](01_Trigger.dev.md). 4.1 Outbox (jetzt mit konkretem Auslöser aus dem 3.3-Lasttest, siehe P18) und 3.1 (Multiplayer-Crash) bleiben nachgelagert.
+**Empfohlene Reihenfolge (Stand 2026-08-21):** 2.9, L1+L2 des Royale Guide (Nachweise: [L1](../docs/archive/05_2.6_llmerweiterung_l1.md), [L2](../docs/archive/05_2.6_llmerweiterung_l2.md)), 3.3/3.4 (Live Progressive Jackpot) und 4.2 (Trigger.dev-Tagesreport) sind abgeschlossen. 2.6-L3 und 2.10 (kontrolliertes Retrieval) sind bewusst pausiert — Jan hat entschieden, erst bei belegtem Nutzungs-/Fehlerbedarf aus der 2.7-Telemetrie weiterzuplanen. 4.1 Outbox (jetzt mit konkretem Auslöser aus dem 3.3-Lasttest, siehe P18) und 3.1 (Multiplayer-Crash) sind die verbleibenden aktiven Kandidaten, beide ohne aktuellen Auslöser — kein zwingender nächster Schritt.
 
 **Nicht Bestandteil:** Resend, Stripe, beehiiv, Intercom und Cloudflare werden nicht als neue Roadmap-Punkte aufgenommen.
 
@@ -71,6 +71,16 @@ Jede aktive Initiative folgt demselben Schema: Ziel · Scope (Dateien) · Neue D
 - **Abhängigkeit:** Messwerte aus 2.7 (Anfragevolumen, 429/502/503-Quote, Latenz, Tokenverbrauch und Kosten-Schätzung) und eine explizite Freigabe jeder einzelnen Datenklasse.
 - **Verifizierung:** Test pro erlaubter Datenklasse und Negativtest, dass Wallet/Profil/Bet-Historie niemals den LLM-Payload erreichen; gleiche Auth-, Origin- und Rate-Limit-Gates wie 2.4; Security-Review Pflicht.
 
+#### 2.11 — Dynamisches Tägliches Turnier (Daily Race)
+
+- **Status (2026-08-21):** 🔴 Geplant (Zukunft / Backlog) — Jan-Entscheidung: Nicht sofort umsetzen, sondern als eigenständiges Feature für Phase 2 einplanen.
+- **Ziel:** Ersetzung der statischen Dummy-Spieler im Bereich "Tägliches Turnier" auf der Startseite durch eine dynamische Echtzeit-Rangliste der 3 aktivsten Spieler des Tages mit automatisierter täglicher Preispool-Gutschrift.
+- **Scope:** Neuer API-Endpunkt `/api/tournaments/daily-race`, DB-View oder Aggregate-RPC für tägliches Wagered-Volumen pro Spieler, automatisierter Midnight-Settlement-Cron (z. B. Trigger.dev oder pg_cron) zur Gutschrift der Belohnungen (Platz 1: $5.000, Platz 2: $3.000, Platz 3: $2.000) auf die Spieler-Wallets.
+- **Neue DB-Objekte:** Tabelle `daily_races` / `daily_race_winners`, Settlement-RPC `settle_daily_race()`.
+- **Abhängigkeit:** Server-Authority (Migration 007), Trigger.dev-Cron / pg_cron.
+- **Verifizierung:** Echtzeit-Update der Wagered-Summen, idempotente Preispool-Ausschüttung um 00:00 UTC, korrekte UI-Anzeige mit Live-Avatar und Rang-Badges.
+- **Security-Reviewer:** Pflicht (Geldfluss / Wallet-Gutschrift für Turnier-Gewinner).
+
 ### Phase 4
 
 #### 4.1 — Outbox-Pattern für Wallet-Nebenwirkungen
@@ -82,15 +92,7 @@ Jede aktive Initiative folgt demselben Schema: Ziel · Scope (Dateien) · Neue D
 - **Verifizierung:** doppelt zugestelltes Event verarbeitet die Nebenwirkung nur einmal (Idempotenz-Test); Settlement-Latenz-Regressionstest zeigt keine Verschlechterung ggü. dem synchronen Pfad; Consumer-Lag-Test bestätigt, dass verzögerte Verarbeitung die Wallet-Balance nicht beeinflusst, nur XP/Achievements.
 - **Security-Reviewer:** Pflicht (verändert den bestehenden Settlement-kritischen Pfad, siehe R12 im Risiko-Register).
 
-#### 4.2 — Trigger.dev-Background-Workflow
-
-- **Status:** Fast fertig (2026-08-19) — Detailplan [`01_Trigger.dev.md`](01_Trigger.dev.md). Account, CLI, Secrets, Task, manueller Testlauf (Telegram-Zustellung verifiziert), Retry-Nachweis, Security-Review und Production-Deploy mit deklarativem Cron (täglich 08:00 Europe/Berlin) sind abgeschlossen. Offen: erster echter automatischer Lauf noch nicht bestätigt. Trigger.dev bleibt bewusst außerhalb der Phasen 1–3, weil ein externer Background-Job weder neue Nutzerinteraktion noch ein Cross-User-Geldfluss ist.
-- **Ziel:** Lernen, wie längere oder wiederholbare Aufgaben außerhalb eines normalen Next.js-Requests laufen, automatisch erneut versucht werden und einen sichtbaren Laufstatus erhalten.
-- **Scope (aktualisiert, ersetzt den ursprünglichen Wochenreport-Vorschlag):** ein nicht-monetärer, aber automatisiert **täglicher** `daily-activity-digest`-Task: Spiel-/Business-Aktivität (aktive User, Bets, GGR, Top-Spiel) direkt per Supabase-Service-Role-Client lesen (nicht über die session-geschützte Admin-API aus 2.5), Kennzahlen berechnen und per Telegram an Jan zustellen (Wiederverwendung der bestehenden Telegram-Infrastruktur, kein neuer externer Kanal). Kein Wallet-Settlement, keine Auszahlung, keine Resend-Integration, keine Server-/Fehler-Health-Daten, kein autonomer Produktionsjob vor abgeschlossenem Security-Review. Vollständiger Scope, IST-Stand, Anforderungen und Execution-Plan in [`01_Trigger.dev.md`](01_Trigger.dev.md).
-- **Neue DB-Objekte:** keine — Trigger.dev verwaltet den Joblauf extern, der Report wird nicht persistiert. Eine spätere interne Outbox-/Job-Tabelle wird nicht vorweggenommen und müsste separat gegen 4.1 (Outbox-Pattern) bewertet werden.
-- **Abhängigkeit:** `buildAdminAnalytics()`-Berechnungslogik aus `src/lib/admin/analytics.ts` (Wiederverwendung statt Neuimplementierung); bestehender Telegram-Bot (`telegram-api.ts`); ein synthetischer oder eigener Admin-Testlauf genügt, eine Nutzerbasis ist nicht erforderlich.
-- **Verifizierung:** Ein Lauf startet, verarbeitet alle Schritte und endet erfolgreich; ein absichtlich fehlschlagender Schritt wird gemäß Retry-Regel wiederholt; ein zweiter identischer Lauf am selben Kalendertag erzeugt keine doppelte Telegram-Zustellung (Idempotenz); Secrets erscheinen nicht in Logs; Wallet-/Bet-Routen werden nicht aufgerufen.
-- **Security-Reviewer:** Pflicht vor Aktivierung des Scheduled Triggers (externer Service-Role-Key-Besitz durch Trigger.dev, asynchrone Wiederholungen, Nähe zu aggregierten Business-Daten).
+> **4.2 Trigger.dev-Background-Workflow abgeschlossen (2026-08-21):** Der `daily-activity-digest`-Task ist live, verifiziert und archiviert — siehe [`docs/archive/05_ZUKUNFTSPLANUNG_ARCHIV.md`](../docs/archive/05_ZUKUNFTSPLANUNG_ARCHIV.md) (P22) und [`docs/archive/01_Trigger.dev.md`](../docs/archive/01_Trigger.dev.md) für den vollständigen Detailnachweis.
 
 ### Nachtrag — Jans Lern-/Betriebsbausteine (2026-08-14)
 

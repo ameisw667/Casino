@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Coins, Zap, ShieldCheck, Activity, Sparkles } from 'lucide-react';
 import { useProgressiveJackpot } from '@/hooks/useProgressiveJackpot';
 
@@ -90,13 +90,14 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
           <span>LIVE PROGRESSIVE JACKPOT</span>
         </div>
 
-        {/* Big Liquid Gold Typographic Headline */}
+        {/* Big Liquid Gold Typographic Headline with Rolling Digital Slot Ticker (NP-1) */}
         <div
           style={{
+            position: 'relative',
             fontSize: isMobile ? 'clamp(2.4rem, 8.5vw, 3.4rem)' : 'clamp(3.8rem, 5.5vw, 5.2rem)',
             fontWeight: 1000,
-            fontFamily: 'monospace',
-            letterSpacing: '-0.03em',
+            fontFamily: 'var(--font-mono, monospace)',
+            letterSpacing: '-0.02em',
             lineHeight: 1.05,
             background:
               'linear-gradient(135deg, #FFFFFF 0%, #F5E08C 35%, #D4AF37 70%, #997517 100%)',
@@ -104,9 +105,12 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
             WebkitTextFillColor: 'transparent',
             filter: 'drop-shadow(0 0 35px rgba(212, 175, 55, 0.45))',
             marginBottom: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
-          {jackpotFormatted}
+          <RollingJackpotDisplay formatted={jackpotFormatted} />
         </div>
 
         <p
@@ -208,3 +212,45 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
     </section>
   );
 };
+
+// ──── Rolling Digital Slot Ticker Digit ────
+function RollingDigit({ char }: { char: string }) {
+  if (char === '$' || char === ',' || char === '.' || char === '—') {
+    return <span>{char}</span>;
+  }
+
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        position: 'relative',
+        height: '1.08em',
+        overflow: 'hidden',
+        verticalAlign: 'top',
+      }}
+    >
+      <AnimatePresence mode="popLayout" initial={false}>
+        <motion.span
+          key={char}
+          initial={{ y: '60%', opacity: 0.3 }}
+          animate={{ y: '0%', opacity: 1 }}
+          exit={{ y: '-60%', opacity: 0.3 }}
+          transition={{ type: 'spring', stiffness: 450, damping: 28 }}
+          style={{ display: 'inline-block' }}
+        >
+          {char}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
+
+function RollingJackpotDisplay({ formatted }: { formatted: string }) {
+  return (
+    <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+      {formatted.split('').map((ch, idx) => (
+        <RollingDigit key={`${idx}-${ch === ',' || ch === '.' ? ch : 'd'}`} char={ch} />
+      ))}
+    </div>
+  );
+}

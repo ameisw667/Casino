@@ -1,11 +1,29 @@
 import { z } from 'zod';
 
-const guideKnowledgeSourceIds = ['guide-games', 'guide-navigation', 'guide-commands'] as const;
+export const guideKnowledgeSourceIds = [
+  'guide-blackjack',
+  'guide-crash',
+  'guide-dice',
+  'guide-roulette',
+  'guide-slots',
+  'guide-navigation',
+  'guide-commands',
+  'guide-vip',
+  'guide-fairness',
+  'guide-limits',
+] as const;
+
+export type GuideKnowledgeSourceId = (typeof guideKnowledgeSourceIds)[number];
+
+export const guideKnowledgeTopics = ['games', 'navigation', 'commands', 'economy'] as const;
+export type GuideKnowledgeTopic = (typeof guideKnowledgeTopics)[number];
 
 export const guideKnowledgeSourceSchema = z.object({
   id: z.enum(guideKnowledgeSourceIds),
   version: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  topic: z.enum(['games', 'navigation', 'commands']),
+  topic: z.enum(guideKnowledgeTopics),
+  title: z.string().trim().min(1),
+  tags: z.array(z.string().trim().min(1)).min(1),
   owner: z.literal('product'),
   reviewedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   status: z.literal('active'),
@@ -14,21 +32,22 @@ export const guideKnowledgeSourceSchema = z.object({
 
 export const guideKnowledgeRegistrySchema = z
   .array(guideKnowledgeSourceSchema)
-  .length(guideKnowledgeSourceIds.length)
+  .min(1)
   .superRefine((sources, context) => {
-    for (const [index, expectedId] of guideKnowledgeSourceIds.entries()) {
-      const source = sources[index];
-      if (source?.id !== expectedId) {
+    const seenIds = new Set<string>();
+    for (const [index, source] of sources.entries()) {
+      if (seenIds.has(source.id)) {
         context.addIssue({
           code: 'custom',
-          message: `Expected ${expectedId} at registry position ${index}`,
+          message: `Duplicate source id ${source.id} at index ${index}`,
           path: [index, 'id'],
         });
       }
+      seenIds.add(source.id);
     }
 
     const versions = new Set(sources.map((source) => source.version));
-    if (versions.size !== 1) {
+    if (versions.size > 1) {
       context.addIssue({
         code: 'custom',
         message: 'All guide knowledge sources must use the same version',

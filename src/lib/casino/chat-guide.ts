@@ -2,7 +2,12 @@ import 'server-only';
 
 import { z } from 'zod';
 import { normalizeGuideUsage, type GuideUsage } from './guide-telemetry';
-import { GUIDE_KNOWLEDGE_SOURCES } from './guide-knowledge/registry';
+import {
+  GUIDE_KNOWLEDGE_SOURCES,
+  retrieveKnowledgeDocs,
+  selectKnowledgeDocs,
+  type HybridRetrieverOptions,
+} from './guide-knowledge/registry';
 import { guideKnowledgeRegistrySchema } from './guide-knowledge/schema';
 import {
   loadGuideLeaderboardSnippet,
@@ -10,7 +15,7 @@ import {
 } from './guide-live-leaderboard';
 
 export const CASINO_GUIDE_MODEL = process.env.CASINO_GUIDE_MODEL || 'gpt-4o-mini';
-export const CASINO_GUIDE_CONTEXT_VERSION = '2026-08-17';
+export const CASINO_GUIDE_CONTEXT_VERSION = '2026-08-21';
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
 const MAX_VISIBLE_ANSWER_LENGTH = 1_200;
@@ -23,7 +28,17 @@ const GUIDE_REPLY_SCHEMA = {
     type: { type: 'string', enum: ['guide_answer', 'out_of_scope'] },
     topic: {
       type: 'string',
-      enum: ['blackjack', 'crash', 'dice', 'roulette', 'slots', 'navigation', 'commands', 'other'],
+      enum: [
+        'blackjack',
+        'crash',
+        'dice',
+        'roulette',
+        'slots',
+        'navigation',
+        'commands',
+        'economy',
+        'other',
+      ],
     },
     answer: { type: 'string' },
   },
@@ -40,6 +55,7 @@ const guideReplySchema = z.object({
     'slots',
     'navigation',
     'commands',
+    'economy',
     'other',
   ]),
   answer: z.string(),
@@ -63,10 +79,42 @@ export type GuideKnowledgeContext = {
   content: string;
 };
 
+export type BuildGuideContextInput =
+  | string
+  | unknown[]
+  | { query?: string; maxDocs?: number; sources?: unknown };
+
 export function buildCasinoGuideContext(
-  sources: unknown = GUIDE_KNOWLEDGE_SOURCES,
+  input: BuildGuideContextInput = GUIDE_KNOWLEDGE_SOURCES as unknown as unknown[],
 ): GuideKnowledgeContext {
-  const parsedSources = guideKnowledgeRegistrySchema.safeParse(sources);
+  const baseSources =
+    typeof input === 'object' && input !== null && 'sources' in input && input.sources
+      ? input.sources
+      : Array.isArray(input)
+        ? input
+        : GUIDE_KNOWLEDGE_SOURCES;
+
+  const parsedBase = guideKnowledgeRegistrySchema.safeParse(baseSources);
+  if (!parsedBase.success) throw new CasinoGuideError('configuration');
+
+  let targetSources: unknown = parsedBase.data;
+
+  if (typeof input === 'string' && input.trim().length > 0) {
+    targetSources = selectKnowledgeDocs(input, { sources: parsedBase.data });
+  } else if (
+    typeof input === 'object' &&
+    input !== null &&
+    !Array.isArray(input) &&
+    'query' in input
+  ) {
+    const opts = input as { query?: string; maxDocs?: number };
+    targetSources = selectKnowledgeDocs(opts.query ?? '', {
+      maxDocs: opts.maxDocs,
+      sources: parsedBase.data,
+    });
+  }
+
+  const parsedSources = guideKnowledgeRegistrySchema.safeParse(targetSources);
   if (!parsedSources.success) throw new CasinoGuideError('configuration');
 
   const sourceIds = parsedSources.data.map((source) => source.id);
@@ -76,10 +124,24 @@ export function buildCasinoGuideContext(
     content: parsedSources.data
       .map(
         (source) =>
-          `SOURCE: ${source.id}\nVERSION: ${source.version}\nTOPIC: ${source.topic}\n${source.content}`,
+          `SOURCE: ${source.id}\nVERSION: ${source.version}\nTOPIC: ${source.topic}\nTITLE: ${source.title}\n${source.content}`,
       )
       .join('\n\n'),
   };
+}
+
+export async function buildCasinoGuideContextAsync(
+  message: string,
+  options?: HybridRetrieverOptions,
+): Promise<GuideKnowledgeContext> {
+  const parsedBase = guideKnowledgeRegistrySchema.safeParse(GUIDE_KNOWLEDGE_SOURCES);
+  if (!parsedBase.success) throw new CasinoGuideError('configuration');
+
+  const retrieval = await retrieveKnowledgeDocs(message, {
+    sources: parsedBase.data,
+    ...options,
+  });
+  return buildCasinoGuideContext(retrieval.docs);
 }
 
 function buildLiveDataBlock(leaderboard: GuideLeaderboardSnippet | null): string {
@@ -112,7 +174,7 @@ function buildCasinoGuideInstructions(
 Guide context version: ${CASINO_GUIDE_CONTEXT_VERSION}.
 Guide knowledge source version: ${context.sourceVersion}.
 
-You may answer conversationally only from the guide facts and live data below. If the request needs a fact that is not in them, return type "out_of_scope", topic "other", and a brief answer that you only cover game basics, navigation, existing commands, and the public leaderboard.
+You may answer conversationally only from the guide facts and live data below. If the request needs a fact that is not in them, return type "out_of_scope", topic "other", and a brief answer that you only cover game basics, navigation, commands, VIP/economy, and the public leaderboard.
 
 GUIDE FACTS:
 ${context.content}
@@ -141,7 +203,7 @@ function getOpenAiErrorCode(payload: unknown): string | undefined {
 export async function buildCasinoGuideRequest(
   message: string,
 ): Promise<{ url: string; init: RequestInit }> {
-  const context = buildCasinoGuideContext();
+  const context = await buildCasinoGuideContextAsync(message);
   const leaderboard = await loadGuideLeaderboardSnippet();
   const isReasoningModel =
     CASINO_GUIDE_MODEL.includes('gpt-5') ||

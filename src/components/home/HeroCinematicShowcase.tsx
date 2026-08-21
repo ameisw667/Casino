@@ -534,37 +534,53 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
             </div>
           </motion.div>
 
-          {/* Streamlined Zero-Shift Trust Metrics (Bugfix: Fixed Single-Line Layout) */}
+          {/* Dynamic Trust & Social Proof Bar: Frosted-Glass Pill with 3 Micro-Chips (Option 1) */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
             style={{
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: '12px',
-              fontSize: '0.75rem',
+              gap: '8px',
+              padding: '6px 12px',
+              borderRadius: '30px',
+              background: 'rgba(14, 17, 24, 0.72)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: '1px solid rgba(212, 175, 55, 0.22)',
+              boxShadow:
+                '0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+              fontSize: '0.72rem',
               fontWeight: 700,
-              whiteSpace: 'nowrap',
-              minHeight: '26px',
-              overflow: 'hidden',
-              width: '100%',
+              maxWidth: '100%',
+              overflowX: 'auto',
+              scrollbarWidth: 'none',
             }}
           >
-            {/* Live Ticker Metric (Fixed Width & Ellipsis to prevent layout shift) */}
+            {/* Micro-Chip 1: Live Ticker */}
             <div
               style={{
-                width: '155px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '5px',
+                gap: '6px',
+                padding: '3px 8px',
+                borderRadius: '16px',
+                background: 'rgba(0, 231, 1, 0.08)',
+                border: '1px solid rgba(0, 231, 1, 0.2)',
                 flexShrink: 0,
               }}
             >
-              <Zap size={12} color="#00E701" style={{ flexShrink: 0 }} />
+              <span
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: '#00E701',
+                  boxShadow: '0 0 6px #00E701',
+                  display: 'inline-block',
+                }}
+              />
               <AnimatePresence mode="wait">
                 <motion.span
                   key={tickerIndex}
@@ -572,53 +588,95 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -3 }}
                   style={{
-                    fontFamily: 'monospace',
+                    fontFamily: 'var(--font-mono, monospace)',
+                    fontWeight: 800,
                     color: '#00E701',
-                    letterSpacing: '0.02em',
+                    letterSpacing: '0.01em',
+                    maxWidth: '160px',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
+                    fontSize: '0.7rem',
                   }}
                 >
-                  {activeWin.user} +${activeWin.amount} ({activeWin.game})
+                  {activeWin.user} +${activeWin.amount}
                 </motion.span>
               </AnimatePresence>
             </div>
 
-            <span style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0 }}>•</span>
+            {/* Micro-Divider */}
+            <div
+              style={{
+                width: '1px',
+                height: '14px',
+                background: 'rgba(255, 255, 255, 0.12)',
+                flexShrink: 0,
+              }}
+            />
 
-            {/* Provably Fair */}
+            {/* Micro-Chip 2: 100% Provably Fair */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '5px',
-                color: 'rgba(255, 255, 255, 0.85)',
+                padding: '3px 8px',
+                borderRadius: '16px',
+                background: 'rgba(212, 175, 55, 0.08)',
+                border: '1px solid rgba(212, 175, 55, 0.22)',
+                color: '#D4AF37',
+                fontSize: '0.66rem',
+                fontWeight: 900,
+                letterSpacing: '0.04em',
                 flexShrink: 0,
               }}
             >
-              <ShieldCheck size={13} color="#D4AF37" />
-              <span>PROVABLY FAIR</span>
+              <ShieldCheck size={12} color="#D4AF37" />
+              <span>100% PROVABLY FAIR</span>
             </div>
 
-            <span style={{ color: 'rgba(255,255,255,0.2)', flexShrink: 0 }}>•</span>
+            {/* Micro-Divider */}
+            <div
+              style={{
+                width: '1px',
+                height: '14px',
+                background: 'rgba(255, 255, 255, 0.12)',
+                flexShrink: 0,
+              }}
+            />
 
-            {/* Rating */}
+            {/* Micro-Chip 3: Rating */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px',
-                color: 'rgba(255, 255, 255, 0.85)',
+                gap: '5px',
+                padding: '3px 8px',
+                borderRadius: '16px',
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                color: 'rgba(255, 255, 255, 0.9)',
                 flexShrink: 0,
               }}
             >
               <div style={{ display: 'flex', gap: '1px' }}>
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={10} fill="#00E701" color="#00E701" />
+                  <Star key={i} size={10} fill="#D4AF37" color="#D4AF37" />
                 ))}
               </div>
-              <span style={{ fontFamily: 'monospace' }}>4.9/5</span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontWeight: 800,
+                  color: '#fff',
+                  fontSize: '0.7rem',
+                }}
+              >
+                4.9/5.0
+              </span>
+              <span style={{ fontSize: '0.62rem', color: 'rgba(255, 255, 255, 0.45)' }}>
+                (1.200+ Reviews)
+              </span>
             </div>
           </motion.div>
         </div>

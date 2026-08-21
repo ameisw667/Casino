@@ -543,6 +543,38 @@ p {
   border: 1px solid var(--glass-border);
 }
 
+.glass-sidebar {
+  background: rgba(11, 14, 20, 0.65) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid hsla(45, 100%, 50%, 0.12) !important;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+}
+
+.glass-header {
+  background: linear-gradient(180deg, rgba(11, 14, 20, 0.82) 0%, rgba(11, 14, 20, 0.68) 80%, rgba(11, 14, 20, 0.52) 100%) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid hsla(45, 100%, 50%, 0.1) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+
+.glass-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -16px;
+  height: 16px;
+  background: linear-gradient(to bottom, rgba(11, 14, 20, 0.45) 0%, transparent 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+  pointer-events: none;
+}
+
 .glass-panel {
   background: var(--glass-bg);
   backdrop-filter: blur(12px);

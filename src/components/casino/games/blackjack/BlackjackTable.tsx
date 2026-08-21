@@ -35,9 +35,11 @@ export default function BlackjackTable({
         width: '100%',
         position: 'relative',
         borderRadius: '24px',
-        background: 'radial-gradient(ellipse at 50% 30%, #0d3827 0%, #062217 50%, #03120c 100%)',
-        border: '2px solid rgba(212, 175, 55, 0.45)',
-        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.85), inset 0 0 40px rgba(0, 0, 0, 0.9)',
+        background:
+          'radial-gradient(ellipse at 50% 35%, #181b24 0%, #0f1118 55%, #06070a 100%)',
+        border: '2px solid rgba(212, 175, 55, 0.55)',
+        boxShadow:
+          '0 25px 60px rgba(0, 0, 0, 0.95), inset 0 0 50px rgba(0, 0, 0, 0.95), 0 0 35px rgba(212, 175, 55, 0.14)',
         padding: '24px 20px',
         display: 'flex',
         flexDirection: 'column',
@@ -48,6 +50,17 @@ export default function BlackjackTable({
         overflow: 'hidden',
       }}
     >
+      {/* Decorative Felt Texture Overlay */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage:
+            'radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.03) 0%, transparent 80%), repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.005) 0px, rgba(255, 255, 255, 0.005) 2px, transparent 2px, transparent 4px)',
+          pointerEvents: 'none',
+        }}
+      />
+
       {/* Decorative Felt Background Arch */}
       <div
         style={{
@@ -57,7 +70,8 @@ export default function BlackjackTable({
           right: '5%',
           height: '240px',
           borderRadius: '50%',
-          border: '1.5px solid rgba(212, 175, 55, 0.15)',
+          border: '1.5px solid rgba(212, 175, 55, 0.22)',
+          boxShadow: '0 0 20px rgba(212, 175, 55, 0.08)',
           pointerEvents: 'none',
         }}
       />
@@ -69,15 +83,17 @@ export default function BlackjackTable({
           userSelect: 'none',
           pointerEvents: 'none',
           marginBottom: '8px',
+          position: 'relative',
+          zIndex: 5,
         }}
       >
         <div
           style={{
-            fontSize: '0.82rem',
+            fontSize: '0.84rem',
             fontWeight: 900,
-            letterSpacing: '2px',
+            letterSpacing: '2.5px',
             color: '#D4AF37',
-            textShadow: '0 0 10px rgba(212, 175, 55, 0.4)',
+            textShadow: '0 0 12px rgba(212, 175, 55, 0.55)',
           }}
         >
           BLACKJACK PAYS 3 TO 2
@@ -87,8 +103,8 @@ export default function BlackjackTable({
             fontSize: '0.64rem',
             fontWeight: 800,
             letterSpacing: '1.5px',
-            color: 'rgba(212, 175, 55, 0.65)',
-            marginTop: '2px',
+            color: 'rgba(212, 175, 55, 0.75)',
+            marginTop: '3px',
           }}
         >
           DEALER MUST STAND ON 17 • INSURANCE PAYS 2 TO 1
@@ -166,15 +182,21 @@ export default function BlackjackTable({
           )}
         </AnimatePresence>
 
-        {/* Circular Betting Spot */}
-        <div
+        {/* Circular Betting Spot with Spring Physics */}
+        <motion.div
+          key={betAmount}
+          initial={{ scale: 0.9 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 18 }}
           style={{
-            width: '64px',
-            height: '64px',
+            width: '68px',
+            height: '68px',
             borderRadius: '50%',
-            border: '2px dashed rgba(212, 175, 55, 0.45)',
-            background: 'rgba(0, 0, 0, 0.4)',
-            boxShadow: 'inset 0 0 12px rgba(0, 0, 0, 0.8)',
+            border: '2px dashed rgba(212, 175, 55, 0.55)',
+            background:
+              'radial-gradient(circle at 35% 35%, rgba(30, 34, 45, 0.9) 0%, rgba(10, 12, 16, 0.95) 100%)',
+            boxShadow:
+              'inset 0 0 14px rgba(0, 0, 0, 0.9), 0 0 16px rgba(212, 175, 55, 0.15)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -192,11 +214,16 @@ export default function BlackjackTable({
             BET
           </span>
           <span
-            style={{ color: '#FFF', fontFamily: 'monospace', fontSize: '0.78rem', fontWeight: 900 }}
+            style={{
+              color: '#FFF',
+              fontFamily: 'monospace',
+              fontSize: '0.82rem',
+              fontWeight: 900,
+            }}
           >
             ${betAmount.toFixed(0)}
           </span>
-        </div>
+        </motion.div>
       </div>
 
       {/* 3. PLAYER HANDS AREA */}

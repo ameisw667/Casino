@@ -54,14 +54,15 @@ export const RouletteBoard: React.FC<RouletteBoardProps> = ({
         style={{
           background:
             data.c === 'RED'
-              ? `linear-gradient(135deg, hsl(var(--error)), ${heat})`
+              ? `linear-gradient(135deg, rgba(185, 28, 28, 0.9) 0%, rgba(127, 29, 29, 0.95) 100%), ${heat}`
               : data.c === 'BLACK'
-                ? `linear-gradient(135deg, #0a0a0a, ${heat})`
-                : `linear-gradient(135deg, hsl(var(--success)), ${heat})`,
+                ? `linear-gradient(135deg, rgba(30, 33, 43, 0.9) 0%, rgba(14, 16, 22, 0.95) 100%), ${heat}`
+                : `linear-gradient(135deg, rgba(5, 150, 105, 0.9) 0%, rgba(6, 78, 59, 0.95) 100%), ${heat}`,
           boxShadow: highlighted
-            ? 'inset 0 0 30px rgba(255,255,255,0.4), 0 0 20px hsla(var(--primary), 0.2)'
-            : 'none',
+            ? 'inset 0 0 30px rgba(255,255,255,0.4), 0 0 20px rgba(212, 175, 55, 0.4)'
+            : 'inset 0 1px 1px rgba(255,255,255,0.08)',
           filter: highlighted ? 'brightness(1.5)' : 'none',
+          borderRadius: '6px',
         }}
       >
         <span className="relative z-10">{num}</span>
@@ -122,13 +123,27 @@ export const RouletteBoard: React.FC<RouletteBoardProps> = ({
         </div>
       </div>
 
-      <div className="grid min-w-[850px] grid-cols-[70px_1fr_90px] gap-1 rounded-2xl border border-white/5 bg-black/40 p-1 backdrop-blur-xl">
+      <div
+        className="grid min-w-[850px] grid-cols-[70px_1fr_90px] gap-1.5 rounded-2xl p-2.5 backdrop-blur-xl"
+        style={{
+          background:
+            'radial-gradient(ellipse at 50% 40%, rgba(24, 28, 38, 0.92) 0%, rgba(12, 14, 20, 0.98) 100%)',
+          border: '1.5px solid rgba(212, 175, 55, 0.35)',
+          boxShadow:
+            '0 20px 48px rgba(0, 0, 0, 0.9), inset 0 0 35px rgba(0, 0, 0, 0.85), 0 0 25px rgba(212, 175, 55, 0.1)',
+        }}
+      >
         {/* Zero */}
         <div
           onClick={() => !spinning && onPlaceBet({ type: 'STRAIGHT', value: 0 })}
           onMouseEnter={() => setHoveredArea({ type: 'STRAIGHT', value: 0 })}
           onMouseLeave={() => setHoveredArea(null)}
-          className={`relative row-span-3 flex cursor-pointer items-center justify-center overflow-hidden rounded-l-xl border border-white/5 bg-[hsl(var(--success))] text-3xl font-black transition-all ${winningNumber === 0 && !spinning ? 'z-20 ring-4 ring-white' : ''} ${hoveredArea?.type === 'STRAIGHT' && hoveredArea.value === 0 ? 'shadow-glow-success brightness-150' : ''}`}
+          className={`relative row-span-3 flex cursor-pointer items-center justify-center overflow-hidden rounded-l-xl border border-emerald-500/30 text-3xl font-black transition-all ${winningNumber === 0 && !spinning ? 'z-20 ring-4 ring-white shadow-glow-white' : ''} ${hoveredArea?.type === 'STRAIGHT' && hoveredArea.value === 0 ? 'shadow-glow-success brightness-150 ring-2 ring-emerald-400' : ''}`}
+          style={{
+            background:
+              'linear-gradient(135deg, rgba(5, 150, 105, 0.85) 0%, rgba(6, 78, 59, 0.95) 100%)',
+            boxShadow: 'inset 0 0 15px rgba(0,0,0,0.5)',
+          }}
         >
           0
           {currentBets.find((b) => b.type.type === 'STRAIGHT' && b.type.value === 0) && (

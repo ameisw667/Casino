@@ -1,6 +1,6 @@
 # 14 — GitHub CLI/MCP — Plan
 
-> **Status:** In Execution · **Stand:** 2026-08-19 · **Owner:** Jan/LLM · **Scope:** Option B — GitHub CLI plus drei offizielle, gehostete GitHub-MCP-Server für ausschliesslich lesenden Issue-, Pull-Request- und Actions-Kontext des Repositorys `ameisw667/Casino`; keine GitHub-Schreiboperation.
+> **Status:** Executed · **Stand:** 2026-08-21 · **Owner:** Jan/LLM · **Scope:** Option B — GitHub CLI plus drei offizielle, gehostete GitHub-MCP-Server für ausschliesslich lesenden Issue-, Pull-Request- und Actions-Kontext des Repositorys `ameisw667/Casino`; keine GitHub-Schreiboperation.
 
 ## 1 — Übersicht für Jan
 
@@ -12,8 +12,8 @@
 | L3     | Reproduzierbare lesende CLI-Abfragen                                   | 🟢 Executed     | —; direkte `gh`-Abfragen (Schritt 4) und alle vier npm-Wrapper `github:repo/issues/prs/actions` (Schritt 5) liefen mit Exit-Code 0, `package.json`-Diff enthält nur die vier Scripts                                                                                                                                                                                                                                   | LLM           |
 | L4     | Fine-grained MCP-PAT auf genau dieses Repository begrenzt              | 🟢 Executed     | —; erster Token wurde nach Chat-Exposition widerrufen und ersetzt; neuer Fine-grained PAT (Repo `Casino`, Actions/Contents/Issues/Pull requests/Metadata Read-only, 30 Tage) als lokale User-Umgebungsvariable `GITHUB_MCP_PAT` gesetzt und verifiziert (Präfix `github_pat_`, Wert nie ausgegeben)                                                                                                                    | Jan           |
 | L5     | Drei offizielle Remote-MCP-Server in Codex und Claude Code registriert | 🟢 Executed     | —; `github-issues`, `github-prs`, `github-actions` via `codex mcp add` und `claude mcp add` registriert (Scope-Erweiterung 2026-08-19, Jan-Freigabe); beide `mcp list` bestätigen je `/readonly`-URL, nur `GITHUB_MCP_PAT` referenziert und `✔ Connected`, kein Token-Wert sichtbar                                                                                                                                    | Jan           |
-| L6     | CLI- und MCP-Ergebnisse für Issues, PRs und Actions verglichen         | 🟡 In Execution | Konnektivität verifiziert (`claude mcp list`/`codex mcp list` ✔ Connected, erfolgreicher MCP-`initialize`-Handshake gegen `github-issues`); echter Tool-Level-Datenvergleich blockiert, da weder diese laufende Session noch Subagents noch `codex exec` neu registrierte MCP-Server ohne Neustart sehen — Fortsetzung in neuer Claude-Code-Session nötig (CLI-Referenzergebnisse aus Schritt 4/L3 liegen bereits vor) | LLM           |
-| L7     | Fehlerfall, Runbook und Worldmap-Status verifiziert                    | 🔴 Geplant      | Wartet auf L6-Abschluss in neuer Session, dann Schritte 9–11                                                                                                                                                                                                                                                                                                                                                           | LLM           |
+| L6     | CLI- und MCP-Ergebnisse für Issues, PRs und Actions verglichen         | 🟢 Executed     | —; nach Prozess-Neustart (`GITHUB_MCP_PAT` wurde vom vorherigen Prozess nicht geerbt, echter Neustart von Claude Code + Computer-Neustart 2026-08-21 behoben) alle drei Server `✔ Connected`. Vier `gh`-Wrapper und drei MCP-Abfragen unmittelbar nacheinander ausgeführt: Issues 0/0 offen (Match), 10/10 offene PRs mit identischer Nummer/Titel/Zustand/Autor/`updatedAt`/URL, 20/20 Actions-Runs mit identischer ID/Status/Conclusion/`updatedAt`/Titel/URL. Kein Schreibtool im MCP-Toolset sichtbar (nur `list_*`/`get_*`/`search_*`). | LLM           |
+| L7     | Fehlerfall, Runbook und Worldmap-Status verifiziert                    | 🟢 Executed     | —; Negativtest gegen `github-issues`-`/readonly`-Endpoint mit ungültigem, PAT-förmigem Bearer-Token liefert `401 Unauthorized` (`error="invalid_token"`, `"Token is not authorized"`); kein echter Token verwendet, kein Retry-Loop. Diese Datei und `01_API_MCP_CLI.md` (Milestone 14, Repository-Kompaktzeile, Abschnitt 4.5, Quellenliste) im selben Edit auf `Executed`/archiviert nachgezogen.                                                                                                                                        | LLM           |
 
 > **Ampel-Definition:** 🔴 Geplant = nicht gestartet · 🟡 In Execution = gestartet, nicht verifiziert · 🟢 Executed = verifiziert abgeschlossen.  
 > **Update-Pflicht:** Kopfstatus, diese Tabelle, der Detailabschnitt und die Statuszeile in [`01_API_MCP_CLI.md`](01_API_MCP_CLI.md) werden im selben Edit aktualisiert.  
@@ -141,16 +141,16 @@ Die Execution ergänzt unter `scripts` exakt diese vier Befehle; alle beschränk
 
 ### Definition of Done
 
-- [ ] `gh --version` ist nachweisbar; `gh auth status` bestätigt `github.com` ohne Token-Ausgabe.
-- [ ] Der Security-Review vor Live-Zugriff bestätigt URL-Allowlist, `/readonly`, Credential-Grenzen, Daten-Allowlist und Negativtests.
-- [ ] `gh repo view ameisw667/Casino` bestätigt vor jeder Abfrage das richtige Ziel.
-- [ ] Die vier npm-Wrapper aus Abschnitt 5 existieren, sind auf dieses Repo fest begrenzt und wurden erfolgreich read-only ausgeführt.
-- [ ] `GITHUB_MCP_PAT` ist Fine-grained, auf `ameisw667/Casino` und Read-only-Berechtigungen begrenzt; kein Secret liegt im Repo oder in der Planungsdatei.
-- [ ] `github-issues`, `github-prs` und `github-actions` sind als separate Codex-MCP-Server mit `/readonly` registriert.
-- [ ] Für jede der drei Datenklassen wurde ein MCP-Ergebnis mit dem entsprechenden CLI-Ergebnis verglichen.
-- [ ] Kein Pilot hat Workflow-Logs, Artefakte, Dateien, Kommentare, Reviews, Schreibtools oder Actions-Ausführung gelesen bzw. ausgelöst.
-- [ ] Ein 401/403-Negativtest ist dokumentiert und hat keinen echten Token verändert.
-- [ ] Diese Datei und Zeile 14 in `01_API_MCP_CLI.md` sind konsistent auf den tatsächlich nachgewiesenen Status aktualisiert.
+- [x] `gh --version` ist nachweisbar; `gh auth status` bestätigt `github.com` ohne Token-Ausgabe. (L1/L2, 2026-08-17/19)
+- [x] Der Security-Review vor Live-Zugriff bestätigt URL-Allowlist, `/readonly`, Credential-Grenzen, Daten-Allowlist und Negativtests. (Abschnitt 3, vor L4/L5 durchgeführt)
+- [x] `gh repo view ameisw667/Casino` bestätigt vor jeder Abfrage das richtige Ziel. (Schritt 8, 2026-08-21: `nameWithOwner":"ameisw667/Casino"`)
+- [x] Die vier npm-Wrapper aus Abschnitt 5 existieren, sind auf dieses Repo fest begrenzt und wurden erfolgreich read-only ausgeführt. (L3, erneut frisch 2026-08-21)
+- [x] `GITHUB_MCP_PAT` ist Fine-grained, auf `ameisw667/Casino` und Read-only-Berechtigungen begrenzt; kein Secret liegt im Repo oder in der Planungsdatei. (L4)
+- [x] `github-issues`, `github-prs` und `github-actions` sind als separate MCP-Server mit `/readonly` registriert. (L5, zusätzlich für Claude Code; `claude mcp list` 2026-08-21: alle drei `✔ Connected`)
+- [x] Für jede der drei Datenklassen wurde ein MCP-Ergebnis mit dem entsprechenden CLI-Ergebnis verglichen. (L6, 2026-08-21: Issues 0/0, PRs 10/10, Actions 20/20 — alle Allowlist-Felder identisch)
+- [x] Kein Pilot hat Workflow-Logs, Artefakte, Dateien, Kommentare, Reviews, Schreibtools oder Actions-Ausführung gelesen bzw. ausgelöst. (nur `list_issues`, `list_pull_requests`, `actions_list method=list_workflow_runs` verwendet; verfügbare Tools sind ausschließlich `list_*`/`get_*`/`search_*`, keine schreibenden Tools sichtbar)
+- [x] Ein 401/403-Negativtest ist dokumentiert und hat keinen echten Token verändert. (L7, 2026-08-21: `401 Unauthorized`, `error="invalid_token"` gegen `github-issues`-`/readonly`, PAT-förmiger Fantasiewert)
+- [x] Diese Datei und Zeile 14 (Milestone-Nr. 14) in `01_API_MCP_CLI.md` sind konsistent auf den tatsächlich nachgewiesenen Status aktualisiert. (gleicher Edit, 2026-08-21)
 
 ### Plan-Selbstprüfung (abgeschlossen vor `Execution-Ready`)
 

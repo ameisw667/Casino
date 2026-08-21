@@ -30,10 +30,12 @@ export function SessionLengthChart({ loading, rows, isMobile }: SessionLengthCha
         gridColumn: isMobile ? 'span 1' : 'span 2',
         padding: isMobile ? '16px' : '20px 24px',
         borderRadius: '16px',
-        background: 'rgba(12, 12, 14, 0.7)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.05)',
+        background:
+          'linear-gradient(145deg, rgba(24, 24, 32, 0.7) 0%, rgba(12, 12, 18, 0.88) 100%)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: '1px solid rgba(212, 175, 55, 0.12)',
+        boxShadow: '0 12px 32px rgba(0, 0, 0, 0.45)',
         display: 'flex',
         flexDirection: 'column',
         minHeight: '270px',
@@ -93,6 +95,12 @@ export function SessionLengthChart({ loading, rows, isMobile }: SessionLengthCha
       ) : (
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={activity}>
+            <defs>
+              <linearGradient id="sessionGoldGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#D4AF37" stopOpacity={0.95} />
+                <stop offset="100%" stopColor="#D4AF37" stopOpacity={0.35} />
+              </linearGradient>
+            </defs>
             <XAxis
               dataKey="date"
               tickFormatter={formatDay}
@@ -104,11 +112,13 @@ export function SessionLengthChart({ loading, rows, isMobile }: SessionLengthCha
             <Tooltip
               cursor={{ fill: 'rgba(255, 255, 255, 0.04)' }}
               contentStyle={{
-                background: '#0e0e12',
+                background: 'rgba(11, 14, 20, 0.92)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
                 border: '1px solid rgba(212, 175, 55, 0.3)',
-                borderRadius: '8px',
+                borderRadius: '10px',
                 fontSize: '0.8rem',
-                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.65)',
                 color: '#ffffff',
               }}
               itemStyle={{ color: '#ffffff' }}
@@ -116,7 +126,7 @@ export function SessionLengthChart({ loading, rows, isMobile }: SessionLengthCha
               formatter={(value) => [`${value ?? 0} min`, 'Session-Dauer']}
               labelFormatter={(label) => formatDay(String(label ?? ''))}
             />
-            <Bar dataKey="spanMinutes" fill="#D4AF37" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="spanMinutes" fill="url(#sessionGoldGradient)" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       )}

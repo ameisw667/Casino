@@ -61,19 +61,23 @@ const DEFAULT_WINS: HighrollerWin[] = [
   },
 ];
 
+import { HighrollerWinDetailModal } from './HighrollerWinDetailModal';
+
 export function LiveHighrollerTickerBar() {
-  const [wins, setWins] = useState<HighrollerWin[]>(DEFAULT_WINS);
+  const [wins] = useState<HighrollerWin[]>(DEFAULT_WINS);
   const [activeIdx, setActiveIdx] = useState(0);
+  const [selectedWin, setSelectedWin] = useState<HighrollerWin | null>(null);
 
   useEffect(() => {
     // Visibility change pause
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
+      if (selectedWin) return; // Pause while viewing details
       setActiveIdx((prev) => (prev + 1) % DEFAULT_WINS.length);
     }, 3800);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedWin]);
 
   const activeWin = wins[activeIdx];
 
@@ -91,132 +95,140 @@ export function LiveHighrollerTickerBar() {
   };
 
   return (
-    <div
-      style={{
-        width: '100%',
-        maxWidth: '1560px',
-        margin: '0 auto 16px',
-        padding: '0 24px',
-        zIndex: 10,
-        position: 'relative',
-      }}
-    >
+    <>
       <div
         style={{
-          height: '42px',
-          borderRadius: '12px',
-          background: 'rgba(12, 12, 18, 0.75)',
-          backdropFilter: 'blur(16px)',
-          border: '1px solid rgba(212, 175, 55, 0.16)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 16px',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+          width: '100%',
+          maxWidth: '1560px',
+          margin: '0 auto 16px',
+          padding: '0 24px',
+          zIndex: 10,
+          position: 'relative',
         }}
       >
-        {/* Left Badge: Live Highroller Label */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-          <span
-            style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: '#00E701',
-              boxShadow: '0 0 8px #00E701',
-              display: 'inline-block',
-            }}
-          />
-          <span
-            style={{
-              fontSize: '0.72rem',
-              fontWeight: 900,
-              letterSpacing: '0.08em',
-              color: '#D4AF37',
-              textTransform: 'uppercase',
-            }}
-          >
-            LIVE AUSZAHLUNGEN
-          </span>
-        </div>
-
-        {/* Center: Dynamic Animated Win Ticker */}
         <div
           style={{
-            flex: 1,
+            height: '42px',
+            borderRadius: '12px',
+            background: 'rgba(12, 12, 18, 0.75)',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(212, 175, 55, 0.16)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            margin: '0 16px',
-            height: '100%',
+            justifyContent: 'space-between',
+            padding: '0 16px',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
           }}
         >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeWin.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.35, ease: 'easeOut' }}
+          {/* Left Badge: Live Highroller Label */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <span
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                fontSize: '0.8rem',
-                fontWeight: 700,
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: '#00E701',
+                boxShadow: '0 0 8px #00E701',
+                display: 'inline-block',
+              }}
+            />
+            <span
+              style={{
+                fontSize: '0.72rem',
+                fontWeight: 900,
+                letterSpacing: '0.08em',
+                color: '#D4AF37',
+                textTransform: 'uppercase',
               }}
             >
-              {getTypeIcon(activeWin.type)}
-              <span style={{ color: 'rgba(255, 255, 255, 0.9)' }}>{activeWin.user}</span>
-              <span style={{ color: 'rgba(255, 255, 255, 0.45)', fontSize: '0.75rem' }}>
-                gewann
-              </span>
-              <span
-                style={{
-                  color: '#00E701',
-                  fontWeight: 900,
-                  fontFamily: 'monospace',
-                  letterSpacing: '0.02em',
-                }}
-              >
-                +${activeWin.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </span>
-              <span style={{ color: 'rgba(255, 255, 255, 0.45)', fontSize: '0.75rem' }}>auf</span>
-              <span style={{ color: '#fff', fontWeight: 800 }}>{activeWin.game}</span>
-              <span
-                style={{
-                  padding: '2px 6px',
-                  borderRadius: '4px',
-                  background: 'rgba(212, 175, 55, 0.15)',
-                  border: '1px solid rgba(212, 175, 55, 0.25)',
-                  color: '#D4AF37',
-                  fontSize: '0.7rem',
-                  fontWeight: 900,
-                  fontFamily: 'monospace',
-                }}
-              >
-                {activeWin.mult}
-              </span>
-            </motion.div>
-          </AnimatePresence>
-        </div>
+              LIVE AUSZAHLUNGEN
+            </span>
+          </div>
 
-        {/* Right: Live Activity Rate */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '0.72rem',
-            color: 'rgba(255, 255, 255, 0.6)',
-            flexShrink: 0,
-          }}
-        >
-          <TrendingUp size={13} color="#00E701" />
-          <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#fff' }}>99.2% RTP</span>
+          {/* Center: Dynamic Animated Win Ticker (Clickable for NP-2) */}
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              margin: '0 16px',
+              height: '100%',
+              cursor: 'pointer',
+            }}
+            onClick={() => setSelectedWin(activeWin)}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeWin.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                }}
+              >
+                {getTypeIcon(activeWin.type)}
+                <span style={{ color: 'rgba(255, 255, 255, 0.9)' }}>{activeWin.user}</span>
+                <span style={{ color: 'rgba(255, 255, 255, 0.45)', fontSize: '0.75rem' }}>
+                  gewann
+                </span>
+                <span
+                  style={{
+                    color: '#00E701',
+                    fontWeight: 900,
+                    fontFamily: 'monospace',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  +${activeWin.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </span>
+                <span style={{ color: 'rgba(255, 255, 255, 0.45)', fontSize: '0.75rem' }}>auf</span>
+                <span style={{ color: '#fff', fontWeight: 800 }}>{activeWin.game}</span>
+                <span
+                  style={{
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    background: 'rgba(212, 175, 55, 0.15)',
+                    border: '1px solid rgba(212, 175, 55, 0.25)',
+                    color: '#D4AF37',
+                    fontSize: '0.7rem',
+                    fontWeight: 900,
+                    fontFamily: 'monospace',
+                  }}
+                >
+                  {activeWin.mult}
+                </span>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Right: Live Activity Rate */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.72rem',
+              color: 'rgba(255, 255, 255, 0.6)',
+              flexShrink: 0,
+            }}
+          >
+            <TrendingUp size={13} color="#00E701" />
+            <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#fff' }}>99.2% RTP</span>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Highroller Detail Modal (NP-2) */}
+      <HighrollerWinDetailModal win={selectedWin} onClose={() => setSelectedWin(null)} />
+    </>
   );
 }

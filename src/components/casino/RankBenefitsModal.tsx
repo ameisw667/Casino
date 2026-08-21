@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { X, Trophy, Star, Info } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useCasinoStore } from '@/store/useCasinoStore';
 interface RankBenefitsModalProps {
   isOpen: boolean;
@@ -184,9 +185,11 @@ export default function RankBenefitsModal({ isOpen, onClose }: RankBenefitsModal
                 zIndex: 1,
               }}
             >
-              <div
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                transition={{ type: 'spring', damping: 18, stiffness: 120 }}
                 style={{
-                  width: `${progress}%`,
                   height: '100%',
                   background: 'linear-gradient(90deg, hsl(var(--primary)), hsl(var(--secondary)))',
                   borderRadius: '5px',

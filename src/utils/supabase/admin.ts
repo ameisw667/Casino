@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { createClient } from '@supabase/supabase-js';
+import WebSocket from 'ws';
 
 /**
  * Creates a Supabase client with administrative privileges.
@@ -19,6 +20,12 @@ export function createAdminClient() {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
+    },
+    // Explicit transport instead of relying on a global `WebSocket` — Node runtimes
+    // below v22 (e.g. the Trigger.dev worker) don't provide one, and supabase-js
+    // initializes a RealtimeClient internally even though we never use realtime here.
+    realtime: {
+      transport: WebSocket as unknown as typeof globalThis.WebSocket,
     },
   });
 }
