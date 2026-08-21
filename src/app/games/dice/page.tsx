@@ -410,10 +410,11 @@ export default function DicePage() {
       if (e.key === 's') setBetAmount((prev) => Math.min(betMax, prev * 2));
       if (e.key === 'd') setBetAmount(1);
       if (e.key === 'f') setBetAmount(balance);
+      if (e.key === 't') toggleRollMode();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [loading, isProcessing, handleRoll, balance, betMin, betMax]);
+  }, [loading, isProcessing, handleRoll, balance, betMin, betMax, toggleRollMode]);
 
   if (!mounted) return null;
 
@@ -1487,7 +1488,7 @@ export default function DicePage() {
                   }}
                 >
                   <RotateCcw size={12} />
-                  <span>SWAP</span>
+                  <span>SWAP (T)</span>
                 </button>
               </div>
               <input

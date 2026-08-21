@@ -3,6 +3,7 @@ import { createAdminClient } from '@/utils/supabase/admin';
 import { type WalletSnapshot, walletSnapshotSchema } from './wallet-contract';
 import { CasinoLogger } from './logger';
 import { ProvablyFairEngine } from './provably-fair';
+import { dailyRaceStandingSchema, secondsUntilNextUtcMidnight, type DailyRaceSnapshot } from './daily-race';
 
 const ZERO_TRANSACTION_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -550,6 +551,27 @@ export class WalletService {
       return { currentAmount: 0, lastWonAt: null };
     }
     return data as { currentAmount: number; lastWonAt: string | null };
+  }
+
+  /**
+   * Daily race standings read (worldmap/05_DAILY_TOURNAMENT.md, L4). Live aggregation via
+   * get_daily_race_standings() — never a fabricated placeholder. Falls back to an empty
+   * standings list on any DB/shape error, never a partial or guessed ranking; the countdown
+   * is always computed regardless of DB availability, since it's a pure UTC clock derivation.
+   */
+  static async getDailyRaceStandings(): Promise<DailyRaceSnapshot> {
+    const secondsUntilResetUtc = secondsUntilNextUtcMidnight();
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.rpc('get_daily_race_standings');
+    if (error || !Array.isArray(data)) {
+      return { standings: [], secondsUntilResetUtc };
+    }
+    const parsed = z.array(dailyRaceStandingSchema).safeParse(data);
+    if (!parsed.success) {
+      CasinoLogger.warn('WalletService', 'Invalid daily race standings shape from RPC', parsed.error);
+      return { standings: [], secondsUntilResetUtc };
+    }
+    return { standings: parsed.data, secondsUntilResetUtc };
   }
 
   /**

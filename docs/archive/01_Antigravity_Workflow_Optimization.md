@@ -44,6 +44,17 @@
    - Befehle wie `git diff` oder `git log` öffnen auf Windows/PowerShell standardmäßig einen Pager (`less`), der den Stream blockiert, wenn nicht `PAGER=cat` gesetzt ist.
 4. **Artifact Review Mode = `asks-for-review`**:
    - Bei jeder Planungsdatei (`implementation_plan.md`) wird der Workflow pausiert, selbst bei 1-Zeilen-Refactorings.
+5. **Tool-Mismatch bei File-Operationen (Inline-Scripts via Shell)**:
+   - Dateierstellung/-editierung über `run_command` (z.B. `node -e "fs.writeFileSync(...)"`, `Set-Content`, `echo >`) statt über native Antigravity-Tools (`write_to_file`, `replace_file_content`).
+   - Da der Befehlsstring den dynamischen Dateiinhalt enthält, schlägt Wildcard-/Pattern-Matching fehl und triggert bei jeder Operation ein manuelles Modal. Strikte Tool-Disziplin (native Tools) löst das Problem zu 100%.
+6. **Scratch-Skripte für Codebase-Recherche**:
+   - Ausführung temporärer Node/Python-Skripte (`node <brain-id>\scratch\search_*.js`) über `run_command` anstelle nativer Such-Tools.
+   - Da `<brain-id>` für jeden Chat-Thread eine neue GUID ist, schlägt der `always allow`-Speicher fehl.
+   - Lösung: 100% Pflicht zur Nutzung der nativen Tools `grep_search`, `find_by_name`, `list_dir`, `view_file`.
+7. **Befehls-Chaining mit dynamischen Strings**:
+   - Zusammenketten von `git add; git commit -m "..."; git push` in einen einzigen Befehl.
+   - Da die Commit-Message dynamisch ist, scheitert der Pattern-Match für die gesamte Kette.
+   - Lösung: Atomare Einzelschritte (`git add *`, `git commit *`, `git push origin *`), damit Wildcard-Auto-Allows auf jeden Teilschritt greifen.
 
 ---
 
@@ -94,25 +105,26 @@ Additive Werkzeuge zur Typgenerierung, Schema-Sync und Dependency-Installation.
 
 Verändern den lokalen Git-Tree. Durch `git reset` oder `git checkout` zu 100% reversibel.
 
-| Subkategorie         | Befehlsmuster                                     | Zweck                        |
-| :------------------- | :------------------------------------------------ | :--------------------------- |
-| **Staging & Commit** | `git add *`, `git commit -m *`                    | Lokale Versionierung         |
-| **Branches & Stash** | `git checkout -b *`, `git switch *`, `git stash*` | Branching & temporäre Ablage |
+| Subkategorie            | Befehlsmuster                                            | Zweck                             |
+| :---------------------- | :------------------------------------------------------- | :-------------------------------- |
+| **Staging & Commit**    | `git add *`, `git commit -m *`                           | Lokale Versionierung              |
+| **File Deletion & Move**| `git rm *`, `git mv *`                                   | Versioniertes Löschen/Verschieben |
+| **Branches & Stash**    | `git checkout -b *`, `git switch *`, `git stash*`        | Branching & temporäre Ablage      |
 
 ---
 
 ### Kohorte 5: Destruktiv / Live / Remote (Risiko: 95 / 100 — 🛑 IMMER Manueller Check)
 
-Irreversible Datenverluste, Live-Datenbankänderungen oder Remote-Deployments. **Kein Auto-Allow.**
+Irreversible Datenverluste, unversionierte System-Löschungen, Live-Datenbankänderungen oder Remote-Deployments. **Kein Auto-Allow.**
 
-| Subkategorie          | Befehlsmuster                                               | Gefahrenpotenzial                                   |
-| :-------------------- | :---------------------------------------------------------- | :-------------------------------------------------- |
-| **Remote Git Push**   | `git push*`, `git push --force*`                            | Überschreibt Remote-Branches                        |
-| **Hard Resets**       | `git reset --hard*`, `git clean -fd*`, `git restore .`      | Unwiderruflicher Verlust ungespeicherter Arbeit     |
-| **File Deletion**     | `rm -rf *`, `del /s /q *`, `Remove-Item -Recurse -Force *`  | Rekursives Löschen von System-/Projektdateien       |
-| **Remote Database**   | `npx supabase db reset*`, `npx supabase db push*`           | Zerstörung oder Überschreiben von Datenbanktabellen |
-| **Production Deploy** | `vercel --prod*`, `npm publish*`, `wrangler deploy*`        | Unbeabsichtigtes Live-Deployment                    |
-| **Secrets & Keys**    | Direkte Skripte auf `.env`, `.env.local`, `.env.production` | Secret-Überschreibung oder Leak                     |
+| Subkategorie          | Befehlsmuster                                                | Gefahrenpotenzial                                   |
+| :-------------------- | :----------------------------------------------------------- | :-------------------------------------------------- |
+| **Remote Git Push**   | `git push*`, `git push --force*`                             | Überschreibt Remote-Branches                        |
+| **Hard Resets**       | `git reset --hard*`, `git clean -fd*`, `git restore .`       | Unwiderruflicher Verlust ungespeicherter Arbeit     |
+| **System Deletion**   | `rm -rf /*`, `del /s /q C:\*`, `Remove-Item -Recurse -Force` | Rekursives Löschen von System-/Projektverzeichnissen |
+| **Remote Database**   | `npx supabase db reset*`, `npx supabase db push*`            | Zerstörung oder Überschreiben von Datenbanktabellen |
+| **Production Deploy** | `vercel --prod*`, `npm publish*`, `wrangler deploy*`         | Unbeabsichtigtes Live-Deployment                    |
+| **Secrets & Keys**    | Direkte Skripte auf `.env`, `.env.local`, `.env.production`  | Secret-Überschreibung oder Leak                     |
 
 ---
 

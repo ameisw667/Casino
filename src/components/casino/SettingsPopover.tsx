@@ -6,6 +6,7 @@ import { Volume2, VolumeX, Eye, EyeOff, ShieldCheck, Sliders } from 'lucide-reac
 import { useCasinoStore } from '@/store/useCasinoStore';
 import TelegramLinkSection from './TelegramLinkSection';
 import PasskeyManagementSection from './PasskeyManagementSection';
+import MfaManagementSection from './MfaManagementSection';
 
 interface SettingsPopoverProps {
   isOpen: boolean;
@@ -245,6 +246,7 @@ export default function SettingsPopover({
 
             <TelegramLinkSection />
             <PasskeyManagementSection />
+            <MfaManagementSection />
           </div>
         </motion.div>
       )}

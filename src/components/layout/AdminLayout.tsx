@@ -15,6 +15,7 @@ import {
   Ticket,
   ShieldAlert,
   BookOpen,
+  Activity,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -36,6 +37,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { icon: <Ticket size={20} />, label: 'Promo Codes', path: '/admin/promo-codes' },
     { icon: <ShieldAlert size={20} />, label: 'Anti-Fraud', path: '/admin/fraud' },
     { icon: <BookOpen size={20} />, label: 'Knowledge CMS', path: '/admin/knowledge' },
+    { icon: <Activity size={20} />, label: 'LLM Evals', path: '/admin/evals' },
     { icon: <FlaskConical size={20} />, label: 'Simulation', path: '/admin/simulation' },
   ];
 

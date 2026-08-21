@@ -36,6 +36,7 @@ const SIGNAL_LABELS: Record<string, string> = {
   balance_correction: 'Balance-Korrektur',
   bet_velocity: 'Bet-Velocity',
   win_rate_anomaly: 'Win-Rate-Anomalie',
+  ml_anomaly_score: 'ML-Anomalie-Score',
 };
 
 const SEVERITY_COLORS: Record<RiskSeverity, { color: string; bg: string }> = {

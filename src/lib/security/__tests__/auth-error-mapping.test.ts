@@ -95,6 +95,21 @@ describe('formatAuthError', () => {
     );
   });
 
+  it('maps MFA and TOTP verification errors', () => {
+    expect(formatAuthError('invalid_grant: Invalid TOTP code')).toBe(
+      'Ungültiger Bestätigungscode. Bitte prüfe die Eingabe in deiner Authenticator-App.',
+    );
+    expect(formatAuthError('mfa_challenge_failed')).toBe(
+      'Ungültiger Bestätigungscode. Bitte prüfe die Eingabe in deiner Authenticator-App.',
+    );
+    expect(formatAuthError('mfa_factor_not_found')).toBe(
+      '2FA-Faktor nicht gefunden oder bereits entfernt.',
+    );
+    expect(formatAuthError('Factor already verified')).toBe(
+      'Dieser 2FA-Faktor ist bereits aktiviert.',
+    );
+  });
+
   it('falls back to a safe generic message if the provider message is unknown', () => {
     expect(formatAuthError('Custom error message')).toBe(
       'Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.',

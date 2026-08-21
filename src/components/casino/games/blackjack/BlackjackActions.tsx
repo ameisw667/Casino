@@ -150,7 +150,7 @@ export default function BlackjackActions({
               }}
             >
               <Copy size={16} color="#c084fc" />
-              <span>SPLIT</span>
+              <span>SPLIT (P)</span>
             </button>
           )}
         </motion.div>

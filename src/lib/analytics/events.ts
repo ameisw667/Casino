@@ -13,7 +13,9 @@ export type AllowedAnalyticsEvent =
   | { name: 'first_game_started'; props: { game: GameType } }
   | { name: 'stats_viewed' }
   | { name: 'passkey_sign_in_completed' }
-  | { name: 'passkey_registered' };
+  | { name: 'passkey_registered' }
+  | { name: 'mfa_totp_enrolled' }
+  | { name: 'mfa_totp_unenrolled' };
 
 const gameTypeSchema = z.enum(['DICE', 'SLOTS', 'ROULETTE', 'CRASH', 'BLACKJACK']);
 
@@ -31,6 +33,8 @@ const allowedEventSchema = z.discriminatedUnion('name', [
   z.strictObject({ name: z.literal('stats_viewed') }),
   z.strictObject({ name: z.literal('passkey_sign_in_completed') }),
   z.strictObject({ name: z.literal('passkey_registered') }),
+  z.strictObject({ name: z.literal('mfa_totp_enrolled') }),
+  z.strictObject({ name: z.literal('mfa_totp_unenrolled') }),
 ]);
 
 /**

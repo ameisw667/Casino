@@ -171,7 +171,7 @@ function NavigationShortcuts({
       ['nav-leaderboard', '4', () => navigate('/leaderboard')],
       ['nav-vault', '5', () => navigate('/vault')],
       ['nav-stats', '6', () => navigate('/stats')],
-      ['nav-settings', 's', toggleSettings],
+      ['nav-settings', ',', toggleSettings],
     ];
     shortcuts.forEach(([id, combo, handler]) => registerShortcut(id, { combo, handler }));
     return () => shortcuts.forEach(([id]) => unregisterShortcut(id));

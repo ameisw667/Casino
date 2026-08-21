@@ -10,6 +10,10 @@ const fraudMigration = readFileSync(
   resolve(root, 'supabase/migrations/030_fraud_signal_detection.sql'),
   'utf8',
 );
+const fraudMlMigration = readFileSync(
+  resolve(root, 'supabase/migrations/040_fraud_ml_anomaly_score.sql'),
+  'utf8',
+);
 const casinoCore = readFileSync(resolve(root, 'src/lib/casino/casino-core.ts'), 'utf8');
 const fraudDetection = readFileSync(resolve(root, 'src/lib/casino/fraud-detection.ts'), 'utf8');
 const networkFingerprint = readFileSync(
@@ -100,5 +104,33 @@ describe('P2.8 bet-behavior fraud signals', () => {
         device: 'iPhone',
       }),
     ).toEqual({ clusterSize: 3, linkedUserIds: ['user_a', 'user_b'] });
+  });
+});
+
+describe('P27/1.15 ML-fraud-anomaly signal', () => {
+  // Compile-time gate (tsc --noEmit): fails to compile if RiskSignalType does not carry this.
+  const newSignalTypes: RiskSignalType[] = ['ml_anomaly_score'];
+
+  it('extends both the table CHECK and the record_risk_event() function body', () => {
+    // A CHECK-constraint-only extension is not sufficient: record_risk_event() re-validates
+    // signal_type independently and would silently reject this value otherwise.
+    expect(fraudMlMigration).toContain("'ml_anomaly_score'");
+    expect(fraudMlMigration).toContain('ADD CONSTRAINT risk_events_signal_type_check');
+    expect(fraudMlMigration).toContain('CREATE OR REPLACE FUNCTION public.record_risk_event');
+    expect(fraudMlMigration).toContain(
+      "'rate_limit_hit', 'balance_correction', 'bet_velocity', 'win_rate_anomaly',\n      'ml_anomaly_score'",
+    );
+    expect(newSignalTypes).toHaveLength(1);
+  });
+
+  it('adds a read-only, service-role-only feature-aggregation RPC, no new table', () => {
+    expect(fraudMlMigration).toContain('CREATE OR REPLACE FUNCTION public.compute_fraud_ml_features');
+    expect(fraudMlMigration).not.toContain('CREATE TABLE');
+    expect(fraudMlMigration).toContain(
+      'REVOKE ALL ON FUNCTION public.compute_fraud_ml_features(INT, INT) FROM PUBLIC, anon, authenticated;',
+    );
+    expect(fraudMlMigration).toContain(
+      'GRANT EXECUTE ON FUNCTION public.compute_fraud_ml_features(INT, INT) TO service_role;',
+    );
   });
 });

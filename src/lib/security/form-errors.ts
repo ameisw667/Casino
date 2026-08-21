@@ -61,6 +61,10 @@ const SAFE_AUTH_MESSAGES = {
   passkeyInvalidState: 'Dieser Passkey ist auf diesem Gerät bereits registriert oder ungültig.',
   passwordLeaked:
     'Dieses Passwort ist in bekannten Datenlecks aufgetaucht. Bitte wähle ein sichereres Passwort.',
+  mfaInvalidCode:
+    'Ungültiger Bestätigungscode. Bitte prüfe die Eingabe in deiner Authenticator-App.',
+  mfaFactorNotFound: '2FA-Faktor nicht gefunden oder bereits entfernt.',
+  mfaAlreadyVerified: 'Dieser 2FA-Faktor ist bereits aktiviert.',
   fallback: 'Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.',
 } as const;
 
@@ -174,6 +178,36 @@ export function mapAuthError(message: string): ApiError {
       SAFE_AUTH_MESSAGES.passkeyNotFound,
     );
   }
+  if (
+    normalized.includes('mfa_factor_not_found') ||
+    (normalized.includes('factor') && normalized.includes('not found'))
+  ) {
+    return createApiError(
+      APP_ERROR_CODES.AUTHENTICATION_FAILED,
+      SAFE_AUTH_MESSAGES.mfaFactorNotFound,
+    );
+  }
+  if (
+    normalized.includes('factor already verified') ||
+    normalized.includes('already enrolled')
+  ) {
+    return createApiError(
+      APP_ERROR_CODES.CONFLICT,
+      SAFE_AUTH_MESSAGES.mfaAlreadyVerified,
+    );
+  }
+  if (
+    normalized.includes('invalid_grant') ||
+    normalized.includes('invalid totp') ||
+    normalized.includes('invalid mfa') ||
+    normalized.includes('mfa_challenge_failed') ||
+    normalized.includes('invalid challenge')
+  ) {
+    return createApiError(
+      APP_ERROR_CODES.AUTHENTICATION_FAILED,
+      SAFE_AUTH_MESSAGES.mfaInvalidCode,
+    );
+  }
   if (normalized.includes('invalid api key') || normalized.includes('api key')) {
     return createApiError(APP_ERROR_CODES.SERVICE_UNAVAILABLE, SAFE_AUTH_MESSAGES.apiKey);
   }
@@ -190,12 +224,13 @@ export function mapAuthError(message: string): ApiError {
     );
   }
   if (
-    normalized.includes('leaked') ||
-    normalized.includes('pwned') ||
     normalized.includes('compromised password') ||
-    (normalized.includes('weak_password') && normalized.includes('compromised')) ||
+    normalized.includes('list of compromised') ||
+    normalized.includes('data breach') ||
+    normalized.includes('pwned') ||
     (normalized.includes('weak_password') && normalized.includes('leaked')) ||
-    (normalized.includes('weak_password') && normalized.includes('pwned'))
+    normalized.includes('password is leaked') ||
+    normalized.includes('password has been leaked')
   ) {
     return createApiError(APP_ERROR_CODES.VALIDATION_FAILED, SAFE_AUTH_MESSAGES.passwordLeaked);
   }

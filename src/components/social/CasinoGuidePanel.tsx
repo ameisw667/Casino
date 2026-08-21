@@ -17,6 +17,8 @@ import {
   Sliders,
   Sparkles,
   Terminal,
+  ThumbsDown,
+  ThumbsUp,
   TrendingUp,
   User,
   X,
@@ -398,6 +400,21 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
   const [turns, setTurns] = useState<GuideTurn[]>([INITIAL_TURN]);
   const [isSending, setIsSending] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [feedbackMap, setFeedbackMap] = useState<Record<string, 1 | -1>>({});
+
+  const handleFeedback = async (messageId: string, rating: 1 | -1) => {
+    if (feedbackMap[messageId] === rating) return;
+    setFeedbackMap((prev) => ({ ...prev, [messageId]: rating }));
+    try {
+      await fetch('/api/chat/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating, messageId }),
+      });
+    } catch {
+      // Ignore network error silently
+    }
+  };
 
   const openPanel = () => {
     onOpen();
@@ -941,33 +958,85 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                             {turn.time}
                           </span>
                           {turn.role === 'guide' && (
-                            <button
-                              type="button"
-                              aria-label="Copy answer to clipboard"
-                              onClick={() => copyToClipboard(turn.id, turn.text)}
-                              style={{
-                                background: 'transparent',
-                                border: 'none',
-                                cursor: 'pointer',
-                                color: copiedId === turn.id ? '#10b981' : 'hsl(var(--text-muted))',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                                fontSize: '0.62rem',
-                                padding: '2px 4px',
-                                borderRadius: '4px',
-                              }}
-                            >
-                              {copiedId === turn.id ? (
-                                <>
-                                  <Check size={11} /> Kopiert
-                                </>
-                              ) : (
-                                <>
-                                  <Copy size={11} /> Kopieren
-                                </>
-                              )}
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                aria-label="Copy answer to clipboard"
+                                onClick={() => copyToClipboard(turn.id, turn.text)}
+                                style={{
+                                  background: 'transparent',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  color: copiedId === turn.id ? '#10b981' : 'hsl(var(--text-muted))',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '3px',
+                                  fontSize: '0.62rem',
+                                  padding: '2px 4px',
+                                  borderRadius: '4px',
+                                }}
+                              >
+                                {copiedId === turn.id ? (
+                                  <>
+                                    <Check size={11} /> Kopiert
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy size={11} /> Kopieren
+                                  </>
+                                )}
+                              </button>
+
+                              <button
+                                type="button"
+                                aria-label="Hilfreiche Antwort"
+                                title="Hilfreich"
+                                onClick={() => handleFeedback(turn.id, 1)}
+                                style={{
+                                  background: 'transparent',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  color:
+                                    feedbackMap[turn.id] === 1
+                                      ? '#10b981'
+                                      : 'hsl(var(--text-muted))',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '2px',
+                                  fontSize: '0.62rem',
+                                  padding: '2px 4px',
+                                  borderRadius: '4px',
+                                  transition: 'color 0.15s ease',
+                                }}
+                              >
+                                <ThumbsUp size={11} />
+                              </button>
+
+                              <button
+                                type="button"
+                                aria-label="Nicht hilfreiche Antwort"
+                                title="Nicht hilfreich"
+                                onClick={() => handleFeedback(turn.id, -1)}
+                                style={{
+                                  background: 'transparent',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  color:
+                                    feedbackMap[turn.id] === -1
+                                      ? '#ef4444'
+                                      : 'hsl(var(--text-muted))',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '2px',
+                                  fontSize: '0.62rem',
+                                  padding: '2px 4px',
+                                  borderRadius: '4px',
+                                  transition: 'color 0.15s ease',
+                                }}
+                              >
+                                <ThumbsDown size={11} />
+                              </button>
+                            </>
                           )}
                         </div>
                       </div>

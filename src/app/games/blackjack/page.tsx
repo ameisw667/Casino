@@ -438,7 +438,7 @@ export default function BlackjackPage() {
     [isProcessing, betAmount, setIsProcessing, addToast, applyBlackjackResponse],
   );
 
-  // Keyboard Shortcuts (Space=Deal, H=Hit, S=Stand, D=Double, Y/N=Insurance)
+  // Keyboard Shortcuts (Space=Deal, H=Hit, S=Stand, D=Double, P=Split, Y/N=Insurance)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (document.activeElement?.tagName === 'INPUT') return;
@@ -472,6 +472,9 @@ export default function BlackjackPage() {
         } else if ((e.key === 'd' || e.key === 'D') && gameState?.canDouble) {
           e.preventDefault();
           handleAction('DOUBLE');
+        } else if ((e.key === 'p' || e.key === 'P') && gameState?.canSplit) {
+          e.preventDefault();
+          handleAction('SPLIT');
         }
       }
     };

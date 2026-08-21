@@ -7,7 +7,8 @@ export type RiskSignalType =
   | 'rate_limit_hit'
   | 'balance_correction'
   | 'bet_velocity'
-  | 'win_rate_anomaly';
+  | 'win_rate_anomaly'
+  | 'ml_anomaly_score';
 
 export type RiskSeverity = 'low' | 'medium' | 'high';
 

@@ -57,12 +57,12 @@ describe('validateBetWithConfig', () => {
 
 describe('getRouletteMultiplierWithConfig', () => {
   it.each<[RouletteBetType, number]>([
-    [{ type: 'STRAIGHT', value: 17 }, 35],
+    [{ type: 'STRAIGHT', value: 17 }, 36],
     [{ type: 'COLOR', value: 'RED' }, 2],
     [{ type: 'EVEN_ODD', value: 'EVEN' }, 2],
     [{ type: 'RANGE', value: '1-18' }, 2],
-    [{ type: 'DOZEN', value: 1 }, 2],
-    [{ type: 'COLUMN', value: 1 }, 2],
+    [{ type: 'DOZEN', value: 1 }, 3],
+    [{ type: 'COLUMN', value: 1 }, 3],
     [{ type: 'FRENCH', value: 'VOISINS' }, 36 / 17],
     [{ type: 'FRENCH', value: 'TIERS' }, 3],
     [{ type: 'FRENCH', value: 'ORPHELINS' }, 36 / 8],

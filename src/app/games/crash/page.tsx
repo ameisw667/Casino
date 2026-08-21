@@ -674,24 +674,6 @@ export default function CrashPage() {
     [addToast, applyServerWalletSnapshot, processGameResult, provablyFairSettings],
   );
 
-  // Hotkeys: Space & Enter
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        document.activeElement?.tagName === 'INPUT' ||
-        document.activeElement?.tagName === 'TEXTAREA'
-      )
-        return;
-      if (e.code === 'Space' || e.code === 'Enter') {
-        e.preventDefault();
-        if (status !== 'RUNNING') handleStart();
-        else handleCashout();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [status, handleStart, handleCashout]);
-
   // Auto-bet / status transitions
   useEffect(() => {
     if (status === 'IDLE') {
@@ -1392,6 +1374,29 @@ export default function CrashPage() {
     updateAutoSettings({ amount: clamped });
   };
 
+  // Hotkeys: Space & Enter + Bet Modifiers
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        document.activeElement?.tagName === 'INPUT' ||
+        document.activeElement?.tagName === 'TEXTAREA'
+      )
+        return;
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault();
+        if (status !== 'RUNNING') handleStart();
+        else handleCashout();
+        return;
+      }
+      if (isRoundActive) return;
+      if (e.key === 'a') handleQuickBet(betAmount / 2);
+      if (e.key === 's') handleQuickBet(betAmount * 2);
+      if (e.key === 'f') handleQuickBet(balance);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [status, handleStart, handleCashout, isRoundActive, handleQuickBet, betAmount, balance]);
+
   return (
     <GameErrorBoundary gameName="Crash">
       <div
@@ -1844,14 +1849,14 @@ export default function CrashPage() {
                 disabled={isRoundActive}
                 onClick={() => handleQuickBet(betAmount / 2)}
               >
-                ½ Bet
+                ½ Bet (A)
               </button>
               <button
                 className="quick-chip"
                 disabled={isRoundActive}
                 onClick={() => handleQuickBet(betAmount * 2)}
               >
-                2× Bet
+                2× Bet (S)
               </button>
               <button
                 className="quick-chip"
@@ -1859,7 +1864,7 @@ export default function CrashPage() {
                 onClick={() => handleQuickBet(balance)}
                 style={{ color: '#FFD700' }}
               >
-                MAX
+                MAX (F)
               </button>
             </div>
           </div>

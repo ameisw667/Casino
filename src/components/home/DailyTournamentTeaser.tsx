@@ -2,48 +2,43 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Trophy, Timer, Crown, Flame, Sparkles, Zap } from 'lucide-react';
+import { useDailyRaceStandings, formatCountdown } from '@/hooks/useDailyRaceStandings';
 
-interface LeaderboardUser {
+interface PodiumSlot {
   rank: number;
-  username: string;
+  username: string | null;
   wagered: number;
-  prize: string;
-  avatar: string;
   accent: string;
   badge: string;
 }
 
-const TOP_PLAYERS: LeaderboardUser[] = [
-  {
-    rank: 2,
-    username: 'SatoshiN',
-    wagered: 62100,
-    prize: '$3,000.00',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=SatoshiN',
-    accent: '#C0C0C0',
-    badge: 'SILBER',
-  },
-  {
-    rank: 1,
-    username: 'VibeGod_99',
-    wagered: 84500,
-    prize: '$5,000.00',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=VibeGod',
-    accent: '#D4AF37',
-    badge: 'CHAMPION',
-  },
-  {
-    rank: 3,
-    username: 'HighRollerX',
-    wagered: 41900,
-    prize: '$2,000.00',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=HighRollerX',
-    accent: '#CD7F32',
-    badge: 'BRONZE',
-  },
-];
+const RANK_STYLE: Record<number, { accent: string; badge: string }> = {
+  1: { accent: '#D4AF37', badge: 'CHAMPION' },
+  2: { accent: '#C0C0C0', badge: 'SILBER' },
+  3: { accent: '#CD7F32', badge: 'BRONZE' },
+};
+
+// Fixed prize per rank (worldmap/05_DAILY_TOURNAMENT.md — direkte Gutschrift, kein Pool).
+const PRIZE_BY_RANK: Record<number, number> = { 1: 5000, 2: 3000, 3: 2000 };
+
+// Display order 2-1-3 for the podium layout (rank 1 in the taller center column).
+const PODIUM_ORDER = [2, 1, 3];
 
 export const DailyTournamentTeaser: React.FC<{ isMobile?: boolean }> = ({ isMobile = false }) => {
+  const { standings, secondsUntilReset } = useDailyRaceStandings();
+
+  const slots: PodiumSlot[] = PODIUM_ORDER.map((rank) => {
+    const entry = standings.find((s) => s.rank === rank);
+    const style = RANK_STYLE[rank];
+    return {
+      rank,
+      username: entry?.username ?? null,
+      wagered: entry?.wagered ?? 0,
+      accent: style.accent,
+      badge: style.badge,
+    };
+  });
+
   return (
     <section
       style={{
@@ -119,7 +114,7 @@ export const DailyTournamentTeaser: React.FC<{ isMobile?: boolean }> = ({ isMobi
               fontFamily: 'monospace',
             }}
           >
-            04h 22m 10s
+            {secondsUntilReset === null ? '—' : formatCountdown(secondsUntilReset)}
           </span>
         </div>
       </div>
@@ -133,8 +128,13 @@ export const DailyTournamentTeaser: React.FC<{ isMobile?: boolean }> = ({ isMobi
           gap: isMobile ? '16px' : '20px',
         }}
       >
-        {TOP_PLAYERS.map((p) => {
+        {slots.map((p) => {
           const isRank1 = p.rank === 1;
+          const hasEntry = p.username !== null;
+          const avatarUrl = hasEntry
+            ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(p.username as string)}`
+            : null;
+          const prizeLabel = `$${PRIZE_BY_RANK[p.rank].toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
           return (
             <motion.div
               key={p.rank}
@@ -226,7 +226,9 @@ export const DailyTournamentTeaser: React.FC<{ isMobile?: boolean }> = ({ isMobi
                     background: '#0a0a0f',
                   }}
                 >
-                  <img src={p.avatar} alt={p.username} style={{ width: '100%', height: '100%' }} />
+                  {avatarUrl && (
+                    <img src={avatarUrl} alt={p.username ?? ''} style={{ width: '100%', height: '100%' }} />
+                  )}
                 </div>
               </div>
 
@@ -235,11 +237,11 @@ export const DailyTournamentTeaser: React.FC<{ isMobile?: boolean }> = ({ isMobi
                 style={{
                   fontSize: isRank1 ? '1.1rem' : '0.98rem',
                   fontWeight: 1000,
-                  color: '#ffffff',
+                  color: hasEntry ? '#ffffff' : 'rgba(255, 255, 255, 0.35)',
                   marginBottom: '2px',
                 }}
               >
-                {p.username}
+                {p.username ?? 'Noch offen'}
               </div>
 
               {/* Wager Stat */}
@@ -252,7 +254,7 @@ export const DailyTournamentTeaser: React.FC<{ isMobile?: boolean }> = ({ isMobi
                   marginBottom: '14px',
                 }}
               >
-                Wager: ${p.wagered.toLocaleString('en-US')}
+                {hasEntry ? `Wager: $${p.wagered.toLocaleString('en-US')}` : 'Wager: —'}
               </div>
 
               {/* Prize Ribbon */}
@@ -280,7 +282,7 @@ export const DailyTournamentTeaser: React.FC<{ isMobile?: boolean }> = ({ isMobi
                     fontFamily: 'monospace',
                   }}
                 >
-                  {p.prize}
+                  {prizeLabel}
                 </span>
               </div>
             </motion.div>

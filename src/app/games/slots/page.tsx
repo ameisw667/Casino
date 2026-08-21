@@ -500,18 +500,24 @@ export default function SlotsPage() {
     setProcessing,
   ]);
 
-  // Spacebar Hotkey
+  // Spacebar Hotkey + Bet Modifiers
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (document.activeElement?.tagName === 'INPUT') return;
       if (e.code === 'Space') {
         e.preventDefault();
         handleSpin();
+        return;
       }
+      if (isSpinning || autoRunning) return;
+      if (e.key === 'a') setBetAmount((v) => Math.max(betMin, parseFloat((v / 2).toFixed(2))));
+      if (e.key === 's') setBetAmount((v) => Math.min(betMax, parseFloat((v * 2).toFixed(2))));
+      if (e.key === 'd') setBetAmount(betMin);
+      if (e.key === 'f') setBetAmount(Math.min(betMax, balance));
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [handleSpin]);
+  }, [handleSpin, isSpinning, autoRunning, betMin, betMax, balance]);
 
   // Auto-Bet Logic
   useEffect(() => {
@@ -836,7 +842,7 @@ export default function SlotsPage() {
                     setBetAmount((v) => Math.max(betMin, parseFloat((v / 2).toFixed(2))))
                   }
                 >
-                  ½
+                  ½ (A)
                 </button>
                 <button
                   className="quick-mod-btn"
@@ -845,21 +851,21 @@ export default function SlotsPage() {
                     setBetAmount((v) => Math.min(betMax, parseFloat((v * 2).toFixed(2))))
                   }
                 >
-                  2×
+                  2× (S)
                 </button>
                 <button
                   className="quick-mod-btn"
                   disabled={isSpinning || autoRunning}
                   onClick={() => setBetAmount(betMin)}
                 >
-                  Min
+                  Min (D)
                 </button>
                 <button
                   className="quick-mod-btn"
                   disabled={isSpinning || autoRunning}
                   onClick={() => setBetAmount(Math.min(betMax, balance))}
                 >
-                  Max
+                  Max (F)
                 </button>
               </div>
             </div>

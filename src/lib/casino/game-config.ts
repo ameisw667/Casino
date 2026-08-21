@@ -73,13 +73,17 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
     houseEdge: 0.01,
   },
   roulette: {
+    // All bet types are calibrated to the standard 2.70% (1/37) European house edge via
+    // 36/coverage — DOZEN/COLUMN/STRAIGHT previously used a "profit only" multiplier that
+    // omitted the returned stake, giving 35.14%/5.41% edge instead (found via
+    // scripts/economy-audit.ts, Jan-confirmed 2026-08-21).
     multipliers: {
-      STRAIGHT: 35,
+      STRAIGHT: 36,
       COLOR: 2,
       EVEN_ODD: 2,
       RANGE: 2,
-      DOZEN: 2,
-      COLUMN: 2,
+      DOZEN: 3,
+      COLUMN: 3,
       VOISINS: 36 / 17,
       TIERS: 36 / 12,
       ORPHELINS: 36 / 8,

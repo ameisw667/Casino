@@ -977,7 +977,7 @@ export function RouletteClient() {
     handleSpin,
   ]);
 
-  // Spacebar & Enter Keydown Hotkeys
+  // Spacebar & Enter Keydown Hotkeys + Bet Actions
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -991,11 +991,25 @@ export function RouletteClient() {
         if (!spinning && !isProcessing && currentBets.length > 0) {
           handleSpin();
         }
+        return;
       }
+      if (spinning || isProcessing) return;
+      if (e.key === 'c' && currentBets.length > 0) handleClearBets();
+      if (e.key === 'u' && betHistory.length > 0) handleUndo();
+      if (e.key === 's' && currentBets.length > 0) handleDoubleBets();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [spinning, isProcessing, currentBets, handleSpin]);
+  }, [
+    spinning,
+    isProcessing,
+    currentBets,
+    handleSpin,
+    betHistory,
+    handleClearBets,
+    handleUndo,
+    handleDoubleBets,
+  ]);
 
   if (!mounted) return null;
 
@@ -1308,7 +1322,7 @@ export function RouletteClient() {
                 }}
               >
                 <Trash2 size={12} />
-                <span>Clear</span>
+                <span>Clear (C)</span>
               </div>
             </button>
             <button
@@ -1325,7 +1339,7 @@ export function RouletteClient() {
                 }}
               >
                 <Undo2 size={12} />
-                <span>Undo</span>
+                <span>Undo (U)</span>
               </div>
             </button>
             <button
@@ -1343,7 +1357,7 @@ export function RouletteClient() {
                 }}
               >
                 <RotateCcw size={12} />
-                <span>2× Bet</span>
+                <span>2× Bet (S)</span>
               </div>
             </button>
           </div>
