@@ -96,6 +96,21 @@ describe('Guide Document Selection (Deterministic Routing)', () => {
     expect(selected[0]?.id).toBe('guide-limits');
   });
 
+  it('selects Limits document for German compound query (Mindest- und Maximaleinsätze)', () => {
+    const selected = selectKnowledgeDocs('Wie hoch sind die Mindest- und Maximaleinsätze?');
+    expect(selected[0]?.id).toBe('guide-limits');
+  });
+
+  it('selects VIP document for German compound query (VIP-Stufen und Rakeback-Vorteile)', () => {
+    const selected = selectKnowledgeDocs('Welche VIP-Stufen und Rakeback-Vorteile gibt es?');
+    expect(selected[0]?.id).toBe('guide-vip');
+  });
+
+  it('selects Navigation document for German query (Wetthistorie und Tresor)', () => {
+    const selected = selectKnowledgeDocs('Wo finde ich meine Wetthistorie und den Tresor?');
+    expect(selected[0]?.id).toBe('guide-navigation');
+  });
+
   it('returns fallback platform documents for empty or stop-word-only queries', () => {
     const emptySelected = selectKnowledgeDocs('');
     expect(emptySelected.map((d) => d.id)).toEqual(['guide-navigation', 'guide-commands']);

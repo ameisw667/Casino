@@ -147,14 +147,59 @@ const STOP_WORDS = new Set([
 
 /**
  * Tokenizes and normalizes an input query into meaningful lowercase keywords.
+ * Includes sub-word splitting for hyphenated terms and common compound prefixes.
  */
 export function tokenizeQuery(query: string): string[] {
-  return query
+  const normalized = query
     .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s-]/gu, ' ')
+    .replace(/[^\p{L}\p{N}\s-]/gu, ' ');
+
+  const rawWords = normalized
     .split(/\s+/)
     .map((word) => word.trim())
-    .filter((word) => word.length >= 2 && !STOP_WORDS.has(word));
+    .filter((word) => word.length >= 2);
+
+  const tokenSet = new Set<string>();
+
+  for (const word of rawWords) {
+    if (!STOP_WORDS.has(word)) {
+      tokenSet.add(word);
+    }
+
+    // 1. Sub-word splitting for hyphenated terms (e.g. 'vip-stufen' -> 'vip', 'stufen')
+    if (word.includes('-')) {
+      for (const part of word.split('-')) {
+        const trimmed = part.trim();
+        if (trimmed.length >= 2 && !STOP_WORDS.has(trimmed)) {
+          tokenSet.add(trimmed);
+        }
+      }
+    }
+
+    // 2. Sub-word splitting for compound terms (e.g. 'mindesteinsatz' -> 'mindest', 'einsatz')
+    const compoundPrefixes = [
+      'mindest',
+      'maximal',
+      'einsatz',
+      'rakeback',
+      'cashback',
+      'level',
+      'stufen',
+      'quoten',
+      'gewinn',
+    ];
+    for (const prefix of compoundPrefixes) {
+      if (word.startsWith(prefix) && word.length >= prefix.length + 3) {
+        if (!STOP_WORDS.has(prefix)) tokenSet.add(prefix);
+        const remainder = word.slice(prefix.length);
+        if (remainder.length >= 2 && !STOP_WORDS.has(remainder)) {
+          tokenSet.add(remainder);
+        }
+      }
+    }
+  }
+
+  return Array.from(tokenSet);
 }
 
 export type ScoredKnowledgeDoc = {
@@ -197,7 +242,7 @@ export function scoreDocument(
       score += 4;
     }
 
-    // 3. Tag matches (+3 points for exact/hyphen-part, +2 for plural match)
+    // 3. Tag matches (+3 points for exact/hyphen-part, +2 for plural/stem match)
     for (const tag of docTags) {
       if (tag === token) {
         score += 3;
@@ -205,7 +250,13 @@ export function scoreDocument(
       } else if (tag.includes('-') && tag.split('-').includes(token)) {
         score += 3;
         if (!matchedTags.includes(tag)) matchedTags.push(tag);
-      } else if (tag + 's' === token || token + 's' === tag) {
+      } else if (
+        tag + 's' === token ||
+        token + 's' === tag ||
+        tag + 'e' === token ||
+        tag + 'en' === token ||
+        token + 'en' === tag
+      ) {
         score += 2;
         if (!matchedTags.includes(tag)) matchedTags.push(tag);
       }

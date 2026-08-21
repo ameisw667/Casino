@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { ShieldCheck } from 'lucide-react';
 import {
   type ConsentValue,
   readConsent,
@@ -10,17 +11,11 @@ import {
   writeConsent,
 } from '@/lib/analytics/consent';
 
-// Copy draft from docs/archive/05_2.9_PostHog_Analytics.md §14 — Claude-Entwurf, nicht rechtlich
-// geprüft. Jan gibt die finale Fassung frei (§11.3 / Go-Live-Gate §9b).
-const BANNER_TITLE = 'Nutzungsdaten für Produktverbesserung';
+const BANNER_TITLE = 'Nutzungsdaten & Analytics';
 const BANNER_TEXT =
-  'Wir möchten anonymisiert messen, wie diese Seite genutzt wird — z. B. welche Seite dich hierher geführt hat oder ob die Anmeldung reibungslos funktioniert —, um sie gezielt zu verbessern. Dafür nutzen wir PostHog. Es werden niemals Einsätze, Kontostand oder deine E-Mail-Adresse erfasst. Du kannst deine Zustimmung jederzeit widerrufen.';
+  'Anonymisierte Messung zur Performance- und Fehleranalyse. Keine Erfassung von Einsätzen, Salden oder E-Mail-Adressen.';
 
 export function ConsentBanner() {
-  // useSyncExternalStore: server + first client paint both use readConsentServerSnapshot()
-  // (always null) so they match exactly, then React re-reads the real localStorage value via
-  // readConsent() once hydrated — no flash based on a guess, no synchronous setState-in-effect
-  // (05_2.9_PostHog_Analytics.md §3.1 SSR note).
   const consent = useSyncExternalStore<ConsentValue | null>(
     subscribeToConsentChanges,
     readConsent,
@@ -38,22 +33,37 @@ export function ConsentBanner() {
           role="dialog"
           aria-live="polite"
           aria-label="Datennutzung für Produktverbesserung"
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 40 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30, mass: 1 }}
-          className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-4"
+          initial={{ opacity: 0, y: 24, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 16, scale: 0.96 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+          className="fixed bottom-4 right-4 left-4 z-[60] sm:left-auto sm:right-6 sm:bottom-6 sm:w-[380px]"
         >
-          <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-black/60 p-5 shadow-2xl backdrop-blur-xl">
-            <p className="mb-1 font-semibold text-white">{BANNER_TITLE}</p>
-            <p className="mb-4 text-sm leading-relaxed text-white/70">{BANNER_TEXT}</p>
-            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <div className="relative overflow-hidden rounded-2xl border border-[#D4AF37]/25 bg-[#0D0D0E]/95 p-4.5 shadow-[0_12px_40px_rgba(0,0,0,0.85),0_0_24px_rgba(212,175,55,0.08)] backdrop-blur-xl">
+            {/* Top ambient highlight */}
+            <div className="pointer-events-none absolute -top-12 left-1/2 h-24 w-48 -translate-x-1/2 rounded-full bg-[#D4AF37]/10 blur-2xl" />
+
+            <div className="relative flex items-center gap-2.5">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#D4AF37]">
+                <ShieldCheck className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold tracking-wide text-white">{BANNER_TITLE}</h3>
+                <span className="text-[11px] font-mono text-[#D4AF37]/80">Opt-in Analytics</span>
+              </div>
+            </div>
+
+            <p className="relative mt-2.5 text-xs leading-relaxed text-white/70">
+              {BANNER_TEXT}
+            </p>
+
+            <div className="relative mt-4 flex items-center justify-end gap-2.5 pt-1">
               <motion.button
                 type="button"
                 onClick={() => decide('denied')}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.95 }}
-                className="rounded-lg border border-white/20 px-5 py-2.5 text-sm font-medium text-white/90 transition-colors hover:bg-white/5"
+                className="cursor-pointer rounded-xl border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
               >
                 Ablehnen
               </motion.button>
@@ -62,7 +72,7 @@ export function ConsentBanner() {
                 onClick={() => decide('granted')}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.95 }}
-                className="rounded-lg border border-[#D4AF37]/60 px-5 py-2.5 text-sm font-medium text-white/90 transition-colors hover:bg-[#D4AF37]/10"
+                className="cursor-pointer rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37] px-4 py-1.5 text-xs font-semibold text-black shadow-md shadow-[#D4AF37]/20 transition-all hover:brightness-110"
               >
                 Zustimmen
               </motion.button>

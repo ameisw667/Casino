@@ -59,7 +59,7 @@ BEGIN
     END IF;
 
     v_xp := v_user.xp + v_event.xp_gain;
-    v_level := LEAST(100, floor(sqrt(v_xp::numeric / 100))::integer + 1);
+    v_level := LEAST(100, floor(sqrt(v_xp::numeric / casino_xp_level_divisor()))::integer + 1);
     v_rank := casino_rank_for_level(v_level);
 
     UPDATE users SET xp = v_xp, level = v_level, rank = v_rank, updated_at = now()

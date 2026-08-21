@@ -104,18 +104,18 @@ id: guide-navigation
 version: 2026-08-21
 topic: navigation
 title: Platform Navigation and Routes
-tags: [navigation, routes, pages, games, history, leaderboard, vault, stats, admin]
+tags: [navigation, routes, pages, games, history, leaderboard, vault, stats, admin, menü, tresor, historie, wetthistorie, rangliste]
 owner: product
 reviewedAt: 2026-08-21
 status: active
 ---
-- Key casino routes:
-  - \`/games\`: Main games hub listing Blackjack, Crash, Dice, Roulette, and Slots.
-  - \`/history\`: Personal bet history with result verification, timestamps, and payouts.
-  - \`/leaderboard\`: Public rankings by total wagered, level, and VIP rank.
-  - \`/vault\`: Personal player vault for secure funds management and reward overviews.
-  - \`/stats\`: Aggregate gameplay statistics, win rates, and streak analysis.
-  - \`/admin\`: Restricted administration dashboard for authorized admin accounts.`,
+- Key Casino Navigation (Direkte 1-Klick Menüpunkte in der linken Seitenleiste und oberen Navigationsleiste):
+  - \`/games\`: Games Hub — Direkter Zugriff auf Blackjack, Crash, Dice, Roulette und Slots.
+  - \`/history\`: Wetthistorie — Vollständiger Verlauf aller platzierten Wetten mit Provably-Fair-Seed-Nachprüfung, Zeitstempeln und Auszahlungen. Direkt über die Seitenleiste oder den Header erreichbar (kein Untermenü).
+  - \`/vault\`: Tresor (Vault) — Sichere Guthabenverwaltung, Einzahlungen, Auszahlungen und Rakeback-Übersicht. Direkt mit 1 Klick in der Navigation verlinkt.
+  - \`/leaderboard\`: Rangliste (Leaderboard) — Öffentliche Rangliste sortiert nach Wagered Volume, Level und VIP-Rang.
+  - \`/stats\`: Statistiken — Persönliche Spielstatistiken, Gewinnraten, PnL-Heatmap und Strähnen.
+  - \`/admin\`: Administrations-Dashboard — Zugriff exklusiv für autorisierte Casino-Administratoren.`,
 
   // 7. Commands
   `---
@@ -141,17 +141,19 @@ id: guide-vip
 version: 2026-08-21
 topic: economy
 title: VIP Rank Tiers and XP Progression
-tags: [vip, rank, tiers, xp, levels, bronze, silver, gold, platinum, diamond, rakeback]
+tags: [vip, rank, tiers, xp, levels, bronze, silver, gold, platinum, diamond, rakeback, stufen, ränge, rang, vorteile, cashback, belohnungen, progression]
 owner: product
 reviewedAt: 2026-08-21
 status: active
 ---
-- VIP Rank Tiers:
-  - Bronze: Entry rank for new players (Level 1-9).
-  - Silver: Level 10-24, unlocked higher reward benefits.
-  - Gold: Level 25-49, increased rakeback percentage and prestige badge.
-  - Platinum: Level 50-99, high-tier benefits and priority support.
-  - Diamond: Level 100+, maximum rakeback tiers and elite recognition.
+- VIP Rank Tiers & Ränge:
+  - Bronze: Entry rank for new players (Level 1-9), Basis-Vorteile.
+  - Silver: Level 10-24, unlocked higher reward benefits and weekly bonuses.
+  - Gold: Level 25-49, increased rakeback percentage and prestige gold badge.
+  - Platinum: Level 50-99, premium rakeback tiers and priority VIP support.
+  - Diamond: Level 100+, maximum rakeback tiers (bis zu 15%), elite recognition, personal VIP host.
+- Rakeback & Cashback:
+  - Rakeback is calculated dynamically on all settled wagers and credited directly to the player rank pool.
 - XP Progression: Players earn XP with every settled bet based on wagered amount (calculateXpGain(betAmount)).
 - Level calculation: Player level is derived logarithmically from total accumulated XP (calculateLevel(xp)).`,
 
@@ -180,14 +182,14 @@ id: guide-limits
 version: 2026-08-21
 topic: economy
 title: Betting Limits and Security Guardrails
-tags: [limits, betting, minimum-bet, maximum-bet, rate-limit, balance, wallet, security]
+tags: [limits, betting, minimum-bet, maximum-bet, rate-limit, balance, wallet, security, mindesteinsatz, maximaleinsatz, einsatz, einsatzlimits, mindest, maximal, einsatzgrenzen]
 owner: product
 reviewedAt: 2026-08-21
 status: active
 ---
-- Betting Limits:
-  - Minimum bet: $0.10 across all games.
-  - Maximum bet: $10,000.00 per individual round.
+- Betting Limits (Einsatz-Limits):
+  - Mindesteinsatz (Minimum Bet): $0.10 across all games (Blackjack, Crash, Dice, Roulette, Slots).
+  - Maximaleinsatz (Maximum Bet): $10,000.00 per individual round.
 - Wallet and Balance:
   - Balance operations are processed atomically via Supabase database RPCs with strict advisory locks.
   - Browser values never hold wallet authority; every balance update is server-settled.

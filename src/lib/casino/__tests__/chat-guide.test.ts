@@ -159,7 +159,7 @@ describe('Casino guide service', () => {
     vi.stubGlobal('fetch', fetchSpy);
 
     await expect(requestCasinoGuideAnswer('How does Dice work?')).resolves.toEqual({
-      answer: 'Dice uses a roll from 0 to 100. Set your target first.',
+      answer: 'Dice uses a roll from 0 to 100.\n\nSet your target first.',
       model: 'gpt-4o-mini',
       usage: null,
     });

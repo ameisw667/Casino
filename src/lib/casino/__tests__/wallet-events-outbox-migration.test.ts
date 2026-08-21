@@ -23,6 +23,11 @@ describe('wallet_events outbox migration (worldmap/05_OutboxWallet.md)', () => {
     expect(sql).toContain('GRANT EXECUTE ON FUNCTION apply_xp_gain(UUID) TO service_role');
   });
 
+  it('computes the level via the configurable divisor, not a hardcoded /100 (regression guard, see 010_dynamic_xp_divisor.sql)', () => {
+    expect(sql).toContain('sqrt(v_xp::numeric / casino_xp_level_divisor())');
+    expect(sql).not.toMatch(/sqrt\(v_xp::numeric \/ 100\)/);
+  });
+
   it('pushes new events via a swallowed-exception pg_net trigger', () => {
     expect(sql).toContain('CREATE OR REPLACE FUNCTION public.notify_wallet_event');
     expect(sql).toContain('net.http_post');
