@@ -8,7 +8,6 @@ import { PlayerProfileModal } from './PlayerProfileModal';
 import { Tooltip } from '../ui/Tooltip';
 
 export function LiveActivityFeed() {
-  const isMobile = useCasinoStore((state) => state.isMobile);
   const allBets = useCasinoStore((state) => state.allBets);
   const [activeTab, setActiveTab] = useState<'ALL' | 'BIG' | 'MINE'>('ALL');
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -22,57 +21,94 @@ export function LiveActivityFeed() {
   return (
     <section style={{ margin: '40px 0' }}>
       <div
+        className="glass-card"
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '24px',
+          borderRadius: '24px',
+          overflow: 'hidden',
+          border: '1px solid rgba(212, 175, 55, 0.15)',
+          background:
+            'linear-gradient(180deg, rgba(16, 18, 24, 0.85) 0%, rgba(10, 12, 16, 0.95) 100%)',
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(212, 175, 55, 0.05)',
         }}
       >
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {['ALL', 'BIG', 'MINE'].map((tab) => (
-            <motion.button
-              key={tab}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setActiveTab(tab as 'ALL' | 'BIG' | 'MINE')}
-              className={`btn ${activeTab === tab ? 'btn-primary' : 'btn-ghost'}`}
-              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
-            >
-              {tab === 'ALL' ? 'All Bets' : tab === 'BIG' ? '🔥 High Rollers' : 'My Bets'}
-            </motion.button>
-          ))}
-        </div>
+        {/* Integrated Top Toolbar: Filter Tabs & Live Status */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px 20px',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+            background: 'rgba(0, 0, 0, 0.25)',
+            gap: '12px',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {[
+              { key: 'ALL', label: 'All Bets' },
+              { key: 'BIG', label: 'High Rollers' },
+              { key: 'MINE', label: 'My Bets' },
+            ].map((tab) => {
+              const active = activeTab === tab.key;
+              return (
+                <motion.button
+                  key={tab.key}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setActiveTab(tab.key as 'ALL' | 'BIG' | 'MINE')}
+                  style={{
+                    padding: '7px 16px',
+                    borderRadius: '10px',
+                    fontSize: '0.82rem',
+                    fontWeight: 900,
+                    letterSpacing: '0.02em',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    background: active
+                      ? 'linear-gradient(135deg, #FFD700 0%, #D4AF37 100%)'
+                      : 'rgba(255, 255, 255, 0.04)',
+                    color: active ? '#000000' : 'rgba(255, 255, 255, 0.7)',
+                    border: active ? '1px solid #FFD700' : '1px solid rgba(255, 255, 255, 0.08)',
+                    boxShadow: active ? '0 4px 14px rgba(212, 175, 55, 0.35)' : 'none',
+                  }}
+                >
+                  {tab.label}
+                </motion.button>
+              );
+            })}
+          </div>
 
-        {!isMobile && (
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
+              padding: '6px 12px',
+              borderRadius: '20px',
+              background: 'rgba(0, 231, 1, 0.06)',
+              border: '1px solid rgba(0, 231, 1, 0.2)',
               color: '#00e701',
-              fontSize: '0.8rem',
-              fontWeight: 800,
+              fontSize: '0.74rem',
+              fontWeight: 900,
+              letterSpacing: '0.06em',
             }}
           >
             <motion.div
-              animate={{ opacity: [1, 0.5, 1] }}
-              transition={{ repeat: Infinity, duration: 2 }}
-              style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00e701' }}
+              animate={{ opacity: [1, 0.4, 1] }}
+              transition={{ repeat: Infinity, duration: 1.8 }}
+              style={{
+                width: '7px',
+                height: '7px',
+                borderRadius: '50%',
+                background: '#00e701',
+                boxShadow: '0 0 8px #00e701',
+              }}
             />
-            LIVE ACTIVITY
+            LIVE FEED
           </div>
-        )}
-      </div>
-
-      <div
-        className="glass-card"
-        style={{
-          borderRadius: '24px',
-          overflow: 'hidden',
-          border: '1px solid hsla(0,0%,100%,0.05)',
-        }}
-      >
+        </div>
         <table
           className="smart-table"
           style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}
