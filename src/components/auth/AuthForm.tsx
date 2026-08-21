@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useSyncExternalStore } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -199,11 +199,6 @@ export function formatAuthError(message: string): string {
   return mapAuthError(message).message;
 }
 
-const emptySubscribe = () => () => {};
-const checkPasskeySupport = () =>
-  typeof window !== 'undefined' && Boolean(window.PublicKeyCredential);
-const getServerPasskeySupport = () => false;
-
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const [supabase] = useState(() => createClient());
@@ -211,11 +206,14 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const hasPasskeySupport = useSyncExternalStore(
-    emptySubscribe,
-    checkPasskeySupport,
-    getServerPasskeySupport,
-  );
+  const [hasPasskeySupport, setHasPasskeySupport] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && Boolean(window.PublicKeyCredential)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setHasPasskeySupport(true);
+    }
+  }, []);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();

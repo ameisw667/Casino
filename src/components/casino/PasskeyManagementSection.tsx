@@ -1,16 +1,11 @@
 'use client';
 
-import React, { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { KeyRound, Plus, Trash2, Loader2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { mapAuthError } from '@/lib/security/form-errors';
 import { trackAllowedEvent } from '@/lib/analytics/events';
 import type { PasskeyListItem } from '@supabase/supabase-js';
-
-const emptySubscribe = () => () => {};
-const checkPasskeySupport = () =>
-  typeof window !== 'undefined' && Boolean(window.PublicKeyCredential);
-const getServerPasskeySupport = () => false;
 
 export default function PasskeyManagementSection() {
   const [supabase] = useState(() => createClient());
@@ -18,11 +13,14 @@ export default function PasskeyManagementSection() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const supported = useSyncExternalStore(
-    emptySubscribe,
-    checkPasskeySupport,
-    getServerPasskeySupport,
-  );
+  const [supported, setSupported] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && Boolean(window.PublicKeyCredential)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSupported(true);
+    }
+  }, []);
 
   const loadPasskeys = useCallback(async () => {
     try {
