@@ -12,5 +12,11 @@ export function createClient() {
     }
   }
 
-  return createBrowserClient(url || '', anonKey || '');
+  return createBrowserClient(url || '', anonKey || '', {
+    auth: {
+      experimental: {
+        passkey: true,
+      },
+    },
+  });
 }

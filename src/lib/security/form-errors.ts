@@ -50,6 +50,15 @@ const SAFE_AUTH_MESSAGES = {
   emailNotConfirmed: 'Deine E-Mail-Adresse wurde noch nicht bestätigt. Bitte prüfe dein Postfach.',
   rateLimit: 'Zu viele Versuche. Bitte warte einen kurzen Moment und versuche es erneut.',
   network: 'Netzwerkfehler: Verbindung zum Server konnte nicht hergestellt werden.',
+  passkeyNotAllowed:
+    'Die Passkey-Anmeldung wurde abgebrochen oder ist abgelaufen. Bitte versuche es erneut oder nutze dein Passwort.',
+  passkeyNotFound:
+    'Kein passender Passkey auf diesem Gerät gefunden. Bitte melde dich mit deinem Passwort an.',
+  passkeyNotSupported:
+    'Passkeys werden von diesem Browser oder Gerät nicht unterstützt. Bitte nutze dein Passwort.',
+  passkeySecurity:
+    'Sicherheitsfehler bei der Passkey-Verifikation. Bitte überprüfe die Domain oder nutze dein Passwort.',
+  passkeyInvalidState: 'Dieser Passkey ist auf diesem Gerät bereits registriert oder ungültig.',
   fallback: 'Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.',
 } as const;
 
@@ -110,6 +119,59 @@ export function zodErrorResponse(
 
 export function mapAuthError(message: string): ApiError {
   const normalized = message.toLowerCase();
+
+  if (
+    normalized.includes('invalidstateerror') ||
+    (normalized.includes('already registered') && normalized.includes('authenticator')) ||
+    (normalized.includes('already registered') && normalized.includes('passkey'))
+  ) {
+    return createApiError(APP_ERROR_CODES.CONFLICT, SAFE_AUTH_MESSAGES.passkeyInvalidState);
+  }
+  if (
+    normalized.includes('notallowederror') ||
+    normalized.includes('user cancelled') ||
+    normalized.includes('cancelled') ||
+    normalized.includes('operation was not allowed') ||
+    normalized.includes('timed out')
+  ) {
+    return createApiError(
+      APP_ERROR_CODES.AUTHENTICATION_FAILED,
+      SAFE_AUTH_MESSAGES.passkeyNotAllowed,
+    );
+  }
+  if (
+    normalized.includes('notsupportederror') ||
+    normalized.includes('webauthn not supported') ||
+    normalized.includes('passkey not supported')
+  ) {
+    return createApiError(
+      APP_ERROR_CODES.SERVICE_UNAVAILABLE,
+      SAFE_AUTH_MESSAGES.passkeyNotSupported,
+    );
+  }
+  if (
+    normalized.includes('securityerror') ||
+    normalized.includes('relying party') ||
+    normalized.includes('origin mismatch') ||
+    normalized.includes('rp id') ||
+    normalized.includes('origin is not allowed')
+  ) {
+    return createApiError(
+      APP_ERROR_CODES.AUTHENTICATION_FAILED,
+      SAFE_AUTH_MESSAGES.passkeySecurity,
+    );
+  }
+  if (
+    normalized.includes('passkey not found') ||
+    normalized.includes('no passkey') ||
+    normalized.includes('no credentials') ||
+    normalized.includes('authenticator not found')
+  ) {
+    return createApiError(
+      APP_ERROR_CODES.AUTHENTICATION_FAILED,
+      SAFE_AUTH_MESSAGES.passkeyNotFound,
+    );
+  }
   if (normalized.includes('invalid api key') || normalized.includes('api key')) {
     return createApiError(APP_ERROR_CODES.SERVICE_UNAVAILABLE, SAFE_AUTH_MESSAGES.apiKey);
   }

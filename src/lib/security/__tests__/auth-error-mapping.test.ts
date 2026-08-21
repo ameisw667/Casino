@@ -50,6 +50,39 @@ describe('formatAuthError', () => {
     );
   });
 
+  it('maps passkey cancellation or timeout (NotAllowedError)', () => {
+    expect(formatAuthError('NotAllowedError: The operation was not allowed')).toBe(
+      'Die Passkey-Anmeldung wurde abgebrochen oder ist abgelaufen. Bitte versuche es erneut oder nutze dein Passwort.',
+    );
+    expect(formatAuthError('User cancelled the passkey prompt')).toBe(
+      'Die Passkey-Anmeldung wurde abgebrochen oder ist abgelaufen. Bitte versuche es erneut oder nutze dein Passwort.',
+    );
+  });
+
+  it('maps passkey already registered or invalid state (InvalidStateError)', () => {
+    expect(
+      formatAuthError('InvalidStateError: The authenticator has already registered a credential'),
+    ).toBe('Dieser Passkey ist auf diesem Gerät bereits registriert oder ungültig.');
+  });
+
+  it('maps unsupported passkey devices (NotSupportedError)', () => {
+    expect(formatAuthError('NotSupportedError: WebAuthn not supported')).toBe(
+      'Passkeys werden von diesem Browser oder Gerät nicht unterstützt. Bitte nutze dein Passwort.',
+    );
+  });
+
+  it('maps passkey security or RP ID domain errors', () => {
+    expect(formatAuthError('SecurityError: The RP ID is not valid for this origin')).toBe(
+      'Sicherheitsfehler bei der Passkey-Verifikation. Bitte überprüfe die Domain oder nutze dein Passwort.',
+    );
+  });
+
+  it('maps passkey not found errors', () => {
+    expect(formatAuthError('No credentials found for this account')).toBe(
+      'Kein passender Passkey auf diesem Gerät gefunden. Bitte melde dich mit deinem Passwort an.',
+    );
+  });
+
   it('falls back to a safe generic message if the provider message is unknown', () => {
     expect(formatAuthError('Custom error message')).toBe(
       'Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.',

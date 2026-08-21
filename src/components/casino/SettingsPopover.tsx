@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Volume2, VolumeX, Eye, EyeOff, ShieldCheck, Sliders } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import TelegramLinkSection from './TelegramLinkSection';
+import PasskeyManagementSection from './PasskeyManagementSection';
 
 interface SettingsPopoverProps {
   isOpen: boolean;
@@ -243,6 +244,7 @@ export default function SettingsPopover({
             </div>
 
             <TelegramLinkSection />
+            <PasskeyManagementSection />
           </div>
         </motion.div>
       )}

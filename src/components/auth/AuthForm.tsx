@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, KeyRound } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { Magnetic } from '@/components/ui/Magnetic';
 import { validateAuthCredentials } from './auth-validation';
@@ -199,6 +199,11 @@ export function formatAuthError(message: string): string {
   return mapAuthError(message).message;
 }
 
+const emptySubscribe = () => () => {};
+const checkPasskeySupport = () =>
+  typeof window !== 'undefined' && Boolean(window.PublicKeyCredential);
+const getServerPasskeySupport = () => false;
+
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const [supabase] = useState(() => createClient());
@@ -206,6 +211,11 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const hasPasskeySupport = useSyncExternalStore(
+    emptySubscribe,
+    checkPasskeySupport,
+    getServerPasskeySupport,
+  );
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -252,6 +262,28 @@ export function AuthForm({ mode }: AuthFormProps) {
       }
     } catch {
       setStatus('Die Google-Anmeldung konnte nicht gestartet werden. Bitte versuche es erneut.');
+      setLoading(false);
+    }
+  }
+
+  async function handlePasskeySignIn() {
+    setLoading(true);
+    setStatus(null);
+    try {
+      const { data, error } = await supabase.auth.signInWithPasskey();
+      if (error) {
+        setStatus(formatAuthError(error.message));
+        setLoading(false);
+        return;
+      }
+      if (data?.session) {
+        void trackAllowedEvent({ name: 'passkey_sign_in_completed' });
+        router.push('/');
+        router.refresh();
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setStatus(formatAuthError(message));
       setLoading(false);
     }
   }
@@ -439,6 +471,47 @@ export function AuthForm({ mode }: AuthFormProps) {
           <GoogleLogo />
           Mit Google fortfahren
         </motion.button>
+
+        {/* Passkey Button (Sign-In only, conditional on WebAuthn support) */}
+        {!isSignUp && hasPasskeySupport && (
+          <motion.button
+            id="auth-passkey-btn"
+            type="button"
+            onClick={handlePasskeySignIn}
+            disabled={loading}
+            whileHover={
+              loading
+                ? {}
+                : {
+                    scale: 1.01,
+                    background: 'rgba(212, 175, 55, 0.12)',
+                    borderColor: 'rgba(212, 175, 55, 0.45)',
+                    boxShadow: '0 4px 16px rgba(212, 175, 55, 0.15)',
+                  }
+            }
+            whileTap={loading ? {} : { scale: 0.98 }}
+            style={{
+              width: '100%',
+              height: '50px',
+              borderRadius: '12px',
+              border: '1.5px solid rgba(212, 175, 55, 0.3)',
+              background: 'rgba(212, 175, 55, 0.05)',
+              color: 'hsl(45, 100%, 75%)',
+              fontWeight: 700,
+              fontSize: '0.9rem',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              backdropFilter: 'blur(8px)',
+              marginTop: '12px',
+            }}
+          >
+            <KeyRound size={18} color="hsl(45, 100%, 50%)" />
+            Mit Passkey anmelden
+          </motion.button>
+        )}
 
         {/* Error Notification */}
         {status && (

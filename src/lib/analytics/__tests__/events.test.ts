@@ -23,6 +23,8 @@ describe('trackAllowedEvent', () => {
     { name: 'cta_play_now_clicked' },
     { name: 'sign_up_completed' },
     { name: 'stats_viewed' },
+    { name: 'passkey_sign_in_completed' },
+    { name: 'passkey_registered' },
   ])('captures %o with no properties when consent is granted', async (event) => {
     const client = fakeClient();
     mockedGetAnalyticsClient.mockResolvedValue(client as unknown as PostHog);
