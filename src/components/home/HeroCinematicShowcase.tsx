@@ -106,41 +106,6 @@ const GAME_TABS: GameTabConfig[] = [
   },
 ];
 
-const DEFAULT_TICKER_WINS: Withdrawal[] = [
-  {
-    user: 'Satoshi_X',
-    amount: 1450.0,
-    currency: 'BTC',
-    game: 'Crash',
-    time: '2s ago',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Satoshi_X',
-  },
-  {
-    user: 'CryptoKing',
-    amount: 820.5,
-    currency: 'ETH',
-    game: 'Blackjack',
-    time: '5s ago',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=CryptoKing',
-  },
-  {
-    user: 'WhaleWatcher',
-    amount: 3100.0,
-    currency: 'USDT',
-    game: 'Slots',
-    time: '8s ago',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=WhaleWatcher',
-  },
-  {
-    user: 'LuckyStrike',
-    amount: 490.0,
-    currency: 'SOL',
-    game: 'Dice',
-    time: '12s ago',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=LuckyStrike',
-  },
-];
-
 const FLOATING_PARTICLES = Array.from({ length: 16 }, (_, i) => ({
   id: i,
   x: (i * 19) % 100,
@@ -158,7 +123,6 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
   const router = useRouter();
   const addToast = useCasinoStore((s) => s.addToast);
   const [activeTab, setActiveTab] = useState<GameTabConfig>(GAME_TABS[0]);
-  const [tickerIndex, setTickerIndex] = useState<number>(0);
 
   const handleBonusActivate = async () => {
     soundManager.playClick();
@@ -216,30 +180,6 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
     targetY.set(0);
   }, [targetX, targetY]);
 
-  // Live Ticker Interval — pauses when the tab is hidden so backgrounded
-  // visits stop driving setState/re-render churn. Optics unchanged while visible.
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    let timer: ReturnType<typeof setInterval>;
-    const start = () => {
-      clearInterval(timer);
-      timer = setInterval(() => {
-        setTickerIndex((prev) => (prev + 1) % DEFAULT_TICKER_WINS.length);
-      }, 3500);
-    };
-    const stop = () => clearInterval(timer);
-    const onVisibility = () => {
-      if (document.hidden) stop();
-      else start();
-    };
-    start();
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => {
-      stop();
-      document.removeEventListener('visibilitychange', onVisibility);
-    };
-  }, []);
-
   // Live Multiplier Simulation Loop — skipped entirely on mobile: the states
   // it mutates (crashMult/diceVal/slotsWon) are only consumed by the
   // desktop-only holographic card, so on mobile every 800ms tick was a pure
@@ -271,8 +211,6 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
       document.removeEventListener('visibilitychange', onVisibility);
     };
   }, []);
-
-  const activeWin = DEFAULT_TICKER_WINS[tickerIndex];
 
   return (
     <motion.section
@@ -534,7 +472,7 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
             </div>
           </motion.div>
 
-          {/* Dynamic Trust & Social Proof Bar: Compact Frosted-Glass Pill (Option 1) */}
+          {/* Dynamic Trust & Social Proof Bar: Pure Trust Pill (Option 1) */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -549,71 +487,14 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
               backdropFilter: 'blur(16px)',
               WebkitBackdropFilter: 'blur(16px)',
               border: '1px solid rgba(212, 175, 55, 0.25)',
-              boxShadow:
-                '0 6px 20px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 6px 20px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
               fontSize: '0.68rem',
               fontWeight: 700,
               maxWidth: '100%',
               flexWrap: 'nowrap',
             }}
           >
-            {/* Micro-Chip 1: Live Ticker */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '2px 7px',
-                borderRadius: '12px',
-                background: 'rgba(0, 231, 1, 0.08)',
-                border: '1px solid rgba(0, 231, 1, 0.2)',
-                flexShrink: 0,
-              }}
-            >
-              <span
-                style={{
-                  width: '5px',
-                  height: '5px',
-                  borderRadius: '50%',
-                  background: '#00E701',
-                  boxShadow: '0 0 5px #00E701',
-                  display: 'inline-block',
-                }}
-              />
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={tickerIndex}
-                  initial={{ opacity: 0, y: 2 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -2 }}
-                  style={{
-                    fontFamily: 'var(--font-mono, monospace)',
-                    fontWeight: 800,
-                    color: '#00E701',
-                    letterSpacing: '0.01em',
-                    maxWidth: '125px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    fontSize: '0.67rem',
-                  }}
-                >
-                  {activeWin.user} +${activeWin.amount}
-                </motion.span>
-              </AnimatePresence>
-            </div>
-
-            {/* Micro-Divider */}
-            <div
-              style={{
-                width: '1px',
-                height: '12px',
-                background: 'rgba(255, 255, 255, 0.12)',
-                flexShrink: 0,
-              }}
-            />
-
-            {/* Micro-Chip 2: 100% Provably Fair */}
+            {/* Micro-Chip 1: 100% Provably Fair */}
             <div
               style={{
                 display: 'flex',
@@ -644,7 +525,7 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
               }}
             />
 
-            {/* Micro-Chip 3: Rating */}
+            {/* Micro-Chip 2: Rating */}
             <div
               style={{
                 display: 'flex',
@@ -666,16 +547,53 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
               <span
                 style={{
                   fontFamily: 'var(--font-mono, monospace)',
-                  fontWeight: 800,
+                  fontWeight: 900,
                   color: '#fff',
                   fontSize: '0.67rem',
                 }}
               >
                 4.9/5
               </span>
-              <span style={{ fontSize: '0.60rem', color: 'rgba(255, 255, 255, 0.45)' }}>
-                (1.2k)
+              <span
+                style={{
+                  fontSize: '0.60rem',
+                  color: 'rgba(255, 255, 255, 0.45)',
+                  fontWeight: 800,
+                }}
+              >
+                RATING
               </span>
+            </div>
+
+            {/* Micro-Divider */}
+            <div
+              style={{
+                width: '1px',
+                height: '12px',
+                background: 'rgba(255, 255, 255, 0.12)',
+                flexShrink: 0,
+              }}
+            />
+
+            {/* Micro-Chip 3: Instant Payouts */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '2px 7px',
+                borderRadius: '12px',
+                background: 'rgba(0, 231, 1, 0.08)',
+                border: '1px solid rgba(0, 231, 1, 0.2)',
+                color: '#00E701',
+                fontSize: '0.64rem',
+                fontWeight: 900,
+                letterSpacing: '0.03em',
+                flexShrink: 0,
+              }}
+            >
+              <Zap size={11} color="#00E701" />
+              <span>INSTANT AUSZAHLUNG</span>
             </div>
           </motion.div>
         </div>
