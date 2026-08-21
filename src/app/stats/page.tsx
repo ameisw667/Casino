@@ -1,14 +1,20 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useCasinoStore } from '@/store/useCasinoStore';
-import type { HistoryRow, PerGameStat } from '@/lib/casino/stats-derivation';
+import {
+  type HistoryRow,
+  type PerGameStat,
+  deriveStatsFromRows,
+} from '@/lib/casino/stats-derivation';
 import { trackAllowedEvent } from '@/lib/analytics/events';
+import { StatsTimeFilterBar, type StatsTimeRange } from '@/components/stats/StatsTimeFilterBar';
 import { StatsSummaryTiles } from '@/components/stats/StatsSummaryTiles';
 import { ProfitHistoryChart } from '@/components/stats/ProfitHistoryChart';
 import { FavoriteGameCard } from '@/components/stats/FavoriteGameCard';
+import { VipPersonalRecords } from '@/components/stats/VipPersonalRecords';
+import { PnlActivityHeatmap } from '@/components/stats/PnlActivityHeatmap';
 import { PerGameProfitBreakdown } from '@/components/stats/PerGameProfitBreakdown';
-import { SessionLengthChart } from '@/components/stats/SessionLengthChart';
 
 interface HistoryResponse {
   rows: HistoryRow[];
@@ -32,10 +38,10 @@ export default function StatsPage() {
   const [serverStats, setServerStats] = useState<ServerStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [timeRange, setTimeRange] = useState<StatsTimeRange>('ALL');
+  const [dataLoadedAt, setDataLoadedAt] = useState<number>(0);
 
   useEffect(() => {
-    // Decoupled from the data-load effect below: the page was viewed regardless of whether
-    // /api/user/history or /api/user/stats succeeds.
     void trackAllowedEvent({ name: 'stats_viewed' });
   }, []);
 
@@ -56,7 +62,10 @@ export default function StatsPage() {
 
         if (histRes.ok) {
           const histJson = (await histRes.json()) as HistoryResponse;
-          if (!cancelled) setRows(histJson.rows ?? []);
+          if (!cancelled) {
+            setRows(histJson.rows ?? []);
+            setDataLoadedAt(Date.now());
+          }
         }
 
         if (statsRes.ok) {
@@ -75,7 +84,32 @@ export default function StatsPage() {
     };
   }, []);
 
-  const perGame = serverStats?.perGame ?? [];
+  // SP-1: Dynamic time filtering
+  const filteredRows = useMemo(() => {
+    if (timeRange === 'ALL' || dataLoadedAt === 0) return rows;
+    const now = dataLoadedAt;
+    return rows.filter((r) => {
+      const diffMs = now - new Date(r.created_at).getTime();
+      if (timeRange === '24H') return diffMs <= 24 * 60 * 60 * 1000;
+      if (timeRange === '7D') return diffMs <= 7 * 24 * 60 * 60 * 1000;
+      if (timeRange === '30D') return diffMs <= 30 * 24 * 60 * 60 * 1000;
+      return true;
+    });
+  }, [rows, timeRange, dataLoadedAt]);
+
+  // Derived stats from filtered subset
+  const derived = useMemo(() => {
+    if (timeRange === 'ALL' && serverStats && serverStats.totalBets > 0) {
+      return {
+        totalWagered: serverStats.totalWagered,
+        totalProfit: serverStats.totalProfit,
+        winRate: serverStats.winRate,
+        totalBets: serverStats.totalBets,
+        perGame: serverStats.perGame,
+      };
+    }
+    return deriveStatsFromRows(filteredRows);
+  }, [filteredRows, timeRange, serverStats]);
 
   if (error) {
     return (
@@ -105,6 +139,7 @@ export default function StatsPage() {
         minHeight: 'calc(100vh - 80px)',
       }}
     >
+      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -141,7 +176,7 @@ export default function StatsPage() {
                 textTransform: 'uppercase',
               }}
             >
-              ANALYTICS
+              ANALYTICS HUD
             </span>
           </div>
           <p
@@ -152,20 +187,30 @@ export default function StatsPage() {
               fontWeight: 500,
             }}
           >
-            Detaillierte Auswertung deines Gaming-Verlaufs, Gewinne und Lieblingsspiele.
+            Vollständige Performance-Analyse deiner Spielhistorie mit Live-Metriken & Heatmap.
           </p>
         </div>
       </motion.div>
 
-      <StatsSummaryTiles
-        loading={loading}
-        totalWagered={serverStats?.totalWagered ?? 0}
-        totalProfit={serverStats?.totalProfit ?? 0}
-        winRate={serverStats?.winRate ?? 0}
-        totalBets={serverStats?.totalBets ?? 0}
+      {/* SP-1: Globaler 4-Stufen Zeitfilter */}
+      <StatsTimeFilterBar
+        timeRange={timeRange}
+        setTimeRange={setTimeRange}
+        filteredBetsCount={filteredRows.length}
         isMobile={isMobile}
       />
 
+      {/* Summary Tiles */}
+      <StatsSummaryTiles
+        loading={loading}
+        totalWagered={derived.totalWagered}
+        totalProfit={derived.totalProfit}
+        winRate={derived.winRate}
+        totalBets={derived.totalBets}
+        isMobile={isMobile}
+      />
+
+      {/* Row 1: SP-5 (PnL Chart) & SP-2 (Favorite Game Donut) */}
       <div
         style={{
           display: 'grid',
@@ -173,10 +218,14 @@ export default function StatsPage() {
           gap: isMobile ? '14px' : '18px',
         }}
       >
-        <ProfitHistoryChart loading={loading} rows={rows} isMobile={isMobile} />
-        <FavoriteGameCard loading={loading} perGame={perGame} isMobile={isMobile} />
+        <ProfitHistoryChart loading={loading} rows={filteredRows} isMobile={isMobile} />
+        <FavoriteGameCard loading={loading} perGame={derived.perGame} isMobile={isMobile} />
       </div>
 
+      {/* Row 2: SP-4 (VIP Personal Records & Milestones) */}
+      <VipPersonalRecords loading={loading} rows={filteredRows} isMobile={isMobile} />
+
+      {/* Row 3: SP-3 (PnL Activity Heatmap) & Per Game Profit Breakdown */}
       <div
         style={{
           display: 'grid',
@@ -184,8 +233,10 @@ export default function StatsPage() {
           gap: isMobile ? '14px' : '18px',
         }}
       >
-        <PerGameProfitBreakdown loading={loading} perGame={perGame} isMobile={isMobile} />
-        <SessionLengthChart loading={loading} rows={rows} isMobile={isMobile} />
+        <div style={{ gridColumn: isMobile ? 'span 1' : 'span 2' }}>
+          <PnlActivityHeatmap loading={loading} rows={filteredRows} isMobile={isMobile} />
+        </div>
+        <PerGameProfitBreakdown loading={loading} perGame={derived.perGame} isMobile={isMobile} />
       </div>
     </div>
   );

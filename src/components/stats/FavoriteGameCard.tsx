@@ -1,8 +1,10 @@
 'use client';
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { getFavoriteGame, type PerGameStat } from '@/lib/casino/stats-derivation';
 import { getGameMeta } from './gameMeta';
+import { Trophy } from 'lucide-react';
 
 interface FavoriteGameCardProps {
   loading: boolean;
@@ -16,13 +18,19 @@ export function FavoriteGameCard({ loading, perGame, isMobile }: FavoriteGameCar
 
   const chartData = useMemo(
     () =>
-      perGame.map((g) => ({
-        name: getGameMeta(g.game).label,
-        game: g.game,
-        value: g.bets,
-        color: getGameMeta(g.game).color,
-      })),
-    [perGame],
+      perGame.map((g) => {
+        const meta = getGameMeta(g.game);
+        return {
+          name: meta.label,
+          game: g.game,
+          value: g.bets,
+          wagered: g.wagered,
+          profit: g.profit,
+          color: meta.color,
+          pct: totalBets > 0 ? Math.round((g.bets / totalBets) * 100) : 0,
+        };
+      }),
+    [perGame, totalBets],
   );
 
   return (
@@ -34,27 +42,54 @@ export function FavoriteGameCard({ loading, perGame, isMobile }: FavoriteGameCar
         padding: isMobile ? '16px' : '20px 24px',
         borderRadius: '16px',
         background:
-          'linear-gradient(145deg, rgba(24, 24, 32, 0.7) 0%, rgba(12, 12, 18, 0.88) 100%)',
+          'linear-gradient(145deg, rgba(22, 24, 32, 0.85) 0%, rgba(12, 14, 20, 0.95) 100%)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
-        border: '1px solid rgba(212, 175, 55, 0.12)',
-        boxShadow: '0 12px 32px rgba(0, 0, 0, 0.45)',
+        border: '1px solid rgba(212, 175, 55, 0.18)',
+        boxShadow: '0 12px 32px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.05)',
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '290px',
+        minHeight: '310px',
       }}
     >
       <div
         style={{
-          fontSize: '0.62rem',
-          fontWeight: 700,
-          color: 'rgba(255, 255, 255, 0.35)',
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          marginBottom: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '14px',
         }}
       >
-        LIEBLINGSSPIEL & AKTIVITÄT
+        <div
+          style={{
+            fontSize: '0.64rem',
+            fontWeight: 800,
+            color: 'rgba(255, 255, 255, 0.45)',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          }}
+        >
+          LIEBLINGSSPIEL & GAME-AFFINITÄT (SP-2)
+        </div>
+        {favorite && (
+          <span
+            style={{
+              fontSize: '0.62rem',
+              fontWeight: 800,
+              color: '#D4AF37',
+              background: 'rgba(212, 175, 55, 0.1)',
+              padding: '2px 8px',
+              borderRadius: '12px',
+              border: '1px solid rgba(212, 175, 55, 0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <Trophy size={10} color="#D4AF37" />
+            <span>TOP: {getGameMeta(favorite.game).label.toUpperCase()}</span>
+          </span>
+        )}
       </div>
 
       {loading ? (
@@ -66,117 +101,157 @@ export function FavoriteGameCard({ loading, perGame, isMobile }: FavoriteGameCar
           <span
             style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '0.85rem', textAlign: 'center' }}
           >
-            Noch keine Wetten vorhanden.
+            Noch keine Wetten im gewählten Zeitraum.
           </span>
         </div>
       ) : (
         <div
           style={{
             display: 'flex',
-            flexDirection: 'column',
-            gap: '14px',
+            flexDirection: isMobile ? 'column' : 'row',
+            alignItems: 'center',
+            gap: '16px',
             flex: 1,
-            justifyContent: 'space-between',
           }}
         >
-          {favorite && (
+          {/* Donut Chart */}
+          <div
+            style={{ width: isMobile ? '100%' : '140px', height: '140px', position: 'relative' }}
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={38}
+                  outerRadius={58}
+                  paddingAngle={3}
+                  dataKey="value"
+                  stroke="none"
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div
+                          style={{
+                            background: 'rgba(12, 14, 20, 0.95)',
+                            backdropFilter: 'blur(16px)',
+                            border: '1px solid rgba(212, 175, 55, 0.3)',
+                            borderRadius: '8px',
+                            padding: '6px 10px',
+                            fontSize: '0.74rem',
+                            color: '#fff',
+                            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)',
+                          }}
+                        >
+                          <div style={{ fontWeight: 900, color: data.color }}>{data.name}</div>
+                          <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.68rem' }}>
+                            {data.value} Wetten ({data.pct}%)
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            {/* Center Label inside Donut */}
             <div
               style={{
-                padding: '12px 14px',
-                borderRadius: '12px',
-                background: 'rgba(255, 255, 255, 0.025)',
-                border: '1px solid rgba(255, 255, 255, 0.04)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                textAlign: 'center',
+                pointerEvents: 'none',
               }}
             >
-              <div>
-                <div
-                  style={{
-                    fontSize: '0.6rem',
-                    color: 'rgba(255,255,255,0.35)',
-                    fontWeight: 700,
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  MEISTGESPIELT
-                </div>
-                <div
-                  style={{ fontSize: '1rem', fontWeight: 800, color: '#ffffff', marginTop: '2px' }}
-                >
-                  {getGameMeta(favorite.game).label}
-                </div>
+              <div
+                style={{
+                  fontSize: '0.85rem',
+                  fontWeight: 950,
+                  color: '#ffffff',
+                  fontFamily: 'var(--font-mono, monospace)',
+                  lineHeight: 1,
+                }}
+              >
+                {totalBets}
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono, monospace)',
-                    fontSize: '0.95rem',
-                    fontWeight: 900,
-                    color: '#D4AF37',
-                  }}
-                >
-                  {favorite.bets} Wetten
-                </div>
-                <div
-                  style={{
-                    fontSize: '0.65rem',
-                    color: 'rgba(255, 255, 255, 0.4)',
-                    fontFamily: 'var(--font-mono, monospace)',
-                  }}
-                >
-                  ${favorite.wagered.toLocaleString('en-US', { maximumFractionDigits: 0 })} Einsatz
-                </div>
+              <div
+                style={{
+                  fontSize: '0.52rem',
+                  color: 'rgba(255, 255, 255, 0.4)',
+                  fontWeight: 800,
+                  letterSpacing: '0.06em',
+                }}
+              >
+                WETTEN
               </div>
             </div>
-          )}
+          </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {perGame.map((g) => {
-              const meta = getGameMeta(g.game);
-              const pct = totalBets > 0 ? Math.round((g.bets / totalBets) * 100) : 0;
-              return (
-                <div key={g.game} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div
+          {/* Breakdown List */}
+          <div
+            style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', gap: '6px' }}
+          >
+            {chartData.map((g) => (
+              <div
+                key={g.game}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '5px 10px',
+                  borderRadius: '8px',
+                  background: 'rgba(255, 255, 255, 0.025)',
+                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  fontSize: '0.74rem',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span
                     style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '0.72rem',
-                      color: 'rgba(255,255,255,0.6)',
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background: g.color,
+                      boxShadow: `0 0 6px ${g.color}`,
                     }}
-                  >
-                    <span style={{ fontWeight: 600 }}>{meta.label}</span>
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-mono, monospace)',
-                        color: 'rgba(255,255,255,0.4)',
-                      }}
-                    >
-                      {g.bets} ({pct}%)
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      height: '4px',
-                      borderRadius: '2px',
-                      background: 'rgba(255, 255, 255, 0.04)',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: '100%',
-                        width: `${pct}%`,
-                        background: meta.color,
-                        borderRadius: '2px',
-                      }}
-                    />
-                  </div>
+                  />
+                  <span style={{ fontWeight: 800, color: '#fff' }}>{g.name}</span>
                 </div>
-              );
-            })}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.5)',
+                      fontFamily: 'var(--font-mono, monospace)',
+                      fontSize: '0.7rem',
+                    }}
+                  >
+                    {g.value} Runden
+                  </span>
+                  <span
+                    style={{
+                      fontWeight: 900,
+                      color: g.color,
+                      fontFamily: 'var(--font-mono, monospace)',
+                      minWidth: '34px',
+                      textAlign: 'right',
+                    }}
+                  >
+                    {g.pct}%
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

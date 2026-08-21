@@ -90,3 +90,170 @@ export function buildDailyActivity(
 export function getFavoriteGame(perGame: PerGameStat[]): PerGameStat | null {
   return perGame.length > 0 ? perGame[0] : null;
 }
+
+export interface VipRecords {
+  maxSingleWin: { amount: number; game: string | null; date: string };
+  maxMultiplier: { multiplier: number; game: string | null };
+  longestWinStreak: number;
+  luckIndex: number; // e.g. 102.4%
+}
+
+export interface DailyPnlCell {
+  date: string;
+  dayLabel: string;
+  profit: number;
+  count: number;
+  wagered: number;
+}
+
+export function deriveStatsFromRows(rows: HistoryRow[]): {
+  totalWagered: number;
+  totalProfit: number;
+  winRate: number;
+  totalBets: number;
+  perGame: PerGameStat[];
+} {
+  let totalWagered = 0;
+  let totalProfit = 0;
+  let winCount = 0;
+  const gameMap = new Map<
+    string,
+    { bets: number; wins: number; wagered: number; payout: number; profit: number }
+  >();
+
+  for (const row of rows) {
+    const isBet = row.game !== null;
+    const isWin = row.amount > 0;
+    const isLoss = row.amount < 0;
+
+    totalProfit += row.amount;
+    if (isLoss) {
+      totalWagered += Math.abs(row.amount);
+    }
+    if (isWin) {
+      winCount += 1;
+    }
+
+    if (isBet && row.game) {
+      const gKey = row.game.toLowerCase();
+      const existing = gameMap.get(gKey) || { bets: 0, wins: 0, wagered: 0, payout: 0, profit: 0 };
+      existing.bets += 1;
+      if (isWin) {
+        existing.wins += 1;
+        existing.payout += row.amount;
+      }
+      if (isLoss) {
+        existing.wagered += Math.abs(row.amount);
+      }
+      existing.profit += row.amount;
+      gameMap.set(gKey, existing);
+    }
+  }
+
+  const totalBets = rows.length;
+  const winRate = totalBets > 0 ? (winCount / totalBets) * 100 : 0;
+
+  const perGame: PerGameStat[] = Array.from(gameMap.entries())
+    .map(([game, data]) => ({
+      game,
+      bets: data.bets,
+      wins: data.wins,
+      wagered: data.wagered,
+      payout: data.payout,
+      profit: data.profit,
+      winRate: data.bets > 0 ? (data.wins / data.bets) * 100 : 0,
+    }))
+    .sort((a, b) => b.wagered - a.wagered);
+
+  return {
+    totalWagered: Math.round(totalWagered * 100) / 100,
+    totalProfit: Math.round(totalProfit * 100) / 100,
+    winRate: Math.round(winRate * 10) / 10,
+    totalBets,
+    perGame,
+  };
+}
+
+export function deriveVipRecords(rows: HistoryRow[]): VipRecords {
+  let maxWinAmount = 0;
+  let maxWinGame: string | null = null;
+  let maxWinDate = '';
+  let maxMult = 1.0;
+  let maxMultGame: string | null = null;
+
+  let currentStreak = 0;
+  let longestStreak = 0;
+  let totalWagered = 0;
+  let totalPayout = 0;
+
+  // Evaluate chronological order
+  const chronological = [...rows].reverse();
+
+  for (const r of chronological) {
+    if (r.amount > 0) {
+      currentStreak += 1;
+      if (currentStreak > longestStreak) longestStreak = currentStreak;
+      if (r.amount > maxWinAmount) {
+        maxWinAmount = r.amount;
+        maxWinGame = r.game;
+        maxWinDate = r.created_at;
+      }
+      // Approximate multiplier: (profit / 10) + 1 or ratio
+      const mult = r.amount / 10 + 1;
+      if (mult > maxMult) {
+        maxMult = mult;
+        maxMultGame = r.game;
+      }
+      totalPayout += r.amount;
+    } else if (r.amount < 0) {
+      currentStreak = 0;
+      totalWagered += Math.abs(r.amount);
+    }
+  }
+
+  // Luck index: Actual payout / (totalWagered * 0.99)
+  const expectedPayout = totalWagered * 0.992;
+  const luckIndex =
+    expectedPayout > 0 ? Math.round((totalPayout / expectedPayout) * 1000) / 10 : 100.0;
+
+  return {
+    maxSingleWin: { amount: maxWinAmount, game: maxWinGame, date: maxWinDate },
+    maxMultiplier: {
+      multiplier: Math.max(1.0, Math.round(maxMult * 100) / 100),
+      game: maxMultGame,
+    },
+    longestWinStreak: longestStreak,
+    luckIndex,
+  };
+}
+
+export function buildDailyPnlHeatmap(rows: HistoryRow[], daysCount: number = 28): DailyPnlCell[] {
+  const result: DailyPnlCell[] = [];
+  const now = new Date();
+  const dayMap = new Map<string, { profit: number; count: number; wagered: number }>();
+
+  for (const r of rows) {
+    const key = localDateKey(r.created_at);
+    const existing = dayMap.get(key) || { profit: 0, count: 0, wagered: 0 };
+    existing.profit += r.amount;
+    existing.count += 1;
+    if (r.amount < 0) existing.wagered += Math.abs(r.amount);
+    dayMap.set(key, existing);
+  }
+
+  for (let i = daysCount - 1; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+    const key = d.toLocaleDateString('en-CA');
+    const dayLabel = d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+    const data = dayMap.get(key) || { profit: 0, count: 0, wagered: 0 };
+    result.push({
+      date: key,
+      dayLabel,
+      profit: Math.round(data.profit * 100) / 100,
+      count: data.count,
+      wagered: Math.round(data.wagered * 100) / 100,
+    });
+  }
+
+  return result;
+}
