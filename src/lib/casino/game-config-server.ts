@@ -44,6 +44,7 @@ function pickCategory(rows: Record<string, unknown>[], category: string): Record
 function normalizeGameConfig(rows: Record<string, unknown>[]): GameConfig {
   const limits = pickCategory(rows, 'limits');
   const crash = pickCategory(rows, 'crash');
+  const dice = pickCategory(rows, 'dice');
   const roulette = pickCategory(rows, 'roulette');
   const blackjack = pickCategory(rows, 'blackjack');
   const slots = pickCategory(rows, 'slots');
@@ -64,6 +65,9 @@ function normalizeGameConfig(rows: Record<string, unknown>[]): GameConfig {
         crash.post_crash_pause_ms,
         DEFAULT_GAME_CONFIG.crash.postCrashPauseMs,
       ),
+    },
+    dice: {
+      houseEdge: getNumber(dice.house_edge, DEFAULT_GAME_CONFIG.dice.houseEdge),
     },
     roulette: {
       multipliers:

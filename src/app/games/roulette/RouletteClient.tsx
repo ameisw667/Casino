@@ -1550,7 +1550,7 @@ export function RouletteClient() {
                   ? 'STOP AUTOBET'
                   : 'START AUTOBET'
                 : currentBets.length > 0
-                  ? `SPIN WHEEL ($${totalBetAmount.toFixed(2)})`
+                  ? `SPIN WHEEL ($${totalBetAmount.toFixed(2)}) (SPACE)`
                   : 'PLACE BETS ON TABLE'}
           </button>
 

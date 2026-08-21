@@ -59,6 +59,8 @@ const SAFE_AUTH_MESSAGES = {
   passkeySecurity:
     'Sicherheitsfehler bei der Passkey-Verifikation. Bitte überprüfe die Domain oder nutze dein Passwort.',
   passkeyInvalidState: 'Dieser Passkey ist auf diesem Gerät bereits registriert oder ungültig.',
+  passwordLeaked:
+    'Dieses Passwort ist in bekannten Datenlecks aufgetaucht. Bitte wähle ein sichereres Passwort.',
   fallback: 'Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.',
 } as const;
 
@@ -186,6 +188,16 @@ export function mapAuthError(message: string): ApiError {
       APP_ERROR_CODES.AUTHENTICATION_FAILED,
       SAFE_AUTH_MESSAGES.invalidCredentials,
     );
+  }
+  if (
+    normalized.includes('leaked') ||
+    normalized.includes('pwned') ||
+    normalized.includes('compromised password') ||
+    (normalized.includes('weak_password') && normalized.includes('compromised')) ||
+    (normalized.includes('weak_password') && normalized.includes('leaked')) ||
+    (normalized.includes('weak_password') && normalized.includes('pwned'))
+  ) {
+    return createApiError(APP_ERROR_CODES.VALIDATION_FAILED, SAFE_AUTH_MESSAGES.passwordLeaked);
   }
   if (
     normalized.includes('password should be at least') ||

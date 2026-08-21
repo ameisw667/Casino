@@ -83,6 +83,18 @@ describe('formatAuthError', () => {
     );
   });
 
+  it('maps leaked, pwned, or compromised password errors to a helpful German security hint', () => {
+    expect(formatAuthError('weak_password: Password is in a list of compromised passwords')).toBe(
+      'Dieses Passwort ist in bekannten Datenlecks aufgetaucht. Bitte wähle ein sichereres Passwort.',
+    );
+    expect(formatAuthError('Password has been leaked in a data breach')).toBe(
+      'Dieses Passwort ist in bekannten Datenlecks aufgetaucht. Bitte wähle ein sichereres Passwort.',
+    );
+    expect(formatAuthError('pwned_password: This password is pwned')).toBe(
+      'Dieses Passwort ist in bekannten Datenlecks aufgetaucht. Bitte wähle ein sichereres Passwort.',
+    );
+  });
+
   it('falls back to a safe generic message if the provider message is unknown', () => {
     expect(formatAuthError('Custom error message')).toBe(
       'Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.',

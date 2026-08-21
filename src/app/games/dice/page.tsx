@@ -729,14 +729,14 @@ export default function DicePage() {
                 disabled={loading || autoRunning}
                 onClick={() => handleQuickBet(betAmount / 2)}
               >
-                ½ Bet
+                ½ Bet (A)
               </button>
               <button
                 className="quick-chip"
                 disabled={loading || autoRunning}
                 onClick={() => handleQuickBet(betAmount * 2)}
               >
-                2× Bet
+                2× Bet (S)
               </button>
               <button
                 className="quick-chip"
@@ -744,7 +744,7 @@ export default function DicePage() {
                 onClick={() => handleQuickBet(balance)}
                 style={{ color: '#FFD700' }}
               >
-                MAX
+                MAX (F)
               </button>
             </div>
           </div>
@@ -1012,7 +1012,7 @@ export default function DicePage() {
                 ? autoRunning
                   ? 'STOP AUTOBET'
                   : 'START AUTOBET'
-                : `ROLL DICE ($${betAmount.toFixed(2)})`}
+                : `ROLL DICE ($${betAmount.toFixed(2)}) (SPACE)`}
           </button>
 
           {/* Provably Fair Badge */}

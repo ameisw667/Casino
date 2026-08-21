@@ -286,16 +286,18 @@ export default function CrashPage() {
     });
     channel.on('broadcast', { event: CRASH_PLAYER_EVENT }, ({ payload }) => {
       const event = payload as CrashPlayerBroadcastPayload;
-      setLiveBets((previous) => [
-        {
-          user: event.seat,
-          amount: event.betAmount,
-          multiplier: event.multiplier,
-          payout: event.payout,
-          action: event.action,
-        },
-        ...previous.filter((bet) => bet.user !== event.seat),
-      ].slice(0, 20));
+      setLiveBets((previous) =>
+        [
+          {
+            user: event.seat,
+            amount: event.betAmount,
+            multiplier: event.multiplier,
+            payout: event.payout,
+            action: event.action,
+          },
+          ...previous.filter((bet) => bet.user !== event.seat),
+        ].slice(0, 20),
+      );
     });
     channel.subscribe();
 
@@ -2075,7 +2077,7 @@ export default function CrashPage() {
                 ? 'ARMING THRUSTERS...'
                 : isAutoBetting
                   ? 'AUTO FLIGHT ON'
-                  : `LAUNCH BET ($${betAmount.toFixed(2)})`}
+                  : `LAUNCH BET ($${betAmount.toFixed(2)}) (SPACE)`}
             </button>
           ) : (
             <button
@@ -2101,7 +2103,7 @@ export default function CrashPage() {
             >
               {cashoutAt
                 ? `✓ SECURED $${(betAmount * cashoutAt).toFixed(2)} @ ${cashoutAt.toFixed(2)}x`
-                : `CASHOUT $${(betAmount * multiplier).toFixed(2)}`}
+                : `CASHOUT $${(betAmount * multiplier).toFixed(2)} (SPACE)`}
             </button>
           )}
 

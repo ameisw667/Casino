@@ -1002,7 +1002,7 @@ export default function BlackjackPage() {
             ) : isInGame ? (
               'IN PLAY...'
             ) : (
-              `DEAL ($${betAmount.toFixed(2)})`
+              `DEAL ($${betAmount.toFixed(2)}) (SPACE)`
             )}
           </button>
 

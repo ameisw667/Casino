@@ -1123,7 +1123,7 @@ export default function SlotsPage() {
                   'START AUTOBET'
                 )
               ) : (
-                `SPIN SLOTS ($${betAmount.toFixed(2)})`
+                `SPIN SLOTS ($${betAmount.toFixed(2)}) (SPACE)`
               )}
             </button>
 

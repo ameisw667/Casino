@@ -4,6 +4,7 @@ import {
   type GameConfig,
   DEFAULT_GAME_CONFIG,
   getRouletteMultiplierWithConfig,
+  getDiceMultiplierWithConfig,
   calculateSlotsPayoutWithConfig,
   calculateXpGainWithConfig,
   calculateLevelWithConfig,
@@ -79,13 +80,21 @@ export class CasinoCore {
       let payout = 0;
 
       switch (params.gameType) {
-        case 'DICE':
+        case 'DICE': {
           if (params.target === undefined || params.condition === undefined)
             throw new Error('Dice requires target and condition');
           roll = await ProvablyFairEngine.getDiceRoll(serverSeed, clientSeed, nonce);
           win = params.condition === 'OVER' ? roll > params.target : roll < params.target;
-          payout = win ? params.amount * (params.multiplier || 0) : 0;
+          // Payout is always derived server-side from target/condition — a
+          // client-supplied multiplier is never trusted for settlement.
+          const fairMultiplier = getDiceMultiplierWithConfig(
+            params.target,
+            params.condition,
+            config,
+          );
+          payout = calculateDicePayout(params.amount, fairMultiplier, win, config);
           break;
+        }
 
         case 'ROULETTE':
           if (!params.bets) throw new Error('Roulette requires bets');

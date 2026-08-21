@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   BookOpen,
   Plus,
@@ -104,8 +104,8 @@ export default function AdminKnowledgeClient() {
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
-  const loadDocs = async (showLoading = false) => {
-    if (showLoading) setLoading(true);
+  const loadDocs = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await fetch('/api/admin/knowledge', { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -117,10 +117,29 @@ export default function AdminKnowledgeClient() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    void loadDocs();
+    let ignore = false;
+    async function init() {
+      try {
+        const res = await fetch('/api/admin/knowledge', { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = (await res.json()) as { documents: GuideDoc[] };
+        if (!ignore) {
+          setDocs(json.documents ?? []);
+          setError(null);
+        }
+      } catch {
+        if (!ignore) setError('Wissensdokumente konnten nicht geladen werden.');
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    }
+    void init();
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   const openCreateForm = () => {
@@ -295,7 +314,9 @@ export default function AdminKnowledgeClient() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button
             type="button"
-            onClick={loadDocs}
+            onClick={() => {
+              void loadDocs();
+            }}
             style={{
               display: 'inline-flex',
               alignItems: 'center',

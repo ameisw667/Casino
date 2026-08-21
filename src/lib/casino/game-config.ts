@@ -13,6 +13,10 @@ export interface CrashConfig {
   postCrashPauseMs: number;
 }
 
+export interface DiceConfig {
+  houseEdge: number;
+}
+
 export interface RouletteConfig {
   multipliers: Record<string, number>;
 }
@@ -42,6 +46,7 @@ export interface XpConfig {
 export interface GameConfig {
   limits: GameLimitsConfig;
   crash: CrashConfig;
+  dice: DiceConfig;
   roulette: RouletteConfig;
   blackjack: BlackjackConfig;
   slots: SlotsConfig;
@@ -63,6 +68,9 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
     houseEdge: 0.01,
     bettingWindowMs: 8_000,
     postCrashPauseMs: 3_000,
+  },
+  dice: {
+    houseEdge: 0.01,
   },
   roulette: {
     multipliers: {
@@ -175,6 +183,25 @@ export function getBlackjackMaxPayoutFactor(config: GameConfig): number {
  */
 export function getCrashHouseEdge(config: GameConfig): number {
   return config.crash.houseEdge;
+}
+
+/**
+ * Derive the authoritative Dice payout multiplier from target/condition + house edge.
+ * The server must always compute this itself for settlement — a client-supplied
+ * multiplier is never trusted, since it is not otherwise tied to the win probability
+ * implied by target/condition.
+ */
+export function getDiceMultiplierWithConfig(
+  target: number,
+  condition: 'OVER' | 'UNDER',
+  config: GameConfig,
+): number {
+  if (!Number.isFinite(target) || target < 0.01 || target > 99.99) {
+    throw new RangeError('Dice target must be between 0.01 and 99.99');
+  }
+  const winChance = condition === 'OVER' ? 100 - target : target;
+  const multiplier = ((1 - config.dice.houseEdge) * 100) / winChance;
+  return Math.round(multiplier * 10000) / 10000;
 }
 
 /**
