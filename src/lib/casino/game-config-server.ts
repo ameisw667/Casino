@@ -59,6 +59,11 @@ function normalizeGameConfig(rows: Record<string, unknown>[]): GameConfig {
     },
     crash: {
       houseEdge: getNumber(crash.house_edge, DEFAULT_GAME_CONFIG.crash.houseEdge),
+      bettingWindowMs: getNumber(crash.betting_window_ms, DEFAULT_GAME_CONFIG.crash.bettingWindowMs),
+      postCrashPauseMs: getNumber(
+        crash.post_crash_pause_ms,
+        DEFAULT_GAME_CONFIG.crash.postCrashPauseMs,
+      ),
     },
     roulette: {
       multipliers:

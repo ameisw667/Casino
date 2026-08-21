@@ -29,6 +29,7 @@ const PUBLIC_ROUTES = [
   '/api/casino/(.*)',
   '/api/chat/bot-response',
   '/api/community',
+  '/api/leaderboard',
   '/api/user/(.*)',
   '/api/analytics/(.*)',
   '/api/admin/users',

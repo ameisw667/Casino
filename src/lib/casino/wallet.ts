@@ -173,6 +173,9 @@ export class WalletService {
     });
     if (error) {
       if (error.message.includes('Insufficient')) throw new Error('Insufficient balance');
+      if (error.message.includes('Active crash round already exists')) {
+        throw new Error('ACTIVE_CRASH_ROUND_EXISTS');
+      }
       throw new Error('Game round could not be started');
     }
     const parsed = roundStartSchema.parse(data);
@@ -604,5 +607,49 @@ export class WalletService {
       state?: Record<string, unknown>;
       version?: number;
     };
+  }
+
+  /**
+   * Links a just-started CRASH game_rounds row to its shared crash_rounds
+   * room (worldmap/05_multiplayercrash.md, Option C). Pure reference write —
+   * no balance/XP mutation, so a direct update outside the advisory-lock RPC
+   * chain is safe (mirrors how start_game_round itself has no financial
+   * side effect from this column). Best-effort: a failure here only means
+   * the live player list won't show this bet, never a settlement risk.
+   */
+  static async linkCrashRound(roundId: string, crashRoundId: string): Promise<void> {
+    const supabase = createAdminClient();
+    const { error } = await supabase
+      .from('game_rounds')
+      .update({ crash_round_id: crashRoundId })
+      .eq('id', roundId);
+    if (error) {
+      CasinoLogger.warn('WalletService', 'Failed to link crash round', error);
+    }
+  }
+
+  /**
+   * Distinct users who have an ACTIVE or SETTLED bet tied to this shared
+   * crash round, for the live player list (FR3). Read-only, service-role
+   * only (game_rounds has no client grants) — never exposes raw user_id to
+   * the browser; callers must derive a display label themselves.
+   */
+  static async getCrashRoundParticipants(
+    crashRoundId: string,
+  ): Promise<Array<{ userId: string; betAmount: number; status: 'ACTIVE' | 'SETTLED'; state: Record<string, unknown> }>> {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from('game_rounds')
+      .select('user_id, bet_amount, status, state, created_at')
+      .eq('crash_round_id', crashRoundId)
+      .eq('game', 'CRASH')
+      .order('created_at', { ascending: true });
+    if (error || !data) return [];
+    return data.map((row) => ({
+      userId: String(row.user_id),
+      betAmount: Number(row.bet_amount),
+      status: row.status === 'SETTLED' ? 'SETTLED' : 'ACTIVE',
+      state: z.record(z.string(), z.unknown()).parse(row.state ?? {}),
+    }));
   }
 }

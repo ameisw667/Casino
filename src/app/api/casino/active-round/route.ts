@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 import { WalletService } from '@/lib/casino/wallet';
 import { CasinoLogger } from '@/lib/casino/logger';
 import { publicState } from '@/app/api/casino/blackjack/route';
 import type { BlackjackGameState } from '@/lib/games/blackjack';
+import { ensureCurrentCrashRound, getCrashRoundById, toPublicRoundState } from '@/lib/casino/crash-round';
+import type { PublicCrashRoundState } from '@/lib/casino/crash-round';
+import { loadGameConfig } from '@/lib/casino/game-config-server';
 
 /**
  * game_rounds.state carries whatever the round needs server-side to resolve
@@ -58,9 +62,32 @@ export async function GET(request: Request) {
     const sanitized = round.hasActiveRound
       ? { ...round, state: sanitizeActiveRoundState(game, round.state) }
       : round;
-    return NextResponse.json(sanitized, {
-      headers: { 'Cache-Control': 'private, no-store' },
-    });
+
+    // NFR3 (worldmap/05_multiplayercrash.md): REST fallback for the shared
+    // room clock, for both a user with an active bet and one just watching.
+    // A status poll is a valid lazy-scheduler trigger too (§4.2) — refetch
+    // by the bet's own crash_round_id when we have one (a past round may no
+    // longer be "current"), otherwise fall back to whatever round is active
+    // right now.
+    let sharedRound: PublicCrashRoundState | undefined;
+    if (game === 'CRASH') {
+      try {
+        const linkedRoundId = round.hasActiveRound
+          ? z.string().uuid().safeParse(round.state?.crashRoundId).data
+          : undefined;
+        const internal = linkedRoundId
+          ? await getCrashRoundById(linkedRoundId)
+          : await ensureCurrentCrashRound(await loadGameConfig());
+        sharedRound = toPublicRoundState(internal);
+      } catch (error) {
+        CasinoLogger.warn('API/ActiveRound', 'Failed to resolve shared crash round', error);
+      }
+    }
+
+    return NextResponse.json(
+      { ...sanitized, sharedRound },
+      { headers: { 'Cache-Control': 'private, no-store' } },
+    );
   } catch (error) {
     CasinoLogger.error('API/ActiveRound', 'Failed to fetch active round', error);
     return NextResponse.json({ hasActiveRound: false }, { status: 200 });

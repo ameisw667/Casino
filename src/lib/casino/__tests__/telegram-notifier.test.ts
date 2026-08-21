@@ -1,12 +1,22 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
+  trigger: vi.fn(),
   from: vi.fn(),
   error: vi.fn(),
   setTelegramNotificationsEnabled: vi.fn(async () => true),
 }));
 
 vi.mock('server-only', () => ({}));
+vi.mock('@trigger.dev/sdk', () => ({
+  tasks: { trigger: mocks.trigger },
+  logger: { log: vi.fn(), error: vi.fn() },
+  schemaTask: vi.fn((opts) => opts),
+  task: vi.fn((opts) => opts),
+  schedules: { task: vi.fn((opts) => opts) },
+  idempotencyKeys: { create: vi.fn(async (k) => k) },
+  metadata: { set: vi.fn() },
+}));
 vi.mock('@/utils/supabase/admin', () => ({
   createAdminClient: vi.fn(() => ({ from: mocks.from })),
 }));
@@ -18,15 +28,7 @@ vi.mock('@/lib/casino/telegram-link', () => ({
 }));
 
 import { notifyBigWinIfEligible } from '../telegram-notifier';
-
-function chain(result: { data?: unknown; error?: unknown }) {
-  const builder: Record<string, unknown> = {
-    select: vi.fn(() => builder),
-    eq: vi.fn(() => builder),
-    maybeSingle: vi.fn(async () => result),
-  };
-  return builder;
-}
+import { formatBigWinMessage, bigWinNotifyPayloadSchema } from '@/trigger/big-win-notify';
 
 const baseInput = {
   userId: 'user-1',
@@ -40,116 +42,75 @@ const baseInput = {
 afterEach(() => {
   vi.clearAllMocks();
   vi.unstubAllGlobals();
-  process.env.TELEGRAM_BOT_TOKEN = 'test-token';
 });
 
-describe('notifyBigWinIfEligible', () => {
-  it('skips replayed settlements without touching the database', async () => {
+describe('notifyBigWinIfEligible (M2 async dispatch)', () => {
+  it('skips replayed settlements without triggering background task', async () => {
     const result = await notifyBigWinIfEligible({ ...baseInput, replayed: true });
     expect(result).toBe('skipped');
-    expect(mocks.from).not.toHaveBeenCalled();
+    expect(mocks.trigger).not.toHaveBeenCalled();
   });
 
-  it('skips losses', async () => {
+  it('skips losses without triggering background task', async () => {
     const result = await notifyBigWinIfEligible({ ...baseInput, win: false });
     expect(result).toBe('skipped');
-    expect(mocks.from).not.toHaveBeenCalled();
+    expect(mocks.trigger).not.toHaveBeenCalled();
   });
 
-  it('skips wins below both thresholds', async () => {
+  it('skips wins below big-win thresholds without triggering background task', async () => {
     const result = await notifyBigWinIfEligible({ ...baseInput, payout: 10, multiplier: 2 });
     expect(result).toBe('skipped');
-    expect(mocks.from).not.toHaveBeenCalled();
+    expect(mocks.trigger).not.toHaveBeenCalled();
   });
 
-  it('skips when the user has no telegram link', async () => {
-    mocks.from.mockReturnValueOnce(chain({ data: null, error: null }));
-    const result = await notifyBigWinIfEligible(baseInput);
-    expect(result).toBe('skipped');
-  });
-
-  it('skips when notifications are muted', async () => {
-    mocks.from.mockReturnValueOnce(
-      chain({ data: { chat_id: 42, notifications_enabled: false }, error: null }),
-    );
-    const result = await notifyBigWinIfEligible(baseInput);
-    expect(result).toBe('skipped');
-  });
-
-  it('sends a message and returns sent on success', async () => {
-    mocks.from.mockReturnValueOnce(
-      chain({ data: { chat_id: 42, notifications_enabled: true }, error: null }),
-    );
-    const fetchSpy = vi.fn(async () => new Response(null, { status: 200 }));
-    vi.stubGlobal('fetch', fetchSpy);
-
+  it('triggers big-win-notify background task on eligible big win', async () => {
+    mocks.trigger.mockResolvedValueOnce({ id: 'run_bigwin_1' });
     const result = await notifyBigWinIfEligible(baseInput);
 
     expect(result).toBe('sent');
-    expect(fetchSpy).toHaveBeenCalledWith(
-      'https://api.telegram.org/bottest-token/sendMessage',
-      expect.objectContaining({ method: 'POST' }),
-    );
-    const [, init] = fetchSpy.mock.calls[0] as unknown as [string, RequestInit];
-    expect(JSON.parse(init.body as string)).toEqual({
-      chat_id: 42,
-      text: expect.stringContaining('DICE'),
+    expect(mocks.trigger).toHaveBeenCalledWith('big-win-notify', {
+      userId: 'user-1',
+      game: 'DICE',
+      payout: 1000,
+      multiplier: 25,
+      win: true,
+      replayed: false,
     });
   });
 
-  it('mutes the user and skips when telegram reports 403 (bot blocked)', async () => {
-    mocks.from.mockReturnValueOnce(
-      chain({ data: { chat_id: 42, notifications_enabled: true }, error: null }),
-    );
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => new Response(null, { status: 403 })),
-    );
-
+  it('swallows trigger errors and never throws in the bet response path', async () => {
+    mocks.trigger.mockRejectedValueOnce(new Error('Trigger service down'));
     const result = await notifyBigWinIfEligible(baseInput);
 
     expect(result).toBe('skipped');
-    expect(mocks.setTelegramNotificationsEnabled).toHaveBeenCalledWith('user-1', false);
+    expect(mocks.error).toHaveBeenCalled();
+  });
+});
+
+describe('bigWinNotify helpers and schema', () => {
+  it('formats big win messages accurately', () => {
+    const msg = formatBigWinMessage('CRASH', 2500, 50);
+    expect(msg).toBe('🎉 Big Win! CRASH — $2500.00 at 50.00x');
   });
 
-  it('skips without throwing when the telegram call rejects', async () => {
-    mocks.from.mockReturnValueOnce(
-      chain({ data: { chat_id: 42, notifications_enabled: true }, error: null }),
-    );
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => {
-        throw new Error('network down');
-      }),
-    );
+  it('validates schema correctly', () => {
+    const valid = {
+      userId: 'user-1',
+      game: 'SLOTS',
+      payout: 500,
+      multiplier: 100,
+      win: true,
+      replayed: false,
+    };
+    expect(bigWinNotifyPayloadSchema.safeParse(valid).success).toBe(true);
 
-    await expect(notifyBigWinIfEligible(baseInput)).resolves.toBe('skipped');
-  });
-
-  it('skips when the bot token is missing', async () => {
-    delete process.env.TELEGRAM_BOT_TOKEN;
-    mocks.from.mockReturnValueOnce(
-      chain({ data: { chat_id: 42, notifications_enabled: true }, error: null }),
-    );
-
-    const result = await notifyBigWinIfEligible(baseInput);
-    expect(result).toBe('skipped');
-  });
-
-  it('times out and skips instead of hanging the caller', async () => {
-    vi.useFakeTimers();
-    mocks.from.mockReturnValueOnce(
-      chain({ data: { chat_id: 42, notifications_enabled: true }, error: null }),
-    );
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => new Promise(() => undefined)),
-    );
-
-    const pending = notifyBigWinIfEligible(baseInput);
-    await vi.advanceTimersByTimeAsync(1300);
-
-    await expect(pending).resolves.toBe('skipped');
-    vi.useRealTimers();
+    const invalid = {
+      userId: '',
+      game: '',
+      payout: -10,
+      multiplier: -1,
+      win: true,
+    };
+    expect(bigWinNotifyPayloadSchema.safeParse(invalid).success).toBe(false);
   });
 });

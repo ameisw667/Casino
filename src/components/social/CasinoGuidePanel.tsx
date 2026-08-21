@@ -413,20 +413,20 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
 
   return (
     <>
-      {/* Floating Trigger Button (Option 1A) */}
+      {/* Floating Trigger Button (Option 1A — Subtiler Obsidian & Gold Glow) */}
       <motion.button
         type="button"
         aria-label="Open Royale Guide"
         animate={{
-          scale: [1, 1.03, 1],
+          scale: [1, 1.022, 1],
           boxShadow: [
-            '0 8px 24px hsla(45, 90%, 55%, 0.22), inset 0 1px 0 hsla(45, 100%, 75%, 0.2)',
-            '0 14px 36px hsla(45, 90%, 55%, 0.44), inset 0 1px 0 hsla(45, 100%, 75%, 0.35)',
-            '0 8px 24px hsla(45, 90%, 55%, 0.22), inset 0 1px 0 hsla(45, 100%, 75%, 0.2)',
+            '0 8px 24px rgba(0, 0, 0, 0.55), 0 0 10px hsla(45, 85%, 55%, 0.12), inset 0 1px 0 hsla(45, 100%, 75%, 0.25)',
+            '0 10px 28px rgba(0, 0, 0, 0.65), 0 0 16px hsla(45, 85%, 55%, 0.2), inset 0 1px 0 hsla(45, 100%, 75%, 0.35)',
+            '0 8px 24px rgba(0, 0, 0, 0.55), 0 0 10px hsla(45, 85%, 55%, 0.12), inset 0 1px 0 hsla(45, 100%, 75%, 0.25)',
           ],
         }}
-        transition={{ repeat: Infinity, duration: 2.8, ease: 'easeInOut' }}
-        whileHover={{ scale: 1.06, boxShadow: '0 16px 40px hsla(45, 90%, 55%, 0.55)' }}
+        transition={{ repeat: Infinity, duration: 3.2, ease: 'easeInOut' }}
+        whileHover={{ scale: 1.04, boxShadow: '0 12px 30px rgba(0, 0, 0, 0.7), 0 0 18px hsla(45, 85%, 55%, 0.28)' }}
         whileTap={{ scale: 0.95 }}
         onClick={openPanel}
         style={{
@@ -437,10 +437,10 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
           display: isOpen ? 'none' : 'inline-flex',
           alignItems: 'center',
           gap: '9px',
-          border: '1px solid hsla(var(--primary), 0.45)',
+          border: '1px solid hsla(var(--primary), 0.38)',
           borderRadius: '999px',
           padding: '12px 18px',
-          background: 'hsla(var(--bg-color), 0.88)',
+          background: 'hsla(var(--bg-color), 0.92)',
           backdropFilter: 'blur(16px)',
           color: 'hsl(var(--text-main))',
           cursor: 'pointer',

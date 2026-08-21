@@ -8,6 +8,9 @@ export interface GameLimitsConfig {
 
 export interface CrashConfig {
   houseEdge: number;
+  /** Multiplayer round clock (worldmap/05_multiplayercrash.md §4.4). */
+  bettingWindowMs: number;
+  postCrashPauseMs: number;
 }
 
 export interface RouletteConfig {
@@ -58,6 +61,8 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   },
   crash: {
     houseEdge: 0.01,
+    bettingWindowMs: 8_000,
+    postCrashPauseMs: 3_000,
   },
   roulette: {
     multipliers: {

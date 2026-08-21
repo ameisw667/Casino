@@ -1,7 +1,16 @@
 'use client';
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, History, ChevronRight } from 'lucide-react';
+import {
+  ShieldCheck,
+  History,
+  ChevronRight,
+  Rocket,
+  Dices,
+  Sparkles,
+  RotateCcw,
+  Gamepad2,
+} from 'lucide-react';
 
 export interface HistoryRow {
   id: string;
@@ -34,44 +43,44 @@ function formatFullTime(iso: string) {
   }
 }
 
-function getGameFinTechMeta(game: string | null) {
+function getGameConfig(game: string | null) {
   const g = (game ?? '').toLowerCase();
   switch (g) {
     case 'crash':
       return {
-        title: 'CRASH ROCKET',
-        category: 'ORIGINAL',
-        code: 'CR-01',
+        name: 'Crash',
+        category: 'Original',
+        icon: <Rocket size={12} color="#D4AF37" />,
       };
     case 'dice':
       return {
-        title: 'LUCKY DICE',
-        category: 'ORIGINAL',
-        code: 'DC-01',
+        name: 'Dice',
+        category: 'Original',
+        icon: <Dices size={12} color="#D4AF37" />,
       };
     case 'slots':
       return {
-        title: 'NEON SLOTS',
-        category: 'ORIGINAL',
-        code: 'SL-01',
+        name: 'Slots',
+        category: 'Original',
+        icon: <Sparkles size={12} color="#D4AF37" />,
       };
     case 'roulette':
       return {
-        title: 'ROYALE ROULETTE',
-        category: 'TISCH',
-        code: 'RL-01',
+        name: 'Roulette',
+        category: 'Tisch',
+        icon: <RotateCcw size={12} color="#D4AF37" />,
       };
     case 'blackjack':
       return {
-        title: 'VIP BLACKJACK',
-        category: 'TISCH',
-        code: 'BJ-01',
+        name: 'Blackjack',
+        category: 'Tisch',
+        icon: <Gamepad2 size={12} color="#D4AF37" />,
       };
     default:
       return {
-        title: (game ?? 'CASINO').toUpperCase(),
-        category: 'ORIGINAL',
-        code: 'GEN-01',
+        name: (game ?? 'Casino').toUpperCase(),
+        category: 'Original',
+        icon: <Gamepad2 size={12} color="#D4AF37" />,
       };
   }
 }
@@ -88,11 +97,11 @@ export function HistoryTableStream({
         style={{
           background: 'rgba(16, 18, 26, 0.75)',
           border: '1px solid rgba(212, 175, 55, 0.15)',
-          borderRadius: '20px',
-          padding: '24px',
+          borderRadius: '16px',
+          padding: '20px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '10px',
+          gap: '8px',
           backdropFilter: 'blur(16px)',
         }}
       >
@@ -100,8 +109,8 @@ export function HistoryTableStream({
           <div
             key={i}
             style={{
-              height: '52px',
-              borderRadius: '12px',
+              height: '46px',
+              borderRadius: '10px',
               background: 'rgba(255, 255, 255, 0.02)',
               border: '1px solid rgba(255, 255, 255, 0.04)',
             }}
@@ -115,11 +124,10 @@ export function HistoryTableStream({
     return (
       <div
         style={{
-          padding: '60px 24px',
+          padding: '50px 24px',
           textAlign: 'center',
-          background:
-            'linear-gradient(135deg, rgba(20, 22, 30, 0.85) 0%, rgba(12, 14, 20, 0.95) 100%)',
-          borderRadius: '20px',
+          background: 'linear-gradient(135deg, rgba(20, 22, 30, 0.85) 0%, rgba(12, 14, 20, 0.95) 100%)',
+          borderRadius: '16px',
           border: '1px solid rgba(212, 175, 55, 0.15)',
           backdropFilter: 'blur(20px)',
           display: 'flex',
@@ -130,28 +138,13 @@ export function HistoryTableStream({
           boxShadow: '0 12px 40px rgba(0, 0, 0, 0.5)',
         }}
       >
-        <div
-          style={{
-            color: '#D4AF37',
-            background: 'rgba(212, 175, 55, 0.1)',
-            padding: '16px',
-            borderRadius: '50%',
-            border: '1px solid rgba(212, 175, 55, 0.25)',
-          }}
-        >
-          <History size={36} />
+        <div style={{ color: '#D4AF37', background: 'rgba(212, 175, 55, 0.08)', padding: '14px', borderRadius: '50%', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
+          <History size={32} />
         </div>
-        <div style={{ fontWeight: 900, fontSize: '1.1rem', color: '#fff' }}>
+        <div style={{ fontWeight: 900, fontSize: '1rem', color: '#fff' }}>
           Keine Wetten im gewählten Filter gefunden
         </div>
-        <div
-          style={{
-            fontSize: '0.8rem',
-            color: 'rgba(255, 255, 255, 0.45)',
-            maxWidth: '360px',
-            lineHeight: 1.4,
-          }}
-        >
+        <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.45)', maxWidth: '340px', lineHeight: 1.4 }}>
           Passe deine Filter an oder starte ein Casino Original, um neue Runden aufzuzeichnen.
         </div>
       </div>
@@ -161,14 +154,13 @@ export function HistoryTableStream({
   return (
     <div
       style={{
-        borderRadius: '20px',
+        borderRadius: '16px',
         overflow: 'hidden',
         border: '1px solid rgba(212, 175, 55, 0.18)',
-        background:
-          'linear-gradient(180deg, rgba(18, 20, 28, 0.9) 0%, rgba(10, 12, 16, 0.96) 100%)',
+        background: 'linear-gradient(180deg, rgba(18, 20, 28, 0.9) 0%, rgba(10, 12, 16, 0.96) 100%)',
         backdropFilter: 'blur(24px)',
         WebkitBackdropFilter: 'blur(24px)',
-        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.06)',
+        boxShadow: '0 16px 40px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.05)',
       }}
     >
       <div style={{ overflowX: 'auto', scrollbarWidth: 'none' }}>
@@ -177,34 +169,34 @@ export function HistoryTableStream({
             width: '100%',
             borderCollapse: 'collapse',
             textAlign: 'left',
-            fontSize: '0.82rem',
+            fontSize: '0.8rem',
           }}
         >
           <thead>
             <tr
               style={{
-                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
                 background: 'rgba(0, 0, 0, 0.35)',
                 color: 'rgba(255, 255, 255, 0.4)',
-                fontSize: '0.66rem',
+                fontSize: '0.64rem',
                 fontWeight: 900,
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
               }}
             >
-              <th style={{ padding: '16px 20px' }}>Spiel & Kategorie</th>
-              <th style={{ padding: '16px 20px' }}>Zeitpunkt</th>
-              <th style={{ padding: '16px 20px' }}>Multiplikator</th>
-              <th style={{ padding: '16px 20px', textAlign: 'right' }}>Ergebnis / Profit</th>
-              <th style={{ padding: '16px 20px', textAlign: 'right' }}>Kontostand Danach</th>
-              <th style={{ padding: '16px 20px', textAlign: 'center' }}>Quittung</th>
+              <th style={{ padding: '14px 18px' }}>Spiel & Kategorie</th>
+              <th style={{ padding: '14px 18px' }}>Zeitpunkt</th>
+              <th style={{ padding: '14px 18px' }}>Multiplikator</th>
+              <th style={{ padding: '14px 18px', textAlign: 'right' }}>Ergebnis / Profit</th>
+              <th style={{ padding: '14px 18px', textAlign: 'right' }}>Kontostand Danach</th>
+              <th style={{ padding: '14px 18px', textAlign: 'right' }}>Quittung</th>
             </tr>
           </thead>
           <tbody>
             <AnimatePresence>
               {rows.map((row, idx) => {
                 const isWin = row.amount > 0;
-                const meta = getGameFinTechMeta(row.game);
+                const cfg = getGameConfig(row.game);
                 const absAmount = Math.abs(row.amount);
 
                 // Derived approximate multiplier or outcome display
@@ -219,115 +211,98 @@ export function HistoryTableStream({
                     transition={{ delay: Math.min(idx * 0.02, 0.3) }}
                     onClick={() => onSelectRow?.(row)}
                     style={{
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.03)',
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.025)',
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
                       background: 'transparent',
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background =
-                        'linear-gradient(90deg, rgba(212, 175, 55, 0.05) 0%, rgba(212, 175, 55, 0.01) 100%)';
+                        'linear-gradient(90deg, rgba(212, 175, 55, 0.06) 0%, rgba(212, 175, 55, 0.01) 100%)';
+                      const indicator = e.currentTarget.querySelector('.history-receipt-indicator') as HTMLElement | null;
+                      if (indicator) {
+                        indicator.style.color = '#D4AF37';
+                      }
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = 'transparent';
+                      const indicator = e.currentTarget.querySelector('.history-receipt-indicator') as HTMLElement | null;
+                      if (indicator) {
+                        indicator.style.color = 'rgba(255, 255, 255, 0.35)';
+                      }
                     }}
                   >
-                    {/* Game & Category: Option 1 (FinTech-Typografie mit Monochrom-Badge) */}
-                    <td style={{ padding: '14px 20px' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span
-                            style={{
-                              fontWeight: 900,
-                              color: '#ffffff',
-                              fontSize: '0.86rem',
-                              letterSpacing: '-0.01em',
-                            }}
-                          >
-                            {meta.title}
-                          </span>
-                          <span
-                            style={{
-                              fontFamily: 'var(--font-mono, monospace)',
-                              fontSize: '0.58rem',
-                              fontWeight: 800,
-                              color: 'rgba(255, 255, 255, 0.45)',
-                              background: 'rgba(255, 255, 255, 0.05)',
-                              padding: '1px 5px',
-                              borderRadius: '4px',
-                              border: '1px solid rgba(255, 255, 255, 0.08)',
-                              letterSpacing: '0.04em',
-                            }}
-                          >
-                            [{meta.code}]
-                          </span>
-                        </div>
+                    {/* Game & Category: High-Density Single Line */}
+                    <td style={{ padding: '12px 18px' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                         <div
                           style={{
-                            fontSize: '0.62rem',
-                            color: 'rgba(255, 255, 255, 0.35)',
-                            fontWeight: 700,
-                            letterSpacing: '0.05em',
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '6px',
+                            background: 'rgba(212, 175, 55, 0.08)',
+                            border: '1px solid rgba(212, 175, 55, 0.2)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
                           }}
                         >
-                          PROVABLY FAIR • {meta.category}
+                          {cfg.icon}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontWeight: 800, color: '#ffffff', fontSize: '0.82rem', letterSpacing: '-0.01em' }}>
+                            {cfg.name}
+                          </span>
+                          <span style={{ color: 'rgba(255, 255, 255, 0.25)', fontSize: '0.7rem' }}>•</span>
+                          <span style={{ fontSize: '0.66rem', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 700, letterSpacing: '0.04em' }}>
+                            {cfg.category}
+                          </span>
                         </div>
                       </div>
                     </td>
 
                     {/* Timestamp */}
-                    <td
-                      style={{
-                        padding: '14px 20px',
-                        color: 'rgba(255, 255, 255, 0.6)',
-                        fontFamily: 'var(--font-mono, monospace)',
-                        fontSize: '0.76rem',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
+                    <td style={{ padding: '12px 18px', color: 'rgba(255, 255, 255, 0.6)', fontFamily: 'var(--font-mono, monospace)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                       {formatFullTime(row.created_at)}
                     </td>
 
-                    {/* Multiplier Badge */}
-                    <td style={{ padding: '14px 20px' }}>
+                    {/* Multiplier Badge (0 Emojis) */}
+                    <td style={{ padding: '12px 18px' }}>
                       {isWin ? (
                         <span
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '4px',
-                            padding: '3px 8px',
+                            padding: '2px 8px',
                             borderRadius: '6px',
                             background: isBigMultiplier
-                              ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.25) 0%, rgba(212, 175, 55, 0.1) 100%)'
-                              : 'rgba(16, 185, 129, 0.15)',
+                              ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.22) 0%, rgba(212, 175, 55, 0.08) 100%)'
+                              : 'rgba(16, 185, 129, 0.12)',
                             border: isBigMultiplier
-                              ? '1px solid #FFD700'
-                              : '1px solid rgba(16, 185, 129, 0.3)',
+                              ? '1px solid rgba(255, 215, 0, 0.5)'
+                              : '1px solid rgba(16, 185, 129, 0.25)',
                             color: isBigMultiplier ? '#FFD700' : '#10b981',
                             fontFamily: 'var(--font-mono, monospace)',
                             fontWeight: 900,
                             fontSize: '0.74rem',
-                            boxShadow: isBigMultiplier
-                              ? '0 0 12px rgba(212, 175, 55, 0.3)'
-                              : 'none',
+                            boxShadow: isBigMultiplier ? '0 0 10px rgba(212, 175, 55, 0.25)' : 'none',
                           }}
                         >
-                          {isBigMultiplier && <span>⚡</span>}
-                          <span>{multValue}x</span>
+                          {multValue}x
                         </span>
                       ) : (
                         <span
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            padding: '3px 8px',
+                            padding: '2px 8px',
                             borderRadius: '6px',
-                            background: 'rgba(239, 68, 68, 0.08)',
-                            border: '1px solid rgba(239, 68, 68, 0.18)',
-                            color: 'rgba(239, 68, 68, 0.75)',
+                            background: 'rgba(239, 68, 68, 0.06)',
+                            border: '1px solid rgba(239, 68, 68, 0.15)',
+                            color: 'rgba(239, 68, 68, 0.65)',
                             fontFamily: 'var(--font-mono, monospace)',
-                            fontWeight: 800,
+                            fontWeight: 700,
                             fontSize: '0.72rem',
                           }}
                         >
@@ -337,79 +312,53 @@ export function HistoryTableStream({
                     </td>
 
                     {/* Result / Profit */}
-                    <td style={{ padding: '14px 20px', textAlign: 'right' }}>
+                    <td style={{ padding: '12px 18px', textAlign: 'right' }}>
                       <div
                         style={{
                           fontFamily: 'var(--font-mono, monospace)',
                           fontWeight: 950,
-                          fontSize: '0.92rem',
+                          fontSize: '0.88rem',
                           color: isWin ? '#10b981' : '#ef4444',
                           letterSpacing: '-0.01em',
-                          textShadow: isWin ? '0 0 12px rgba(16, 185, 129, 0.3)' : 'none',
+                          textShadow: isWin ? '0 0 10px rgba(16, 185, 129, 0.25)' : 'none',
                         }}
                       >
-                        {isWin ? '+' : '-'}$
-                        {absAmount.toLocaleString('en-US', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                        {isWin ? '+' : '-'}${absAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </div>
                     </td>
 
-                    {/* Balance After: Subtiler Monospace-Wert */}
-                    <td style={{ padding: '14px 20px', textAlign: 'right' }}>
+                    {/* Balance After */}
+                    <td style={{ padding: '12px 18px', textAlign: 'right' }}>
                       <span
                         style={{
                           fontFamily: 'var(--font-mono, monospace)',
                           fontWeight: 700,
-                          color: 'rgba(255, 255, 255, 0.65)',
-                          fontSize: '0.84rem',
+                          color: 'rgba(255, 255, 255, 0.6)',
+                          fontSize: '0.82rem',
                         }}
                       >
-                        $
-                        {row.balance_after.toLocaleString('en-US', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                        ${row.balance_after.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                     </td>
 
-                    {/* Receipt: Subtile Glass-Pille */}
-                    <td style={{ padding: '14px 20px', textAlign: 'center' }}>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSelectRow?.(row);
-                        }}
+                    {/* Receipt Indicator: Subtiles Lucide-Vektor-Icon */}
+                    <td style={{ padding: '12px 18px', textAlign: 'right' }}>
+                      <div
+                        className="history-receipt-indicator"
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '4px',
-                          padding: '4px 9px',
-                          borderRadius: '6px',
-                          border: '1px solid rgba(255, 255, 255, 0.08)',
-                          background: 'rgba(255, 255, 255, 0.03)',
-                          color: 'rgba(255, 255, 255, 0.55)',
-                          fontSize: '0.66rem',
-                          fontWeight: 800,
-                          cursor: 'pointer',
+                          color: 'rgba(255, 255, 255, 0.35)',
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
                           transition: 'all 0.15s ease',
                         }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'rgba(212, 175, 55, 0.12)';
-                          e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.3)';
-                          e.currentTarget.style.color = '#D4AF37';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-                          e.currentTarget.style.color = 'rgba(255, 255, 255, 0.55)';
-                        }}
                       >
-                        <ShieldCheck size={10} />
+                        <ShieldCheck size={13} color="#D4AF37" />
                         <span>Quittung</span>
-                        <ChevronRight size={10} />
-                      </button>
+                        <ChevronRight size={12} />
+                      </div>
                     </td>
                   </motion.tr>
                 );

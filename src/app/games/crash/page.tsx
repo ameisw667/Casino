@@ -7,6 +7,14 @@ import { sanitizeClientSeed } from '@/lib/casino/provably-fair';
 import { CasinoLogger } from '@/lib/casino/logger';
 import { soundManager } from '@/lib/casino/sound-manager';
 import { trackAllowedEvent } from '@/lib/analytics/events';
+import { createClient as createSupabaseBrowserClient } from '@/utils/supabase/client';
+import {
+  CRASH_REALTIME_CHANNEL,
+  CRASH_ROUND_EVENT,
+  CRASH_PLAYER_EVENT,
+  type CrashRoundBroadcastPayload,
+  type CrashPlayerBroadcastPayload,
+} from '@/lib/casino/realtime-types';
 
 // Types for the particle & background system
 interface Particle {
@@ -36,6 +44,7 @@ interface LiveBet {
   amount: number;
   multiplier: number | null;
   payout: number | null;
+  action: 'BET' | 'CASHOUT' | 'BUST';
   _target?: number;
 }
 
@@ -71,15 +80,24 @@ export default function CrashPage() {
   const addToast = useCasinoStore((state) => state.addToast);
   const isProcessing = useCasinoStore((state) => state.isProcessing);
   const setIsProcessing = useCasinoStore((state) => state.setIsProcessing);
-  const allBets = useCasinoStore((state) => state.allBets);
   const { betMin, betMax } = useCasinoStore((state) => state.gameConfig.limits);
 
   const [betAmount, setBetAmount] = useState(10);
   const [multiplier, setMultiplier] = useState(1.0);
-  const [status, setStatus] = useState<'IDLE' | 'RUNNING' | 'CRASHED' | 'CASHED_OUT'>('IDLE');
+  const [status, setStatus] = useState<'IDLE' | 'WAITING' | 'RUNNING' | 'CRASHED' | 'CASHED_OUT'>(
+    'IDLE',
+  );
+  // Shared room clock (worldmap/05_multiplayercrash.md) — updated from the
+  // Realtime broadcast and the REST poll fallback (NFR3), independent of
+  // whether this browser has an active bet. bettingWindowSecondsLeft only
+  // ticks once THIS user has joined (status === 'WAITING'); roomRound alone
+  // drives the "waiting for others" display before that.
+  const [roomRound, setRoomRound] = useState<CrashRoundBroadcastPayload | null>(null);
+  const [bettingWindowSecondsLeft, setBettingWindowSecondsLeft] = useState<number | null>(null);
+  const [roomWaitDisplay, setRoomWaitDisplay] = useState('');
   const [cashoutAt, setCashoutAt] = useState<number | null>(null);
   const [isAutoCashoutEnabled, setIsAutoCashoutEnabled] = useState(false);
-  const [_liveBets, setLiveBets] = useState<LiveBet[]>([]);
+  const [liveBets, setLiveBets] = useState<LiveBet[]>([]);
   const [showTutorial, setShowTutorial] = useState(false);
   const [bigWin, setBigWin] = useState<{ amount: number; multiplier: number } | null>(null);
   const [milestoneFlash, setMilestoneFlash] = useState<{ value: number; key: number } | null>(null);
@@ -123,6 +141,8 @@ export default function CrashPage() {
   const cashoutButtonRef = useRef<HTMLButtonElement>(null);
   const multiplierRef = useRef<number>(1.0);
   const roundIdRef = useRef<string | null>(null);
+  const crashRoundIdRef = useRef<string | null>(null);
+  const bettingEndsAtMsRef = useRef<number | null>(null);
   const vignetteRef = useRef<HTMLDivElement>(null);
   const cameraZoomRef = useRef<HTMLDivElement>(null);
   const prngSeedRef = useRef(1);
@@ -132,7 +152,7 @@ export default function CrashPage() {
   const shakeRef = useRef<{ intensity: number }>({ intensity: 0 });
 
   // Refs for stable RAF loop
-  const statusRef = useRef<'IDLE' | 'RUNNING' | 'CRASHED' | 'CASHED_OUT'>('IDLE');
+  const statusRef = useRef<'IDLE' | 'WAITING' | 'RUNNING' | 'CRASHED' | 'CASHED_OUT'>('IDLE');
   const cashoutAtRef = useRef<number | null>(null);
   const isAutoCashoutEnabledRef = useRef(false);
   const isAutoBettingRef = useRef(false);
@@ -235,6 +255,128 @@ export default function CrashPage() {
     if (cameraZoomRef.current) cameraZoomRef.current.style.transform = 'scale(1)';
     shakeRef.current.intensity = 0;
   }, []);
+
+  // Shared room clock: Realtime broadcast + REST poll fallback (NFR3).
+  // Runs for the component's whole lifetime, independent of local `status` —
+  // even a user who hasn't bet yet sees the room's live state. Reads
+  // crashRoundIdRef so the effect doesn't need `status`/`roundId` in its
+  // deps (mirrors the RAF-loop-via-refs pattern already used in this file).
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    const channel = supabase.channel(CRASH_REALTIME_CHANNEL);
+
+    const applyRoundUpdate = (round: CrashRoundBroadcastPayload) => {
+      setRoomRound(round);
+      if (
+        round.status === 'CRASHED' &&
+        round.id === crashRoundIdRef.current &&
+        round.crashPoint !== null &&
+        !roundResolvedRef.current
+      ) {
+        // Reveals the server-authoritative crash point (FR5: never known
+        // earlier). The existing gameLoop crash-check (next >= crashPointRef)
+        // then fires on the very next animation frame — no other change
+        // needed there.
+        crashPointRef.current = round.crashPoint;
+      }
+    };
+
+    channel.on('broadcast', { event: CRASH_ROUND_EVENT }, ({ payload }) => {
+      applyRoundUpdate(payload as CrashRoundBroadcastPayload);
+    });
+    channel.on('broadcast', { event: CRASH_PLAYER_EVENT }, ({ payload }) => {
+      const event = payload as CrashPlayerBroadcastPayload;
+      setLiveBets((previous) => [
+        {
+          user: event.seat,
+          amount: event.betAmount,
+          multiplier: event.multiplier,
+          payout: event.payout,
+          action: event.action,
+        },
+        ...previous.filter((bet) => bet.user !== event.seat),
+      ].slice(0, 20));
+    });
+    channel.subscribe();
+
+    let cancelled = false;
+    const pollFallback = async () => {
+      try {
+        const response = await fetch('/api/casino/active-round?game=CRASH', { cache: 'no-store' });
+        if (!response.ok || cancelled) return;
+        const data = await response.json();
+        if (data.sharedRound) applyRoundUpdate(data.sharedRound as CrashRoundBroadcastPayload);
+      } catch {
+        // Best-effort fallback only — Realtime broadcast remains primary.
+      }
+    };
+    void pollFallback();
+    const pollId = setInterval(pollFallback, 4000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(pollId);
+      void supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Betting-window countdown for a user who HAS joined the current round.
+  // When it reaches zero, the flight begins for every room member at the
+  // same synchronized instant (started_at on the server) — this is where
+  // the flight-start visual resets (previously fired immediately on bet
+  // placement in the solo model) now happen instead.
+  useEffect(() => {
+    if (status !== 'WAITING') return;
+    const tick = () => {
+      const endsAt = bettingEndsAtMsRef.current;
+      if (endsAt === null) return;
+      const secondsLeft = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+      setBettingWindowSecondsLeft(secondsLeft);
+      if (Date.now() < endsAt) return;
+
+      crashPointRef.current = Number.POSITIVE_INFINITY;
+      multiplierRef.current = 1.0;
+      lastUpdateRef.current = performance.now();
+      roundResolvedRef.current = false;
+      pointsRef.current = [{ x: 0, y: 1 }];
+      particlesRef.current = [];
+      bigWinQueueRef.current = [];
+      setBigWin(null);
+      prngSeedRef.current = Date.now() % 0x7fffffff || 1;
+      lastMilestoneIndexRef.current = 0;
+      setMilestoneFlash(null);
+      resetRiskVisuals();
+      setBettingWindowSecondsLeft(null);
+      setStatus('RUNNING');
+      soundManager.play('crash-launch');
+    };
+    tick();
+    const id = setInterval(tick, 200);
+    return () => clearInterval(id);
+  }, [status, resetRiskVisuals]);
+
+  // Spectator room-status line (shown before this browser has bet) — ticked
+  // via state instead of reading Date.now() directly in JSX (impure during
+  // render, flagged by the React Compiler purity rule).
+  useEffect(() => {
+    if (!roomRound || status !== 'IDLE') return;
+    const tick = () => {
+      if (roomRound.status === 'WAITING') {
+        const secondsLeft = Math.max(
+          0,
+          Math.ceil((new Date(roomRound.bettingEndsAt).getTime() - Date.now()) / 1000),
+        );
+        setRoomWaitDisplay(`Next window in ${secondsLeft}s`);
+      } else if (roomRound.status === 'RUNNING') {
+        setRoomWaitDisplay('Round in flight…');
+      } else {
+        setRoomWaitDisplay('Round just crashed');
+      }
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [roomRound, status]);
 
   // Cashout handling
   const handleCashout = useCallback(
@@ -420,6 +562,9 @@ export default function CrashPage() {
           const retry = errData.retryAfter || 2;
           throw new Error(`RATE_LIMIT:${retry}`);
         }
+        if (response.status === 409) {
+          throw new Error('ROUND_IN_PROGRESS');
+        }
         throw new Error('API failed');
       }
       const data = await response.json();
@@ -431,16 +576,17 @@ export default function CrashPage() {
         void trackAllowedEvent({ name: 'first_game_started', props: { game: 'CRASH' } });
       }
       roundIdRef.current = data.roundId;
+      crashRoundIdRef.current = data.crashRoundId;
+      bettingEndsAtMsRef.current = new Date(data.bettingEndsAt).getTime();
 
       setProvablyFairSettings({ serverSeedHash: data.hash, nonce: data.nonce });
 
-      // Reset all round state BEFORE starting new flight
+      // The flight itself only begins once the shared betting window closes
+      // (see the WAITING-countdown effect above) — every room member starts
+      // climbing from the same synchronized instant, so none of the
+      // per-flight visual resets happen here anymore.
       setCashoutAt(null);
       cashoutAtRef.current = null;
-      crashPointRef.current = data.crashPoint;
-      roundResolvedRef.current = false;
-      multiplierRef.current = 1.0;
-      lastUpdateRef.current = performance.now();
       if (multiplierDisplayRef.current) {
         multiplierDisplayRef.current.innerText = '1.00x';
         multiplierDisplayRef.current.style.color = '#FFFDF0';
@@ -452,39 +598,18 @@ export default function CrashPage() {
       if (cashoutButtonRef.current) {
         cashoutButtonRef.current.innerText = `CASHOUT $${betAmount.toFixed(2)}`;
       }
-      pointsRef.current = [{ x: 0, y: 1 }];
-      particlesRef.current = [];
-
-      bigWinQueueRef.current = [];
-      setBigWin(null);
-      prngSeedRef.current = Date.now() % 0x7fffffff || 1;
-      lastMilestoneIndexRef.current = 0;
-      setMilestoneFlash(null);
-      resetRiskVisuals();
-
-      const recentBets = allBets
-        .filter((b) => b.game === 'CRASH')
-        .slice(0, 10)
-        .map((b) => ({
-          user: b.user || 'Player',
-          amount: b.amount,
-          multiplier: null,
-          payout: null,
-          _target: undefined,
-        }));
-      if (recentBets.length > 0) {
-        setLiveBets(recentBets);
-      }
+      setLiveBets([]);
 
       setIsProcessing(false);
-      setStatus('RUNNING');
-      soundManager.play('crash-launch');
+      setStatus('WAITING');
     } catch (error: unknown) {
       CasinoLogger.error('Crash', 'Start error', error);
       setIsProcessing(false);
       if (error instanceof Error && error.message.startsWith('RATE_LIMIT:')) {
         const retrySec = error.message.split(':')[1] || '2';
         addToast(`Rate limit reached. Please wait ${retrySec}s.`, 'error');
+      } else if (error instanceof Error && error.message === 'ROUND_IN_PROGRESS') {
+        addToast('Die Runde läuft bereits — bitte auf das nächste Wettfenster warten.', 'info');
       } else {
         addToast('Failed to start game. No client wallet change was applied.', 'error');
       }
@@ -496,13 +621,11 @@ export default function CrashPage() {
     balance,
     betMin,
     betMax,
-    allBets,
     provablyFairSettings,
     addToast,
     applyServerWalletSnapshot,
     setIsProcessing,
     setProvablyFairSettings,
-    resetRiskVisuals,
   ]);
 
   const settleCrashedRound = useCallback(
@@ -1257,7 +1380,7 @@ export default function CrashPage() {
     };
   }, []);
 
-  const isRoundActive = status === 'RUNNING' || status === 'CASHED_OUT';
+  const isRoundActive = status === 'WAITING' || status === 'RUNNING' || status === 'CASHED_OUT';
 
   // Quick Bet presets helper
   const handleQuickBet = (amt: number) => {
@@ -2150,6 +2273,35 @@ export default function CrashPage() {
                 </div>
               )}
 
+              {/* Shared betting window — real countdown to the synchronized launch (FR2). */}
+              {status === 'WAITING' && (
+                <div
+                  className="radar-glow"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 20px',
+                    borderRadius: '20px',
+                    background: 'rgba(212, 175, 55, 0.12)',
+                    border: '1px solid rgba(212, 175, 55, 0.3)',
+                    color: '#FFD700',
+                    fontSize: isMobile ? '0.85rem' : '1.1rem',
+                    fontWeight: 800,
+                    letterSpacing: '3px',
+                    marginBottom: '12px',
+                  }}
+                >
+                  <Sparkles size={16} color="#FFD700" />
+                  <span>
+                    LAUNCH IN {bettingWindowSecondsLeft ?? '…'}s
+                    {liveBets.length > 0
+                      ? ` · ${liveBets.length} PLAYER${liveBets.length === 1 ? '' : 'S'}`
+                      : ''}
+                  </span>
+                </div>
+              )}
+
               {/* Processing / Arming State */}
               {status === 'IDLE' && isProcessing && (
                 <div
@@ -2183,7 +2335,7 @@ export default function CrashPage() {
                   fontVariantNumeric: 'tabular-nums',
                   lineHeight: 1,
                   color:
-                    status === 'IDLE'
+                    status === 'IDLE' || status === 'WAITING'
                       ? 'rgba(255, 255, 255, 0.35)'
                       : status === 'CRASHED'
                         ? '#ef4444'
@@ -2191,7 +2343,7 @@ export default function CrashPage() {
                           ? '#4ade80'
                           : '#FFFDF0',
                   textShadow:
-                    status === 'IDLE'
+                    status === 'IDLE' || status === 'WAITING'
                       ? 'none'
                       : status === 'CRASHED'
                         ? '0 0 60px rgba(239, 68, 68, 0.8)'
@@ -2200,7 +2352,7 @@ export default function CrashPage() {
                           : '0 0 40px rgba(212, 175, 55, 0.65)',
                 }}
               >
-                {status === 'IDLE' ? '1.00x' : ''}
+                {status === 'IDLE' || status === 'WAITING' ? '1.00x' : ''}
               </h1>
 
               {/* Live Running Profit Pill (Lever 3) */}
@@ -2291,6 +2443,63 @@ export default function CrashPage() {
                 </div>
               )}
             </div>
+
+            {/* Live player list (FR3) — real bets/cashouts from the shared
+                room broadcast, not local simulation. Room status line shown
+                even before this browser has bet, driven by roomRound alone. */}
+            {(liveBets.length > 0 || (roomRound && status === 'IDLE')) && (
+              <div
+                className="glass-card"
+                style={{
+                  position: 'absolute',
+                  top: '16px',
+                  right: '16px',
+                  width: isMobile ? '150px' : '200px',
+                  maxHeight: '260px',
+                  overflowY: 'auto',
+                  borderRadius: '14px',
+                  border: '1px solid rgba(212, 175, 55, 0.15)',
+                  background: 'rgba(10, 12, 16, 0.85)',
+                  backdropFilter: 'blur(16px)',
+                  padding: '10px',
+                  zIndex: 15,
+                  fontFamily: 'monospace',
+                }}
+              >
+                {roomRound && status === 'IDLE' && (
+                  <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginBottom: '6px' }}>
+                    {roomWaitDisplay}
+                  </div>
+                )}
+                {liveBets.map((bet, index) => (
+                  <div
+                    key={`${bet.user}-${index}`}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      gap: '6px',
+                      fontSize: '0.75rem',
+                      padding: '3px 0',
+                      color:
+                        bet.action === 'CASHOUT'
+                          ? '#4ade80'
+                          : bet.action === 'BUST'
+                            ? '#ef4444'
+                            : '#e2e8f0',
+                    }}
+                  >
+                    <span>{bet.user}</span>
+                    <span>
+                      {bet.action === 'CASHOUT' && bet.payout !== null
+                        ? `+$${bet.payout.toFixed(2)}`
+                        : bet.action === 'BUST'
+                          ? 'BUST'
+                          : `$${bet.amount.toFixed(2)}`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Milestone Flash Celebration Popup */}
             {milestoneFlash && (

@@ -1,9 +1,8 @@
-import { idempotencyKeys, logger, schedules } from '@trigger.dev/sdk';
+import { logger, metadata, task } from '@trigger.dev/sdk';
 import { z } from 'zod';
 import { createAdminClient } from '../utils/supabase/admin';
 import { deliverDigest, type DailyBet } from './deliver-digest';
-
-const DAY_MS = 24 * 60 * 60 * 1000;
+import { previousUtcDayRange } from './daily-activity-digest';
 
 const settledWalletResultSchema = z.object({
   response: z.object({
@@ -33,37 +32,14 @@ const gameRoundRowSchema = z.array(
   }),
 );
 
-export interface UtcDayRange {
-  start: string;
-  end: string;
-  label: string;
-}
+export const digestPreview = task({
+  id: 'digest-preview',
+  maxDuration: 60,
+  run: async () => {
+    metadata.set('step', 'querying_db');
+    metadata.set('progress', 20);
 
-export function previousUtcDayRange(reference: Date): UtcDayRange {
-  const todayUtcStart = Date.UTC(
-    reference.getUTCFullYear(),
-    reference.getUTCMonth(),
-    reference.getUTCDate(),
-  );
-  const start = new Date(todayUtcStart - DAY_MS);
-  const end = new Date(todayUtcStart);
-  return {
-    start: start.toISOString(),
-    end: end.toISOString(),
-    label: start.toISOString().slice(0, 10),
-  };
-}
-
-export const dailyActivityDigest = schedules.task({
-  id: 'daily-activity-digest',
-  maxDuration: 120,
-  cron: {
-    pattern: '0 8 * * *',
-    timezone: 'Europe/Berlin',
-    environments: ['PRODUCTION'],
-  },
-  run: async (payload) => {
-    const { start, end, label } = previousUtcDayRange(payload.timestamp ?? new Date());
+    const { start, end, label } = previousUtcDayRange(new Date());
     const admin = createAdminClient();
 
     const [walletResult, roundsResult] = await Promise.all([
@@ -82,8 +58,12 @@ export const dailyActivityDigest = schedules.task({
     ]);
 
     if (walletResult.error || roundsResult.error) {
-      throw new Error('Daily digest: Supabase read failed');
+      metadata.set('step', 'error');
+      throw new Error('Digest preview: Supabase read failed');
     }
+
+    metadata.set('step', 'aggregating');
+    metadata.set('progress', 50);
 
     const walletRows = walletBetRowSchema.parse(walletResult.data ?? []);
     const roundRows = gameRoundRowSchema.parse(roundsResult.data ?? []);
@@ -115,32 +95,33 @@ export const dailyActivityDigest = schedules.task({
     });
 
     const bets = [...walletBets, ...roundBets];
-    logger.log('Daily activity digest computed', { label, betCount: bets.length });
 
-    const idempotencyKey = await idempotencyKeys.create(`digest-${label}`, { scope: 'global' });
-    logger.log('Daily activity digest idempotency key created', { idempotencyKey, label });
+    metadata.set('step', 'formatting_message');
+    metadata.set('progress', 80);
 
-    const deliveryResult = await deliverDigest.triggerAndWait(
-      {
-        label,
-        bets,
-        dryRun: false,
-      },
-      { idempotencyKey },
-    );
+    // Hard requirement: preview runs MUST ALWAYS set dryRun: true to prevent any real Telegram message
+    const deliveryResult = await deliverDigest.triggerAndWait({
+      label,
+      bets,
+      dryRun: true,
+    });
 
     if (!deliveryResult.ok) {
-      logger.error('Daily digest delivery task failed', { error: deliveryResult.error });
-      throw new Error(`Daily digest: deliver-digest task failed: ${String(deliveryResult.error)}`);
+      metadata.set('step', 'error');
+      logger.error('Digest preview delivery task failed', { error: deliveryResult.error });
+      throw new Error(`Digest preview failed: ${String(deliveryResult.error)}`);
     }
+
+    metadata.set('step', 'completed');
+    metadata.set('progress', 100);
 
     return {
       label,
       betCount: bets.length,
-      sent: deliveryResult.output.sent,
-      dryRun: deliveryResult.output.dryRun,
-      deliverRunId: deliveryResult.id,
-      idempotencyKey,
+      sent: false,
+      dryRun: true,
+      previewRunId: deliveryResult.id,
+      message: deliveryResult.output.message ?? '',
     };
   },
 });

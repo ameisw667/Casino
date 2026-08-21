@@ -143,11 +143,11 @@ describe('seed chain: bet route consumes the seed before computing the outcome, 
     expect(consumeIndex).toBeLessThan(placeBetIndex);
   });
 
-  it('consumes the active seed before CasinoCore determines the Crash crash point', () => {
+  it('consumes the active seed before the Crash round is persisted', () => {
     const consumeIndex = betRoute.indexOf('consumeActiveSeed');
-    const startCrashIndex = betRoute.indexOf('CasinoCore.startCrashRound(');
+    const startRoundIndex = betRoute.indexOf('WalletService.startRound(');
     expect(consumeIndex).toBeGreaterThan(-1);
-    expect(consumeIndex).toBeLessThan(startCrashIndex);
+    expect(consumeIndex).toBeLessThan(startRoundIndex);
   });
 
   it('persists serverSeedHash/nonce onto the settlement so Dice/Roulette/Slots bets stay verifiable after the fact', () => {

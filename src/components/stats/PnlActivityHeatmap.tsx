@@ -1,11 +1,7 @@
 'use client';
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import {
-  buildDailyPnlHeatmap,
-  type HistoryRow,
-  type DailyPnlCell,
-} from '@/lib/casino/stats-derivation';
+import { buildDailyPnlHeatmap, type HistoryRow, type DailyPnlCell } from '@/lib/casino/stats-derivation';
 import { Flame, CalendarDays } from 'lucide-react';
 
 interface PnlActivityHeatmapProps {
@@ -31,27 +27,21 @@ export function PnlActivityHeatmap({ loading, rows, isMobile }: PnlActivityHeatm
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
       style={{
-        padding: isMobile ? '16px' : '20px 24px',
+        padding: isMobile ? '12px 14px' : '16px 20px',
         borderRadius: '16px',
-        background:
-          'linear-gradient(145deg, rgba(22, 24, 32, 0.85) 0%, rgba(12, 14, 20, 0.95) 100%)',
+        background: 'linear-gradient(145deg, rgba(22, 24, 32, 0.85) 0%, rgba(12, 14, 20, 0.95) 100%)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
         border: '1px solid rgba(212, 175, 55, 0.18)',
         boxShadow: '0 12px 32px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.05)',
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '310px',
+        minHeight: '260px',
+        justifyContent: 'space-between',
+        gap: '10px',
       }}
     >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '14px',
-        }}
-      >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div
           style={{
             fontSize: '0.64rem',
@@ -61,26 +51,24 @@ export function PnlActivityHeatmap({ loading, rows, isMobile }: PnlActivityHeatm
             textTransform: 'uppercase',
           }}
         >
-          PNL AKTIVITÄTS-HEATMAP (SP-3)
+          PNL AKTIVITÄTS-HEATMAP
         </div>
         <span
           style={{
-            fontSize: '0.62rem',
+            fontSize: '0.6rem',
             fontWeight: 800,
             color: isOverallProfit ? '#10b981' : '#ef4444',
-            background: isOverallProfit ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+            background: isOverallProfit ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
             padding: '2px 8px',
             borderRadius: '12px',
-            border: `1px solid ${isOverallProfit ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
+            border: `1px solid ${isOverallProfit ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
             display: 'flex',
             alignItems: 'center',
             gap: '4px',
           }}
         >
           <Flame size={10} color={isOverallProfit ? '#10b981' : '#ef4444'} />
-          <span>
-            28-TAGE DELTA: {isOverallProfit ? '+' : '-'}${Math.abs(totalHeatmapProfit).toFixed(2)}
-          </span>
+          <span>28T: {isOverallProfit ? '+' : '-'}${Math.abs(totalHeatmapProfit).toFixed(2)}</span>
         </span>
       </div>
 
@@ -89,23 +77,15 @@ export function PnlActivityHeatmap({ loading, rows, isMobile }: PnlActivityHeatm
           <span style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '0.85rem' }}>Lädt…</span>
         </div>
       ) : (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '14px',
-            flex: 1,
-            justifyContent: 'space-between',
-          }}
-        >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {/* Calendar Grid (4 Rows x 7 Cols) */}
           <div>
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(7, 1fr)',
-                gap: '6px',
-                marginBottom: '6px',
+                gap: '4px',
+                marginBottom: '4px',
               }}
             >
               {['MO', 'DI', 'MI', 'DO', 'FR', 'SA', 'SO'].map((d) => (
@@ -113,7 +93,7 @@ export function PnlActivityHeatmap({ loading, rows, isMobile }: PnlActivityHeatm
                   key={d}
                   style={{
                     textAlign: 'center',
-                    fontSize: '0.55rem',
+                    fontSize: '0.52rem',
                     fontWeight: 800,
                     color: 'rgba(255, 255, 255, 0.3)',
                     letterSpacing: '0.06em',
@@ -128,7 +108,7 @@ export function PnlActivityHeatmap({ loading, rows, isMobile }: PnlActivityHeatm
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(7, 1fr)',
-                gap: '6px',
+                gap: '4px',
               }}
             >
               {heatmapData.map((cell) => {
@@ -137,32 +117,32 @@ export function PnlActivityHeatmap({ loading, rows, isMobile }: PnlActivityHeatm
                 const absP = Math.abs(cell.profit);
                 const hasActivity = cell.count > 0;
 
-                // Color calculation
-                let bg = 'rgba(255, 255, 255, 0.03)';
-                let border = 'rgba(255, 255, 255, 0.05)';
+                // Subtle Color calculation
+                let bg = 'rgba(255, 255, 255, 0.02)';
+                let border = 'rgba(255, 255, 255, 0.04)';
                 let shadow = 'none';
 
                 if (isProfit) {
                   if (absP > 200) {
-                    bg = 'rgba(16, 185, 129, 0.85)';
+                    bg = 'rgba(16, 185, 129, 0.75)';
                     border = '#10b981';
-                    shadow = '0 0 10px rgba(16, 185, 129, 0.4)';
+                    shadow = '0 0 6px rgba(16, 185, 129, 0.3)';
                   } else {
-                    bg = 'rgba(16, 185, 129, 0.35)';
-                    border = 'rgba(16, 185, 129, 0.5)';
+                    bg = 'rgba(16, 185, 129, 0.25)';
+                    border = 'rgba(16, 185, 129, 0.4)';
                   }
                 } else if (isLoss) {
                   if (absP > 200) {
-                    bg = 'rgba(239, 68, 68, 0.85)';
+                    bg = 'rgba(239, 68, 68, 0.75)';
                     border = '#ef4444';
-                    shadow = '0 0 10px rgba(239, 68, 68, 0.4)';
+                    shadow = '0 0 6px rgba(239, 68, 68, 0.3)';
                   } else {
-                    bg = 'rgba(239, 68, 68, 0.35)';
-                    border = 'rgba(239, 68, 68, 0.5)';
+                    bg = 'rgba(239, 68, 68, 0.25)';
+                    border = 'rgba(239, 68, 68, 0.4)';
                   }
                 } else if (hasActivity) {
-                  bg = 'rgba(212, 175, 55, 0.2)';
-                  border = 'rgba(212, 175, 55, 0.4)';
+                  bg = 'rgba(212, 175, 55, 0.15)';
+                  border = 'rgba(212, 175, 55, 0.3)';
                 }
 
                 return (
@@ -171,8 +151,8 @@ export function PnlActivityHeatmap({ loading, rows, isMobile }: PnlActivityHeatm
                     onMouseEnter={() => setHoveredCell(cell)}
                     onMouseLeave={() => setHoveredCell(null)}
                     style={{
-                      aspectRatio: '1/1',
-                      borderRadius: '8px',
+                      height: '24px',
+                      borderRadius: '6px',
                       background: bg,
                       border: `1px solid ${border}`,
                       boxShadow: shadow,
@@ -180,7 +160,7 @@ export function PnlActivityHeatmap({ loading, rows, isMobile }: PnlActivityHeatm
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '0.62rem',
+                      fontSize: '0.58rem',
                       fontFamily: 'var(--font-mono, monospace)',
                       fontWeight: 800,
                       color: hasActivity ? '#fff' : 'rgba(255,255,255,0.2)',
@@ -198,44 +178,28 @@ export function PnlActivityHeatmap({ loading, rows, isMobile }: PnlActivityHeatm
           {/* Interactive Info / Hover Status */}
           <div
             style={{
-              padding: '8px 12px',
-              borderRadius: '10px',
+              padding: '6px 10px',
+              borderRadius: '8px',
               background: 'rgba(0, 0, 0, 0.35)',
-              border: '1px solid rgba(255, 255, 255, 0.06)',
+              border: '1px solid rgba(255, 255, 255, 0.05)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              fontSize: '0.72rem',
+              fontSize: '0.68rem',
             }}
           >
             {hoveredCell ? (
               <>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    color: '#D4AF37',
-                    fontWeight: 800,
-                  }}
-                >
-                  <CalendarDays size={12} />
-                  <span>
-                    {hoveredCell.date} ({hoveredCell.count} Runden)
-                  </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#D4AF37', fontWeight: 800 }}>
+                  <CalendarDays size={11} />
+                  <span>{hoveredCell.date} ({hoveredCell.count} Runden)</span>
                 </div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono, monospace)',
-                    fontWeight: 900,
-                    color: hoveredCell.profit >= 0 ? '#10b981' : '#ef4444',
-                  }}
-                >
+                <div style={{ fontFamily: 'var(--font-mono, monospace)', fontWeight: 900, color: hoveredCell.profit >= 0 ? '#10b981' : '#ef4444' }}>
                   {hoveredCell.profit >= 0 ? '+' : '-'}${Math.abs(hoveredCell.profit).toFixed(2)}
                 </div>
               </>
             ) : (
-              <span style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '0.68rem' }}>
+              <span style={{ color: 'rgba(255, 255, 255, 0.35)', fontSize: '0.64rem' }}>
                 Bewege die Maus über einen Tag für Details zum Tagesprofit.
               </span>
             )}

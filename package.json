@@ -45,6 +45,7 @@
     "@sentry/nextjs": "^10.70.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
+    "@trigger.dev/react-hooks": "4.5.11",
     "@trigger.dev/sdk": "4.5.11",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",

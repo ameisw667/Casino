@@ -57,6 +57,7 @@ const CommandPalette = dynamic(
   () => import('@/components/navigation/CommandPalette').then((mod) => mod.CommandPalette),
   { ssr: false },
 );
+import { ConsentBanner } from '@/components/analytics/ConsentBanner';
 
 // ─── Auth Header Button ───────────────────────────────────────────────────────
 function AuthHeaderBtn({
@@ -717,6 +718,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
         )}
+        {showExpandedSidebar && <ConsentBanner />}
         {!isMobile && (
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}

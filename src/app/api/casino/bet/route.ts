@@ -9,6 +9,13 @@ import { loadGameConfig } from '@/lib/casino/game-config-server';
 import { notifyBigWinIfEligible } from '@/lib/casino/telegram-notifier';
 import { recordBetNetworkFingerprintBestEffort } from '@/lib/casino/network-fingerprint';
 import {
+  ensureCurrentCrashRound,
+  getCrashRoundById,
+  toPublicRoundState,
+  deriveSeatLabel,
+} from '@/lib/casino/crash-round';
+import { publishCrashRoundState, publishCrashPlayerEvent } from '@/lib/casino/realtime';
+import {
   enforceRateLimit,
   getClientIdentifier,
   rateLimitHeaders,
@@ -127,36 +134,96 @@ export async function POST(request: Request) {
           400,
           { requestId: params.requestId },
         );
+      // Security-review finding (2026-08-21, worldmap/05_multiplayercrash.md
+      // L6): a single account holding two simultaneous ACTIVE crash rounds
+      // in the same shared room was the precondition that turned the
+      // crashPoint-masking gap into a single-account exploit (sacrifice one
+      // cashout to read the room's secret, guarantee-win the other). The
+      // authoritative guard now lives inside start_game_round's own
+      // advisory-locked critical section (migration 037's redefinition) —
+      // this is only a fast pre-check for a clean error message; it is a
+      // TOCTOU race on its own (two parallel requests can both pass it) and
+      // must never be relied on as the actual guarantee.
+      const existingActive = await WalletService.getGameActiveRound({ userId, game: 'CRASH' });
+      if (existingActive.hasActiveRound && existingActive.requestId !== params.requestId) {
+        return apiErrorResponse(
+          APP_ERROR_CODES.CONFLICT,
+          'Du hast bereits eine aktive Crash-Runde.',
+          409,
+          { requestId: params.requestId },
+        );
+      }
+
+      // Private per-user seed chain — kept only for the jackpot-roll and the
+      // existing "verify your seed" UI. It no longer determines the CRASH
+      // multiplier itself; the shared room's crash_rounds row does that now
+      // (worldmap/05_multiplayercrash.md §4.3, Option C).
       const seed = await WalletService.consumeActiveSeed({
         userId,
         requestId: params.requestId,
       });
-      const crash = await CasinoCore.startCrashRound(
-        params.clientSeed,
-        seed.serverSeed,
-        seed.serverSeedHash,
-        seed.nonce,
-        gameConfig,
-      );
-      const round = await WalletService.startRound({
-        userId,
-        requestId: params.requestId,
-        game: 'CRASH',
-        amount: params.amount,
-        state: {
-          crashPoint: crash.crashPoint,
-          serverSeed: crash.seed,
-          serverSeedHash: crash.hash,
-          nonce: crash.nonce,
-          clientSeed: params.clientSeed,
-        },
-      });
+
+      const sharedRound = await ensureCurrentCrashRound(gameConfig);
+      after(() => publishCrashRoundState(toPublicRoundState(sharedRound)));
+      if (sharedRound.status !== 'WAITING') {
+        return apiErrorResponse(
+          APP_ERROR_CODES.CONFLICT,
+          'Die Runde läuft bereits — bitte auf das nächste Wettfenster warten.',
+          409,
+          { requestId: params.requestId },
+        );
+      }
+
+      let round;
+      try {
+        round = await WalletService.startRound({
+          userId,
+          requestId: params.requestId,
+          game: 'CRASH',
+          amount: params.amount,
+          state: {
+            crashRoundId: sharedRound.id,
+            serverSeed: seed.serverSeed,
+            serverSeedHash: seed.serverSeedHash,
+            nonce: seed.nonce,
+            clientSeed: params.clientSeed,
+          },
+        });
+      } catch (error) {
+        // The TS pre-check above raced and missed a concurrent START_CRASH —
+        // start_game_round's own advisory-locked guard (migration 037) is
+        // the actual authority here and just caught it.
+        if (error instanceof Error && error.message === 'ACTIVE_CRASH_ROUND_EXISTS') {
+          return apiErrorResponse(
+            APP_ERROR_CODES.CONFLICT,
+            'Du hast bereits eine aktive Crash-Runde.',
+            409,
+            { requestId: params.requestId },
+          );
+        }
+        throw error;
+      }
+      if (!round.replayed) {
+        await WalletService.linkCrashRound(round.roundId, sharedRound.id);
+        after(async () => {
+          const participants = await WalletService.getCrashRoundParticipants(sharedRound.id);
+          await publishCrashPlayerEvent({
+            crashRoundId: sharedRound.id,
+            seat: deriveSeatLabel(participants, userId),
+            betAmount: params.amount as number,
+            action: 'BET',
+            multiplier: null,
+            payout: null,
+          });
+        });
+      }
       const isFirstBet = await isFirstBetSignal(userId, round.replayed);
       return NextResponse.json({
         roundId: round.roundId,
-        crashPoint: crash.crashPoint,
-        hash: crash.hash,
-        nonce: crash.nonce,
+        crashRoundId: sharedRound.id,
+        bettingEndsAt: sharedRound.bettingEndsAt,
+        hash: seed.serverSeedHash,
+        nonce: seed.nonce,
         wallet: walletOnly({ ...round, result: undefined }),
         replayed: round.replayed,
         isFirstBet,
@@ -173,7 +240,6 @@ export async function POST(request: Request) {
         );
       }
       const round = await WalletService.getActiveRound(userId, params.roundId, 'CRASH');
-      const crashPoint = z.coerce.number().positive().parse(round.state.crashPoint);
       // Never return the raw serverSeed here: it is the user's shared,
       // still-active chain seed (reused across Dice/Roulette/Slots/Crash
       // until the next rotation), not a per-round throwaway anymore. Only
@@ -181,6 +247,14 @@ export async function POST(request: Request) {
       // exclusively via rotate_user_seed()'s seed_history mechanism.
       const serverSeedHash = z.string().min(1).parse(round.state.serverSeedHash);
       const crashNonce = z.coerce.number().int().nonnegative().parse(round.state.nonce);
+      const crashRoundId = z.string().uuid().parse(round.state.crashRoundId);
+
+      // The exact shared round this bet joined — its crash_point was fixed
+      // at creation, so a direct (non-advancing) read is correct here even
+      // if the room has since moved on to a newer round. Nudging the global
+      // scheduler is a separate concern, see below.
+      const sharedRound = await getCrashRoundById(crashRoundId);
+      const crashPoint = z.coerce.number().positive().parse(sharedRound.crashPoint);
       const requestedMultiplier = params.cashoutMultiplier ?? crashPoint;
       const won = params.action === 'CASHOUT_CRASH' && requestedMultiplier <= crashPoint;
       const payout = won ? Math.round(round.betAmount * requestedMultiplier * 100) / 100 : 0;
@@ -197,6 +271,16 @@ export async function POST(request: Request) {
         nonce: crashNonce,
         jackpotRoll,
       };
+      // Security-review finding (2026-08-21, worldmap/05_multiplayercrash.md
+      // L6): `result` above carries the TRUE crash_point and is correct to
+      // persist as-is (own bet history, unaffected by room timing). But
+      // echoing it back in THIS response unconditionally — regardless of
+      // sharedRound.status — let a client with two simultaneous bets in the
+      // same shared round "sacrifice" one cashout to read the room's secret
+      // crash_point mid-flight, then guarantee-win the second. FR5 requires
+      // the same masking here as toPublicRoundState() applies everywhere
+      // else: never reveal it before the room has actually crashed.
+      const revealCrashPoint = sharedRound.status === 'CRASHED';
       const settlement = await WalletService.settleRound({
         userId,
         roundId: params.roundId,
@@ -214,8 +298,28 @@ export async function POST(request: Request) {
         win: result.win,
         replayed: settlement.replayed,
       });
+      // Opportunistically nudge the shared clock forward for every other
+      // player in the room — unrelated to this specific settlement, but any
+      // request touching Crash is a valid trigger (§4.2, lazy scheduler).
+      // Best-effort, never blocks this response.
+      after(async () => {
+        const latestRound = await ensureCurrentCrashRound(gameConfig);
+        await publishCrashRoundState(toPublicRoundState(latestRound));
+        if (!settlement.replayed) {
+          const participants = await WalletService.getCrashRoundParticipants(crashRoundId);
+          await publishCrashPlayerEvent({
+            crashRoundId,
+            seat: deriveSeatLabel(participants, userId),
+            betAmount: round.betAmount,
+            action: won ? 'CASHOUT' : 'BUST',
+            multiplier: won ? requestedMultiplier : null,
+            payout: won ? payout : null,
+          });
+        }
+      });
       return NextResponse.json({
         ...(settlement.result as object),
+        crashPoint: revealCrashPoint ? crashPoint : null,
         wallet: walletOnly(settlement),
         replayed: settlement.replayed,
       });

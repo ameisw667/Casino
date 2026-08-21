@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { wait } from '@trigger.dev/sdk';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { isAdminEmail } from '@/lib/security/admin';
@@ -33,6 +34,7 @@ const reviewSchema = z.object({
   eventId: z.string().uuid(),
   status: z.enum(['reviewed', 'closed']),
   reason: z.string().trim().min(1).max(500),
+  tokenId: z.string().optional(),
 });
 
 export async function GET(request: Request) {
@@ -143,6 +145,18 @@ export async function PATCH(request: Request) {
       }
       CasinoLogger.error('API/Admin/Fraud', 'Review failed', error);
       return NextResponse.json({ error: 'Failed to review fraud signal' }, { status: 500 });
+    }
+
+    if (parsed.data.tokenId) {
+      try {
+        await wait.completeToken(parsed.data.tokenId, {
+          status: parsed.data.status,
+          reason: parsed.data.reason,
+          reviewerId: user.id,
+        });
+      } catch (err) {
+        CasinoLogger.error('API/Admin/Fraud', 'Wait token completion warning (non-blocking)', err);
+      }
     }
 
     CasinoLogger.info(
