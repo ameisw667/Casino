@@ -14,6 +14,7 @@ import {
   LogOut,
   Ticket,
   ShieldAlert,
+  BookOpen,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -34,6 +35,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { icon: <BarChart2 size={20} />, label: 'Game Stats', path: '/admin/games' },
     { icon: <Ticket size={20} />, label: 'Promo Codes', path: '/admin/promo-codes' },
     { icon: <ShieldAlert size={20} />, label: 'Anti-Fraud', path: '/admin/fraud' },
+    { icon: <BookOpen size={20} />, label: 'Knowledge CMS', path: '/admin/knowledge' },
     { icon: <FlaskConical size={20} />, label: 'Simulation', path: '/admin/simulation' },
   ];
 

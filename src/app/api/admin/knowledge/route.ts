@@ -18,7 +18,7 @@ import { GUIDE_KNOWLEDGE_SOURCES } from '@/lib/casino/guide-knowledge/registry';
 
 const documentSchema = z.object({
   id: z.string().optional(),
-  slug: z.string().trim().min(2).max(64).regex(/^[a-z0-9_-]+$/i, 'Invalid slug format'),
+  slug: z.string().trim().min(1, 'Slug erforderlich').max(64),
   topic: z.enum([
     'blackjack',
     'crash',
@@ -31,9 +31,9 @@ const documentSchema = z.object({
     'vip_stats',
     'other',
   ]),
-  title: z.string().trim().min(3).max(120),
-  content: z.string().trim().min(10).max(4000),
-  tags: z.array(z.string().trim().min(1).max(30)).max(15).default([]),
+  title: z.string().trim().min(1, 'Titel erforderlich').max(120),
+  content: z.string().trim().min(1, 'Inhalt erforderlich').max(10000),
+  tags: z.array(z.string().trim().min(1).max(50)).max(25).default([]),
   isActive: z.boolean().default(true),
 });
 

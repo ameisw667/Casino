@@ -490,680 +490,684 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <KeyboardShortcutProvider>
-    <div
-      className="theme-gold"
-      style={{
-        display: 'flex',
-        minHeight: '100vh',
-        background: 'hsl(var(--bg-color))',
-        overflow: 'hidden',
-        position: 'relative',
-      }}
-    >
-      <NavigationShortcuts
-        navigate={navigate}
-        toggleSettings={() => setShowSettings((prev) => !prev)}
-      />
-      <LoadingOverlay />
-
-      {/* Mobile Drawer Overlay with Adaptive Blur */}
-      <AnimatePresence>
-        {isMobile && mobileSidebarOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.22 }}
-            onClick={() => setMobileSidebarOpen(false)}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              background: 'rgba(0, 0, 0, 0.75)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              zIndex: 145,
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Sidebar / Mobile Slide Drawer */}
-      <motion.aside
-        className="glass-sidebar"
-        initial={false}
-        animate={
-          isMobile
-            ? { x: mobileSidebarOpen ? 0 : '-100%' }
-            : { x: 0, width: sidebarOpen ? 240 : 80 }
-        }
-        transition={{
-          type: 'spring',
-          damping: isMobile ? 24 : 28,
-          stiffness: isMobile ? 300 : 320,
-        }}
-        onWheel={(e) => {
-          if (!isMobile && mainRef.current) {
-            mainRef.current.scrollTop += e.deltaY;
-          }
-        }}
+      <div
+        className="theme-gold"
         style={{
-          width: isMobile ? '280px' : undefined,
-          flexShrink: 0,
           display: 'flex',
-          flexDirection: 'column',
-          zIndex: 150,
-          height: '100vh',
-          maxHeight: '100vh',
-          position: isMobile ? 'fixed' : 'sticky',
-          left: 0,
-          top: 0,
+          minHeight: '100vh',
+          background: 'hsl(var(--bg-color))',
           overflow: 'hidden',
-          overscrollBehavior: 'none',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingRight: isMobile ? '12px' : '0',
-            flexShrink: 0,
-          }}
-        >
-          <Link
-            href="/"
-            onClick={() => {
-              if (isMobile) setMobileSidebarOpen(false);
-            }}
-            style={{
-              padding: '24px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              textDecoration: 'none',
-              color: 'inherit',
-            }}
-          >
-            <div style={{ width: '40px', height: '40px', position: 'relative', flexShrink: 0 }}>
-              <Image
-                src="/images/brand-medallion-3d.png"
-                alt="Casino Royale"
-                fill
-                sizes="100px"
-                style={{ objectFit: 'contain' }}
-                className="animate-pulse"
-              />
-            </div>
-            {showExpandedSidebar && (
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span
-                    style={{
-                      fontWeight: 900,
-                      fontSize: '1.2rem',
-                      letterSpacing: '-1px',
-                      lineHeight: 1,
-                    }}
-                  >
-                    CASINO
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '0.6rem',
-                      fontWeight: 900,
-                      background: 'hsl(var(--primary))',
-                      color: 'black',
-                      padding: '1px 4px',
-                      borderRadius: '3px',
-                      transform: 'translateY(-2px)',
-                    }}
-                  >
-                    PRO
-                  </span>
-                </div>
-                <span
-                  style={{
-                    fontWeight: 900,
-                    fontSize: '0.65rem',
-                    color: 'hsl(var(--primary))',
-                    letterSpacing: '0.2em',
-                    marginTop: '2px',
-                  }}
-                >
-                  ROYALE
-                </span>
-              </div>
-            )}
-          </Link>
-          {isMobile && (
-            <button
-              onClick={() => setMobileSidebarOpen(false)}
-              className="btn btn-ghost"
-              aria-label="Close navigation menu"
-              style={{
-                width: '36px',
-                height: '36px',
-                padding: '0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '8px',
-                color: 'rgba(255, 255, 255, 0.7)',
-              }}
-            >
-              <X size={20} />
-            </button>
-          )}
-        </div>
-
-        <nav style={{
-          flex: '1 1 0%',
-          minHeight: 0,
-          padding: '12px',
-          overflowY: isMobile ? 'auto' : 'hidden',
-          overscrollBehavior: 'contain',
-        }}>
-          {menuItems.map((item) => {
-            const active = item.path === '/' ? pathname === '/' : pathname.startsWith(item.path);
-            const isSettings = item.label === 'Settings';
-            const content = (
-              <>
-                {item.icon}
-                {showExpandedSidebar && <span>{item.label}</span>}
-              </>
-            );
-            return (
-              <React.Fragment key={item.label}>
-                <button
-                  onClick={item.onClick || (() => navigate(item.path))}
-                  className="btn btn-ghost"
-                  aria-label={item.label}
-                  style={{
-                    justifyContent: showExpandedSidebar ? 'flex-start' : 'center',
-                    width: '100%',
-                    marginBottom: '4px',
-                    color:
-                      active || (isSettings && showSettings)
-                        ? '#D4AF37'
-                        : 'rgba(255, 255, 255, 0.72)',
-                    background:
-                      active || (isSettings && showSettings)
-                        ? 'linear-gradient(90deg, rgba(212, 175, 55, 0.16) 0%, rgba(212, 175, 55, 0.03) 100%)'
-                        : 'transparent',
-                    borderLeft:
-                      active || (isSettings && showSettings)
-                        ? '3px solid #D4AF37'
-                        : '3px solid transparent',
-                    boxShadow:
-                      active || (isSettings && showSettings)
-                        ? '0 0 16px rgba(212, 175, 55, 0.12)'
-                        : 'none',
-                    padding: showExpandedSidebar ? '10px 14px' : '10px',
-                    borderRadius: '8px',
-                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  }}
-                >
-                  {content}
-                </button>
-                {isSettings && (
-                  <SettingsPopover
-                    isOpen={showSettings}
-                    onClose={() => setShowSettings(false)}
-                    onOpenProvablyFair={() => setShowProvablyFair(true)}
-                    inline
-                  />
-                )}
-              </React.Fragment>
-            );
-          })}
-        </nav>
-
-        {showExpandedSidebar && (
-          <div
-            style={{
-              flexShrink: 0,
-              margin: '20px',
-              padding: '16px',
-              background: 'hsla(0,0%,100%,0.02)',
-              borderRadius: '16px',
-              border: '1px solid hsla(0,0%,100%,0.05)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-            }}
-          >
-            <div style={{ width: '32px', height: '32px', position: 'relative', flexShrink: 0 }}>
-              <Image
-                src="/images/trust-shield-3d.png"
-                alt="Secure"
-                fill
-                sizes="20px"
-                style={{ objectFit: 'contain' }}
-              />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'white' }}>
-                SECURE & FAIR
-              </div>
-              <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'hsl(var(--success))' }}>
-                CERTIFIED
-              </div>
-            </div>
-          </div>
-        )}
-        {showExpandedSidebar && <ConsentBanner />}
-        {!isMobile && (
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="btn btn-ghost"
-            aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-            style={{
-              flexShrink: 0,
-              margin: '12px',
-              padding: '12px',
-              background: 'rgba(255,255,255,0.02)',
-              border: '1px solid rgba(255,255,255,0.05)',
-              borderRadius: '12px',
-              color: 'rgba(255,255,255,0.4)',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            {sidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-          </button>
-        )}
-      </motion.aside>
-
-      <CommandPalette />
-
-      {/* Main Content */}
-      <main
-        ref={mainRef}
-        style={{
-          flex: 1,
-          minWidth: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100vh',
-          overflowY: 'auto',
-          overflowX: 'hidden',
           position: 'relative',
         }}
       >
-        <header
-          className="glass-header"
+        <NavigationShortcuts
+          navigate={navigate}
+          toggleSettings={() => setShowSettings((prev) => !prev)}
+        />
+        <LoadingOverlay />
+
+        {/* Mobile Drawer Overlay with Adaptive Blur */}
+        <AnimatePresence>
+          {isMobile && mobileSidebarOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.22 }}
+              onClick={() => setMobileSidebarOpen(false)}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(0, 0, 0, 0.75)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                zIndex: 145,
+              }}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Sidebar / Mobile Slide Drawer */}
+        <motion.aside
+          className="glass-sidebar"
+          initial={false}
+          animate={
+            isMobile
+              ? { x: mobileSidebarOpen ? 0 : '-100%' }
+              : { x: 0, width: sidebarOpen ? 240 : 80 }
+          }
+          transition={{
+            type: 'spring',
+            damping: isMobile ? 24 : 28,
+            stiffness: isMobile ? 300 : 320,
+          }}
+          onWheel={(e) => {
+            if (!isMobile && mainRef.current) {
+              mainRef.current.scrollTop += e.deltaY;
+            }
+          }}
           style={{
-            height: isMobile ? '64px' : '72px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: isMobile ? '0 8px' : '0 24px',
+            width: isMobile ? '280px' : undefined,
             flexShrink: 0,
-            position: 'sticky',
+            display: 'flex',
+            flexDirection: 'column',
+            zIndex: 150,
+            height: '100vh',
+            maxHeight: '100vh',
+            position: isMobile ? 'fixed' : 'sticky',
+            left: 0,
             top: 0,
-            zIndex: 40,
+            overflow: 'hidden',
+            overscrollBehavior: 'none',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px' }}>
-            {isMobile && (
-              <button
-                onClick={() => setMobileSidebarOpen(true)}
-                className="btn btn-ghost"
-                aria-label="Open navigation menu"
-                style={{ padding: '8px' }}
-              >
-                <Menu size={20} />
-              </button>
-            )}
-            <button
-              onClick={() => setShowRankInfo(true)}
-              className="header-chip header-chip-gold"
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingRight: isMobile ? '12px' : '0',
+              flexShrink: 0,
+            }}
+          >
+            <Link
+              href="/"
+              onClick={() => {
+                if (isMobile) setMobileSidebarOpen(false);
+              }}
               style={{
-                padding: isMobile ? '4px 8px' : '6px 12px 6px 6px',
+                padding: '24px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: isMobile ? '8px' : '10px',
-                cursor: 'pointer',
+                gap: '12px',
+                textDecoration: 'none',
+                color: 'inherit',
               }}
             >
-              {!isMobile && (
-                <IconBadge tone="gold">
-                  <Star size={12} color="#000" fill="#000" />
-                </IconBadge>
-              )}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                {!isMobile && (
-                  <span
-                    style={{
-                      fontSize: '0.6rem',
-                      fontWeight: 900,
-                      color: 'hsl(var(--primary))',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {rank}
-                  </span>
-                )}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  {isMobile && (
-                    <Star size={10} fill="hsl(var(--primary))" color="hsl(var(--primary))" />
-                  )}
-                  <span
-                    style={{
-                      fontSize: isMobile ? '0.75rem' : '0.8rem',
-                      color: 'hsl(var(--text-main))',
-                      fontWeight: 700,
-                    }}
-                  >
-                    {isMobile ? `L${level}` : `LVL ${level}`}
-                  </span>
-                </div>
+              <div style={{ width: '40px', height: '40px', position: 'relative', flexShrink: 0 }}>
+                <Image
+                  src="/images/brand-medallion-3d.png"
+                  alt="Casino Royale"
+                  fill
+                  sizes="100px"
+                  style={{ objectFit: 'contain' }}
+                  className="animate-pulse"
+                />
               </div>
-              {!isMobile && (
-                <div
-                  style={{
-                    width: '80px',
-                    height: '4px',
-                    background: 'hsla(0, 0%, 100%, 0.05)',
-                    borderRadius: '2px',
-                    overflow: 'hidden',
-                    position: 'relative',
-                  }}
-                >
-                  <div
+              {showExpandedSidebar && (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span
+                      style={{
+                        fontWeight: 900,
+                        fontSize: '1.2rem',
+                        letterSpacing: '-1px',
+                        lineHeight: 1,
+                      }}
+                    >
+                      CASINO
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '0.6rem',
+                        fontWeight: 900,
+                        background: 'hsl(var(--primary))',
+                        color: 'black',
+                        padding: '1px 4px',
+                        borderRadius: '3px',
+                        transform: 'translateY(-2px)',
+                      }}
+                    >
+                      PRO
+                    </span>
+                  </div>
+                  <span
                     style={{
-                      width: `${progress}%`,
-                      height: '100%',
-                      background:
-                        'linear-gradient(90deg, hsl(var(--primary)), hsl(var(--secondary)))',
-                      borderRadius: '2px',
-                      transition: 'width 0.5s ease',
+                      fontWeight: 900,
+                      fontSize: '0.65rem',
+                      color: 'hsl(var(--primary))',
+                      letterSpacing: '0.2em',
+                      marginTop: '2px',
                     }}
-                  />
+                  >
+                    ROYALE
+                  </span>
                 </div>
               )}
-            </button>
-            {!isMobile && (
-              <div
-                className="header-chip"
+            </Link>
+            {isMobile && (
+              <button
+                onClick={() => setMobileSidebarOpen(false)}
+                className="btn btn-ghost"
+                aria-label="Close navigation menu"
                 style={{
-                  padding: '6px 12px 6px 6px',
+                  width: '36px',
+                  height: '36px',
+                  padding: '0',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '10px',
-                  width: '150px',
+                  justifyContent: 'center',
+                  borderRadius: '8px',
+                  color: 'rgba(255, 255, 255, 0.7)',
                 }}
               >
-                <IconBadge tone="green">
-                  <Users size={12} color="#000" />
-                </IconBadge>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                  <div
+                <X size={20} />
+              </button>
+            )}
+          </div>
+
+          <nav
+            style={{
+              flex: '1 1 0%',
+              minHeight: 0,
+              padding: '12px',
+              overflowY: isMobile ? 'auto' : 'hidden',
+              overscrollBehavior: 'contain',
+            }}
+          >
+            {menuItems.map((item) => {
+              const active = item.path === '/' ? pathname === '/' : pathname.startsWith(item.path);
+              const isSettings = item.label === 'Settings';
+              const content = (
+                <>
+                  {item.icon}
+                  {showExpandedSidebar && <span>{item.label}</span>}
+                </>
+              );
+              return (
+                <React.Fragment key={item.label}>
+                  <button
+                    onClick={item.onClick || (() => navigate(item.path))}
+                    className="btn btn-ghost"
+                    aria-label={item.label}
                     style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '0.6rem',
-                      fontWeight: 900,
-                      color: 'hsl(var(--text-muted))',
+                      justifyContent: showExpandedSidebar ? 'flex-start' : 'center',
+                      width: '100%',
+                      marginBottom: '4px',
+                      color:
+                        active || (isSettings && showSettings)
+                          ? '#D4AF37'
+                          : 'rgba(255, 255, 255, 0.72)',
+                      background:
+                        active || (isSettings && showSettings)
+                          ? 'linear-gradient(90deg, rgba(212, 175, 55, 0.16) 0%, rgba(212, 175, 55, 0.03) 100%)'
+                          : 'transparent',
+                      borderLeft:
+                        active || (isSettings && showSettings)
+                          ? '3px solid #D4AF37'
+                          : '3px solid transparent',
+                      boxShadow:
+                        active || (isSettings && showSettings)
+                          ? '0 0 16px rgba(212, 175, 55, 0.12)'
+                          : 'none',
+                      padding: showExpandedSidebar ? '10px 14px' : '10px',
+                      borderRadius: '8px',
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                     }}
                   >
-                    <span>COMMUNITY</span>
-                    <span>{Math.round((communityWagered / communityGoal) * 100)}%</span>
+                    {content}
+                  </button>
+                  {isSettings && (
+                    <SettingsPopover
+                      isOpen={showSettings}
+                      onClose={() => setShowSettings(false)}
+                      onOpenProvablyFair={() => setShowProvablyFair(true)}
+                      inline
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </nav>
+
+          {showExpandedSidebar && (
+            <div
+              style={{
+                flexShrink: 0,
+                margin: '20px',
+                padding: '16px',
+                background: 'hsla(0,0%,100%,0.02)',
+                borderRadius: '16px',
+                border: '1px solid hsla(0,0%,100%,0.05)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+              }}
+            >
+              <div style={{ width: '32px', height: '32px', position: 'relative', flexShrink: 0 }}>
+                <Image
+                  src="/images/trust-shield-3d.png"
+                  alt="Secure"
+                  fill
+                  sizes="20px"
+                  style={{ objectFit: 'contain' }}
+                />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'white' }}>
+                  SECURE & FAIR
+                </div>
+                <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'hsl(var(--success))' }}>
+                  CERTIFIED
+                </div>
+              </div>
+            </div>
+          )}
+          {showExpandedSidebar && <ConsentBanner />}
+          {!isMobile && (
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="btn btn-ghost"
+              aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+              style={{
+                flexShrink: 0,
+                margin: '12px',
+                padding: '12px',
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.05)',
+                borderRadius: '12px',
+                color: 'rgba(255,255,255,0.4)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              {sidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+            </button>
+          )}
+        </motion.aside>
+
+        <CommandPalette />
+
+        {/* Main Content */}
+        <main
+          ref={mainRef}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100vh',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            position: 'relative',
+          }}
+        >
+          <header
+            className="glass-header"
+            style={{
+              height: isMobile ? '64px' : '72px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: isMobile ? '0 8px' : '0 24px',
+              flexShrink: 0,
+              position: 'sticky',
+              top: 0,
+              zIndex: 40,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px' }}>
+              {isMobile && (
+                <button
+                  onClick={() => setMobileSidebarOpen(true)}
+                  className="btn btn-ghost"
+                  aria-label="Open navigation menu"
+                  style={{ padding: '8px' }}
+                >
+                  <Menu size={20} />
+                </button>
+              )}
+              <button
+                onClick={() => setShowRankInfo(true)}
+                className="header-chip header-chip-gold"
+                style={{
+                  padding: isMobile ? '4px 8px' : '6px 12px 6px 6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: isMobile ? '8px' : '10px',
+                  cursor: 'pointer',
+                }}
+              >
+                {!isMobile && (
+                  <IconBadge tone="gold">
+                    <Star size={12} color="#000" fill="#000" />
+                  </IconBadge>
+                )}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                  {!isMobile && (
+                    <span
+                      style={{
+                        fontSize: '0.6rem',
+                        fontWeight: 900,
+                        color: 'hsl(var(--primary))',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {rank}
+                    </span>
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    {isMobile && (
+                      <Star size={10} fill="hsl(var(--primary))" color="hsl(var(--primary))" />
+                    )}
+                    <span
+                      style={{
+                        fontSize: isMobile ? '0.75rem' : '0.8rem',
+                        color: 'hsl(var(--text-main))',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {isMobile ? `L${level}` : `LVL ${level}`}
+                    </span>
                   </div>
+                </div>
+                {!isMobile && (
                   <div
                     style={{
-                      width: '100%',
+                      width: '80px',
                       height: '4px',
                       background: 'hsla(0, 0%, 100%, 0.05)',
                       borderRadius: '2px',
                       overflow: 'hidden',
+                      position: 'relative',
                     }}
                   >
                     <div
                       style={{
-                        width: `${Math.min(100, (communityWagered / communityGoal) * 100)}%`,
+                        width: `${progress}%`,
                         height: '100%',
-                        background: '#00e701',
-                        boxShadow: '0 0 10px #00e701',
+                        background:
+                          'linear-gradient(90deg, hsl(var(--primary)), hsl(var(--secondary)))',
                         borderRadius: '2px',
-                        transition: 'width 1s ease',
+                        transition: 'width 0.5s ease',
                       }}
                     />
                   </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: isMobile ? '8px' : '16px',
-              paddingRight: isMobile ? '8px' : '0',
-            }}
-          >
-            <div
-              className="header-chip"
-              style={{
-                padding: isMobile ? '6px 10px 6px 6px' : '6px 16px 6px 6px',
-                borderRadius: 'var(--radius-full)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: isMobile ? '8px' : '10px',
-              }}
-            >
-              <IconBadge tone="gold" size={isMobile ? 22 : 26}>
-                <Wallet size={isMobile ? 11 : 13} color="#000" />
-              </IconBadge>
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  color: 'hsl(var(--text-main))',
-                  fontWeight: 800,
-                  fontSize: isMobile ? '0.9rem' : '1.15rem',
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                {hideBalance
-                  ? '••••••'
-                  : `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-              </span>
-              <button
-                onClick={() => updateSettings({ hideBalance: !hideBalance })}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'hsla(0,0%,100%,0.3)',
-                  cursor: 'pointer',
-                  padding: '2px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {hideBalance ? <Eye size={14} /> : <EyeOff size={14} />}
+                )}
               </button>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               {!isMobile && (
-                <>
-                  {!effectiveIsSignedIn ? (
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <AuthHeaderBtn href="/sign-in" variant="glass">
-                        <LogIn size={13} strokeWidth={2.5} />
-                        LOGIN
-                      </AuthHeaderBtn>
-                      <AuthHeaderBtn href="/sign-up" variant="gold">
-                        <UserPlus size={13} strokeWidth={2.5} />
-                        REGISTER
-                      </AuthHeaderBtn>
-                    </div>
-                  ) : (
+                <div
+                  className="header-chip"
+                  style={{
+                    padding: '6px 12px 6px 6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    width: '150px',
+                  }}
+                >
+                  <IconBadge tone="green">
+                    <Users size={12} color="#000" />
+                  </IconBadge>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
                     <div
                       style={{
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        padding: '4px 8px',
-                        background: 'hsla(0,0%,100%,0.03)',
-                        borderRadius: '16px',
-                        border: '1px solid hsla(0,0%,100%,0.05)',
+                        justifyContent: 'space-between',
+                        fontSize: '0.6rem',
+                        fontWeight: 900,
+                        color: 'hsl(var(--text-muted))',
                       }}
                     >
-                      <div style={{ textAlign: 'right', paddingRight: '4px' }}>
-                        <div style={{ fontSize: '0.85rem', fontWeight: 900, color: '#fff' }}>
-                          {displayName}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: '0.6rem',
-                            fontWeight: 800,
-                            color: 'hsl(var(--primary))',
-                            textTransform: 'uppercase',
-                          }}
-                        >
-                          {rank}
-                        </div>
-                      </div>
-                      <button
-                        onClick={handleSignOut}
-                        aria-label="Abmelden"
-                        className="btn btn-ghost"
-                        style={{
-                          width: '40px',
-                          height: '40px',
-                          padding: 0,
-                          borderRadius: '12px',
-                          border: '2px solid hsla(var(--primary), 0.5)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <LogOut size={16} />
-                      </button>
+                      <span>COMMUNITY</span>
+                      <span>{Math.round((communityWagered / communityGoal) * 100)}%</span>
                     </div>
-                  )}
-                </>
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '4px',
+                        background: 'hsla(0, 0%, 100%, 0.05)',
+                        borderRadius: '2px',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: `${Math.min(100, (communityWagered / communityGoal) * 100)}%`,
+                          height: '100%',
+                          background: '#00e701',
+                          boxShadow: '0 0 10px #00e701',
+                          borderRadius: '2px',
+                          transition: 'width 1s ease',
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
               )}
-              {isMobile &&
-                (effectiveIsSignedIn ? (
-                  <button
-                    onClick={handleSignOut}
-                    aria-label="Abmelden"
-                    className="btn btn-ghost"
-                    style={{ padding: '8px' }}
-                  >
-                    <LogOut size={16} />
-                  </button>
-                ) : (
-                  <AuthHeaderBtn href="/sign-in" variant="glass" compact>
-                    <LogIn size={13} strokeWidth={2.5} />
-                    LOGIN
-                  </AuthHeaderBtn>
-                ))}
             </div>
-          </div>
-        </header>
-        <div
-          style={{
-            flex: 1,
-            padding: isMobile ? '16px' : '24px',
-            overflowY: 'scroll',
-            paddingBottom: isMobile ? '100px' : '24px',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          {children}
-        </div>
-      </main>
 
-      {/* Persistent Overlay Components */}
-      <MobileNav />
-      {bigWin && (
-        <BigWinOverlay
-          amount={bigWin.amount}
-          multiplier={bigWin.multiplier}
-          isOpen={!!bigWin}
-          onClose={() => setBigWin(null)}
-        />
-      )}
-      {showRankInfo && (
-        <RankBenefitsModal isOpen={showRankInfo} onClose={() => setShowRankInfo(false)} />
-      )}
-      {showProfile && (
-        <PlayerProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} />
-      )}
-      {showProvablyFair && <ProvablyFairModal isOpen onClose={() => setShowProvablyFair(false)} />}
-
-      <GlobalChat />
-
-      {/* Toast Container */}
-      <div
-        style={{
-          position: 'fixed',
-          top: isMobile ? '80px' : '88px',
-          right: isMobile ? '50%' : '24px',
-          transform: isMobile ? 'translateX(50%)' : 'none',
-          width: isMobile ? 'min(90vw, 350px)' : 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-          zIndex: 100,
-          pointerEvents: 'none',
-        }}
-      >
-        {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            className="glass animate-slide-in-right"
-            style={{
-              padding: isMobile ? '12px 16px' : '16px 20px',
-              borderRadius: '16px',
-              minWidth: isMobile ? '0' : '300px',
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              background:
-                toast.type === 'error'
-                  ? 'hsla(var(--error), 0.15)'
-                  : toast.type === 'success'
-                    ? 'hsla(var(--success), 0.15)'
-                    : 'hsla(var(--bg-color), 0.8)',
-              border: `1px solid ${toast.type === 'error' ? 'hsl(var(--error))' : toast.type === 'success' ? 'hsl(var(--success))' : 'var(--glass-border)'}`,
-              backdropFilter: 'blur(10px)',
-              pointerEvents: 'auto',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-            }}
-          >
-            {toast.type === 'success' && <CheckCircle2 size={20} color="hsl(var(--success))" />}
-            {toast.type === 'error' && <AlertCircle size={20} color="hsl(var(--error))" />}
-            {(toast.type === 'info' || !toast.type) && (
-              <InfoIcon size={20} color="hsl(var(--primary))" />
-            )}
-            {toast.type === 'win' && <Trophy size={20} color="hsl(var(--primary))" />}
-            <div style={{ flex: 1, fontSize: '0.9rem', fontWeight: 600 }}>{toast.message}</div>
-            <button
-              onClick={() => removeToast(toast.id)}
+            <div
               style={{
-                color: 'hsl(var(--text-muted))',
-                padding: '4px',
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: isMobile ? '8px' : '16px',
+                paddingRight: isMobile ? '8px' : '0',
               }}
             >
-              <X size={16} />
-            </button>
+              <div
+                className="header-chip"
+                style={{
+                  padding: isMobile ? '6px 10px 6px 6px' : '6px 16px 6px 6px',
+                  borderRadius: 'var(--radius-full)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: isMobile ? '8px' : '10px',
+                }}
+              >
+                <IconBadge tone="gold" size={isMobile ? 22 : 26}>
+                  <Wallet size={isMobile ? 11 : 13} color="#000" />
+                </IconBadge>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    color: 'hsl(var(--text-main))',
+                    fontWeight: 800,
+                    fontSize: isMobile ? '0.9rem' : '1.15rem',
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  {hideBalance
+                    ? '••••••'
+                    : `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                </span>
+                <button
+                  onClick={() => updateSettings({ hideBalance: !hideBalance })}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'hsla(0,0%,100%,0.3)',
+                    cursor: 'pointer',
+                    padding: '2px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {hideBalance ? <Eye size={14} /> : <EyeOff size={14} />}
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {!isMobile && (
+                  <>
+                    {!effectiveIsSignedIn ? (
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <AuthHeaderBtn href="/sign-in" variant="glass">
+                          <LogIn size={13} strokeWidth={2.5} />
+                          LOGIN
+                        </AuthHeaderBtn>
+                        <AuthHeaderBtn href="/sign-up" variant="gold">
+                          <UserPlus size={13} strokeWidth={2.5} />
+                          REGISTER
+                        </AuthHeaderBtn>
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          padding: '4px 8px',
+                          background: 'hsla(0,0%,100%,0.03)',
+                          borderRadius: '16px',
+                          border: '1px solid hsla(0,0%,100%,0.05)',
+                        }}
+                      >
+                        <div style={{ textAlign: 'right', paddingRight: '4px' }}>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 900, color: '#fff' }}>
+                            {displayName}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: '0.6rem',
+                              fontWeight: 800,
+                              color: 'hsl(var(--primary))',
+                              textTransform: 'uppercase',
+                            }}
+                          >
+                            {rank}
+                          </div>
+                        </div>
+                        <button
+                          onClick={handleSignOut}
+                          aria-label="Abmelden"
+                          className="btn btn-ghost"
+                          style={{
+                            width: '40px',
+                            height: '40px',
+                            padding: 0,
+                            borderRadius: '12px',
+                            border: '2px solid hsla(var(--primary), 0.5)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <LogOut size={16} />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+                {isMobile &&
+                  (effectiveIsSignedIn ? (
+                    <button
+                      onClick={handleSignOut}
+                      aria-label="Abmelden"
+                      className="btn btn-ghost"
+                      style={{ padding: '8px' }}
+                    >
+                      <LogOut size={16} />
+                    </button>
+                  ) : (
+                    <AuthHeaderBtn href="/sign-in" variant="glass" compact>
+                      <LogIn size={13} strokeWidth={2.5} />
+                      LOGIN
+                    </AuthHeaderBtn>
+                  ))}
+              </div>
+            </div>
+          </header>
+          <div
+            style={{
+              flex: 1,
+              padding: isMobile ? '16px' : '24px',
+              overflowY: 'scroll',
+              paddingBottom: isMobile ? '100px' : '24px',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            {children}
           </div>
-        ))}
+        </main>
+
+        {/* Persistent Overlay Components */}
+        <MobileNav />
+        {bigWin && (
+          <BigWinOverlay
+            amount={bigWin.amount}
+            multiplier={bigWin.multiplier}
+            isOpen={!!bigWin}
+            onClose={() => setBigWin(null)}
+          />
+        )}
+        {showRankInfo && (
+          <RankBenefitsModal isOpen={showRankInfo} onClose={() => setShowRankInfo(false)} />
+        )}
+        {showProfile && (
+          <PlayerProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} />
+        )}
+        {showProvablyFair && (
+          <ProvablyFairModal isOpen onClose={() => setShowProvablyFair(false)} />
+        )}
+
+        <GlobalChat />
+
+        {/* Toast Container */}
+        <div
+          style={{
+            position: 'fixed',
+            top: isMobile ? '80px' : '88px',
+            right: isMobile ? '50%' : '24px',
+            transform: isMobile ? 'translateX(50%)' : 'none',
+            width: isMobile ? 'min(90vw, 350px)' : 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            zIndex: 100,
+            pointerEvents: 'none',
+          }}
+        >
+          {toasts.map((toast) => (
+            <div
+              key={toast.id}
+              className="glass animate-slide-in-right"
+              style={{
+                padding: isMobile ? '12px 16px' : '16px 20px',
+                borderRadius: '16px',
+                minWidth: isMobile ? '0' : '300px',
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                background:
+                  toast.type === 'error'
+                    ? 'hsla(var(--error), 0.15)'
+                    : toast.type === 'success'
+                      ? 'hsla(var(--success), 0.15)'
+                      : 'hsla(var(--bg-color), 0.8)',
+                border: `1px solid ${toast.type === 'error' ? 'hsl(var(--error))' : toast.type === 'success' ? 'hsl(var(--success))' : 'var(--glass-border)'}`,
+                backdropFilter: 'blur(10px)',
+                pointerEvents: 'auto',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+              }}
+            >
+              {toast.type === 'success' && <CheckCircle2 size={20} color="hsl(var(--success))" />}
+              {toast.type === 'error' && <AlertCircle size={20} color="hsl(var(--error))" />}
+              {(toast.type === 'info' || !toast.type) && (
+                <InfoIcon size={20} color="hsl(var(--primary))" />
+              )}
+              {toast.type === 'win' && <Trophy size={20} color="hsl(var(--primary))" />}
+              <div style={{ flex: 1, fontSize: '0.9rem', fontWeight: 600 }}>{toast.message}</div>
+              <button
+                onClick={() => removeToast(toast.id)}
+                style={{
+                  color: 'hsl(var(--text-muted))',
+                  padding: '4px',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
     </KeyboardShortcutProvider>
   );
 }

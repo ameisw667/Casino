@@ -1,24 +1,22 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
+  BookOpen,
   Plus,
-  Search,
-  Sparkles,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle2,
   Trash2,
   Edit,
-  CheckCircle2,
-  AlertCircle,
-  Database,
-  RefreshCw,
-  X,
-  FileText,
   Tag,
-  Sliders,
+  Search,
+  Sparkles,
+  X,
 } from 'lucide-react';
+import { getApiErrorMessage } from '@/lib/security/form-errors';
 
-type GuideDoc = {
+interface GuideDoc {
   id: string;
   slug: string;
   topic: string;
@@ -28,7 +26,7 @@ type GuideDoc = {
   version?: string;
   is_active: boolean;
   updated_at: string;
-};
+}
 
 const TOPICS = [
   'blackjack',
@@ -43,20 +41,57 @@ const TOPICS = [
   'other',
 ] as const;
 
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  background: 'rgba(0,0,0,0.6)',
+  border: '1px solid rgba(255,255,255,0.12)',
+  borderRadius: 8,
+  padding: '0.65rem 0.85rem',
+  color: '#fff',
+  fontSize: '0.85rem',
+  outline: 'none',
+  boxSizing: 'border-box',
+};
+
+function Field({
+  label,
+  children,
+  style,
+}: {
+  label: string;
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', ...style }}>
+      <span
+        style={{
+          fontSize: '0.75rem',
+          fontWeight: 700,
+          color: 'rgba(255,255,255,0.6)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
+        }}
+      >
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
+
 export default function AdminKnowledgeClient() {
   const [docs, setDocs] = useState<GuideDoc[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingDoc, setEditingDoc] = useState<GuideDoc | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(
-    null,
-  );
 
-  // Form State
-  const [formData, setFormData] = useState({
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const [form, setForm] = useState({
     id: '',
     slug: '',
     topic: 'blackjack',
@@ -66,28 +101,31 @@ export default function AdminKnowledgeClient() {
     isActive: true,
   });
 
-  const loadDocs = async () => {
-    setLoading(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitMsg, setSubmitMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+
+  const loadDocs = async (showLoading = false) => {
+    if (showLoading) setLoading(true);
     try {
-      const res = await fetch('/api/admin/knowledge');
-      if (res.ok) {
-        const data = await res.json();
-        setDocs(data.documents || []);
-      }
+      const res = await fetch('/api/admin/knowledge', { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = (await res.json()) as { documents: GuideDoc[] };
+      setDocs(json.documents ?? []);
+      setError(null);
     } catch {
-      setFeedback({ type: 'error', message: 'Fehler beim Laden der Wissensbasis' });
+      setError('Wissensdokumente konnten nicht geladen werden.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadDocs();
+    void loadDocs();
   }, []);
 
-  const openCreateModal = () => {
-    setEditingDoc(null);
-    setFormData({
+  const openCreateForm = () => {
+    setEditingId(null);
+    setForm({
       id: '',
       slug: '',
       topic: 'blackjack',
@@ -96,12 +134,13 @@ export default function AdminKnowledgeClient() {
       tags: '',
       isActive: true,
     });
-    setModalOpen(true);
+    setSubmitMsg(null);
+    setIsFormOpen(true);
   };
 
-  const openEditModal = (doc: GuideDoc) => {
-    setEditingDoc(doc);
-    setFormData({
+  const openEditForm = (doc: GuideDoc) => {
+    setEditingId(doc.id);
+    setForm({
       id: doc.id,
       slug: doc.slug,
       topic: doc.topic,
@@ -110,27 +149,34 @@ export default function AdminKnowledgeClient() {
       tags: (doc.tags || []).join(', '),
       isActive: doc.is_active,
     });
-    setModalOpen(true);
+    setSubmitMsg(null);
+    setIsFormOpen(true);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    setFeedback(null);
+  const closeForm = () => {
+    setIsFormOpen(false);
+    setEditingId(null);
+    setSubmitMsg(null);
+  };
 
-    const tagsArray = formData.tags
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setSubmitMsg(null);
+
+    const tagsArray = form.tags
       .split(',')
       .map((t) => t.trim())
       .filter((t) => t.length > 0);
 
     const payload = {
-      id: formData.id || undefined,
-      slug: formData.slug.trim(),
-      topic: formData.topic,
-      title: formData.title.trim(),
-      content: formData.content.trim(),
+      id: form.id || undefined,
+      slug: form.slug.trim(),
+      topic: form.topic,
+      title: form.title.trim(),
+      content: form.content.trim(),
       tags: tagsArray,
-      isActive: formData.isActive,
+      isActive: form.isActive,
     };
 
     try {
@@ -139,43 +185,45 @@ export default function AdminKnowledgeClient() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      const json = await res.json().catch(() => null);
 
-      const data = await res.json().catch(() => null);
-      if (res.ok && data?.success) {
-        setFeedback({
-          type: 'success',
-          message: 'Dokument erfolgreich gespeichert & vektorisiert',
+      if (!res.ok) {
+        setSubmitMsg({
+          kind: 'err',
+          text: getApiErrorMessage(json, 'Speichern fehlgeschlagen'),
         });
-        setModalOpen(false);
-        await loadDocs();
-      } else {
-        setFeedback({
-          type: 'error',
-          message: data?.error || 'Fehler beim Speichern des Dokuments',
-        });
+        return;
       }
+
+      setSubmitMsg({
+        kind: 'ok',
+        text: `Dokument "${form.title}" erfolgreich gespeichert & vektorisiert!`,
+      });
+      await loadDocs();
+      setTimeout(() => {
+        setIsFormOpen(false);
+      }, 1200);
     } catch {
-      setFeedback({ type: 'error', message: 'Netzwerkfehler beim Speichern' });
+      setSubmitMsg({ kind: 'err', text: 'Netzwerkfehler beim Speichern' });
     } finally {
-      setSaving(false);
+      setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm(`Möchtest du das Dokument "${id}" wirklich löschen?`)) return;
+  const handleDelete = async (id: string, title: string) => {
+    if (!confirm(`Möchtest du das Dokument "${title}" wirklich löschen?`)) return;
 
     try {
       const res = await fetch(`/api/admin/knowledge?id=${encodeURIComponent(id)}`, {
         method: 'DELETE',
       });
       if (res.ok) {
-        setFeedback({ type: 'success', message: 'Dokument gelöscht' });
         await loadDocs();
       } else {
-        setFeedback({ type: 'error', message: 'Fehler beim Löschen' });
+        alert('Fehler beim Löschen des Dokuments');
       }
     } catch {
-      setFeedback({ type: 'error', message: 'Netzwerkfehler beim Löschen' });
+      alert('Netzwerkfehler beim Löschen');
     }
   };
 
@@ -189,366 +237,605 @@ export default function AdminKnowledgeClient() {
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+    <div style={{ padding: '2rem', maxWidth: 1200, margin: '0 auto', fontFamily: 'inherit' }}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-amber-500/20 pb-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
-              <Database className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+      <header
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          marginBottom: '2rem',
+          borderBottom: '1px solid rgba(212,175,55,0.2)',
+          paddingBottom: '1.25rem',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+          <div
+            style={{
+              padding: '0.65rem',
+              borderRadius: 12,
+              background: 'rgba(212,175,55,0.1)',
+              border: '1px solid rgba(212,175,55,0.3)',
+              color: '#ffd700',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <BookOpen size={26} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', margin: 0 }}>
                 Royale Knowledge CMS
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">
-                  pgvector
-                </span>
               </h1>
-              <p className="text-xs text-neutral-400 mt-0.5">
-                Verwalte KI-Hilfeartikel, Vektor-Embeddings und SQL-Wissensquellen live in PostgreSQL.
-              </p>
+              <span
+                style={{
+                  fontSize: '0.65rem',
+                  fontWeight: 800,
+                  padding: '2px 8px',
+                  borderRadius: 20,
+                  background: 'rgba(212,175,55,0.15)',
+                  border: '1px solid rgba(212,175,55,0.4)',
+                  color: '#ffd700',
+                  fontFamily: 'monospace',
+                }}
+              >
+                pgvector (1536d)
+              </span>
             </div>
+            <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>
+              Verwalte KI-Hilfeartikel, Vektor-Embeddings und SQL-Wissensquellen live in PostgreSQL.
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button
             type="button"
             onClick={loadDocs}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-700 bg-black/40 text-neutral-300 hover:bg-white/5 text-xs transition-colors"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              color: 'rgba(255,255,255,0.8)',
+              borderRadius: 8,
+              padding: '0.55rem 0.95rem',
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
             Aktualisieren
           </button>
 
           <button
             type="button"
-            onClick={openCreateModal}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold text-xs shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
+            onClick={() => {
+              if (isFormOpen && !editingId) {
+                closeForm();
+              } else {
+                openCreateForm();
+              }
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              background: 'linear-gradient(135deg, #ffd700, #b8932f)',
+              color: '#050505',
+              border: 'none',
+              borderRadius: 8,
+              padding: '0.55rem 1.1rem',
+              fontSize: '0.8rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '0 4px 16px rgba(212,175,55,0.25)',
+            }}
           >
-            <Plus className="w-3.5 h-3.5" />
-            Neues Dokument
+            <Plus size={16} />
+            {isFormOpen && !editingId ? 'Schließen' : 'Neues Dokument'}
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* Feedback Banner */}
-      {feedback && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`p-3.5 rounded-xl border flex items-center justify-between text-xs ${
-            feedback.type === 'success'
-              ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
-              : 'bg-rose-950/40 border-rose-500/40 text-rose-300'
-          }`}
+      {/* Error Alert */}
+      {error && (
+        <div
+          style={{
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: 10,
+            padding: '0.85rem 1rem',
+            color: '#f87171',
+            fontSize: '0.85rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginBottom: '1.5rem',
+          }}
         >
-          <div className="flex items-center gap-2">
-            {feedback.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            ) : (
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-            )}
-            <span>{feedback.message}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setFeedback(null)}
-            className="text-neutral-400 hover:text-white p-1"
+          <AlertCircle size={16} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Create / Edit Form Section (Inline Panel) */}
+      {isFormOpen && (
+        <section
+          style={{
+            background: 'rgba(12, 12, 14, 0.85)',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(212, 175, 55, 0.35)',
+            borderRadius: 14,
+            padding: '1.5rem',
+            marginBottom: '2rem',
+            boxShadow: '0 12px 36px rgba(0,0,0,0.5)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '1.25rem',
+              borderBottom: '1px solid rgba(255,255,255,0.08)',
+              paddingBottom: '0.75rem',
+            }}
           >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </motion.div>
+            <h2
+              style={{
+                fontSize: '1.1rem',
+                color: '#ffd700',
+                margin: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontWeight: 700,
+              }}
+            >
+              {editingId ? <Edit size={18} /> : <Plus size={18} />}
+              {editingId ? 'Wissensdokument bearbeiten' : 'Neues Wissensdokument anlegen'}
+            </h2>
+            <button
+              type="button"
+              onClick={closeForm}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'rgba(255,255,255,0.4)',
+                cursor: 'pointer',
+              }}
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <Field label="Slug (Eindeutiger Bezeichner)">
+                <input
+                  required
+                  value={form.slug}
+                  onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                  placeholder="games-blackjack"
+                  style={inputStyle}
+                />
+              </Field>
+
+              <Field label="Thema (Topic)">
+                <select
+                  value={form.topic}
+                  onChange={(e) => setForm({ ...form, topic: e.target.value })}
+                  style={{
+                    ...inputStyle,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {TOPICS.map((t) => (
+                    <option key={t} value={t} style={{ background: '#111', color: '#fff' }}>
+                      {t.toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+
+            <Field label="Titel">
+              <input
+                required
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                placeholder="Blackjack Regeln, Payouts und Spielzüge"
+                style={inputStyle}
+              />
+            </Field>
+
+            <Field label="Inhalt (Markdown / Wissens-Text für RAG)">
+              <textarea
+                required
+                rows={5}
+                value={form.content}
+                onChange={(e) => setForm({ ...form, content: e.target.value })}
+                placeholder="Regeln, Auszahlungsquoten, Limits oder Navigationslinks..."
+                style={{
+                  ...inputStyle,
+                  fontFamily: 'var(--font-mono, monospace)',
+                  lineHeight: '1.5',
+                  resize: 'vertical',
+                }}
+              />
+            </Field>
+
+            <Field label="Tags (Kommagetrennt für Keyword-Schnellpfad)">
+              <input
+                value={form.tags}
+                onChange={(e) => setForm({ ...form, tags: e.target.value })}
+                placeholder="blackjack, regeln, hit, stand, double, split"
+                style={inputStyle}
+              />
+            </Field>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingTop: '0.75rem',
+                borderTop: '1px solid rgba(255,255,255,0.08)',
+              }}
+            >
+              <label
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  color: '#cbd5e1',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={form.isActive}
+                  onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+                  style={{ accentColor: '#ffd700', width: 16, height: 16 }}
+                />
+                <span>Dokument aktiv schalten</span>
+              </label>
+
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  onClick={closeForm}
+                  style={{
+                    background: 'rgba(255,255,255,0.08)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    color: '#ccc',
+                    borderRadius: 8,
+                    padding: '0.55rem 1rem',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Abbrechen
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  style={{
+                    background: 'linear-gradient(135deg, #ffd700, #b8932f)',
+                    color: '#050505',
+                    border: 'none',
+                    borderRadius: 8,
+                    padding: '0.55rem 1.25rem',
+                    fontSize: '0.8rem',
+                    fontWeight: 800,
+                    cursor: submitting ? 'not-allowed' : 'pointer',
+                    opacity: submitting ? 0.6 : 1,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    boxShadow: '0 4px 16px rgba(212,175,55,0.25)',
+                  }}
+                >
+                  <Sparkles size={14} className={submitting ? 'animate-spin' : ''} />
+                  {submitting ? 'Vektorisiere...' : 'Speichern & Vektorisieren'}
+                </button>
+              </div>
+            </div>
+          </form>
+
+          {submitMsg && (
+            <div
+              style={{
+                marginTop: '1rem',
+                padding: '0.75rem 1rem',
+                borderRadius: 8,
+                fontSize: '0.8rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                background:
+                  submitMsg.kind === 'ok' ? 'rgba(0,231,1,0.1)' : 'rgba(239,68,68,0.1)',
+                border: `1px solid ${
+                  submitMsg.kind === 'ok' ? 'rgba(0,231,1,0.3)' : 'rgba(239,68,68,0.3)'
+                }`,
+                color: submitMsg.kind === 'ok' ? '#00e701' : '#f87171',
+              }}
+            >
+              {submitMsg.kind === 'ok' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+              <span>{submitMsg.text}</span>
+            </div>
+          )}
+        </section>
       )}
 
       {/* Filter & Search Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/10">
-        <div className="relative md:col-span-2">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+      <section
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '2fr 1fr',
+          gap: '1rem',
+          marginBottom: '1.5rem',
+          background: 'rgba(10,10,12,0.6)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 12,
+          padding: '0.85rem 1rem',
+        }}
+      >
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <Search
+            size={16}
+            style={{ position: 'absolute', left: '0.75rem', color: 'rgba(255,255,255,0.4)' }}
+          />
           <input
             type="text"
             value={searchQuery}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Nach Titel, Slug oder Tags suchen..."
-            className="w-full pl-9 pr-3 py-2 rounded-lg bg-black/50 border border-white/10 text-xs text-white placeholder:text-neutral-500 focus:outline-none focus:border-amber-500/50"
+            style={{
+              ...inputStyle,
+              paddingLeft: '2.3rem',
+              background: 'rgba(0,0,0,0.4)',
+              border: '1px solid rgba(255,255,255,0.08)',
+            }}
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <Sliders className="w-4 h-4 text-neutral-400 shrink-0" />
+        <div>
           <select
             value={selectedTopic}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedTopic(e.target.value)}
-            className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-neutral-300 focus:outline-none focus:border-amber-500/50"
+            onChange={(e) => setSelectedTopic(e.target.value)}
+            style={{
+              ...inputStyle,
+              background: 'rgba(0,0,0,0.4)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              cursor: 'pointer',
+            }}
           >
-            <option value="all">Alle Themen ({docs.length})</option>
+            <option value="all" style={{ background: '#111', color: '#fff' }}>
+              Alle Themen ({docs.length})
+            </option>
             {TOPICS.map((t) => (
-              <option key={t} value={t}>
+              <option key={t} value={t} style={{ background: '#111', color: '#fff' }}>
                 {t.toUpperCase()}
               </option>
             ))}
           </select>
         </div>
-      </div>
+      </section>
 
-      {/* Documents Table */}
-      <div className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-white/[0.03] text-neutral-400 uppercase tracking-wider border-b border-white/10 font-mono">
-              <tr>
-                <th className="py-3.5 px-4 font-medium">Thema & ID</th>
-                <th className="py-3.5 px-4 font-medium">Titel & Zusammenfassung</th>
-                <th className="py-3.5 px-4 font-medium">Tags</th>
-                <th className="py-3.5 px-4 font-medium">Status</th>
-                <th className="py-3.5 px-4 font-medium text-right">Aktionen</th>
+      {/* Table Section */}
+      <section
+        style={{
+          background: 'rgba(10,10,12,0.7)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(212,175,55,0.2)',
+          borderRadius: 14,
+          overflow: 'hidden',
+        }}
+      >
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+            <thead>
+              <tr
+                style={{
+                  borderBottom: '1px solid rgba(255,255,255,0.08)',
+                  background: 'rgba(255,255,255,0.02)',
+                  color: 'rgba(255,255,255,0.5)',
+                  textTransform: 'uppercase',
+                  fontSize: '0.7rem',
+                  letterSpacing: '0.5px',
+                  textAlign: 'left',
+                }}
+              >
+                <th style={{ padding: '0.9rem 1rem' }}>Thema & ID</th>
+                <th style={{ padding: '0.9rem 1rem' }}>Titel & Inhalt</th>
+                <th style={{ padding: '0.9rem 1rem' }}>Tags</th>
+                <th style={{ padding: '0.9rem 1rem' }}>Status</th>
+                <th style={{ padding: '0.9rem 1rem', textAlign: 'right' }}>Aktionen</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-neutral-500 font-mono">
-                    <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-amber-400" />
-                    Lade Dokumente aus Supabase...
+                  <td
+                    colSpan={5}
+                    style={{ padding: '3rem', textAlign: 'center', color: 'rgba(255,255,255,0.5)' }}
+                  >
+                    <RefreshCw size={20} className="animate-spin" style={{ margin: '0 auto 8px', color: '#ffd700' }} />
+                    Lade Wissensdokumente...
                   </td>
                 </tr>
               ) : filteredDocs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-neutral-500 font-mono">
+                  <td
+                    colSpan={5}
+                    style={{ padding: '3rem', textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}
+                  >
                     Keine Dokumente gefunden.
                   </td>
                 </tr>
               ) : (
                 filteredDocs.map((doc) => (
-                  <motion.tr
+                  <tr
                     key={doc.id}
-                    className="hover:bg-white/[0.02] transition-colors"
-                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.02)' }}
+                    style={{
+                      borderBottom: '1px solid rgba(255,255,255,0.04)',
+                      transition: 'background 0.15s ease',
+                    }}
                   >
-                    <td className="py-4 px-4 align-top">
-                      <div className="space-y-1">
-                        <span className="inline-block px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-[10px] font-mono text-amber-300">
-                          {doc.topic}
-                        </span>
-                        <p className="font-mono text-[11px] text-neutral-400">{doc.id}</p>
+                    <td style={{ padding: '1rem', verticalAlign: 'top', minWidth: 140 }}>
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          padding: '2px 8px',
+                          borderRadius: 4,
+                          background: 'rgba(212,175,55,0.1)',
+                          border: '1px solid rgba(212,175,55,0.3)',
+                          color: '#ffd700',
+                          fontSize: '0.7rem',
+                          fontFamily: 'monospace',
+                          fontWeight: 700,
+                          marginBottom: '4px',
+                        }}
+                      >
+                        {doc.topic}
+                      </span>
+                      <div
+                        style={{
+                          fontFamily: 'monospace',
+                          fontSize: '0.75rem',
+                          color: 'rgba(255,255,255,0.4)',
+                        }}
+                      >
+                        {doc.id}
                       </div>
                     </td>
 
-                    <td className="py-4 px-4 align-top max-w-md">
-                      <div className="space-y-1">
-                        <p className="font-semibold text-white text-xs">{doc.title}</p>
-                        <p className="text-[11px] text-neutral-400 line-clamp-2">{doc.content}</p>
+                    <td style={{ padding: '1rem', verticalAlign: 'top', maxWidth: 420 }}>
+                      <div style={{ fontWeight: 700, color: '#fff', marginBottom: '4px', fontSize: '0.85rem' }}>
+                        {doc.title}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '0.75rem',
+                          color: 'rgba(255,255,255,0.5)',
+                          lineHeight: '1.4',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {doc.content}
                       </div>
                     </td>
 
-                    <td className="py-4 px-4 align-top">
-                      <div className="flex flex-wrap gap-1 max-w-xs">
+                    <td style={{ padding: '1rem', verticalAlign: 'top', maxWidth: 220 }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                         {(doc.tags || []).map((tag) => (
                           <span
                             key={tag}
-                            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] text-neutral-300"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '2px',
+                              padding: '2px 6px',
+                              borderRadius: 4,
+                              background: 'rgba(255,255,255,0.05)',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              fontSize: '0.7rem',
+                              color: 'rgba(255,255,255,0.7)',
+                            }}
                           >
-                            <Tag className="w-2.5 h-2.5 text-neutral-500" />
+                            <Tag size={10} color="rgba(255,255,255,0.4)" />
                             {tag}
                           </span>
                         ))}
                       </div>
                     </td>
 
-                    <td className="py-4 px-4 align-top">
+                    <td style={{ padding: '1rem', verticalAlign: 'top', whiteSpace: 'nowrap' }}>
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                          doc.is_active
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                            : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
-                        }`}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          padding: '3px 8px',
+                          borderRadius: 20,
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          background: doc.is_active ? 'rgba(0,231,1,0.1)' : 'rgba(255,255,255,0.05)',
+                          border: `1px solid ${
+                            doc.is_active ? 'rgba(0,231,1,0.3)' : 'rgba(255,255,255,0.1)'
+                          }`,
+                          color: doc.is_active ? '#00e701' : 'rgba(255,255,255,0.4)',
+                        }}
                       >
                         <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            doc.is_active ? 'bg-emerald-400' : 'bg-neutral-500'
-                          }`}
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: '50%',
+                            background: doc.is_active ? '#00e701' : 'rgba(255,255,255,0.4)',
+                            boxShadow: doc.is_active ? '0 0 6px #00e701' : 'none',
+                          }}
                         />
                         {doc.is_active ? 'Aktiv' : 'Inaktiv'}
                       </span>
                     </td>
 
-                    <td className="py-4 px-4 align-top text-right space-x-1">
+                    <td style={{ padding: '1rem', verticalAlign: 'top', textAlign: 'right', whiteSpace: 'nowrap' }}>
                       <button
                         type="button"
-                        onClick={() => openEditModal(doc)}
-                        className="p-1.5 rounded-lg text-neutral-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
+                        onClick={() => openEditForm(doc)}
+                        title="Bearbeiten"
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'rgba(255,255,255,0.6)',
+                          cursor: 'pointer',
+                          padding: '4px 6px',
+                          borderRadius: 6,
+                          marginRight: '4px',
+                        }}
                       >
-                        <Edit className="w-3.5 h-3.5" />
+                        <Edit size={16} />
                       </button>
 
                       <button
                         type="button"
-                        onClick={() => handleDelete(doc.id)}
-                        className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                        onClick={() => handleDelete(doc.id, doc.title)}
+                        title="Löschen"
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#f87171',
+                          cursor: 'pointer',
+                          padding: '4px 6px',
+                          borderRadius: 6,
+                        }}
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 size={16} />
                       </button>
                     </td>
-                  </motion.tr>
+                  </tr>
                 ))
               )}
             </tbody>
           </table>
         </div>
-      </div>
-
-      {/* Edit / Create Modal */}
-      <AnimatePresence>
-        {modalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setModalOpen(false)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            />
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 12 }}
-              className="relative w-full max-w-2xl bg-neutral-950/90 border border-amber-500/30 rounded-2xl shadow-2xl p-6 space-y-4 backdrop-blur-xl z-10"
-            >
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
-                    <FileText className="w-4 h-4" />
-                  </div>
-                  <h2 className="text-base font-bold text-white">
-                    {editingDoc ? 'Wissensdokument bearbeiten' : 'Neues Wissensdokument anlegen'}
-                  </h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="text-neutral-400 hover:text-white p-1"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSave} className="space-y-4 text-xs">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-neutral-300 font-medium">Slug (Eindeutiger Bezeichner)</label>
-                    <input
-                      type="text"
-                      value={formData.slug}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setFormData({ ...formData, slug: e.target.value })
-                      }
-                      placeholder="z.B. games-blackjack"
-                      required
-                      className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-xs text-white focus:outline-none focus:border-amber-500/50"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-neutral-300 font-medium">Thema (Topic)</label>
-                    <select
-                      value={formData.topic}
-                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                        setFormData({ ...formData, topic: e.target.value })
-                      }
-                      className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500/50"
-                    >
-                      {TOPICS.map((t) => (
-                        <option key={t} value={t}>
-                          {t.toUpperCase()}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-neutral-300 font-medium">Titel</label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
-                    placeholder="Prägnanter Titel des Artikels"
-                    required
-                    className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-xs text-white focus:outline-none focus:border-amber-500/50"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-neutral-300 font-medium">
-                    Inhalt (Markdown / Text für RAG-Index)
-                  </label>
-                  <textarea
-                    value={formData.content}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                      setFormData({ ...formData, content: e.target.value })
-                    }
-                    rows={7}
-                    placeholder="Regeln, Auszahlungsquoten, Limits oder Navigationslinks..."
-                    required
-                    className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-xs text-white font-mono leading-relaxed focus:outline-none focus:border-amber-500/50"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-neutral-300 font-medium">
-                    Tags (Kommagetrennt für Schnellpfad-Matcher)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.tags}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setFormData({ ...formData, tags: e.target.value })
-                    }
-                    placeholder="blackjack, regeln, hit, stand, double"
-                    className="w-full px-3 py-2 rounded-lg bg-black/50 border border-white/10 text-xs text-white focus:outline-none focus:border-amber-500/50"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between pt-2 border-t border-white/10">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.isActive}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setFormData({ ...formData, isActive: e.target.checked })
-                      }
-                      className="rounded border-neutral-700 bg-black/40 text-amber-500 focus:ring-0"
-                    />
-                    <span className="text-neutral-300">Dokument aktiv schalten</span>
-                  </label>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setModalOpen(false)}
-                      className="px-3 py-1.5 rounded-lg text-neutral-400 hover:text-white text-xs transition-colors"
-                    >
-                      Abbrechen
-                    </button>
-
-                    <button
-                      type="submit"
-                      disabled={saving}
-                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-semibold text-xs shadow-lg shadow-amber-500/20 cursor-pointer disabled:opacity-50"
-                    >
-                      <Sparkles className={`w-3.5 h-3.5 ${saving ? 'animate-spin' : ''}`} />
-                      {saving ? 'Vektorisiere...' : 'Speichern & Vektorisieren'}
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      </section>
     </div>
   );
 }

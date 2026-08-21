@@ -18,9 +18,10 @@ const KeyboardShortcutContext = createContext<KeyboardShortcutContextValue | nul
 const EDITABLE_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
 
 export function isEditableTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  if (EDITABLE_TAGS.has(target.tagName)) return true;
-  return target.isContentEditable;
+  if (!target || typeof target !== 'object') return false;
+  const el = target as { tagName?: string; isContentEditable?: boolean };
+  if (typeof el.tagName === 'string' && EDITABLE_TAGS.has(el.tagName.toUpperCase())) return true;
+  return Boolean(el.isContentEditable);
 }
 
 export function matchesCombo(event: KeyboardEvent, combo: string): boolean {
@@ -91,7 +92,10 @@ export function useKeyboardShortcut(
 ) {
   const { registerShortcut, unregisterShortcut } = useKeyboardShortcuts();
   const handlerRef = useRef(handler);
-  handlerRef.current = handler;
+
+  useEffect(() => {
+    handlerRef.current = handler;
+  });
 
   useEffect(() => {
     if (!enabled) return undefined;

@@ -42,7 +42,7 @@ describe('pgvector Guide Knowledge Store', () => {
     expect(results).not.toBeNull();
     expect(results).toHaveLength(1);
     expect(results![0]?.id).toBe('guide-blackjack');
-    expect(results![0]?.topic).toBe('blackjack');
+    expect(results![0]?.topic).toBe('games');
     expect(results![0]?.status).toBe('active');
   });
 

@@ -2,6 +2,7 @@ import 'server-only';
 
 import { createAdminClient } from '@/utils/supabase/admin';
 import { CasinoLogger } from '@/lib/casino/logger';
+import { idempotencyKeys, tasks } from '@trigger.dev/sdk';
 
 const CHAT_ALREADY_LINKED_POSTGRES_CODE = '23505';
 
@@ -105,6 +106,23 @@ export async function consumeTelegramLinkToken(input: {
     }
     CasinoLogger.error('TelegramLink', 'Failed to persist telegram link');
     return { ok: false, reason: 'invalid_token' };
+  }
+
+  try {
+    const idempotencyKey = await idempotencyKeys.create(`onboarding-drip-${userId}`, {
+      scope: 'global',
+    });
+    await tasks.trigger(
+      'player-onboarding-drip',
+      {
+        userId,
+        chatId: input.chatId,
+        username: input.telegramUsername ?? undefined,
+      },
+      { idempotencyKey },
+    );
+  } catch (triggerError) {
+    CasinoLogger.error('TelegramLink', `Failed to trigger onboarding drip: ${String(triggerError)}`);
   }
 
   return { ok: true };

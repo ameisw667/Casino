@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 import { isEditableTarget, matchesCombo } from '../useKeyboardShortcuts';
 
@@ -46,7 +47,7 @@ describe('isEditableTarget', () => {
 
   it('returns true for contenteditable elements', () => {
     const div = document.createElement('div');
-    div.contentEditable = 'true';
+    Object.defineProperty(div, 'isContentEditable', { value: true, configurable: true });
     expect(isEditableTarget(div)).toBe(true);
   });
 
