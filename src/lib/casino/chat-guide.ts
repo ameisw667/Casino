@@ -206,6 +206,11 @@ Never claim account modification access, promise outcomes, give betting, financi
 Keep answers friendly, direct, and in the user's language when possible.`;
 }
 
+export type GuideConversationHistoryItem = {
+  role: 'user' | 'assistant';
+  content: string;
+};
+
 export type GuideAnswerResult = {
   answer: string;
   model: string;
@@ -221,15 +226,44 @@ function getOpenAiErrorCode(payload: unknown): string | undefined {
   return typeof error.code === 'string' ? error.code : undefined;
 }
 
+export function buildGuideInputPayload(
+  message: string,
+  history?: readonly GuideConversationHistoryItem[],
+): unknown[] {
+  const inputs: unknown[] = [];
+
+  if (history && history.length > 0) {
+    const windowed = history.slice(-6);
+    for (const item of windowed) {
+      if (item.role === 'user') {
+        inputs.push({ role: 'user', content: [{ type: 'input_text', text: item.content }] });
+      } else {
+        inputs.push({ role: 'assistant', content: [{ type: 'output_text', text: item.content }] });
+      }
+    }
+  }
+
+  inputs.push({ role: 'user', content: [{ type: 'input_text', text: message }] });
+  return inputs;
+}
+
 export async function buildCasinoGuideRequest(
   message: string,
+  history?: readonly GuideConversationHistoryItem[],
 ): Promise<{ url: string; init: RequestInit }> {
-  const context = await buildCasinoGuideContextAsync(message);
+  const lastUserQuery = history
+    ?.filter((h) => h.role === 'user')
+    .slice(-1)[0]?.content;
+  const retrievalQuery = lastUserQuery ? `${lastUserQuery} ${message}`.trim() : message;
+
+  const context = await buildCasinoGuideContextAsync(retrievalQuery);
   const leaderboard = await loadGuideLeaderboardSnippet();
   const isReasoningModel =
     CASINO_GUIDE_MODEL.includes('gpt-5') ||
     CASINO_GUIDE_MODEL.includes('o1') ||
     CASINO_GUIDE_MODEL.includes('o3');
+
+  const inputPayload = buildGuideInputPayload(message, history);
 
   return {
     url: OPENAI_RESPONSES_URL,
@@ -244,7 +278,7 @@ export async function buildCasinoGuideRequest(
         model: CASINO_GUIDE_MODEL,
         store: false,
         instructions: buildCasinoGuideInstructions(context, leaderboard),
-        input: [{ role: 'user', content: [{ type: 'input_text', text: message }] }],
+        input: inputPayload,
         tools: GUIDE_OPENAI_TOOLS,
         text: {
           format: {
@@ -355,12 +389,13 @@ function getGuideFunctionCalls(payload: unknown): GuideFunctionCall[] {
 export async function requestCasinoGuideAnswer(
   message: string,
   userId?: string,
+  history?: readonly GuideConversationHistoryItem[],
 ): Promise<GuideAnswerResult> {
   if (!process.env.OPENAI_API_KEY?.trim()) {
     throw new CasinoGuideError('configuration');
   }
 
-  const request = await buildCasinoGuideRequest(message);
+  const request = await buildCasinoGuideRequest(message, history);
   let response: Response;
 
   try {
@@ -393,9 +428,7 @@ export async function requestCasinoGuideAnswer(
   // Check for Function / Tool Calls (Turn 1 -> Execute -> Turn 2)
   const functionCalls = getGuideFunctionCalls(payload);
   if (functionCalls.length > 0) {
-    const toolInputs: unknown[] = [
-      { role: 'user', content: [{ type: 'input_text', text: message }] },
-    ];
+    const toolInputs: unknown[] = buildGuideInputPayload(message, history);
 
     for (const call of functionCalls) {
       toolInputs.push({
@@ -413,7 +446,12 @@ export async function requestCasinoGuideAnswer(
       });
     }
 
-    const context = await buildCasinoGuideContextAsync(message);
+    const lastUserQuery = history
+      ?.filter((h) => h.role === 'user')
+      .slice(-1)[0]?.content;
+    const retrievalQuery = lastUserQuery ? `${lastUserQuery} ${message}`.trim() : message;
+
+    const context = await buildCasinoGuideContextAsync(retrievalQuery);
     const leaderboard = await loadGuideLeaderboardSnippet();
     const isReasoningModel =
       CASINO_GUIDE_MODEL.includes('gpt-5') ||

@@ -19,6 +19,7 @@ import {
   CasinoGuideError,
   buildCasinoGuideContext,
   buildCasinoGuideRequest,
+  buildGuideInputPayload,
   requestCasinoGuideAnswer,
 } from '../chat-guide';
 import { GUIDE_KNOWLEDGE_SOURCES } from '../guide-knowledge/registry';
@@ -380,5 +381,41 @@ describe('Casino guide service', () => {
         }),
       ]),
     );
+  });
+
+  it('builds multi-turn sliding window input payload limited to 6 turns', () => {
+    const history = [
+      { role: 'user' as const, content: 'Turn 1' },
+      { role: 'assistant' as const, content: 'Reply 1' },
+      { role: 'user' as const, content: 'Turn 2' },
+      { role: 'assistant' as const, content: 'Reply 2' },
+      { role: 'user' as const, content: 'Turn 3' },
+      { role: 'assistant' as const, content: 'Reply 3' },
+      { role: 'user' as const, content: 'Turn 4' },
+      { role: 'assistant' as const, content: 'Reply 4' },
+    ];
+
+    const input = buildGuideInputPayload('Current question', history);
+    // 6 history turns + 1 current user turn = 7 items
+    expect(input).toHaveLength(7);
+    expect(input[0]).toEqual({ role: 'user', content: [{ type: 'input_text', text: 'Turn 2' }] });
+    expect(input[6]).toEqual({
+      role: 'user',
+      content: [{ type: 'input_text', text: 'Current question' }],
+    });
+  });
+
+  it('synthesizes previous query context for follow-up questions in RAG retrieval', async () => {
+    const history = [
+      { role: 'user' as const, content: 'How does Blackjack work?' },
+      { role: 'assistant' as const, content: 'Blackjack is played against the dealer.' },
+    ];
+
+    // Follow-up question has no mention of 'Blackjack', but history does
+    const request = await buildCasinoGuideRequest('And what is the payout for that?', history);
+    const body = JSON.parse(String(request.init.body));
+
+    expect(body.instructions).toContain('SOURCE: guide-blackjack');
+    expect(body.input).toHaveLength(3);
   });
 });

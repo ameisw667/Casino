@@ -15,8 +15,14 @@ import {
 } from '@/lib/security/request-security';
 import { CasinoLogger } from '@/lib/casino/logger';
 
+const guideHistoryItemSchema = z.object({
+  role: z.enum(['user', 'assistant']),
+  content: z.string().trim().max(1000),
+});
+
 const guideRequestSchema = z.object({
   message: z.string().trim().min(1, 'Message required').max(500, 'Message too long'),
+  history: z.array(guideHistoryItemSchema).max(6).optional(),
 });
 
 const PRIVATE_NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
@@ -91,7 +97,11 @@ export async function POST(request: Request) {
     }
 
     guideStartedAt = performance.now();
-    const answerResult = await requestCasinoGuideAnswer(parsed.data.message, userId);
+    const answerResult = await requestCasinoGuideAnswer(
+      parsed.data.message,
+      userId,
+      parsed.data.history,
+    );
 
     await recordGuideTelemetry({
       actorId: userId,

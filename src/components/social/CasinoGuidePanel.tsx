@@ -426,11 +426,19 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
     if (!customMessage) setDraft('');
     setIsSending(true);
 
+    const history = turns
+      .filter((t) => t.id !== 'royale-guide-intro')
+      .slice(-6)
+      .map((t) => ({
+        role: t.role === 'player' ? ('user' as const) : ('assistant' as const),
+        content: t.text,
+      }));
+
     try {
       const response = await fetch('/api/chat/bot-response', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ message, history }),
       });
       const payload: unknown = await response.json().catch(() => null);
       const answer =
