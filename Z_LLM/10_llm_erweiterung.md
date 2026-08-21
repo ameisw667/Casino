@@ -1,8 +1,10 @@
-# 10 — World Map: Royale Guide & LLM-Erweiterung
+# 10 — Royale Guide & LLM-Erweiterung Roadmap
 
 > Stand: **2026-08-21**  
+> Status: 🟢 **Stufe A–C Executed (Verifiziert)**  
 > Projekt: **Casino / Next.js 16.3 / OpenAI Responses API (`gpt-4o-mini` + `text-embedding-3-small`) / Supabase**  
-> Bezug: [`05_ZUKUNFTSPLANUNG.md`](file:///v:/VibeCoding/Casino/worldmap/05_ZUKUNFTSPLANUNG.md) (P12/2.6 & P23/2.10) und [`docs/archive/05_2.6_llmerweiterung.md`](file:///v:/VibeCoding/Casino/docs/archive/05_2.6_llmerweiterung.md)  
+> Verzeichnis: [`Z_LLM/`](file:///v:/VibeCoding/Casino/Z_LLM/)  
+> Bezug: [`worldmap/05_ZUKUNFTSPLANUNG.md`](file:///v:/VibeCoding/Casino/worldmap/05_ZUKUNFTSPLANUNG.md) (P12/2.6 & P23/2.10)  
 > Detailpläne (Archiv): Stufe A ([`docs/archive/10_stufe_a.md`](file:///v:/VibeCoding/Casino/docs/archive/10_stufe_a.md)), Stufe B ([`docs/archive/10_2_llm.md`](file:///v:/VibeCoding/Casino/docs/archive/10_2_llm.md)), Stufe C ([`docs/archive/10_StufeC_LLM.md`](file:///v:/VibeCoding/Casino/docs/archive/10_StufeC_LLM.md))
 
 ---
@@ -14,6 +16,9 @@
 | **Stufe A** | **Foundation: Vollständige Markdown-Wissensbasis & Zod-Validierung** | 🟢 Executed | 10 strukturierte `.md`-Dateien mit Frontmatter, Parser & Zod-Registry produktiv verifiziert (683/683 Tests grün) | 25 | 10 | 60 | Mittel |
 | **Stufe B** | **Optimierung: Deterministischer Topic-Selector & Token-Budgeting** | 🟢 Executed | Heuristischer Tag-/Keyword-Matcher mit Score-Ranking & selektives Laden im Prompt verifiziert (700/700 Tests grün, -72% Tokens) | 30 | 10 | 70 | Hoch |
 | **Stufe C** | **Advanced AI: In-Memory Vektor-Embedding RAG** | 🟢 Executed | 3-Stufen Hybrid-RAG Kaskade (Keyword Schnellpfad + In-Memory Vektor-Fallback mit `text-embedding-3-small` / Kosinus-Ähnlichkeit) verifiziert (713/713 Tests grün) | 48 | 18 | 92 | Sehr Hoch |
+| **Stufe D** | **Function Calling: Live-Spieler-Kontext & Read-Only Tools** | 🔴 Geplant | Read-Only Tools für aktuellen VIP-Status, Session-Stats & persönliche Limits | 45 | 15 | 85 | Sehr Hoch |
+| **Stufe E** | **Multi-Turn Context & Conversational Session Memory** | 🔴 Geplant | Sliding-Window Context Buffer für Folgefragen ohne wiederholten Kontext | 35 | 12 | 80 | Hoch |
+| **Stufe F** | **Admin Knowledge Management via Supabase pgvector** | 🔴 Geplant | UI-basierte Wissenspflege im Admin-Dashboard mit pgvector Synchronisation | 60 | 25 | 90 | Sehr Hoch |
 
 > **Ampel-Definition:** 🔴 Geplant — noch nicht gestartet · 🟡 In Execution — in Arbeit / Implementierung · 🟢 Executed — verifiziert & abgeschlossen.
 
@@ -21,7 +26,7 @@
 
 ## 2 — Architektur-Übersicht & Wissensdatenbank-Pfade
 
-Die Wissensdatenbank ist vollständig modular und hybrid-suchbar aufgebaut:
+Die Wissensdatenbank ist modular und hybrid-suchbar aufgebaut:
 
 | Kategorie | Dokument | Dateipfad | Zweck / Inhalt |
 | :--- | :--- | :--- | :--- |
@@ -45,7 +50,7 @@ Die Wissensdatenbank ist vollständig modular und hybrid-suchbar aufgebaut:
 
 ---
 
-## 3 — Die 3 Stufen im Detail
+## 3 — Die ausgeführten Stufen (A, B, C) im Detail
 
 ### Stufe A: Foundation — Trennung von Daten und Logik + Validierung (🟢 Executed)
 - **Ergebnis:** Saubere Trennung zwischen Wissensinhalten (`.md`) und Programmcode (`.ts`).
@@ -68,7 +73,17 @@ Die Wissensdatenbank ist vollständig modular und hybrid-suchbar aufgebaut:
 
 ---
 
-## 4 — Verbindliche Sicherheits- und Ausschlussregeln
+## 4 — Nächste Ausbaustufen (Roadmap & Lerneffekt)
+
+| Stufe | Konzept | Funktionaler Mehrwert für Spieler | Lerneffekt | Aufwand (1–100) | Risiko (1–100) |
+| :--- | :--- | :--- | :--- | :---: | :---: |
+| **Stufe D** | **Function Calling / Live-Spieler-Kontext** | Spieler fragt: *„Was ist mein aktueller VIP-Rang und wie viel fehlt mir zu Gold?“* $\rightarrow$ LLM ruft per Tool-Call Read-Only Daten des Spielers ab. | OpenAI Tool Calling, Schema-Definitionen & sichere API-Boundaries | 45 | 15 |
+| **Stufe E** | **Multi-Turn Context & Session Memory** | Der Chat merkt sich vorherige Fragen (z. B. Nachfrage: *„Und wie hoch ist die Auszahlung dafür?“* bezieht sich auf die vorherige Frage). | Sliding-Window Buffering, Chat-Historie & Token-Pruning | 35 | 12 |
+| **Stufe F** | **Admin Knowledge Management via Supabase pgvector** | Admins können im Dashboard neue Hilfe-Dokumente anlegen, die ohne Code-Deploy in pgvector gespeichert und durchsucht werden. | Supabase `pgvector`, HNSW-Indizes & hybride SQL-Vektorsuche | 60 | 25 |
+
+---
+
+## 5 — Verbindliche Sicherheits- und Ausschlussregeln
 
 1. **🔴 Kein Schreibzugriff auf Finanzdaten:** Der Guide darf unter keinen Umständen Wetten platzieren, Salden modifizieren oder Transaktionen anstoßen.
 2. **🔴 Keine PII im Prompt:** Keine E-Mail-Adressen, Passwörter, User-IDs oder Kontodaten im LLM-Payload.

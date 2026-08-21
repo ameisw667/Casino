@@ -370,43 +370,44 @@ function ArcadeGameCard({
               alignItems: 'center',
               gap: '6px',
               zIndex: 2,
+              minWidth: 0,
             }}
           >
             {isFeatured ? (
               <span
                 style={{
-                  fontSize: '0.62rem',
-                  fontWeight: 900,
-                  color: '#D4AF37',
+                  fontSize: '0.58rem',
+                  fontWeight: 950,
+                  color: '#FFD700',
                   background:
                     'linear-gradient(135deg, rgba(212, 175, 55, 0.28) 0%, rgba(212, 175, 55, 0.12) 100%)',
-                  padding: '3px 8px',
-                  borderRadius: '6px',
+                  padding: '2px 6px',
+                  borderRadius: '5px',
                   border: '1px solid rgba(212, 175, 55, 0.55)',
-                  letterSpacing: '0.06em',
+                  letterSpacing: '0.04em',
                   textTransform: 'uppercase',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '4px',
-                  boxShadow: '0 0 12px rgba(212, 175, 55, 0.25)',
+                  boxShadow: '0 0 10px rgba(212, 175, 55, 0.2)',
                   whiteSpace: 'nowrap',
+                  flexShrink: 0,
                 }}
               >
-                <span>⭐</span>
-                <span>MEISTGESPIELT HEUTE</span>
+                MEISTGESPIELT
               </span>
             ) : (
               <span
                 style={{
-                  padding: '2px 7px',
+                  padding: '2px 6px',
                   borderRadius: '5px',
                   background: 'rgba(255, 255, 255, 0.08)',
                   border: '1px solid rgba(255, 255, 255, 0.12)',
                   color: game.accentColor,
-                  fontSize: '0.64rem',
+                  fontSize: '0.62rem',
                   fontWeight: 900,
                   letterSpacing: '0.04em',
                   whiteSpace: 'nowrap',
+                  flexShrink: 0,
                 }}
               >
                 {game.badge}
@@ -415,11 +416,12 @@ function ArcadeGameCard({
 
             <div
               style={{
-                fontSize: '0.68rem',
+                fontSize: '0.66rem',
                 fontWeight: 800,
                 color: 'rgba(255, 255, 255, 0.65)',
                 fontFamily: 'monospace',
                 whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
             >
               Max {game.maxPayout}

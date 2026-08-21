@@ -47,7 +47,7 @@ function AnimatedAmount({ value }: { value: number }) {
         `$${Math.max(0, latest).toLocaleString('en-US', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
-        })}`
+        })}`,
       );
     });
     return () => unsubscribe();
@@ -273,8 +273,7 @@ export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: B
                 fontWeight: 900,
                 fontFamily: 'monospace',
                 color: '#FFFFFF',
-                textShadow:
-                  '0 0 45px rgba(212, 175, 55, 0.75), 0 0 15px rgba(255, 255, 255, 0.5)',
+                textShadow: '0 0 45px rgba(212, 175, 55, 0.75), 0 0 15px rgba(255, 255, 255, 0.5)',
                 lineHeight: 1.1,
               }}
             >

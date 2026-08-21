@@ -534,7 +534,7 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
             </div>
           </motion.div>
 
-          {/* Dynamic Trust & Social Proof Bar: Frosted-Glass Pill with 3 Micro-Chips (Option 1) */}
+          {/* Dynamic Trust & Social Proof Bar: Compact Frosted-Glass Pill (Option 1) */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -542,20 +542,19 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '6px 12px',
-              borderRadius: '30px',
-              background: 'rgba(14, 17, 24, 0.72)',
+              gap: '6px',
+              padding: '4px 8px',
+              borderRadius: '24px',
+              background: 'rgba(14, 17, 24, 0.85)',
               backdropFilter: 'blur(16px)',
               WebkitBackdropFilter: 'blur(16px)',
-              border: '1px solid rgba(212, 175, 55, 0.22)',
+              border: '1px solid rgba(212, 175, 55, 0.25)',
               boxShadow:
-                '0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
-              fontSize: '0.72rem',
+                '0 6px 20px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+              fontSize: '0.68rem',
               fontWeight: 700,
               maxWidth: '100%',
-              overflowX: 'auto',
-              scrollbarWidth: 'none',
+              flexWrap: 'nowrap',
             }}
           >
             {/* Micro-Chip 1: Live Ticker */}
@@ -563,9 +562,9 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                padding: '3px 8px',
-                borderRadius: '16px',
+                gap: '5px',
+                padding: '2px 7px',
+                borderRadius: '12px',
                 background: 'rgba(0, 231, 1, 0.08)',
                 border: '1px solid rgba(0, 231, 1, 0.2)',
                 flexShrink: 0,
@@ -573,30 +572,30 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
             >
               <span
                 style={{
-                  width: '6px',
-                  height: '6px',
+                  width: '5px',
+                  height: '5px',
                   borderRadius: '50%',
                   background: '#00E701',
-                  boxShadow: '0 0 6px #00E701',
+                  boxShadow: '0 0 5px #00E701',
                   display: 'inline-block',
                 }}
               />
               <AnimatePresence mode="wait">
                 <motion.span
                   key={tickerIndex}
-                  initial={{ opacity: 0, y: 3 }}
+                  initial={{ opacity: 0, y: 2 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -3 }}
+                  exit={{ opacity: 0, y: -2 }}
                   style={{
                     fontFamily: 'var(--font-mono, monospace)',
                     fontWeight: 800,
                     color: '#00E701',
                     letterSpacing: '0.01em',
-                    maxWidth: '160px',
+                    maxWidth: '125px',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
-                    fontSize: '0.7rem',
+                    fontSize: '0.67rem',
                   }}
                 >
                   {activeWin.user} +${activeWin.amount}
@@ -608,7 +607,7 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
             <div
               style={{
                 width: '1px',
-                height: '14px',
+                height: '12px',
                 background: 'rgba(255, 255, 255, 0.12)',
                 flexShrink: 0,
               }}
@@ -619,19 +618,19 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '5px',
-                padding: '3px 8px',
-                borderRadius: '16px',
+                gap: '4px',
+                padding: '2px 7px',
+                borderRadius: '12px',
                 background: 'rgba(212, 175, 55, 0.08)',
                 border: '1px solid rgba(212, 175, 55, 0.22)',
                 color: '#D4AF37',
-                fontSize: '0.66rem',
+                fontSize: '0.64rem',
                 fontWeight: 900,
-                letterSpacing: '0.04em',
+                letterSpacing: '0.03em',
                 flexShrink: 0,
               }}
             >
-              <ShieldCheck size={12} color="#D4AF37" />
+              <ShieldCheck size={11} color="#D4AF37" />
               <span>100% PROVABLY FAIR</span>
             </div>
 
@@ -639,7 +638,7 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
             <div
               style={{
                 width: '1px',
-                height: '14px',
+                height: '12px',
                 background: 'rgba(255, 255, 255, 0.12)',
                 flexShrink: 0,
               }}
@@ -650,9 +649,9 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '5px',
-                padding: '3px 8px',
-                borderRadius: '16px',
+                gap: '4px',
+                padding: '2px 7px',
+                borderRadius: '12px',
                 background: 'rgba(255, 255, 255, 0.04)',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
                 color: 'rgba(255, 255, 255, 0.9)',
@@ -661,7 +660,7 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
             >
               <div style={{ display: 'flex', gap: '1px' }}>
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={10} fill="#D4AF37" color="#D4AF37" />
+                  <Star key={i} size={9} fill="#D4AF37" color="#D4AF37" />
                 ))}
               </div>
               <span
@@ -669,13 +668,13 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
                   fontFamily: 'var(--font-mono, monospace)',
                   fontWeight: 800,
                   color: '#fff',
-                  fontSize: '0.7rem',
+                  fontSize: '0.67rem',
                 }}
               >
-                4.9/5.0
+                4.9/5
               </span>
-              <span style={{ fontSize: '0.62rem', color: 'rgba(255, 255, 255, 0.45)' }}>
-                (1.200+ Reviews)
+              <span style={{ fontSize: '0.60rem', color: 'rgba(255, 255, 255, 0.45)' }}>
+                (1.2k)
               </span>
             </div>
           </motion.div>
