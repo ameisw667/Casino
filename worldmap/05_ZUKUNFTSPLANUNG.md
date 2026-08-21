@@ -26,15 +26,28 @@ Die Jan-Tabelle ist bewusst kompakt. Ausführliche ROI-, Security-, Reversibilit
 
 **Punkt-ID:** Die fortlaufende Kurznummer (`P01`–`P25`) bleibt über Archiv und aktive Roadmap stabil. Sie dient nur der Bezugnahme; **Phase/Nr.** bleibt die fachliche Roadmap-Klassifikation. `offen/TBD` bedeutet, dass noch keine Phase festgelegt ist.
 
-| Punkt | Phase |  Nr. | Status                                      | Idee                         | Nächster Schritt                                                                                                                                                        | Aufwand | Risiko | Impact | Lerneffekt | DB-Migration | Money-Pfad | Go-Live-Typ       |
-| ----- | ----: | ---: | ------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------: | -----: | -----: | ---------- | ------------ | ---------- | ----------------- |
-| P12   |     2 |  2.6 | 🟡 Blockiert (L1+L2 Executed, L3 blockiert) | Guide mit Live-Daten         | Kein aktiver Schritt — L3 wartet auf echten Nutzungs-/Fehlernachweis aus 2.7-Telemetrie (Details: [05_2.6_llmerweiterung.md](../docs/archive/05_2.6_llmerweiterung.md)) |      60 |     40 |     45 | Hoch       | Nein         | Nein       | Additiv           |
-| P23   |     2 | 2.10 | 🟡 Blockiert (Jan-Entscheidung 2026-08-18)  | Kontrolliertes RAG           | Identisch mit 2.6-L3 — wartet auf denselben Nutzungsnachweis                                                                                                            |      48 |     25 |     70 | Sehr Hoch  | Nein         | Nein       | Additiv           |
-| P26   |     2 | 2.11 | 🔴 Geplant (Zukunft / Backlog)              | Dynamisches Tägliches Turnier| Konzeption: Aggregation der aktivsten Spieler des Tages via DB-RPC & automatisierter täglicher Belohnungs-Ausschüttung                                                         |      45 |     30 |     65 | Hoch       | Ja           | Ja         | Additiv           |
-| P14   |     3 |  3.1 | ⬜ Nicht gestartet                          | Multiplayer-Crash            | Concurrency- und Realtime-Plan erstellen                                                                                                                                |      75 |     65 |     75 | Hoch       | Nein         | Ja         | Verändert Bestand |
-| P18   |     4 |  4.1 | ⬜ Nicht gestartet                          | Outbox Wallet-Nebenwirkungen | Idempotenten Event-Consumer entwerfen — 3.3-Lasttest (Klärungspunkt 8, archiviert) empfiehlt dies als Folgeschritt bei steigendem Bet-Volumen                           |      60 |     45 |     40 | Sehr Hoch  | Ja           | Ja         | Verändert Bestand |
+| Punkt | Phase |  Nr. | Status                                      | Idee                                                    | Erklärung (einfach)                                                                                                                                                                                                                                                                                           | Nächster Schritt                                                                                                                                                        | Aufwand | Risiko | Impact | Lerneffekt | DB-Migration | Money-Pfad | Go-Live-Typ       |
+| ----- | ----: | ---: | ------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------: | -----: | -----: | ---------- | ------------ | ---------- | ----------------- |
+| P12   |     2 |  2.6 | 🟡 Blockiert (L1+L2 Executed, L3 blockiert) | Guide mit Live-Daten                                    | Der Chat-Guide darf zusätzlich ein paar aktuelle Infos aus dem Spiel nutzen (z. B. welche Spiele es gibt) — nie Kontostand oder Wetten. Vertiefung inzwischen in [Z_LLM/10_llm_erweiterung.md](../Z_LLM/10_llm_erweiterung.md) (Stufe D–F: Live-Kontext, Multi-Turn, Admin-Wissenspflege).                    | Kein aktiver Schritt — L3 wartet auf echten Nutzungs-/Fehlernachweis aus 2.7-Telemetrie (Details: [05_2.6_llmerweiterung.md](../docs/archive/05_2.6_llmerweiterung.md)) |      60 |     40 |     45 | Hoch       | Nein         | Nein       | Additiv           |
+| P23   |     2 | 2.10 | 🟡 Blockiert (Jan-Entscheidung 2026-08-18)  | Kontrolliertes RAG                                      | RAG = der Guide sucht die passende Antwort aus einer festen Liste geprüfter Texte statt frei zu suchen. „Kontrolliert" heißt: er darf nur aus dieser Liste wählen, nichts erfinden.                                                                                                                           | Identisch mit 2.6-L3 — wartet auf denselben Nutzungsnachweis                                                                                                            |      48 |     25 |     70 | Sehr Hoch  | Nein         | Nein       | Additiv           |
+| P26   |     2 | 2.11 | 🔴 Geplant (Zukunft / Backlog)              | Dynamisches Tägliches Turnier                           | Statt fest eingebauter Fake-Spieler in der „Tägliches Turnier"-Anzeige zeigt die Seite die 3 echten aktivsten Spieler des Tages — die bekommen automatisch um Mitternacht eine Belohnung gutgeschrieben.                                                                                                      | Konzeption: Aggregation der aktivsten Spieler des Tages via DB-RPC & automatisierter täglicher Belohnungs-Ausschüttung                                                  |      45 |     30 |     65 | Hoch       | Ja           | Ja         | Additiv           |
+| P14   |     3 |  3.1 | ⬜ Nicht gestartet                          | Multiplayer-Crash                                       | Beim Crash-Spiel siehst du aktuell nur deine eigene Runde. Hier würden echte andere Spieler live in derselben Runde sichtbar — ein gemeinsamer Raum statt Einzelspieler-Modus.                                                                                                                                | Concurrency- und Realtime-Plan erstellen                                                                                                                                |      75 |     65 |     75 | Hoch       | Nein         | Ja         | Verändert Bestand |
+| P18   |     4 |  4.1 | ⬜ Nicht gestartet                          | Outbox Wallet-Nebenwirkungen                            | Bei einem Gewinn passiert aktuell alles in einem Schritt: Geld gutschreiben UND XP vergeben UND Achievement prüfen. Outbox trennt das — Geld zuerst (sicher), der Rest läuft danach separat nach, damit ein Fehler bei XP/Achievements nie das Geld gefährdet.                                                | Idempotenten Event-Consumer entwerfen — 3.3-Lasttest (Klärungspunkt 8, archiviert) empfiehlt dies als Folgeschritt bei steigendem Bet-Volumen                           |      60 |     45 |     40 | Sehr Hoch  | Ja           | Ja         | Verändert Bestand |
+| P27   |     1 | 1.15 | 🔴 Geplant                                  | ML-Fraud-Pipeline statt Regel-Heuristik                 | Aktuell erkennt das System Betrug über feste, von Hand geschätzte Regeln („mehr als X Wetten/Minute = verdächtig"). ML (Machine Learning = die Software lernt selbst aus echten Daten) würde stattdessen aus echtem Wettverhalten lernen, was normal ist und was nicht — genauer als geschätzte Schwellwerte. | Feature-Liste aus bestehenden Bet-/Fraud-Daten definieren, Trainingsdatensatz aus historischen Bets exportieren                                                         |      55 |     20 |     55 | Sehr Hoch  | Nein         | Nein       | Additiv           |
+| P28   |     1 | 1.16 | 🔴 Geplant                                  | Observability & Lasttest unter echter Last              | Die App wurde nie mit vielen gleichzeitigen Spielern getestet — aktuell nutzt nur Jan sie. Hier simulieren wir künstlich hunderte gleichzeitige Wetten (Lasttest) und verfolgen genau, wo eine einzelne Anfrage Zeit verliert (Tracing), um echte Engpässe zu finden, bevor sie real auftreten.               | OpenTelemetry-Tracing auf einer Route pilotieren + k6-Lasttest-Skript für `/api/casino/bet` in Dev-Umgebung                                                             |      45 |     15 |     50 | Hoch       | Nein         | Nein       | Additiv           |
+| P29   |     4 |  4.3 | 🔴 Geplant                                  | Event-Bus statt nur Outbox (Erweiterung 4.1)            | Baut auf P18/4.1 auf: Nicht nur Geld-Nebenwirkungen (XP, Achievements) laufen entkoppelt, sondern auch Leaderboard-Updates, Live-Aktivitäts-Feed und Benachrichtigungen laufen über einen zentralen „Ereignis-Kanal" statt direkt im Code verdrahtet zu sein.                                                 | Scope-Grenze zu P18/4.1 festlegen: welcher zusätzliche Event-Consumer (Leaderboard, Live-Feed, Notifications) zuerst                                                    |      65 |     35 |     55 | Sehr Hoch  | Ja           | Ja         | Verändert Bestand |
+| P30   |     1 | 1.17 | 🔴 Geplant                                  | Echte Staging-Umgebung + automatisierte Deploy-Pipeline | Eine „Übungs-Kopie" der Live-Seite, auf der neue Änderungen erst automatisch getestet werden, bevor sie echte Spieler sehen — inkl. automatischem Zurückrollen bei Fehlern.                                                                                                                                   | Staging-Supabase-Projekt/Branch + Vercel-Preview-Gate vor Production definieren, GitHub-Actions-Workflow für automatisierte Tests vor Merge erweitern                   |      55 |     20 |     60 | Hoch       | Nein         | Nein       | Additiv           |
+| P31   |     1 | 1.18 | 🔴 Geplant                                  | Data-Warehouse/ETL statt Live-DB-Aggregate für Admin-BI | Statt dass `/admin/analytics` bei jedem Klick live in der Produktions-DB rechnet, laufen die Zahlen nachts in eine separate Auswertungs-Datenbank.                                                                                                                                                            | Read-Replica/separate Analytics-DB evaluieren, ersten nächtlichen ETL-Job (Trigger.dev-Cron) für eine Kennzahl bauen                                                    |      50 |     15 |     45 | Hoch       | Ja           | Nein       | Additiv           |
+| P32   |     1 | 1.19 | 🔴 Geplant                                  | WebAuthn/Passkey-Login                                  | Anmeldung per Fingerabdruck/Gesichtserkennung/Sicherheitsschlüssel statt Passwort.                                                                                                                                                                                                                            | Supabase-Auth-Passkey-Support prüfen, Fallback zu bestehendem Login definieren                                                                                          |      45 |     30 |     50 | Hoch       | Ja           | Nein       | Additiv           |
+| P33   |     1 | 1.20 | 🔴 Geplant                                  | Kryptografisches Transparenz-Log für Provably Fair      | Zusätzlich zum bestehenden Seed-Reveal: ein öffentliches, manipulationssicheres Protokoll (Merkle-Baum-Prinzip), das beweist, dass kein Seed nachträglich verändert wurde — auch nicht vom Betreiber. Kein Blockchain-/Payment-Bezug.                                                                         | Merkle-Baum-Prototyp an bestehenden Seed-History-Daten bauen, Root-Hash-Veröffentlichungsweg definieren                                                                 |      50 |     15 |     40 | Sehr Hoch  | Ja           | Nein       | Additiv           |
+| P34   |     2 | 2.12 | 🔴 Geplant                                  | Social-Layer (Freunde, private Tische, Zuschauer-Modus) | Andere Spieler als Freunde hinzufügen, private Spielräume eröffnen oder einer Runde nur zuschauen.                                                                                                                                                                                                            | Datenmodell für Freundschaften/private Räume entwerfen, Abhängigkeit zu 3.1 Multiplayer-Crash klären                                                                    |      70 |     35 |     65 | Hoch       | Ja           | Nein       | Additiv           |
+| P35   |     1 | 1.21 | 🔴 Geplant                                  | Datengetriebene Game-Economy-Tuning-Engine              | Nicht Betrug erkennen, sondern die Spiel-Mathematik selbst verstehen: Welche Einsätze/Multiplikatoren führen zu welchem Spielerverhalten?                                                                                                                                                                     | Analyse-Skript für reale vs. erwartete House-Edge je Spiel aus bestehenden Bet-Daten bauen                                                                              |      40 |     10 |     45 | Sehr Hoch  | Nein         | Nein       | Additiv           |
 
-**Aktive Jan-Übersicht:** Die Tabelle enthält bewusst nur Arbeitsentscheidungen: Punkt, Phase/Nr., Status, kurze Idee, nächster Schritt, Aufwand/Risiko/Impact, Lerneffekt, DB-Migration, Money-Pfad und Go-Live-Typ. Detail-Scope, Security-Review, Reversibilität, ROI-Begründung und Abhängigkeiten stehen im jeweiligen Abschnitt 3 oder im Archivindex — sie werden hier nicht doppelt geführt.
+**Aktive Jan-Übersicht:** Die Tabelle enthält bewusst nur Arbeitsentscheidungen: Punkt, Phase/Nr., Status, kurze Idee, laienverständliche Erklärung, nächster Schritt, Aufwand/Risiko/Impact, Lerneffekt, DB-Migration, Money-Pfad und Go-Live-Typ. Detail-Scope, Security-Review, Reversibilität, ROI-Begründung und Abhängigkeiten stehen im jeweiligen Abschnitt 3 oder im Archivindex — sie werden hier nicht doppelt geführt.
+
+**P27–P29 (2026-08-21 ergänzt):** Aus einer LLM-gestützten Strategie-Evaluation zu „next big things" jenseits kleinteiliger API-/MCP-Integrationen. E („Guide vom Q&A-Bot zum Agenten") wurde bewusst nicht als eigener Punkt aufgenommen — deckungsgleich mit Stufe D–F in [Z_LLM/10_llm_erweiterung.md](../Z_LLM/10_llm_erweiterung.md), bereits über P12/P23 verlinkt.
+
+**P30–P35 (2026-08-21 ergänzt, Jans Auswahl aus zweiter Vorschlagsrunde):** Bewusst nicht aufgenommen aus derselben Runde: Feature-Flags/Kill-Switches, Infrastructure-as-Code, Disaster-Recovery-Drill — Jan hat sie nicht ausgewählt.
 
 **Archivregel:** Abgeschlossene Initiativen werden aus dieser Tabelle und aus dem aktiven Detailplan entfernt, aber nicht gelöscht. Ergebnis, offene Restprüfung und Detailnachweis bleiben unter [docs/archive/05_ZUKUNFTSPLANUNG_ARCHIV.md](../docs/archive/05_ZUKUNFTSPLANUNG_ARCHIV.md) erhalten.
 
@@ -59,6 +72,78 @@ Abgeschlossene Initiativen sind aus diesem aktiven Plan entfernt. Ihre vollstän
 
 Jede aktive Initiative folgt demselben Schema: Ziel · Scope (Dateien) · Neue DB-Objekte · Abhängigkeit · Verifizierung. Migrationsnummern schließen an die höchste vorhandene (`016_full_server_authority_expansion.sql`) an — konkrete Nummer erst bei tatsächlicher Migrationsdatei vergeben, um Kollisionen mit parallelen Sessions zu vermeiden (vgl. `01_WORLDMAP_STATUS.md` §8.2 Vorfall).
 
+### Phase 1
+
+#### 1.15 — ML-Fraud-Pipeline statt Regel-Heuristik
+
+- **Status:** 🔴 Geplant
+- **Ziel:** Ersetzt/ergänzt die aktuellen, unkalibrierten Regel-Schwellwerte in `fraud-detection.ts` (dokumentiertes Restrisiko R11) durch ein aus echten Bet-/Fraud-Daten trainiertes Anomalie-Modell.
+- **Scope:** neues, offline laufendes Trainings-/Feature-Skript außerhalb des Request-Pfads; Inferenz-Ergebnis zunächst additiv neben der bestehenden Regel-Bewertung in `/api/admin/fraud`, kein Ersatz ohne belegten A/B-Vergleich.
+- **Neue DB-Objekte:** offen — ggf. Feature-Snapshot-Tabelle, erst bei Konzeption entscheiden.
+- **Abhängigkeit:** ausreichend historische Bet-/Risiko-Daten aus `risk_events`/`wallet_transactions` (Migration 029/030).
+- **Verifizierung:** Modell schlägt die Regel-Baseline nachweisbar auf denselben historischen Fällen; kein automatisches Sperren von Accounts ohne menschliche Bestätigung im ersten Schritt.
+- **Security-Reviewer:** Pflicht, sobald das Modell auf reale Accounts wirkt (Sperr-/Flag-Entscheidungen).
+
+#### 1.16 — Observability & Lasttest unter echter Nutzung
+
+- **Status:** 🔴 Geplant
+- **Ziel:** Verteiltes Tracing über den Bet-Pfad plus künstlicher Lasttest gegen eine Dev-/Staging-Instanz, um reale Engpässe unter gleichzeitigen Nutzern sichtbar zu machen — bisher nie getestet (aktuell nutzt nur Jan die App).
+- **Scope:** neue Tracing-Instrumentierung additiv zu Sentry, separates Lasttest-Skript außerhalb des Produktionscodes, kein Eingriff in Settlement-Logik.
+- **Neue DB-Objekte:** keine.
+- **Abhängigkeit:** eigene Dev-/Staging-Umgebung für den Lasttest — niemals gegen Produktion.
+- **Verifizierung:** Trace zeigt Latenz-Aufschlüsselung je Request-Schritt; Lasttest-Report benennt einen konkreten Engpass (DB, Advisory Lock, externe API).
+- **Security-Reviewer:** Nein (rein lesend/diagnostisch, kein neuer Schreibpfad).
+
+#### 1.17 — Echte Staging-Umgebung + automatisierte Deploy-Pipeline
+
+- **Status:** 🔴 Geplant
+- **Ziel:** Neue Änderungen laufen vor dem Live-Gang automatisiert gegen eine Staging-Kopie (separates Supabase-Projekt/Branch + Vercel-Preview), inkl. automatischem Rollback bei fehlgeschlagenen Health-Checks.
+- **Scope:** Erweiterung der bestehenden GitHub-Actions-Workflows (`red-team-security.yml`, `security-staging.yml` als Basis), Staging-Supabase-Projekt oder DB-Branching, Vercel-Preview-Deployment-Gate vor Production-Promote.
+- **Neue DB-Objekte:** keine im Hauptprojekt — separates Staging-Projekt/Branch.
+- **Abhängigkeit:** Vercel-CLI-Basis (abgeschlossen), Supabase-CLI (abgeschlossen).
+- **Verifizierung:** ein bewusst fehlerhafter Test-Commit wird durch die Pipeline blockiert; ein simulierter fehlgeschlagener Health-Check löst automatischen Rollback aus.
+- **Security-Reviewer:** Pflicht für jede Pipeline-Änderung mit Zugriff auf Secrets/Deploy-Keys.
+
+#### 1.18 — Data-Warehouse/ETL für Admin-BI
+
+- **Status:** 🔴 Geplant
+- **Ziel:** `/admin/analytics` liest künftig aus einer nächtlich befüllten Auswertungs-DB statt live aus der Produktions-DB zu aggregieren.
+- **Scope:** neuer nächtlicher ETL-Job (Trigger.dev-Cron, analog 4.2), Zieltabellen/Views in separater Analytics-DB oder Read-Replica, `/admin/analytics`-Queries schrittweise umgestellt.
+- **Neue DB-Objekte:** Analytics-Tabellen/Views (separate DB oder Schema), kein Eingriff in Produktions-Schema.
+- **Abhängigkeit:** Trigger.dev (abgeschlossen), bestehende Admin-BI-RPCs als Referenz für Metrik-Definitionen.
+- **Verifizierung:** ETL-Ergebnis stimmt mit einer parallel berechneten Live-Kontrollabfrage überein (Stichprobe); Produktions-DB-Last sinkt messbar bei Admin-BI-Zugriffen.
+- **Security-Reviewer:** Pflicht für den Lesezugriff des ETL-Jobs auf Produktionsdaten.
+
+#### 1.19 — WebAuthn/Passkey-Login
+
+- **Status:** 🔴 Geplant
+- **Ziel:** Passkey-Anmeldung (Fingerabdruck/Gesichtserkennung/Sicherheitsschlüssel) zusätzlich zum bestehenden Supabase-Cookie-Auth anbieten.
+- **Scope:** Supabase-Auth-Passkey-Unterstützung oder eigene WebAuthn-Library serverseitig, neue Credential-Verwaltung in `/sign-in`/`/sign-up`, bestehender Login bleibt als Fallback erhalten.
+- **Neue DB-Objekte:** Credential-Tabelle (Public-Key, Counter, Device-Info), falls nicht durch Supabase-Auth selbst abgedeckt.
+- **Abhängigkeit:** bestehende Supabase-SSR-Auth-Bridge.
+- **Verifizierung:** erfolgreiche Passkey-Registrierung und -Anmeldung in mind. 2 Browsern; bestehender Passwort-Login bleibt unverändert funktionsfähig (Regressionstest).
+- **Security-Reviewer:** Pflicht (Auth-Pfad).
+
+#### 1.20 — Kryptografisches Transparenz-Log für Provably Fair
+
+- **Status:** 🔴 Geplant
+- **Ziel:** Zusätzlich zur bestehenden Seed-Kette (Migration 019) ein manipulationssicheres Merkle-Log, das beweist, dass kein veröffentlichter Seed-Hash nachträglich verändert wurde — auch nicht durch den Betreiber selbst. Kein Blockchain-/Payment-Bezug.
+- **Scope:** neuer Merkle-Tree-Baustein über bestehende `seed_history`-Einträge, periodische Root-Hash-Berechnung, öffentlich einsehbarer Nachweispfad (Root-Hash + Inclusion-Proof pro Bet).
+- **Neue DB-Objekte:** Tabelle für Merkle-Log-Einträge/Root-Hashes.
+- **Abhängigkeit:** 1.2 Commit-Reveal-Fairness-Schema (Seed-Kette, abgeschlossen) — dieser Punkt erweitert, ersetzt nichts.
+- **Verifizierung:** ein nachträglich manipulierter Test-Seed lässt sich über den Inclusion-Proof nachweisbar erkennen; Root-Hash-Historie ist Append-Only (kein Überschreiben möglich).
+- **Security-Reviewer:** Pflicht (Fairness-/Vertrauens-kritischer Pfad).
+
+#### 1.21 — Datengetriebene Game-Economy-Tuning-Engine
+
+- **Status:** 🔴 Geplant
+- **Ziel:** Reale vs. erwartete House-Edge je Spiel aus bestehenden Bet-Daten analysieren, um Balancing-Entscheidungen datenbasiert statt aus dem Bauch zu treffen.
+- **Scope:** rein lesendes Analyse-Skript/Dashboard über `wallet_transactions`/`game_rounds`, keine automatische Parameteränderung im ersten Schritt.
+- **Neue DB-Objekte:** keine (nutzt bestehende Tabellen read-only).
+- **Abhängigkeit:** ausreichend Bet-Volumen für statistische Aussagekraft.
+- **Verifizierung:** berechnete Ist-House-Edge pro Spiel liegt im Rahmen der Erwartung aus der Provably-Fair-Engine-Konfiguration; Abweichungen sind erklärbar (Varianz vs. echter Bug).
+- **Security-Reviewer:** Nein (rein analytisch, kein Schreibpfad).
+
 ### Phase 2
 
 #### 2.6 — Casino-Guide mit ausgewählten Live-Daten
@@ -81,6 +166,16 @@ Jede aktive Initiative folgt demselben Schema: Ziel · Scope (Dateien) · Neue D
 - **Verifizierung:** Echtzeit-Update der Wagered-Summen, idempotente Preispool-Ausschüttung um 00:00 UTC, korrekte UI-Anzeige mit Live-Avatar und Rang-Badges.
 - **Security-Reviewer:** Pflicht (Geldfluss / Wallet-Gutschrift für Turnier-Gewinner).
 
+#### 2.12 — Social-Layer (Freunde, private Tische, Zuschauer-Modus)
+
+- **Status:** 🔴 Geplant
+- **Ziel:** Spieler können Freunde hinzufügen, private Spielräume für ein Spiel unter Freunden eröffnen oder eine laufende Runde nur beobachten (Zuschauer-Modus).
+- **Scope:** neues Freundschafts-/Beziehungsdatenmodell, private Room-Codes/Einladungslogik; Zuschauer-Ansicht baut idealerweise auf demselben Realtime-Broadcast wie 3.1 Multiplayer-Crash auf statt eine zweite Realtime-Infrastruktur zu bauen.
+- **Neue DB-Objekte:** Tabellen für Freundschaften, private Räume/Einladungen.
+- **Abhängigkeit:** 3.1 Multiplayer-Crash empfohlen zuerst — liefert die Realtime-Grundlage für den Zuschauer-Modus.
+- **Verifizierung:** privater Raum ist nur für eingeladene Spieler sichtbar/betretbar; Zuschauer können serverseitig erzwungen keine Wette platzieren (Read-only-Rolle).
+- **Security-Reviewer:** Pflicht (neue Berechtigungsebene, potenzieller Vektor für private-Raum-Manipulation).
+
 ### Phase 4
 
 #### 4.1 — Outbox-Pattern für Wallet-Nebenwirkungen
@@ -91,6 +186,16 @@ Jede aktive Initiative folgt demselben Schema: Ziel · Scope (Dateien) · Neue D
 - **Abhängigkeit:** Migration 007 Advisory-Lock-Pattern (Wiederverwendung, kein neues Muster).
 - **Verifizierung:** doppelt zugestelltes Event verarbeitet die Nebenwirkung nur einmal (Idempotenz-Test); Settlement-Latenz-Regressionstest zeigt keine Verschlechterung ggü. dem synchronen Pfad; Consumer-Lag-Test bestätigt, dass verzögerte Verarbeitung die Wallet-Balance nicht beeinflusst, nur XP/Achievements.
 - **Security-Reviewer:** Pflicht (verändert den bestehenden Settlement-kritischen Pfad, siehe R12 im Risiko-Register).
+
+#### 4.3 — Event-Bus statt nur Outbox (Erweiterung von 4.1)
+
+- **Status:** 🔴 Geplant
+- **Ziel:** Erweitert 4.1 von reinen Wallet-Nebenwirkungen (XP, Achievements) zu einem zentralen Event-Kanal, der zusätzlich Leaderboard-Updates, Live-Aktivitäts-Feed und Notifications versorgt.
+- **Scope:** baut auf der Outbox-Tabelle aus 4.1 auf; zusätzliche Consumer statt zusätzlicher Direktaufrufe im Settlement-Pfad.
+- **Neue DB-Objekte:** erweitert `wallet_events` aus 4.1, kein komplett neues Schema.
+- **Abhängigkeit:** 4.1 muss zuerst stehen — kein eigenständiger erster Schritt.
+- **Verifizierung:** identisch zu 4.1 (Idempotenz-Test) plus Nachweis, dass der Ausfall eines Consumers (z. B. Notifications) weder Wallet noch andere Consumer blockiert.
+- **Security-Reviewer:** Pflicht (erweitert denselben kritischen Pfad wie 4.1).
 
 > **4.2 Trigger.dev-Background-Workflow abgeschlossen (2026-08-21):** Der `daily-activity-digest`-Task ist live, verifiziert und archiviert — siehe [`docs/archive/05_ZUKUNFTSPLANUNG_ARCHIV.md`](../docs/archive/05_ZUKUNFTSPLANUNG_ARCHIV.md) (P22) und [`docs/archive/01_Trigger.dev.md`](../docs/archive/01_Trigger.dev.md) für den vollständigen Detailnachweis.
 
