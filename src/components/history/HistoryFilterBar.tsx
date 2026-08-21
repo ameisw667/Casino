@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { motion } from 'framer-motion';
 
 export type GameFilterType = 'ALL' | 'CRASH' | 'DICE' | 'SLOTS' | 'ROULETTE' | 'BLACKJACK';
 export type TimeFilterType = 'ALL' | 'TODAY' | 'WEEK' | 'MONTH';
@@ -36,8 +37,8 @@ export function HistoryFilterBar({
   ];
 
   const times: { key: TimeFilterType; label: string }[] = [
-    { key: 'ALL', label: 'Alle Zeit' },
-    { key: 'TODAY', label: 'Heute' },
+    { key: 'ALL', label: 'Alle' },
+    { key: 'TODAY', label: '24h' },
     { key: 'WEEK', label: '7 Tage' },
     { key: 'MONTH', label: '30 Tage' },
   ];
@@ -49,44 +50,38 @@ export function HistoryFilterBar({
   ];
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 }}
       style={{
         display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-        background: 'rgba(14, 16, 22, 0.75)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        border: '1px solid rgba(212, 175, 55, 0.15)',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '12px',
+        background:
+          'linear-gradient(135deg, rgba(20, 22, 30, 0.85) 0%, rgba(12, 14, 20, 0.95) 100%)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(212, 175, 55, 0.18)',
         borderRadius: '16px',
-        padding: isMobile ? '12px' : '14px 18px',
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.45)',
+        padding: isMobile ? '12px 14px' : '10px 16px',
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05)',
       }}
     >
-      {/* Row 1: Game Filter Pills */}
+      {/* Left Segment: Game Selection Filter */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: '6px',
           overflowX: 'auto',
-          paddingBottom: '2px',
           scrollbarWidth: 'none',
+          padding: '2px 0',
+          maxWidth: isMobile ? '100%' : 'auto',
         }}
       >
-        <span
-          style={{
-            fontSize: '0.65rem',
-            fontWeight: 800,
-            color: 'rgba(255, 255, 255, 0.4)',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            marginRight: '6px',
-            flexShrink: 0,
-          }}
-        >
-          Spiel:
-        </span>
         {games.map((g) => {
           const isActive = gameFilter === g.key;
           return (
@@ -94,64 +89,50 @@ export function HistoryFilterBar({
               key={g.key}
               onClick={() => setGameFilter(g.key)}
               style={{
-                padding: '5px 12px',
-                borderRadius: '16px',
-                border: isActive
-                  ? '1px solid #D4AF37'
-                  : '1px solid rgba(255, 255, 255, 0.08)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '6px 12px',
+                borderRadius: '10px',
+                border: isActive ? '1px solid #D4AF37' : '1px solid rgba(255, 255, 255, 0.06)',
                 background: isActive
-                  ? 'linear-gradient(90deg, rgba(212, 175, 55, 0.22) 0%, rgba(212, 175, 55, 0.08) 100%)'
-                  : 'rgba(255, 255, 255, 0.025)',
-                color: isActive ? '#D4AF37' : 'rgba(255, 255, 255, 0.65)',
-                fontWeight: 800,
+                  ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.22) 0%, rgba(212, 175, 55, 0.05) 100%)'
+                  : 'rgba(255, 255, 255, 0.02)',
+                color: isActive ? '#FFD700' : 'rgba(255, 255, 255, 0.65)',
                 fontSize: '0.72rem',
+                fontWeight: isActive ? 900 : 700,
                 letterSpacing: '0.02em',
                 cursor: 'pointer',
+                whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease',
-                flexShrink: 0,
-                boxShadow: isActive ? '0 0 12px rgba(212, 175, 55, 0.25)' : 'none',
+                boxShadow: isActive ? '0 0 14px rgba(212, 175, 55, 0.2)' : 'none',
               }}
             >
-              {g.label}
+              <span>{g.label}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Row 2: Time Filter Pills & Outcome Filter Pills */}
+      {/* Right Segment: Time & Outcome & Result Counter */}
       <div
         style={{
           display: 'flex',
-          flexDirection: isMobile ? 'column' : 'row',
-          justifyContent: 'space-between',
-          alignItems: isMobile ? 'stretch' : 'center',
-          gap: '8px',
-          paddingTop: '8px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+          alignItems: 'center',
+          gap: '10px',
+          flexWrap: 'wrap',
         }}
       >
+        {/* Time Segmented Control */}
         <div
           style={{
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
-            gap: '6px',
-            overflowX: 'auto',
-            scrollbarWidth: 'none',
+            background: 'rgba(0, 0, 0, 0.4)',
+            borderRadius: '10px',
+            padding: '2px',
+            border: '1px solid rgba(255, 255, 255, 0.06)',
           }}
         >
-          <span
-            style={{
-              fontSize: '0.65rem',
-              fontWeight: 800,
-              color: 'rgba(255, 255, 255, 0.4)',
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              marginRight: '6px',
-              flexShrink: 0,
-            }}
-          >
-            Zeitraum:
-          </span>
           {times.map((t) => {
             const isActive = timeFilter === t.key;
             return (
@@ -160,19 +141,15 @@ export function HistoryFilterBar({
                 onClick={() => setTimeFilter(t.key)}
                 style={{
                   padding: '4px 10px',
-                  borderRadius: '12px',
-                  border: isActive
-                    ? '1px solid rgba(212, 175, 55, 0.5)'
-                    : '1px solid rgba(255, 255, 255, 0.06)',
-                  background: isActive
-                    ? 'rgba(212, 175, 55, 0.15)'
-                    : 'rgba(255, 255, 255, 0.02)',
-                  color: isActive ? '#D4AF37' : 'rgba(255, 255, 255, 0.55)',
-                  fontWeight: 700,
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: isActive ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
+                  color: isActive ? '#FFD700' : 'rgba(255, 255, 255, 0.5)',
                   fontSize: '0.68rem',
+                  fontWeight: isActive ? 900 : 600,
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
-                  flexShrink: 0,
+                  boxShadow: isActive ? 'inset 0 0 8px rgba(212, 175, 55, 0.2)' : 'none',
                 }}
               >
                 {t.label}
@@ -181,76 +158,69 @@ export function HistoryFilterBar({
           })}
         </div>
 
-        {/* Outcome Filter & Counter */}
+        {/* Outcome Segmented Control */}
         <div
           style={{
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
-            justifyContent: isMobile ? 'space-between' : 'flex-end',
-            gap: '10px',
+            background: 'rgba(0, 0, 0, 0.4)',
+            borderRadius: '10px',
+            padding: '2px',
+            border: '1px solid rgba(255, 255, 255, 0.06)',
           }}
         >
-          <div style={{ display: 'flex', gap: '4px' }}>
-            {outcomes.map((o) => {
-              const isActive = outcomeFilter === o.key;
-              return (
-                <button
-                  key={o.key}
-                  onClick={() => setOutcomeFilter(o.key)}
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: '12px',
-                    border: isActive
-                      ? o.key === 'WINS'
-                        ? '1px solid #10b981'
-                        : o.key === 'LOSSES'
-                          ? '1px solid #ef4444'
-                          : '1px solid rgba(255, 255, 255, 0.3)'
-                      : '1px solid rgba(255, 255, 255, 0.06)',
-                    background: isActive
-                      ? o.key === 'WINS'
-                        ? 'rgba(16, 185, 129, 0.15)'
-                        : o.key === 'LOSSES'
-                          ? 'rgba(239, 68, 68, 0.15)'
-                          : 'rgba(255, 255, 255, 0.1)'
-                      : 'rgba(255, 255, 255, 0.02)',
-                    color: isActive
-                      ? o.key === 'WINS'
-                        ? '#10b981'
-                        : o.key === 'LOSSES'
-                          ? '#f87171'
-                          : '#ffffff'
-                      : 'rgba(255, 255, 255, 0.5)',
-                    fontWeight: 700,
-                    fontSize: '0.68rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  {o.label}
-                </button>
-              );
-            })}
-          </div>
+          {outcomes.map((o) => {
+            const isActive = outcomeFilter === o.key;
+            return (
+              <button
+                key={o.key}
+                onClick={() => setOutcomeFilter(o.key)}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: isActive
+                    ? o.key === 'WINS'
+                      ? 'rgba(16, 185, 129, 0.25)'
+                      : o.key === 'LOSSES'
+                        ? 'rgba(239, 68, 68, 0.25)'
+                        : 'rgba(255, 255, 255, 0.12)'
+                    : 'transparent',
+                  color: isActive
+                    ? o.key === 'WINS'
+                      ? '#10b981'
+                      : o.key === 'LOSSES'
+                        ? '#ef4444'
+                        : '#ffffff'
+                    : 'rgba(255, 255, 255, 0.5)',
+                  fontSize: '0.68rem',
+                  fontWeight: isActive ? 900 : 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {o.label}
+              </button>
+            );
+          })}
+        </div>
 
-          <div
-            style={{
-              fontFamily: 'var(--font-mono, monospace)',
-              fontSize: '0.7rem',
-              fontWeight: 800,
-              color: '#D4AF37',
-              letterSpacing: '0.04em',
-              background: 'rgba(212, 175, 55, 0.08)',
-              border: '1px solid rgba(212, 175, 55, 0.2)',
-              padding: '3px 8px',
-              borderRadius: '8px',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {filteredCount} Wetten
-          </div>
+        {/* Counter Badge */}
+        <div
+          style={{
+            padding: '4px 10px',
+            borderRadius: '10px',
+            background: 'rgba(212, 175, 55, 0.08)',
+            border: '1px solid rgba(212, 175, 55, 0.25)',
+            fontSize: '0.66rem',
+            fontWeight: 900,
+            color: '#D4AF37',
+            letterSpacing: '0.04em',
+          }}
+        >
+          {filteredCount} WETTEN
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

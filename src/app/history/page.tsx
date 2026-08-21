@@ -195,6 +195,7 @@ export default function HistoryPage() {
         winRate={winRate}
         totalBets={totalBets}
         isMobile={isMobile}
+        rows={filteredRows}
       />
 
       <HistoryFilterBar
