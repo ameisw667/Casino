@@ -43,15 +43,10 @@ npm run vibe-check   # Custom audit script: tsx scripts/vibe-check.ts
 
 ### Auto-Allow & Execution Policy (Antigravity)
 
-- **Native Tool-Pflicht (File-Ops)**: Niemals `run_command` mit Inline- oder Scratch-Skripten (`node -e`, `node scratch/...js`, `python -c`, `echo >`, `cat <<EOF`, `Set-Content`, `Out-File`) nutzen, um Dateien oder Pläne zu erstellen/bearbeiten. Ausschließlich `write_to_file`, `replace_file_content` oder `multi_replace_file_content` verwenden. Verhindert Command-Execution-Modals zu 100%.
-- **Native Research-Tools Pflicht**: Niemals Scratch-Skripte (`scratch/search_*.js`, Python-Crawler) via `run_command` ausführen, um die Codebase zu durchsuchen. Ausschließlich native Tools (`grep_search`, `find_by_name`, `list_dir`, `view_file`) nutzen.
-- **File Deletion & Moving**: Für das Löschen/Verschieben von Projektdateien bevorzugt `git rm <path>` bzw. `git mv <path>` nutzen (VCS-gesichert & mit `git rm *` im Auto-Allow matchbar), statt OS-spezifischer `Remove-Item -Force`-Befehle.
-- **K1/K2 Auto-Allow**: Read-only (`git status`, `git diff`, `git log`) und CI/Test-Befehle (`npm test`, `npm run test`, `npx vitest *`, `npm run lint`, `npx tsc`, `npm run build`, `npm run vibe-check`) werden global auf Auto-Allow gesetzt (Option 4 im Bestätigungsdialog).
-- **K3/K4 Auto-Allow**: Paket- und Git-Mutationen (`npm i *`, `git add *`, `git rm *`, `git mv *`, `git commit *`, `git push origin *`, `npx supabase gen types *`) im Projekt auf Auto-Allow setzen (Option 3 / Option 4).
-- **Keine Command-Chains mit dynamischen Strings**: Git- und Build-Befehle nicht über `;` oder `&&` mit individuellen Strings (z.B. Commit-Messages) verketten (`git add ...; git commit -m "..."; git push ...`). Stattdessen Befehle einzeln ausführen, damit Auto-Allow-Wildcards (`git add *`, `git commit *`, `git push *`) 100% matchen.
+- **K1/K2 Auto-Allow**: Read-only (`git status`, `git diff`, `git log`) und CI/Test-Befehle (`npm test`, `npm run lint`, `npx tsc`, `npm run build`, `npm run vibe-check`) werden global auf Auto-Allow gesetzt (Option 4 im Bestätigungsdialog).
 - **Non-Interactive Execution**: Befehle immer mit non-interactive Flags ausführen (`--yes`, `-y`, `CI=true`), um CLI-Hangs zu verhindern.
 - **No-Pager**: `PAGER=cat` oder `--no-pager` für Git-Befehle nutzen.
-- **K5 Block**: Echte destruktive/systemweite Befehle (`git push --force`, `rm -rf /`, `del /s /q C:\`, `supabase db reset`) erfordern immer explizite manuelle Bestätigung.
+- **K5 Block**: Destruktive/Live-Befehle (`git push --force`, `rm -rf`, `supabase db reset`) erfordern immer explizite manuelle Bestätigung.
 - **Detail-Plan**: Siehe [docs/archive/01_Antigravity_Workflow_Optimization.md](docs/archive/01_Antigravity_Workflow_Optimization.md).
 
 Tests live in `src/lib/casino/__tests__/` (service layer) and `src/store/__tests__/` (Zustand store). Run `npm run vibe-check` after significant changes — checks balance integrity, RNG distribution, and payout math.
@@ -302,3 +297,47 @@ Bei Wallet-/Auth-/DB-Schreibpfaden zusätzlich: `Money-Pfad: Ja/Nein` und `Secur
 - Jeder Datenzugriff besitzt eine explizite Allowlist und einen Negativtest.
 - Ausgeschlossene spätere Funktionen sind als solche markiert, nicht als impliziter Folgeschritt.
 - Die Marker-Datei enthält keine widersprüchliche Reihenfolge oder Scope-Aussage.
+
+## Workflow: Jan-Optionen-Gate
+
+### 1 — Optionen-Generierung
+
+Vor jeder Umsetzung genau 3 relevantesten, distinkte, technisch lauffähige Optionen erstellen:
+
+- **Option 1 (Empfohlen)**: Höchster Nutzen bei minimaler Code- und DB-Komplexität.
+- **Option 2**: Alternative Architektur (z. B. höhere Modularität oder erweiterter Funktionsumfang).
+- **Option 3**: Minimaler Schnellpfad oder abweichender Standard-Ansatz.
+
+### 2 — Schematische Aufbereitung
+
+Aufbereitung nach dem standardisierten `Jan-Optionen-Schema`:
+
+- Vergleichstabelle zur Entscheidungsfindung in unter 30 Sekunden.
+- 3-Zeilen-Detailblock je Option für technische Klarheit.
+
+### 3 — Optionen-Selbstprüfung
+
+Prüfung vor Ausgabe:
+
+1. **Lerneffekt für jan**: Lerneffekt für den User Jan?
+2. **Nicht-Scope**: Sind Grenzen und Ausschlüsse für jede Option benannt?
+3. **Verifizierbarkeit**: Sind betroffene Dateien und Test-URLs angegeben?
+
+### 4 — Stopp & Übergabe
+
+- Nach Ausgabe der Optionen-Matrix sofort stoppen.
+- Keine Code-Edits oder Dateierstellungen vor Jans expliziter Auswahl (z. B. „Option 1“).
+- Nach Freigabe: Übergang in `Workflow: Jan-Execution`.
+
+---
+
+### Entscheidungs-Matrizen: Jan-Optionen-Schema
+
+### Tabellen-Standard (Pflicht für LLM-Output)
+
+```markdown
+| Option | Konzept & Architektur | Nutzen (Jan / System) | Aufwand & Komplexität | Overengineering-Risiko | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Option 1 (Empfohlen)** | <Kurzbeschreibung> | <Konkreter Mehrwert> | <z. B. 1 Datei, 0 Migrationen> | Niedrig | ✅ Empfohlen |
+| **Option 2** | <Kurzbeschreibung> | <Konkreter Mehrwert> | <z. B. 3 Dateien, 1 RPC> | Mittel | ⚪ Alternative |
+| **Option 3** | <Kurzbeschreibung> | <Konkreter Mehrwert> | <z. B. Refactor, 1 Tabelle> | Hoch | ❌ Nicht empfohlen |

@@ -551,3 +551,186 @@ export async function requestCasinoGuideAnswer(
     ),
   };
 }
+
+const OPENAI_CHAT_COMPLETIONS_URL = 'https://api.openai.com/v1/chat/completions';
+
+export type GuideStreamResult = {
+  stream: ReadableStream<Uint8Array>;
+  model: string;
+};
+
+export async function requestCasinoGuideAnswerStream(
+  message: string,
+  userId?: string,
+  history?: readonly GuideConversationHistoryItem[],
+): Promise<GuideStreamResult> {
+  if (!process.env.OPENAI_API_KEY?.trim()) {
+    throw new CasinoGuideError('configuration');
+  }
+
+  const lastUserQuery = history
+    ?.filter((h) => h.role === 'user')
+    .slice(-1)[0]?.content;
+  const retrievalQuery = lastUserQuery ? `${lastUserQuery} ${message}`.trim() : message;
+
+  const context = await buildCasinoGuideContextAsync(retrievalQuery);
+  const leaderboard = await loadGuideLeaderboardSnippet();
+  const instructions = buildCasinoGuideInstructions(context, leaderboard);
+
+  // Turn 1: Check if structured live player tools are needed
+  let toolContextExtra = '';
+  try {
+    const toolCheckRequest = await buildCasinoGuideRequest(message, history);
+    const turn1Res = await fetch(toolCheckRequest.url, toolCheckRequest.init);
+    if (turn1Res.ok) {
+      const turn1Payload = await turn1Res.json();
+      const toolCalls = getGuideFunctionCalls(turn1Payload);
+      if (toolCalls.length > 0) {
+        for (const call of toolCalls) {
+          const toolResult = await executeGuideTool(call.name, call.arguments, userId);
+          toolContextExtra += `\n\nLIVE TOOL RESULT (${call.name}):\n${JSON.stringify(toolResult, null, 2)}`;
+        }
+      }
+    }
+  } catch {
+    // Non-blocking fallback to direct streaming
+  }
+
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+    { role: 'system', content: `${instructions}${toolContextExtra}` },
+  ];
+
+  if (history && history.length > 0) {
+    for (const item of history.slice(-6)) {
+      messages.push({
+        role: item.role === 'user' ? 'user' : 'assistant',
+        content: item.content,
+      });
+    }
+  }
+
+  messages.push({ role: 'user', content: message });
+
+  let openAiStreamRes: Response;
+  try {
+    openAiStreamRes = await fetch(OPENAI_CHAT_COMPLETIONS_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY ?? ''}`,
+        'Content-Type': 'application/json',
+      },
+      signal: AbortSignal.timeout(GUIDE_REQUEST_TIMEOUT_MS),
+      body: JSON.stringify({
+        model: CASINO_GUIDE_MODEL,
+        messages,
+        stream: true,
+        max_tokens: 800,
+        temperature: 0.3,
+      }),
+    });
+  } catch {
+    // If chat completions stream fails, fallback to standard answer stream
+    const fallbackAnswer = await requestCasinoGuideAnswer(message, userId, history);
+    const encoder = new TextEncoder();
+    const fallbackStream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ text: fallbackAnswer.answer })}\n\n`),
+        );
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ done: true, model: fallbackAnswer.model })}\n\n`),
+        );
+        controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+        controller.close();
+      },
+    });
+    return { stream: fallbackStream, model: fallbackAnswer.model };
+  }
+
+  if (!openAiStreamRes.ok || !openAiStreamRes.body) {
+    const fallbackAnswer = await requestCasinoGuideAnswer(message, userId, history);
+    const encoder = new TextEncoder();
+    const fallbackStream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ text: fallbackAnswer.answer })}\n\n`),
+        );
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ done: true, model: fallbackAnswer.model })}\n\n`),
+        );
+        controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+        controller.close();
+      },
+    });
+    return { stream: fallbackStream, model: fallbackAnswer.model };
+  }
+
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  const reader = openAiStreamRes.body.getReader();
+
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      let buffer = '';
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() ?? '';
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+            if (trimmed === 'data: [DONE]') {
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({ done: true, model: CASINO_GUIDE_MODEL })}\n\n`,
+                ),
+              );
+              controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+              continue;
+            }
+            if (trimmed.startsWith('data: ')) {
+              const jsonStr = trimmed.slice(6);
+              try {
+                const parsed = JSON.parse(jsonStr);
+                const deltaText =
+                  parsed.choices?.[0]?.delta?.content ??
+                  parsed.delta ??
+                  (parsed.type === 'response.output_text.delta' ? parsed.delta : undefined);
+                if (deltaText) {
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({ text: deltaText })}\n\n`),
+                  );
+                }
+              } catch {
+                // Ignore partial json parse errors
+              }
+            }
+          }
+        }
+
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({ done: true, model: CASINO_GUIDE_MODEL })}\n\n`,
+          ),
+        );
+        controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+      } catch (err) {
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({ error: err instanceof Error ? err.message : 'Stream Error' })}\n\n`,
+          ),
+        );
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return { stream, model: CASINO_GUIDE_MODEL };
+}
+

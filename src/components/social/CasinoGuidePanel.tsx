@@ -451,20 +451,20 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
         content: t.text,
       }));
 
+    const guideTurnId = nextTurnId('guide');
+    const replyTime = getCurrentTime();
+
     try {
       const response = await fetch('/api/chat/bot-response', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, history }),
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'text/event-stream, application/json',
+        },
+        body: JSON.stringify({ message, history, stream: true }),
       });
-      const payload: unknown = await response.json().catch(() => null);
-      const answer =
-        typeof payload === 'object' && payload !== null && 'answer' in payload
-          ? payload.answer
-          : undefined;
 
-      const replyTime = getCurrentTime();
-      if (!response.ok || typeof answer !== 'string' || !answer.trim()) {
+      if (!response.ok) {
         let text =
           'Royale Guide ist vorübergehend nicht erreichbar. Bitte versuche es gleich erneut.';
         if (response.status === 401) {
@@ -474,20 +474,97 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
         }
         setTurns((current) => [
           ...current,
-          { id: nextTurnId('guide'), role: 'guide', text, time: replyTime },
+          { id: guideTurnId, role: 'guide', text, time: replyTime },
         ]);
         return;
       }
 
-      setTurns((current) => [
-        ...current,
-        { id: nextTurnId('guide'), role: 'guide', text: answer.trim(), time: replyTime },
-      ]);
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('text/event-stream') && response.body) {
+        // Mount guide turn for streaming
+        setTurns((current) => [
+          ...current,
+          { id: guideTurnId, role: 'guide', text: '', time: replyTime },
+        ]);
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let accumulated = '';
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() ?? '';
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed === 'data: [DONE]') continue;
+            if (trimmed.startsWith('data: ')) {
+              try {
+                const parsed = JSON.parse(trimmed.slice(6));
+                if (parsed.text) {
+                  const chunkText: string = parsed.text;
+                  accumulated += chunkText;
+                  setTurns((current) =>
+                    current.map((t) =>
+                      t.id === guideTurnId ? { ...t, text: t.text + chunkText } : t,
+                    ),
+                  );
+                }
+              } catch {
+                // Ignore partial JSON chunks
+              }
+            }
+          }
+        }
+
+        if (!accumulated.trim()) {
+          setTurns((current) =>
+            current.map((t) =>
+              t.id === guideTurnId
+                ? {
+                    ...t,
+                    text: 'Royale Guide konnte keine Antwort generieren. Bitte versuche es erneut.',
+                  }
+                : t,
+            ),
+          );
+        }
+      } else {
+        // Classic JSON fallback
+        const payload: unknown = await response.json().catch(() => null);
+        const answer =
+          typeof payload === 'object' && payload !== null && 'answer' in payload
+            ? payload.answer
+            : undefined;
+
+        if (typeof answer !== 'string' || !answer.trim()) {
+          setTurns((current) => [
+            ...current,
+            {
+              id: guideTurnId,
+              role: 'guide',
+              text: 'Royale Guide ist vorübergehend nicht erreichbar. Bitte versuche es gleich erneut.',
+              time: replyTime,
+            },
+          ]);
+          return;
+        }
+
+        setTurns((current) => [
+          ...current,
+          { id: guideTurnId, role: 'guide', text: answer.trim(), time: replyTime },
+        ]);
+      }
     } catch {
       setTurns((current) => [
         ...current,
         {
-          id: nextTurnId('guide'),
+          id: guideTurnId,
           role: 'guide',
           text: 'Royale Guide ist vorübergehend nicht erreichbar. Bitte versuche es gleich erneut.',
           time: getCurrentTime(),
@@ -872,7 +949,7 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                     padding: '16px',
                   }}
                 >
-                  {turns.map((turn) => (
+                  {turns.map((turn, index) => (
                     <div
                       key={turn.id}
                       style={{
@@ -940,110 +1017,128 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                           }}
                         >
                           {turn.role === 'guide' ? (
-                            <MarkdownMessage content={turn.text} />
+                            <>
+                              <MarkdownMessage content={turn.text} />
+                              {isSending && index === turns.length - 1 && (
+                                <span
+                                  style={{
+                                    display: 'inline-block',
+                                    width: '6px',
+                                    height: '13px',
+                                    background: '#ffd700',
+                                    marginLeft: '4px',
+                                    verticalAlign: '-1px',
+                                    borderRadius: '1px',
+                                    opacity: 0.85,
+                                  }}
+                                />
+                              )}
+                            </>
                           ) : (
                             turn.text
                           )}
                         </div>
 
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            padding: '0 4px',
-                          }}
-                        >
-                          <span style={{ fontSize: '0.62rem', color: 'hsl(var(--text-muted))' }}>
-                            {turn.time}
-                          </span>
-                          {turn.role === 'guide' && (
-                            <>
-                              <button
-                                type="button"
-                                aria-label="Copy answer to clipboard"
-                                onClick={() => copyToClipboard(turn.id, turn.text)}
-                                style={{
-                                  background: 'transparent',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  color: copiedId === turn.id ? '#10b981' : 'hsl(var(--text-muted))',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '3px',
-                                  fontSize: '0.62rem',
-                                  padding: '2px 4px',
-                                  borderRadius: '4px',
-                                }}
-                              >
-                                {copiedId === turn.id ? (
-                                  <>
-                                    <Check size={11} /> Kopiert
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy size={11} /> Kopieren
-                                  </>
-                                )}
-                              </button>
+                        {turn.text.length > 0 && (!isSending || index !== turns.length - 1) && (
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              padding: '0 4px',
+                            }}
+                          >
+                            <span style={{ fontSize: '0.62rem', color: 'hsl(var(--text-muted))' }}>
+                              {turn.time}
+                            </span>
+                            {turn.role === 'guide' && (
+                              <>
+                                <button
+                                  type="button"
+                                  aria-label="Copy answer to clipboard"
+                                  onClick={() => copyToClipboard(turn.id, turn.text)}
+                                  style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    color: copiedId === turn.id ? '#10b981' : 'hsl(var(--text-muted))',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                    fontSize: '0.62rem',
+                                    padding: '2px 4px',
+                                    borderRadius: '4px',
+                                  }}
+                                >
+                                  {copiedId === turn.id ? (
+                                    <>
+                                      <Check size={11} /> Kopiert
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy size={11} /> Kopieren
+                                    </>
+                                  )}
+                                </button>
 
-                              <button
-                                type="button"
-                                aria-label="Hilfreiche Antwort"
-                                title="Hilfreich"
-                                onClick={() => handleFeedback(turn.id, 1)}
-                                style={{
-                                  background: 'transparent',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  color:
-                                    feedbackMap[turn.id] === 1
-                                      ? '#10b981'
-                                      : 'hsl(var(--text-muted))',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '2px',
-                                  fontSize: '0.62rem',
-                                  padding: '2px 4px',
-                                  borderRadius: '4px',
-                                  transition: 'color 0.15s ease',
-                                }}
-                              >
-                                <ThumbsUp size={11} />
-                              </button>
+                                <button
+                                  type="button"
+                                  aria-label="Hilfreiche Antwort"
+                                  title="Hilfreich"
+                                  onClick={() => handleFeedback(turn.id, 1)}
+                                  style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    color:
+                                      feedbackMap[turn.id] === 1
+                                        ? '#10b981'
+                                        : 'hsl(var(--text-muted))',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '2px',
+                                    fontSize: '0.62rem',
+                                    padding: '2px 4px',
+                                    borderRadius: '4px',
+                                    transition: 'color 0.15s ease',
+                                  }}
+                                >
+                                  <ThumbsUp size={11} />
+                                </button>
 
-                              <button
-                                type="button"
-                                aria-label="Nicht hilfreiche Antwort"
-                                title="Nicht hilfreich"
-                                onClick={() => handleFeedback(turn.id, -1)}
-                                style={{
-                                  background: 'transparent',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  color:
-                                    feedbackMap[turn.id] === -1
-                                      ? '#ef4444'
-                                      : 'hsl(var(--text-muted))',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '2px',
-                                  fontSize: '0.62rem',
-                                  padding: '2px 4px',
-                                  borderRadius: '4px',
-                                  transition: 'color 0.15s ease',
-                                }}
-                              >
-                                <ThumbsDown size={11} />
-                              </button>
-                            </>
-                          )}
-                        </div>
+                                <button
+                                  type="button"
+                                  aria-label="Nicht hilfreiche Antwort"
+                                  title="Nicht hilfreich"
+                                  onClick={() => handleFeedback(turn.id, -1)}
+                                  style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    color:
+                                      feedbackMap[turn.id] === -1
+                                        ? '#ef4444'
+                                        : 'hsl(var(--text-muted))',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '2px',
+                                    fontSize: '0.62rem',
+                                    padding: '2px 4px',
+                                    borderRadius: '4px',
+                                    transition: 'color 0.15s ease',
+                                  }}
+                                >
+                                  <ThumbsDown size={11} />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
 
-                  {isSending && (
+                  {isSending && (!turns.length || turns[turns.length - 1]?.role === 'player' || !turns[turns.length - 1]?.text) && (
                     <div
                       style={{
                         display: 'flex',

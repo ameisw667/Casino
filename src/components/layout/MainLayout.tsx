@@ -541,11 +541,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             damping: isMobile ? 24 : 28,
             stiffness: isMobile ? 300 : 320,
           }}
-          onWheel={(e) => {
-            if (!isMobile && mainRef.current) {
-              mainRef.current.scrollTop += e.deltaY;
-            }
-          }}
           style={{
             width: isMobile ? '280px' : undefined,
             flexShrink: 0,
@@ -661,8 +656,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               flex: '1 1 0%',
               minHeight: 0,
               padding: '12px',
-              overflowY: isMobile ? 'auto' : 'hidden',
+              overflowY: 'auto',
               overscrollBehavior: 'contain',
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'rgba(212, 175, 55, 0.2) transparent',
             }}
           >
             {menuItems.map((item) => {

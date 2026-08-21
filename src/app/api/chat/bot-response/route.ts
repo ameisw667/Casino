@@ -5,6 +5,7 @@ import {
   CASINO_GUIDE_CONTEXT_VERSION,
   CasinoGuideError,
   requestCasinoGuideAnswer,
+  requestCasinoGuideAnswerStream,
 } from '@/lib/casino/chat-guide';
 import { recordGuideTelemetry, type GuideTelemetryOutcome } from '@/lib/casino/guide-telemetry';
 import {
@@ -23,6 +24,7 @@ const guideHistoryItemSchema = z.object({
 const guideRequestSchema = z.object({
   message: z.string().trim().min(1, 'Message required').max(500, 'Message too long'),
   history: z.array(guideHistoryItemSchema).max(6).optional(),
+  stream: z.boolean().optional(),
 });
 
 const PRIVATE_NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
@@ -97,6 +99,35 @@ export async function POST(request: Request) {
     }
 
     guideStartedAt = performance.now();
+    const shouldStream =
+      parsed.data.stream === true ||
+      request.headers.get('accept')?.includes('text/event-stream');
+
+    if (shouldStream) {
+      const streamResult = await requestCasinoGuideAnswerStream(
+        parsed.data.message,
+        userId,
+        parsed.data.history,
+      );
+
+      await recordGuideTelemetry({
+        actorId: userId,
+        outcome: 'success',
+        latencyMs: Math.round(performance.now() - guideStartedAt),
+        model: streamResult.model,
+        usage: null,
+      });
+
+      return new Response(streamResult.stream, {
+        headers: {
+          ...responseHeaders,
+          'Content-Type': 'text/event-stream; charset=utf-8',
+          'Cache-Control': 'no-cache, no-transform',
+          Connection: 'keep-alive',
+        },
+      });
+    }
+
     const answerResult = await requestCasinoGuideAnswer(
       parsed.data.message,
       userId,
