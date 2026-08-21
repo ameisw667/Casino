@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Sparkles, ChevronRight } from 'lucide-react';
+import { Play, Sparkles, ChevronRight, Layers, Flame, Gamepad2, Rocket, RotateCcw } from 'lucide-react';
 import { soundManager } from '@/lib/casino/sound-manager';
 
 interface GameItem {
@@ -77,10 +77,10 @@ const GAMES: GameItem[] = [
 ];
 
 const CATEGORIES = [
-  { id: 'all', label: 'ALLE SPIELE' },
-  { id: 'originals', label: 'ORIGINALS' },
-  { id: 'top_games', label: 'TOP SPIELE' },
-  { id: 'table', label: 'TISCHSPIELE' },
+  { id: 'all', label: 'ALLE SPIELE', icon: Layers },
+  { id: 'originals', label: 'ORIGINALS', icon: Rocket },
+  { id: 'top_games', label: 'TOP SPIELE', icon: Flame },
+  { id: 'table', label: 'TISCHSPIELE', icon: Gamepad2 },
 ];
 
 export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobile = false }) => {
@@ -102,6 +102,78 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
         padding: '0 24px 36px',
       }}
     >
+      {/* Quick-Launch "Zuletzt Gespielt" Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        style={{
+          marginBottom: '16px',
+          padding: '10px 16px',
+          borderRadius: '14px',
+          background: 'linear-gradient(90deg, rgba(212, 175, 55, 0.12) 0%, rgba(20, 22, 30, 0.8) 50%, rgba(12, 14, 20, 0.9) 100%)',
+          border: '1px solid rgba(212, 175, 55, 0.25)',
+          backdropFilter: 'blur(16px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '10px',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
+            style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '8px',
+              background: 'rgba(212, 175, 55, 0.15)',
+              border: '1px solid rgba(212, 175, 55, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#D4AF37',
+            }}
+          >
+            <RotateCcw size={14} />
+          </div>
+          <div>
+            <div style={{ fontSize: '0.62rem', fontWeight: 800, color: 'rgba(255, 255, 255, 0.45)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              ZULETZT GESPIELT
+            </div>
+            <div style={{ fontSize: '0.82rem', fontWeight: 900, color: '#ffffff', letterSpacing: '-0.01em' }}>
+              CRASH ROCKET <span style={{ color: '#D4AF37', fontSize: '0.72rem', fontWeight: 800 }}>• LETZTE RUNDE 2.50x</span>
+            </div>
+          </div>
+        </div>
+
+        <Link href="/games/crash" style={{ textDecoration: 'none' }}>
+          <motion.button
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #FFD700 0%, #D4AF37 100%)',
+              border: 'none',
+              color: '#000',
+              fontWeight: 950,
+              fontSize: '0.72rem',
+              letterSpacing: '0.04em',
+              cursor: 'pointer',
+              boxShadow: '0 0 16px rgba(212, 175, 55, 0.35)',
+            }}
+          >
+            <Play size={11} fill="#000" />
+            <span>FORTSETZEN</span>
+            <ChevronRight size={12} />
+          </motion.button>
+        </Link>
+      </motion.div>
+
       {/* Grid Header with Category Filters */}
       <div
         style={{
@@ -154,6 +226,7 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
         >
           {CATEGORIES.map((cat) => {
             const isActive = selectedCategory === cat.id;
+            const Icon = cat.icon;
             return (
               <motion.button
                 key={cat.id}
@@ -161,15 +234,18 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
                   soundManager.playClick();
                   setSelectedCategory(cat.id);
                 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
                 style={{
-                  padding: '6px 14px',
-                  borderRadius: '20px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 14px',
+                  borderRadius: '12px',
                   background: isActive
                     ? 'linear-gradient(135deg, #D4AF37 0%, #AA7C11 100%)'
-                    : 'rgba(255, 255, 255, 0.05)',
-                  border: isActive ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
+                    : 'rgba(255, 255, 255, 0.04)',
+                  border: isActive ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',
                   color: isActive ? '#000' : 'rgba(255, 255, 255, 0.75)',
                   fontSize: '0.74rem',
                   fontWeight: 900,
@@ -177,9 +253,11 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                   boxShadow: isActive ? '0 4px 20px rgba(212, 175, 55, 0.3)' : 'none',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                {cat.label}
+                <Icon size={12} color={isActive ? '#000' : '#D4AF37'} />
+                <span>{cat.label}</span>
               </motion.button>
             );
           })}
@@ -278,7 +356,7 @@ function ArcadeGameCard({
         perspective: 1000,
       }}
     >
-      {/* 3D Stage Spotlight Aura for Featured Game (NP-3) */}
+      {/* 3D Stage Spotlight Aura for Featured Game */}
       {isFeatured && (
         <div
           style={{
@@ -428,7 +506,7 @@ function ArcadeGameCard({
             </div>
           </div>
 
-          {/* Card Center Artwork Showcase (100% Crisp, No Video Blur Overlay) */}
+          {/* Card Center Artwork */}
           <div
             style={{
               position: 'relative',
@@ -493,7 +571,7 @@ function ArcadeGameCard({
               {game.description}
             </div>
 
-            {/* Launch Trigger Button (Transforms into Gold CTA on Hover) */}
+            {/* Launch Trigger Button */}
             <div
               style={{
                 marginTop: '4px',

@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     }
 
     guideStartedAt = performance.now();
-    const answerResult = await requestCasinoGuideAnswer(parsed.data.message);
+    const answerResult = await requestCasinoGuideAnswer(parsed.data.message, userId);
 
     await recordGuideTelemetry({
       actorId: userId,

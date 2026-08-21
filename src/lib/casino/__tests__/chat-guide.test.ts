@@ -320,4 +320,65 @@ describe('Casino guide service', () => {
       kind: 'invalid-response',
     });
   });
+
+  it('includes read-only tools in buildCasinoGuideRequest', async () => {
+    const request = await buildCasinoGuideRequest('What is my VIP level?');
+    const body = JSON.parse(String(request.init.body));
+
+    expect(body.tools).toBeDefined();
+    expect(body.tools).toHaveLength(3);
+    expect(body.tools.map((t: { name: string }) => t.name)).toContain('get_player_vip_progress');
+  });
+
+  it('executes 2-turn tool call loop when model invokes get_player_vip_progress', async () => {
+    process.env.OPENAI_API_KEY = 'test-key';
+    const fetchSpy = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            output: [
+              {
+                type: 'function_call',
+                call_id: 'call_vip_test',
+                name: 'get_player_vip_progress',
+                arguments: '{}',
+              },
+            ],
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            output_text: JSON.stringify({
+              type: 'guide_answer',
+              topic: 'vip_stats',
+              answer: 'You are currently Silver rank with 6,450 XP.',
+            }),
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        ),
+      );
+
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const result = await requestCasinoGuideAnswer('What is my rank?', 'test-user-123');
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(result.answer).toBe('You are currently Silver rank with 6,450 XP.');
+    expect(result.model).toBe('gpt-4o-mini');
+
+    // Verify turn 2 request contained function_call_output
+    const turn2Body = JSON.parse(String(fetchSpy.mock.calls[1]?.[1]?.body));
+    expect(turn2Body.input).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: 'function_call_output',
+          call_id: 'call_vip_test',
+        }),
+      ]),
+    );
+  });
 });

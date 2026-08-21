@@ -32,6 +32,7 @@ function VaultContent() {
   const redeemInputRef = useRef<HTMLInputElement>(null);
 
   const [mounted, setMounted] = React.useState(false);
+  const [selectedTierName, setSelectedTierName] = useState<string | null>(null);
   const [voucherCode, setVoucherCode] = useState(() => (codeParam ? codeParam.toUpperCase() : ''));
   const [isRedeeming, setIsRedeeming] = useState(false);
   const [showAllAchievementsModal, setShowAllAchievementsModal] = useState(false);
@@ -636,26 +637,35 @@ function VaultContent() {
               glowShadow = isCurrent ? '0 0 24px rgba(185, 242, 255, 0.35)' : 'none';
             }
 
+            const isSelected = (selectedTierName ?? currentTier.name) === tier.name;
+
             return (
               <motion.div
                 key={tier.name}
+                onClick={() => setSelectedTierName(tier.name)}
                 whileHover={{ scale: 1.02, y: -3 }}
+                whileTap={{ scale: 0.98 }}
                 transition={{ type: 'spring', stiffness: 350, damping: 25 }}
                 style={{
                   padding: isMobile ? '16px 14px' : '18px 16px',
                   borderRadius: '16px',
                   background: metallicBg,
-                  border: metallicBorder,
+                  border: isSelected ? `2px solid ${tier.color}` : metallicBorder,
                   backdropFilter: 'blur(16px)',
                   WebkitBackdropFilter: 'blur(16px)',
                   boxShadow:
-                    glowShadow !== 'none' ? glowShadow : '0 8px 24px rgba(0, 0, 0, 0.4)',
+                    isSelected
+                      ? `0 0 24px ${tier.color}40, 0 8px 24px rgba(0, 0, 0, 0.4)`
+                      : glowShadow !== 'none'
+                        ? glowShadow
+                        : '0 8px 24px rgba(0, 0, 0, 0.4)',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   minHeight: '135px',
                   position: 'relative',
                   overflow: 'hidden',
+                  cursor: 'pointer',
                 }}
               >
                 <div>
@@ -750,6 +760,85 @@ function VaultContent() {
             );
           })}
         </div>
+
+        {/* Selected Tier Benefits Detail HUD */}
+        {(() => {
+          const inspectedTier = vipTiers.find((t) => t.name === (selectedTierName ?? currentTier.name)) ?? currentTier;
+          const isUnlocked = xp >= inspectedTier.minXp;
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                marginTop: '12px',
+                padding: '16px 20px',
+                borderRadius: '14px',
+                background: 'linear-gradient(145deg, rgba(20, 22, 30, 0.85) 0%, rgba(12, 14, 20, 0.95) 100%)',
+                border: `1px solid ${inspectedTier.color}35`,
+                backdropFilter: 'blur(16px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '14px',
+                boxShadow: `0 8px 24px rgba(0, 0, 0, 0.45), 0 0 16px ${inspectedTier.color}15`,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    background: `${inspectedTier.color}15`,
+                    border: `1px solid ${inspectedTier.color}40`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: inspectedTier.color,
+                  }}
+                >
+                  <Crown size={18} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 900, color: '#ffffff' }}>
+                    {inspectedTier.name} VIP VORTEILE
+                  </div>
+                  <div style={{ fontSize: '0.66rem', color: 'rgba(255, 255, 255, 0.45)', fontWeight: 600 }}>
+                    {isUnlocked ? 'Bereits für dein Konto freigeschaltet' : `Benötigt noch ${(inspectedTier.minXp - xp).toLocaleString()} XP`}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'rgba(255, 255, 255, 0.35)', textTransform: 'uppercase' }}>
+                    RAKEBACK
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: '0.95rem', fontWeight: 900, color: '#D4AF37' }}>
+                    {(inspectedTier.rakeback * 100).toFixed(0)}%
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'rgba(255, 255, 255, 0.35)', textTransform: 'uppercase' }}>
+                    SUPPORT
+                  </div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#ffffff' }}>
+                    {inspectedTier.name === 'DIAMOND' || inspectedTier.name === 'PLATINUM' ? 'VIP Manager' : 'Priorität'}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'rgba(255, 255, 255, 0.35)', textTransform: 'uppercase' }}>
+                    STATUS
+                  </div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 800, color: isUnlocked ? '#10b981' : 'rgba(255, 255, 255, 0.4)' }}>
+                    {isUnlocked ? 'FREIGESCHALTET' : 'GESPERRT'}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })()}
       </div>
 
       {/* ──── ROW 3: Achievements (left 65%) + Redeem & CTA (right 35%) ──── */}

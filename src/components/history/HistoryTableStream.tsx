@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheck,
@@ -10,6 +10,7 @@ import {
   Sparkles,
   RotateCcw,
   Gamepad2,
+  Calendar,
 } from 'lucide-react';
 
 export interface HistoryRow {
@@ -91,6 +92,60 @@ export function HistoryTableStream({
   isMobile: _isMobile = false,
   onSelectRow,
 }: HistoryTableStreamProps) {
+  const sessionGroups = useMemo(() => {
+    if (rows.length === 0) return [];
+    const groups: {
+      id: string;
+      label: string;
+      totalBets: number;
+      netProfit: number;
+      rows: HistoryRow[];
+    }[] = [];
+
+    let currentGroup: {
+      id: string;
+      label: string;
+      totalBets: number;
+      netProfit: number;
+      rows: HistoryRow[];
+    } | null = null;
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const rowDate = new Date(row.created_at);
+      const prevRow = rows[i - 1];
+      const prevDate = prevRow ? new Date(prevRow.created_at) : null;
+
+      const isNewSession =
+        !prevDate || Math.abs(prevDate.getTime() - rowDate.getTime()) > 25 * 60 * 1000;
+
+      if (isNewSession || !currentGroup) {
+        const dateLabel = rowDate.toLocaleDateString('de-DE', {
+          day: '2-digit',
+          month: 'short',
+        });
+        const timeLabel = rowDate.toLocaleTimeString('de-DE', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        currentGroup = {
+          id: `session-${i}-${row.id}`,
+          label: `Sitzung ${dateLabel} (${timeLabel})`,
+          totalBets: 0,
+          netProfit: 0,
+          rows: [],
+        };
+        groups.push(currentGroup);
+      }
+
+      currentGroup.rows.push(row);
+      currentGroup.totalBets += 1;
+      currentGroup.netProfit += row.amount;
+    }
+
+    return groups;
+  }, [rows]);
+
   if (loading) {
     return (
       <div
@@ -194,175 +249,221 @@ export function HistoryTableStream({
           </thead>
           <tbody>
             <AnimatePresence>
-              {rows.map((row, idx) => {
-                const isWin = row.amount > 0;
-                const cfg = getGameConfig(row.game);
-                const absAmount = Math.abs(row.amount);
-
-                // Derived approximate multiplier or outcome display
-                const multValue = isWin ? (row.amount / 10 + 1).toFixed(2) : '0.00';
-                const isBigMultiplier = isWin && parseFloat(multValue) >= 3.0;
-
-                return (
-                  <motion.tr
-                    key={row.id || idx}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: Math.min(idx * 0.02, 0.3) }}
-                    onClick={() => onSelectRow?.(row)}
+              {sessionGroups.map((group) => (
+                <React.Fragment key={group.id}>
+                  {/* Session Header Row */}
+                  <tr
                     style={{
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.025)',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                      background: 'transparent',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background =
-                        'linear-gradient(90deg, rgba(212, 175, 55, 0.06) 0%, rgba(212, 175, 55, 0.01) 100%)';
-                      const indicator = e.currentTarget.querySelector('.history-receipt-indicator') as HTMLElement | null;
-                      if (indicator) {
-                        indicator.style.color = '#D4AF37';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent';
-                      const indicator = e.currentTarget.querySelector('.history-receipt-indicator') as HTMLElement | null;
-                      if (indicator) {
-                        indicator.style.color = 'rgba(255, 255, 255, 0.35)';
-                      }
+                      background: 'rgba(0, 0, 0, 0.45)',
+                      borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
                     }}
                   >
-                    {/* Game & Category: High-Density Single Line */}
-                    <td style={{ padding: '12px 18px' }}>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                        <div
-                          style={{
-                            width: '24px',
-                            height: '24px',
-                            borderRadius: '6px',
-                            background: 'rgba(212, 175, 55, 0.08)',
-                            border: '1px solid rgba(212, 175, 55, 0.2)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0,
-                          }}
-                        >
-                          {cfg.icon}
+                    <td colSpan={6} style={{ padding: '8px 18px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Calendar size={12} color="#D4AF37" />
+                          <span style={{ fontSize: '0.72rem', fontWeight: 900, color: 'rgba(255, 255, 255, 0.85)', letterSpacing: '0.02em' }}>
+                            {group.label}
+                          </span>
+                          <span style={{ fontSize: '0.62rem', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 700 }}>
+                            • {group.totalBets} {group.totalBets === 1 ? 'Runde' : 'Runden'}
+                          </span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontWeight: 800, color: '#ffffff', fontSize: '0.82rem', letterSpacing: '-0.01em' }}>
-                            {cfg.name}
+                          <span style={{ fontSize: '0.62rem', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 700 }}>
+                            Sitzungs-Netto:
                           </span>
-                          <span style={{ color: 'rgba(255, 255, 255, 0.25)', fontSize: '0.7rem' }}>•</span>
-                          <span style={{ fontSize: '0.66rem', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 700, letterSpacing: '0.04em' }}>
-                            {cfg.category}
+                          <span
+                            style={{
+                              fontFamily: 'var(--font-mono, monospace)',
+                              fontSize: '0.72rem',
+                              fontWeight: 900,
+                              color: group.netProfit >= 0 ? '#10b981' : '#ef4444',
+                              background: group.netProfit >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                              border: `1px solid ${group.netProfit >= 0 ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                            }}
+                          >
+                            {group.netProfit >= 0 ? '+' : '-'}${Math.abs(group.netProfit).toFixed(2)}
                           </span>
                         </div>
                       </div>
                     </td>
+                  </tr>
 
-                    {/* Timestamp */}
-                    <td style={{ padding: '12px 18px', color: 'rgba(255, 255, 255, 0.6)', fontFamily: 'var(--font-mono, monospace)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
-                      {formatFullTime(row.created_at)}
-                    </td>
+                  {/* Bets within Session */}
+                  {group.rows.map((row, idx) => {
+                    const isWin = row.amount > 0;
+                    const cfg = getGameConfig(row.game);
+                    const absAmount = Math.abs(row.amount);
 
-                    {/* Multiplier Badge (0 Emojis) */}
-                    <td style={{ padding: '12px 18px' }}>
-                      {isWin ? (
-                        <span
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            padding: '2px 8px',
-                            borderRadius: '6px',
-                            background: isBigMultiplier
-                              ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.22) 0%, rgba(212, 175, 55, 0.08) 100%)'
-                              : 'rgba(16, 185, 129, 0.12)',
-                            border: isBigMultiplier
-                              ? '1px solid rgba(255, 215, 0, 0.5)'
-                              : '1px solid rgba(16, 185, 129, 0.25)',
-                            color: isBigMultiplier ? '#FFD700' : '#10b981',
-                            fontFamily: 'var(--font-mono, monospace)',
-                            fontWeight: 900,
-                            fontSize: '0.74rem',
-                            boxShadow: isBigMultiplier ? '0 0 10px rgba(212, 175, 55, 0.25)' : 'none',
-                          }}
-                        >
-                          {multValue}x
-                        </span>
-                      ) : (
-                        <span
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            padding: '2px 8px',
-                            borderRadius: '6px',
-                            background: 'rgba(239, 68, 68, 0.06)',
-                            border: '1px solid rgba(239, 68, 68, 0.15)',
-                            color: 'rgba(239, 68, 68, 0.65)',
-                            fontFamily: 'var(--font-mono, monospace)',
-                            fontWeight: 700,
-                            fontSize: '0.72rem',
-                          }}
-                        >
-                          0.00x
-                        </span>
-                      )}
-                    </td>
+                    const multValue = isWin ? (row.amount / 10 + 1).toFixed(2) : '0.00';
+                    const isBigMultiplier = isWin && parseFloat(multValue) >= 3.0;
 
-                    {/* Result / Profit */}
-                    <td style={{ padding: '12px 18px', textAlign: 'right' }}>
-                      <div
+                    return (
+                      <motion.tr
+                        key={row.id || idx}
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: Math.min(idx * 0.02, 0.3) }}
+                        onClick={() => onSelectRow?.(row)}
                         style={{
-                          fontFamily: 'var(--font-mono, monospace)',
-                          fontWeight: 950,
-                          fontSize: '0.88rem',
-                          color: isWin ? '#10b981' : '#ef4444',
-                          letterSpacing: '-0.01em',
-                          textShadow: isWin ? '0 0 10px rgba(16, 185, 129, 0.25)' : 'none',
-                        }}
-                      >
-                        {isWin ? '+' : '-'}${absAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </div>
-                    </td>
-
-                    {/* Balance After */}
-                    <td style={{ padding: '12px 18px', textAlign: 'right' }}>
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-mono, monospace)',
-                          fontWeight: 700,
-                          color: 'rgba(255, 255, 255, 0.6)',
-                          fontSize: '0.82rem',
-                        }}
-                      >
-                        ${row.balance_after.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
-                    </td>
-
-                    {/* Receipt Indicator: Subtiles Lucide-Vektor-Icon */}
-                    <td style={{ padding: '12px 18px', textAlign: 'right' }}>
-                      <div
-                        className="history-receipt-indicator"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          color: 'rgba(255, 255, 255, 0.35)',
-                          fontSize: '0.68rem',
-                          fontWeight: 700,
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.025)',
+                          cursor: 'pointer',
                           transition: 'all 0.15s ease',
+                          background: 'transparent',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background =
+                            'linear-gradient(90deg, rgba(212, 175, 55, 0.06) 0%, rgba(212, 175, 55, 0.01) 100%)';
+                          const indicator = e.currentTarget.querySelector('.history-receipt-indicator') as HTMLElement | null;
+                          if (indicator) {
+                            indicator.style.color = '#D4AF37';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'transparent';
+                          const indicator = e.currentTarget.querySelector('.history-receipt-indicator') as HTMLElement | null;
+                          if (indicator) {
+                            indicator.style.color = 'rgba(255, 255, 255, 0.35)';
+                          }
                         }}
                       >
-                        <ShieldCheck size={13} color="#D4AF37" />
-                        <span>Quittung</span>
-                        <ChevronRight size={12} />
-                      </div>
-                    </td>
-                  </motion.tr>
-                );
-              })}
+                        {/* Game & Category: High-Density Single Line */}
+                        <td style={{ padding: '12px 18px' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                            <div
+                              style={{
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '6px',
+                                background: 'rgba(212, 175, 55, 0.08)',
+                                border: '1px solid rgba(212, 175, 55, 0.2)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                              }}
+                            >
+                              {cfg.icon}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span style={{ fontWeight: 800, color: '#ffffff', fontSize: '0.82rem', letterSpacing: '-0.01em' }}>
+                                {cfg.name}
+                              </span>
+                              <span style={{ color: 'rgba(255, 255, 255, 0.25)', fontSize: '0.7rem' }}>•</span>
+                              <span style={{ fontSize: '0.66rem', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 700, letterSpacing: '0.04em' }}>
+                                {cfg.category}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Timestamp */}
+                        <td style={{ padding: '12px 18px', color: 'rgba(255, 255, 255, 0.6)', fontFamily: 'var(--font-mono, monospace)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                          {formatFullTime(row.created_at)}
+                        </td>
+
+                        {/* Multiplier Badge */}
+                        <td style={{ padding: '12px 18px' }}>
+                          {isWin ? (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                background: isBigMultiplier
+                                  ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.22) 0%, rgba(212, 175, 55, 0.08) 100%)'
+                                  : 'rgba(16, 185, 129, 0.12)',
+                                border: isBigMultiplier
+                                  ? '1px solid rgba(255, 215, 0, 0.5)'
+                                  : '1px solid rgba(16, 185, 129, 0.25)',
+                                color: isBigMultiplier ? '#FFD700' : '#10b981',
+                                fontFamily: 'var(--font-mono, monospace)',
+                                fontWeight: 900,
+                                fontSize: '0.74rem',
+                                boxShadow: isBigMultiplier ? '0 0 10px rgba(212, 175, 55, 0.25)' : 'none',
+                              }}
+                            >
+                              {multValue}x
+                            </span>
+                          ) : (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                background: 'rgba(239, 68, 68, 0.06)',
+                                border: '1px solid rgba(239, 68, 68, 0.15)',
+                                color: 'rgba(239, 68, 68, 0.65)',
+                                fontFamily: 'var(--font-mono, monospace)',
+                                fontWeight: 700,
+                                fontSize: '0.72rem',
+                              }}
+                            >
+                              0.00x
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Result / Profit */}
+                        <td style={{ padding: '12px 18px', textAlign: 'right' }}>
+                          <div
+                            style={{
+                              fontFamily: 'var(--font-mono, monospace)',
+                              fontWeight: 950,
+                              fontSize: '0.88rem',
+                              color: isWin ? '#10b981' : '#ef4444',
+                              letterSpacing: '-0.01em',
+                              textShadow: isWin ? '0 0 10px rgba(16, 185, 129, 0.25)' : 'none',
+                            }}
+                          >
+                            {isWin ? '+' : '-'}${absAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </div>
+                        </td>
+
+                        {/* Balance After */}
+                        <td style={{ padding: '12px 18px', textAlign: 'right' }}>
+                          <span
+                            style={{
+                              fontFamily: 'var(--font-mono, monospace)',
+                              fontWeight: 700,
+                              color: 'rgba(255, 255, 255, 0.6)',
+                              fontSize: '0.82rem',
+                            }}
+                          >
+                            ${row.balance_after.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </td>
+
+                        {/* Receipt Indicator */}
+                        <td style={{ padding: '12px 18px', textAlign: 'right' }}>
+                          <div
+                            className="history-receipt-indicator"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              color: 'rgba(255, 255, 255, 0.35)',
+                              fontSize: '0.68rem',
+                              fontWeight: 700,
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            <ShieldCheck size={13} color="#D4AF37" />
+                            <span>Quittung</span>
+                            <ChevronRight size={12} />
+                          </div>
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </React.Fragment>
+              ))}
             </AnimatePresence>
           </tbody>
         </table>

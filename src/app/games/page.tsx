@@ -491,38 +491,79 @@ function ElevatedGameCard({
               />
             )}
 
-            {/* Option-1 Transluzente Glas-Pille Hover Preview */}
+            {/* VIP Hover-Overlay mit Live-Auszahlungsquote & Schnellstart */}
             <AnimatePresence>
               {isHovered && !isMobile && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.88 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.88 }}
-                  transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    background: 'rgba(8, 8, 12, 0.28)',
+                    background: 'linear-gradient(180deg, rgba(12, 14, 20, 0.45) 0%, rgba(8, 10, 14, 0.95) 100%)',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    zIndex: 4,
-                    pointerEvents: 'none',
+                    padding: '16px',
+                    gap: '10px',
+                    zIndex: 10,
                   }}
                 >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', width: '100%', alignItems: 'center' }}>
+                    <span
+                      style={{
+                        fontSize: '0.62rem',
+                        fontWeight: 900,
+                        color: '#10b981',
+                        background: 'rgba(16, 185, 129, 0.15)',
+                        border: '1px solid rgba(16, 185, 129, 0.35)',
+                        padding: '3px 9px',
+                        borderRadius: '12px',
+                        letterSpacing: '0.04em',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      <ShieldCheck size={11} color="#10b981" />
+                      99.0% RTP • FAIR
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '0.74rem',
+                        fontWeight: 950,
+                        color: '#D4AF37',
+                        fontFamily: 'var(--font-mono, monospace)',
+                        letterSpacing: '0.02em',
+                      }}
+                    >
+                      MAX. $10,000 PAYOUT
+                    </span>
+                  </div>
+
                   <div
                     style={{
-                      padding: '7px 16px',
-                      borderRadius: '24px',
-                      background: 'rgba(12, 14, 20, 0.72)',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      border: '1px solid rgba(212, 175, 55, 0.35)',
-                      boxShadow:
-                        '0 8px 24px rgba(0, 0, 0, 0.65), 0 0 12px rgba(212, 175, 55, 0.18)',
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '10px',
+                      background: 'linear-gradient(135deg, #FFD700 0%, #D4AF37 100%)',
+                      color: '#000',
+                      fontWeight: 950,
+                      fontSize: '0.74rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      boxShadow: '0 4px 20px rgba(212, 175, 55, 0.4)',
                     }}
                   >
-                    <GameHoverPreview gameId={game.id} accentColor={game.accentColor} />
+                    <Play size={12} fill="#000" />
+                    <span>JETZT SPIELEN</span>
                   </div>
                 </motion.div>
               )}

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { LeaderboardHeroStats } from '@/components/leaderboard/LeaderboardHeroStats';
+import { LeaderboardPodium } from '@/components/leaderboard/LeaderboardPodium';
 import { LeaderboardStreamTable, LeaderRow } from '@/components/leaderboard/LeaderboardStreamTable';
 import { PersonalRankBar } from '@/components/leaderboard/PersonalRankBar';
 
@@ -121,6 +122,10 @@ export default function LeaderboardPage() {
         topWinnerName={topWinner?.username ?? ''}
         isMobile={isMobile}
       />
+
+      {!loading && rows.length >= 3 && (
+        <LeaderboardPodium topThree={rows.slice(0, 3)} isMobile={isMobile} />
+      )}
 
       <div>
         <LeaderboardStreamTable loading={loading} rows={rows} />
