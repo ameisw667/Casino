@@ -1,13 +1,33 @@
 'use client';
 
 import { useState } from 'react';
-import { Bot, Send, Sparkles, X } from 'lucide-react';
+import {
+  Bot,
+  Check,
+  CircleDot,
+  Compass,
+  Copy,
+  Crown,
+  Dices,
+  Layers,
+  Maximize2,
+  Minimize2,
+  Send,
+  ShieldCheck,
+  Sliders,
+  Sparkles,
+  Terminal,
+  TrendingUp,
+  User,
+  X,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type GuideTurn = {
   id: string;
   role: 'guide' | 'player';
   text: string;
+  time: string;
 };
 
 type CasinoGuidePanelProps = {
@@ -15,11 +35,103 @@ type CasinoGuidePanelProps = {
   onOpen: () => void;
 };
 
+const getCurrentTime = () =>
+  new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
 const INITIAL_TURN: GuideTurn = {
   id: 'royale-guide-intro',
   role: 'guide',
-  text: 'I’m Royale Guide, an AI casino guide. Ask me about game rules, navigation, or chat commands.',
+  text: 'Willkommen bei Royale Guide, deinem persönlichen KI-Casino-Assistenten. Wähle ein Schnellthema oder frage mich zu Spielregeln, VIP-Rängen, Limits oder Navigation.',
+  time: getCurrentTime(),
 };
+
+const QUICK_CHIPS = [
+  {
+    label: 'Blackjack',
+    query: 'Wie funktioniert Split und Double Down bei Blackjack?',
+    icon: Layers,
+  },
+  {
+    label: 'Crash',
+    query: 'Wie berechnet sich der Crash Multiplikator und Cashout?',
+    icon: TrendingUp,
+  },
+  { label: 'VIP Ränge', query: 'Welche VIP-Stufen und Rakeback-Vorteile gibt es?', icon: Crown },
+  {
+    label: 'Provably Fair',
+    query: 'Wie funktioniert das Provably Fair Seed-System?',
+    icon: ShieldCheck,
+  },
+  { label: 'Navigation', query: 'Wo finde ich meine Wetthistorie und den Tresor?', icon: Compass },
+] as const;
+
+const SIDEBAR_TOPICS = [
+  {
+    category: 'Spiele & Regeln',
+    items: [
+      {
+        label: 'Blackjack Regeln',
+        query: 'Wie funktioniert Split und Double Down bei Blackjack?',
+        icon: Layers,
+      },
+      {
+        label: 'Crash Multiplikator',
+        query: 'Wie berechnet sich der Crash Multiplikator und Cashout?',
+        icon: TrendingUp,
+      },
+      {
+        label: 'Roulette Quoten',
+        query: 'Welche Auszahlungsquoten haben Straight und Farben bei Roulette?',
+        icon: CircleDot,
+      },
+      {
+        label: 'Dice Wahrscheinlichkeit',
+        query: 'Wie funktioniert Roll Under und der Multiplikator bei Dice?',
+        icon: Dices,
+      },
+      {
+        label: 'Slots Walzen & 7s',
+        query: 'Welche Symbol-Hierarchie und Auszahlungslinien gibt es bei Slots?',
+        icon: Sparkles,
+      },
+    ],
+  },
+  {
+    category: 'VIP & Fairness',
+    items: [
+      {
+        label: 'VIP Ränge & Level',
+        query: 'Welche VIP-Stufen und Rakeback-Vorteile gibt es?',
+        icon: Crown,
+      },
+      {
+        label: 'Provably Fair Seed',
+        query: 'Wie funktioniert das Provably Fair Seed-System?',
+        icon: ShieldCheck,
+      },
+      {
+        label: 'Einsatz-Limits',
+        query: 'Wie hoch sind die Mindest- und Maximaleinsätze?',
+        icon: Sliders,
+      },
+    ],
+  },
+  {
+    category: 'Plattform',
+    items: [
+      {
+        label: 'Navigation & Menü',
+        query: 'Wo finde ich meine Wetthistorie und den Tresor?',
+        icon: Compass,
+      },
+      {
+        label: 'Chat-Befehle',
+        query: 'Welche Chat-Befehle wie /help oder /stats gibt es?',
+        icon: Terminal,
+      },
+    ],
+  },
+] as const;
 
 function nextTurnId(role: GuideTurn['role']): string {
   return `${role}-${crypto.randomUUID()}`;
@@ -27,24 +139,37 @@ function nextTurnId(role: GuideTurn['role']): string {
 
 export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [draft, setDraft] = useState('');
   const [turns, setTurns] = useState<GuideTurn[]>([INITIAL_TURN]);
   const [isSending, setIsSending] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const openPanel = () => {
     onOpen();
     setIsOpen(true);
   };
 
-  const sendQuestion = async () => {
-    const message = draft.trim();
+  const copyToClipboard = async (id: string, text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      // Ignore clipboard write failures
+    }
+  };
+
+  const sendQuestion = async (customMessage?: string) => {
+    const message = (customMessage ?? draft).trim();
     if (!message || isSending) return;
 
+    const time = getCurrentTime();
     setTurns((current) => [
       ...current,
-      { id: nextTurnId('player'), role: 'player', text: message },
+      { id: nextTurnId('player'), role: 'player', text: message, time },
     ]);
-    setDraft('');
+    if (!customMessage) setDraft('');
     setIsSending(true);
 
     try {
@@ -59,20 +184,25 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
           ? payload.answer
           : undefined;
 
+      const replyTime = getCurrentTime();
       if (!response.ok || typeof answer !== 'string' || !answer.trim()) {
-        let text = 'Royale Guide is temporarily unavailable. Please try again in a moment.';
+        let text =
+          'Royale Guide ist vorübergehend nicht erreichbar. Bitte versuche es gleich erneut.';
         if (response.status === 401) {
-          text = 'Please sign in to use Royale Guide.';
+          text = 'Bitte melde dich an, um Royale Guide zu nutzen.';
         } else if (response.status === 429) {
-          text = 'Too many requests. Please wait a moment.';
+          text = 'Zu viele Anfragen. Bitte warte einen kurzen Moment.';
         }
-        setTurns((current) => [...current, { id: nextTurnId('guide'), role: 'guide', text }]);
+        setTurns((current) => [
+          ...current,
+          { id: nextTurnId('guide'), role: 'guide', text, time: replyTime },
+        ]);
         return;
       }
 
       setTurns((current) => [
         ...current,
-        { id: nextTurnId('guide'), role: 'guide', text: answer.trim() },
+        { id: nextTurnId('guide'), role: 'guide', text: answer.trim(), time: replyTime },
       ]);
     } catch {
       setTurns((current) => [
@@ -80,7 +210,8 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
         {
           id: nextTurnId('guide'),
           role: 'guide',
-          text: 'Royale Guide is temporarily unavailable. Please try again in a moment.',
+          text: 'Royale Guide ist vorübergehend nicht erreichbar. Bitte versuche es gleich erneut.',
+          time: getCurrentTime(),
         },
       ]);
     } finally {
@@ -92,10 +223,20 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
 
   return (
     <>
+      {/* Floating Trigger Button (Option 1A) */}
       <motion.button
         type="button"
         aria-label="Open Royale Guide"
-        whileHover={{ scale: 1.02 }}
+        animate={{
+          scale: [1, 1.03, 1],
+          boxShadow: [
+            '0 8px 24px hsla(45, 90%, 55%, 0.22), inset 0 1px 0 hsla(45, 100%, 75%, 0.2)',
+            '0 14px 36px hsla(45, 90%, 55%, 0.44), inset 0 1px 0 hsla(45, 100%, 75%, 0.35)',
+            '0 8px 24px hsla(45, 90%, 55%, 0.22), inset 0 1px 0 hsla(45, 100%, 75%, 0.2)',
+          ],
+        }}
+        transition={{ repeat: Infinity, duration: 2.8, ease: 'easeInOut' }}
+        whileHover={{ scale: 1.06, boxShadow: '0 16px 40px hsla(45, 90%, 55%, 0.55)' }}
         whileTap={{ scale: 0.95 }}
         onClick={openPanel}
         style={{
@@ -105,213 +246,617 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
           zIndex: 46,
           display: isOpen ? 'none' : 'inline-flex',
           alignItems: 'center',
-          gap: '8px',
-          border: '1px solid hsla(var(--primary), 0.32)',
+          gap: '9px',
+          border: '1px solid hsla(var(--primary), 0.45)',
           borderRadius: '999px',
-          padding: '10px 14px',
-          background: 'hsla(var(--bg-color), 0.84)',
-          backdropFilter: 'blur(14px)',
-          boxShadow: '0 12px 30px hsla(0, 0%, 0%, 0.28)',
+          padding: '12px 18px',
+          background: 'hsla(var(--bg-color), 0.88)',
+          backdropFilter: 'blur(16px)',
           color: 'hsl(var(--text-main))',
           cursor: 'pointer',
-          fontSize: '0.72rem',
+          fontSize: '0.74rem',
           fontWeight: 800,
-          letterSpacing: '0.06em',
+          letterSpacing: '0.07em',
           textTransform: 'uppercase',
         }}
       >
-        <Sparkles size={15} color="hsl(var(--primary))" aria-hidden />
-        Royale Guide
+        <Sparkles size={16} color="hsl(var(--primary))" aria-hidden />
+        <span>Royale Guide</span>
+        <span
+          style={{
+            fontSize: '0.62rem',
+            lineHeight: 1,
+            padding: '3px 6px',
+            borderRadius: '6px',
+            background: 'hsla(var(--primary), 0.18)',
+            border: '1px solid hsla(var(--primary), 0.35)',
+            color: 'hsl(var(--primary))',
+            fontWeight: 900,
+            letterSpacing: '0.04em',
+          }}
+        >
+          AI
+        </span>
+        <span
+          style={{
+            width: '7px',
+            height: '7px',
+            borderRadius: '50%',
+            background: '#10b981',
+            boxShadow: '0 0 8px #10b981',
+          }}
+          aria-hidden
+        />
       </motion.button>
 
+      {/* Backdrop for Expanded Center-Modal */}
+      <AnimatePresence>
+        {isOpen && isExpanded && !isMobile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsExpanded(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 45,
+              background: 'hsla(0, 0%, 0%, 0.65)',
+              backdropFilter: 'blur(8px)',
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Chat Panel / Modal */}
       <AnimatePresence>
         {isOpen && (
           <motion.section
             aria-label="Royale Guide"
-            initial={{ opacity: 0, y: 16, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.98 }}
-            transition={{ type: 'spring', bounce: 0.25, duration: 0.36 }}
+            initial={{ opacity: 0, scale: 0.96, y: isExpanded ? 0 : 16 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: 0,
+              ...(isExpanded && !isMobile
+                ? {
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 'min(880px, calc(100vw - 32px))',
+                    height: 'min(680px, calc(100dvh - 48px))',
+                  }
+                : {
+                    right: isMobile ? '12px' : '24px',
+                    bottom: panelBottom,
+                    width: isMobile ? 'calc(100% - 24px)' : '380px',
+                    height: isMobile ? 'calc(100dvh - 112px)' : 'min(640px, calc(100dvh - 48px))',
+                  }),
+            }}
+            exit={{ opacity: 0, scale: 0.96, y: 16 }}
+            transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }}
             style={{
               position: 'fixed',
-              right: isMobile ? '12px' : '24px',
-              bottom: panelBottom,
               zIndex: 46,
-              width: isMobile ? 'calc(100% - 24px)' : '360px',
-              maxHeight: isMobile ? 'calc(100dvh - 112px)' : 'min(620px, calc(100dvh - 48px))',
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
-              border: '1px solid hsla(var(--primary), 0.24)',
-              borderRadius: '18px',
-              background: 'hsla(var(--bg-color), 0.92)',
-              backdropFilter: 'blur(18px)',
-              boxShadow: '0 18px 48px hsla(0, 0%, 0%, 0.42)',
+              border: '1px solid hsla(var(--primary), 0.32)',
+              borderRadius: '20px',
+              background: 'hsla(var(--bg-color), 0.94)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: '0 24px 60px hsla(0, 0%, 0%, 0.65), 0 0 1px hsla(var(--primary), 0.45)',
               color: 'hsl(var(--text-main))',
             }}
           >
+            {/* Header */}
             <header
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
+                gap: '11px',
                 padding: '14px 16px',
-                borderBottom: '1px solid hsla(var(--primary), 0.14)',
+                borderBottom: '1px solid hsla(var(--primary), 0.16)',
+                background: 'hsla(var(--primary), 0.04)',
               }}
             >
-              <span
+              <div
                 style={{
                   display: 'grid',
                   placeItems: 'center',
-                  width: '30px',
-                  height: '30px',
+                  width: '32px',
+                  height: '32px',
                   borderRadius: '50%',
-                  background: 'hsla(var(--primary), 0.14)',
+                  background: 'hsla(var(--primary), 0.16)',
+                  border: '1px solid hsla(var(--primary), 0.4)',
                   color: 'hsl(var(--primary))',
+                  flexShrink: 0,
                 }}
               >
-                <Bot size={16} aria-hidden />
-              </span>
-              <span style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                <strong style={{ fontSize: '0.82rem', letterSpacing: '0.04em' }}>
-                  Royale Guide
-                </strong>
-                <span style={{ fontSize: '0.64rem', color: 'hsl(var(--text-muted))' }}>
-                  AI casino guide
+                <Bot size={17} aria-hidden />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <strong style={{ fontSize: '0.84rem', letterSpacing: '0.04em' }}>
+                    Royale Guide
+                  </strong>
+                  <span
+                    style={{
+                      fontSize: '0.6rem',
+                      lineHeight: 1,
+                      padding: '2px 5px',
+                      borderRadius: '4px',
+                      background: 'hsla(var(--primary), 0.18)',
+                      border: '1px solid hsla(var(--primary), 0.35)',
+                      color: 'hsl(var(--primary))',
+                      fontWeight: 800,
+                    }}
+                  >
+                    AI
+                  </span>
+                </div>
+                <span style={{ fontSize: '0.66rem', color: 'hsl(var(--text-muted))' }}>
+                  {isExpanded ? 'Casino AI Assistant & Knowledge Hub' : 'Casino AI Assistant'}
                 </span>
-              </span>
-              <motion.button
-                type="button"
-                aria-label="Close Royale Guide"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsOpen(false)}
-                style={{
-                  marginLeft: 'auto',
-                  display: 'grid',
-                  placeItems: 'center',
-                  width: '30px',
-                  height: '30px',
-                  border: '1px solid var(--glass-border)',
-                  borderRadius: '8px',
-                  background: 'hsla(var(--bg-color), 0.46)',
-                  backdropFilter: 'blur(10px)',
-                  color: 'hsl(var(--text-main))',
-                  cursor: 'pointer',
-                }}
-              >
-                <X size={15} aria-hidden />
-              </motion.button>
-            </header>
+              </div>
 
-            <div
-              aria-live="polite"
-              style={{
-                display: 'flex',
-                flex: 1,
-                flexDirection: 'column',
-                gap: '10px',
-                overflowY: 'auto',
-                padding: '16px',
-              }}
-            >
-              {turns.map((turn) => (
-                <div
-                  key={turn.id}
+              <div
+                style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                {/* Maximize / Minimize Button (Option 3A) */}
+                {!isMobile && (
+                  <motion.button
+                    type="button"
+                    aria-label={isExpanded ? 'Verkleinern' : 'Vergrößern'}
+                    title={
+                      isExpanded ? 'Auf Standardgröße verkleinern' : '2-Spalten Großansicht öffnen'
+                    }
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    style={{
+                      display: 'grid',
+                      placeItems: 'center',
+                      width: '30px',
+                      height: '30px',
+                      border: '1px solid var(--glass-border)',
+                      borderRadius: '8px',
+                      background: isExpanded
+                        ? 'hsla(var(--primary), 0.18)'
+                        : 'hsla(var(--bg-color), 0.46)',
+                      color: isExpanded ? 'hsl(var(--primary))' : 'hsl(var(--text-main))',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                  </motion.button>
+                )}
+
+                {/* Close Button */}
+                <motion.button
+                  type="button"
+                  aria-label="Close Royale Guide"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setIsOpen(false);
+                    setIsExpanded(false);
+                  }}
                   style={{
-                    alignSelf: turn.role === 'player' ? 'flex-end' : 'flex-start',
-                    maxWidth: '88%',
-                    border: `1px solid ${
-                      turn.role === 'player'
-                        ? 'hsla(var(--primary), 0.3)'
-                        : 'hsla(0, 0%, 100%, 0.08)'
-                    }`,
-                    borderRadius: '12px',
-                    background:
-                      turn.role === 'player'
-                        ? 'hsla(var(--primary), 0.13)'
-                        : 'hsla(var(--bg-color), 0.56)',
-                    padding: '9px 11px',
-                    color:
-                      turn.role === 'player' ? 'hsl(var(--text-main))' : 'hsl(var(--text-muted))',
-                    fontSize: '0.82rem',
-                    lineHeight: 1.45,
+                    display: 'grid',
+                    placeItems: 'center',
+                    width: '30px',
+                    height: '30px',
+                    border: '1px solid var(--glass-border)',
+                    borderRadius: '8px',
+                    background: 'hsla(var(--bg-color), 0.46)',
+                    backdropFilter: 'blur(10px)',
+                    color: 'hsl(var(--text-main))',
+                    cursor: 'pointer',
                   }}
                 >
-                  {turn.text}
-                </div>
-              ))}
-              {isSending && (
-                <span style={{ color: 'hsl(var(--text-muted))', fontSize: '0.75rem' }}>
-                  Royale Guide is thinking…
-                </span>
-              )}
-            </div>
+                  <X size={15} aria-hidden />
+                </motion.button>
+              </div>
+            </header>
 
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                void sendQuestion();
-              }}
-              style={{
-                display: 'flex',
-                gap: '8px',
-                padding: '12px',
-                borderTop: '1px solid var(--glass-border)',
-                background: 'hsla(var(--bg-color), 0.5)',
-              }}
-            >
-              <textarea
-                aria-label="Ask Royale Guide"
-                value={draft}
-                onChange={(event) => setDraft(event.target.value.slice(0, 500))}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' && !event.shiftKey) {
+            {/* Main Content Area (2-Columns in Expanded Mode) */}
+            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+              {/* Left Sidebar (Only in Expanded Mode) */}
+              {isExpanded && !isMobile && (
+                <aside
+                  style={{
+                    width: '240px',
+                    borderRight: '1px solid hsla(var(--primary), 0.14)',
+                    background: 'hsla(var(--primary), 0.02)',
+                    padding: '14px',
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px',
+                    flexShrink: 0,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
+                      color: 'hsl(var(--primary))',
+                    }}
+                  >
+                    Themen & Schnellzugriff
+                  </div>
+
+                  {SIDEBAR_TOPICS.map((group) => (
+                    <div
+                      key={group.category}
+                      style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '0.64rem',
+                          fontWeight: 700,
+                          color: 'hsl(var(--text-muted))',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em',
+                        }}
+                      >
+                        {group.category}
+                      </span>
+                      {group.items.map((item) => {
+                        const IconComponent = item.icon;
+                        return (
+                          <motion.button
+                            key={item.label}
+                            type="button"
+                            whileHover={{ x: 3, backgroundColor: 'hsla(var(--primary), 0.1)' }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => void sendQuestion(item.query)}
+                            disabled={isSending}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              width: '100%',
+                              textAlign: 'left',
+                              padding: '6px 8px',
+                              borderRadius: '8px',
+                              border: '1px solid transparent',
+                              background: 'transparent',
+                              color: 'hsl(var(--text-main))',
+                              fontSize: '0.74rem',
+                              fontWeight: 500,
+                              cursor: isSending ? 'not-allowed' : 'pointer',
+                            }}
+                          >
+                            <IconComponent
+                              size={13}
+                              color="hsl(var(--primary))"
+                              style={{ flexShrink: 0 }}
+                            />
+                            <span
+                              style={{
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {item.label}
+                            </span>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  ))}
+
+                  <div
+                    style={{
+                      marginTop: 'auto',
+                      padding: '10px',
+                      borderRadius: '10px',
+                      background: 'hsla(var(--primary), 0.05)',
+                      border: '1px solid hsla(var(--primary), 0.15)',
+                      fontSize: '0.64rem',
+                      color: 'hsl(var(--text-muted))',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    <strong
+                      style={{
+                        color: 'hsl(var(--primary))',
+                        display: 'block',
+                        marginBottom: '2px',
+                      }}
+                    >
+                      Hybrid RAG v2026.08
+                    </strong>
+                    Antwortet aus 10 verifizierten Casino-Dokumenten mit Provably-Fair-Garantie.
+                  </div>
+                </aside>
+              )}
+
+              {/* Right Chat Column */}
+              <div
+                style={{ display: 'flex', flex: 1, flexDirection: 'column', overflow: 'hidden' }}
+              >
+                {/* Messages Container */}
+                <div
+                  aria-live="polite"
+                  style={{
+                    display: 'flex',
+                    flex: 1,
+                    flexDirection: 'column',
+                    gap: '14px',
+                    overflowY: 'auto',
+                    padding: '16px',
+                  }}
+                >
+                  {turns.map((turn) => (
+                    <div
+                      key={turn.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '9px',
+                        flexDirection: turn.role === 'player' ? 'row-reverse' : 'row',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '26px',
+                          height: '26px',
+                          borderRadius: '50%',
+                          background:
+                            turn.role === 'guide'
+                              ? 'hsla(var(--primary), 0.16)'
+                              : 'hsla(0, 0%, 100%, 0.1)',
+                          border: `1px solid ${
+                            turn.role === 'guide'
+                              ? 'hsla(var(--primary), 0.45)'
+                              : 'var(--glass-border)'
+                          }`,
+                          color:
+                            turn.role === 'guide' ? 'hsl(var(--primary))' : 'hsl(var(--text-main))',
+                          display: 'grid',
+                          placeItems: 'center',
+                          flexShrink: 0,
+                          marginTop: '2px',
+                        }}
+                      >
+                        {turn.role === 'guide' ? <Bot size={14} /> : <User size={13} />}
+                      </div>
+
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px',
+                          maxWidth: isExpanded ? '75%' : '84%',
+                          alignItems: turn.role === 'player' ? 'flex-end' : 'flex-start',
+                        }}
+                      >
+                        <div
+                          style={{
+                            border: `1px solid ${
+                              turn.role === 'player'
+                                ? 'hsla(var(--primary), 0.35)'
+                                : 'hsla(0, 0%, 100%, 0.1)'
+                            }`,
+                            borderRadius: '14px',
+                            background:
+                              turn.role === 'player'
+                                ? 'hsla(var(--primary), 0.15)'
+                                : 'hsla(var(--bg-color), 0.65)',
+                            padding: '10px 14px',
+                            color:
+                              turn.role === 'player'
+                                ? 'hsl(var(--text-main))'
+                                : 'hsl(var(--text-muted))',
+                            fontSize: '0.82rem',
+                            lineHeight: 1.48,
+                            boxShadow: '0 4px 12px hsla(0, 0%, 0%, 0.18)',
+                            whiteSpace: 'pre-wrap',
+                          }}
+                        >
+                          {turn.text}
+                        </div>
+
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '0 4px',
+                          }}
+                        >
+                          <span style={{ fontSize: '0.62rem', color: 'hsl(var(--text-muted))' }}>
+                            {turn.time}
+                          </span>
+                          {turn.role === 'guide' && (
+                            <button
+                              type="button"
+                              aria-label="Copy answer to clipboard"
+                              onClick={() => copyToClipboard(turn.id, turn.text)}
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: copiedId === turn.id ? '#10b981' : 'hsl(var(--text-muted))',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                fontSize: '0.62rem',
+                                padding: '2px 4px',
+                                borderRadius: '4px',
+                              }}
+                            >
+                              {copiedId === turn.id ? (
+                                <>
+                                  <Check size={11} /> Kopiert
+                                </>
+                              ) : (
+                                <>
+                                  <Copy size={11} /> Kopieren
+                                </>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {isSending && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '9px',
+                        alignSelf: 'flex-start',
+                        padding: '8px 12px',
+                        borderRadius: '12px',
+                        background: 'hsla(var(--bg-color), 0.65)',
+                        border: '1px solid hsla(var(--primary), 0.2)',
+                      }}
+                    >
+                      <Bot size={14} color="hsl(var(--primary))" />
+                      <span style={{ fontSize: '0.74rem', color: 'hsl(var(--text-muted))' }}>
+                        Royale Guide analysiert Spielregeln
+                      </span>
+                      <div style={{ display: 'flex', gap: '3px' }}>
+                        {[0, 1, 2].map((i) => (
+                          <motion.span
+                            key={i}
+                            animate={{ y: [0, -4, 0] }}
+                            transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.18 }}
+                            style={{
+                              width: '4px',
+                              height: '4px',
+                              borderRadius: '50%',
+                              background: 'hsl(var(--primary))',
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick-Chips bar (in standard mode) */}
+                {!isExpanded && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '6px',
+                      padding: '8px 12px',
+                      overflowX: 'auto',
+                      borderTop: '1px solid hsla(var(--primary), 0.1)',
+                      background: 'hsla(var(--primary), 0.02)',
+                    }}
+                  >
+                    {QUICK_CHIPS.map((chip) => {
+                      const IconComponent = chip.icon;
+                      return (
+                        <motion.button
+                          key={chip.label}
+                          type="button"
+                          whileHover={{ scale: 1.04 }}
+                          whileTap={{ scale: 0.96 }}
+                          onClick={() => void sendQuestion(chip.query)}
+                          disabled={isSending}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            whiteSpace: 'nowrap',
+                            padding: '5px 9px',
+                            borderRadius: '8px',
+                            background: 'hsla(var(--bg-color), 0.7)',
+                            border: '1px solid hsla(var(--primary), 0.22)',
+                            color: 'hsl(var(--text-main))',
+                            fontSize: '0.7rem',
+                            fontWeight: 600,
+                            cursor: isSending ? 'not-allowed' : 'pointer',
+                            opacity: isSending ? 0.6 : 1,
+                          }}
+                        >
+                          <IconComponent size={12} color="hsl(var(--primary))" />
+                          <span>{chip.label}</span>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Input Form */}
+                <form
+                  onSubmit={(event) => {
                     event.preventDefault();
                     void sendQuestion();
-                  }
-                }}
-                disabled={isSending}
-                maxLength={500}
-                placeholder="Ask about rules, navigation, or commands…"
-                rows={2}
-                style={{
-                  flex: 1,
-                  resize: 'none',
-                  border: '1px solid var(--glass-border)',
-                  borderRadius: '10px',
-                  background: 'hsla(var(--bg-color), 0.42)',
-                  backdropFilter: 'blur(10px)',
-                  color: 'hsl(var(--text-main))',
-                  outline: 'none',
-                  padding: '9px 10px',
-                  fontFamily: 'inherit',
-                  fontSize: '0.8rem',
-                }}
-              />
-              <motion.button
-                type="submit"
-                aria-label="Send question to Royale Guide"
-                disabled={isSending || !draft.trim()}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.95 }}
-                style={{
-                  alignSelf: 'flex-end',
-                  display: 'grid',
-                  placeItems: 'center',
-                  width: '40px',
-                  height: '40px',
-                  border: 'none',
-                  borderRadius: '10px',
-                  background: 'hsl(var(--primary))',
-                  color: 'hsl(var(--bg-color))',
-                  cursor: isSending || !draft.trim() ? 'not-allowed' : 'pointer',
-                  opacity: isSending || !draft.trim() ? 0.5 : 1,
-                }}
-              >
-                <Send size={16} aria-hidden />
-              </motion.button>
-            </form>
+                  }}
+                  style={{
+                    display: 'flex',
+                    gap: '8px',
+                    padding: '12px',
+                    borderTop: '1px solid var(--glass-border)',
+                    background: 'hsla(var(--bg-color), 0.5)',
+                  }}
+                >
+                  <textarea
+                    aria-label="Ask Royale Guide"
+                    value={draft}
+                    onChange={(event) => setDraft(event.target.value.slice(0, 500))}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault();
+                        void sendQuestion();
+                      }
+                    }}
+                    disabled={isSending}
+                    maxLength={500}
+                    placeholder="Frage zu Regeln, VIP, Limits oder Navigation…"
+                    rows={2}
+                    style={{
+                      flex: 1,
+                      resize: 'none',
+                      border: '1px solid var(--glass-border)',
+                      borderRadius: '10px',
+                      background: 'hsla(var(--bg-color), 0.42)',
+                      backdropFilter: 'blur(10px)',
+                      color: 'hsl(var(--text-main))',
+                      outline: 'none',
+                      padding: '9px 10px',
+                      fontFamily: 'inherit',
+                      fontSize: '0.8rem',
+                    }}
+                  />
+                  <motion.button
+                    type="submit"
+                    aria-label="Send question to Royale Guide"
+                    disabled={isSending || !draft.trim()}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.95 }}
+                    style={{
+                      alignSelf: 'flex-end',
+                      display: 'grid',
+                      placeItems: 'center',
+                      width: '40px',
+                      height: '40px',
+                      border: 'none',
+                      borderRadius: '10px',
+                      background: 'hsl(var(--primary))',
+                      color: 'hsl(var(--bg-color))',
+                      cursor: isSending || !draft.trim() ? 'not-allowed' : 'pointer',
+                      opacity: isSending || !draft.trim() ? 0.5 : 1,
+                    }}
+                  >
+                    <Send size={16} aria-hidden />
+                  </motion.button>
+                </form>
+              </div>
+            </div>
           </motion.section>
         )}
       </AnimatePresence>
