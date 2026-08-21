@@ -1,7 +1,7 @@
 # 10 — Royale Guide & LLM-Erweiterung Roadmap
 
 > Stand: **2026-08-21**  
-> Status: 🟡 **Stufen A–G + K Executed / Offene Roadmap (Stufen H, I, J, L, M & Init. 20.2) Geplant**  
+> Status: 🟡 **Stufen A–G + K Executed / Offene Roadmap (Stufen H, I, L, M) Geplant**  
 > Projekt: **Casino / Next.js 16.3 / OpenAI Responses API (`gpt-4o-mini` + `text-embedding-3-small`) / SSE Streams / Supabase pgvector / Recharts**  
 > Verzeichnis: [`Z_LLM/`](file:///v:/VibeCoding/Casino/Z_LLM/)  
 > Bezug: [`worldmap/05_ZUKUNFTSPLANUNG.md`](file:///v:/VibeCoding/Casino/worldmap/05_ZUKUNFTSPLANUNG.md) — **Tracking-Quelle** für alle LLM-, Guide- und Moderations-Funktionen.  
@@ -26,12 +26,10 @@
 
 > **Erste Übersichtstabelle:** Zeigt alle offenen Ausbaustufen zur Steigerung von Top 6% auf Top 1% Branchen-Niveau.
 
-| Stufe / Nr. | Meilenstein / Initiative | Status | Ziel & Funktion (1 Satz) | Aufwand (1–100) | Risiko (1–100) | Impact (1–100) | Lerneffekt |
+| Stufe / Nr. | Meilenstein | Status | Ziel & Funktion (1 Satz) | Aufwand (1–100) | Risiko (1–100) | Impact (1–100) | Lerneffekt |
 | :--- | :--- | :---: | :--- | :---: | :---: | :---: | :--- |
 | **Stufe H** | **UI-Aktionssteuerung per Tool Calling** | 🔴 Geplant | LLM öffnet Modals (`/vault`, `/history`, `/settings`) oder navigiert Seiten autonom auf Nutzeranfrage. | 35 | 12 | 88 | Hoch |
-| **Init. 20.2**| **Automatische Chat-Moderation & Toxic-Filter** | 🔴 Geplant | Asynchrone Echtzeit-Prüfung aller Global-Chat-Nachrichten via OpenAI Moderation API (< 80 ms). | 25 | 8 | 80 | Mittel |
 | **Stufe I** | **Dynamische Follow-up Suggestion Chips** | 🔴 Geplant | Generiert 2–3 passende Anschlussfragen als klickbare Quick-Chips nach jeder Bot-Antwort. | 20 | 5 | 75 | Mittel |
-| **Stufe J** | **Proaktive Assistenten-Trigger** | 🔴 Geplant | Event-gesteuerte Hilfestellungs-Badges bei Pechsträhnen (3x Loss in Folge) oder neuem VIP-Tier. | 28 | 10 | 78 | Hoch |
 | **Stufe L** | **Multimodale Spielanalyse (Vision)** | 🔴 Geplant | Screenshot-Upload für Spielrunden mit visueller Erklärung des Spielergebnisses via `gpt-4o`. | 48 | 15 | 82 | Sehr Hoch |
 | **Stufe M** | **Voice / Audio-Interface (Whisper + TTS)** | 🔴 Geplant | Sprachgesteuerte Ein- und Ausgabe im Royale-Guide-Orb via Web Audio API. | 50 | 15 | 80 | Sehr Hoch |
 
@@ -83,12 +81,6 @@
 - **Implementierung:**
   - Client-seitiger Action-Dispatcher in Zustand (`useCasinoStore`).
   - Read-Only Action-Tool `execute_ui_action({ action: 'open_vault' | 'open_history' | 'open_rank_benefits' | 'navigate_game', target?: string })`.
-
-### Initiative 20.2: Automatische Chat-Moderation & Toxic-Filter
-- **Ziel:** Automatischer Schutz des globalen Spieler-Chats vor Beleidigungen, Spam und Phishing.
-- **Implementierung:**
-  - Server-Prüfung in `/api/chat` via OpenAI Moderations-API (`omni-moderation-latest`).
-  - Score-Schwellenwert > 0.8 führt zu automatischer Ablehnung und Risk-Event-Eintrag (`risk_events` Tabelle).
 
 ---
 
