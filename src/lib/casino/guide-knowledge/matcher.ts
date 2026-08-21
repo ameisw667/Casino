@@ -156,7 +156,7 @@ export function tokenizeQuery(query: string): string[] {
 
   const rawWords = normalized
     .split(/\s+/)
-    .map((word) => word.trim())
+    .map((word) => word.replace(/^-+|-+$/g, '').trim())
     .filter((word) => word.length >= 2);
 
   const tokenSet = new Set<string>();
@@ -169,9 +169,9 @@ export function tokenizeQuery(query: string): string[] {
     // 1. Sub-word splitting for hyphenated terms (e.g. 'vip-stufen' -> 'vip', 'stufen')
     if (word.includes('-')) {
       for (const part of word.split('-')) {
-        const trimmed = part.trim();
-        if (trimmed.length >= 2 && !STOP_WORDS.has(trimmed)) {
-          tokenSet.add(trimmed);
+        const cleanPart = part.replace(/^-+|-+$/g, '').trim();
+        if (cleanPart.length >= 2 && !STOP_WORDS.has(cleanPart)) {
+          tokenSet.add(cleanPart);
         }
       }
     }
@@ -191,9 +191,12 @@ export function tokenizeQuery(query: string): string[] {
     for (const prefix of compoundPrefixes) {
       if (word.startsWith(prefix) && word.length >= prefix.length + 3) {
         if (!STOP_WORDS.has(prefix)) tokenSet.add(prefix);
-        const remainder = word.slice(prefix.length);
+        const remainder = word.slice(prefix.length).replace(/^-+|-+$/g, '');
         if (remainder.length >= 2 && !STOP_WORDS.has(remainder)) {
           tokenSet.add(remainder);
+          if (remainder.startsWith('einsatz') || remainder.startsWith('einsätz')) {
+            tokenSet.add('einsatz');
+          }
         }
       }
     }

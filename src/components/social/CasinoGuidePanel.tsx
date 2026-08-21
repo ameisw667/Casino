@@ -133,32 +133,47 @@ const SIDEBAR_TOPICS = [
   },
 ] as const;
 
+function cleanLatexMath(text: string): string {
+  return text
+    .replace(/\\text\{([^}]+)\}/g, '$1')
+    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1 / $2')
+    .replace(/\\[\[\]()]/g, '')
+    .trim();
+}
+
 function parseInlineMarkdown(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
-  const regex = /(\*\*.*?\*\*|`.*?`)/g;
-  const tokens = text.split(regex);
+  const cleaned = text.replace(/\\text\{([^}]+)\}/g, '$1');
+  const regex = /(\*\*.*?\*\*|\*.*?\*|`.*?`)/g;
+  const tokens = cleaned.split(regex);
 
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i];
     if (!token) continue;
-    if (token.startsWith('**') && token.endsWith('**')) {
+    if (token.startsWith('**') && token.endsWith('**') && token.length > 4) {
       parts.push(
         <strong key={i} style={{ color: 'hsl(var(--primary))', fontWeight: 700 }}>
           {token.slice(2, -2)}
         </strong>,
       );
-    } else if (token.startsWith('`') && token.endsWith('`')) {
+    } else if (token.startsWith('*') && token.endsWith('*') && token.length > 2) {
+      parts.push(
+        <em key={i} style={{ fontStyle: 'italic', color: 'hsl(var(--text-main))' }}>
+          {token.slice(1, -1)}
+        </em>,
+      );
+    } else if (token.startsWith('`') && token.endsWith('`') && token.length > 2) {
       parts.push(
         <code
           key={i}
           style={{
-            padding: '1px 5px',
+            padding: '1.5px 6px',
             borderRadius: '4px',
             background: 'hsla(var(--primary), 0.15)',
-            border: '1px solid hsla(var(--primary), 0.25)',
+            border: '1px solid hsla(var(--primary), 0.28)',
             color: 'hsl(var(--primary))',
             fontFamily: 'monospace',
-            fontSize: '0.76rem',
+            fontSize: '0.78rem',
           }}
         >
           {token.slice(1, -1)}
@@ -206,7 +221,7 @@ function MarkdownMessage({ content }: { content: string }) {
           style={{
             width: '100%',
             borderCollapse: 'collapse',
-            fontSize: '0.74rem',
+            fontSize: '0.78rem',
             textAlign: 'left',
           }}
         >
@@ -241,7 +256,7 @@ function MarkdownMessage({ content }: { content: string }) {
                   <td
                     key={cIdx}
                     style={{
-                      padding: '5px 10px',
+                      padding: '6px 10px',
                       color: 'hsl(var(--text-main))',
                     }}
                   >
@@ -264,10 +279,12 @@ function MarkdownMessage({ content }: { content: string }) {
         key={`list-${keyIndex}`}
         style={{
           margin: '6px 0',
-          paddingLeft: '16px',
+          paddingLeft: '18px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '4px',
+          gap: '5px',
+          fontSize: '0.80rem',
+          lineHeight: 1.55,
         }}
       >
         {listBuffer.map((item, lIdx) => (
@@ -304,14 +321,61 @@ function MarkdownMessage({ content }: { content: string }) {
       flushList(i);
     }
 
-    // Empty line / Paragraph separation
-    if (!trimmed) {
+    // Empty line / separator
+    if (!trimmed || trimmed === '-') {
+      continue;
+    }
+
+    // Heading detection (#, ##, ###, ####)
+    if (/^#{1,4}\s+/.test(trimmed)) {
+      const headingText = trimmed.replace(/^#{1,4}\s+/, '');
+      elements.push(
+        <h4
+          key={`h-${i}`}
+          style={{
+            fontSize: '0.86rem',
+            fontWeight: 700,
+            color: 'hsl(var(--primary))',
+            margin: '10px 0 4px 0',
+            letterSpacing: '0.02em',
+          }}
+        >
+          {parseInlineMarkdown(headingText)}
+        </h4>,
+      );
+      continue;
+    }
+
+    // Formula / Math block (\[ ... \] or $$ ... $$)
+    if (
+      (trimmed.startsWith('\\[') && trimmed.endsWith('\\]')) ||
+      (trimmed.startsWith('$$') && trimmed.endsWith('$$'))
+    ) {
+      const formulaText = cleanLatexMath(trimmed);
+      elements.push(
+        <div
+          key={`math-${i}`}
+          style={{
+            margin: '6px 0',
+            padding: '6px 12px',
+            borderRadius: '6px',
+            background: 'hsla(var(--primary), 0.08)',
+            border: '1px solid hsla(var(--primary), 0.22)',
+            fontFamily: 'monospace',
+            fontSize: '0.78rem',
+            color: 'hsl(var(--primary))',
+            textAlign: 'center',
+          }}
+        >
+          {formulaText}
+        </div>,
+      );
       continue;
     }
 
     // Regular paragraph
     elements.push(
-      <p key={`p-${i}`} style={{ margin: '4px 0', lineHeight: 1.48 }}>
+      <p key={`p-${i}`} style={{ margin: '4px 0', fontSize: '0.80rem', lineHeight: 1.55 }}>
         {parseInlineMarkdown(trimmed)}
       </p>,
     );
@@ -844,10 +908,10 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                               turn.role === 'player'
                                 ? 'hsl(var(--text-main))'
                                 : 'hsl(var(--text-muted))',
-                            fontSize: '0.82rem',
-                            lineHeight: 1.48,
+                            fontSize: '0.80rem',
+                            lineHeight: 1.55,
                             boxShadow: '0 4px 12px hsla(0, 0%, 0%, 0.18)',
-                            whiteSpace: 'pre-wrap',
+                            whiteSpace: turn.role === 'guide' ? 'normal' : 'pre-wrap',
                           }}
                         >
                           {turn.role === 'guide' ? (
