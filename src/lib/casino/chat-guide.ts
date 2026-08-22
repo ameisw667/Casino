@@ -188,10 +188,16 @@ GUIDE FACTS:
 ${context.content}
 ${buildLiveDataBlock(leaderboard)}
 
-LIVE READ-ONLY TOOLS:
+LIVE READ-ONLY TOOLS & UI ACTIONS:
 - When asked about current personal VIP rank, level, XP progress, rakeback, or remaining XP to next tier, call tool \`get_player_vip_progress\`.
 - When asked about personal gameplay statistics, win rate, bets placed, or profit/loss, call tool \`get_player_session_stats\`.
 - When asked about betting limits, min/max wagers, or rate limits, call tool \`get_player_account_limits\`.
+- When the player asks about depositing, withdrawing, balance, or opening the vault, call tool \`trigger_ui_action\` with action "open_vault" and label "Vault öffnen".
+- When the player asks about changing audio/sound, display, language, or system settings, call tool \`trigger_ui_action\` with action "open_settings" and label "Einstellungen öffnen".
+- When the player asks about VIP tiers, rakeback benefits, or rank advantages, call tool \`trigger_ui_action\` with action "open_rank_benefits" and label "VIP-Vorteile ansehen".
+- When the player asks about bet history or transaction records, call tool \`trigger_ui_action\` with action "open_history" and label "Wett-Verlauf öffnen".
+- When the player wants to play a game (Blackjack, Crash, Dice, Roulette, Slots), call tool \`trigger_ui_action\` with action "navigate_game", target with game slug (e.g. "blackjack", "crash", "dice", "roulette", "slots"), and label like "Zu Blackjack spielen" or "Zu Crash".
+- When the player asks about leaderboard or rankings, call tool \`trigger_ui_action\` with action "open_leaderboard" and label "Leaderboard öffnen".
 
 FORMAT & READABILITY RULES:
 - Always format your answer in clean, readable GitHub-Flavored Markdown.
@@ -579,6 +585,7 @@ export async function requestCasinoGuideAnswerStream(
 
   // Turn 1: Check if structured live player tools are needed
   let toolContextExtra = '';
+  let uiAction: { type: string; target?: string; label: string } | null = null;
   try {
     const toolCheckRequest = await buildCasinoGuideRequest(message, history);
     const turn1Res = await fetch(toolCheckRequest.url, toolCheckRequest.init);
@@ -587,6 +594,13 @@ export async function requestCasinoGuideAnswerStream(
       const toolCalls = getGuideFunctionCalls(turn1Payload);
       if (toolCalls.length > 0) {
         for (const call of toolCalls) {
+          if (call.name === 'trigger_ui_action') {
+            uiAction = {
+              type: typeof call.arguments.action === 'string' ? call.arguments.action : 'open_vault',
+              target: typeof call.arguments.target === 'string' ? call.arguments.target : undefined,
+              label: typeof call.arguments.label === 'string' ? call.arguments.label : 'Öffnen',
+            };
+          }
           const toolResult = await executeGuideTool(call.name, call.arguments, userId);
           toolContextExtra += `\n\nLIVE TOOL RESULT (${call.name}):\n${JSON.stringify(toolResult, null, 2)}`;
         }
@@ -634,6 +648,11 @@ export async function requestCasinoGuideAnswerStream(
     const encoder = new TextEncoder();
     const fallbackStream = new ReadableStream<Uint8Array>({
       start(controller) {
+        if (uiAction) {
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ action: uiAction })}\n\n`),
+          );
+        }
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({ text: fallbackAnswer.answer })}\n\n`),
         );
@@ -652,6 +671,11 @@ export async function requestCasinoGuideAnswerStream(
     const encoder = new TextEncoder();
     const fallbackStream = new ReadableStream<Uint8Array>({
       start(controller) {
+        if (uiAction) {
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ action: uiAction })}\n\n`),
+          );
+        }
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({ text: fallbackAnswer.answer })}\n\n`),
         );
@@ -671,6 +695,11 @@ export async function requestCasinoGuideAnswerStream(
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
+      if (uiAction) {
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ action: uiAction })}\n\n`),
+        );
+      }
       let buffer = '';
       try {
         while (true) {

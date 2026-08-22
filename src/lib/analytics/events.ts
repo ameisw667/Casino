@@ -15,7 +15,9 @@ export type AllowedAnalyticsEvent =
   | { name: 'passkey_sign_in_completed' }
   | { name: 'passkey_registered' }
   | { name: 'mfa_totp_enrolled' }
-  | { name: 'mfa_totp_unenrolled' };
+  | { name: 'mfa_totp_unenrolled' }
+  | { name: 'identity_linked' }
+  | { name: 'identity_unlinked' };
 
 const gameTypeSchema = z.enum(['DICE', 'SLOTS', 'ROULETTE', 'CRASH', 'BLACKJACK']);
 
@@ -35,6 +37,8 @@ const allowedEventSchema = z.discriminatedUnion('name', [
   z.strictObject({ name: z.literal('passkey_registered') }),
   z.strictObject({ name: z.literal('mfa_totp_enrolled') }),
   z.strictObject({ name: z.literal('mfa_totp_unenrolled') }),
+  z.strictObject({ name: z.literal('identity_linked') }),
+  z.strictObject({ name: z.literal('identity_unlinked') }),
 ]);
 
 /**

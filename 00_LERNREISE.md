@@ -1,6 +1,6 @@
 # 00 — Lernreise & Erfolge: Projekt-Timeline
 
-> **Stand:** 2026-08-19 · **Zeitraum:** 2026-04-24 – 2026-08-19 (117 Tage) · **Zweck:** Evidence für Jans Fortschritt — Rückverfolgung aus `git log` (118 Commits, `--reverse`), nicht aus Erinnerung.
+> **Stand:** 2026-08-21 · **Zeitraum:** 2026-04-24 – 2026-08-21 (119 Tage) · **Zweck:** Evidence für Jans Fortschritt — Rückverfolgung aus `git log` (156 Commits, `--reverse`), nicht aus Erinnerung.
 > **Kein Planungsdokument** — reine Rückschau. Aktive Planung steht in [worldmap/05_ZUKUNFTSPLANUNG.md](worldmap/05_ZUKUNFTSPLANUNG.md), Live-Status in [worldmap/00_WORLDMAP_STATUS.md](worldmap/00_WORLDMAP_STATUS.md).
 
 ## Kennzahlen auf einen Blick
@@ -8,9 +8,9 @@
 | Kennzahl                                | Wert                                    |
 | --------------------------------------- | --------------------------------------- |
 | Projektstart                            | 2026-04-24 (`b128016`, Create Next App) |
-| Commits gesamt                          | 118                                     |
-| DB-Migrationen                          | 35 (`001` – `035`)                      |
-| Aktive Entwicklungstage (mit ≥1 Commit) | 23 von 117 Kalendertagen                |
+| Commits gesamt                          | 156                                     |
+| DB-Migrationen                          | 43 Nummern (`001` – `043`)              |
+| Aktive Entwicklungstage (mit ≥1 Commit) | 20 von 119 Kalendertagen                |
 | Größte Pause                            | 2026-06-19 → 2026-08-08 (50 Tage)       |
 | Tests (Stand 2026-08-17)                | 642/642 grün, 78 Dateien                |
 | Kategorien (00_WORLDMAP_STATUS.md)      | 12/12 Top 15–40 %, Prod-Ready: Ja       |
@@ -164,6 +164,32 @@
 
 ---
 
+## Phase 12 — Crash-Cashout-Synchronisation
+
+**2026-08-20** (1 Commit)
+
+- `f9e2307` Cashout-UI sperrt unmittelbar nach dem Request und verhindert Mehrfachauslösung während der Serverantwort
+
+**Skill-Sprung:** Eine Race-sensitive Interaktion am Client mit dem server-autoritativen Settlement abgestimmt.
+
+---
+
+## Phase 13 — Royale Guide, Spielerdaten-Oberflächen & Passkeys
+
+**2026-08-21** (27 Commits)
+
+- `7966086`/`aaa8b22` History- und Stats-Seiten mit Ledger-Filtern, PnL-Heatmap, VIP-Records und Zeitfilter erweitert; `ae47ebe` ergänzt Live-Activity-Feed-Filter
+- `84dbbde` Hybrid-Retrieval für den Guide: Keyword-Matcher, pgvector-Fallback, In-Memory-Fallback und Platform-Kontext
+- `c8ef47b`/`66d86d5` drei schreibgeschützte Spieler-Tools sowie Multi-Turn-Kontext mit sechs Turns (drei Dialogpaaren)
+- `f73ed14` Migration `039`: pgvector-Wissensspeicher, HNSW-Index, Matching-RPC und Admin-CMS `/admin/knowledge`
+- `e46976f` Native SSE-Token-Streams mit Live-Reader; dokumentierter TTFT-Zielwert unter 200 ms
+- `e4aa229` Admin-Evals `/admin/evals`, Nutzer-Feedback und Telemetrie mit Migration `042`
+- `24478e1`/`21b7d72` Passkey-Sign-in und -Verwaltung über Supabase Auth; Production-Flow registriert, Login und Löschung verifiziert
+
+**Skill-Sprung:** Einen LLM-Chat von statischem Q&A zu einer Kette aus Retrieval, schreibgeschützten Tools, Gesprächsspeicher, Token-Streaming und auswertbarer Qualitätsrückmeldung ausgebaut; zusätzlich WebAuthn in den bestehenden Auth- und Session-Pfad integriert.
+
+---
+
 ## Verdichtete Skill-Progression (chronologisch)
 
 | Zeitraum      | Neue Fähigkeit, die vorher nicht da war                                            |
@@ -178,9 +204,11 @@
 | 08-15         | Overengineering aktiv erkannt und verworfen, offensive Security-Tests              |
 | 08-16         | Design-System konsistent über mehrere Seiten, eigenständige Fraud-Scoring-Schicht  |
 | 08-17 – 08-19 | Cross-User-Geldfluss mit Concurrency-Garantien (Progressive Jackpot)               |
+| 08-20         | Client-Sperre für Cashout-Rennen                                                    |
+| 08-21         | RAG, Tool-Loop, Memory, SSE, Evals, Analyseoberflächen und Passkey-Auth            |
 
 ---
 
 ## Hinweis zur Pflege
 
-Diese Datei ist eine **einmalige Rückschau** (Stand 2026-08-19), keine laufend aktualisierte Planungsdatei. Für den aktuellen Live-Status siehe [worldmap/00_WORLDMAP_STATUS.md](worldmap/00_WORLDMAP_STATUS.md), für aktive nächste Schritte [worldmap/05_ZUKUNFTSPLANUNG.md](worldmap/05_ZUKUNFTSPLANUNG.md). Bei Bedarf lässt sich diese Timeline mit `git log --reverse --pretty=format:"%ad|%h|%s" --date=short` jederzeit fortschreiben.
+Diese Datei ist eine **Rückschau** (Stand 2026-08-21), keine Planungsdatei. Für den Live-Status siehe [worldmap/00_WORLDMAP_STATUS.md](worldmap/00_WORLDMAP_STATUS.md), für nächste Schritte [worldmap/05_ZUKUNFTSPLANUNG.md](worldmap/05_ZUKUNFTSPLANUNG.md). Fortschreibung: `git log --reverse --pretty=format:"%ad|%h|%s" --date=short`.

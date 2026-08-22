@@ -27,7 +27,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Aktives Projekt (seit 2026-07-28)**: dediziertes Supabase-Projekt ausschließlich für Casino (`hmqwozhdckbwjqzcmire`, siehe `.env.local`). Keine geteilte Master-DB mehr für dieses Projekt — deshalb **kein** `casino_`-Präfix nötig, Tabellen heißen schlicht `users`, `wallet_transactions`, etc.
 - **Alte Master-DB (mehrere Vibe-Coding-Projekte, ein Supabase-Account)**: Migrations-/Löschstatus der alten `casino_`-Tabellen dort ist **ungeklärt** (Stand 2026-08-17, letzter dokumentierter Stand 2026-07-28 = "offen", weder Repo-Doku noch Jan können den aktuellen Stand bestätigen). Bis zur Klärung: nur Tabellen mit `casino_`-Präfix ansehen/anfassen, nie `SELECT *` ohne diesen Filter — Vorsicht bei jedem Zugriff auf die Master-DB, unabhängig vom tatsächlichen Migrationsstand.
-- `.env.local` enthält 3/3 Supabase-Variablen. 42 Migrationen (`001`–`042`, aktuell `042_guide_feedback_evals.sql`) liegen im Repo — `037`–`042` sind Stand 2026-08-21 lokal erstellt. Laut [00_WORLDMAP_STATUS.md](worldmap/00_WORLDMAP_STATUS.md) sind alle 12 Kategorien Prod-Ready: Ja, Server-Authority (Migration 007) produktiv. Der frühere DNS-Auflösungsfehler ist laut [docs/status-reports/04_WALLET_ECONOMY.md](docs/status-reports/04_WALLET_ECONOMY.md) live widerlegt.
+- `.env.local` enthält 3/3 Supabase-Variablen. 37 Migrationen (`001`–`037`, aktuell `037_multiplayer_crash_rounds.sql`) liegen im Repo — `037` ist Stand 2026-08-21 nur lokal erstellt, noch nicht remote gepusht (worldmap/05_multiplayercrash.md, L7 Jan-Aufgabe). Laut [00_WORLDMAP_STATUS.md](worldmap/00_WORLDMAP_STATUS.md) sind alle 12 Kategorien Prod-Ready: Ja, Server-Authority (Migration 007) produktiv. Der frühere DNS-Auflösungsfehler ist laut [docs/status-reports/04_WALLET_ECONOMY.md](docs/status-reports/04_WALLET_ECONOMY.md) live widerlegt.
 
 ## Commands
 
@@ -43,15 +43,10 @@ npm run vibe-check   # Custom audit script: tsx scripts/vibe-check.ts
 
 ### Auto-Allow & Execution Policy (Antigravity)
 
-- **Native Tool-Pflicht (File-Ops)**: Niemals `run_command` mit Inline- oder Scratch-Skripten (`node -e`, `node scratch/...js`, `python -c`, `echo >`, `cat <<EOF`, `Set-Content`, `Out-File`) nutzen, um Dateien oder Pläne zu erstellen/bearbeiten. Ausschließlich `write_to_file`, `replace_file_content` oder `multi_replace_file_content` verwenden. Verhindert Command-Execution-Modals zu 100%.
-- **Native Research-Tools Pflicht**: Niemals Scratch-Skripte (`scratch/search_*.js`, Python-Crawler) via `run_command` ausführen, um die Codebase zu durchsuchen. Ausschließlich native Tools (`grep_search`, `find_by_name`, `list_dir`, `view_file`) nutzen.
-- **File Deletion & Moving**: Für das Löschen/Verschieben von Projektdateien bevorzugt `git rm <path>` bzw. `git mv <path>` nutzen (VCS-gesichert & mit `git rm *` im Auto-Allow matchbar), statt OS-spezifischer `Remove-Item -Force`-Befehle.
-- **K1/K2 Auto-Allow**: Read-only (`git status`, `git diff`, `git log`) und CI/Test-Befehle (`npm test`, `npm run test`, `npx vitest *`, `npm run lint`, `npx tsc`, `npm run build`, `npm run vibe-check`) werden global auf Auto-Allow gesetzt (Option 4 im Bestätigungsdialog).
-- **K3/K4 Auto-Allow**: Paket- und Git-Mutationen (`npm i *`, `git add *`, `git rm *`, `git mv *`, `git commit *`, `git push origin *`, `npx supabase gen types *`) im Projekt auf Auto-Allow setzen (Option 3 / Option 4).
-- **Keine Command-Chains mit dynamischen Strings**: Git- und Build-Befehle nicht über `;` oder `&&` mit individuellen Strings (z.B. Commit-Messages) verketten (`git add ...; git commit -m "..."; git push ...`). Stattdessen Befehle einzeln ausführen, damit Auto-Allow-Wildcards (`git add *`, `git commit *`, `git push *`) 100% matchen.
+- **K1/K2 Auto-Allow**: Read-only (`git status`, `git diff`, `git log`) und CI/Test-Befehle (`npm test`, `npm run lint`, `npx tsc`, `npm run build`, `npm run vibe-check`) werden global auf Auto-Allow gesetzt (Option 4 im Bestätigungsdialog).
 - **Non-Interactive Execution**: Befehle immer mit non-interactive Flags ausführen (`--yes`, `-y`, `CI=true`), um CLI-Hangs zu verhindern.
 - **No-Pager**: `PAGER=cat` oder `--no-pager` für Git-Befehle nutzen.
-- **K5 Block**: Echte destruktive/systemweite Befehle (`git push --force`, `rm -rf /`, `del /s /q C:\`, `supabase db reset`) erfordern immer explizite manuelle Bestätigung.
+- **K5 Block**: Destruktive/Live-Befehle (`git push --force`, `rm -rf`, `supabase db reset`) erfordern immer explizite manuelle Bestätigung.
 - **Detail-Plan**: Siehe [docs/archive/01_Antigravity_Workflow_Optimization.md](docs/archive/01_Antigravity_Workflow_Optimization.md).
 
 Tests live in `src/lib/casino/__tests__/` (service layer) and `src/store/__tests__/` (Zustand store). Run `npm run vibe-check` after significant changes — checks balance integrity, RNG distribution, and payout math.
@@ -96,25 +91,12 @@ All business logic lives here, never in page components.
 | `risk-signals.ts`, `risk-event-store.ts`, `network-fingerprint.ts`                                 | Risk-Event-Typen, Persistenz (`risk_events`-Tabelle, Migration 029) und Netzwerk-Fingerprinting als Fraud-Detection-Bausteine.                                                                                                                                                                                                                                                  |
 | `game-config(.ts/-server.ts)`, `vip-config(.ts/-server.ts)`, `achievements-config(.ts/-server.ts)` | Config-Layer-Pattern: `*.ts` = Typen + Hardcoded-Defaults (client-safe), `*-server.ts` = Supabase-Cache-Loader (5-Min-TTL) mit Fallback auf die Defaults. Kategorie-12-Outsourcing: "Parameter raus, Algorithmus bleibt".                                                                                                                                                       |
 | `telegram-api.ts`, `telegram-notifier.ts`, `telegram-link.ts`                                      | Opt-in Big-Win-Benachrichtigungen: Bot-API-Wrapper, Notify-Trigger (`isBigWin()`-Threshold), Link-/Opt-in-Status. Migration 025.                                                                                                                                                                                                                                                |
-| `chat-guide.ts`, `guide-telemetry.ts`, `guide-knowledge/`                                          | OpenAI-Responses-API-Casino-Guide (`gpt-4o-mini`) + Telemetrie + modularer Markdown-Frontmatter-Wissensbasis (10 Quellen, Stufe A) + 3-Stufen Hybrid-RAG Kaskade (Keyword-Matcher Schnellpfad + In-Memory Vektor-Fallback mit `text-embedding-3-small`/Kosinus-Ähnlichkeit, Stufe B/C); Purge-Cron Migration 027.                                                               |
+| `chat-guide.ts`, `guide-telemetry.ts`                                                              | OpenAI-Responses-API-Casino-Guide (`gpt-4o-mini`) + Telemetry (Kosten/Latenz/Outcome); Purge-Cron Migration 027.                                                                                                                                                                                                                                                                |
 | `sentry-scrub.ts`, `perf-monitor.ts`                                                               | Sentry-PII-Redaction (entfernt Secrets/Tokens vor Versand) und client-seitiges Performance-Marking.                                                                                                                                                                                                                                                                             |
 | `stats-derivation.ts`, `seed-history-verification.ts`                                              | Client-seitige Ableitung von Profit-Verlauf/Session-Länge aus History-Zeilen; Provably-Fair-Nachverifikation gespeicherter Seeds.                                                                                                                                                                                                                                               |
 | `crash-round.ts`                                                                                   | Multiplayer-Crash-Rundentakt (worldmap/05_multiplayercrash.md, Option C): Lazy/On-Demand-Scheduler über `sync_crash_round`/`set_crash_round_point`-RPCs (Migration 037), berechnet den Crash-Point weiterhin ausschließlich über `ProvablyFairEngine.getCrashMultiplier` (keine SQL-Duplikation), `toPublicRoundState()` maskiert Crash-Point/Seed bis zum tatsächlichen Crash. |
 | `realtime.ts`, `realtime-types.ts`                                                                 | Server-seitiger Broadcast-Publisher (nicht Postgres-Changes-Replication, siehe Migrationskopf 037) für den geteilten Crash-Raum; `realtime-types.ts` trägt den geteilten Payload-Contract ohne `server-only`, damit ihn auch `crash/page.tsx` importieren kann.                                                                                                                 |
 | `session.ts`, `big-win.ts`, `wallet-contract.ts`                                                   | Anonyme Browser-Session-ID, geteilter Big-Win-Threshold (Client+Server), Zod-Schemas für Wallet-/Settlement-Contracts.                                                                                                                                                                                                                                                          |
-
-### Background Tasks (Trigger.dev) — `src/trigger/`
-
-8 produktive Tasks auf Trigger.dev Cloud (`20260821.3`).
-
-| Task | Trigger | Funktion |
-| --- | --- | --- |
-| `daily-activity-digest` / `deliver-digest` | Cron (`0 8 * * *`) | Tägliche DB-Aggregation & Telegram-Digest an Admin; Idempotency-Key. |
-| `digest-preview` | `/admin/digest-preview` | Realtime-Browser-Streaming (`metadata.set`, Scoped Public Token); `dryRun: true`. |
-| `weekly-player-recap` / `send-player-recap` | Cron (`0 9 * * 1`) | Montäglicher 7-Tage-Spielerrückblick für Opt-in-Nutzer (Concurrency: 5). |
-| `big-win-notify` | `/api/casino/bet`, `blackjack` | Asynchroner Jackpot-Alarm aus dem Geld-Pfad entkoppelt. |
-| `fraud-alert-wait` | High-Severity Risk Event | 48h-Wait-Token-Pause (`wait.forToken`) bis Admin-Review in `/admin/fraud`. |
-| `player-onboarding-drip` | `consumeTelegramLinkToken` | Zustandsabhängige Mehrtages-Sequenz (`wait.for({ days: 2 })`, `wait.for({ days: 5 })`, State-Branching). |
 
 ### Analytics — `src/lib/analytics/`
 
@@ -125,7 +107,7 @@ Consent-gesteuerte PostHog-Integration (Detail: `docs/archive/05_2.9_PostHog_Ana
 | `consent.ts`                      | Consent-Gate (`useSyncExternalStore`), vor jedem Analytics-Call geprüft                        |
 | `posthog-client.ts`               | Lazy PostHog-SDK-Init, IP/Autocapture/Session-Recording aus                                    |
 | `identity-hmac.ts`, `identify.ts` | HMAC-basierte User-Identity über `/api/analytics/identity` — nie die rohe User-ID im Client    |
-| `events.ts`                       | Event-Allowlist (`z.strictObject`), inkl. `passkey_sign_in_completed` und `passkey_registered` |
+| `events.ts`                       | Event-Allowlist (`z.strictObject`), inkl. `passkey_*` und `mfa_totp_enrolled`/`unenrolled`     |
 | `posthog-erasure.ts`              | Erasure-Funktion, aktuell unverdrahtet (kein bestehender Nutzerlöschprozess in der App)        |
 
 ### State — `src/store/useCasinoStore.ts`
@@ -149,9 +131,6 @@ Zustand hält UI-, Historien- und Einstellungszustand. `balance`, `xp`, `level` 
 | `GET /api/analytics/identity`                                                                                                              | Liefert HMAC-`distinctId` für PostHog-`identify()`; nie die rohe User-ID.                                                                                                                                                                                                                                                                                     |
 | `GET/POST /api/admin/fraud`, `POST /api/admin/fraud/scan`                                                                                  | Fraud-Signal-Übersicht und manueller Scan-Trigger (Admin-only).                                                                                                                                                                                                                                                                                               |
 | `GET/POST /api/admin/promo-codes`                                                                                                          | Promo-Code-Verwaltung: Erstellung, Status (Admin-only, Migration 021).                                                                                                                                                                                                                                                                                        |
-| `GET/POST/DELETE /api/admin/knowledge`                                                                                                     | Royale Knowledge CMS: UI-basierte Wissenspflege mit pgvector Embeddings (Admin-only, Migration 039).                                                                                                                                                                                                                                                         |
-| `GET /api/admin/evals`                                                                                                                     | LLM Evals & Telemetrie: P95-Latenz, Token-Breakdown, Kosten in USD & Feedback-Zufriedenheit (Admin-only, Migration 042).                                                                                                                                                                                                                                      |
-| `POST /api/chat/feedback`                                                                                                                  | Player Feedback: Thumbs Up / Down Bewertung für Royale Guide Antworten mit Rate-Limiting (Migration 042).                                                                                                                                                                                                                                                    |
 | `POST /api/casino/redeem-code`                                                                                                             | Promo-Code-Einlösung durch Nutzer, schreibt Redemption-Ledger (Migration 023).                                                                                                                                                                                                                                                                                |
 | `GET /api/admin/overview`, `/games`, `/analytics`, `/users`                                                                                | Admin-Dashboard-Datenquellen: DB-Aggregate für Overview/Games/Cohort-Analytics; User-/Wallet-Management (Admin-only).                                                                                                                                                                                                                                         |
 | `/api/telegram/link`, `/unlink`, `/toggle`, `/status`, `/webhook`                                                                          | Telegram-Opt-in-Flow + eingehender Bot-Webhook (Shared-Secret statt Origin-Check, wie `/api/internal/cron-alert`).                                                                                                                                                                                                                                            |
@@ -177,17 +156,15 @@ Dice, Slots und Roulette nutzen `/api/casino/bet`; Crash nutzt persistente Serve
 
 ### Admin Pages — `src/app/admin/`
 
-| Route                | Notes                                                      |
-| -------------------- | ---------------------------------------------------------- |
-| `/admin`             | Dashboard overview                                         |
-| `/admin/games`       | Per-game stats and controls                                |
-| `/admin/users`       | User management                                            |
-| `/admin/simulation`  | Bet simulation tooling                                     |
-| `/admin/fraud`       | Fraud-Signal-Dashboard & manueller Scan                    |
-| `/admin/promo-codes` | Promo-Code-Verwaltung                                      |
-| `/admin/knowledge`   | Royale Knowledge CMS & pgvector Embeddings                 |
-| `/admin/evals`       | LLM Evals, Telemetrie, P95-Latenzen, Token-Kosten & CSAT   |
-| `/admin/analytics`   | Cohort/Retention/Funnel/GGR/VIP-BI-Dashboard               |
+| Route                | Notes                                        |
+| -------------------- | -------------------------------------------- |
+| `/admin`             | Dashboard overview                           |
+| `/admin/games`       | Per-game stats and controls                  |
+| `/admin/users`       | User management                              |
+| `/admin/simulation`  | Bet simulation tooling                       |
+| `/admin/fraud`       | Fraud-Signal-Dashboard & manueller Scan      |
+| `/admin/promo-codes` | Promo-Code-Verwaltung                        |
+| `/admin/analytics`   | Cohort/Retention/Funnel/GGR/VIP-BI-Dashboard |
 
 ### Design System Rules (enforced by Design-Guardian)
 
@@ -233,100 +210,12 @@ Dice, Slots und Roulette nutzen `/api/casino/bet`; Crash nutzt persistente Serve
 
 Remote-Status: siehe Supabase-Sektion oben — laut [00_WORLDMAP_STATUS.md](worldmap/00_WORLDMAP_STATUS.md) alle 12 Kategorien Prod-Ready: Ja, Migrationen `001`–`030` live. `031`–`037` sind lokal vorhanden; ihr Remote-Status ist in dieser Datei nicht verifiziert (nicht Teil dieser Initiative, außer `037` selbst — siehe L7).
 
-## Workflow: Jan-Execution
+## Workflows & SOPs (On-Demand Router)
 
-### 1 — Planung
+Vor dem Ausführen strukturierter Aufgaben liest das LLM die entsprechende SOP via File-Read-Tool ein:
 
-Implementationsplan aus 2 Perspektiven prüfen (je nach Kontext wählen, z. B. Architektur vs. Security,
-oder Business-Logik vs. UX). Pflichtpunkte je Perspektive:
-
-- Abhängigkeiten
-- Alle Anforderungen (vollständig)
-- Aufgabenverteilung (Jan oder LLM?) -> So viel wie möglich soll von den LLM verarbeitet werden, damit Jan möglichst wenig hat.
-- Fehler-/Problemfälle + Umgang damit, wenn diese auftreten
-
-### 2 — Plan-Selbstprüfung
-
-Gesamten Plan gegen Schritt 1 nochmal selbst prüfen: Fehler, Lücken, Verbesserungen.
-
-- Ziel der Plan-Selbstprüfung ist, den Implementationsplan einfach noch mal auf das nächste Level anzuheben.
-
-### 3 — Execution
-
-Ausführen ohne Rückfrage — **außer** bei:
-
-- Architektur-Entscheidungen, Scope-Grenzen, Migrationsreihenfolge (siehe "Klärung offener Punkte")
-- destruktiven/schwer umkehrbaren Aktionen (siehe globale Safety-Regeln)
-
-Bei Auth-/DB-/Payment-/User-Input-Code: zusätzlich `security-reviewer`-Agent.
-
-### 4 — Execution-Selbstprüfung
-
-Tests, Build, Lint laufen lassen + Diff gegen Plan review. Nicht nur lesen.
-
-### 5 — Doku-Update + Abschluss
-
-Implementationsdatei aktualisieren (Kopftabelle-Status + Detailabschnitt, siehe Markdown-Planungsdateien-Regel):
-
-- Plan fertig (Schritt 2) → 🟡 Execution-Ready
-- Execution läuft (Schritt 3) → 🟡 In Execution
-- Execution geprüft (Schritt 4 grün) → 🟢 Executed
-
-Erst nach aktualisierter Datei + grüner Prüfung: Aufgabe abgeschlossen, dann Bescheid geben.
-
-## Markdown-Planungsdateien: Jan-Planungs-Schemata
-
-**Ablage:** Aktive Planungsdateien liegen in `worldmap/`. Eine Marker-Datei enthält nur Status, Reihenfolge und Verweise; ein fachlich eigenständiger Plan erhält eine eigene Datei.
-
-**Status und Archivierung:** Jede neue Datei trägt in der Kopfzeile genau einen Status aus `Geplant`, `Execution-Ready`, `In Execution` oder `Executed (archiviert)`. Nach `Executed` wird sie standardmäßig nach `docs/archive/` verschoben; Löschen nur bei einem nachweislich wertlosen Gerüst ohne Entscheidungs- oder Verifikationswert.
-
-### Kopfbereich (Pflicht, zuerst, für Jan)
-
-```markdown
-# NN — <Thema>
-
-> **Status:** Geplant · **Stand:** YYYY-MM-DD · **Owner:** Jan/LLM · **Scope:** <klare Grenze>
-
-## 1 — Übersicht für Jan
-
-| Nummer | Kategorie/Meilenstein | Status      | Nächster Schritt | Zuständigkeit |
-| ------ | --------------------- | ----------- | ---------------- | ------------- |
-| L0     | ...                   | 🟢 Executed | ...              | LLM           |
-| L1     | ...                   | 🔴 Geplant  | ...              | Jan + LLM     |
-```
-
-**Ampel-Definition:** 🔴 Geplant = nicht gestartet; 🟡 In Execution = gestartet, nicht verifiziert; 🟢 Executed = verifiziert abgeschlossen. Die sichtbare Ampel ergänzt, ersetzt aber nicht den festen Kopfstatus.
-
-**Update-Pflicht:** Kopfstatus, Jan-Tabelle und zugehöriger Detailabschnitt werden im selben Edit aktualisiert. Eine Marker-Datei und ihr Detailplan erhalten im selben Edit konsistente Verweise.
-
-### Detailbereich (ab zweiter Überschrift, für LLM)
-
-Jeder Meilenstein enthält mindestens Ziel, Nutzen, Scope (bestehende und geplante Dateien), Datenklassen, Abhängigkeiten, Freigabe-Gate, Verifizierung und Overengineering-/Nicht-Scope-Grenze.
-
-Bei LLM-, Live-Daten- oder Retrieval-Plänen zusätzlich:
-
-- erlaubte und verbotene Datenklassen;
-- serverseitige Allowlist und read-only-Grenze;
-- Positiv- und Negativtests pro Datenklasse;
-- Ausfall-/Fallback-Verhalten und sichtbare Aktualitätsregel;
-- Security-Review vor Live-Daten, Retrieval oder jedem neuen API-Boundary;
-- keine freie Datenbanksuche, keine privaten Nutzerkontexte und keine Schreibtools, solange dies nicht als separates Projekt freigegeben wurde.
-
-Bei Wallet-/Auth-/DB-Schreibpfaden zusätzlich: `Money-Pfad: Ja/Nein` und `Security-Review: Pflicht/Nein`.
-
-### Plan-Selbstprüfung (Pflicht vor `Execution-Ready`)
-
-- Alle Levels sind in Reihenfolge und mit Abhängigkeiten beschrieben.
-- Jeder Datenzugriff besitzt eine explizite Allowlist und einen Negativtest.
-- Ausgeschlossene spätere Funktionen sind als solche markiert, nicht als impliziter Folgeschritt.
-- Die Marker-Datei enthält keine widersprüchliche Reihenfolge oder Scope-Aussage.
-
-<!-- BEGIN:nextjs-agent-rules -->
-
-# This is NOT the Next.js you know
-
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
-
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
-
-<!-- END:nextjs-agent-rules -->
+| Trigger / Aufgabe | SOP-Datei | Wann einlesen |
+| :--- | :--- | :--- |
+| **Workflow-Jan Option-Gate** | [`xx_sop/01_workflow_jan_option_gate.md`](xx_sop/01_workflow_jan_option_gate.md) | Vor Architektur-, Design- & Scope-Entscheidungen (3 Optionen nach Jan-Schema). |
+| **Workflow-Jan Execution** | [`xx_sop/02_workflow_jan_execution.md`](xx_sop/02_workflow_jan_execution.md) | Bei Aufgaben-Umsetzung & 5-Stufen-Selbstprüfung. |
+| **Workflow-Jan Planungsdateien** | [`xx_sop/03_workflow_jan_planungsdateien.md`](xx_sop/03_workflow_jan_planungsdateien.md) | Vor dem Anlegen/Pflegen von Meilenstein-Dateien in `worldmap/`. |

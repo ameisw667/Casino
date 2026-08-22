@@ -13,10 +13,10 @@ describe('fetchFraudMlFeatures', () => {
         {
           user_id: 'user_a',
           bet_count: 42,
-          total_wagered: 1000,
-          avg_bet_size: 23.8,
-          bet_size_cv: 0.4,
-          rtp: 0.97,
+          net_result: 150.5,
+          avg_abs_amount: 23.8,
+          amount_cv: 0.4,
+          win_rate: 0.55,
           inter_bet_seconds_cv: 0.1,
           unique_games: 3,
         },
@@ -30,12 +30,45 @@ describe('fetchFraudMlFeatures', () => {
       {
         userId: 'user_a',
         betCount: 42,
-        totalWagered: 1000,
-        avgBetSize: 23.8,
-        betSizeCv: 0.4,
-        rtp: 0.97,
+        netResult: 150.5,
+        avgAbsAmount: 23.8,
+        amountCv: 0.4,
+        winRate: 0.55,
         interBetSecondsCv: 0.1,
         uniqueGames: 3,
+      },
+    ]);
+  });
+
+  it('coerces PostgREST NUMERIC-as-string values and falls back to 0 for non-finite input', async () => {
+    const client = makeClient({
+      data: [
+        {
+          user_id: 'user_b',
+          bet_count: 25,
+          net_result: '-42.50',
+          avg_abs_amount: '10.00',
+          amount_cv: null,
+          win_rate: '0.40',
+          inter_bet_seconds_cv: undefined,
+          unique_games: 2,
+        },
+      ],
+      error: null,
+    });
+
+    const rows = await fetchFraudMlFeatures(client);
+
+    expect(rows).toEqual([
+      {
+        userId: 'user_b',
+        betCount: 25,
+        netResult: -42.5,
+        avgAbsAmount: 10,
+        amountCv: 0,
+        winRate: 0.4,
+        interBetSecondsCv: 0,
+        uniqueGames: 2,
       },
     ]);
   });
@@ -58,10 +91,10 @@ describe('toFeatureVector', () => {
     const row = {
       userId: 'user_a',
       betCount: 1,
-      totalWagered: 2,
-      avgBetSize: 3,
-      betSizeCv: 4,
-      rtp: 5,
+      netResult: 2,
+      avgAbsAmount: 3,
+      amountCv: 4,
+      winRate: 5,
       interBetSecondsCv: 6,
       uniqueGames: 7,
     };

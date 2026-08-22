@@ -110,6 +110,18 @@ describe('formatAuthError', () => {
     );
   });
 
+  it('maps identity linking and unlinking errors', () => {
+    expect(formatAuthError('identity_already_exists: Identity is already linked to another user')).toBe(
+      'Dieses Konto ist bereits mit einem anderen Spielerprofil verknüpft.',
+    );
+    expect(formatAuthError('cannot_unlink_last_identity')).toBe(
+      'Die letzte verbleibende Anmeldemethode kann nicht getrennt werden.',
+    );
+    expect(formatAuthError('identity_not_found')).toBe(
+      'Das angegebene verknüpfte Konto wurde nicht gefunden.',
+    );
+  });
+
   it('falls back to a safe generic message if the provider message is unknown', () => {
     expect(formatAuthError('Custom error message')).toBe(
       'Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.',

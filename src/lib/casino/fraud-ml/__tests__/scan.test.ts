@@ -6,20 +6,20 @@ import type { FraudMlFeatureRow } from '../features';
 function makeRow(overrides: Partial<FraudMlFeatureRow>): {
   user_id: string;
   bet_count: number;
-  total_wagered: number;
-  avg_bet_size: number;
-  bet_size_cv: number;
-  rtp: number;
+  net_result: number;
+  avg_abs_amount: number;
+  amount_cv: number;
+  win_rate: number;
   inter_bet_seconds_cv: number;
   unique_games: number;
 } {
   const row: FraudMlFeatureRow = {
     userId: 'user',
     betCount: 40,
-    totalWagered: 500,
-    avgBetSize: 12.5,
-    betSizeCv: 0.2,
-    rtp: 0.96,
+    netResult: -50,
+    avgAbsAmount: 12.5,
+    amountCv: 0.2,
+    winRate: 0.48,
     interBetSecondsCv: 0.3,
     uniqueGames: 2,
     ...overrides,
@@ -27,10 +27,10 @@ function makeRow(overrides: Partial<FraudMlFeatureRow>): {
   return {
     user_id: row.userId,
     bet_count: row.betCount,
-    total_wagered: row.totalWagered,
-    avg_bet_size: row.avgBetSize,
-    bet_size_cv: row.betSizeCv,
-    rtp: row.rtp,
+    net_result: row.netResult,
+    avg_abs_amount: row.avgAbsAmount,
+    amount_cv: row.amountCv,
+    win_rate: row.winRate,
     inter_bet_seconds_cv: row.interBetSecondsCv,
     unique_games: row.uniqueGames,
   };
@@ -80,14 +80,14 @@ describe('runFraudMlScan', () => {
 
   it('flags a clear multivariate outlier among enough users and records an ml_anomaly_score event', async () => {
     const cluster = Array.from({ length: 8 }, (_, i) =>
-      makeRow({ userId: `cluster_${i}`, betCount: 40 + i, avgBetSize: 12 + i * 0.1 }),
+      makeRow({ userId: `cluster_${i}`, betCount: 40 + i, avgAbsAmount: 12 + i * 0.1 }),
     );
     const outlier = makeRow({
       userId: 'outlier',
       betCount: 900,
-      totalWagered: 90000,
-      avgBetSize: 1200,
-      betSizeCv: 4,
+      netResult: -85000,
+      avgAbsAmount: 1200,
+      amountCv: 4,
       interBetSecondsCv: 0.01,
     });
     const { client, recordCalls } = makeClient([...cluster, outlier]);
@@ -107,7 +107,12 @@ describe('runFraudMlScan', () => {
 
   it('produces identical evidence across repeated same-day scans (dedup determinism)', async () => {
     const cluster = Array.from({ length: 8 }, (_, i) => makeRow({ userId: `cluster_${i}` }));
-    const outlier = makeRow({ userId: 'outlier', betCount: 900, avgBetSize: 1200, betSizeCv: 4 });
+    const outlier = makeRow({
+      userId: 'outlier',
+      betCount: 900,
+      avgAbsAmount: 1200,
+      amountCv: 4,
+    });
 
     const first = makeClient([...cluster, outlier]);
     await runFraudMlScan(first.client);

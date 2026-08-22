@@ -6,97 +6,63 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
-## Output:
+## Output
 
-- Der Output soll immer so kurz und knapp wie möglich sein, um trotzdem den selben Mehrwert beizubehalten.
-- Alle Adjektive, die nicht mit einer Zahl untermauert werden sollen, werden vollkommen weggelassen werden beim Output.
-- Vermeide Fließtexte. Hierzu stattdessen lieber Bullet Points, Tabellen oder ähnliche hochlesbare Darstellungen verwenden.
+- Antworte und beginne mit Kernaussage, Entscheidung oder Status.
+- So kurz wie möglich, aber vollständig für Entscheidung, Ausführung oder Prüfung. Nutze Listen oder Tabellen, wenn sie klarer sind.
+- Lasse Voraussetzungen, Risiken, offene Punkte und nächste Schritte nicht nur zur Kürzung weg.
+- Trenne Fakten, Annahmen und Schlussfolgerungen. Kennzeichne Unsicherheit; stütze überprüfbare Behauptungen auf aktuelle Evidenz und vermeide unbelegte Wertungen.
+- Nutzerwunsch zu Sprache, Detailgrad und Format hat Vorrang.
 
 ## Klärung offener Punkte
-
-- Bei offenen/unklaren Punkten nicht selbst bewerten oder entscheiden — immer zuerst nachfragen.
-- Gilt für Architektur-Entscheidungen, Scope-Grenzen, Reihenfolge von Migrationen und alles, wo mehrere Lesarten zu unterschiedlicher Arbeit führen würden.
+- Ermittle Fakten zuerst aus Nutzerauftrag, Repository und Doku; frage nichts, was dort eindeutig steht.
+- Frage nur bei einer nicht durch Kontext klärbaren Entscheidung, wenn Optionen Architektur, Datenmodell, Sicherheit, Migrationsreihenfolge, Scope, Kosten oder sichtbares Verhalten ändern.
+- Triff reversible, risikoarme Detailentscheidungen im beauftragten Scope selbst; nenne die Annahme.
+- Stelle eine konkrete Frage; nenne bei vorhandenen Optionen deren Auswirkung.
+- Setze nach Freigabe im bestätigten Scope um; frage nur erneut bei neuer materieller Unsicherheit oder benötigter Autorität.
 
 ## Doku-Aktualität
-
-- Architektur-Änderungen (neue Services, API-Routes, Admin-Pages, Migrationen) werden im selben Schritt wie der Code auch in diese Datei nachgezogen — betrifft insbesondere die Tabellen Service Layer, API Routes, Admin Pages sowie die Supabase-Sektion.
-- Bei Unklarheit, ob eine Änderung dokumentationsrelevant ist: lieber dokumentieren als auslassen — Drift zwischen Code und CLAUDE.md ist die Fehlerquelle, nicht Redundanz.
-- Quelle für Live-/Prod-Status bleibt [00_WORLDMAP_STATUS.md](worldmap/00_WORLDMAP_STATUS.md); diese Datei zitiert dort nur, behauptet nichts Abweichendes.
+- Aktualisiere bei Architektur-, API-, Datenmodell- oder Sicherheitsänderungen im selben Schritt die zuständige kanonische Dokumentation.
+- `CLAUDE.md` enthält nur Kernregeln und On-Demand-Verweise; Systemdetails gehören in Systemkarte, SOP, Worldmap oder Archiv.
+- Kennzeichne Status als lokal, verifiziert oder live. Live-/Prod-Aussagen folgen ausschließlich `worldmap/00_WORLDMAP_STATUS.md`.
+- Aktualisiere bei Umbenennung, Verschiebung oder Archivierung alle eingehenden Verweise.
+- Ist der Dokumentationsort unklar, prüfe zuerst den Router; erst danach eine kurze Rückfrage.
 
 ## Supabase
-
-- **Aktives Projekt (seit 2026-07-28)**: dediziertes Supabase-Projekt ausschließlich für Casino (`hmqwozhdckbwjqzcmire`, siehe `.env.local`). Keine geteilte Master-DB mehr für dieses Projekt — deshalb **kein** `casino_`-Präfix nötig, Tabellen heißen schlicht `users`, `wallet_transactions`, etc.
-- **Alte Master-DB (mehrere Vibe-Coding-Projekte, ein Supabase-Account)**: Migrations-/Löschstatus der alten `casino_`-Tabellen dort ist **ungeklärt** (Stand 2026-08-17, letzter dokumentierter Stand 2026-07-28 = "offen", weder Repo-Doku noch Jan können den aktuellen Stand bestätigen). Bis zur Klärung: nur Tabellen mit `casino_`-Präfix ansehen/anfassen, nie `SELECT *` ohne diesen Filter — Vorsicht bei jedem Zugriff auf die Master-DB, unabhängig vom tatsächlichen Migrationsstand.
-- `.env.local` enthält 3/3 Supabase-Variablen. 37 Migrationen (`001`–`037`, aktuell `037_multiplayer_crash_rounds.sql`) liegen im Repo — `037` ist Stand 2026-08-21 nur lokal erstellt, noch nicht remote gepusht (worldmap/05_multiplayercrash.md, L7 Jan-Aufgabe). Laut [00_WORLDMAP_STATUS.md](worldmap/00_WORLDMAP_STATUS.md) sind alle 12 Kategorien Prod-Ready: Ja, Server-Authority (Migration 007) produktiv. Der frühere DNS-Auflösungsfehler ist laut [docs/status-reports/04_WALLET_ECONOMY.md](docs/status-reports/04_WALLET_ECONOMY.md) live widerlegt.
+- Bei Supabase-Aufgaben zuerst `xx_docs/01_supabase_context.md` lesen.
+- Bei Schema-, Migrations-, RPC-, RLS-, Service-Role- oder Remote-Änderungen zusätzlich `xx_sop/05_database_supabase.md` lesen.
 
 ## Commands
+- Vor einem nicht aufgeführten Script sowie vor Remote- oder Schreibaktionen `xx_docs/02_command_reference.md` lesen.
+- Auswahl und Reihenfolge der Prüfungen folgen `xx_sop/02_workflow_jan_execution.md`.
 
 ```bash
-npm run dev          # Start dev server (Next.js, port 3015)
-npm run build        # Production build
-npm run lint         # ESLint (next lint config)
-npm run test         # Vitest (run once)
-npm run test:watch   # Vitest watch mode
-npm run test:coverage # Vitest with coverage
-npm run vibe-check   # Custom audit script: tsx scripts/vibe-check.ts
+npm run dev        # Next.js auf Port 3015
+npm run test       # Vitest
+npm run typecheck  # TypeScript ohne Emit
+npm run lint       # ESLint
+npm run build      # Production-Build
 ```
 
-### Auto-Allow & Execution Policy (Antigravity)
-
-- **K1/K2 Auto-Allow**: Read-only (`git status`, `git diff`, `git log`) und CI/Test-Befehle (`npm test`, `npm run lint`, `npx tsc`, `npm run build`, `npm run vibe-check`) werden global auf Auto-Allow gesetzt (Option 4 im Bestätigungsdialog).
-- **Non-Interactive Execution**: Befehle immer mit non-interactive Flags ausführen (`--yes`, `-y`, `CI=true`), um CLI-Hangs zu verhindern.
-- **No-Pager**: `PAGER=cat` oder `--no-pager` für Git-Befehle nutzen.
-- **K5 Block**: Destruktive/Live-Befehle (`git push --force`, `rm -rf`, `supabase db reset`) erfordern immer explizite manuelle Bestätigung.
-- **Detail-Plan**: Siehe [docs/archive/01_Antigravity_Workflow_Optimization.md](docs/archive/01_Antigravity_Workflow_Optimization.md).
-
-Tests live in `src/lib/casino/__tests__/` (service layer) and `src/store/__tests__/` (Zustand store). Run `npm run vibe-check` after significant changes — checks balance integrity, RNG distribution, and payout math.
-
-For dev auth bypass, set `ALLOW_DEV_FALLBACK=true` in `.env.local`.
-
-**Required `.env.local` keys:**
-
-```
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-UPSTASH_REDIS_REST_URL=
-UPSTASH_REDIS_REST_TOKEN=
-SUPABASE_ADMIN_EMAILS=
-GOOGLE_OAUTH_CLIENT_ID=
-GOOGLE_OAUTH_CLIENT_SECRET=
-```
-
----
+### Execution Policy
+- Vor Terminal-, Remote- oder Schreibaktionen `xx_docs/03_execution_environment_reference.md` lesen.
+- Für Umsetzungsablauf und Verifikation `xx_sop/02_workflow_jan_execution.md` befolgen.
+- Nicht-interaktive Flags und Pager-Unterdrückung nur verwenden, wenn der Befehl sie unterstützt.
+- Plattformfreigaben ersetzen niemals Nutzerauftrag, Scope oder Autorisierung.
+- K4-Externe Änderungen und K5-destruktive/Live-Aktionen erfordern ausdrückliche Freigabe.
 
 ## Architecture
 
 ### Tech Stack
 
-Next.js 16 App Router · React 19 · TypeScript · Zustand 5 (persist) · Framer Motion 12 · Supabase Auth (auth) · Zod (validation) · Lucide React (icons) · Recharts (charts) · Upstash Redis + Rate Limit · Web Crypto API (provably fair)
+Next.js 16.3 App Router · React 19.2 · TypeScript 5 · Supabase (Auth, DB, SSR, Realtime) · Zustand 5 (nur UI-Persistenz) · Zod 4 · Framer Motion 12 · Lucide · Recharts · Upstash Redis/Rate Limit · OpenAI Responses API · Trigger.dev 4 · PostHog · Sentry · Web Crypto (Provably Fair)
 
 ### Service Layer — `src/lib/casino/`
 
-All business logic lives here, never in page components.
+- Page- und UI-Komponenten bestimmen keine Wett-, Wallet-, RNG- oder Settlement-Ergebnisse.
+- Geschäftsregeln und gemeinsame Verträge liegen in `src/lib/casino/`; API-Routen koordinieren Authentifizierung, Request-Validierung und Response-Transport.
+- Bei Änderungen an Geschäftsregeln oder Service-Modulen zuerst `xx_docs/05_service_layer_context.md` und `xx_sop/06_service_layer_casino.md` lesen.
 
-| File                                                                                               | Purpose                                                                                                                                                                                                                                                                                                                                                                         |
-| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `casino-core.ts`                                                                                   | `CasinoCore` — single entry point for all bets. `placeBet()` routes by `GameType`, calls `ProvablyFairEngine`, returns `BetResult`. Also exposes `startCrashRound()`, `calculateXpGain()`, `calculateLevel()`.                                                                                                                                                                  |
-| `provably-fair.ts`                                                                                 | `ProvablyFairEngine` — isomorphic, uses Web Crypto API only (no Node crypto). HMAC-SHA256 with format `serverSeed:clientSeed:nonce`. Game-specific helpers: `getDiceRoll()` (0–100), `getCrashMultiplier()` (1% house edge), `getRouletteNumber()` (0–36), `getSlotsResult()` (per-reel indices).                                                                               |
-| `bet-validator.ts`                                                                                 | `validateBet()` — pure function, validates bet range ($0.10–$10,000) and sufficient balance. Call before `placeBet()`.                                                                                                                                                                                                                                                          |
-| `sound-manager.ts`                                                                                 | `soundManager` singleton — wraps Audio API with volume and mute control.                                                                                                                                                                                                                                                                                                        |
-| `chat-bot.ts`                                                                                      | `ChatBotService` — command parsing for chat (`/tip`, `/leaderboard` etc.).                                                                                                                                                                                                                                                                                                      |
-| `logger.ts`                                                                                        | `CasinoLogger` — structured bet logging, dev-only stack traces.                                                                                                                                                                                                                                                                                                                 |
-| `wallet.ts`                                                                                        | `WalletService` — all balance ops via Supabase RPC. Zusätzlich `isFirstEverBet()`/`isFirstBetSignal()` (additives PostHog-Erstwett-Signal, ändert nie das Settlement).                                                                                                                                                                                                          |
-| `fraud-detection.ts`                                                                               | Fraud-Signal-Scoring (Bet-Velocity, Multi-Account-Cluster, Win-Rate-Anomalie) für `/api/admin/fraud`. Thresholds sind unkalibrierte Erstwerte (R11, `worldmap/05_ZUKUNFTSPLANUNG.md`).                                                                                                                                                                                          |
-| `risk-signals.ts`, `risk-event-store.ts`, `network-fingerprint.ts`                                 | Risk-Event-Typen, Persistenz (`risk_events`-Tabelle, Migration 029) und Netzwerk-Fingerprinting als Fraud-Detection-Bausteine.                                                                                                                                                                                                                                                  |
-| `game-config(.ts/-server.ts)`, `vip-config(.ts/-server.ts)`, `achievements-config(.ts/-server.ts)` | Config-Layer-Pattern: `*.ts` = Typen + Hardcoded-Defaults (client-safe), `*-server.ts` = Supabase-Cache-Loader (5-Min-TTL) mit Fallback auf die Defaults. Kategorie-12-Outsourcing: "Parameter raus, Algorithmus bleibt".                                                                                                                                                       |
-| `telegram-api.ts`, `telegram-notifier.ts`, `telegram-link.ts`                                      | Opt-in Big-Win-Benachrichtigungen: Bot-API-Wrapper, Notify-Trigger (`isBigWin()`-Threshold), Link-/Opt-in-Status. Migration 025.                                                                                                                                                                                                                                                |
-| `chat-guide.ts`, `guide-telemetry.ts`                                                              | OpenAI-Responses-API-Casino-Guide (`gpt-4o-mini`) + Telemetry (Kosten/Latenz/Outcome); Purge-Cron Migration 027.                                                                                                                                                                                                                                                                |
-| `sentry-scrub.ts`, `perf-monitor.ts`                                                               | Sentry-PII-Redaction (entfernt Secrets/Tokens vor Versand) und client-seitiges Performance-Marking.                                                                                                                                                                                                                                                                             |
-| `stats-derivation.ts`, `seed-history-verification.ts`                                              | Client-seitige Ableitung von Profit-Verlauf/Session-Länge aus History-Zeilen; Provably-Fair-Nachverifikation gespeicherter Seeds.                                                                                                                                                                                                                                               |
-| `crash-round.ts`                                                                                   | Multiplayer-Crash-Rundentakt (worldmap/05_multiplayercrash.md, Option C): Lazy/On-Demand-Scheduler über `sync_crash_round`/`set_crash_round_point`-RPCs (Migration 037), berechnet den Crash-Point weiterhin ausschließlich über `ProvablyFairEngine.getCrashMultiplier` (keine SQL-Duplikation), `toPublicRoundState()` maskiert Crash-Point/Seed bis zum tatsächlichen Crash. |
-| `realtime.ts`, `realtime-types.ts`                                                                 | Server-seitiger Broadcast-Publisher (nicht Postgres-Changes-Replication, siehe Migrationskopf 037) für den geteilten Crash-Raum; `realtime-types.ts` trägt den geteilten Payload-Contract ohne `server-only`, damit ihn auch `crash/page.tsx` importieren kann.                                                                                                                 |
-| `session.ts`, `big-win.ts`, `wallet-contract.ts`                                                   | Anonyme Browser-Session-ID, geteilter Big-Win-Threshold (Client+Server), Zod-Schemas für Wallet-/Settlement-Contracts.                                                                                                                                                                                                                                                          |
 
 ### Analytics — `src/lib/analytics/`
 
@@ -107,7 +73,7 @@ Consent-gesteuerte PostHog-Integration (Detail: `docs/archive/05_2.9_PostHog_Ana
 | `consent.ts`                      | Consent-Gate (`useSyncExternalStore`), vor jedem Analytics-Call geprüft                        |
 | `posthog-client.ts`               | Lazy PostHog-SDK-Init, IP/Autocapture/Session-Recording aus                                    |
 | `identity-hmac.ts`, `identify.ts` | HMAC-basierte User-Identity über `/api/analytics/identity` — nie die rohe User-ID im Client    |
-| `events.ts`                       | Event-Allowlist (`z.strictObject`), inkl. `passkey_sign_in_completed` und `passkey_registered` |
+| `events.ts`                       | Event-Allowlist (`z.strictObject`), inkl. `passkey_*` und `mfa_totp_enrolled`/`unenrolled`     |
 | `posthog-erasure.ts`              | Erasure-Funktion, aktuell unverdrahtet (kein bestehender Nutzerlöschprozess in der App)        |
 
 ### State — `src/store/useCasinoStore.ts`
@@ -210,134 +176,13 @@ Dice, Slots und Roulette nutzen `/api/casino/bet`; Crash nutzt persistente Serve
 
 Remote-Status: siehe Supabase-Sektion oben — laut [00_WORLDMAP_STATUS.md](worldmap/00_WORLDMAP_STATUS.md) alle 12 Kategorien Prod-Ready: Ja, Migrationen `001`–`030` live. `031`–`037` sind lokal vorhanden; ihr Remote-Status ist in dieser Datei nicht verifiziert (nicht Teil dieser Initiative, außer `037` selbst — siehe L7).
 
-## Workflow: Jan-Execution
+## Workflows & SOPs (On-Demand Router)
 
-### 1 — Planung
+Vor dem Ausführen strukturierter Aufgaben liest das LLM die entsprechende SOP via File-Read-Tool ein:
 
-Implementationsplan aus 2 Perspektiven prüfen (je nach Kontext wählen, z. B. Architektur vs. Security,
-oder Business-Logik vs. UX). Pflichtpunkte je Perspektive:
-
-- Abhängigkeiten
-- Alle Anforderungen (vollständig)
-- Aufgabenverteilung (Jan oder LLM?) -> So viel wie möglich soll von den LLM verarbeitet werden, damit Jan möglichst wenig hat.
-- Fehler-/Problemfälle + Umgang damit, wenn diese auftreten
-
-### 2 — Plan-Selbstprüfung
-
-Gesamten Plan gegen Schritt 1 nochmal selbst prüfen: Fehler, Lücken, Verbesserungen.
-
-- Ziel der Plan-Selbstprüfung ist, den Implementationsplan einfach noch mal auf das nächste Level anzuheben.
-
-### 3 — Execution
-
-Ausführen ohne Rückfrage — **außer** bei:
-
-- Architektur-Entscheidungen, Scope-Grenzen, Migrationsreihenfolge (siehe "Klärung offener Punkte")
-- destruktiven/schwer umkehrbaren Aktionen (siehe globale Safety-Regeln)
-
-Bei Auth-/DB-/Payment-/User-Input-Code: zusätzlich `security-reviewer`-Agent.
-
-### 4 — Execution-Selbstprüfung
-
-Tests, Build, Lint laufen lassen + Diff gegen Plan review. Nicht nur lesen.
-
-### 5 — Doku-Update + Abschluss
-
-Implementationsdatei aktualisieren (Kopftabelle-Status + Detailabschnitt, siehe Markdown-Planungsdateien-Regel):
-
-- Plan fertig (Schritt 2) → 🟡 Execution-Ready
-- Execution läuft (Schritt 3) → 🟡 In Execution
-- Execution geprüft (Schritt 4 grün) → 🟢 Executed
-
-Erst nach aktualisierter Datei + grüner Prüfung: Aufgabe abgeschlossen, dann Bescheid geben.
-
-## Markdown-Planungsdateien: Jan-Planungs-Schemata
-
-**Ablage:** Aktive Planungsdateien liegen in `worldmap/`. Eine Marker-Datei enthält nur Status, Reihenfolge und Verweise; ein fachlich eigenständiger Plan erhält eine eigene Datei.
-
-**Status und Archivierung:** Jede neue Datei trägt in der Kopfzeile genau einen Status aus `Geplant`, `Execution-Ready`, `In Execution` oder `Executed (archiviert)`. Nach `Executed` wird sie standardmäßig nach `docs/archive/` verschoben; Löschen nur bei einem nachweislich wertlosen Gerüst ohne Entscheidungs- oder Verifikationswert.
-
-### Kopfbereich (Pflicht, zuerst, für Jan)
-
-```markdown
-# NN — <Thema>
-
-> **Status:** Geplant · **Stand:** YYYY-MM-DD · **Owner:** Jan/LLM · **Scope:** <klare Grenze>
-
-## 1 — Übersicht für Jan
-
-| Nummer | Kategorie/Meilenstein | Status      | Nächster Schritt | Zuständigkeit |
-| ------ | --------------------- | ----------- | ---------------- | ------------- |
-| L0     | ...                   | 🟢 Executed | ...              | LLM           |
-| L1     | ...                   | 🔴 Geplant  | ...              | Jan + LLM     |
-```
-
-**Ampel-Definition:** 🔴 Geplant = nicht gestartet; 🟡 In Execution = gestartet, nicht verifiziert; 🟢 Executed = verifiziert abgeschlossen. Die sichtbare Ampel ergänzt, ersetzt aber nicht den festen Kopfstatus.
-
-**Update-Pflicht:** Kopfstatus, Jan-Tabelle und zugehöriger Detailabschnitt werden im selben Edit aktualisiert. Eine Marker-Datei und ihr Detailplan erhalten im selben Edit konsistente Verweise.
-
-### Detailbereich (ab zweiter Überschrift, für LLM)
-
-Jeder Meilenstein enthält mindestens Ziel, Nutzen, Scope (bestehende und geplante Dateien), Datenklassen, Abhängigkeiten, Freigabe-Gate, Verifizierung und Overengineering-/Nicht-Scope-Grenze.
-
-Bei LLM-, Live-Daten- oder Retrieval-Plänen zusätzlich:
-
-- erlaubte und verbotene Datenklassen;
-- serverseitige Allowlist und read-only-Grenze;
-- Positiv- und Negativtests pro Datenklasse;
-- Ausfall-/Fallback-Verhalten und sichtbare Aktualitätsregel;
-- Security-Review vor Live-Daten, Retrieval oder jedem neuen API-Boundary;
-- keine freie Datenbanksuche, keine privaten Nutzerkontexte und keine Schreibtools, solange dies nicht als separates Projekt freigegeben wurde.
-
-Bei Wallet-/Auth-/DB-Schreibpfaden zusätzlich: `Money-Pfad: Ja/Nein` und `Security-Review: Pflicht/Nein`.
-
-### Plan-Selbstprüfung (Pflicht vor `Execution-Ready`)
-
-- Alle Levels sind in Reihenfolge und mit Abhängigkeiten beschrieben.
-- Jeder Datenzugriff besitzt eine explizite Allowlist und einen Negativtest.
-- Ausgeschlossene spätere Funktionen sind als solche markiert, nicht als impliziter Folgeschritt.
-- Die Marker-Datei enthält keine widersprüchliche Reihenfolge oder Scope-Aussage.
-
-## Workflow: Jan-Optionen-Gate
-
-### 1 — Optionen-Generierung
-
-Vor jeder Umsetzung genau 3 relevantesten, distinkte, technisch lauffähige Optionen erstellen:
-
-- **Option 1 (Empfohlen)**: Höchster Nutzen bei minimaler Code- und DB-Komplexität.
-- **Option 2**: Alternative Architektur (z. B. höhere Modularität oder erweiterter Funktionsumfang).
-- **Option 3**: Minimaler Schnellpfad oder abweichender Standard-Ansatz.
-
-### 2 — Schematische Aufbereitung
-
-Aufbereitung nach dem standardisierten `Jan-Optionen-Schema`:
-
-- Vergleichstabelle zur Entscheidungsfindung in unter 30 Sekunden.
-- 3-Zeilen-Detailblock je Option für technische Klarheit.
-
-### 3 — Optionen-Selbstprüfung
-
-Prüfung vor Ausgabe:
-
-1. **Lerneffekt für jan**: Lerneffekt für den User Jan?
-2. **Nicht-Scope**: Sind Grenzen und Ausschlüsse für jede Option benannt?
-3. **Verifizierbarkeit**: Sind betroffene Dateien und Test-URLs angegeben?
-
-### 4 — Stopp & Übergabe
-
-- Nach Ausgabe der Optionen-Matrix sofort stoppen.
-- Keine Code-Edits oder Dateierstellungen vor Jans expliziter Auswahl (z. B. „Option 1“).
-- Nach Freigabe: Übergang in `Workflow: Jan-Execution`.
-
----
-
-### Entscheidungs-Matrizen: Jan-Optionen-Schema
-
-### Tabellen-Standard (Pflicht für LLM-Output)
-
-```markdown
-| Option | Konzept & Architektur | Nutzen (Jan / System) | Aufwand & Komplexität | Overengineering-Risiko | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Option 1 (Empfohlen)** | <Kurzbeschreibung> | <Konkreter Mehrwert> | <z. B. 1 Datei, 0 Migrationen> | Niedrig | ✅ Empfohlen |
-| **Option 2** | <Kurzbeschreibung> | <Konkreter Mehrwert> | <z. B. 3 Dateien, 1 RPC> | Mittel | ⚪ Alternative |
-| **Option 3** | <Kurzbeschreibung> | <Konkreter Mehrwert> | <z. B. Refactor, 1 Tabelle> | Hoch | ❌ Nicht empfohlen |
+| Trigger / Aufgabe | SOP-Datei | Wann einlesen |
+| :--- | :--- | :--- |
+| **Workflow-Jan Option-Gate** | [`xx_sop/01_workflow_jan_option_gate.md`](xx_sop/01_workflow_jan_option_gate.md) | Vor Architektur-, Design- & Scope-Entscheidungen (3 Optionen nach Jan-Schema). |
+| **Workflow-Jan Execution** | [`xx_sop/02_workflow_jan_execution.md`](xx_sop/02_workflow_jan_execution.md) | Bei Aufgaben-Umsetzung & 5-Stufen-Selbstprüfung. |
+| **Workflow-Jan Planungsdateien** | [`xx_sop/03_workflow_jan_planungsdateien.md`](xx_sop/03_workflow_jan_planungsdateien.md) | Vor dem Anlegen/Pflegen von Meilenstein-Dateien in `worldmap/`. |
+| **Workflow-Jan Frontend-Revamp** | [`xx_sop/10_workflow_frontend_revamp.md`](xx_sop/10_workflow_frontend_revamp.md) | Bei UI/UX-Umbauten, Screenshots oder Redesigns (3-Optionen-Design-Schema & URL-Abnahme). |

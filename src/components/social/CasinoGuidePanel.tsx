@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
+  ArrowRight,
   Bot,
   Check,
   CircleDot,
@@ -9,6 +11,8 @@ import {
   Copy,
   Crown,
   Dices,
+  Gamepad2,
+  History,
   Layers,
   Maximize2,
   Minimize2,
@@ -21,6 +25,7 @@ import {
   ThumbsUp,
   TrendingUp,
   User,
+  Wallet,
   X,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,6 +35,11 @@ type GuideTurn = {
   role: 'guide' | 'player';
   text: string;
   time: string;
+  action?: {
+    type: string;
+    target?: string;
+    label: string;
+  };
 };
 
 type CasinoGuidePanelProps = {
@@ -397,10 +407,28 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [draft, setDraft] = useState('');
+  const router = useRouter();
   const [turns, setTurns] = useState<GuideTurn[]>([INITIAL_TURN]);
   const [isSending, setIsSending] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [feedbackMap, setFeedbackMap] = useState<Record<string, 1 | -1>>({});
+
+  const handleActionClick = (action: { type: string; target?: string; label: string }) => {
+    if (action.type === 'open_vault') {
+      router.push('/vault');
+    } else if (action.type === 'open_history') {
+      router.push('/history');
+    } else if (action.type === 'open_leaderboard') {
+      router.push('/leaderboard');
+    } else if (action.type === 'open_settings') {
+      router.push('/vault');
+    } else if (action.type === 'open_rank_benefits') {
+      router.push('/vault');
+    } else if (action.type === 'navigate_game' && action.target) {
+      const cleanTarget = action.target.toLowerCase().replace(/[^a-z0-9]/g, '');
+      router.push(`/games/${cleanTarget}`);
+    }
+  };
 
   const handleFeedback = async (messageId: string, rating: 1 | -1) => {
     if (feedbackMap[messageId] === rating) return;
@@ -506,6 +534,14 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
             if (trimmed.startsWith('data: ')) {
               try {
                 const parsed = JSON.parse(trimmed.slice(6));
+                if (parsed.action) {
+                  const receivedAction = parsed.action;
+                  setTurns((current) =>
+                    current.map((t) =>
+                      t.id === guideTurnId ? { ...t, action: receivedAction } : t,
+                    ),
+                  );
+                }
                 if (parsed.text) {
                   const chunkText: string = parsed.text;
                   accumulated += chunkText;
@@ -541,6 +577,10 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
           typeof payload === 'object' && payload !== null && 'answer' in payload
             ? payload.answer
             : undefined;
+        const action =
+          typeof payload === 'object' && payload !== null && 'action' in payload
+            ? (payload as Record<string, unknown>).action as { type: string; target?: string; label: string }
+            : undefined;
 
         if (typeof answer !== 'string' || !answer.trim()) {
           setTurns((current) => [
@@ -557,7 +597,7 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
 
         setTurns((current) => [
           ...current,
-          { id: guideTurnId, role: 'guide', text: answer.trim(), time: replyTime },
+          { id: guideTurnId, role: 'guide', text: answer.trim(), time: replyTime, action },
         ]);
       }
     } catch {
@@ -1032,6 +1072,49 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                                     opacity: 0.85,
                                   }}
                                 />
+                              )}
+                              {turn.action && (
+                                <div style={{ marginTop: '10px' }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleActionClick(turn.action!)}
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '6px',
+                                      background:
+                                        'linear-gradient(135deg, rgba(212,175,55,0.25), rgba(212,175,55,0.1))',
+                                      border: '1px solid rgba(212,175,55,0.5)',
+                                      borderRadius: '8px',
+                                      padding: '6px 12px',
+                                      color: '#ffd700',
+                                      fontSize: '0.78rem',
+                                      fontWeight: 700,
+                                      cursor: 'pointer',
+                                      boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                                      transition: 'all 0.18s ease',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.background =
+                                        'linear-gradient(135deg, rgba(212,175,55,0.4), rgba(212,175,55,0.2))';
+                                      e.currentTarget.style.transform = 'translateY(-1px)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.background =
+                                        'linear-gradient(135deg, rgba(212,175,55,0.25), rgba(212,175,55,0.1))';
+                                      e.currentTarget.style.transform = 'none';
+                                    }}
+                                  >
+                                    {turn.action.type === 'open_vault' && <Wallet size={14} />}
+                                    {turn.action.type === 'navigate_game' && <Gamepad2 size={14} />}
+                                    {turn.action.type === 'open_settings' && <Sliders size={14} />}
+                                    {turn.action.type === 'open_rank_benefits' && <Crown size={14} />}
+                                    {turn.action.type === 'open_history' && <History size={14} />}
+                                    {turn.action.type === 'open_leaderboard' && <TrendingUp size={14} />}
+                                    <span>{turn.action.label}</span>
+                                    <ArrowRight size={12} style={{ opacity: 0.8 }} />
+                                  </button>
+                                </div>
                               )}
                             </>
                           ) : (

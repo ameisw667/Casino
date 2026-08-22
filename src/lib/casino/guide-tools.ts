@@ -9,6 +9,7 @@ export const GUIDE_TOOL_NAMES = [
   'get_player_vip_progress',
   'get_player_session_stats',
   'get_player_account_limits',
+  'trigger_ui_action',
 ] as const;
 
 export type GuideToolName = (typeof GUIDE_TOOL_NAMES)[number];
@@ -49,6 +50,42 @@ export const GUIDE_OPENAI_TOOLS = [
       additionalProperties: false,
     },
     strict: true,
+  },
+  {
+    type: 'function',
+    name: 'trigger_ui_action',
+    description:
+      'Attaches an interactive UI action button below the assistant message, allowing the player to open a page/modal (vault, settings, rank_benefits, history, leaderboard) or navigate to a game (blackjack, crash, dice, roulette, slots).',
+    parameters: {
+      type: 'object',
+      properties: {
+        action: {
+          type: 'string',
+          enum: [
+            'open_vault',
+            'open_settings',
+            'open_rank_benefits',
+            'open_history',
+            'navigate_game',
+            'open_leaderboard',
+          ],
+          description: 'The UI action type to trigger.',
+        },
+        target: {
+          type: 'string',
+          description:
+            'The target game (blackjack, crash, dice, roulette, slots) or modal/page identifier.',
+        },
+        label: {
+          type: 'string',
+          description:
+            'Short, clean button label in German (e.g. "Vault öffnen", "Zu Blackjack", "Wett-Verlauf", "Rang-Vorteile").',
+        },
+      },
+      required: ['action', 'label'],
+      additionalProperties: false,
+    },
+    strict: false,
   },
 ] as const;
 
@@ -181,6 +218,13 @@ export async function executeGuideTool(
       return await executeGetPlayerSessionStats(userId);
     case 'get_player_account_limits':
       return executeGetPlayerAccountLimits();
+    case 'trigger_ui_action':
+      return {
+        success: true,
+        action: typeof _args.action === 'string' ? _args.action : 'open_vault',
+        target: typeof _args.target === 'string' ? _args.target : undefined,
+        label: typeof _args.label === 'string' ? _args.label : 'Öffnen',
+      };
     default:
       return { error: `Unknown tool: ${toolName}` };
   }

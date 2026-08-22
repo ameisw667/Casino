@@ -124,7 +124,8 @@ describe('Casino guide service', () => {
     expect(body.instructions).toContain('untrusted, player-chosen display text');
     // Negative test: no field beyond username/level/rank/totalWagered can reach the prompt,
     // since GuideLeaderboardSnippet's type never carries email/user id/balance/bet history.
-    const liveDataBlock = body.instructions.split('LIVE DATA')[1] ?? '';
+    const liveDataBlock =
+      (body.instructions.split('LIVE DATA')[1] ?? '').split('LIVE READ-ONLY TOOLS')[0] ?? '';
     expect(liveDataBlock).not.toContain('email');
     expect(liveDataBlock).not.toContain('balance');
   });
@@ -327,7 +328,7 @@ describe('Casino guide service', () => {
     const body = JSON.parse(String(request.init.body));
 
     expect(body.tools).toBeDefined();
-    expect(body.tools).toHaveLength(3);
+    expect(body.tools).toHaveLength(4);
     expect(body.tools.map((t: { name: string }) => t.name)).toContain('get_player_vip_progress');
   });
 

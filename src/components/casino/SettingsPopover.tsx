@@ -2,22 +2,26 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, VolumeX, Eye, EyeOff, ShieldCheck, Sliders } from 'lucide-react';
+import { Volume2, VolumeX, Eye, EyeOff, ShieldCheck, Sliders, Maximize2 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import TelegramLinkSection from './TelegramLinkSection';
 import PasskeyManagementSection from './PasskeyManagementSection';
 import MfaManagementSection from './MfaManagementSection';
+import LinkedAccountsSection from './LinkedAccountsSection';
 
 interface SettingsPopoverProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenProvablyFair?: () => void;
+  onExpandModal?: () => void;
   inline?: boolean;
 }
 
 export default function SettingsPopover({
   isOpen,
+  onClose,
   onOpenProvablyFair,
+  onExpandModal,
   inline: _inline = true,
 }: SettingsPopoverProps) {
   const soundEnabled = useCasinoStore((s) => s.soundEnabled ?? true);
@@ -59,22 +63,48 @@ export default function SettingsPopover({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
+                justifyContent: 'space-between',
                 borderBottom: '1px solid hsla(0, 0%, 100%, 0.06)',
                 paddingBottom: '6px',
               }}
             >
-              <Sliders size={14} color="hsl(var(--primary))" />
-              <span
-                style={{
-                  fontSize: '0.7rem',
-                  fontWeight: 800,
-                  letterSpacing: '0.05em',
-                  color: 'hsl(var(--primary))',
-                }}
-              >
-                QUICK SETTINGS
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Sliders size={14} color="hsl(var(--primary))" />
+                <span
+                  style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                    letterSpacing: '0.05em',
+                    color: 'hsl(var(--primary))',
+                  }}
+                >
+                  QUICK SETTINGS
+                </span>
+              </div>
+
+              {onExpandModal && (
+                <button
+                  type="button"
+                  onClick={onExpandModal}
+                  title="Im großen Fenster öffnen"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'hsl(var(--text-muted))',
+                    cursor: 'pointer',
+                    padding: '2px 4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontSize: '0.62rem',
+                    fontWeight: 700,
+                    borderRadius: '4px',
+                  }}
+                >
+                  <span>Erweitern</span>
+                  <Maximize2 size={12} color="hsl(var(--primary))" />
+                </button>
+              )}
             </div>
 
             {onOpenProvablyFair && (
@@ -247,6 +277,7 @@ export default function SettingsPopover({
             <TelegramLinkSection />
             <PasskeyManagementSection />
             <MfaManagementSection />
+            <LinkedAccountsSection />
           </div>
         </motion.div>
       )}

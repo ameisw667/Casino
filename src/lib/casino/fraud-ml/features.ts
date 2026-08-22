@@ -8,13 +8,17 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 const FEATURE_WINDOW_DAYS = 7;
 const MIN_BETS_FOR_FEATURES = 20;
 
+// Feature semantics were corrected in migration 044 (see its header comment): DICE/ROULETTE/
+// SLOTS settle as one 'bet_settled' row per bet with a signed NET amount (payout - wager) — the
+// original wager is not separately persisted, so "total wagered"/"average bet size" are not
+// reconstructable. The feature set below uses only what settle_game_bet() actually stores.
 export interface FraudMlFeatureRow {
   userId: string;
   betCount: number;
-  totalWagered: number;
-  avgBetSize: number;
-  betSizeCv: number;
-  rtp: number;
+  netResult: number;
+  avgAbsAmount: number;
+  amountCv: number;
+  winRate: number;
   interBetSecondsCv: number;
   uniqueGames: number;
 }
@@ -22,10 +26,10 @@ export interface FraudMlFeatureRow {
 interface FraudMlFeatureRpcRow {
   user_id: string;
   bet_count: number;
-  total_wagered: number;
-  avg_bet_size: number;
-  bet_size_cv: number;
-  rtp: number;
+  net_result: number;
+  avg_abs_amount: number;
+  amount_cv: number;
+  win_rate: number;
   inter_bet_seconds_cv: number;
   unique_games: number;
 }
@@ -34,10 +38,10 @@ interface FraudMlFeatureRpcRow {
 // across runs, since a reordering would silently change which raw values land on which axis.
 export const FEATURE_ORDER: ReadonlyArray<keyof Omit<FraudMlFeatureRow, 'userId'>> = [
   'betCount',
-  'totalWagered',
-  'avgBetSize',
-  'betSizeCv',
-  'rtp',
+  'netResult',
+  'avgAbsAmount',
+  'amountCv',
+  'winRate',
   'interBetSecondsCv',
   'uniqueGames',
 ];
@@ -59,10 +63,10 @@ function mapRpcRow(row: FraudMlFeatureRpcRow): FraudMlFeatureRow {
   return {
     userId: row.user_id,
     betCount: toFiniteNumber(row.bet_count),
-    totalWagered: toFiniteNumber(row.total_wagered),
-    avgBetSize: toFiniteNumber(row.avg_bet_size),
-    betSizeCv: toFiniteNumber(row.bet_size_cv),
-    rtp: toFiniteNumber(row.rtp),
+    netResult: toFiniteNumber(row.net_result),
+    avgAbsAmount: toFiniteNumber(row.avg_abs_amount),
+    amountCv: toFiniteNumber(row.amount_cv),
+    winRate: toFiniteNumber(row.win_rate),
     interBetSecondsCv: toFiniteNumber(row.inter_bet_seconds_cv),
     uniqueGames: toFiniteNumber(row.unique_games),
   };

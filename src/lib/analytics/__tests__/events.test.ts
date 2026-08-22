@@ -27,6 +27,8 @@ describe('trackAllowedEvent', () => {
     { name: 'passkey_registered' },
     { name: 'mfa_totp_enrolled' },
     { name: 'mfa_totp_unenrolled' },
+    { name: 'identity_linked' },
+    { name: 'identity_unlinked' },
   ])('captures %o with no properties when consent is granted', async (event) => {
     const client = fakeClient();
     mockedGetAnalyticsClient.mockResolvedValue(client as unknown as PostHog);

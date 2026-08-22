@@ -8,11 +8,11 @@ import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcuts';
 export function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const router = useRouter();
   const soundEnabled = useCasinoStore((s) => s.soundEnabled);
   const toggleSound = useCasinoStore((s) => s.toggleSound);
   useKeyboardShortcut('command-palette-toggle', 'mod+k', () => setIsOpen((prev) => !prev));
-  useKeyboardShortcut('command-palette-close', 'escape', () => setIsOpen(false), isOpen);
   const commands = [
     {
       id: 'crash',
@@ -64,6 +64,27 @@ export function CommandPalette() {
       action: toggleSound,
     },
   ].filter((cmd) => cmd.title.toLowerCase().includes(query.toLowerCase()));
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setIsOpen(false);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex((i) => Math.min(commands.length - 1, i + 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex((i) => Math.max(0, i - 1));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const selected = commands[selectedIndex];
+      if (selected) {
+        selected.action();
+        setIsOpen(false);
+      }
+    }
+  };
+
   if (!isOpen) return null;
   return (
     <AnimatePresence>
@@ -121,7 +142,11 @@ export function CommandPalette() {
               autoFocus
               placeholder="Search games, pages, settings..."
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setSelectedIndex(0);
+              }}
+              onKeyDown={handleInputKeyDown}
               style={{
                 flex: 1,
                 background: 'transparent',
@@ -165,40 +190,51 @@ export function CommandPalette() {
                     </div>
                     {commands
                       .filter((c) => c.category === category)
-                      .map((cmd) => (
-                        <motion.button
-                          key={cmd.id}
-                          whileHover={{ background: 'rgba(255,255,255,0.03)', x: 5 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => {
-                            cmd.action();
-                            setIsOpen(false);
-                          }}
-                          style={{
-                            width: '100%',
-                            padding: '12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px',
-                            background: 'transparent',
-                            border: 'none',
-                            borderRadius: '12px',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            color: '#b1bad3',
-                          }}
-                        >
-                          <div style={{ color: 'hsl(var(--primary))' }}>{cmd.icon}</div>
-                          <div
-                            style={{ flex: 1, fontSize: '0.85rem', fontWeight: 800, color: '#fff' }}
+                      .map((cmd) => {
+                        const isSelected = commands.indexOf(cmd) === selectedIndex;
+                        return (
+                          <motion.button
+                            key={cmd.id}
+                            whileHover={{ background: 'rgba(255,255,255,0.03)', x: 5 }}
+                            whileTap={{ scale: 0.98 }}
+                            onMouseEnter={() => setSelectedIndex(commands.indexOf(cmd))}
+                            onClick={() => {
+                              cmd.action();
+                              setIsOpen(false);
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '12px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                              background: isSelected ? 'rgba(255,255,255,0.05)' : 'transparent',
+                              border: isSelected
+                                ? '1px solid rgba(212, 175, 55, 0.4)'
+                                : '1px solid transparent',
+                              borderRadius: '12px',
+                              cursor: 'pointer',
+                              textAlign: 'left',
+                              color: '#b1bad3',
+                            }}
                           >
-                            {cmd.title}
-                          </div>
-                          <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#556b82' }}>
-                            ↵
-                          </div>
-                        </motion.button>
-                      ))}
+                            <div style={{ color: 'hsl(var(--primary))' }}>{cmd.icon}</div>
+                            <div
+                              style={{
+                                flex: 1,
+                                fontSize: '0.85rem',
+                                fontWeight: 800,
+                                color: '#fff',
+                              }}
+                            >
+                              {cmd.title}
+                            </div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#556b82' }}>
+                              ↵
+                            </div>
+                          </motion.button>
+                        );
+                      })}
                   </div>
                 ))}
               </div>

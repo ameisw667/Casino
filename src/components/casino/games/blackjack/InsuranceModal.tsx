@@ -111,7 +111,9 @@ export default function InsuranceModal({
               }}
             >
               <Check size={16} strokeWidth={3} />
-              <span>{isEvenMoney ? 'ACCEPT (1:1)' : `BUY ($${insuranceCost.toFixed(2)})`}</span>
+              <span>
+                {isEvenMoney ? 'ACCEPT (1:1) (Y)' : `BUY ($${insuranceCost.toFixed(2)}) (Y)`}
+              </span>
             </button>
 
             <button
@@ -132,7 +134,7 @@ export default function InsuranceModal({
               }}
             >
               <X size={16} strokeWidth={2.5} />
-              <span>DECLINE</span>
+              <span>DECLINE (N)</span>
             </button>
           </div>
         </motion.div>

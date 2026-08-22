@@ -12,12 +12,13 @@ import {
 import { WalletService } from '../wallet';
 
 describe('Guide Tools Specification & Execution', () => {
-  it('defines 3 strictly typed read-only tools for OpenAI', () => {
-    expect(GUIDE_OPENAI_TOOLS).toHaveLength(3);
+  it('defines 4 strictly typed tools for OpenAI', () => {
+    expect(GUIDE_OPENAI_TOOLS).toHaveLength(4);
     const names = GUIDE_OPENAI_TOOLS.map((t) => t.name);
     expect(names).toContain('get_player_vip_progress');
     expect(names).toContain('get_player_session_stats');
     expect(names).toContain('get_player_account_limits');
+    expect(names).toContain('trigger_ui_action');
   });
 
   it('returns default VIP progress for fallback dev/anonymous user', async () => {
@@ -81,6 +82,16 @@ describe('Guide Tools Specification & Execution', () => {
   it('routes tool calls by name via executeGuideTool', async () => {
     const limitsResult = await executeGuideTool('get_player_account_limits', {});
     expect(limitsResult.minBetPerRound).toBe('$0.10');
+
+    const actionResult = await executeGuideTool('trigger_ui_action', {
+      action: 'open_vault',
+      target: 'vault',
+      label: 'Vault öffnen',
+    });
+    expect(actionResult.success).toBe(true);
+    expect(actionResult.action).toBe('open_vault');
+    expect(actionResult.target).toBe('vault');
+    expect(actionResult.label).toBe('Vault öffnen');
 
     const unknownResult = await executeGuideTool('unknown_tool', {});
     expect(unknownResult.error).toContain('Unknown tool');

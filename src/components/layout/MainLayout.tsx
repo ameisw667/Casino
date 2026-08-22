@@ -46,6 +46,7 @@ const ProvablyFairModal = dynamic(
   { ssr: false },
 );
 import SettingsPopover from '../casino/SettingsPopover';
+const SettingsModal = dynamic(() => import('../casino/SettingsModal'), { ssr: false });
 const RankBenefitsModal = dynamic(() => import('../casino/RankBenefitsModal'), { ssr: false });
 const PlayerProfileModal = dynamic(() => import('@/components/casino/PlayerProfileModal'), {
   ssr: false,
@@ -199,6 +200,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [bigWin, setBigWin] = useState<{ amount: number; multiplier: number } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showProvablyFair, setShowProvablyFair] = useState(false);
   const [showRankInfo, setShowRankInfo] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -709,6 +711,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                       isOpen={showSettings}
                       onClose={() => setShowSettings(false)}
                       onOpenProvablyFair={() => setShowProvablyFair(true)}
+                      onExpandModal={() => {
+                        setShowSettings(false);
+                        setShowSettingsModal(true);
+                      }}
                       inline
                     />
                   )}
@@ -1099,6 +1105,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         )}
         {showProvablyFair && (
           <ProvablyFairModal isOpen onClose={() => setShowProvablyFair(false)} />
+        )}
+        {showSettingsModal && (
+          <SettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
         )}
 
         <GlobalChat />

@@ -110,8 +110,31 @@ export default function AdminEvalsClient() {
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    let cancelled = false;
+    async function loadInitial() {
+      try {
+        const res = await fetch('/api/admin/evals', { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = (await res.json()) as EvalsData;
+        if (!cancelled) {
+          setData(json);
+          setError(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setError('Telemetrie- & Evals-Daten konnten nicht geladen werden.');
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+    loadInitial();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const metrics = data?.observability ? data.observability[selectedWindow] : null;
   const feedback = data?.feedback;

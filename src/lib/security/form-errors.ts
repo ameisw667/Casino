@@ -65,6 +65,11 @@ const SAFE_AUTH_MESSAGES = {
     'Ungültiger Bestätigungscode. Bitte prüfe die Eingabe in deiner Authenticator-App.',
   mfaFactorNotFound: '2FA-Faktor nicht gefunden oder bereits entfernt.',
   mfaAlreadyVerified: 'Dieser 2FA-Faktor ist bereits aktiviert.',
+  identityAlreadyLinked:
+    'Dieses Konto ist bereits mit einem anderen Spielerprofil verknüpft.',
+  cannotUnlinkLastIdentity:
+    'Die letzte verbleibende Anmeldemethode kann nicht getrennt werden.',
+  identityNotFound: 'Das angegebene verknüpfte Konto wurde nicht gefunden.',
   fallback: 'Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.',
 } as const;
 
@@ -206,6 +211,32 @@ export function mapAuthError(message: string): ApiError {
     return createApiError(
       APP_ERROR_CODES.AUTHENTICATION_FAILED,
       SAFE_AUTH_MESSAGES.mfaInvalidCode,
+    );
+  }
+  if (
+    normalized.includes('identity_already_exists') ||
+    normalized.includes('already linked to another') ||
+    normalized.includes('already linked')
+  ) {
+    return createApiError(
+      APP_ERROR_CODES.CONFLICT,
+      SAFE_AUTH_MESSAGES.identityAlreadyLinked,
+    );
+  }
+  if (
+    normalized.includes('cannot_unlink_last_identity') ||
+    normalized.includes('cannot unlink last') ||
+    normalized.includes('last identity')
+  ) {
+    return createApiError(
+      APP_ERROR_CODES.VALIDATION_FAILED,
+      SAFE_AUTH_MESSAGES.cannotUnlinkLastIdentity,
+    );
+  }
+  if (normalized.includes('identity_not_found') || normalized.includes('identity not found')) {
+    return createApiError(
+      APP_ERROR_CODES.AUTHENTICATION_FAILED,
+      SAFE_AUTH_MESSAGES.identityNotFound,
     );
   }
   if (normalized.includes('invalid api key') || normalized.includes('api key')) {
