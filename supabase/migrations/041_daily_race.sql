@@ -36,6 +36,16 @@ ALTER TABLE public.daily_race_winners ENABLE ROW LEVEL SECURITY;
 -- Keine Policies: identisch zu jackpot_pool/risk_events — Zugriff ausschließlich über die
 -- SECURITY DEFINER-RPCs unten, kein direktes service_role-Tabellen-Grant.
 
+-- Unterstützende Indizes für die Tages-Aggregation unten (Security-Review-Fund M1,
+-- worldmap/05_DAILY_TOURNAMENT.md L6): game_rounds hatte bislang keinen Index auf
+-- status/updated_at (nur idx_game_rounds_active auf user_id/game/status/created_at und
+-- idx_game_rounds_crash_round), wallet_transactions' bestehender idx_transactions_created
+-- deckt den Zeitbereichs-Scan ab, aber nicht kombiniert mit dem type-Filter.
+CREATE INDEX IF NOT EXISTS idx_game_rounds_settled_updated
+  ON public.game_rounds (status, updated_at) WHERE status = 'SETTLED';
+CREATE INDEX IF NOT EXISTS idx_wallet_transactions_type_created
+  ON public.wallet_transactions (type, created_at);
+
 -- ============================================================================
 -- L2: Read-RPC — live Aggregation, kein neuer Write im Bet-Pfad
 -- ============================================================================
@@ -72,13 +82,13 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, pg_temp AS $$
     GROUP BY user_id
   )
   SELECT
-    ROW_NUMBER() OVER (ORDER BY t.wagered DESC, t.last_bet_at ASC)::INTEGER AS rank,
+    ROW_NUMBER() OVER (ORDER BY t.wagered DESC, t.last_bet_at ASC, t.user_id ASC)::INTEGER AS rank,
     u.username,
     ROUND(t.wagered, 2) AS wagered,
-    (ARRAY[5000.00, 3000.00, 2000.00])[ROW_NUMBER() OVER (ORDER BY t.wagered DESC, t.last_bet_at ASC)] AS prize
+    (ARRAY[5000.00, 3000.00, 2000.00])[ROW_NUMBER() OVER (ORDER BY t.wagered DESC, t.last_bet_at ASC, t.user_id ASC)] AS prize
   FROM today t
   JOIN public.users u ON u.id = t.user_id
-  ORDER BY t.wagered DESC, t.last_bet_at ASC
+  ORDER BY t.wagered DESC, t.last_bet_at ASC, t.user_id ASC
   LIMIT 3;
 $$;
 
@@ -137,9 +147,9 @@ BEGIN
       GROUP BY user_id
     )
     SELECT user_id, wagered, last_bet_at,
-      ROW_NUMBER() OVER (ORDER BY wagered DESC, last_bet_at ASC) AS rnk
+      ROW_NUMBER() OVER (ORDER BY wagered DESC, last_bet_at ASC, user_id ASC) AS rnk
     FROM today
-    ORDER BY wagered DESC, last_bet_at ASC
+    ORDER BY wagered DESC, last_bet_at ASC, user_id ASC
     LIMIT 3
   LOOP
     SELECT * INTO v_user FROM public.users WHERE id = v_winner.user_id FOR UPDATE;

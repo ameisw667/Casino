@@ -30,6 +30,7 @@ const PUBLIC_ROUTES = [
   '/api/chat/bot-response',
   '/api/community',
   '/api/leaderboard',
+  '/api/tournaments/(.*)',
   '/api/user/(.*)',
   '/api/analytics/(.*)',
   '/api/admin/users',
