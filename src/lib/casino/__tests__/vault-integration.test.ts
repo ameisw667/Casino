@@ -29,14 +29,16 @@ describe('Vault & Lifetime Stats Backend Integration', () => {
     expect(statsRoute).toContain('WalletService.syncAchievement');
   });
 
-  it('VaultPage uses dynamic session identity, achievement descriptions, and server stats merge', () => {
+  it('keeps VaultPage session/stats wiring while VaultAchievements owns achievement presentation', () => {
     const vaultPage = read('src/app/vault/page.tsx');
+    const vaultAchievements = read('src/components/casino/vault/VaultAchievements.tsx');
     const store = read('src/store/useCasinoStore.ts');
     expect(vaultPage).toContain('useSupabaseSession');
     expect(vaultPage).toContain('/api/user/stats');
     expect(vaultPage).toContain('displayName');
-    expect(vaultPage).toContain('ach.description');
-    expect(vaultPage).toContain('showAllAchievementsModal');
+    expect(vaultPage).toContain('VaultAchievements');
+    expect(vaultAchievements).toContain('getAchievementPresentation');
+    expect(vaultAchievements).toContain('showAllAchievementsModal');
     expect(store).toContain('mergeServerAchievements');
     expect(store).toContain("fetch('/api/user/stats'");
   });
