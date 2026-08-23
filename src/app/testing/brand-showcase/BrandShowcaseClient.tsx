@@ -16,7 +16,6 @@ import {
   Check,
 } from 'lucide-react';
 import { BetModeTabs } from '@/components/casino/controls/BetModeTabs';
-import { BetInputGroup } from '@/components/casino/controls/BetInputGroup';
 import { GameActionButton } from '@/components/casino/controls/GameActionButton';
 import { VibeSlider } from '@/components/casino/controls/VibeSlider';
 import { AutoBetDrawer, AutoBetConfig } from '@/components/casino/controls/AutoBetDrawer';

@@ -252,7 +252,6 @@ const INITIAL_ACHIEVEMENTS: Achievement[] = mergeAchievementsWithConfig(
   DEFAULT_ACHIEVEMENT_CONFIGS,
 );
 
-const syncTimer: ReturnType<typeof setTimeout> | null = null;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PROCESSED_RESULT_ID_CAPACITY = 256;
 const processedResultIds = new Set<string>();

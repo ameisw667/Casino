@@ -506,7 +506,11 @@ export default function SlotsPage() {
       if (document.activeElement?.tagName === 'INPUT') return;
       if (e.code === 'Space') {
         e.preventDefault();
-        handleSpin();
+        if (isAutoMode) {
+          setAutoRunning(!autoRunning);
+        } else {
+          handleSpin();
+        }
         return;
       }
       if (isSpinning || autoRunning) return;
@@ -517,7 +521,7 @@ export default function SlotsPage() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [handleSpin, isSpinning, autoRunning, betMin, betMax, balance]);
+  }, [handleSpin, isSpinning, autoRunning, betMin, betMax, balance, isAutoMode, setAutoRunning]);
 
   // Auto-Bet Logic
   useEffect(() => {

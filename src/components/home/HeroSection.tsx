@@ -287,20 +287,29 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
               <div style={{ height: '32px', width: '1px', background: 'rgba(255,255,255,0.1)' }} />
               <div style={{ display: 'flex', gap: '20px' }}>
-                <img
+                <Image
                   src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=029"
-                  style={{ height: '24px', filter: 'grayscale(1) brightness(4)' }}
                   alt="BTC"
+                  width={24}
+                  height={24}
+                  unoptimized
+                  style={{ filter: 'grayscale(1) brightness(4)' }}
                 />
-                <img
+                <Image
                   src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=029"
-                  style={{ height: '24px', filter: 'grayscale(1) brightness(4)' }}
                   alt="ETH"
+                  width={24}
+                  height={24}
+                  unoptimized
+                  style={{ filter: 'grayscale(1) brightness(4)' }}
                 />
-                <img
+                <Image
                   src="https://cryptologos.cc/logos/litecoin-ltc-logo.svg?v=029"
-                  style={{ height: '24px', filter: 'grayscale(1) brightness(4)' }}
                   alt="LTC"
+                  width={24}
+                  height={24}
+                  unoptimized
+                  style={{ filter: 'grayscale(1) brightness(4)' }}
                 />
               </div>
             </div>
@@ -368,13 +377,16 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                     height: '40px',
                     borderRadius: '12px',
                     overflow: 'hidden',
+                    position: 'relative',
                     background: 'rgba(255,255,255,0.05)',
                     border: '1px solid rgba(255,255,255,0.05)',
                   }}
                 >
-                  <img
+                  <Image
                     src={w.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${w.user}`}
                     alt="u"
+                    fill
+                    sizes="40px"
                   />
                 </div>
                 <div style={{ flex: 1 }}>

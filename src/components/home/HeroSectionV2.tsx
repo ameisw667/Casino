@@ -99,18 +99,20 @@ function WinnerCard({ withdrawal, index }: { withdrawal: Withdrawal; index: numb
           height: '40px',
           borderRadius: '12px',
           overflow: 'hidden',
+          position: 'relative',
           background: 'rgba(255,255,255,0.05)',
           border: '1px solid rgba(255,255,255,0.05)',
         }}
         whileHover={{ rotate: [0, -5, 5, 0] }}
         transition={{ duration: 0.4 }}
       >
-        <img
+        <Image
           src={
             withdrawal.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${withdrawal.user}`
           }
           alt="u"
-          style={{ width: '100%', height: '100%' }}
+          fill
+          sizes="40px"
         />
       </motion.div>
       <div style={{ flex: 1 }}>

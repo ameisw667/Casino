@@ -988,7 +988,10 @@ export function RouletteClient() {
 
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
-        if (!spinning && !isProcessing && currentBets.length > 0) {
+        if (spinning || isProcessing) return;
+        if (isAutoMode) {
+          setAutoRunning(!autoRunning);
+        } else if (currentBets.length > 0) {
           handleSpin();
         }
         return;
@@ -1009,6 +1012,9 @@ export function RouletteClient() {
     handleClearBets,
     handleUndo,
     handleDoubleBets,
+    isAutoMode,
+    autoRunning,
+    setAutoRunning,
   ]);
 
   if (!mounted) return null;

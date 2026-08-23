@@ -404,7 +404,18 @@ export default function DicePage() {
 
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
-        if (!loading && !isProcessing) handleRoll();
+        if (loading || isProcessing) return;
+        if (isAutoMode) {
+          if (!autoRunning) {
+            setBaseBetAmount(betAmount);
+            setAutoRunning(true);
+          } else {
+            setAutoRunning(false);
+          }
+        } else {
+          handleRoll();
+        }
+        return;
       }
       if (e.key === 'a') setBetAmount((prev) => Math.max(betMin, prev / 2));
       if (e.key === 's') setBetAmount((prev) => Math.min(betMax, prev * 2));
@@ -414,7 +425,20 @@ export default function DicePage() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [loading, isProcessing, handleRoll, balance, betMin, betMax, toggleRollMode]);
+  }, [
+    loading,
+    isProcessing,
+    handleRoll,
+    balance,
+    betMin,
+    betMax,
+    toggleRollMode,
+    isAutoMode,
+    autoRunning,
+    setAutoRunning,
+    setBaseBetAmount,
+    betAmount,
+  ]);
 
   if (!mounted) return null;
 

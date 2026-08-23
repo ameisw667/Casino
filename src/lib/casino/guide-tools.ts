@@ -1,6 +1,5 @@
 import 'server-only';
 
-import { z } from 'zod';
 import { WalletService } from './wallet';
 import { DEFAULT_VIP_CONFIG, getVipTierByXp } from './vip-config';
 import { CasinoLogger } from './logger';

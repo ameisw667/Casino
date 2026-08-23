@@ -27,6 +27,34 @@ function reportRateLimiterUnavailable(scope: string): void {
   }
 }
 
+// Dev-only header a local Artillery load test (worldmap/05_Observability_und_Lasttest.md,
+// P28/1.16, L4) can set to simulate several distinct players instead of a single
+// `dev_user_fallback` — otherwise every request would serialize on the same
+// pg_advisory_xact_lock(user_id) and the test would measure lock contention, not
+// realistic multi-user concurrency. Only ever consulted from within the existing
+// dev-fallback branch below: it can never override a real Supabase session, and every
+// existing invariant (NODE_ENV, ALLOW_DEV_FALLBACK, signed-out cookie) applies unchanged.
+const LOADTEST_USER_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
+
+/**
+ * Resolves the dev-only auth fallback userId, or null if none of the dev-fallback
+ * conditions apply (in which case the caller must treat the request as unauthenticated).
+ */
+export function resolveDevFallbackUserId(request: Request, isSignedOut: boolean): string | null {
+  if (
+    process.env.NODE_ENV !== 'development' ||
+    process.env.ALLOW_DEV_FALLBACK !== 'true' ||
+    isSignedOut
+  ) {
+    return null;
+  }
+  const loadtestUserId = request.headers.get('x-loadtest-user-id');
+  if (loadtestUserId && LOADTEST_USER_ID_PATTERN.test(loadtestUserId)) {
+    return `loadtest_${loadtestUserId}`;
+  }
+  return 'dev_user_fallback';
+}
+
 export function getClientIdentifier(request: Request, userId?: string | null): string {
   if (userId) return `user:${userId}`;
   const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { TrendingUp, Award, BarChart3, Repeat, ShieldCheck } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 
 export interface GameStatsPanelProps {
   totalWagered: number;
@@ -27,7 +27,7 @@ export function GameStatsPanel({
   netProfit,
   betsCount,
   winRate,
-  highestMultiplier = 1.0,
+  highestMultiplier: _highestMultiplier = 1.0,
   className = '',
 }: GameStatsPanelProps) {
   const isProfitPositive = netProfit >= 0;

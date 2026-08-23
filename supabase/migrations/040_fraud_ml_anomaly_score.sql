@@ -98,6 +98,14 @@ GRANT EXECUTE ON FUNCTION public.record_risk_event(TEXT, TEXT, TEXT, TEXT, TIMES
 -- abs(amount) recovers the wagered magnitude and sum(amount) on wins is already the payout.
 -- inter_bet_seconds_cv uses LAG() over created_at to catch bot-like regular betting cadence — a
 -- signal none of the 3 existing rule detectors (030) cover.
+--
+-- DROP FUNCTION first (same reasoning as 044_fix_fraud_ml_features_settlement_model.sql, which
+-- already needs the identical guard for its own redefinition): 044's corrected version was
+-- validated directly against the live project ahead of this push, so a differently-shaped
+-- version of this function may already exist remotely — CREATE OR REPLACE cannot change a
+-- RETURNS TABLE(...) column set (Postgres 42P13), only DROP+CREATE can.
+DROP FUNCTION IF EXISTS public.compute_fraud_ml_features(INT, INT);
+
 CREATE OR REPLACE FUNCTION public.compute_fraud_ml_features(
   p_window_days INT DEFAULT 7,
   p_min_bets INT DEFAULT 20

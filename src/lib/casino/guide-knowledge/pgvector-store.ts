@@ -3,7 +3,7 @@ import 'server-only';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { CasinoLogger } from '../logger';
 import type { GuideKnowledgeSource } from './schema';
-import { fetchQueryEmbedding, GUIDE_EMBEDDING_MODEL, OPENAI_EMBEDDINGS_URL } from './vector-store';
+import { GUIDE_EMBEDDING_MODEL, OPENAI_EMBEDDINGS_URL } from './vector-store';
 
 export type DbGuideDocument = {
   id: string;

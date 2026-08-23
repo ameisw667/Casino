@@ -19,7 +19,7 @@ interface SettingsPopoverProps {
 
 export default function SettingsPopover({
   isOpen,
-  onClose,
+  onClose: _onClose,
   onOpenProvablyFair,
   onExpandModal,
   inline: _inline = true,

@@ -1,6 +1,6 @@
 # SOP: API Backend Routes, Middleware & Admin
 
-> **Zweck:** Vollständige Spezifikation aller Server-Endpunkte in `src/app/api/`, der Auth-Middleware `src/proxy.ts` und der Admin-Routen in `src/app/admin/`.
+> **Zweck:** Vollständige Spezifikation aller Server-Endpunkte in `src/app/api/`, der Auth-Middleware `src/proxy.ts` und der Admin-Routen in `src/app/admin/`. Kontext: [API, Middleware & Backend-Kontext](../xx_docs/08_api_backend_context.md).
 
 ---
 
@@ -48,6 +48,8 @@
 | `/admin/fraud` | Signal-Dashboard & Anomalie-Erkennung | `/api/admin/fraud` |
 | `/admin/promo-codes` | Kampagnen- und Gutschein-Management | `/api/admin/promo-codes` |
 | `/admin/analytics` | Cohort/Retention/VIP-BI-Dashboard | `/api/admin/analytics` |
+| `/admin/knowledge` | KI-Wissensdokumente & pgvector-Synchronisation | `/api/admin/knowledge` |
+| `/admin/evals` | Guide-Qualitäts- & Intent-Evaluationen | `/api/admin/evals` |
 
 ---
 

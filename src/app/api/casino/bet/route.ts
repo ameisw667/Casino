@@ -19,8 +19,10 @@ import {
   enforceRateLimit,
   getClientIdentifier,
   rateLimitHeaders,
+  resolveDevFallbackUserId,
   validateMutationOrigin,
 } from '@/lib/security/request-security';
+import { withBetPathSpan, flushBetPathTracer } from '@/lib/otel/tracer';
 import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
 
 const rouletteBetSchema = z.object({
@@ -70,30 +72,27 @@ export async function POST(request: Request) {
   }
 
   let requestId: string | undefined;
+  after(() => flushBetPathTracer());
 
   try {
-    const supabase = await createClient();
-    const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser();
+    const userId = await withBetPathSpan('auth-resolve', async () => {
+      const supabase = await createClient();
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
 
-    const cookieHeader = request.headers.get('cookie') || '';
-    const isExplicitSignedOut = cookieHeader.includes('casino_signed_out=1');
+      const cookieHeader = request.headers.get('cookie') || '';
+      const isExplicitSignedOut = cookieHeader.includes('casino_signed_out=1');
 
-    let userId = authUser?.id;
-    if (
-      !userId &&
-      process.env.NODE_ENV === 'development' &&
-      process.env.ALLOW_DEV_FALLBACK === 'true' &&
-      !isExplicitSignedOut
-    ) {
-      userId = 'dev_user_fallback';
-    }
+      return authUser?.id ?? resolveDevFallbackUserId(request, isExplicitSignedOut) ?? undefined;
+    });
     if (!userId) {
       return apiErrorResponse(APP_ERROR_CODES.AUTHENTICATION_REQUIRED, 'Bitte melde dich an.', 401);
     }
 
-    const rate = await enforceRateLimit(getClientIdentifier(request, userId), 'casino-bet', 30, 10);
+    const rate = await withBetPathSpan('rate-limit', () =>
+      enforceRateLimit(getClientIdentifier(request, userId), 'casino-bet', 30, 10),
+    );
     if (!rate.success) {
       const retryAfterSeconds = Math.max(1, Math.ceil((rate.reset - Date.now()) / 1000));
       return apiErrorResponse(
@@ -292,6 +291,7 @@ export async function POST(request: Request) {
       });
       await notifyBigWinIfEligible({
         userId,
+        requestId: params.requestId,
         game: 'CRASH',
         payout: result.payout,
         multiplier: result.multiplier,
@@ -341,49 +341,63 @@ export async function POST(request: Request) {
         { requestId: params.requestId },
       );
 
-    const seed = await WalletService.consumeActiveSeed({ userId, requestId: params.requestId });
-    const generated = await CasinoCore.placeBet(
-      {
-        gameType: params.gameType,
-        amount: params.amount,
-        multiplier: params.multiplier,
-        target: params.target,
-        condition: params.condition,
-        bets: params.bets,
-        clientSeed: params.clientSeed,
-        serverSeed: seed.serverSeed,
-        serverSeedHash: seed.serverSeedHash,
-        nonce: seed.nonce,
-      },
-      gameConfig,
+    // Narrowed to plain locals (not `params.amount`/`params.gameType`) so the
+    // `!== undefined` checks above still hold inside the withBetPathSpan closures below —
+    // TS does not carry property-access narrowing across a function boundary.
+    const amount = params.amount;
+    const gameType = params.gameType;
+
+    const seed = await withBetPathSpan('seed-consume', () =>
+      WalletService.consumeActiveSeed({ userId, requestId: params.requestId }),
     );
-    const jackpotRoll = await ProvablyFairEngine.getJackpotRoll(
-      seed.serverSeed,
-      params.clientSeed,
-      seed.nonce,
-    );
+    const { generated, jackpotRoll } = await withBetPathSpan('place-bet-rng', async () => {
+      const generatedResult = await CasinoCore.placeBet(
+        {
+          gameType,
+          amount,
+          multiplier: params.multiplier,
+          target: params.target,
+          condition: params.condition,
+          bets: params.bets,
+          clientSeed: params.clientSeed,
+          serverSeed: seed.serverSeed,
+          serverSeedHash: seed.serverSeedHash,
+          nonce: seed.nonce,
+        },
+        gameConfig,
+      );
+      const jackpotRollResult = await ProvablyFairEngine.getJackpotRoll(
+        seed.serverSeed,
+        params.clientSeed,
+        seed.nonce,
+      );
+      return { generated: generatedResult, jackpotRoll: jackpotRollResult };
+    });
     const result = {
       ...generated,
-      game: params.gameType,
-      amount: params.amount,
-      multiplier: params.amount > 0 ? generated.payout / params.amount : 0,
+      game: gameType,
+      amount,
+      multiplier: amount > 0 ? generated.payout / amount : 0,
       jackpotRoll,
     };
-    const settlement = await WalletService.settleBet({
-      userId,
-      requestId: params.requestId,
-      resultId: generated.id,
-      game: params.gameType,
-      amount: params.amount,
-      payout: generated.payout,
-      xpGain: CasinoCore.calculateXpGain(params.amount, 1, gameConfig),
-      result,
-      serverSeedHash: generated.serverSeedHash,
-      nonce: generated.nonce,
-    });
+    const settlement = await withBetPathSpan('settle-bet-rpc', () =>
+      WalletService.settleBet({
+        userId,
+        requestId: params.requestId,
+        resultId: generated.id,
+        game: gameType,
+        amount,
+        payout: generated.payout,
+        xpGain: CasinoCore.calculateXpGain(amount, 1, gameConfig),
+        result,
+        serverSeedHash: generated.serverSeedHash,
+        nonce: generated.nonce,
+      }),
+    );
     await notifyBigWinIfEligible({
       userId,
-      game: params.gameType,
+      requestId: params.requestId,
+      game: gameType,
       payout: result.payout,
       multiplier: result.multiplier,
       win: result.win,
@@ -391,12 +405,14 @@ export async function POST(request: Request) {
     });
     const isFirstBet = await isFirstBetSignal(userId, settlement.replayed);
 
-    return NextResponse.json({
-      ...(settlement.result as object),
-      wallet: walletOnly(settlement),
-      replayed: settlement.replayed,
-      isFirstBet,
-    });
+    return withBetPathSpan('response-serialize', async () =>
+      NextResponse.json({
+        ...(settlement.result as object),
+        wallet: walletOnly(settlement),
+        replayed: settlement.replayed,
+        isFirstBet,
+      }),
+    );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal Server Error';
     CasinoLogger.error(

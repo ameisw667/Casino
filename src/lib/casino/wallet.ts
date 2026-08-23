@@ -632,6 +632,30 @@ export class WalletService {
   }
 
   /**
+   * Emits a big_win_notify outbox event (4.3, worldmap/12_EVENT_BUS_BIG_WIN_CONSUMER.md) — the
+   * durable, retried counterpart to directly calling tasks.trigger('big-win-notify', ...). Called
+   * from notifyBigWinIfEligible() after its local eligibility check, never from a settlement RPC.
+   * Idempotent over (userId, requestId): a retried settlement never double-queues a notification.
+   */
+  static async emitBigWinNotifyEvent(params: {
+    userId: string;
+    requestId: string;
+    game: string;
+    payout: number;
+    multiplier: number;
+  }): Promise<void> {
+    const supabase = createAdminClient();
+    const { error } = await supabase.rpc('emit_big_win_notify_event', {
+      p_user_id: params.userId,
+      p_request_id: params.requestId,
+      p_game: params.game,
+      p_payout: params.payout,
+      p_multiplier: params.multiplier,
+    });
+    if (error) throw new Error('Failed to emit big-win notify event');
+  }
+
+  /**
    * Links a just-started CRASH game_rounds row to its shared crash_rounds
    * room (worldmap/05_multiplayercrash.md, Option C). Pure reference write —
    * no balance/XP mutation, so a direct update outside the advisory-lock RPC

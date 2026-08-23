@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { ShieldCheck, ShieldAlert, Plus, Trash2, Loader2, Copy, Check, QrCode } from 'lucide-react';
+import { ShieldCheck, Plus, Trash2, Loader2, Copy, Check } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { mapAuthError } from '@/lib/security/form-errors';
 import { trackAllowedEvent } from '@/lib/analytics/events';
@@ -304,7 +304,8 @@ export default function MfaManagementSection() {
               margin: '0 auto',
             }}
           >
-            {/* Supabase TOTP QR is an inline SVG Data URL */}
+            {/* Supabase TOTP QR is an inline SVG Data URL — kept as native <img>: next/image cannot optimize SVG data URLs and any re-encoding risks corrupting the scannable QR. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={enrollData.qrCode}
               alt="2FA QR Code"

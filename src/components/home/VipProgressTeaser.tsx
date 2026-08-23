@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
-import { Crown, Sparkles, Check, ChevronRight } from 'lucide-react';
+import { Crown, ChevronRight } from 'lucide-react';
 import { soundManager } from '@/lib/casino/sound-manager';
 
 const RankBenefitsModal = dynamic(() => import('@/components/casino/RankBenefitsModal'), {

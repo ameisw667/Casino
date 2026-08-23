@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { DollarSign, ShieldAlert, Infinity as InfinityIcon, Play, Square } from 'lucide-react';
+import { Infinity as InfinityIcon } from 'lucide-react';
 import { soundManager } from '@/lib/casino/sound-manager';
 import { GameActionButton } from './GameActionButton';
 

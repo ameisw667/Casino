@@ -4,7 +4,7 @@ import { createAdminClient } from '@/utils/supabase/admin';
 import { isAdminEmail } from '@/lib/security/admin';
 import { getGuideFeedbackSummary } from '@/lib/casino/guide-feedback';
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     const supabase = await createClient();
     const {

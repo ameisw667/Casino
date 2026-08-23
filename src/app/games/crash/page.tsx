@@ -16,58 +16,15 @@ import {
   type CrashPlayerBroadcastPayload,
 } from '@/lib/casino/realtime-types';
 
-// Types for the particle & background system
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  life: number;
-  maxLife: number;
-  color: string;
-  size: number;
-  type: 'exhaust' | 'spark' | 'smoke' | 'explosion' | 'cashout' | 'shockwave';
-}
-
-interface Star {
-  x: number;
-  y: number;
-  size: number;
-  speed: number;
-  layer: number; // 1 (far), 2 (mid), 3 (near)
-  opacity: number;
-  twinklePhase: number;
-}
-
-interface LiveBet {
-  user: string;
-  amount: number;
-  multiplier: number | null;
-  payout: number | null;
-  action: 'BET' | 'CASHOUT' | 'BUST';
-  _target?: number;
-}
-
-function formatMultiplier(mult: number): string {
-  if (mult >= 100000) return `${(mult / 1000).toFixed(0)}k+x`;
-  if (mult >= 10000) return `${(mult / 1000).toFixed(1)}kx`;
-  return `${mult.toFixed(2)}x`;
-}
-
-// Cosmetic PRNG for visual particles
-function pseudoRandom(seedRef: React.MutableRefObject<number>): number {
-  seedRef.current = (seedRef.current * 1103515245 + 12345) & 0x7fffffff;
-  return seedRef.current / 0x7fffffff;
-}
-
-// Risk factor curve: 0..1
-const RISK_ESCALATION_RATE = 0.35;
-function getRiskFactor(multiplier: number): number {
-  return 1 - 1 / (1 + Math.max(0, multiplier - 1) * RISK_ESCALATION_RATE);
-}
-
-// Milestone multipliers that trigger a golden horizon line & pop
-const MILESTONE_VALUES = [2, 5, 10, 25, 50, 100, 250, 500, 1000];
+import {
+  formatMultiplier,
+  pseudoRandom,
+  getRiskFactor,
+  MILESTONE_VALUES,
+  type Particle,
+  type Star,
+  type LiveBet,
+} from '@/components/casino/games/crash/crash-helpers';
 
 export default function CrashPage() {
   const isMobile = useCasinoStore((state) => state.isMobile);

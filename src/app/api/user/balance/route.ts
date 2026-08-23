@@ -5,6 +5,7 @@ import {
   enforceRateLimit,
   getClientIdentifier,
   rateLimitHeaders,
+  resolveDevFallbackUserId,
 } from '@/lib/security/request-security';
 import { createClient } from '@/utils/supabase/server';
 
@@ -17,13 +18,8 @@ export async function GET(request: Request) {
     let userId = authUser?.id;
     const cookieHeader = request.headers.get('cookie') || '';
     const isExplicitSignedOut = cookieHeader.includes('casino_signed_out=1');
-    if (
-      !userId &&
-      process.env.NODE_ENV === 'development' &&
-      process.env.ALLOW_DEV_FALLBACK === 'true' &&
-      !isExplicitSignedOut
-    ) {
-      userId = 'dev_user_fallback';
+    if (!userId) {
+      userId = resolveDevFallbackUserId(request, isExplicitSignedOut) ?? undefined;
     }
     if (!userId) return new NextResponse('Unauthorized', { status: 401 });
 

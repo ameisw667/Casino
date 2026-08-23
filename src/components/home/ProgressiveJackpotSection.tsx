@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Coins, Zap, ShieldCheck, Activity, Sparkles } from 'lucide-react';
+import { Trophy, Coins, Zap, ShieldCheck, Activity } from 'lucide-react';
 import { useProgressiveJackpot } from '@/hooks/useProgressiveJackpot';
 
 export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({

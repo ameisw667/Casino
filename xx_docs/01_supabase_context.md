@@ -40,5 +40,5 @@
 | --- | --- |
 | Plan erstellen oder Status pflegen | `xx_sop/03_workflow_jan_planungsdateien.md` |
 | Ausführung und Verifikation | `xx_sop/02_workflow_jan_execution.md` |
-| Datenbank- oder Migrationsablauf | noch als eigene SOP anzulegen |
+| Datenbank- oder Migrationsablauf | `xx_sop/05_database_supabase.md` |
 | Security- und Wallet-Invarianten | `xx_sop/09_security_wallet_invariants.md` |

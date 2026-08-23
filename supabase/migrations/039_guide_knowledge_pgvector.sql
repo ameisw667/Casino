@@ -67,12 +67,18 @@ $$;
 ALTER TABLE guide_documents ENABLE ROW LEVEL SECURITY;
 
 -- Allow public read access to active guide documents
+-- CREATE POLICY has no IF NOT EXISTS in Postgres — DROP IF EXISTS first so a
+-- retried push (this file failed partway on a previous attempt, leaving
+-- table/index/function already created via their own IF NOT EXISTS/OR
+-- REPLACE guards) doesn't fail again on these two non-idempotent statements.
+DROP POLICY IF EXISTS "Allow public read access to active guide documents" ON guide_documents;
 CREATE POLICY "Allow public read access to active guide documents"
 ON guide_documents
 FOR SELECT
 USING (is_active = true);
 
 -- Allow service_role full access
+DROP POLICY IF EXISTS "Allow service_role full access to guide documents" ON guide_documents;
 CREATE POLICY "Allow service_role full access to guide documents"
 ON guide_documents
 FOR ALL

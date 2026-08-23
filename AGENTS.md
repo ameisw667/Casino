@@ -107,7 +107,7 @@ Consent-gesteuerte PostHog-Integration (Detail: `docs/archive/05_2.9_PostHog_Ana
 | `consent.ts`                      | Consent-Gate (`useSyncExternalStore`), vor jedem Analytics-Call geprüft                        |
 | `posthog-client.ts`               | Lazy PostHog-SDK-Init, IP/Autocapture/Session-Recording aus                                    |
 | `identity-hmac.ts`, `identify.ts` | HMAC-basierte User-Identity über `/api/analytics/identity` — nie die rohe User-ID im Client    |
-| `events.ts`                       | Event-Allowlist (`z.strictObject`), inkl. `passkey_*` und `mfa_totp_enrolled`/`unenrolled`     |
+| `events.ts`                       | Event-Allowlist (`z.strictObject`), inkl. `passkey_*`, `mfa_totp_*`, `identity_linked`/`unlinked` |
 | `posthog-erasure.ts`              | Erasure-Funktion, aktuell unverdrahtet (kein bestehender Nutzerlöschprozess in der App)        |
 
 ### State — `src/store/useCasinoStore.ts`
@@ -219,3 +219,13 @@ Vor dem Ausführen strukturierter Aufgaben liest das LLM die entsprechende SOP v
 | **Workflow-Jan Option-Gate** | [`xx_sop/01_workflow_jan_option_gate.md`](xx_sop/01_workflow_jan_option_gate.md) | Vor Architektur-, Design- & Scope-Entscheidungen (3 Optionen nach Jan-Schema). |
 | **Workflow-Jan Execution** | [`xx_sop/02_workflow_jan_execution.md`](xx_sop/02_workflow_jan_execution.md) | Bei Aufgaben-Umsetzung & 5-Stufen-Selbstprüfung. |
 | **Workflow-Jan Planungsdateien** | [`xx_sop/03_workflow_jan_planungsdateien.md`](xx_sop/03_workflow_jan_planungsdateien.md) | Vor dem Anlegen/Pflegen von Meilenstein-Dateien in `worldmap/`. |
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

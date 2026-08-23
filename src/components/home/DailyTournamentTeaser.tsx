@@ -1,7 +1,8 @@
 'use client';
 import React from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Trophy, Timer, Crown, Flame, Sparkles, Zap } from 'lucide-react';
+import { Trophy, Timer, Crown, Zap } from 'lucide-react';
 import { useDailyRaceStandings, formatCountdown } from '@/hooks/useDailyRaceStandings';
 
 interface PodiumSlot {
@@ -223,11 +224,17 @@ export const DailyTournamentTeaser: React.FC<{ isMobile?: boolean }> = ({ isMobi
                     height: '100%',
                     borderRadius: '50%',
                     overflow: 'hidden',
+                    position: 'relative',
                     background: '#0a0a0f',
                   }}
                 >
                   {avatarUrl && (
-                    <img src={avatarUrl} alt={p.username ?? ''} style={{ width: '100%', height: '100%' }} />
+                    <Image
+                      src={avatarUrl}
+                      alt={p.username ?? ''}
+                      fill
+                      sizes={isRank1 ? '68px' : '56px'}
+                    />
                   )}
                 </div>
               </div>

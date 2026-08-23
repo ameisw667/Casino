@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Link2, Unlink, Plus, Check, Loader2, Mail, KeyRound } from 'lucide-react';
+import { Link2, Unlink, Plus, Loader2, Mail, KeyRound } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { mapAuthError } from '@/lib/security/form-errors';
 import { trackAllowedEvent } from '@/lib/analytics/events';

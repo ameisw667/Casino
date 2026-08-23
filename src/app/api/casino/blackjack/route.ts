@@ -256,6 +256,7 @@ export async function POST(request: Request) {
     if (settled) {
       await notifyBigWinIfEligible({
         userId,
+        requestId: input.requestId,
         game: 'BLACKJACK',
         payout,
         multiplier: next.payoutMultiplier,

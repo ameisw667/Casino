@@ -14,7 +14,7 @@ const postChatSchema = z.object({
   message: z.string().min(1).max(500),
 });
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     const messages = await WalletService.getChatMessages(50);
     return NextResponse.json(

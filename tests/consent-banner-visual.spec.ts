@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 test('consent banner is visible and operates on http://localhost:3015', async ({ page }) => {
   await page.goto('http://localhost:3015/');

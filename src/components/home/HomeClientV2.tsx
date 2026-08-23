@@ -5,8 +5,6 @@ import { useCasinoStore } from '@/store/useCasinoStore';
 import { trackAllowedEvent } from '@/lib/analytics/events';
 import { VibeMotion } from '@/components/ui/VibeMotion';
 import { HeroCinematicShowcase } from '@/components/home/HeroCinematicShowcase';
-import { LiveHighrollerTickerBar } from '@/components/home/LiveHighrollerTickerBar';
-import { InteractiveArcadeGrid } from '@/components/home/InteractiveArcadeGrid';
 
 const LiveActivityFeedV2 = dynamic(
   () => import('@/components/social/LiveActivityFeedV2').then((mod) => mod.LiveActivityFeedV2),
@@ -34,6 +32,15 @@ const VipProgressTeaser = dynamic(
 );
 const VipLiveStreamRail = dynamic(
   () => import('@/components/home/VipLiveStreamRail').then((mod) => mod.VipLiveStreamRail),
+  { ssr: false },
+);
+const LiveHighrollerTickerBar = dynamic(
+  () =>
+    import('@/components/home/LiveHighrollerTickerBar').then((mod) => mod.LiveHighrollerTickerBar),
+  { ssr: false },
+);
+const InteractiveArcadeGrid = dynamic(
+  () => import('@/components/home/InteractiveArcadeGrid').then((mod) => mod.InteractiveArcadeGrid),
   { ssr: false },
 );
 

@@ -50,6 +50,11 @@ CREATE INDEX IF NOT EXISTS idx_wallet_transactions_type_created
 -- L2: Read-RPC — live Aggregation, kein neuer Write im Bet-Pfad
 -- ============================================================================
 
+-- DROP FUNCTION first: a differently-shaped RETURNS TABLE(...) version could already exist on
+-- remote from prior exploratory testing (same class of issue hit in 040/044 during this push
+-- session — CREATE OR REPLACE cannot change the OUT-parameter column set, Postgres 42P13).
+DROP FUNCTION IF EXISTS public.get_daily_race_standings();
+
 CREATE OR REPLACE FUNCTION public.get_daily_race_standings()
 RETURNS TABLE(rank INTEGER, username TEXT, wagered NUMERIC, prize NUMERIC)
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, pg_temp AS $$

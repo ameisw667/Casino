@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 interface Card {
@@ -69,10 +70,12 @@ export default function PlayingCardV2({ card, faceDown = false, size = 'md' }: P
             boxShadow: '0 4px 10px rgba(0,0,0,0.5)',
           }}
         >
-          <img
+          <Image
             src="/images/blackjack/card-back.png"
             alt="Card Back"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            fill
+            sizes={`${config.width}px`}
+            style={{ objectFit: 'cover' }}
           />
         </div>
 

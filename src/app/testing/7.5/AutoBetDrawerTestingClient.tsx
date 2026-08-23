@@ -4,19 +4,12 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   Sparkles,
-  CheckCircle2,
-  Code2,
   ArrowLeft,
   Volume2,
   VolumeX,
-  ShieldCheck,
-  Smartphone,
-  Monitor,
   Flame,
-  Info,
   Infinity as InfinityIcon,
 } from 'lucide-react';
-import { soundManager } from '@/lib/casino/sound-manager';
 import { GameActionButton } from '@/components/casino/controls/GameActionButton';
 
 export interface AutoBetConfig {
@@ -44,7 +37,7 @@ export default function AutoBetDrawerTestingClient() {
     stopLoss: 20,
   });
 
-  const [configOpt1b, setConfigOpt1b] = useState<AutoBetConfig>({
+  const [configOpt1b] = useState<AutoBetConfig>({
     numberOfBets: 10,
     onWinIncrease: 0,
     onLossIncrease: 100,
@@ -57,7 +50,7 @@ export default function AutoBetDrawerTestingClient() {
   const [isAutoRunningOpt1b, setIsAutoRunningOpt1b] = useState(false);
 
   const [isSoundMuted, setIsSoundMuted] = useState(false);
-  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
+  const [previewDevice] = useState<'desktop' | 'mobile'>('desktop');
 
   return (
     <div

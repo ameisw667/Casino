@@ -33,12 +33,13 @@ describe('044 fixes 040s stale bet/win settlement-model assumption', () => {
     expect(fixMigration).not.toContain("type = 'win'");
   });
 
-  it('044 replaces the function body via CREATE OR REPLACE, not a new function', () => {
-    expect(fixMigration).toContain(
-      'CREATE OR REPLACE FUNCTION public.compute_fraud_ml_features(',
-    );
+  it('044 drops the function before recreating it (Postgres 42P13: CREATE OR REPLACE cannot change the RETURNS TABLE column set)', () => {
+    const dropIndex = fixMigration.indexOf('DROP FUNCTION IF EXISTS public.compute_fraud_ml_features');
+    const createIndex = fixMigration.indexOf('CREATE OR REPLACE FUNCTION public.compute_fraud_ml_features(');
+    expect(dropIndex).toBeGreaterThan(-1);
+    expect(createIndex).toBeGreaterThan(-1);
+    expect(dropIndex).toBeLessThan(createIndex);
     expect(fixMigration).not.toContain('CREATE TABLE');
-    expect(fixMigration).not.toContain('DROP FUNCTION');
   });
 
   it('044 re-issues the same service-role-only grant as 040', () => {

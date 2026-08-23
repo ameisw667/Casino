@@ -61,6 +61,10 @@ describe('isPublicRoute pattern matching', () => {
     expect(isPublicRoute('/api/internal/wallet-events')).toBe(true);
   });
 
+  it('exposes the internal big-win-events route, which self-handles secret validation', () => {
+    expect(isPublicRoute('/api/internal/big-win-events')).toBe(true);
+  });
+
   it('does not list /api/health in PUBLIC_ROUTES — it bypasses proxy() before the Supabase client is created instead (see the dedicated source-order test)', () => {
     expect(isPublicRoute('/api/health')).toBe(false);
   });

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   trigger: vi.fn(),
+  rpc: vi.fn(),
   from: vi.fn(),
   error: vi.fn(),
   setTelegramNotificationsEnabled: vi.fn(async () => true),
@@ -18,7 +19,7 @@ vi.mock('@trigger.dev/sdk', () => ({
   metadata: { set: vi.fn() },
 }));
 vi.mock('@/utils/supabase/admin', () => ({
-  createAdminClient: vi.fn(() => ({ from: mocks.from })),
+  createAdminClient: vi.fn(() => ({ from: mocks.from, rpc: mocks.rpc })),
 }));
 vi.mock('@/lib/casino/logger', () => ({
   CasinoLogger: { error: mocks.error },
@@ -32,6 +33,7 @@ import { formatBigWinMessage, bigWinNotifyPayloadSchema } from '@/trigger/big-wi
 
 const baseInput = {
   userId: 'user-1',
+  requestId: 'req-1',
   game: 'DICE',
   payout: 1000,
   multiplier: 25,
@@ -44,42 +46,42 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('notifyBigWinIfEligible (M2 async dispatch)', () => {
-  it('skips replayed settlements without triggering background task', async () => {
+describe('notifyBigWinIfEligible (4.3 outbox dispatch)', () => {
+  it('skips replayed settlements without emitting an outbox event', async () => {
     const result = await notifyBigWinIfEligible({ ...baseInput, replayed: true });
     expect(result).toBe('skipped');
-    expect(mocks.trigger).not.toHaveBeenCalled();
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
-  it('skips losses without triggering background task', async () => {
+  it('skips losses without emitting an outbox event', async () => {
     const result = await notifyBigWinIfEligible({ ...baseInput, win: false });
     expect(result).toBe('skipped');
-    expect(mocks.trigger).not.toHaveBeenCalled();
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
-  it('skips wins below big-win thresholds without triggering background task', async () => {
+  it('skips wins below big-win thresholds without emitting an outbox event', async () => {
     const result = await notifyBigWinIfEligible({ ...baseInput, payout: 10, multiplier: 2 });
     expect(result).toBe('skipped');
-    expect(mocks.trigger).not.toHaveBeenCalled();
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
-  it('triggers big-win-notify background task on eligible big win', async () => {
-    mocks.trigger.mockResolvedValueOnce({ id: 'run_bigwin_1' });
+  it('emits a big_win_notify outbox event on eligible big win', async () => {
+    mocks.rpc.mockResolvedValueOnce({ data: { success: true, alreadyExists: false }, error: null });
     const result = await notifyBigWinIfEligible(baseInput);
 
     expect(result).toBe('sent');
-    expect(mocks.trigger).toHaveBeenCalledWith('big-win-notify', {
-      userId: 'user-1',
-      game: 'DICE',
-      payout: 1000,
-      multiplier: 25,
-      win: true,
-      replayed: false,
+    expect(mocks.rpc).toHaveBeenCalledWith('emit_big_win_notify_event', {
+      p_user_id: 'user-1',
+      p_request_id: 'req-1',
+      p_game: 'DICE',
+      p_payout: 1000,
+      p_multiplier: 25,
     });
+    expect(mocks.trigger).not.toHaveBeenCalled();
   });
 
-  it('swallows trigger errors and never throws in the bet response path', async () => {
-    mocks.trigger.mockRejectedValueOnce(new Error('Trigger service down'));
+  it('swallows RPC errors and never throws in the settlement response path', async () => {
+    mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: 'connection lost' } });
     const result = await notifyBigWinIfEligible(baseInput);
 
     expect(result).toBe('skipped');
@@ -87,7 +89,7 @@ describe('notifyBigWinIfEligible (M2 async dispatch)', () => {
   });
 });
 
-describe('bigWinNotify helpers and schema', () => {
+describe('bigWinNotify helpers and schema (unchanged Trigger.dev task, now dispatched via the outbox route)', () => {
   it('formats big win messages accurately', () => {
     const msg = formatBigWinMessage('CRASH', 2500, 50);
     expect(msg).toBe('🎉 Big Win! CRASH — $2500.00 at 50.00x');

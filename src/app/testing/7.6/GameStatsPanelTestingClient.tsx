@@ -4,18 +4,9 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   Sparkles,
-  CheckCircle2,
-  Code2,
   ArrowLeft,
   Volume2,
   VolumeX,
-  ShieldCheck,
-  Smartphone,
-  Monitor,
-  Flame,
-  Zap,
-  Info,
-  BarChart3,
 } from 'lucide-react';
 import { GameStatsPanel } from '@/components/casino/controls/GameStatsPanel';
 import { soundManager } from '@/lib/casino/sound-manager';
@@ -24,10 +15,10 @@ export default function GameStatsPanelTestingClient() {
   const [totalWagered, setTotalWagered] = useState<number>(450.0);
   const [netProfit, setNetProfit] = useState<number>(124.5);
   const [betsCount, setBetsCount] = useState<number>(32);
-  const [winRate, setWinRate] = useState<number>(58);
+  const [winRate] = useState<number>(58);
 
   const [isSoundMuted, setIsSoundMuted] = useState(false);
-  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
+  const [previewDevice] = useState<'desktop' | 'mobile'>('desktop');
 
   const handleSimulateBetWin = () => {
     setTotalWagered((prev) => prev + 10);

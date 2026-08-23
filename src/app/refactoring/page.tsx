@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 /**
  * /refactoring — Isolierte Testseite für die eigenständige Lobby v2-Konzeption.
@@ -15,6 +16,7 @@ import { useEffect, useRef, useState } from 'react';
 const PROTOTYPE_SRC = '/prototypes/lobby_v2_refactoring.html';
 
 export default function RefactoringPage() {
+  const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -23,12 +25,12 @@ export default function RefactoringPage() {
     // der Testseite nicht — sie hat keine internen Routen. Focus-Trap entfällt.
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        window.location.href = '/';
+        router.push('/');
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [router]);
 
   return (
     <div

@@ -11,7 +11,6 @@ import {
   ShieldCheck,
   Bell,
   X,
-  Sparkles,
 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import TelegramLinkSection from './TelegramLinkSection';

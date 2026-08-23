@@ -1,0 +1,16 @@
+# worldmap/05_Observability_und_Lasttest.md (P28/1.16) — local-only trace viewer for the
+# opt-in OpenTelemetry tracer in src/lib/otel/tracer.ts. In-memory storage only (no
+# volume): fine for a one-off load test, never intended to run in staging/production.
+#
+# Usage: npm run observability:up / npm run observability:down
+services:
+  jaeger:
+    # :latest is deliberate here (not pinned): this stack is a throwaway local
+    # diagnostic tool with no persistence, never a reproducible deployment target.
+    image: jaegertracing/all-in-one:latest
+    container_name: casino-loadtest-jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - '16686:16686' # Jaeger UI
+      - '4318:4318' # OTLP HTTP receiver (matches OTEL_EXPORTER_OTLP_ENDPOINT default)

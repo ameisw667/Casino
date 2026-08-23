@@ -8,6 +8,7 @@ import {
   getClientIdentifier,
   rateLimitHeaders,
   resetLocalRateLimitsForTests,
+  resolveDevFallbackUserId,
   validateMutationOrigin,
 } from '../request-security';
 
@@ -93,5 +94,53 @@ describe('request security', () => {
     expect(headers['X-RateLimit-Limit']).toBe('60');
     expect(headers['X-RateLimit-Remaining']).toBe('0');
     expect(headers['Retry-After']).toBeDefined();
+  });
+
+  describe('resolveDevFallbackUserId (worldmap/05_Observability_und_Lasttest.md, L4)', () => {
+    afterEach(() => vi.unstubAllEnvs());
+
+    function req(headers: Record<string, string> = {}) {
+      return new Request('http://casino.test/api', { headers });
+    }
+
+    it('falls back to dev_user_fallback without a loadtest header', () => {
+      vi.stubEnv('NODE_ENV', 'development');
+      vi.stubEnv('ALLOW_DEV_FALLBACK', 'true');
+      expect(resolveDevFallbackUserId(req(), false)).toBe('dev_user_fallback');
+    });
+
+    it('prefixes a valid loadtest header into a distinct synthetic userId', () => {
+      vi.stubEnv('NODE_ENV', 'development');
+      vi.stubEnv('ALLOW_DEV_FALLBACK', 'true');
+      expect(resolveDevFallbackUserId(req({ 'x-loadtest-user-id': 'vu-7' }), false)).toBe(
+        'loadtest_vu-7',
+      );
+    });
+
+    it('never applies outside development, regardless of the header', () => {
+      vi.stubEnv('NODE_ENV', 'production');
+      vi.stubEnv('ALLOW_DEV_FALLBACK', 'true');
+      expect(resolveDevFallbackUserId(req({ 'x-loadtest-user-id': 'vu-7' }), false)).toBeNull();
+    });
+
+    it('never applies without ALLOW_DEV_FALLBACK=true, regardless of the header', () => {
+      vi.stubEnv('NODE_ENV', 'development');
+      vi.stubEnv('ALLOW_DEV_FALLBACK', 'false');
+      expect(resolveDevFallbackUserId(req({ 'x-loadtest-user-id': 'vu-7' }), false)).toBeNull();
+    });
+
+    it('never applies when the request carries the signed-out cookie', () => {
+      vi.stubEnv('NODE_ENV', 'development');
+      vi.stubEnv('ALLOW_DEV_FALLBACK', 'true');
+      expect(resolveDevFallbackUserId(req({ 'x-loadtest-user-id': 'vu-7' }), true)).toBeNull();
+    });
+
+    it('ignores an invalid header value and falls back to dev_user_fallback instead of throwing', () => {
+      vi.stubEnv('NODE_ENV', 'development');
+      vi.stubEnv('ALLOW_DEV_FALLBACK', 'true');
+      expect(
+        resolveDevFallbackUserId(req({ 'x-loadtest-user-id': '../../etc/passwd; DROP TABLE users' }), false),
+      ).toBe('dev_user_fallback');
+    });
   });
 });

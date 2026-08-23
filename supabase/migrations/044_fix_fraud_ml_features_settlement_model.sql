@@ -15,8 +15,13 @@
 -- this fix warrants. DICE/ROULETTE/SLOTS (this RPC's scope) are the three single-shot games and
 -- the most bot-scriptable, so this remains a meaningful v1 anomaly signal.
 --
--- Grants/signature are unchanged from 040 — CREATE OR REPLACE keeps them, re-issued for
--- explicitness (same convention as 030's re-issued grants after a body change).
+-- Argument signature (INT, INT) is unchanged from 040, but the OUT-parameter column set (the
+-- RETURNS TABLE(...) row type) is not — Postgres rejects CREATE OR REPLACE in that case
+-- (42P13: "cannot change return type of existing function ... Row type defined by OUT
+-- parameters is different", confirmed against the live project). DROP FUNCTION first, then
+-- recreate; grants are re-issued after, since DROP also revokes them.
+
+DROP FUNCTION IF EXISTS public.compute_fraud_ml_features(INT, INT);
 
 CREATE OR REPLACE FUNCTION public.compute_fraud_ml_features(
   p_window_days INT DEFAULT 7,

@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   enforceRateLimit: vi.fn(),
   getClientIdentifier: vi.fn(() => 'user:test-user'),
   rateLimitHeaders: vi.fn(() => ({ 'X-RateLimit-Limit': '10' })),
+  resolveDevFallbackUserId: vi.fn(() => null),
   redeemPromoCode: vi.fn(),
   recordRiskEventBestEffort: vi.fn(),
   loggerError: vi.fn(),
@@ -20,6 +21,7 @@ vi.mock('@/lib/security/request-security', () => ({
   enforceRateLimit: mocks.enforceRateLimit,
   getClientIdentifier: mocks.getClientIdentifier,
   rateLimitHeaders: mocks.rateLimitHeaders,
+  resolveDevFallbackUserId: mocks.resolveDevFallbackUserId,
 }));
 vi.mock('@/lib/casino/wallet', () => ({
   WalletService: { redeemPromoCode: mocks.redeemPromoCode },

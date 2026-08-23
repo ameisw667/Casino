@@ -1,7 +1,7 @@
 # 10 — Royale Guide & LLM-Erweiterung Roadmap
 
-> Stand: **2026-08-22**  
-> Status: 🟡 **Stufen A–H + K Executed / Offene Roadmap (Stufen I, L, M) Geplant**  
+> Stand: **2026-08-23**  
+> Status: 🟡 **Stufen A–I + K Executed / Offene Roadmap (Stufen L, M) Geplant**  
 > Projekt: **Casino / Next.js 16.3 / OpenAI Responses API (`gpt-4o-mini` + `text-embedding-3-small`) / SSE Streams / Supabase pgvector / Recharts**  
 > Verzeichnis: [`Z_LLM/`](file:///v:/VibeCoding/Casino/Z_LLM/)  
 > Bezug: [`worldmap/05_ZUKUNFTSPLANUNG.md`](file:///v:/VibeCoding/Casino/worldmap/05_ZUKUNFTSPLANUNG.md) — **Tracking-Quelle** für alle LLM-, Guide- und Moderations-Funktionen.  
@@ -14,6 +14,7 @@
 > • Stufe F: [`docs/archive/09_stufe_f_pgvector_admin.md`](file:///v:/VibeCoding/Casino/docs/archive/09_stufe_f_pgvector_admin.md)  
 > • Stufe G: [`docs/archive/09_stufe_g_token_streaming.md`](file:///v:/VibeCoding/Casino/docs/archive/09_stufe_g_token_streaming.md)  
 > • Stufe H: [`docs/archive/09_stufe_h_ui_action_control.md`](file:///v:/VibeCoding/Casino/docs/archive/09_stufe_h_ui_action_control.md)  
+> • Stufe I: [`docs/archive/09_stufe_i_follow_up_chips.md`](file:///v:/VibeCoding/Casino/docs/archive/09_stufe_i_follow_up_chips.md)  
 > • Stufe K: [`docs/archive/09_stufe_k_admin_evals.md`](file:///v:/VibeCoding/Casino/docs/archive/09_stufe_k_admin_evals.md)  
 > • Trigger Button: [`docs/archive/01_trigger_button.md`](file:///v:/VibeCoding/Casino/docs/archive/01_trigger_button.md)  
 > • Chat UI: [`docs/archive/02_chat_ui_modern.md`](file:///v:/VibeCoding/Casino/docs/archive/02_chat_ui_modern.md)  
@@ -25,11 +26,10 @@
 
 ## 1 — Übersicht für Jan: Aktive Offene Punkte & Next-Level Roadmap (Top 1% Ziel)
 
-> **Erste Übersichtstabelle:** Zeigt alle offenen Ausbaustufen zur Steigerung von Top 5% auf Top 1% Branchen-Niveau.
+> **Erste Übersichtstabelle:** Zeigt alle offenen Ausbaustufen zur Steigerung von Top 4% auf Top 1% Branchen-Niveau.
 
 | Stufe / Nr. | Meilenstein | Status | Ziel & Funktion (1 Satz) | Aufwand (1–100) | Risiko (1–100) | Impact (1–100) | Lerneffekt |
 | :--- | :--- | :---: | :--- | :---: | :---: | :---: | :--- |
-| **Stufe I** | **Dynamische Follow-up Suggestion Chips** | 🔴 Geplant | Generiert 2–3 passende Anschlussfragen als klickbare Quick-Chips nach jeder Bot-Antwort. | 20 | 5 | 75 | Mittel |
 | **Stufe L** | **Multimodale Spielanalyse (Vision)** | 🔴 Geplant | Screenshot-Upload für Spielrunden mit visueller Erklärung des Spielergebnisses via `gpt-4o`. | 48 | 15 | 82 | Sehr Hoch |
 | **Stufe M** | **Voice / Audio-Interface (Whisper + TTS)** | 🔴 Geplant | Sprachgesteuerte Ein- und Ausgabe im Royale-Guide-Orb via Web Audio API. | 50 | 15 | 80 | Sehr Hoch |
 
@@ -37,7 +37,7 @@
 
 ---
 
-## 2 — Abgeschlossene Core-, Streaming-, Evals- & Action-Stufen (Status: 100% Executed)
+## 2 — Abgeschlossene Core-, Streaming-, Evals-, Action- & Chip-Stufen (Status: 100% Executed)
 
 | Stufe / Modul | Meilenstein | Status | Umgesetztes Ergebnis | Tests | Verifikation |
 | :--- | :--- | :---: | :--- | :---: | :---: |
@@ -52,6 +52,7 @@
 | **Stufe K** | **Admin LLM Evals & Telemetrie-Dashboard** | 🟢 Executed | Live Evals Dashboard (`/admin/evals`), Recharts, User-Thumbs Feedback & Migration `042` | 845/845 | Vitest / Build |
 | **Stufe G** | **Token-Streaming (`ReadableStream` & SSE)** | 🟢 Executed | Server-Sent Events Token-Streaming (< 180 ms TTFT) mit Live-Reader & Cursor | 884/884 | Vitest / Build |
 | **Stufe H** | **UI-Aktionssteuerung per Tool Calling** | 🟢 Executed | Tool `trigger_ui_action`, SSE-Action Stream, Golden Action Buttons & App Navigation | 887/887 | Vitest / Build |
+| **Stufe I** | **Dynamische Follow-up Suggestion Chips** | 🟢 Executed | Delimiter-Streaming (`<<<SUGGESTIONS: [...]>>>`), 0 ms Latenz, klickbare Gold-Chips | 899/899 | Vitest / Build |
 
 ---
 
@@ -70,8 +71,8 @@
 | **Feedback** | Feedback Service | [`guide-feedback.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/guide-feedback.ts) | Feedback-Persistence mit Memory-Store Fallback & CSAT-Berechnung |
 | **Tools** | Live Tools & UI Actions | [`guide-tools.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/guide-tools.ts) | 4 OpenAI Tools: `vip_progress`, `session_stats`, `limits`, `trigger_ui_action` |
 | **Retriever**| Hybrid-Retriever | [`hybrid-retriever.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/guide-knowledge/hybrid-retriever.ts) | 4-Stufen Kaskade: Keyword Schnellpfad -> pgvector DB -> Vektor Memory -> Platform Fallback |
-| **Core** | Chat-Guide Service| [`chat-guide.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/chat-guide.ts) | Multi-Turn Buffer, 2-Turn Tool Loop, SSE `ReadableStream` Token & Action Streaming |
-| **UI** | Guide Panel Component| [`CasinoGuidePanel.tsx`](file:///v:/VibeCoding/Casino/src/components/social/CasinoGuidePanel.tsx) | Live SSE Stream Reader, Golden Action Buttons, Feedback, Cyber-Gold Orb, 2-Spalten Modal |
+| **Core** | Chat-Guide Service| [`chat-guide.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/chat-guide.ts) | SuggestionStreamFilter, Multi-Turn Buffer, 2-Turn Tool Loop, SSE `ReadableStream` Token & Action Streaming |
+| **UI** | Guide Panel Component| [`CasinoGuidePanel.tsx`](file:///v:/VibeCoding/Casino/src/components/social/CasinoGuidePanel.tsx) | Live SSE Stream Reader, Suggestion Chips, Golden Action Buttons, Feedback, Cyber-Gold Orb |
 
 ---
 

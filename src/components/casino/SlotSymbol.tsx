@@ -1,6 +1,17 @@
 'use client';
 import React from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
+
+const SlotImage: React.FC<{ src: string; alt: string; size: number }> = ({ src, alt, size }) => (
+  <Image
+    src={src}
+    alt={alt}
+    fill
+    sizes={`${size}px`}
+    style={{ objectFit: 'contain' }}
+  />
+);
 
 export type SymbolType =
   | 'zeus'
@@ -30,49 +41,25 @@ interface SlotSymbolProps {
 
 const SYMBOL_DATA: Record<
   SymbolType,
-  { color: string; glowColor: string; label: string; icon: (id: string) => React.ReactNode }
+  { color: string; glowColor: string; label: string; icon: (id: string, size: number) => React.ReactNode }
 > = {
   zeus: {
     color: '#FFD700',
     glowColor: '#FFD700',
     label: 'ZEUS',
-    icon: (_id) => (
-      <img
-        src="/images/slots/sym-zeus.png"
-        alt="Zeus"
-        loading="lazy"
-        decoding="async"
-        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-      />
-    ),
+    icon: (_id, size) => <SlotImage src="/images/slots/sym-zeus.png" alt="Zeus" size={size} />,
   },
   crown: {
     color: '#FFD700',
     glowColor: '#FFD700',
     label: 'CROWN',
-    icon: (_id) => (
-      <img
-        src="/images/slots/sym-crown.png"
-        alt="Crown"
-        loading="lazy"
-        decoding="async"
-        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-      />
-    ),
+    icon: (_id, size) => <SlotImage src="/images/slots/sym-crown.png" alt="Crown" size={size} />,
   },
   chalice: {
     color: '#FF8C00',
     glowColor: '#FF8C00',
     label: 'CHALICE',
-    icon: (_id) => (
-      <img
-        src="/images/slots/sym-chalice.png"
-        alt="Chalice"
-        loading="lazy"
-        decoding="async"
-        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-      />
-    ),
+    icon: (_id, size) => <SlotImage src="/images/slots/sym-chalice.png" alt="Chalice" size={size} />,
   },
   ring: {
     color: '#00D4FF',
@@ -320,75 +307,35 @@ const SYMBOL_DATA: Record<
     color: '#C8A84B',
     glowColor: '#D4AF37',
     label: '10',
-    icon: (_id) => (
-      <img
-        src="/images/slots/sym-ten.png"
-        alt="10"
-        loading="lazy"
-        decoding="async"
-        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-      />
-    ),
+    icon: (_id, size) => <SlotImage src="/images/slots/sym-ten.png" alt="10" size={size} />,
   },
 
   card_jack: {
     color: '#7799DD',
     glowColor: '#99BBFF',
     label: 'J',
-    icon: (_id) => (
-      <img
-        src="/images/slots/sym-jack.png"
-        alt="Jack"
-        loading="lazy"
-        decoding="async"
-        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-      />
-    ),
+    icon: (_id, size) => <SlotImage src="/images/slots/sym-jack.png" alt="Jack" size={size} />,
   },
 
   card_queen: {
     color: '#DD6677',
     glowColor: '#FF8899',
     label: 'Q',
-    icon: (_id) => (
-      <img
-        src="/images/slots/sym-queen.png"
-        alt="Queen"
-        loading="lazy"
-        decoding="async"
-        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-      />
-    ),
+    icon: (_id, size) => <SlotImage src="/images/slots/sym-queen.png" alt="Queen" size={size} />,
   },
 
   card_king: {
     color: '#CCCCCC',
     glowColor: '#FFFFFF',
     label: 'K',
-    icon: (_id) => (
-      <img
-        src="/images/slots/sym-king.png"
-        alt="King"
-        loading="lazy"
-        decoding="async"
-        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-      />
-    ),
+    icon: (_id, size) => <SlotImage src="/images/slots/sym-king.png" alt="King" size={size} />,
   },
 
   card_ace: {
     color: '#FFD700',
     glowColor: '#FFFACD',
     label: 'A',
-    icon: (_id) => (
-      <img
-        src="/images/slots/sym-ace.png"
-        alt="Ace"
-        loading="lazy"
-        decoding="async"
-        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-      />
-    ),
+    icon: (_id, size) => <SlotImage src="/images/slots/sym-ace.png" alt="Ace" size={size} />,
   },
 };
 
@@ -446,7 +393,7 @@ export const SlotSymbol: React.FC<SlotSymbolProps> = ({
       )}
 
       {/* Symbol SVG */}
-      <div style={{ width: '85%', height: '85%' }}>{data.icon(uniqueId)}</div>
+      <div style={{ width: '85%', height: '85%', position: 'relative' }}>{data.icon(uniqueId, size)}</div>
 
       {/* Multiplier value overlay */}
       {type === 'multiplier' && multiplierValue && (

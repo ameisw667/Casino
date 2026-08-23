@@ -1,0 +1,56 @@
+# worldmap/05_Observability_und_Lasttest.md (P28/1.16, L5)
+#
+# Local-only artificial load against POST /api/casino/bet (DICE). Never point `target`
+# at a staging/production host.
+#
+# Prerequisites:
+#   - local Supabase running (`supabase start`)
+#   - dev server running with the dev-fallback + tracing gates enabled:
+#       OTEL_ENABLED=true ALLOW_DEV_FALLBACK=true npm run dev
+#   - optional: `npm run observability:up` for the local Jaeger trace UI (localhost:16686)
+#
+# Run: npm run loadtest:bet
+config:
+  target: 'http://localhost:3015'
+  processor: './bet-flow.processor.mjs'
+  defaults:
+    headers:
+      origin: 'http://localhost:3015'
+      content-type: 'application/json'
+  phases:
+    - name: Warmup
+      duration: 15
+      arrivalRate: 1
+    - name: Ramp-up
+      duration: 30
+      arrivalRate: 2
+      rampTo: 15
+    - name: Sustained peak
+      duration: 30
+      arrivalRate: 15
+
+scenarios:
+  - name: Dice bet session
+    beforeScenario: 'assignLoadtestUser'
+    flow:
+      # Provisions the synthetic player (getWallet() upsert) before it ever places a bet —
+      # without this, the first bet would fail with a wallet FK/lookup error.
+      - get:
+          url: '/api/user/balance'
+          headers:
+            x-loadtest-user-id: '{{ loadtestUserId }}'
+      - loop:
+          - post:
+              url: '/api/casino/bet'
+              headers:
+                x-loadtest-user-id: '{{ loadtestUserId }}'
+              json:
+                requestId: '{{ $uuid }}'
+                gameType: 'DICE'
+                amount: 1
+                target: 50
+                condition: 'OVER'
+                clientSeed: 'loadtest-seed'
+              expect:
+                - statusCode: 200
+        count: 5

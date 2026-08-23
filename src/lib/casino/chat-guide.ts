@@ -17,7 +17,6 @@ import {
 import {
   GUIDE_OPENAI_TOOLS,
   executeGuideTool,
-  type GuideToolName,
 } from './guide-tools';
 
 export const CASINO_GUIDE_MODEL = process.env.CASINO_GUIDE_MODEL || 'gpt-4o-mini';
@@ -199,6 +198,12 @@ LIVE READ-ONLY TOOLS & UI ACTIONS:
 - When the player wants to play a game (Blackjack, Crash, Dice, Roulette, Slots), call tool \`trigger_ui_action\` with action "navigate_game", target with game slug (e.g. "blackjack", "crash", "dice", "roulette", "slots"), and label like "Zu Blackjack spielen" or "Zu Crash".
 - When the player asks about leaderboard or rankings, call tool \`trigger_ui_action\` with action "open_leaderboard" and label "Leaderboard öffnen".
 
+FOLLOW-UP SUGGESTIONS RULE:
+- At the very end of your response, always provide 2-3 short, highly relevant follow-up questions or actions that the user might want to ask next in German.
+- Format them strictly on a new line at the very bottom as:
+<<<SUGGESTIONS: ["Frage 1", "Frage 2", "Frage 3"]>>>
+- Keep each suggestion concise and under 45 characters.
+
 FORMAT & READABILITY RULES:
 - Always format your answer in clean, readable GitHub-Flavored Markdown.
 - Use concise bullet points (- item) or numbered steps for actions, rules, and features.
@@ -221,7 +226,109 @@ export type GuideAnswerResult = {
   answer: string;
   model: string;
   usage: GuideUsage | null;
+  suggestions?: string[];
+  action?: {
+    type: string;
+    target?: string;
+    label: string;
+  };
 };
+
+export function extractSuggestionsFromText(rawText: string): {
+  cleanText: string;
+  suggestions: string[];
+} {
+  if (!rawText) {
+    return { cleanText: '', suggestions: [] };
+  }
+
+  const match = rawText.match(/<<<SUGGESTIONS:\s*(\[.*?\])\s*>>>/s);
+  if (!match) {
+    return { cleanText: rawText.trim(), suggestions: [] };
+  }
+
+  const cleanText = rawText.replace(match[0], '').trim();
+  let suggestions: string[] = [];
+  try {
+    const parsed = JSON.parse(match[1]);
+    if (Array.isArray(parsed)) {
+      suggestions = parsed
+        .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+        .map((item) => item.trim())
+        .slice(0, 3);
+    }
+  } catch {
+    suggestions = [];
+  }
+
+  return { cleanText, suggestions };
+}
+
+export class SuggestionStreamFilter {
+  private buffer = '';
+  private isCapturing = false;
+  private suggestions: string[] = [];
+
+  processChunk(chunk: string): { textToEmit: string; suggestionsFound: string[] | null } {
+    this.buffer += chunk;
+
+    if (!this.isCapturing) {
+      const idx = this.buffer.indexOf('<<<SUGGESTIONS:');
+      if (idx !== -1) {
+        const textToEmit = this.buffer.slice(0, idx);
+        this.buffer = this.buffer.slice(idx);
+        this.isCapturing = true;
+
+        const closeIdx = this.buffer.indexOf('>>>');
+        if (closeIdx !== -1) {
+          const rawBlock = this.buffer.slice(0, closeIdx + 3);
+          this.buffer = this.buffer.slice(closeIdx + 3);
+          this.isCapturing = false;
+          const { suggestions } = extractSuggestionsFromText(rawBlock);
+          this.suggestions = suggestions;
+          return { textToEmit, suggestionsFound: suggestions };
+        }
+        return { textToEmit, suggestionsFound: null };
+      }
+
+      // Check if any suffix of this.buffer is a prefix of '<<<SUGGESTIONS:'
+      for (let len = Math.min(this.buffer.length, 15); len >= 1; len--) {
+        const candidate = this.buffer.slice(-len);
+        if ('<<<SUGGESTIONS:'.startsWith(candidate)) {
+          const textToEmit = this.buffer.slice(0, -len);
+          this.buffer = candidate;
+          return { textToEmit, suggestionsFound: null };
+        }
+      }
+
+      const textToEmit = this.buffer;
+      this.buffer = '';
+      return { textToEmit, suggestionsFound: null };
+    } else {
+      const closeIdx = this.buffer.indexOf('>>>');
+      if (closeIdx !== -1) {
+        const rawBlock = this.buffer.slice(0, closeIdx + 3);
+        this.buffer = this.buffer.slice(closeIdx + 3);
+        this.isCapturing = false;
+        const { suggestions } = extractSuggestionsFromText(rawBlock);
+        this.suggestions = suggestions;
+        return { textToEmit: '', suggestionsFound: suggestions };
+      }
+      return { textToEmit: '', suggestionsFound: null };
+    }
+  }
+
+  flush(): { textToEmit: string; suggestionsFound: string[] | null } {
+    if (this.isCapturing || this.buffer.includes('<<<SUGGESTIONS:')) {
+      const { suggestions } = extractSuggestionsFromText(this.buffer);
+      this.buffer = '';
+      return { textToEmit: '', suggestionsFound: suggestions.length > 0 ? suggestions : null };
+    }
+    const textToEmit = this.buffer;
+    this.buffer = '';
+    return { textToEmit, suggestionsFound: this.suggestions.length > 0 ? this.suggestions : null };
+  }
+}
 
 function getOpenAiErrorCode(payload: unknown): string | undefined {
   if (typeof payload !== 'object' || payload === null || !('error' in payload)) return undefined;
@@ -516,8 +623,12 @@ export async function requestCasinoGuideAnswer(
       try {
         const parsedReply = guideReplySchema.safeParse(JSON.parse(turn2OutputText));
         if (parsedReply.success) {
+          const { cleanText, suggestions } = extractSuggestionsFromText(
+            normalizeGuideAnswer(parsedReply.data.answer),
+          );
           return {
-            answer: normalizeGuideAnswer(parsedReply.data.answer),
+            answer: cleanText,
+            suggestions: suggestions.length > 0 ? suggestions : undefined,
             model: CASINO_GUIDE_MODEL,
             usage: normalizeGuideUsage(
               typeof turn2Payload === 'object' && turn2Payload !== null && 'usage' in turn2Payload
@@ -549,8 +660,11 @@ export async function requestCasinoGuideAnswer(
     throw new CasinoGuideError('invalid-response');
   }
 
+  const { cleanText, suggestions } = extractSuggestionsFromText(answer);
+
   return {
-    answer,
+    answer: cleanText,
+    suggestions: suggestions.length > 0 ? suggestions : undefined,
     model: CASINO_GUIDE_MODEL,
     usage: normalizeGuideUsage(
       typeof payload === 'object' && payload !== null && 'usage' in payload ? payload.usage : null,
@@ -656,6 +770,11 @@ export async function requestCasinoGuideAnswerStream(
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({ text: fallbackAnswer.answer })}\n\n`),
         );
+        if (fallbackAnswer.suggestions && fallbackAnswer.suggestions.length > 0) {
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ suggestions: fallbackAnswer.suggestions })}\n\n`),
+          );
+        }
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({ done: true, model: fallbackAnswer.model })}\n\n`),
         );
@@ -679,6 +798,11 @@ export async function requestCasinoGuideAnswerStream(
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({ text: fallbackAnswer.answer })}\n\n`),
         );
+        if (fallbackAnswer.suggestions && fallbackAnswer.suggestions.length > 0) {
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ suggestions: fallbackAnswer.suggestions })}\n\n`),
+          );
+        }
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify({ done: true, model: fallbackAnswer.model })}\n\n`),
         );
@@ -692,6 +816,7 @@ export async function requestCasinoGuideAnswerStream(
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
   const reader = openAiStreamRes.body.getReader();
+  const suggestionFilter = new SuggestionStreamFilter();
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -714,12 +839,6 @@ export async function requestCasinoGuideAnswerStream(
             const trimmed = line.trim();
             if (!trimmed) continue;
             if (trimmed === 'data: [DONE]') {
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ done: true, model: CASINO_GUIDE_MODEL })}\n\n`,
-                ),
-              );
-              controller.enqueue(encoder.encode('data: [DONE]\n\n'));
               continue;
             }
             if (trimmed.startsWith('data: ')) {
@@ -731,15 +850,39 @@ export async function requestCasinoGuideAnswerStream(
                   parsed.delta ??
                   (parsed.type === 'response.output_text.delta' ? parsed.delta : undefined);
                 if (deltaText) {
-                  controller.enqueue(
-                    encoder.encode(`data: ${JSON.stringify({ text: deltaText })}\n\n`),
-                  );
+                  const { textToEmit, suggestionsFound } = suggestionFilter.processChunk(deltaText);
+                  if (textToEmit) {
+                    controller.enqueue(
+                      encoder.encode(`data: ${JSON.stringify({ text: textToEmit })}\n\n`),
+                    );
+                  }
+                  if (suggestionsFound && suggestionsFound.length > 0) {
+                    controller.enqueue(
+                      encoder.encode(
+                        `data: ${JSON.stringify({ suggestions: suggestionsFound })}\n\n`,
+                      ),
+                    );
+                  }
                 }
               } catch {
                 // Ignore partial json parse errors
               }
             }
           }
+        }
+
+        const { textToEmit, suggestionsFound } = suggestionFilter.flush();
+        if (textToEmit) {
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ text: textToEmit })}\n\n`),
+          );
+        }
+        if (suggestionsFound && suggestionsFound.length > 0) {
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ suggestions: suggestionsFound })}\n\n`,
+            ),
+          );
         }
 
         controller.enqueue(

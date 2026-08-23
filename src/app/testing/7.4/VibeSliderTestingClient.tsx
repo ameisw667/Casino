@@ -1,12 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import {
   Sparkles,
-  CheckCircle2,
-  Code2,
   ArrowLeft,
   Volume2,
   VolumeX,
@@ -31,9 +28,6 @@ export default function VibeSliderTestingClient() {
 
   // Viewport Device Toggle State
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
-
-  // Copy Code Feedback State
-  const [activeCodeTab, setActiveCodeTab] = useState<'opt1b' | 'opt1b1' | 'opt1b2'>('opt1b1');
 
   // Handlers with audio tick
   const handleOpt1bChange = (val: number) => {

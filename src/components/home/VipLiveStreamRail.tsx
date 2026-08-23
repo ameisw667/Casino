@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Radio, X, Flame, Crown, Zap, Sparkles, ChevronRight, TrendingUp } from 'lucide-react';
+import { Radio, X, Flame, Crown, TrendingUp } from 'lucide-react';
 import { soundManager } from '@/lib/casino/sound-manager';
 
 interface LiveEvent {

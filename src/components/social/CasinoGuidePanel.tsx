@@ -40,6 +40,7 @@ type GuideTurn = {
     target?: string;
     label: string;
   };
+  suggestions?: string[];
 };
 
 type CasinoGuidePanelProps = {
@@ -542,6 +543,14 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                     ),
                   );
                 }
+                if (parsed.suggestions && Array.isArray(parsed.suggestions)) {
+                  const receivedSuggestions = parsed.suggestions;
+                  setTurns((current) =>
+                    current.map((t) =>
+                      t.id === guideTurnId ? { ...t, suggestions: receivedSuggestions } : t,
+                    ),
+                  );
+                }
                 if (parsed.text) {
                   const chunkText: string = parsed.text;
                   accumulated += chunkText;
@@ -581,6 +590,13 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
           typeof payload === 'object' && payload !== null && 'action' in payload
             ? (payload as Record<string, unknown>).action as { type: string; target?: string; label: string }
             : undefined;
+        const suggestions =
+          typeof payload === 'object' &&
+          payload !== null &&
+          'suggestions' in payload &&
+          Array.isArray((payload as Record<string, unknown>).suggestions)
+            ? ((payload as Record<string, unknown>).suggestions as string[])
+            : undefined;
 
         if (typeof answer !== 'string' || !answer.trim()) {
           setTurns((current) => [
@@ -597,7 +613,7 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
 
         setTurns((current) => [
           ...current,
-          { id: guideTurnId, role: 'guide', text: answer.trim(), time: replyTime, action },
+          { id: guideTurnId, role: 'guide', text: answer.trim(), time: replyTime, action, suggestions },
         ]);
       }
     } catch {
@@ -1116,6 +1132,64 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                                   </button>
                                 </div>
                               )}
+                              {turn.suggestions &&
+                                turn.suggestions.length > 0 &&
+                                (!isSending || index !== turns.length - 1) && (
+                                  <div
+                                    style={{
+                                      marginTop: '10px',
+                                      display: 'flex',
+                                      flexWrap: 'wrap',
+                                      gap: '6px',
+                                      alignItems: 'center',
+                                    }}
+                                  >
+                                    {turn.suggestions.map((suggestion, sIdx) => (
+                                      <button
+                                        key={`sug-${turn.id}-${sIdx}`}
+                                        type="button"
+                                        onClick={() => sendQuestion(suggestion)}
+                                        disabled={isSending}
+                                        style={{
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '5px',
+                                          background: 'rgba(255, 255, 255, 0.04)',
+                                          border: '1px solid rgba(212, 175, 55, 0.3)',
+                                          borderRadius: '16px',
+                                          padding: '4px 10px',
+                                          color: 'hsl(var(--text-main))',
+                                          fontSize: '0.74rem',
+                                          cursor: isSending ? 'not-allowed' : 'pointer',
+                                          transition: 'all 0.15s ease',
+                                          boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          if (!isSending) {
+                                            e.currentTarget.style.background =
+                                              'rgba(212, 175, 55, 0.15)';
+                                            e.currentTarget.style.borderColor =
+                                              'rgba(212, 175, 55, 0.6)';
+                                            e.currentTarget.style.transform = 'translateY(-1px)';
+                                          }
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.currentTarget.style.background =
+                                            'rgba(255, 255, 255, 0.04)';
+                                          e.currentTarget.style.borderColor =
+                                            'rgba(212, 175, 55, 0.3)';
+                                          e.currentTarget.style.transform = 'none';
+                                        }}
+                                      >
+                                        <Sparkles
+                                          size={11}
+                                          style={{ color: '#ffd700', flexShrink: 0 }}
+                                        />
+                                        <span>{suggestion}</span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
                             </>
                           ) : (
                             turn.text
