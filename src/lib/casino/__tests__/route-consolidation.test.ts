@@ -20,12 +20,18 @@ describe('canonical game routes', () => {
 
   it('uses the promoted slots page and canonical components', () => {
     const page = read('src/app/games/slots/page.tsx');
+    const centerStage = read('src/components/casino/games/slots/SlotsCenterStage.tsx');
 
-    expect(page).toContain('@/components/casino/games/slots/SlotReel');
-    expect(page).toContain('@/components/casino/games/slots/WinLine');
+    // Page composes the center stage and still imports the symbols module.
+    expect(page).toContain('SlotsCenterStage');
     expect(page).toContain("from './symbols'");
-    expect(page).toContain('ZEUS VAULT');
+    // Canonical SlotReel/WinLine are wired via the center stage (one indirection deeper after the split).
+    expect(centerStage).toContain('@/components/casino/games/slots/SlotReel');
+    expect(centerStage).toContain('@/components/casino/games/slots/WinLine');
+    expect(centerStage).toContain('ZEUS VAULT');
+    // The deleted SlotLightsBar duplicate must stay absent everywhere.
     expect(page).not.toContain('SlotLightsBar');
+    expect(centerStage).not.toContain('SlotLightsBar');
     expect(read('src/components/casino/games/slots/SlotReel.tsx')).toContain(
       'export function SlotReel',
     );
