@@ -297,7 +297,22 @@ interface RouletteWheelProps {
 }
 
 function LuxuryRouletteWheel({ spinning, winningNumber }: RouletteWheelProps) {
-  const size = 420;
+  // Responsive Rad-Größe: auf <=768px auf Viewport-breite skalieren, damit das
+  // 420px-Rad auf 375px nicht horizontal überfließt. Interne Geometrie (cx/cy/ Radien/
+  // pockets-Memo) leitet sich vollständig von `size` ab und skaliert automatisch mit.
+  // Desktop (>=769px) bleibt bei fixen 420px — unverändert.
+  const [size, setSize] = useState(420);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const compute = () => {
+      const w = window.innerWidth;
+      setSize(w < 768 ? Math.min(420, w - 32) : 420);
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    return () => window.removeEventListener('resize', compute);
+  }, []);
+
   const cx = size / 2;
   const cy = size / 2;
   const outerR = size * 0.44; // 184.8px
@@ -1570,7 +1585,7 @@ export function RouletteClient() {
                   ? 'STOP AUTOBET'
                   : 'START AUTOBET'
                 : currentBets.length > 0
-                  ? `SPIN WHEEL ($${totalBetAmount.toFixed(2)}) (SPACE)`
+                  ? `SPIN WHEEL ($${totalBetAmount.toFixed(2)})`
                   : 'PLACE BETS ON TABLE'}
           </button>
 
@@ -1901,6 +1916,21 @@ export function RouletteClient() {
             </motion.div>
           )}
 
+          {/* Mobile-Hinweis: Roulette-Tisch ist inhärent breit — horizontales Scrollen. */}
+          {isMobile && (
+            <div
+              style={{
+                fontSize: '0.66rem',
+                color: 'rgba(255, 255, 255, 0.45)',
+                textAlign: 'center',
+                marginBottom: '6px',
+                letterSpacing: '0.04em',
+              }}
+            >
+              ← Tisch wischen →
+            </div>
+          )}
+
           {/* MASTER-FELT MIT DEAD-CENTER-TYPOGRAFIE & SKALIERTEN 54PX KOMFORT-ZELLEN (Option A) */}
           <div
             className="roulette-board"
@@ -1908,11 +1938,14 @@ export function RouletteClient() {
               background: '#09090e',
               border: feltFlash ? '2px solid #FFD700' : '2px solid rgba(212, 175, 55, 0.35)',
               borderRadius: '24px',
-              padding: '18px 16px',
+              padding: isMobile ? '12px 10px' : '18px 16px',
               boxShadow: feltFlash
                 ? '0 0 25px rgba(212, 175, 55, 0.6), inset 0 0 30px rgba(0, 0, 0, 0.9)'
                 : 'inset 0 0 30px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(0, 0, 0, 0.5)',
               overflowX: 'auto',
+              WebkitOverflowScrolling: 'touch',
+              scrollSnapType: 'x proximity',
+              scrollbarWidth: 'thin',
               position: 'relative',
               transition: 'border 0.3s ease, box-shadow 0.3s ease',
             }}

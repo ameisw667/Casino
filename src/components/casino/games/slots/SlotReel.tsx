@@ -19,6 +19,7 @@ interface SlotReelProps {
   isAnticipating?: boolean;
   hasWinInCabinet?: boolean;
   onStopComplete?: () => void;
+  cellHeight?: number;
 }
 
 export function SlotReel({
@@ -30,6 +31,7 @@ export function SlotReel({
   isAnticipating = false,
   hasWinInCabinet = false,
   onStopComplete,
+  cellHeight = SLOT_CELL_HEIGHT,
 }: SlotReelProps) {
   const controls = useAnimationControls();
   const isAnimating = useRef(false);
@@ -60,8 +62,8 @@ export function SlotReel({
   useEffect(() => {
     if (!isSpinning || !isAnimating.current) return;
 
-    // Distance to index 21: (3 prev + 18 filler) * 112 = -2352px
-    const totalY = -((3 + FILLER_COUNT) * SLOT_CELL_HEIGHT);
+    // Distance to index 21: (3 prev + 18 filler) * cellHeight
+    const totalY = -((3 + FILLER_COUNT) * cellHeight);
 
     controls
       .start({
@@ -90,17 +92,18 @@ export function SlotReel({
         soundManager.play('chip');
         onStopComplete?.();
       });
-  }, [isSpinning, stopDelay, controls, onStopComplete, finalSymbols]);
+  }, [isSpinning, stopDelay, controls, onStopComplete, finalSymbols, cellHeight]);
 
-  const symbolSize = Math.round(SLOT_CELL_HEIGHT * 0.72);
+  const symbolSize = Math.round(cellHeight * 0.72);
+  const windowHeight = cellHeight * VISIBLE_ROWS;
 
   return (
     <div
       className={`slot-reel-window${isSpinning ? 'spinning' : ''}`}
       style={{
         width: '100%',
-        height: `${REEL_WINDOW_HEIGHT}px`,
-        maxHeight: `${REEL_WINDOW_HEIGHT}px`,
+        height: `${windowHeight}px`,
+        maxHeight: `${windowHeight}px`,
         overflow: 'hidden',
         position: 'relative',
         borderRadius: '12px',
@@ -139,9 +142,9 @@ export function SlotReel({
               className={`slot-cell${isWin ? 'winning' : ''}`}
               style={{
                 width: '100%',
-                height: `${SLOT_CELL_HEIGHT}px`,
-                minHeight: `${SLOT_CELL_HEIGHT}px`,
-                maxHeight: `${SLOT_CELL_HEIGHT}px`,
+                height: `${cellHeight}px`,
+                minHeight: `${cellHeight}px`,
+                maxHeight: `${cellHeight}px`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

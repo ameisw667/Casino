@@ -66,6 +66,16 @@ export function VipLiveStreamRail() {
   const [isOpen, setIsOpen] = useState(false);
   const [events, setEvents] = useState<LiveEvent[]>(INITIAL_EVENTS);
 
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 768px)');
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
   useEffect(() => {
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
@@ -101,6 +111,11 @@ export function VipLiveStreamRail() {
 
   return (
     <>
+      {/* Mobile (<=768px): Rail komplett ausgeblendet — vermeidet permanenten
+          Header-/Content-Overlap durch fixed Toggle-Pill + 300px Drawer.
+          Desktop (>=769px) bleibt unverändert. */}
+      {isMobile ? null : (
+        <>
       {/* Floating Toggle Pill at the right edge */}
       {!isOpen && (
         <motion.button
@@ -367,6 +382,8 @@ export function VipLiveStreamRail() {
           </motion.aside>
         )}
       </AnimatePresence>
+        </>
+      )}
     </>
   );
 }

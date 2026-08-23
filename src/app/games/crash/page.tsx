@@ -392,7 +392,13 @@ export default function CrashPage() {
             payout: data.payout,
             win: data.win,
             resultId: data.id,
-            crashMultiplier: data.crashPoint,
+            // data.crashPoint is masked to null while the shared room hasn't
+            // actually crashed yet (worldmap/05_multiplayercrash.md §17,
+            // FR5) — a cashout win during RUNNING legitimately has no
+            // revealed crash point yet. Coerce to undefined so the store's
+            // crashHistory push (which only checks !== undefined) never
+            // receives a null.
+            crashMultiplier: data.crashPoint ?? undefined,
             isSettlement: true,
           });
           setSessionStats((previous) => ({
@@ -2039,7 +2045,7 @@ export default function CrashPage() {
                 ? 'ARMING THRUSTERS...'
                 : isAutoBetting
                   ? 'AUTO FLIGHT ON'
-                  : `LAUNCH BET ($${betAmount.toFixed(2)}) (SPACE)`}
+                  : `LAUNCH BET ($${betAmount.toFixed(2)})`}
             </button>
           ) : (
             <button
@@ -2065,7 +2071,7 @@ export default function CrashPage() {
             >
               {cashoutAt
                 ? `✓ SECURED $${(betAmount * cashoutAt).toFixed(2)} @ ${cashoutAt.toFixed(2)}x`
-                : `CASHOUT $${(betAmount * multiplier).toFixed(2)} (SPACE)`}
+                : `CASHOUT $${(betAmount * multiplier).toFixed(2)}`}
             </button>
           )}
 
@@ -2108,7 +2114,10 @@ export default function CrashPage() {
               scrollbarWidth: 'none',
             }}
           >
-            {crashHistory.slice(0, 22).map((h, i) => (
+            {crashHistory
+              .filter((h): h is number => typeof h === 'number')
+              .slice(0, 22)
+              .map((h, i) => (
               <div
                 key={i}
                 style={{
@@ -2416,16 +2425,16 @@ export default function CrashPage() {
                 className="glass-card"
                 style={{
                   position: 'absolute',
-                  top: '16px',
-                  right: '16px',
-                  width: isMobile ? '150px' : '200px',
-                  maxHeight: '260px',
+                  top: isMobile ? '8px' : '16px',
+                  right: isMobile ? '8px' : '16px',
+                  width: isMobile ? '112px' : '200px',
+                  maxHeight: isMobile ? '132px' : '260px',
                   overflowY: 'auto',
                   borderRadius: '14px',
                   border: '1px solid rgba(212, 175, 55, 0.15)',
                   background: 'rgba(10, 12, 16, 0.85)',
                   backdropFilter: 'blur(16px)',
-                  padding: '10px',
+                  padding: isMobile ? '8px' : '10px',
                   zIndex: 15,
                   fontFamily: 'monospace',
                 }}
@@ -2474,12 +2483,16 @@ export default function CrashPage() {
                   position: 'absolute',
                   top: '22%',
                   left: '50%',
+                  transform: 'translateX(-50%)',
                   zIndex: 15,
                   pointerEvents: 'none',
-                  fontSize: isMobile ? '1.8rem' : '2.8rem',
+                  fontSize: isMobile ? '1.2rem' : '2.8rem',
                   fontWeight: 900,
                   fontFamily: 'monospace',
-                  letterSpacing: '2px',
+                  letterSpacing: isMobile ? '1px' : '2px',
+                  maxWidth: isMobile ? '92vw' : 'none',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                   color: '#FFD700',
                   textShadow: '0 0 35px rgba(255, 215, 0, 0.9), 0 0 70px rgba(212, 175, 55, 0.5)',

@@ -72,7 +72,15 @@ export async function POST(request: Request) {
   }
 
   let requestId: string | undefined;
-  after(() => flushBetPathTracer());
+  try {
+    // Registers even on early-return paths (401/429/400) so their auth-resolve span
+    // still gets exported. Guarded: `after()` throws when called outside a real Next.js
+    // request scope (e.g. route handlers invoked directly in unit tests), and losing a
+    // trace flush must never be allowed to break the response itself.
+    after(() => flushBetPathTracer());
+  } catch {
+    // Not in a request scope (test harness) — nothing to flush to.
+  }
 
   try {
     const userId = await withBetPathSpan('auth-resolve', async () => {

@@ -2342,6 +2342,13 @@ input[type='range']:focus {
     min-height: 44px;
     touch-action: manipulation;
   }
+
+  /* Opt-out für kleine Icon-/Chip-Buttons im 64px Mobile-Header,
+     damit die globale 44px/48px min-height sie nicht überfüllt.
+     Desktop (>=769px) ist von dieser Regel nicht betroffen. */
+  .no-mobile-minheight {
+    min-height: auto !important;
+  }
 }
 
 /* ============================================================

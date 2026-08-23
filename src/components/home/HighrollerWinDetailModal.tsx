@@ -63,7 +63,7 @@ export function HighrollerWinDetailModal({ win, onClose }: HighrollerWinDetailMo
         style={{
           position: 'fixed',
           inset: 0,
-          zIndex: 250,
+          zIndex: 1050,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

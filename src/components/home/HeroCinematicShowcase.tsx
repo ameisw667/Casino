@@ -345,18 +345,27 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
                 background:
                   'linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(18, 18, 24, 0.9) 100%)',
                 border: '1px solid rgba(212, 175, 55, 0.35)',
-                padding: '12px 16px',
+                padding: isMobile ? '12px' : '12px 16px',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '12px',
+                flexDirection: isMobile ? 'column' : 'row',
+                alignItems: isMobile ? 'stretch' : 'center',
+                justifyContent: isMobile ? 'flex-start' : 'space-between',
+                gap: isMobile ? '10px' : '12px',
                 backdropFilter: 'blur(16px)',
                 boxShadow:
                   '0 10px 28px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.15)',
               }}
             >
               {/* Bonus Code Info */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  minWidth: 0,
+                  flex: isMobile ? '1 1 auto' : '0 0 auto',
+                }}
+              >
                 <div
                   style={{
                     padding: '4px 8px',
@@ -437,6 +446,8 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
                     letterSpacing: '0.04em',
                     textTransform: 'uppercase',
                     whiteSpace: 'nowrap',
+                    width: isMobile ? '100%' : 'auto',
+                    flexShrink: 0,
                   }}
                 >
                   <Zap size={14} fill="#000" /> BONUS AKTIVIEREN
@@ -480,8 +491,8 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '4px 8px',
+              gap: isMobile ? '4px' : '6px',
+              padding: isMobile ? '6px 8px' : '4px 8px',
               borderRadius: '24px',
               background: 'rgba(14, 17, 24, 0.85)',
               backdropFilter: 'blur(16px)',
@@ -491,7 +502,8 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
               fontSize: '0.68rem',
               fontWeight: 700,
               maxWidth: '100%',
-              flexWrap: 'nowrap',
+              flexWrap: isMobile ? 'wrap' : 'nowrap',
+              justifyContent: 'center',
             }}
           >
             {/* Micro-Chip 1: 100% Provably Fair */}
@@ -516,14 +528,16 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
             </div>
 
             {/* Micro-Divider */}
-            <div
-              style={{
-                width: '1px',
-                height: '12px',
-                background: 'rgba(255, 255, 255, 0.12)',
-                flexShrink: 0,
-              }}
-            />
+            {!isMobile && (
+              <div
+                style={{
+                  width: '1px',
+                  height: '12px',
+                  background: 'rgba(255, 255, 255, 0.12)',
+                  flexShrink: 0,
+                }}
+              />
+            )}
 
             {/* Micro-Chip 2: Rating */}
             <div
@@ -566,14 +580,16 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
             </div>
 
             {/* Micro-Divider */}
-            <div
-              style={{
-                width: '1px',
-                height: '12px',
-                background: 'rgba(255, 255, 255, 0.12)',
-                flexShrink: 0,
-              }}
-            />
+            {!isMobile && (
+              <div
+                style={{
+                  width: '1px',
+                  height: '12px',
+                  background: 'rgba(255, 255, 255, 0.12)',
+                  flexShrink: 0,
+                }}
+              />
+            )}
 
             {/* Micro-Chip 3: Instant Payouts */}
             <div

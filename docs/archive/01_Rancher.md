@@ -1,0 +1,139 @@
+# 01 — Rancher Desktop statt Docker — Bestandsaufnahme & Konsolidierung — Plan
+
+> **Status:** Executed (archiviert) · **Stand:** 2026-08-23 · **Owner:** LLM (Jan: 4 Entscheidungen getroffen — L3-Kontext, L7, L9) · **Scope:** Repo-weite Terminologie "Docker" → "Rancher Desktop" dort korrigieren, wo faktisch Rancher Desktops Docker-kompatible CLI gemeint ist; IST-Stand und offene Punkte an einer Stelle bündeln; keine neue Architekturentscheidung (die wurde bereits am 2026-08-18 getroffen, siehe `docs/archive/01_Supabase-CLI.md`). Erweitert um Recherche zu einem möglichen Rancher-CLI/MCP-Piloten (L7/L8, siehe Abschnitt 10).
+
+## 1 — Übersicht für Jan
+
+| Nummer | Meilenstein | Status | Nächster Schritt | Zuständigkeit |
+| --- | --- | --- | --- | --- |
+| L0 | Auslöser: Zeile 8 in `01_API_MCP_CLI.md` ("Docker CLI/MCP") auf "Rancher Desktop" korrigiert | 🟢 Executed (2026-08-23) | — | LLM |
+| L1 | IST-Zustand Rancher Desktop lokal erhoben: Version, Docker-Context, Daemon-/Prozessstatus | 🟢 Executed (2026-08-23, erneut verifiziert) | — | LLM |
+| L2 | Repo-weite Docker-Erwähnungen inventarisiert (`grep -r Docker *.md`) | 🟢 Executed (2026-08-23) | — | LLM |
+| L3 | `05_Observability_und_Lasttest.md` hing real von Rancher Desktop ab, benannte es aber als "Docker Desktop" | 🟢 Executed — **extern aufgelöst:** Der Plan wurde in der anderen (jetzt abgeschlossenen) Konversation vollständig ausgeführt und nach `docs/archive/05_Observability_und_Lasttest.md` verschoben; dort ist Zeile 32 bereits korrekt "Rancher Desktop (Docker-kompatible Runtime, kein Docker Desktop)" | — | LLM/andere Session |
+| L4 | Generische "Docker"-Solo-Nennungen in `01_API_MCP_CLI.md` (Zeilen 171/271/405/466) auf Rancher Desktop vereinheitlicht | 🟢 Executed (2026-08-23) | — | LLM |
+| L5 | Zeile 8 in `01_API_MCP_CLI.md`: Use-Case-Beispiel von "Chaos-Tests" (archiviert seit 2026-08-14) auf "Observability-Jaeger-Stack" korrigiert, Status/Laufzeit aktualisiert | 🟢 Executed (2026-08-23) | — | LLM |
+| L6 | Rancher-Desktop-Laufzeitstatus erneut geprüft | 🟢 Executed (2026-08-23) — Rancher Desktop läuft jetzt: `docker ps` zeigt aktiven Supabase-Stack (`supabase_*_Casino`) und Jaeger-Container (`casino-loadtest-jaeger`) plus Rancher-internes k3s (Traefik/CoreDNS/metrics-server). Vermutlich im Zuge der L2-Execution von `05_Observability_und_Lasttest.md` gestartet. Bekannte, nicht blockierende Einschränkung bleibt bestehen: `supabase_vector_Casino` restartet weiterhin (siehe `01_API_MCP_CLI.md` Zeile 252) | — | — |
+| L7 | Entscheidung eingeholt: Jan wählt "Jetzt" — Recherche zu einem Rancher-CLI/MCP-Piloten sofort durchführen | 🟢 Executed (2026-08-23) | — | **Jan** |
+| L8 | Recherche: Container-MCP-Optionen gegen Rancher Desktops Docker-kompatiblen Socket | 🟢 Executed (2026-08-23) — **Befund gemischt, siehe Abschnitt 10:** Docker Desktops offizielles MCP Toolkit ist bestätigt Docker-Desktop-exklusiv (Rancher-Desktop-Support seit 2025-08-18 offener, unbeantworteter Feature-Request). Community-Server (`ckreiling/mcp-server-docker`) funktionieren technisch gegen jeden Docker-API-kompatiblen Socket inkl. Rancher Desktop, exponieren aber standardmäßig volle Schreib-/Löschrechte (Container/Image/Netzwerk/Volume) ohne dokumentierten Read-only-Schalter — Abweichung vom bisherigen "Read-only zuerst"-Muster aller anderen MCP-Piloten in diesem Repo. **Empfehlung:** aktuell kein eigener Execution-Plan, siehe L9-Entscheidungsfrage an Jan | — | LLM |
+| L9 | Entscheidung eingeholt: Jan wählt "Zurückstellen (Empfehlung)" — kein eigener Execution-Plan jetzt | 🟢 Executed (2026-08-23) | — | **Jan** |
+
+> **Ampel-Definition:** 🔴 Geplant = nicht gestartet · 🟡 In Execution = gestartet, nicht verifiziert · 🟢 Executed = verifiziert abgeschlossen.
+> **Update-Pflicht:** Kopfstatus, diese Tabelle und die Statuszeile in [`01_API_MCP_CLI.md`](01_API_MCP_CLI.md) (Zeile 8/Abschnitt 2.1) werden im selben Edit aktualisiert.
+> **Archivierung:** L9 ist beantwortet ("Zurückstellen") — diese Datei wird nach `docs/archive/` verschoben; sie hat als vollständige Bestandsaufnahme und Recherche-Nachweis eigenen Wert und wird nicht gelöscht.
+
+> **Money-Pfad:** Nein · **Security-Review:** Nein — reine Terminologie-/Dokukorrektur und Bestandsaufnahme, keine Schreiboperation an Wallet-, Auth- oder DB-Pfaden.
+
+## 2 — Ziel und Nicht-Scope
+
+**Ziel:** Genau ein Anlaufpunkt für alle Rancher-Desktop-bezogenen Punkte statt verstreuter, teils falscher "Docker"-Erwähnungen über mehrere Dateien.
+
+**Nicht-Scope:**
+
+- Keine Installation neuer Software — Rancher Desktop ist bereits vorhanden und läuft.
+- Kein Eingriff in Status, Scope oder Meilensteine von `docs/archive/05_Observability_und_Lasttest.md` — die Datei ist bereits `Executed (archiviert)`, dort wird nichts mehr verändert.
+- Keine Wiederbelebung des am 2026-08-14 verworfenen VPS-Chaos-Stacks (`infra/chaos/`) — bleibt archiviert.
+- Keine Entscheidung über einen Rancher-/Docker-MCP-Server ohne Jans explizite Freigabe (L7) — dieser Plan bereitet nur die Entscheidung vor.
+- Keine neue Container-Runtime-Architekturentscheidung — die wurde bereits am 2026-08-18 getroffen (`docs/archive/01_Supabase-CLI.md`, Abschnitt 6, Punkt 4).
+
+## 3 — IST-Stand (zuletzt verifiziert 2026-08-23)
+
+| Prüfpunkt | Verifizierter Befund | Konsequenz |
+| --- | --- | --- |
+| Docker-CLI-Herkunft | `docker --version` → `Docker version 29.6.2-rd` (`-rd`-Suffix = Rancher-Desktop-Build). `docker context ls`: `default` (npipe `docker_engine`, aktiv, `*`) und `desktop-linux` (Docker Desktop, ungenutzt) | Jede Referenz auf "Docker" in diesem Repo meint faktisch Rancher Desktops Moby/dockerd-Backend, nicht Docker Desktop. |
+| Daemon-/Prozessstatus | **Geändert seit Ersterhebung:** `docker ps` läuft jetzt fehlerfrei und zeigt 19 aktive Container — vollständiger Supabase-Lokalstack (`supabase_db/studio/auth/rest/realtime/storage/kong/analytics/inbucket_Casino`, `supabase_vector_Casino` im Restart-Loop wie bekannt), Jaeger (`casino-loadtest-jaeger`) und Rancher-internes k3s (Traefik/CoreDNS/metrics-server/local-path-provisioner) | Rancher Desktop ist gestartet und produktiv im Einsatz für den lokalen Dev-Workflow — kein weiterer Start nötig (L6 erledigt). |
+| Installationsort | `C:\Program Files\Rancher Desktop\` inkl. `docker-buildx`/`docker-compose`-CLI-Plugins (`buildx v0.35.0`, `compose v5.3.1`) | Lokale Installation bestätigt. |
+| Bereits getroffene Entscheidung | `docs/archive/01_Supabase-CLI.md` (verifiziert 2026-08-18): Docker Desktop wegen unerreichbarem Daemon verworfen, Rancher Desktop übernommen | Dieser Plan trifft keine neue Architekturentscheidung, sondern konsolidiert nur die Doku. |
+| Ehemals betroffener Fremdplan | `05_Observability_und_Lasttest.md` ist inzwischen `Executed (archiviert)` unter `docs/archive/`, dort korrekt "Rancher Desktop" benannt (Zeile 32) | L3 ist erledigt, keine weitere Aktion nötig. |
+| Ehemals fehlerhafter Beispiel-Use-Case | `01_API_MCP_CLI.md` Zeile 8 nannte "Chaos-Tests" als Docker-Use-Case; `infra/chaos/docker-compose.yml` gehört laut `docs/archive/00_WORLDMAP_ARCHIVLOG.md` (Zeile 18) zum am 2026-08-14 verworfenen VPS-Ansatz | Korrigiert (L5) — echter Use-Case ist jetzt `docker/observability/docker-compose.yml` (Jaeger-Stack). |
+| Repo-weite Docker-Erwähnungen (aktiver Bestand) | Nach L3–L5: nur noch korrekt attribuierte "Rancher Desktop"-Nennungen in `01_API_MCP_CLI.md`; `05_ZUKUNFTSPLANUNG.md` enthielt bei erneuter Prüfung keine Docker-Erwähnung mehr (im Zuge von L9 des Observability-Plans bereits bereinigt) | Sammelkorrektur (L4) vollständig; kein offener Rest in `.md`-Dateien außerhalb `docs/archive/`/`xx_docs/`. |
+| npm-Wrapper-Kompatibilität | `package.json`: `observability:up`/`observability:down` rufen `docker compose -f docker/observability/docker-compose.yml ...` auf | Laufzeit-agnostisch, keine Code-/Script-Änderung nötig. |
+
+## 4 — Zwei Perspektiven
+
+### A. Engineering und Reproduzierbarkeit
+
+- **Abhängigkeiten:** Rancher Desktop (installiert, läuft).
+- **Aufgabenverteilung:** LLM hat IST-Stand erhoben, inventarisiert und alle eigenen Doku-Korrekturen (L4/L5) selbst ausgeführt. L3 wurde extern (andere Session) bereits gelöst — hier nur nachgezogen. Jan entscheidet ausschließlich noch bei L7 (Scope-Frage, kein technischer Zwischenschritt).
+- **Fehlerfälle:** Keine mehr offen für L0–L6; für L7/L8 siehe Abschnitt 6.
+
+### B. Doku-Konsistenz und Governance
+
+- **Abhängigkeiten:** `xx_sop/03_workflow_jan_planungsdateien.md` (Struktur dieser Datei).
+- **Aufgabenverteilung:** LLM hält Kopfstatus, Übersichtstabelle und Detailabschnitt synchron (SOP-Pflicht). Diese Datei verweist auf `docs/archive/01_Supabase-CLI.md` statt dessen Rancher-Nachweis zu duplizieren.
+- **Ergebnis:** Keine aktive `.md`-Datei im Repo (außerhalb `docs/archive/`) benennt Rancher Desktops Docker-kompatible CLI mehr fälschlich als "Docker Desktop".
+
+## 5 — Betroffene Dateien (Ergebnis)
+
+| Datei | Aktion | Ergebnis |
+| --- | --- | --- |
+| [`worldmap/01_Rancher.md`](01_Rancher.md) (diese Datei) | Erstellt, laufend aktualisiert | Zentraler Anlaufpunkt, Status `In Execution`. |
+| [`worldmap/01_API_MCP_CLI.md`](01_API_MCP_CLI.md) | Geändert (5 Stellen: Zeile 8, 171, 271, 405, 466) | Alle Docker-Solo-Nennungen korrekt auf Rancher Desktop attribuiert; Zeile 8 nennt den echten offenen Use-Case (Observability-Jaeger-Stack). |
+| [`docs/archive/05_Observability_und_Lasttest.md`](../docs/archive/05_Observability_und_Lasttest.md) | Bereits extern geändert und archiviert | Keine weitere Aktion — Terminologie dort bereits korrekt. |
+| [`worldmap/00_WORLDMAP_STATUS.md`](00_WORLDMAP_STATUS.md) | Geändert (Zeile für diese Plan-Datei ergänzt) | Alte Docker-Zeile (Observability) ist mit deren Archivierung entfallen; neue Zeile referenziert `01_Rancher.md`. |
+| [`worldmap/05_ZUKUNFTSPLANUNG.md`](05_ZUKUNFTSPLANUNG.md) | Geprüft, keine Änderung nötig | Enthielt bei erneuter Prüfung (2026-08-23) keine Docker-Erwähnung mehr. |
+| `infra/chaos/`, `docs/archive/*` | Nicht geändert | Bereits korrekt als archiviert/verworfen markiert. |
+| `package.json`, `docker/observability/docker-compose.yml` | Nicht geändert | CLI-Befehle sind laufzeit-agnostisch. |
+
+## 6 — Execution-Plan (abgeschlossen)
+
+Alle Schritte L0–L9 sind ausgeführt. Jans Entscheidung L9 ("Zurückstellen") bedeutet: kein eigener Rancher-CLI/MCP-Plan jetzt. Der Vorschlag bleibt als zurückgestellter Eintrag in `01_API_MCP_CLI.md` Zeile 8 sichtbar, falls sich die Docker-Desktop/Rancher-Parität oder ein Read-only-fähiger Community-Server künftig ändert. Diese Datei ist damit abgeschlossen und wird nach `docs/archive/` verschoben.
+
+## 7 — Fehler- und Problemfälle
+
+| Fehlerfall | Umgang |
+| --- | --- |
+| Rancher Desktop stoppt wieder (z. B. nach Neustart) | Kein Repo-Doku-Problem mehr — reine Laufzeitfrage. Jan startet die App bei Bedarf manuell; kein erneuter Terminologie-Fehler zu erwarten, da alle Doku-Stellen jetzt korrekt "Rancher Desktop" sagen. |
+| L7 = "verwerfen" | Diese Datei bleibt trotzdem erhalten (Bestandsaufnahme hat eigenen Nachweiswert), Status wird auf `Executed (archiviert)` gesetzt, L7/L8 werden als "verworfen" markiert statt gelöscht. |
+| Künftig neue Docker-Erwähnung ohne Rancher-Kontext taucht wieder auf | Kein aktiver Fehlerfall dieses Plans — Hinweis für künftige Sessions: bei neuen Docker/Container-Themen in diesem Repo prüfen, ob "Rancher Desktop" statt "Docker Desktop" gemeint ist (siehe Abschnitt 3, Zeile "Docker-CLI-Herkunft"). |
+
+## 8 — Definition of Done und Plan-Selbstprüfung
+
+### Definition of Done
+
+- [x] Zeile 8 in `01_API_MCP_CLI.md` benennt korrekt "Rancher Desktop" und referenziert den tatsächlich offenen Use-Case. (L2/L5)
+- [x] Alle generischen "Docker"-Solo-Nennungen im aktiven Worldmap-Bestand (außerhalb `docs/archive/`) sind auf Rancher Desktop korrigiert. (L4)
+- [x] `05_Observability_und_Lasttest.md` ist terminologisch korrekt (extern erledigt, hier verifiziert). (L3)
+- [x] Rancher-Desktop-Laufzeitstatus ist dokumentiert und reproduzierbar geprüft — Rancher Desktop läuft. (L1/L6)
+- [x] Jans Entscheidung zu L7 ist eingeholt (Ergebnis: "Jetzt"), Recherche L8 durchgeführt und mit Empfehlung dokumentiert. (L7/L8)
+- [x] Jans Folge-Entscheidung L9 ist eingeholt (Ergebnis: "Zurückstellen") und dokumentiert. (L9)
+
+### Plan-Selbstprüfung
+
+- Scope gegenüber `docs/archive/05_Observability_und_Lasttest.md` klar abgegrenzt: keine Änderung an dem bereits archivierten, fremden Plan.
+- Keine Referenz doppelt gepflegt: dieser Plan verweist auf `docs/archive/01_Supabase-CLI.md` statt dessen Rancher-Nachweis zu duplizieren.
+- Money-Pfad/Security-Review-Einstufung (Nein/Nein) gegen den tatsächlichen Diff-Umfang (reine Markdown-Terminologie) geprüft — bestätigt.
+- Keine Secrets, Runtime-Werte oder Produktionsdaten Teil dieses Plans.
+
+## 10 — Recherche L8: Container-MCP-Optionen gegen Rancher Desktop (2026-08-23)
+
+### Befund A: Docker's offizielles MCP Toolkit — Docker-Desktop-exklusiv
+
+- Docker-Doku (`docs.docker.com/ai/mcp-catalog-and-toolkit/toolkit/`) beschreibt das MCP Toolkit ausschließlich über Docker-Desktop-GUI-Pfade ("Docker Desktop 4.62 und neuer"), keine CLI-only- oder Engine-API-only-Variante dokumentiert.
+- Offener, unbeantworteter Feature-Request bei Rancher Desktop selbst: [`rancher-sandbox/rancher-desktop#9118`](https://github.com/rancher-sandbox/rancher-desktop/issues/9118) ("docker mcp support"), erstellt 2025-08-18, `kind/enhancement`, keine Maintainer-Zusage, kein PR, kein Workaround dokumentiert.
+- **Konsequenz:** Docker MCP Toolkit/`docker mcp`-CLI-Plugin ist mit diesem Rancher-Desktop-Setup aktuell **nicht nutzbar**.
+
+### Befund B: Community-MCP-Server gegen die Docker Engine API — technisch kompatibel, aber breiter Schreibzugriff
+
+- Mehrere aktive Open-Source-Projekte sprechen direkt die Docker Engine API an (nicht Docker-Desktop-spezifisch): [`ckreiling/mcp-server-docker`](https://github.com/ckreiling/mcp-server-docker) (Python, `docker-py` `from_env()`, unterstützt lokalen Socket **und** `DOCKER_HOST`/SSH — laut eigener Doku "any Docker-API-compatible engine, not limited to Docker Desktop"), daneben `QuantGeekDev/docker-mcp`, `williajm/mcp_docker`, `Knuckles-Team/container-manager-mcp` (SSH-basiert, auch Podman/Swarm/K8s).
+- Rancher Desktops `default`-Context (`npipe:////./pipe/docker_engine`, siehe Abschnitt 3) ist Docker-API-kompatibel — ein Engine-API-Client unterscheidet nicht zwischen Rancher- und Docker-Desktop-Backend. **Technisch feasible.**
+- **Aber:** `ckreiling/mcp-server-docker` (der am breitesten referenzierte Kandidat) exponiert standardmäßig volle Schreib-/Löschrechte — Container erstellen/starten/stoppen/entfernen, Images pull/push/build/entfernen, Netzwerke/Volumes anlegen/löschen — **ohne dokumentierten Read-only-Modus/Flag**. Einzige eingebaute Einschränkung: kein `--privileged`/`--cap-add`/`--cap-drop`.
+- **Windows-Named-Pipe-Kompatibilität ungeprüft:** Alle gefundenen Projekte sind primär für Unix-Socket (`/var/run/docker.sock`) bzw. SSH-`DOCKER_HOST` dokumentiert; ein nativer Windows-`npipe://`-Betrieb ist in keiner der gesichteten Quellen explizit bestätigt — müsste vor jedem Piloten selbst verifiziert werden.
+
+### Bewertung gegen dieses Repos MCP-Grundsätze
+
+Jeder bisherige MCP-Pilot in diesem Projekt (Sentry, Playwright, GitHub, Supabase-Plan, Context7) startete strikt **read-only** (siehe `01_API_MCP_CLI.md` Abschnitt 7, Punkt 2 "Read-only zuerst"). Ein Docker-Container-MCP ohne eingebauten Read-only-Schalter würde diesen Grundsatz brechen oder einen Eigenbau/Fork nötig machen, nur um Write-Tools zu entfernen. Der konkrete Nutzen für den Casino-Betrieb ist zudem gering: Container-Sichtbarkeit hat Jan bereits vollständig über die Rancher-Desktop-GUI und `docker ps`/`docker compose ps`; ein MCP würde primär dem Agenten (nicht Jan) Kontrolle über die lokale Laufzeitumgebung geben — ein reiner Lerneffekt-Kandidat, kein klarer Produktivitätsgewinn wie bei Supabase/GitHub/Sentry.
+
+**Empfehlung (LLM):** Keinen eigenen Execution-Plan jetzt aufsetzen. Falls Jan den Lerneffekt trotzdem will: nur mit einem selbst auf Read-only reduzierten Fork/Wrapper von `ckreiling/mcp-server-docker` (nur `list_containers`/`get_logs`/`inspect`-artige Tools registriert, Write-Tools clientseitig aus der Tool-Liste entfernt) und vorherigem Windows-npipe-Kompatibilitätstest — analog zum Supabase-MCP-Sicherheitsschema in `01_API_MCP_CLI.md` Abschnitt 6.3.
+
+## 9 — Quellen
+
+- [`worldmap/01_API_MCP_CLI.md`](01_API_MCP_CLI.md), Zeile 8, Abschnitte 2.1/3.3/7 — Ausgangslage, bereits getroffene Rancher-Entscheidung und "Read-only zuerst"-Grundsatz.
+- [`docs/archive/01_Supabase-CLI.md`](../docs/archive/01_Supabase-CLI.md), Abschnitt 6 — verifizierter Wechsel Docker Desktop → Rancher Desktop (2026-08-18).
+- [`docs/archive/00_WORLDMAP_ARCHIVLOG.md`](../docs/archive/00_WORLDMAP_ARCHIVLOG.md), Zeile 18 — Nachweis, dass der VPS-/Docker-Chaos-Stack am 2026-08-14 verworfen wurde.
+- [`docs/archive/05_Observability_und_Lasttest.md`](../docs/archive/05_Observability_und_Lasttest.md), Zeile 32 — bereits korrekt benannter Rancher-Desktop-Use-Case (Jaeger-Stack).
+- [`docker/observability/docker-compose.yml`](../docker/observability/docker-compose.yml), [`package.json`](../package.json) (`observability:up`/`observability:down`) — tatsächlicher lokaler Docker/Rancher-Use-Case.
+- [`docs/archive/01_github.md`](../docs/archive/01_github.md) — Referenzformat für einen möglichen künftigen Rancher-CLI/MCP-Plan (L9).
+- [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md) — Struktur- und Ablagevorgabe für diese Datei.
+- Docker MCP Toolkit-Doku: [docs.docker.com/ai/mcp-catalog-and-toolkit/toolkit](https://docs.docker.com/ai/mcp-catalog-and-toolkit/toolkit/).
+- Rancher-Desktop-Feature-Request (offen, unbeantwortet): [rancher-sandbox/rancher-desktop#9118](https://github.com/rancher-sandbox/rancher-desktop/issues/9118).
+- Community-Docker-MCP-Server: [ckreiling/mcp-server-docker](https://github.com/ckreiling/mcp-server-docker).

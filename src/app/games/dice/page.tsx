@@ -1037,7 +1037,7 @@ export default function DicePage() {
                 ? autoRunning
                   ? 'STOP AUTOBET'
                   : 'START AUTOBET'
-                : `ROLL DICE ($${betAmount.toFixed(2)}) (SPACE)`}
+                : `ROLL DICE ($${betAmount.toFixed(2)})`}
           </button>
 
           {/* Provably Fair Badge */}
@@ -1353,7 +1353,13 @@ export default function DicePage() {
                   position: 'absolute',
                   top: '-42px',
                   left: '50%',
-                  transform: 'translateX(-50%)',
+                  transform: isMobile
+                    ? targetPoint < 12
+                      ? 'translateX(0)'
+                      : targetPoint > 88
+                        ? 'translateX(-100%)'
+                        : 'translateX(-50%)'
+                    : 'translateX(-50%)',
                   background: 'rgba(14, 14, 20, 0.95)',
                   border: '1px solid rgba(212, 175, 55, 0.5)',
                   padding: '4px 10px',
@@ -1363,6 +1369,9 @@ export default function DicePage() {
                   fontWeight: 900,
                   fontFamily: 'monospace',
                   whiteSpace: 'nowrap',
+                  maxWidth: isMobile ? '92px' : 'none',
+                  overflow: isMobile ? 'hidden' : 'visible',
+                  textOverflow: isMobile ? 'ellipsis' : 'clip',
                   boxShadow: '0 4px 15px rgba(0,0,0,0.6)',
                   pointerEvents: 'none',
                 }}
@@ -1405,8 +1414,8 @@ export default function DicePage() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-              gap: '16px',
+              gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(3, 1fr)',
+              gap: isMobile ? '10px' : '16px',
               position: 'relative',
               zIndex: 5,
             }}
@@ -1454,8 +1463,8 @@ export default function DicePage() {
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(5, 1fr)',
-                  gap: '4px',
+                  gridTemplateColumns: isMobile ? 'repeat(5, minmax(0, 1fr))' : 'repeat(5, 1fr)',
+                  gap: isMobile ? '3px' : '4px',
                   marginTop: '4px',
                 }}
               >
@@ -1471,6 +1480,8 @@ export default function DicePage() {
                           ? '1px solid rgba(212, 175, 55, 0.5)'
                           : '1px solid rgba(255,255,255,0.08)',
                       color: multiplier === m ? '#FFD700' : '#cbd5e1',
+                      fontSize: isMobile ? '0.6rem' : undefined,
+                      padding: isMobile ? '0 2px' : undefined,
                     }}
                     onClick={() => updateFromMultiplier(m)}
                   >

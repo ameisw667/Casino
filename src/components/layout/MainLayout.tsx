@@ -523,7 +523,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 background: 'rgba(0, 0, 0, 0.75)',
                 backdropFilter: 'blur(12px)',
                 WebkitBackdropFilter: 'blur(12px)',
-                zIndex: 145,
+                zIndex: 1040,
               }}
             />
           )}
@@ -548,7 +548,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             flexShrink: 0,
             display: 'flex',
             flexDirection: 'column',
-            zIndex: 150,
+            zIndex: isMobile ? 1050 : 150,
             height: '100vh',
             maxHeight: '100vh',
             position: isMobile ? 'fixed' : 'sticky',
@@ -710,9 +710,14 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                     <SettingsPopover
                       isOpen={showSettings}
                       onClose={() => setShowSettings(false)}
-                      onOpenProvablyFair={() => setShowProvablyFair(true)}
+                      onOpenProvablyFair={() => {
+                        setShowSettings(false);
+                        setMobileSidebarOpen(false);
+                        setShowProvablyFair(true);
+                      }}
                       onExpandModal={() => {
                         setShowSettings(false);
+                        setMobileSidebarOpen(false);
                         setShowSettingsModal(true);
                       }}
                       inline
@@ -814,7 +819,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               {isMobile && (
                 <button
                   onClick={() => setMobileSidebarOpen(true)}
-                  className="btn btn-ghost"
+                  className="btn btn-ghost no-mobile-minheight"
                   aria-label="Open navigation menu"
                   style={{ padding: '8px' }}
                 >
@@ -823,7 +828,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               )}
               <button
                 onClick={() => setShowRankInfo(true)}
-                className="header-chip header-chip-gold"
+                className="header-chip header-chip-gold no-mobile-minheight"
                 style={{
                   padding: isMobile ? '4px 8px' : '6px 12px 6px 6px',
                   display: 'flex',
@@ -969,6 +974,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                     fontWeight: 800,
                     fontSize: isMobile ? '0.9rem' : '1.15rem',
                     letterSpacing: '-0.01em',
+                    maxWidth: isMobile ? '130px' : 'none',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   {hideBalance
@@ -977,6 +986,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 </span>
                 <button
                   onClick={() => updateSettings({ hideBalance: !hideBalance })}
+                  className="no-mobile-minheight"
                   style={{
                     background: 'transparent',
                     border: 'none',

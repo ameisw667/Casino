@@ -18,7 +18,7 @@ import { validateBet } from '@/lib/casino/bet-validator';
 import { sanitizeClientSeed } from '@/lib/casino/provably-fair';
 import { GameErrorBoundary } from '@/components/casino/GameErrorBoundary';
 import { soundManager } from '@/lib/casino/sound-manager';
-import { SlotReel, REEL_WINDOW_HEIGHT } from '@/components/casino/games/slots/SlotReel';
+import { SlotReel, SLOT_CELL_HEIGHT } from '@/components/casino/games/slots/SlotReel';
 import { WinLine } from '@/components/casino/games/slots/WinLine';
 import { CoinShower } from '@/components/casino/games/slots/CoinShower';
 import { getApiErrorMessage } from '@/lib/security/form-errors';
@@ -286,6 +286,10 @@ function CasinoJeton({
 
 export default function SlotsPage() {
   const isMobile = useCasinoStore((s) => s.isMobile);
+  // Mobile: kleinere Reel-Zellen, damit 5 Reels + 80px-Symbole auf 375px nicht clippen.
+  // Desktop (isMobile=false) bleibt bei SLOT_CELL_HEIGHT (112px) — unverändert.
+  const slotCellHeight = isMobile ? 84 : SLOT_CELL_HEIGHT;
+  const reelWindowHeight = slotCellHeight * 3;
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
@@ -1133,7 +1137,7 @@ export default function SlotsPage() {
                   'START AUTOBET'
                 )
               ) : (
-                `SPIN SLOTS ($${betAmount.toFixed(2)}) (SPACE)`
+                `SPIN SLOTS ($${betAmount.toFixed(2)})`
               )}
             </button>
 
@@ -1297,7 +1301,7 @@ export default function SlotsPage() {
                 className="slot-reels-container"
                 style={{
                   position: 'relative',
-                  height: `${REEL_WINDOW_HEIGHT + 24}px`,
+                  height: `${reelWindowHeight + 24}px`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1356,7 +1360,7 @@ export default function SlotsPage() {
                     gridTemplateColumns: 'repeat(5, 1fr)',
                     gap: '6px',
                     width: '100%',
-                    height: `${REEL_WINDOW_HEIGHT}px`,
+                    height: `${reelWindowHeight}px`,
                     position: 'relative',
                   }}
                 >
@@ -1370,6 +1374,7 @@ export default function SlotsPage() {
                         symbolPool={GAME_SYMBOLS}
                         isAnticipating={isAnticipatingReel[i] && isSpinning}
                         hasWinInCabinet={hasWin && !isSpinning}
+                        cellHeight={slotCellHeight}
                       />
                     </React.Fragment>
                   ))}
@@ -1537,10 +1542,10 @@ export default function SlotsPage() {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: '105px 1fr 1fr 1fr',
+                gridTemplateColumns: isMobile ? '70px 1fr 1fr 1fr' : '105px 1fr 1fr 1fr',
                 gap: '4px',
                 padding: '4px 6px',
-                fontSize: '0.62rem',
+                fontSize: isMobile ? '0.56rem' : '0.62rem',
                 fontWeight: 900,
                 color: '#64748b',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
@@ -1560,7 +1565,7 @@ export default function SlotsPage() {
                   key={item.name}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '105px 1fr 1fr 1fr',
+                    gridTemplateColumns: isMobile ? '70px 1fr 1fr 1fr' : '105px 1fr 1fr 1fr',
                     gap: '4px',
                     alignItems: 'center',
                     padding: '6px 6px',
@@ -1569,7 +1574,7 @@ export default function SlotsPage() {
                     border: '1px solid rgba(255, 255, 255, 0.05)',
                     textAlign: 'right',
                     fontFamily: 'monospace',
-                    fontSize: '0.74rem',
+                    fontSize: isMobile ? '0.62rem' : '0.74rem',
                   }}
                 >
                   {/* Col 1: Authentic SlotSymbol Icon & Tier */}
@@ -1619,13 +1624,39 @@ export default function SlotsPage() {
                   </div>
 
                   {/* Col 2: 3x Hit */}
-                  <div style={{ color: '#cbd5e1' }}>${(betAmount * item.mult3).toFixed(2)}</div>
+                  <div
+                    style={{
+                      color: '#cbd5e1',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    ${(betAmount * item.mult3).toFixed(2)}
+                  </div>
 
                   {/* Col 3: 4x Hit */}
-                  <div style={{ color: '#cbd5e1' }}>${(betAmount * item.mult4).toFixed(2)}</div>
+                  <div
+                    style={{
+                      color: '#cbd5e1',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    ${(betAmount * item.mult4).toFixed(2)}
+                  </div>
 
                   {/* Col 4: 5x Hit */}
-                  <div style={{ color: '#4ade80', fontWeight: 900 }}>
+                  <div
+                    style={{
+                      color: '#4ade80',
+                      fontWeight: 900,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     ${(betAmount * item.mult5).toFixed(2)}
                   </div>
                 </div>

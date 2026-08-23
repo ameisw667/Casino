@@ -21,7 +21,7 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
       style={{
         position: 'relative',
         width: '100%',
-        margin: '0 auto 64px',
+        margin: isMobile ? '0 auto 32px' : '0 auto 64px',
         padding: isMobile ? '24px 16px' : '40px 24px',
       }}
     >
@@ -185,11 +185,15 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
               </div>
               <div
                 style={{
-                  fontSize: isMobile ? '1.1rem' : '1.35rem',
+                  fontSize: isMobile ? '0.92rem' : '1.35rem',
                   fontWeight: 1000,
                   color: '#ffffff',
                   fontFamily: 'monospace',
                   letterSpacing: '-0.02em',
+                  maxWidth: '100%',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {stat.value}

@@ -490,7 +490,7 @@ export const useCasinoStore = create<CasinoState>()(
           const newBets = [newBet, ...state.bets].slice(0, 50);
 
           let crashHistoryUpdate = {};
-          if (game === 'CRASH' && crashMultiplier !== undefined) {
+          if (game === 'CRASH' && crashMultiplier !== undefined && crashMultiplier !== null) {
             crashHistoryUpdate = {
               crashHistory: [crashMultiplier, ...state.crashHistory].slice(0, 50),
             };

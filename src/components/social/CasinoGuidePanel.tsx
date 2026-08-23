@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowRight,
@@ -13,7 +13,9 @@ import {
   Dices,
   Gamepad2,
   History,
+  Image as ImageIcon,
   Layers,
+  Loader2,
   Maximize2,
   Minimize2,
   Send,
@@ -29,12 +31,14 @@ import {
   X,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { compressImageFile, isAllowedImageFile } from '@/lib/casino/image-compression';
 
 type GuideTurn = {
   id: string;
   role: 'guide' | 'player';
   text: string;
   time: string;
+  image?: string;
   action?: {
     type: string;
     target?: string;
@@ -414,6 +418,38 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [feedbackMap, setFeedbackMap] = useState<Record<string, 1 | -1>>({});
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [attachedImage, setAttachedImage] = useState<string | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
+
+  const handleFileSelect = async (file: File) => {
+    if (!isAllowedImageFile(file)) return;
+    try {
+      setIsCompressing(true);
+      const compressed = await compressImageFile(file);
+      setAttachedImage(compressed);
+    } catch {
+      // Ignore invalid files silently
+    } finally {
+      setIsCompressing(false);
+    }
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          e.preventDefault();
+          await handleFileSelect(file);
+          break;
+        }
+      }
+    }
+  };
+
   const handleActionClick = (action: { type: string; target?: string; label: string }) => {
     if (action.type === 'open_vault') {
       router.push('/vault');
@@ -462,12 +498,22 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
 
   const sendQuestion = async (customMessage?: string) => {
     const message = (customMessage ?? draft).trim();
-    if (!message || isSending) return;
+    if ((!message && !attachedImage) || isSending) return;
 
+    const activeMessage = message || 'Analysiere diesen Spielrunden-Screenshot.';
     const time = getCurrentTime();
+    const currentImage = attachedImage;
+    setAttachedImage(null);
+
     setTurns((current) => [
       ...current,
-      { id: nextTurnId('player'), role: 'player', text: message, time },
+      {
+        id: nextTurnId('player'),
+        role: 'player',
+        text: activeMessage,
+        time,
+        image: currentImage ?? undefined,
+      },
     ]);
     if (!customMessage) setDraft('');
     setIsSending(true);
@@ -490,7 +536,12 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
           'Content-Type': 'application/json',
           Accept: 'text/event-stream, application/json',
         },
-        body: JSON.stringify({ message, history, stream: true }),
+        body: JSON.stringify({
+          message: activeMessage,
+          history,
+          stream: true,
+          image: currentImage ?? undefined,
+        }),
       });
 
       if (!response.ok) {
@@ -1192,7 +1243,33 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                                 )}
                             </>
                           ) : (
-                            turn.text
+                            <div>
+                              {turn.image && (
+                                <div
+                                  style={{
+                                    marginBottom: '6px',
+                                    borderRadius: '8px',
+                                    overflow: 'hidden',
+                                    border: '1px solid rgba(212, 175, 55, 0.4)',
+                                    maxWidth: '220px',
+                                    maxHeight: '160px',
+                                  }}
+                                >
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={turn.image}
+                                    alt="Spielrunden-Screenshot"
+                                    style={{
+                                      width: '100%',
+                                      height: '100%',
+                                      objectFit: 'cover',
+                                      display: 'block',
+                                    }}
+                                  />
+                                </div>
+                              )}
+                              <div>{turn.text}</div>
+                            </div>
                           )}
                         </div>
 
@@ -1377,6 +1454,77 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                   </div>
                 )}
 
+                {/* Attached Image Preview */}
+                {attachedImage && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '8px 12px',
+                      background: 'rgba(212, 175, 55, 0.08)',
+                      borderTop: '1px solid rgba(212, 175, 55, 0.25)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        position: 'relative',
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '6px',
+                        overflow: 'hidden',
+                        border: '1px solid rgba(212, 175, 55, 0.5)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={attachedImage}
+                        alt="Preview"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <button
+                        type="button"
+                        aria-label="Remove image"
+                        onClick={() => setAttachedImage(null)}
+                        style={{
+                          position: 'absolute',
+                          top: 2,
+                          right: 2,
+                          background: 'rgba(0, 0, 0, 0.75)',
+                          border: 'none',
+                          borderRadius: '50%',
+                          color: '#fff',
+                          width: '16px',
+                          height: '16px',
+                          display: 'grid',
+                          placeItems: 'center',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span
+                        style={{
+                          fontSize: '0.72rem',
+                          color: '#ffd700',
+                          fontWeight: 600,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <Sparkles size={11} /> Screenshot angehängt
+                      </span>
+                      <span style={{ fontSize: '0.64rem', color: 'hsl(var(--text-muted))' }}>
+                        Vision-Analyse wird beim Senden ausgeführt
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Input Form */}
                 <form
                   onSubmit={(event) => {
@@ -1385,16 +1533,61 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                   }}
                   style={{
                     display: 'flex',
+                    alignItems: 'flex-end',
                     gap: '8px',
                     padding: '12px',
                     borderTop: '1px solid var(--glass-border)',
                     background: 'hsla(var(--bg-color), 0.5)',
                   }}
                 >
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/png,image/jpeg,image/webp"
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) void handleFileSelect(file);
+                      e.target.value = '';
+                    }}
+                  />
+
+                  <button
+                    type="button"
+                    aria-label="Screenshot anhängen"
+                    title="Screenshot anhängen (oder per Strg+V einfügen)"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isSending || isCompressing}
+                    style={{
+                      display: 'grid',
+                      placeItems: 'center',
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '10px',
+                      background: attachedImage
+                        ? 'rgba(212, 175, 55, 0.2)'
+                        : 'hsla(var(--bg-color), 0.42)',
+                      border: attachedImage
+                        ? '1px solid rgba(212, 175, 55, 0.6)'
+                        : '1px solid var(--glass-border)',
+                      color: attachedImage ? '#ffd700' : 'hsl(var(--text-muted))',
+                      cursor: isSending || isCompressing ? 'not-allowed' : 'pointer',
+                      flexShrink: 0,
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {isCompressing ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <ImageIcon size={16} />
+                    )}
+                  </button>
+
                   <textarea
                     aria-label="Ask Royale Guide"
                     value={draft}
                     onChange={(event) => setDraft(event.target.value.slice(0, 500))}
+                    onPaste={handlePaste}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter' && !event.shiftKey) {
                         event.preventDefault();
@@ -1403,7 +1596,11 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                     }}
                     disabled={isSending}
                     maxLength={500}
-                    placeholder="Frage zu Regeln, VIP, Limits oder Navigation…"
+                    placeholder={
+                      attachedImage
+                        ? 'Optionale Frage zum Screenshot (oder direkt Enter drücken)…'
+                        : 'Frage zu Regeln, VIP, Limits oder Screenshot (Strg+V)…'
+                    }
                     rows={2}
                     style={{
                       flex: 1,
@@ -1419,14 +1616,14 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                       fontSize: '0.8rem',
                     }}
                   />
+
                   <motion.button
                     type="submit"
                     aria-label="Send question to Royale Guide"
-                    disabled={isSending || !draft.trim()}
+                    disabled={isSending || (!draft.trim() && !attachedImage)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.95 }}
                     style={{
-                      alignSelf: 'flex-end',
                       display: 'grid',
                       placeItems: 'center',
                       width: '40px',
@@ -1435,8 +1632,12 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                       borderRadius: '10px',
                       background: 'hsl(var(--primary))',
                       color: 'hsl(var(--bg-color))',
-                      cursor: isSending || !draft.trim() ? 'not-allowed' : 'pointer',
-                      opacity: isSending || !draft.trim() ? 0.5 : 1,
+                      cursor:
+                        isSending || (!draft.trim() && !attachedImage)
+                          ? 'not-allowed'
+                          : 'pointer',
+                      opacity: isSending || (!draft.trim() && !attachedImage) ? 0.5 : 1,
+                      flexShrink: 0,
                     }}
                   >
                     <Send size={16} aria-hidden />

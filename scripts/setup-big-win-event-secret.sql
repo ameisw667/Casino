@@ -1,7 +1,8 @@
 -- Manuell einmalig im Supabase SQL Editor auf dem Remote-Projekt (hmqwozhdckbwjqzcmire)
--- ausführen — NICHT als nummerierte Migration, damit der Secret-Wert nie im Repo landet.
--- Teil von worldmap/05_event_bus_statt_outbox.md (Schritt 1), Detailnachweis:
--- docs/archive/05_EventBusBigWinConsumer.md, Meilenstein L6.
+-- ausgeführt — NICHT als nummerierte Migration, damit der Secret-Wert nie im Repo landet.
+-- Teil von P29/4.3, Meilenstein L6 — vollständiger Nachweis: docs/archive/05_EventBusBigWinConsumer.md.
+-- Bereits ausgeführt (2026-08-23); Datei bleibt als Vorlage/Referenz im Repo (Muster:
+-- scripts/setup-wallet-event-secret.sql für 4.1).
 --
 -- 1. Starkes Secret generieren, z.B. lokal in PowerShell:
 --      -join ((1..32) | ForEach-Object { '{0:x2}' -f (Get-Random -Max 256) })

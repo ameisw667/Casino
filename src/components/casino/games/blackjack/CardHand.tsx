@@ -17,6 +17,7 @@ interface CardHandProps {
   label: string;
   isActive?: boolean;
   hideScore?: boolean;
+  isMobile?: boolean;
 }
 
 export default function CardHand({
@@ -24,6 +25,7 @@ export default function CardHand({
   label,
   isActive = false,
   hideScore = false,
+  isMobile = false,
 }: CardHandProps) {
   if (!hand || hand.cards.length === 0) {
     return (
@@ -142,7 +144,7 @@ export default function CardHand({
         style={{
           position: 'relative',
           height: '124px',
-          width: `${88 + (hand.cards.length - 1) * 32}px`,
+          width: `${88 + (hand.cards.length - 1) * (isMobile ? 20 : 32)}px`,
           minWidth: '88px',
           display: 'flex',
           justifyContent: 'center',
@@ -162,7 +164,7 @@ export default function CardHand({
               }}
               style={{
                 position: 'absolute',
-                left: `${index * 32}px`,
+                left: `${index * (isMobile ? 20 : 32)}px`,
                 zIndex: index + 1,
               }}
             >

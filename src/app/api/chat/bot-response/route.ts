@@ -22,7 +22,15 @@ const guideHistoryItemSchema = z.object({
 });
 
 const guideRequestSchema = z.object({
-  message: z.string().trim().min(1, 'Message required').max(500, 'Message too long'),
+  message: z.string().trim().min(1, 'Message required').max(1000, 'Message too long'),
+  image: z
+    .string()
+    .regex(
+      /^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/=]+$/,
+      'Ungültiges Bildformat. Erlaubt: PNG, JPEG, WebP (Base64)',
+    )
+    .max(2_500_000, 'Bild darf maximal 2.5 MB groß sein')
+    .optional(),
   history: z.array(guideHistoryItemSchema).max(6).optional(),
   stream: z.boolean().optional(),
 });
@@ -63,13 +71,12 @@ export async function POST(request: Request) {
 
     currentUserId = userId;
 
-    const rate = await enforceRateLimit(
-      getClientIdentifier(request, userId),
-      'chat-guide-response',
-      10,
-      60,
-    );
-    const responseHeaders = { ...PRIVATE_NO_STORE_HEADERS, ...rateLimitHeaders(rate) };
+    const clientIp = getClientIdentifier(request, userId);
+    const rate = await enforceRateLimit('guide-chat', clientIp, 10, 60);
+    const responseHeaders = {
+      ...PRIVATE_NO_STORE_HEADERS,
+      ...rateLimitHeaders(rate),
+    };
 
     if (!rate.success) {
       if (!rate.unavailable) {
@@ -108,6 +115,7 @@ export async function POST(request: Request) {
         parsed.data.message,
         userId,
         parsed.data.history,
+        parsed.data.image,
       );
 
       await recordGuideTelemetry({
@@ -132,6 +140,7 @@ export async function POST(request: Request) {
       parsed.data.message,
       userId,
       parsed.data.history,
+      parsed.data.image,
     );
 
     await recordGuideTelemetry({

@@ -68,6 +68,16 @@ export function LiveHighrollerTickerBar() {
   const [activeIdx, setActiveIdx] = useState(0);
   const [selectedWin, setSelectedWin] = useState<HighrollerWin | null>(null);
 
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 768px)');
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
   useEffect(() => {
     // Visibility change pause
     const interval = setInterval(() => {
@@ -101,7 +111,7 @@ export function LiveHighrollerTickerBar() {
           width: '100%',
           maxWidth: '1560px',
           margin: '0 auto 16px',
-          padding: '0 24px',
+          padding: isMobile ? '0 16px' : '0 24px',
           zIndex: 10,
           position: 'relative',
         }}
@@ -149,11 +159,12 @@ export function LiveHighrollerTickerBar() {
           <div
             style={{
               flex: 1,
+              minWidth: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               overflow: 'hidden',
-              margin: '0 16px',
+              margin: isMobile ? '0 8px' : '0 16px',
               height: '100%',
               cursor: 'pointer',
             }}
@@ -170,28 +181,49 @@ export function LiveHighrollerTickerBar() {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '10px',
-                  fontSize: '0.8rem',
+                  gap: isMobile ? '6px' : '10px',
+                  fontSize: isMobile ? '0.72rem' : '0.8rem',
                   fontWeight: 700,
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {getTypeIcon(activeWin.type)}
-                <span style={{ color: 'rgba(255, 255, 255, 0.9)' }}>{activeWin.user}</span>
-                <span style={{ color: 'rgba(255, 255, 255, 0.45)', fontSize: '0.75rem' }}>
-                  gewann
+                <span
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: isMobile ? '70px' : 'none',
+                  }}
+                >
+                  {activeWin.user}
                 </span>
+                {!isMobile && (
+                  <span style={{ color: 'rgba(255, 255, 255, 0.45)', fontSize: '0.75rem' }}>
+                    gewann
+                  </span>
+                )}
                 <span
                   style={{
                     color: '#00E701',
                     fontWeight: 900,
                     fontFamily: 'monospace',
                     letterSpacing: '0.02em',
+                    flexShrink: 0,
                   }}
                 >
                   +${activeWin.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </span>
-                <span style={{ color: 'rgba(255, 255, 255, 0.45)', fontSize: '0.75rem' }}>auf</span>
-                <span style={{ color: '#fff', fontWeight: 800 }}>{activeWin.game}</span>
+                {!isMobile && (
+                  <>
+                    <span style={{ color: 'rgba(255, 255, 255, 0.45)', fontSize: '0.75rem' }}>
+                      auf
+                    </span>
+                    <span style={{ color: '#fff', fontWeight: 800 }}>{activeWin.game}</span>
+                  </>
+                )}
                 <span
                   style={{
                     padding: '2px 6px',
@@ -202,6 +234,7 @@ export function LiveHighrollerTickerBar() {
                     fontSize: '0.7rem',
                     fontWeight: 900,
                     fontFamily: 'monospace',
+                    flexShrink: 0,
                   }}
                 >
                   {activeWin.mult}

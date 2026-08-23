@@ -2,8 +2,11 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
+// Renumbered 037 -> 045 (worldmap/05_multiplayercrash.md L7, 2026-08-21): 037 collided with
+// 037_multiplayer_crash_rounds.sql, which had already been pushed to the remote database under
+// that number — this file's content is unaffected, only its path/version changed.
 const sql = readFileSync(
-  resolve(__dirname, '../../../../supabase/migrations/037_fix_wallet_events_jackpot_regression.sql'),
+  resolve(__dirname, '../../../../supabase/migrations/045_fix_wallet_events_jackpot_regression.sql'),
   'utf8',
 );
 // Strips SQL line comments so counts below reflect real code, not the header's prose

@@ -20,7 +20,8 @@ const fixMigration = readFileSync(
 // a real live run against the actual Supabase project after Jan applied 040 — the RPC silently
 // returned zero rows for every user. 044 fixes the function body in place (CREATE OR REPLACE);
 // 040 itself is left as the historical record of what was actually applied, same convention as
-// 037_fix_wallet_events_jackpot_regression.sql fixing 036.
+// 045_fix_wallet_events_jackpot_regression.sql fixing 036 (renumbered from 037 — collided with
+// 037_multiplayer_crash_rounds.sql, see worldmap/05_multiplayercrash.md L7).
 describe('044 fixes 040s stale bet/win settlement-model assumption', () => {
   it("040's original body only ever matched a settlement model that was never written", () => {
     expect(originalMigration).toContain("type = 'bet'");

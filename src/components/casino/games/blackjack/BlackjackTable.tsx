@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap } from 'lucide-react';
 import CardHand, { type BlackjackHand } from './CardHand';
@@ -28,6 +28,16 @@ export default function BlackjackTable({
 }: BlackjackTableProps) {
   const hasResult = Boolean(result);
   const isWin = result === 'WIN' || result === 'BLACKJACK';
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 768px)');
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
 
   return (
     <div
@@ -164,13 +174,23 @@ export default function BlackjackTable({
                 color: result === 'BLACKJACK' ? '#000' : '#FFF',
                 fontWeight: 900,
                 fontFamily: 'monospace',
-                fontSize: '1rem',
+                fontSize: isMobile ? '0.85rem' : '1rem',
                 letterSpacing: '0.5px',
                 whiteSpace: 'nowrap',
+                maxWidth: isMobile ? '92vw' : 'none',
+                textAlign: 'center',
               }}
             >
               {isWin && <Zap size={16} fill={result === 'BLACKJACK' ? '#000' : '#FFF'} />}
-              <span>
+              <span
+                style={{
+                  display: 'inline-block',
+                  maxWidth: isMobile ? '60vw' : 'none',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
                 {result === 'BLACKJACK' && `BLACKJACK! +$${payout.toFixed(2)} (3:2)`}
                 {result === 'WIN' && `YOU WIN +$${payout.toFixed(2)}`}
                 {result === 'PUSH' && 'PUSH (BET RETURNED)'}
@@ -233,16 +253,23 @@ export default function BlackjackTable({
           width: '100%',
           display: 'flex',
           justifyContent: 'center',
-          gap: '24px',
+          gap: isMobile ? '12px' : '24px',
+          flexWrap: 'wrap',
         }}
       >
         <CardHand
           hand={playerHand}
           label={playerHand2 ? 'Hand 1' : 'Player'}
           isActive={activeHandIndex === 0}
+          isMobile={isMobile}
         />
         {playerHand2 && (
-          <CardHand hand={playerHand2} label="Hand 2 (Split)" isActive={activeHandIndex === 1} />
+          <CardHand
+            hand={playerHand2}
+            label="Hand 2 (Split)"
+            isActive={activeHandIndex === 1}
+            isMobile={isMobile}
+          />
         )}
       </div>
     </div>
