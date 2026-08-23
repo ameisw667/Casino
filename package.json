@@ -53,7 +53,7 @@
     "@opentelemetry/semantic-conventions": "^1.43.0",
     "@playwright/test": "1.61.0",
     "@sentry/nextjs": "^10.70.0",
-    "@supabase/ssr": "^0.10.3",
+    "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.105.4",
     "@trigger.dev/react-hooks": "4.5.12",
     "@trigger.dev/sdk": "4.5.12",
