@@ -70,6 +70,9 @@ const SAFE_AUTH_MESSAGES = {
   cannotUnlinkLastIdentity:
     'Die letzte verbleibende Anmeldemethode kann nicht getrennt werden.',
   identityNotFound: 'Das angegebene verknüpfte Konto wurde nicht gefunden.',
+  samePassword: 'Das neue Passwort darf nicht mit deinem bisherigen Passwort identisch sein.',
+  recoveryOtpExpired:
+    'Der Wiederherstellungs-Link ist abgelaufen oder ungültig. Bitte fordere einen neuen Link an.',
   fallback: 'Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.',
 } as const;
 
@@ -239,6 +242,27 @@ export function mapAuthError(message: string): ApiError {
       SAFE_AUTH_MESSAGES.identityNotFound,
     );
   }
+  if (
+    normalized.includes('same_password') ||
+    normalized.includes('new password should be different') ||
+    normalized.includes('same as old password')
+  ) {
+    return createApiError(
+      APP_ERROR_CODES.VALIDATION_FAILED,
+      SAFE_AUTH_MESSAGES.samePassword,
+    );
+  }
+  if (
+    normalized.includes('otp_expired') ||
+    normalized.includes('token has expired') ||
+    normalized.includes('token expired') ||
+    normalized.includes('recovery link expired')
+  ) {
+    return createApiError(
+      APP_ERROR_CODES.AUTHENTICATION_FAILED,
+      SAFE_AUTH_MESSAGES.recoveryOtpExpired,
+    );
+  }
   if (normalized.includes('invalid api key') || normalized.includes('api key')) {
     return createApiError(APP_ERROR_CODES.SERVICE_UNAVAILABLE, SAFE_AUTH_MESSAGES.apiKey);
   }
@@ -309,4 +333,8 @@ export function getApiErrorMessage(
   if (typeof value.error === 'string' && value.error.length > 0) return value.error;
   if (typeof value.message === 'string' && value.message.length > 0) return value.message;
   return fallback;
+}
+
+export function formatAuthError(message: string): string {
+  return mapAuthError(message).message;
 }

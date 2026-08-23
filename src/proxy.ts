@@ -140,7 +140,7 @@ export default async function proxy(req: NextRequest) {
     response.headers.set('X-Frame-Options', 'SAMEORIGIN');
     response.headers.set('X-Content-Type-Options', 'nosniff');
     response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
-    response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    response.headers.set('Permissions-Policy', 'camera=(), microphone=(self), geolocation=()');
     response.headers.set(
       'Content-Security-Policy',
       // Sentry ingest host is the exact host from this project's DSN (o4511899214020608.ingest.de.sentry.io),

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatAuthError } from '@/components/auth/AuthForm';
+import { formatAuthError } from '@/lib/security/form-errors';
 
 describe('formatAuthError', () => {
   it('maps invalid api key to helpful German configuration error', () => {
@@ -119,6 +119,15 @@ describe('formatAuthError', () => {
     );
     expect(formatAuthError('identity_not_found')).toBe(
       'Das angegebene verknüpfte Konto wurde nicht gefunden.',
+    );
+  });
+
+  it('maps password reset and recovery link errors', () => {
+    expect(formatAuthError('same_password: New password should be different')).toBe(
+      'Das neue Passwort darf nicht mit deinem bisherigen Passwort identisch sein.',
+    );
+    expect(formatAuthError('otp_expired: Token has expired')).toBe(
+      'Der Wiederherstellungs-Link ist abgelaufen oder ungültig. Bitte fordere einen neuen Link an.',
     );
   });
 

@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     currentUserId = userId;
 
     const clientIp = getClientIdentifier(request, userId);
-    const rate = await enforceRateLimit('guide-chat', clientIp, 10, 60);
+    const rate = await enforceRateLimit('guide-chat', clientIp, 30, 60);
     const responseHeaders = {
       ...PRIVATE_NO_STORE_HEADERS,
       ...rateLimitHeaders(rate),
