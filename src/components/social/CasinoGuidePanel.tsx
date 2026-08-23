@@ -477,11 +477,6 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
   const toggleRecording = async () => {
     if (isRecording) {
       setIsRecording(false);
-      if (liveRecognizerRef.current) {
-        liveRecognizerRef.current.stop();
-        liveRecognizerRef.current = null;
-      }
-
       setIsTranscribing(true);
       try {
         const audioBlob = await stopAudioRecording();
@@ -510,26 +505,10 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
     } else {
       setVoiceStatusMessage(null);
       try {
-        // Start Live Speech Recognition immediately for live text feedback
-        const recognizer = startLiveSpeechRecognition(
-          (transcript) => {
-            setDraft(transcript);
-          },
-          (err) => {
-            // SpeechRecognition error -> whisper takes over
-          },
-        );
-        liveRecognizerRef.current = recognizer;
-
-        // Start MediaRecorder in parallel for Whisper STT
         await startAudioRecording();
         setIsRecording(true);
       } catch (err: unknown) {
         setIsRecording(false);
-        if (liveRecognizerRef.current) {
-          liveRecognizerRef.current.stop();
-          liveRecognizerRef.current = null;
-        }
         stopAudioRecordingSafe();
 
         const isNotAllowed =
@@ -538,7 +517,7 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
           (typeof err === 'object' && err !== null && 'name' in err && err.name === 'NotAllowedError');
 
         const msg = isNotAllowed
-          ? 'Mikrofon-Berechtigung verweigert. Bitte im Browser erlauben.'
+          ? 'Mikrofon-Berechtigung verweigert. Bitte im Browser erlauben oder Seite neu laden.'
           : 'Mikrofon konnte nicht aktiviert werden. Bitte prüfen.';
         setVoiceStatusMessage(msg);
         setTimeout(() => setVoiceStatusMessage(null), 5000);
