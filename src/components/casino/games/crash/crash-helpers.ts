@@ -1,5 +1,7 @@
 import type { MutableRefObject } from 'react';
 
+export type CrashStatus = 'IDLE' | 'RUNNING' | 'CRASHED' | 'CASHED_OUT';
+
 export interface Particle {
   x: number;
   y: number;
@@ -49,3 +51,9 @@ export function getRiskFactor(multiplier: number): number {
 }
 
 export const MILESTONE_VALUES = [2, 5, 10, 25, 50, 100, 250, 500, 1000];
+
+// Render constants shared by the RAF loop (useCrashGameLoop) and the page (cashout coin spawn).
+export const GROWTH_FACTOR = 0.003;
+export const MAX_POINTS = 500;
+export const WINDOW_POINTS = 180;
+export const ROCKET_X_FRACTION = 0.62;
