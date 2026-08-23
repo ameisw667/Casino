@@ -160,7 +160,7 @@ export class WalletService {
   static async startRound(params: {
     userId: string;
     requestId: string;
-    game: 'CRASH' | 'BLACKJACK';
+    game: 'CRASH' | 'BLACKJACK' | 'CRASH_MULTIPLAYER';
     amount: number;
     state: Record<string, unknown>;
   }): Promise<GameRoundStart> {
@@ -174,7 +174,7 @@ export class WalletService {
     });
     if (error) {
       if (error.message.includes('Insufficient')) throw new Error('Insufficient balance');
-      if (error.message.includes('Active crash round already exists')) {
+      if (error.message.includes('Active crash') || error.message.includes('Active crash_multiplayer')) {
         throw new Error('ACTIVE_CRASH_ROUND_EXISTS');
       }
       throw new Error('Game round could not be started');
@@ -196,7 +196,7 @@ export class WalletService {
   static async getActiveRound(
     userId: string,
     roundId: string,
-    game: 'CRASH' | 'BLACKJACK',
+    game: 'CRASH' | 'BLACKJACK' | 'CRASH_MULTIPLAYER',
   ): Promise<{ betAmount: number; state: Record<string, unknown>; version: number }> {
     const supabase = createAdminClient();
     const { data, error } = await supabase
@@ -612,7 +612,7 @@ export class WalletService {
     }
   }
 
-  static async getGameActiveRound(params: { userId: string; game: 'CRASH' | 'BLACKJACK' }) {
+  static async getGameActiveRound(params: { userId: string; game: 'CRASH' | 'BLACKJACK' | 'CRASH_MULTIPLAYER' }) {
     const supabase = createAdminClient();
     const { data, error } = await supabase.rpc('get_active_game_round', {
       p_user_id: params.userId,
@@ -688,7 +688,7 @@ export class WalletService {
       .from('game_rounds')
       .select('user_id, bet_amount, status, state, created_at')
       .eq('crash_round_id', crashRoundId)
-      .eq('game', 'CRASH')
+      .in('game', ['CRASH', 'CRASH_MULTIPLAYER'])
       .order('created_at', { ascending: true });
     if (error || !data) return [];
     return data.map((row) => ({

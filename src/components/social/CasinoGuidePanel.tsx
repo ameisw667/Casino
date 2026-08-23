@@ -17,21 +17,33 @@ import {
   Layers,
   Loader2,
   Maximize2,
+  Mic,
+  MicOff,
   Minimize2,
   Send,
   ShieldCheck,
   Sliders,
   Sparkles,
+  Square,
   Terminal,
   ThumbsDown,
   ThumbsUp,
   TrendingUp,
   User,
+  Volume2,
+  VolumeX,
   Wallet,
   X,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { compressImageFile, isAllowedImageFile } from '@/lib/casino/image-compression';
+import {
+  isAudioRecordingSupported,
+  playSynthesizedAudio,
+  startAudioRecording,
+  stopActiveAudioPlayback,
+  stopAudioRecording,
+} from '@/lib/casino/voice-audio';
 
 type GuideTurn = {
   id: string;
@@ -435,19 +447,75 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
     }
   };
 
-  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    const items = e.clipboardData?.items;
+  const handlePaste = async (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = event.clipboardData?.items;
     if (!items) return;
+
     for (let i = 0; i < items.length; i++) {
-      if (items[i].type.indexOf('image') !== -1) {
-        const file = items[i].getAsFile();
+      const item = items[i];
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
         if (file) {
-          e.preventDefault();
+          event.preventDefault();
           await handleFileSelect(file);
           break;
         }
       }
     }
+  };
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
+
+  const toggleRecording = async () => {
+    if (isRecording) {
+      setIsRecording(false);
+      setIsTranscribing(true);
+      try {
+        const audioBlob = await stopAudioRecording();
+        const formData = new FormData();
+        formData.append('file', audioBlob, 'voice-message.webm');
+
+        const res = await fetch('/api/chat/voice-transcribe', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (res.ok) {
+          const data = (await res.json()) as { text?: string };
+          if (data.text?.trim()) {
+            setDraft(data.text.trim());
+          }
+        }
+      } catch {
+        // Recording / transcription failed silently
+      } finally {
+        setIsTranscribing(false);
+      }
+    } else {
+      try {
+        await startAudioRecording();
+        setIsRecording(true);
+      } catch {
+        setIsRecording(false);
+      }
+    }
+  };
+
+  const handlePlayVoice = async (messageId: string, text: string) => {
+    if (playingMessageId === messageId) {
+      stopActiveAudioPlayback();
+      setPlayingMessageId(null);
+      return;
+    }
+
+    setPlayingMessageId(messageId);
+    await playSynthesizedAudio(
+      text,
+      () => setPlayingMessageId(null),
+      () => setPlayingMessageId(null),
+    );
   };
 
   const handleActionClick = (action: { type: string; target?: string; label: string }) => {
@@ -1289,6 +1357,47 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                               <>
                                 <button
                                   type="button"
+                                  aria-label={
+                                    playingMessageId === turn.id
+                                      ? 'Sprachausgabe stoppen'
+                                      : 'Antwort vorlesen'
+                                  }
+                                  title={
+                                    playingMessageId === turn.id
+                                      ? 'Sprachausgabe stoppen'
+                                      : 'Antwort vorlesen'
+                                  }
+                                  onClick={() => handlePlayVoice(turn.id, turn.text)}
+                                  style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    color:
+                                      playingMessageId === turn.id
+                                        ? '#ffd700'
+                                        : 'hsl(var(--text-muted))',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                    fontSize: '0.62rem',
+                                    padding: '2px 4px',
+                                    borderRadius: '4px',
+                                    transition: 'color 0.15s ease',
+                                  }}
+                                >
+                                  {playingMessageId === turn.id ? (
+                                    <>
+                                      <Square size={11} style={{ color: '#ffd700' }} /> Stopp
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Volume2 size={11} /> Vorlesen
+                                    </>
+                                  )}
+                                </button>
+
+                                <button
+                                  type="button"
                                   aria-label="Copy answer to clipboard"
                                   onClick={() => copyToClipboard(turn.id, turn.text)}
                                   style={{
@@ -1616,6 +1725,53 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                       fontSize: '0.8rem',
                     }}
                   />
+
+                  <button
+                    type="button"
+                    aria-label={
+                      isRecording
+                        ? 'Aufnahme beenden & transkribieren'
+                        : 'Spracheingabe starten (Mikrofon)'
+                    }
+                    title={
+                      isRecording
+                        ? 'Aufnahme beenden & transkribieren'
+                        : 'Spracheingabe starten (Mikrofon)'
+                    }
+                    onClick={toggleRecording}
+                    disabled={isSending || isTranscribing}
+                    style={{
+                      display: 'grid',
+                      placeItems: 'center',
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '10px',
+                      background: isRecording
+                        ? 'rgba(239, 68, 68, 0.25)'
+                        : 'hsla(var(--bg-color), 0.42)',
+                      border: isRecording
+                        ? '1px solid rgba(239, 68, 68, 0.8)'
+                        : '1px solid var(--glass-border)',
+                      color: isRecording ? '#ef4444' : 'hsl(var(--text-muted))',
+                      cursor: isSending || isTranscribing ? 'not-allowed' : 'pointer',
+                      flexShrink: 0,
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {isTranscribing ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : isRecording ? (
+                      <motion.div
+                        animate={{ scale: [1, 1.25, 1] }}
+                        transition={{ repeat: Infinity, duration: 1 }}
+                        style={{ display: 'grid', placeItems: 'center' }}
+                      >
+                        <Mic size={16} color="#ef4444" />
+                      </motion.div>
+                    ) : (
+                      <Mic size={16} />
+                    )}
+                  </button>
 
                   <motion.button
                     type="submit"

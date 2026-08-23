@@ -6,12 +6,24 @@ export type VipTierName = (typeof VIP_TIER_NAMES)[number];
 
 export const customJwtAppMetadataSchema = z.object({
   vip_tier: z
-    .string()
-    .toUpperCase()
-    .transform((val) => (VIP_TIER_NAMES.includes(val as VipTierName) ? (val as VipTierName) : 'BRONZE'))
+    .unknown()
+    .transform((val) => {
+      if (typeof val !== 'string') return 'BRONZE';
+      const upper = val.toUpperCase();
+      return (VIP_TIER_NAMES as readonly string[]).includes(upper) ? (upper as VipTierName) : 'BRONZE';
+    })
     .default('BRONZE'),
-  vip_level: z.coerce.number().int().min(1).default(1),
-  user_role: z.string().min(1).default('authenticated'),
+  vip_level: z
+    .unknown()
+    .transform((val) => {
+      const num = typeof val === 'number' ? val : Number(val);
+      return Number.isInteger(num) && num >= 1 ? num : 1;
+    })
+    .default(1),
+  user_role: z
+    .unknown()
+    .transform((val) => (typeof val === 'string' && val.trim().length > 0 ? val.trim() : 'authenticated'))
+    .default('authenticated'),
 });
 
 export type CustomJwtAppMetadata = z.infer<typeof customJwtAppMetadataSchema>;

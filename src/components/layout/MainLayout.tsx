@@ -347,12 +347,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     };
   }, [isMobile, mobileSidebarOpen]);
 
-  // Close mobile sidebar on route change
+  // Close mobile sidebar on route change (deps intentionally only [pathname]:
+  // including mobileSidebarOpen would re-fire on open and instantly close the drawer)
   useEffect(() => {
-    if (mobileSidebarOpen) {
-      setMobileSidebarOpen(false);
-    }
-  }, [pathname, mobileSidebarOpen]);
+    setMobileSidebarOpen(false);
+  }, [pathname]);
 
   // Close mobile sidebar on Escape key
   useEffect(() => {

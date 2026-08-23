@@ -98,16 +98,22 @@ let drawerCheck = { ok: false, reason: 'not-run' };
     await page.waitForTimeout(700);
     const z = await page.evaluate(() => {
       const getZ = (el) => (el ? parseInt(getComputedStyle(el).zIndex || '0', 10) || 0 : -1);
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
       // Drawer = .glass-sidebar (aside); MobileNav = fixed bottom nav with class mobile-only
       const drawer = document.querySelector('.glass-sidebar');
       const mobileNav = document.querySelector('nav.mobile-only');
-      // Backdrop = the motion overlay rendered when drawer open (high-opacity dark fixed div)
+      // Backdrop = fixed full-viewport overlay with dark translucent bg, z just above mobileNav
       let backdrop = null;
-      for (const el of document.querySelectorAll('body > div, body div')) {
+      for (const el of document.querySelectorAll('div')) {
         const st = getComputedStyle(el);
-        if (st.position === 'fixed' && parseFloat(st.opacity) > 0 && /rgba\(0,\s*0,\s*0/.test(st.background)) {
-          const z = getZ(el);
-          if (z > 100 && z < 2000) { backdrop = el; break; }
+        if (st.position !== 'fixed') continue;
+        const zv = getZ(el);
+        if (zv < 1000 || zv > 1100) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width >= vw - 4 && r.height >= vh - 4 && /rgba\(0,\s*0,\s*0/.test(st.backgroundColor)) {
+          backdrop = el;
+          break;
         }
       }
       return { drawerZ: getZ(drawer), mobileNavZ: getZ(mobileNav), backdropZ: getZ(backdrop) };

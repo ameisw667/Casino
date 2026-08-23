@@ -2,12 +2,18 @@ import { NextResponse, after } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 import { CasinoCore } from '@/lib/casino/casino-core';
-import { ProvablyFairEngine } from '@/lib/casino/provably-fair';
 import { WalletService, isFirstBetSignal } from '@/lib/casino/wallet';
 import { CasinoLogger } from '@/lib/casino/logger';
 import { loadGameConfig } from '@/lib/casino/game-config-server';
 import { notifyBigWinIfEligible } from '@/lib/casino/telegram-notifier';
 import { recordBetNetworkFingerprintBestEffort } from '@/lib/casino/network-fingerprint';
+import {
+  ensureCurrentCrashRound,
+  getCrashRoundById,
+  toPublicRoundState,
+  deriveSeatLabel,
+} from '@/lib/casino/crash-round';
+import { publishCrashRoundState, publishCrashPlayerEvent } from '@/lib/casino/realtime';
 import {
   enforceRateLimit,
   getClientIdentifier,
@@ -18,28 +24,15 @@ import {
 import { withBetPathSpan, flushBetPathTracer } from '@/lib/otel/tracer';
 import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
 
-const rouletteBetSchema = z.object({
-  type: z.object({
-    type: z.enum(['STRAIGHT', 'COLOR', 'EVEN_ODD', 'RANGE', 'DOZEN', 'COLUMN', 'FRENCH']),
-    value: z.union([z.number().int(), z.string().min(1).max(32)]),
-  }),
-  amount: z.number().finite().positive(),
-});
-
 const requestSchema = z.object({
   requestId: z.string().uuid(),
-  gameType: z.enum(['DICE', 'SLOTS', 'ROULETTE']).optional(),
   amount: z.number().finite().positive().optional(),
-  multiplier: z.number().finite().positive().optional(),
-  target: z.number().finite().optional(),
-  condition: z.enum(['OVER', 'UNDER']).optional(),
-  bets: z.array(rouletteBetSchema).max(100).optional(),
   clientSeed: z
     .string()
     .min(1)
     .max(64)
     .regex(/^[a-zA-Z0-9_-]+$/),
-  action: z.enum(['START_CRASH', 'CASHOUT_CRASH', 'RESOLVE_CRASH']).optional(),
+  action: z.enum(['START_CRASH', 'CASHOUT_CRASH', 'RESOLVE_CRASH']),
   roundId: z.string().uuid().optional(),
   cashoutMultiplier: z.number().finite().min(1).max(1_000_000).optional(),
 });
@@ -66,13 +59,9 @@ export async function POST(request: Request) {
 
   let requestId: string | undefined;
   try {
-    // Registers even on early-return paths (401/429/400) so their auth-resolve span
-    // still gets exported. Guarded: `after()` throws when called outside a real Next.js
-    // request scope (e.g. route handlers invoked directly in unit tests), and losing a
-    // trace flush must never be allowed to break the response itself.
     after(() => flushBetPathTracer());
   } catch {
-    // Not in a request scope (test harness) — nothing to flush to.
+    // Not in a request scope (test harness)
   }
 
   try {
@@ -106,8 +95,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Fraud-signal observability only (P2.8) — deferred via after() so it never adds latency
-    // to or can affect the settlement response below. Fail-open, best-effort.
     after(() => recordBetNetworkFingerprintBestEffort(userId, request));
 
     const parsed = requestSchema.safeParse(await request.json());
@@ -134,36 +121,79 @@ export async function POST(request: Request) {
           400,
           { requestId: params.requestId },
         );
+      const existingActive = await WalletService.getGameActiveRound({ userId, game: 'CRASH' });
+      if (existingActive.hasActiveRound && existingActive.requestId !== params.requestId) {
+        return apiErrorResponse(
+          APP_ERROR_CODES.CONFLICT,
+          'Du hast bereits eine aktive Crash-Runde.',
+          409,
+          { requestId: params.requestId },
+        );
+      }
+
       const seed = await WalletService.consumeActiveSeed({
         userId,
         requestId: params.requestId,
       });
-      const crash = await CasinoCore.startCrashRound(
-        params.clientSeed,
-        seed.serverSeed,
-        seed.serverSeedHash,
-        seed.nonce,
-        gameConfig,
-      );
-      const round = await WalletService.startRound({
-        userId,
-        requestId: params.requestId,
-        game: 'CRASH',
-        amount: params.amount,
-        state: {
-          crashPoint: crash.crashPoint,
-          serverSeed: crash.seed,
-          serverSeedHash: crash.hash,
-          nonce: crash.nonce,
-          clientSeed: params.clientSeed,
-        },
-      });
+
+      const sharedRound = await ensureCurrentCrashRound(gameConfig);
+      after(() => publishCrashRoundState(toPublicRoundState(sharedRound)));
+      if (sharedRound.status !== 'WAITING') {
+        return apiErrorResponse(
+          APP_ERROR_CODES.CONFLICT,
+          'Die Runde läuft bereits — bitte auf das nächste Wettfenster warten.',
+          409,
+          { requestId: params.requestId },
+        );
+      }
+
+      let round;
+      try {
+        round = await WalletService.startRound({
+          userId,
+          requestId: params.requestId,
+          game: 'CRASH',
+          amount: params.amount,
+          state: {
+            crashRoundId: sharedRound.id,
+            serverSeed: seed.serverSeed,
+            serverSeedHash: seed.serverSeedHash,
+            nonce: seed.nonce,
+            clientSeed: params.clientSeed,
+          },
+        });
+      } catch (error) {
+        if (error instanceof Error && error.message === 'ACTIVE_CRASH_ROUND_EXISTS') {
+          return apiErrorResponse(
+            APP_ERROR_CODES.CONFLICT,
+            'Du hast bereits eine aktive Crash-Runde.',
+            409,
+            { requestId: params.requestId },
+          );
+        }
+        throw error;
+      }
+      if (!round.replayed) {
+        await WalletService.linkCrashRound(round.roundId, sharedRound.id);
+        after(async () => {
+          const participants = await WalletService.getCrashRoundParticipants(sharedRound.id);
+          await publishCrashPlayerEvent({
+            crashRoundId: sharedRound.id,
+            seat: deriveSeatLabel(participants, userId),
+            betAmount: params.amount as number,
+            action: 'BET',
+            multiplier: null,
+            payout: null,
+          });
+        });
+      }
       const isFirstBet = await isFirstBetSignal(userId, round.replayed);
       return NextResponse.json({
         roundId: round.roundId,
-        crashPoint: crash.crashPoint,
-        hash: crash.hash,
-        nonce: crash.nonce,
+        crashRoundId: sharedRound.id,
+        bettingEndsAt: sharedRound.bettingEndsAt,
+        hash: seed.serverSeedHash,
+        nonce: seed.nonce,
         wallet: walletOnly({ ...round, result: undefined }),
         replayed: round.replayed,
         isFirstBet,
@@ -180,14 +210,12 @@ export async function POST(request: Request) {
         );
       }
       const round = await WalletService.getActiveRound(userId, params.roundId, 'CRASH');
-      const crashPoint = z.coerce.number().positive().parse(round.state.crashPoint);
-      // Never return the raw serverSeed here: it is the user's shared,
-      // still-active chain seed (reused across Dice/Roulette/Slots/Crash
-      // until the next rotation), not a per-round throwaway anymore. Only
-      // the hash + nonce are safe to disclose; the raw seed is revealed
-      // exclusively via rotate_user_seed()'s seed_history mechanism.
       const serverSeedHash = z.string().min(1).parse(round.state.serverSeedHash);
       const crashNonce = z.coerce.number().int().nonnegative().parse(round.state.nonce);
+      const crashRoundId = z.string().uuid().parse(round.state.crashRoundId);
+
+      const sharedRound = await getCrashRoundById(crashRoundId);
+      const crashPoint = z.coerce.number().positive().parse(sharedRound.crashPoint);
       const requestedMultiplier = params.cashoutMultiplier ?? crashPoint;
       const won = params.action === 'CASHOUT_CRASH' && requestedMultiplier <= crashPoint;
       const payout = won ? Math.round(round.betAmount * requestedMultiplier * 100) / 100 : 0;
@@ -204,6 +232,7 @@ export async function POST(request: Request) {
         nonce: crashNonce,
         jackpotRoll,
       };
+      const revealCrashPoint = sharedRound.status === 'CRASHED';
       const settlement = await WalletService.settleRound({
         userId,
         roundId: params.roundId,
@@ -222,105 +251,39 @@ export async function POST(request: Request) {
         win: result.win,
         replayed: settlement.replayed,
       });
+      after(async () => {
+        const latestRound = await ensureCurrentCrashRound(gameConfig);
+        await publishCrashRoundState(toPublicRoundState(latestRound));
+        if (!settlement.replayed) {
+          const participants = await WalletService.getCrashRoundParticipants(crashRoundId);
+          await publishCrashPlayerEvent({
+            crashRoundId,
+            seat: deriveSeatLabel(participants, userId),
+            betAmount: round.betAmount,
+            action: won ? 'CASHOUT' : 'BUST',
+            multiplier: won ? requestedMultiplier : null,
+            payout: won ? payout : null,
+          });
+        }
+      });
       return NextResponse.json({
         ...(settlement.result as object),
+        crashPoint: revealCrashPoint ? crashPoint : null,
         wallet: walletOnly(settlement),
         replayed: settlement.replayed,
       });
     }
 
-    if (!params.amount || !params.gameType) {
-      return apiErrorResponse(
-        APP_ERROR_CODES.VALIDATION_FAILED,
-        'Spiel und Einsatz sind erforderlich.',
-        400,
-        { requestId: params.requestId },
-      );
-    }
-    if (params.amount > gameConfig.limits.betMax)
-      return apiErrorResponse(
-        APP_ERROR_CODES.BET_LIMIT_EXCEEDED,
-        'Der Einsatz überschreitet das erlaubte Limit.',
-        400,
-        { requestId: params.requestId },
-      );
-
-    // Narrowed to plain locals (not `params.amount`/`params.gameType`) so the
-    // `!== undefined` checks above still hold inside the withBetPathSpan closures below —
-    // TS does not carry property-access narrowing across a function boundary.
-    const amount = params.amount;
-    const gameType = params.gameType;
-
-    const seed = await withBetPathSpan('seed-consume', () =>
-      WalletService.consumeActiveSeed({ userId, requestId: params.requestId }),
-    );
-    const { generated, jackpotRoll } = await withBetPathSpan('place-bet-rng', async () => {
-      const generatedResult = await CasinoCore.placeBet(
-        {
-          gameType,
-          amount,
-          multiplier: params.multiplier,
-          target: params.target,
-          condition: params.condition,
-          bets: params.bets,
-          clientSeed: params.clientSeed,
-          serverSeed: seed.serverSeed,
-          serverSeedHash: seed.serverSeedHash,
-          nonce: seed.nonce,
-        },
-        gameConfig,
-      );
-      const jackpotRollResult = await ProvablyFairEngine.getJackpotRoll(
-        seed.serverSeed,
-        params.clientSeed,
-        seed.nonce,
-      );
-      return { generated: generatedResult, jackpotRoll: jackpotRollResult };
-    });
-    const result = {
-      ...generated,
-      game: gameType,
-      amount,
-      multiplier: amount > 0 ? generated.payout / amount : 0,
-      jackpotRoll,
-    };
-    const settlement = await withBetPathSpan('settle-bet-rpc', () =>
-      WalletService.settleBet({
-        userId,
-        requestId: params.requestId,
-        resultId: generated.id,
-        game: gameType,
-        amount,
-        payout: generated.payout,
-        xpGain: CasinoCore.calculateXpGain(amount, 1, gameConfig),
-        result,
-        serverSeedHash: generated.serverSeedHash,
-        nonce: generated.nonce,
-      }),
-    );
-    await notifyBigWinIfEligible({
-      userId,
-      requestId: params.requestId,
-      game: gameType,
-      payout: result.payout,
-      multiplier: result.multiplier,
-      win: result.win,
-      replayed: settlement.replayed,
-    });
-    const isFirstBet = await isFirstBetSignal(userId, settlement.replayed);
-
-    return withBetPathSpan('response-serialize', async () =>
-      NextResponse.json({
-        ...(settlement.result as object),
-        wallet: walletOnly(settlement),
-        replayed: settlement.replayed,
-        isFirstBet,
-      }),
+    return apiErrorResponse(
+      APP_ERROR_CODES.VALIDATION_FAILED,
+      'Ungültige Aktion.',
+      400,
+      { requestId: params.requestId },
     );
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal Server Error';
     CasinoLogger.error(
-      'API/Casino/Bet',
+      'API/Casino/BetCrashMultiplayer',
       'Server-authoritative settlement failed',
       error,
       requestId,
