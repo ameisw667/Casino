@@ -1,6 +1,6 @@
 /**
  * Client-Side Audio Engine for Royale Voice Interface
- * Manages MediaRecorder audio capture and HTML5 Audio streaming playback.
+ * Manages MediaRecorder audio capture, live SpeechRecognition, and HTML5 Audio streaming playback.
  */
 
 export interface AudioRecorderState {
@@ -14,46 +14,79 @@ let activeAudioElement: HTMLAudioElement | null = null;
 let activeAudioUrl: string | null = null;
 
 /**
- * Checks if browser supports microphone recording via MediaRecorder API.
+ * Checks if browser supports microphone recording via MediaRecorder or getUserMedia.
  */
 export function isAudioRecordingSupported(): boolean {
-  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
-  return !!(navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function' && window.MediaRecorder);
+  if (typeof window === 'undefined') return false;
+  const hasGetUserMedia = !!(
+    (navigator?.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') ||
+    (navigator as unknown as { getUserMedia?: unknown })?.getUserMedia ||
+    (navigator as unknown as { webkitGetUserMedia?: unknown })?.webkitGetUserMedia
+  );
+  return hasGetUserMedia && typeof window.MediaRecorder !== 'undefined';
+}
+
+/**
+ * Gets user audio stream with multi-fallback constraints.
+ */
+export async function getMicrophoneStream(): Promise<MediaStream> {
+  if (typeof navigator === 'undefined') {
+    throw new Error('Navigator nicht verfügbar.');
+  }
+
+  if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
+    try {
+      return await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
+    } catch {
+      return await navigator.mediaDevices.getUserMedia({ audio: true });
+    }
+  }
+
+  const legacyGetUserMedia =
+    (navigator as unknown as { getUserMedia?: (c: unknown, s: (stream: MediaStream) => void, e: (err: unknown) => void) => void })?.getUserMedia ||
+    (navigator as unknown as { webkitGetUserMedia?: (c: unknown, s: (stream: MediaStream) => void, e: (err: unknown) => void) => void })?.webkitGetUserMedia;
+
+  if (legacyGetUserMedia) {
+    return new Promise((resolve, reject) => {
+      legacyGetUserMedia.call(navigator, { audio: true }, resolve, reject);
+    });
+  }
+
+  throw new Error('Mikrofon-Zugriff (getUserMedia) wird von diesem Browser nicht unterstützt.');
 }
 
 /**
  * Starts recording microphone audio from user.
  */
 export async function startAudioRecording(): Promise<void> {
-  if (!isAudioRecordingSupported()) {
-    throw new Error('Mikrofonaufnahme wird von diesem Browser nicht unterstützt.');
-  }
-
   // Stop any active recorder
   stopAudioRecordingSafe();
 
-  const stream = await navigator.mediaDevices.getUserMedia({
-    audio: {
-      echoCancellation: true,
-      noiseSuppression: true,
-      autoGainControl: true,
-    },
-  });
-
+  const stream = await getMicrophoneStream();
   activeAudioStream = stream;
 
-  let mimeType = 'audio/webm';
-  if (typeof MediaRecorder.isTypeSupported === 'function') {
+  let options: MediaRecorderOptions | undefined = undefined;
+  if (typeof MediaRecorder !== 'undefined' && typeof MediaRecorder.isTypeSupported === 'function') {
     if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-      mimeType = 'audio/webm;codecs=opus';
+      options = { mimeType: 'audio/webm;codecs=opus' };
+    } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+      options = { mimeType: 'audio/webm' };
     } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
-      mimeType = 'audio/mp4';
+      options = { mimeType: 'audio/mp4' };
+    } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+      options = { mimeType: 'audio/ogg' };
     } else if (MediaRecorder.isTypeSupported('audio/wav')) {
-      mimeType = 'audio/wav';
+      options = { mimeType: 'audio/wav' };
     }
   }
 
-  const recorder = new MediaRecorder(stream, { mimeType });
+  const recorder = options ? new MediaRecorder(stream, options) : new MediaRecorder(stream);
   activeMediaRecorder = recorder;
   recorder.start();
 }
@@ -93,7 +126,7 @@ export async function stopAudioRecording(): Promise<Blob> {
   });
 }
 
-function stopAudioRecordingSafe() {
+export function stopAudioRecordingSafe(): void {
   if (activeMediaRecorder && activeMediaRecorder.state !== 'inactive') {
     try {
       activeMediaRecorder.stop();
@@ -106,6 +139,67 @@ function stopAudioRecordingSafe() {
   if (activeAudioStream) {
     activeAudioStream.getTracks().forEach((track) => track.stop());
     activeAudioStream = null;
+  }
+}
+
+export type LiveSpeechRecognizer = {
+  stop: () => void;
+};
+
+/**
+ * Starts real-time browser speech recognition for instant live transcription.
+ */
+export function startLiveSpeechRecognition(
+  onTranscript: (transcript: string, isFinal: boolean) => void,
+  onError?: (err: unknown) => void,
+): LiveSpeechRecognizer | null {
+  if (typeof window === 'undefined') return null;
+
+  const SpeechRecognitionClass =
+    (window as unknown as { SpeechRecognition?: new () => any }).SpeechRecognition ||
+    (window as unknown as { webkitSpeechRecognition?: new () => any }).webkitSpeechRecognition;
+
+  if (!SpeechRecognitionClass) return null;
+
+  try {
+    const recognition = new SpeechRecognitionClass();
+    recognition.lang = 'de-DE';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onresult = (event: any) => {
+      let interim = '';
+      let final = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          final += event.results[i][0].transcript;
+        } else {
+          interim += event.results[i][0].transcript;
+        }
+      }
+      const text = (final || interim).trim();
+      if (text) {
+        onTranscript(text, !!final);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      onError?.(event);
+    };
+
+    recognition.start();
+    return {
+      stop: () => {
+        try {
+          recognition.stop();
+        } catch {
+          // Ignore
+        }
+      },
+    };
+  } catch (err) {
+    onError?.(err);
+    return null;
   }
 }
 

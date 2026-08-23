@@ -41,8 +41,11 @@ import {
   isAudioRecordingSupported,
   playSynthesizedAudio,
   startAudioRecording,
+  startLiveSpeechRecognition,
   stopActiveAudioPlayback,
   stopAudioRecording,
+  stopAudioRecordingSafe,
+  type LiveSpeechRecognizer,
 } from '@/lib/casino/voice-audio';
 
 type GuideTurn = {
@@ -423,6 +426,7 @@ function nextTurnId(role: GuideTurn['role']): string {
 export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
   const [draft, setDraft] = useState('');
   const router = useRouter();
   const [turns, setTurns] = useState<GuideTurn[]>([INITIAL_TURN]);
@@ -431,8 +435,14 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
   const [feedbackMap, setFeedbackMap] = useState<Record<string, 1 | -1>>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const liveRecognizerRef = useRef<LiveSpeechRecognizer | null>(null);
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [voiceStatusMessage, setVoiceStatusMessage] = useState<string | null>(null);
+  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
 
   const handleFileSelect = async (file: File) => {
     if (!isAllowedImageFile(file)) return;
@@ -464,41 +474,74 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
     }
   };
 
-  const [isRecording, setIsRecording] = useState(false);
-  const [isTranscribing, setIsTranscribing] = useState(false);
-  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
-
   const toggleRecording = async () => {
     if (isRecording) {
       setIsRecording(false);
+      if (liveRecognizerRef.current) {
+        liveRecognizerRef.current.stop();
+        liveRecognizerRef.current = null;
+      }
+
       setIsTranscribing(true);
       try {
         const audioBlob = await stopAudioRecording();
-        const formData = new FormData();
-        formData.append('file', audioBlob, 'voice-message.webm');
+        if (audioBlob.size > 0) {
+          const formData = new FormData();
+          formData.append('file', audioBlob, 'voice-message.webm');
 
-        const res = await fetch('/api/chat/voice-transcribe', {
-          method: 'POST',
-          body: formData,
-        });
+          const res = await fetch('/api/chat/voice-transcribe', {
+            method: 'POST',
+            body: formData,
+          });
 
-        if (res.ok) {
-          const data = (await res.json()) as { text?: string };
-          if (data.text?.trim()) {
-            setDraft(data.text.trim());
+          if (res.ok) {
+            const data = (await res.json()) as { text?: string };
+            if (data.text?.trim()) {
+              setDraft(data.text.trim());
+              setVoiceStatusMessage(null);
+            }
           }
         }
       } catch {
-        // Recording / transcription failed silently
+        // Fallback: If Whisper upload fails, any text already transcribed via live recognizer remains
       } finally {
         setIsTranscribing(false);
       }
     } else {
+      setVoiceStatusMessage(null);
       try {
+        // Start Live Speech Recognition immediately for live text feedback
+        const recognizer = startLiveSpeechRecognition(
+          (transcript) => {
+            setDraft(transcript);
+          },
+          (err) => {
+            // SpeechRecognition error -> whisper takes over
+          },
+        );
+        liveRecognizerRef.current = recognizer;
+
+        // Start MediaRecorder in parallel for Whisper STT
         await startAudioRecording();
         setIsRecording(true);
-      } catch {
+      } catch (err: unknown) {
         setIsRecording(false);
+        if (liveRecognizerRef.current) {
+          liveRecognizerRef.current.stop();
+          liveRecognizerRef.current = null;
+        }
+        stopAudioRecordingSafe();
+
+        const isNotAllowed =
+          (err instanceof Error &&
+            (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')) ||
+          (typeof err === 'object' && err !== null && 'name' in err && err.name === 'NotAllowedError');
+
+        const msg = isNotAllowed
+          ? 'Mikrofon-Berechtigung verweigert. Bitte im Browser erlauben.'
+          : 'Mikrofon konnte nicht aktiviert werden. Bitte prüfen.';
+        setVoiceStatusMessage(msg);
+        setTimeout(() => setVoiceStatusMessage(null), 5000);
       }
     }
   };
@@ -1634,6 +1677,73 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                   </div>
                 )}
 
+                {/* Voice Recording Active Banner */}
+                {isRecording && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '8px 12px',
+                      background: 'rgba(239, 68, 68, 0.12)',
+                      borderTop: '1px solid rgba(239, 68, 68, 0.4)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <motion.span
+                        animate={{ scale: [1, 1.3, 1] }}
+                        transition={{ repeat: Infinity, duration: 0.8 }}
+                        style={{
+                          width: '8px',
+                          height: '8px',
+                          borderRadius: '50%',
+                          background: '#ef4444',
+                          display: 'inline-block',
+                        }}
+                      />
+                      <span style={{ fontSize: '0.74rem', color: '#f87171', fontWeight: 600 }}>
+                        Mikrofon aktiv — Höre zu… (Sprich deine Frage)
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={toggleRecording}
+                      style={{
+                        background: '#ef4444',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '3px 8px',
+                        fontSize: '0.68rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Aufnahme beenden
+                    </button>
+                  </div>
+                )}
+
+                {/* Voice Status / Error Banner */}
+                {voiceStatusMessage && (
+                  <div
+                    style={{
+                      padding: '8px 12px',
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      borderTop: '1px solid rgba(239, 68, 68, 0.5)',
+                      color: '#fca5a5',
+                      fontSize: '0.72rem',
+                      fontWeight: 500,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <MicOff size={13} style={{ flexShrink: 0 }} />
+                    <span>{voiceStatusMessage}</span>
+                  </div>
+                )}
+
                 {/* Input Form */}
                 <form
                   onSubmit={(event) => {
@@ -1706,9 +1816,13 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                     disabled={isSending}
                     maxLength={500}
                     placeholder={
-                      attachedImage
-                        ? 'Optionale Frage zum Screenshot (oder direkt Enter drücken)…'
-                        : 'Frage zu Regeln, VIP, Limits oder Screenshot (Strg+V)…'
+                      isRecording
+                        ? '🔴 Höre zu... Sprich jetzt (Klicke erneut zum Beenden)...'
+                        : isTranscribing
+                          ? '⏳ Transkribiere Sprache mit Whisper...'
+                          : attachedImage
+                            ? 'Optionale Frage zum Screenshot (oder direkt Enter drücken)…'
+                            : 'Frage zu Regeln, VIP, Limits oder Screenshot (Strg+V)…'
                     }
                     rows={2}
                     style={{
