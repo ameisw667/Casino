@@ -27,38 +27,40 @@ export function isAudioRecordingSupported(): boolean {
 }
 
 /**
- * Gets user audio stream with multi-fallback constraints.
+ * Gets user audio stream with multi-fallback constraints and device enumeration.
  */
 export async function getMicrophoneStream(): Promise<MediaStream> {
-  if (typeof navigator === 'undefined') {
-    throw new Error('Navigator nicht verfügbar.');
+  if (typeof navigator === 'undefined' || !navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+    throw new Error('Mikrofon-Zugriff (getUserMedia) wird von diesem Browser nicht unterstützt.');
   }
 
-  if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
+  // 1. First attempt: standard audio constraint
+  try {
+    return await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (err: any) {
+    // 2. If standard audio failed, check available audioinput devices
     try {
-      return await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-      });
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const audioInputs = devices.filter((d) => d.kind === 'audioinput');
+      if (audioInputs.length > 0) {
+        for (const input of audioInputs) {
+          if (input.deviceId) {
+            try {
+              return await navigator.mediaDevices.getUserMedia({
+                audio: { deviceId: { exact: input.deviceId } },
+              });
+            } catch {
+              // Try next device
+            }
+          }
+        }
+      }
     } catch {
-      return await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Ignore
     }
+
+    throw err;
   }
-
-  const legacyGetUserMedia =
-    (navigator as unknown as { getUserMedia?: (c: unknown, s: (stream: MediaStream) => void, e: (err: unknown) => void) => void })?.getUserMedia ||
-    (navigator as unknown as { webkitGetUserMedia?: (c: unknown, s: (stream: MediaStream) => void, e: (err: unknown) => void) => void })?.webkitGetUserMedia;
-
-  if (legacyGetUserMedia) {
-    return new Promise((resolve, reject) => {
-      legacyGetUserMedia.call(navigator, { audio: true }, resolve, reject);
-    });
-  }
-
-  throw new Error('Mikrofon-Zugriff (getUserMedia) wird von diesem Browser nicht unterstützt.');
 }
 
 /**
@@ -71,22 +73,26 @@ export async function startAudioRecording(): Promise<void> {
   const stream = await getMicrophoneStream();
   activeAudioStream = stream;
 
-  let options: MediaRecorderOptions | undefined = undefined;
-  if (typeof MediaRecorder !== 'undefined' && typeof MediaRecorder.isTypeSupported === 'function') {
-    if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-      options = { mimeType: 'audio/webm;codecs=opus' };
-    } else if (MediaRecorder.isTypeSupported('audio/webm')) {
-      options = { mimeType: 'audio/webm' };
-    } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
-      options = { mimeType: 'audio/mp4' };
-    } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
-      options = { mimeType: 'audio/ogg' };
-    } else if (MediaRecorder.isTypeSupported('audio/wav')) {
-      options = { mimeType: 'audio/wav' };
-    }
+  const audioTracks = stream.getAudioTracks();
+  if (audioTracks.length === 0 || !audioTracks[0].enabled) {
+    throw new Error('Kein aktiver Audio-Track im Mikrofon-Stream verfügbar.');
   }
 
-  const recorder = options ? new MediaRecorder(stream, options) : new MediaRecorder(stream);
+  let recorder: MediaRecorder;
+  if (typeof MediaRecorder !== 'undefined') {
+    if (typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+      recorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+    } else if (typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported('audio/webm')) {
+      recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+    } else if (typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported('audio/mp4')) {
+      recorder = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
+    } else {
+      recorder = new MediaRecorder(stream);
+    }
+  } else {
+    throw new Error('MediaRecorder wird von diesem Browser nicht unterstützt.');
+  }
+
   activeMediaRecorder = recorder;
   recorder.start();
 }
@@ -146,6 +152,29 @@ export type LiveSpeechRecognizer = {
   stop: () => void;
 };
 
+interface SpeechRecognitionResultLike {
+  isFinal: boolean;
+  [index: number]: { transcript: string };
+}
+
+interface SpeechRecognitionEventLike {
+  resultIndex: number;
+  results: {
+    length: number;
+    [index: number]: SpeechRecognitionResultLike;
+  };
+}
+
+interface SpeechRecognitionInstance {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((event: unknown) => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
 /**
  * Starts real-time browser speech recognition for instant live transcription.
  */
@@ -156,8 +185,8 @@ export function startLiveSpeechRecognition(
   if (typeof window === 'undefined') return null;
 
   const SpeechRecognitionClass =
-    (window as unknown as { SpeechRecognition?: new () => any }).SpeechRecognition ||
-    (window as unknown as { webkitSpeechRecognition?: new () => any }).webkitSpeechRecognition;
+    (window as unknown as { SpeechRecognition?: new () => SpeechRecognitionInstance }).SpeechRecognition ||
+    (window as unknown as { webkitSpeechRecognition?: new () => SpeechRecognitionInstance }).webkitSpeechRecognition;
 
   if (!SpeechRecognitionClass) return null;
 
@@ -167,7 +196,7 @@ export function startLiveSpeechRecognition(
     recognition.continuous = true;
     recognition.interimResults = true;
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEventLike) => {
       let interim = '';
       let final = '';
       for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -183,7 +212,7 @@ export function startLiveSpeechRecognition(
       }
     };
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: unknown) => {
       onError?.(event);
     };
 

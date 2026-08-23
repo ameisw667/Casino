@@ -510,17 +510,38 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
       } catch (err: unknown) {
         setIsRecording(false);
         stopAudioRecordingSafe();
+        console.error('[RoyaleVoice] Microphone activation error:', err);
 
-        const isNotAllowed =
-          (err instanceof Error &&
-            (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')) ||
-          (typeof err === 'object' && err !== null && 'name' in err && err.name === 'NotAllowedError');
+        let isBrowserGranted = false;
+        if (typeof navigator !== 'undefined' && navigator.permissions) {
+          try {
+            const perm = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+            if (perm.state === 'granted') {
+              isBrowserGranted = true;
+            }
+          } catch {
+            // Ignore
+          }
+        }
 
-        const msg = isNotAllowed
-          ? 'Mikrofon-Berechtigung verweigert. Bitte im Browser erlauben oder Seite neu laden.'
-          : 'Mikrofon konnte nicht aktiviert werden. Bitte prüfen.';
+        const errName = (err instanceof Error ? err.name : (err as any)?.name) || 'Error';
+        const errMsg = (err instanceof Error ? err.message : String(err)) || '';
+
+        let msg = '';
+        if (isBrowserGranted && (errName === 'NotAllowedError' || errName === 'PermissionDeniedError')) {
+          msg = 'Chrome hat Zugriff, aber Windows blockiert das Mikrofon (Windows-Einstellungen > Datenschutz > Mikrofon > "Apps den Zugriff erlauben").';
+        } else if (errName === 'NotAllowedError' || errName === 'PermissionDeniedError') {
+          msg = 'Mikrofon-Berechtigung im Browser verweigert. Bitte im Schloss/Icon links neben der URL erlauben.';
+        } else if (errName === 'NotFoundError' || errName === 'DevicesNotFoundError') {
+          msg = 'Kein Mikrofon gefunden. Bitte Audiogerät anschließen oder auswählen.';
+        } else if (errName === 'NotReadableError' || errName === 'TrackStartError') {
+          msg = 'Mikrofon wird von einer anderen App blockiert (z. B. Discord/Teams).';
+        } else {
+          msg = `Mikrofon konnte nicht aktiviert werden: ${errMsg || errName}`;
+        }
+
         setVoiceStatusMessage(msg);
-        setTimeout(() => setVoiceStatusMessage(null), 5000);
+        setTimeout(() => setVoiceStatusMessage(null), 8000);
       }
     }
   };
