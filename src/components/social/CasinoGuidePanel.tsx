@@ -477,6 +477,10 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
   const toggleRecording = async () => {
     if (isRecording) {
       setIsRecording(false);
+      if (liveRecognizerRef.current) {
+        liveRecognizerRef.current.stop();
+        liveRecognizerRef.current = null;
+      }
       setIsTranscribing(true);
       try {
         const audioBlob = await stopAudioRecording();
@@ -505,10 +509,27 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
     } else {
       setVoiceStatusMessage(null);
       try {
+        // Start Live Speech Recognition immediately for live text feedback as the user speaks
+        const recognizer = startLiveSpeechRecognition(
+          (transcript) => {
+            if (transcript.trim()) {
+              setDraft(transcript.trim());
+            }
+          },
+          () => {
+            // SpeechRecognition error fallback quietly
+          },
+        );
+        liveRecognizerRef.current = recognizer;
+
         await startAudioRecording();
         setIsRecording(true);
       } catch (err: unknown) {
         setIsRecording(false);
+        if (liveRecognizerRef.current) {
+          liveRecognizerRef.current.stop();
+          liveRecognizerRef.current = null;
+        }
         stopAudioRecordingSafe();
         console.error('[RoyaleVoice] Microphone activation error:', err);
 

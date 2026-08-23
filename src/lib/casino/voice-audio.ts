@@ -12,6 +12,7 @@ let activeMediaRecorder: MediaRecorder | null = null;
 let activeAudioStream: MediaStream | null = null;
 let activeAudioElement: HTMLAudioElement | null = null;
 let activeAudioUrl: string | null = null;
+let activeRecordedChunks: BlobPart[] = [];
 
 /**
  * Checks if browser supports microphone recording via MediaRecorder or getUserMedia.
@@ -34,32 +35,43 @@ export async function getMicrophoneStream(): Promise<MediaStream> {
     throw new Error('Mikrofon-Zugriff (getUserMedia) wird von diesem Browser nicht unterstützt.');
   }
 
-  // 1. First attempt: standard audio constraint
+  // 1. First attempt: audio with echo cancellation & autoGain
   try {
-    return await navigator.mediaDevices.getUserMedia({ audio: true });
-  } catch (err: any) {
-    // 2. If standard audio failed, check available audioinput devices
+    return await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+    });
+  } catch {
+    // 2. Fallback to basic audio: true
     try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const audioInputs = devices.filter((d) => d.kind === 'audioinput');
-      if (audioInputs.length > 0) {
-        for (const input of audioInputs) {
-          if (input.deviceId) {
-            try {
-              return await navigator.mediaDevices.getUserMedia({
-                audio: { deviceId: { exact: input.deviceId } },
-              });
-            } catch {
-              // Try next device
+      return await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err: any) {
+      // 3. Fallback to enumerated audio devices
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const audioInputs = devices.filter((d) => d.kind === 'audioinput');
+        if (audioInputs.length > 0) {
+          for (const input of audioInputs) {
+            if (input.deviceId) {
+              try {
+                return await navigator.mediaDevices.getUserMedia({
+                  audio: { deviceId: { exact: input.deviceId } },
+                });
+              } catch {
+                // Try next device
+              }
             }
           }
         }
+      } catch {
+        // Ignore
       }
-    } catch {
-      // Ignore
-    }
 
-    throw err;
+      throw err;
+    }
   }
 }
 
@@ -93,8 +105,16 @@ export async function startAudioRecording(): Promise<void> {
     throw new Error('MediaRecorder wird von diesem Browser nicht unterstützt.');
   }
 
+  activeRecordedChunks = [];
+  recorder.ondataavailable = (event) => {
+    if (event.data && event.data.size > 0) {
+      activeRecordedChunks.push(event.data);
+    }
+  };
+
   activeMediaRecorder = recorder;
-  recorder.start();
+  // Request audio chunks every 100ms for continuous streaming capture
+  recorder.start(100);
 }
 
 /**
@@ -107,28 +127,32 @@ export async function stopAudioRecording(): Promise<Blob> {
       return;
     }
 
-    const chunks: BlobPart[] = [];
     const recorder = activeMediaRecorder;
-
-    recorder.ondataavailable = (event) => {
-      if (event.data && event.data.size > 0) {
-        chunks.push(event.data);
-      }
-    };
 
     recorder.onstop = () => {
       const mimeType = recorder.mimeType || 'audio/webm';
-      const blob = new Blob(chunks, { type: mimeType });
+      const blob = new Blob(activeRecordedChunks, { type: mimeType });
+      activeRecordedChunks = [];
       stopAudioRecordingSafe();
       resolve(blob);
     };
 
     recorder.onerror = () => {
+      activeRecordedChunks = [];
       stopAudioRecordingSafe();
       reject(new Error('Fehler bei der Audioaufnahme.'));
     };
 
-    recorder.stop();
+    try {
+      if (recorder.state === 'recording') {
+        recorder.requestData();
+      }
+      recorder.stop();
+    } catch {
+      // Fallback
+      stopAudioRecordingSafe();
+      resolve(new Blob(activeRecordedChunks, { type: 'audio/webm' }));
+    }
   });
 }
 
@@ -152,29 +176,6 @@ export type LiveSpeechRecognizer = {
   stop: () => void;
 };
 
-interface SpeechRecognitionResultLike {
-  isFinal: boolean;
-  [index: number]: { transcript: string };
-}
-
-interface SpeechRecognitionEventLike {
-  resultIndex: number;
-  results: {
-    length: number;
-    [index: number]: SpeechRecognitionResultLike;
-  };
-}
-
-interface SpeechRecognitionInstance {
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  onerror: ((event: unknown) => void) | null;
-  start: () => void;
-  stop: () => void;
-}
-
 /**
  * Starts real-time browser speech recognition for instant live transcription.
  */
@@ -185,8 +186,8 @@ export function startLiveSpeechRecognition(
   if (typeof window === 'undefined') return null;
 
   const SpeechRecognitionClass =
-    (window as unknown as { SpeechRecognition?: new () => SpeechRecognitionInstance }).SpeechRecognition ||
-    (window as unknown as { webkitSpeechRecognition?: new () => SpeechRecognitionInstance }).webkitSpeechRecognition;
+    (window as unknown as { SpeechRecognition?: new () => any }).SpeechRecognition ||
+    (window as unknown as { webkitSpeechRecognition?: new () => any }).webkitSpeechRecognition;
 
   if (!SpeechRecognitionClass) return null;
 
@@ -195,24 +196,27 @@ export function startLiveSpeechRecognition(
     recognition.lang = 'de-DE';
     recognition.continuous = true;
     recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
 
-    recognition.onresult = (event: SpeechRecognitionEventLike) => {
-      let interim = '';
-      let final = '';
+    let finalTranscript = '';
+
+    recognition.onresult = (event: any) => {
+      let interimTranscript = '';
       for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) {
-          final += event.results[i][0].transcript;
+        const item = event.results[i];
+        if (item.isFinal) {
+          finalTranscript += (finalTranscript ? ' ' : '') + item[0].transcript.trim();
         } else {
-          interim += event.results[i][0].transcript;
+          interimTranscript += item[0].transcript;
         }
       }
-      const text = (final || interim).trim();
-      if (text) {
-        onTranscript(text, !!final);
+      const combined = (finalTranscript + (interimTranscript ? ' ' + interimTranscript : '')).trim();
+      if (combined) {
+        onTranscript(combined, !interimTranscript);
       }
     };
 
-    recognition.onerror = (event: unknown) => {
+    recognition.onerror = (event: any) => {
       onError?.(event);
     };
 

@@ -137,7 +137,15 @@ export async function POST(request: Request) {
     }
 
     const result = (await openAiRes.json()) as { text?: string };
-    const text = result.text?.trim() ?? '';
+    const rawText = result.text?.trim() ?? '';
+
+    // Filter known OpenAI Whisper hallucinations on silent/low-amplitude audio
+    const isHallucination =
+      /amara\.org|untertitel\s+der|untertitel\s+im|subtitles\s+by|vielen\s+dank\s+fürs\s+zuschauen|thank\s+you\s+for\s+watching|transcription\s+by|copyright/i.test(
+        rawText,
+      );
+
+    const text = isHallucination ? '' : rawText;
 
     return NextResponse.json(
       { text, success: true },
