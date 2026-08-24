@@ -1,7 +1,7 @@
 # 10 — Royale Guide & LLM-Erweiterung Roadmap
 
 > Stand: **2026-08-24**  
-> Status: 🟢 **Alle 12 Ausbaustufen (Stufen A–M) 100% Executed & Verifiziert (Top 1% Branchen-Niveau erreicht)**  
+> Status: 🟡 **Stufen A–M Executed (100% grün) · Horizont 2.0 (Stufen N, P, S, T) Geplant**  
 > Projekt: **Casino / Next.js 16.3 / OpenAI Responses API (`gpt-4o-mini` + `text-embedding-3-small`) / SSE Streams / Multimodal Vision / Whisper STT + TTS-1 Voice / Supabase pgvector / Recharts**  
 > Verzeichnis: [`Z_LLM/`](file:///v:/VibeCoding/Casino/Z_LLM/)  
 > Bezug: [`worldmap/05_ZUKUNFTSPLANUNG.md`](file:///v:/VibeCoding/Casino/worldmap/05_ZUKUNFTSPLANUNG.md) — **Tracking-Quelle** für alle LLM-, Guide- und Moderations-Funktionen.  
@@ -26,9 +26,9 @@
 
 ---
 
-## 1 — Übersicht für Jan: Vollständiger Roadmap-Status (Top 1% Ziel Erreicht)
+## 1 — Übersicht für Jan: Vollständiger Roadmap-Status (Horizont 1.0 & 2.0)
 
-> **Status:** Alle Ausbaustufen der LLM-Roadmap sind zu 100% umgesetzt, getestet und live verifiziert.
+> **Status:** Stufen A–M sind zu 100% umgesetzt und verifiziert. Stufen N, P, S und T bilden den freigegebenen Horizont 2.0.
 
 | Stufe / Nr. | Meilenstein | Status | Umgesetzte Funktion | Tests | Verifikation |
 | :--- | :--- | :---: | :--- | :---: | :---: |
@@ -46,6 +46,10 @@
 | **Stufe I** | **Dynamische Follow-up Suggestion Chips** | 🟢 Executed | Delimiter-Streaming (`<<<SUGGESTIONS: [...]>>>`), 0 ms Latenz, klickbare Gold-Chips | 899/899 | Vitest / Build |
 | **Stufe L** | **Multimodale Spielanalyse (Vision)** | 🟢 Executed | Client Canvas-Kompression, Screenshot Drag & Drop + `Ctrl+V`, Vision Streaming | 946/946 | Vitest / Build |
 | **Stufe M** | **Voice / Audio-Interface (Whisper + TTS)** | 🟢 Executed | OpenAI Whisper-1 STT Recording & OpenAI TTS-1 HD Audio-Streaming ("onyx") | 972/972 | Vitest / Build |
+| **Stufe N** | **In-Game Live Co-Pilot & HUD** | 🔴 Geplant | Schwebender Smart-HUD auf Spielseiten mit mathematischen Echtzeit-Tipps und Quoten-Radar | Offen | Planungsbereit |
+| **Stufe P** | **Dynamic VIP Host & Personas** | 🔴 Geplant | Wählbare Bot-Persönlichkeiten (High-Roller, Math Strategist, Casual) & Langzeit-Gedächtnis | Offen | Planungsbereit |
+| **Stufe S** | **WebGL Lip-Sync Audio Avatar** | 🔴 Geplant | 3D Obsidian-Gold Cyber-Avatar mit FFT-Frequenzanalyse lippensynchron zur TTS-Stimme | Offen | Planungsbereit |
+| **Stufe T** | **Autonomous VIP Weekly Digest** | 🔴 Geplant | Wöchentlich automatisierter, persönlicher KI-Wochenrückblick im Vault mit Performance-Charts | Offen | Planungsbereit |
 
 ---
 
@@ -75,37 +79,28 @@
 
 ---
 
-## 4 — Evaluierungs-Katalog: Next-Level Ausbaustufen (Horizont 2.0: Stufen N bis T)
+## 4 — Evaluierungs-Katalog: Freigegebene Horizont 2.0 Stufen (N, P, S, T)
 
-> **Zweck:** Nach erfolgreichem Abschluss der reaktiven Kern-Stufen (A–M) dient dieser Katalog der Evaluierung, Priorisierung und Entscheidung durch Jan, welche neuen bahnbrechenden Features die KI von einem reaktiven Frage-Antwort-Bot zu einem **proaktiven, intelligenten Live-Game Co-Piloten & personalisierten VIP-Concierge** transformieren.
+> **Zweck:** Detaillierte Spezifikation der von Jan ausgewählten Ausbaustufen zur Transformation in einen proaktiven Live-Game Co-Piloten und VIP-Concierge.
 
 ### 4.1 — Gesamtübersicht & Vergleichstabelle
 
 | Stufe / Feature | Kategorie | Innovationsgrad | Was es genau bedeutet (1 Satz) | Warum / Nutzen für Spieler & Casino | Aufwand | Risiko | Abhängigkeiten |
 | :--- | :--- | :---: | :--- | :--- | :---: | :---: | :--- |
 | **Stufe N: In-Game Live Co-Pilot & HUD** | **Live-Gaming** | 🔥 **Sehr Hoch** | Schwebender Smart-HUD direkt auf den Spielseiten (Blackjack, Crash, Roulette) mit mathematischen Echtzeit-Tipps und Wahrscheinlichkeits-Radar. | Spieler müssen kein Chat-Modal mehr öffnen; erhalten mathematisch optimale Entscheidungen (Basic Strategy, Crash Cashout Odds) direkt live im Spielverlauf. | 3–4 Tage | **Niedrig** | Spielstatus-Hooks (`useCasinoStore` / Active Round RPCs) |
-| **Stufe O: Proaktiver Tilt- & RG-Guardian** | **Safety & Retention** | 🛡️ **Hoch** | Verhaltens-KI analysiert Wettmuster in Echtzeit (Verlust-Verdopplungen, Rapid-Loss-Chasing) und bietet dezent 1-Click Timeouts und Limits an. | Schützt Spieler aktiv vor emotionalen Verlustspiralen, stärkt das Vertrauen in die Plattform und erfüllt höchste Responsible-Gaming-Standards. | 2–3 Tage | **Niedrig** | History-Store & Bet-Event-Listener |
 | **Stufe P: Dynamic VIP Host & Personas** | **Personalisierung** | 👑 **Hoch** | Wählbare Bot-Persönlichkeiten (*"High-Roller Host"*, *"Math Strategist"*, *"Casual Buddy"*) mit dauerhaftem Spielergedächtnis in `pgvector`. | Erzeugt echte Kundenbindung; die KI merkt sich persönliche Vorlieben, Lieblingsspiele und Risikobereitschaft des Spielers. | 2–3 Tage | **Niedrig** | Migration für `user_guide_preferences` in Supabase |
-| **Stufe Q: Multi-Language Voice Auto-Detect** | **International** | 🌍 **Mittel** | Automatische Spracherkennung (DE, EN, ES, FR, TR) im Stream mit dynamischer Whisper- und TTS-1 Stimmanpassung. | Internationale Spieler können nahtlos in ihrer Muttersprache sprechen und erhalten Antworten in passender Sprache und Audio-Stimme. | 1–2 Tage | **Niedrig** | Whisper & TTS-1 Language-Routing |
-| **Stufe R: Daily Race & Tournament Caster** | **Social & Community** | 🎙️ **Hoch** | KI-Live-Ticker und Audio-Kommentare bei Leaderboard-Überholungen und High-Multiplier-Wins im Daily Race. | Verleiht Turnieren Sport-Event-Atmosphäre; steigert den Wettbewerb und die Verweildauer der Spieler auf der Plattform. | 2–3 Tage | **Mittel** | Supabase Realtime Broadcast für Leaderboard-Events |
 | **Stufe S: WebGL Lip-Sync Audio Avatar** | **Visual Experience** | ✨ **Sehr Hoch** | 3D Obsidian-Gold Cyber-Avatar mit FFT-Frequenzanalyse der Web Audio API, der sich lippensynchron zur TTS-Stimme bewegt. | Verwandelt den Guide in einen optisch beeindruckenden, interaktiven 3D-Dealer; hebt das Casino visuell von 99% aller Konkurrenten ab. | 3–4 Tage | **Mittel** | Three.js / Canvas WebGL Shader & Web Audio Analyser |
 | **Stufe T: Autonomous VIP Weekly Digest** | **CRM & Analytics** | 📊 **Mittel** | Automatisch generierter, persönlicher KI-Wochenrückblick im Vault mit Gewinnstatistiken, Meilensteinen und VIP-Tipps. | Maximiert Re-Engagement und Spielerbindung, indem Spieler wöchentlich ihre persönlichen Highlights und Fortschritte reflektieren. | 1–2 Tage | **Niedrig** | Cron-Job / Trigger.dev & Vault-Statistiken |
 
 ---
 
-### 4.2 — Detail-Evaluierung der einzelnen Stufen
+### 4.2 — Detail-Spezifikation der freigegebenen Stufen
 
 #### Stufe N: In-Game Live Co-Pilot & HUD (Empfohlen)
 - **Was es genau bedeutet:** Ein dezentes, schwebendes HUD-Element (im Obsidian-Gold-Design) am Bildschirmrand des jeweiligen Spiels (z. B. Blackjack oder Crash). Beim Austeilen der Karten zeigt das HUD z. B. `Basic Strategy: Stand (Dealer zeigt 6) — Gewinnchance 58%` oder bei Crash einen Echtzeit-Wahrscheinlichkeitskorridor für den Multiplikator.
 - **Warum:** Bricht die Barriere des Chat-Fensters. Spieler nutzen Hilfestellungen genau im Moment der Spielentscheidung, was Engagement und Spielverständnis maximiert.
 - **Implementierungsaufwand:** 3–4 Tage (1 Tag HUD-Komponente, 2 Tage Game-State-Binding für Blackjack/Crash/Roulette, 1 Tag Tests & Feinschliff).
 - **Technisches Risiko:** **Niedrig** (reine Client-Zustandslesung aus dem Store, keine schreibenden Wallet-Eingriffe).
-
-#### Stufe O: Proaktiver Tilt- & Responsible-Gaming-Guardian
-- **Was es genau bedeutet:** Ein autonomer Hintergrund-Agent überwacht lokale Einsatzabfolgen. Bei 4 aufeinanderfolgenden Verlusten mit verdoppeltem Einsatz erscheint eine dezente Benachrichtigung: *"Tief durchatmen: Du hast 3 Runden in Folge verloren. Möchtest du eine 5-minütige Pause einlegen oder ein Rundenset-Limit aktivieren?"*.
-- **Warum:** Branchenführender Spielerschutz, der nicht bevormundend wirkt, sondern High-Rollern und Casual-Spielern hilft, emotionale Fehlentscheidungen zu vermeiden.
-- **Implementierungsaufwand:** 2–3 Tage (Regel-Engine, Toast/Modal-Trigger, 1-Click Limit-Setzung).
-- **Technisches Risiko:** **Niedrig** (lokale Heuristik, keine Auswirkung auf Gameplay).
 
 #### Stufe P: Dynamic VIP Host & Personas
 - **Was es genau bedeutet:** Spieler wählen im Einstellungsmenü oder Chat-Header ihren bevorzugten Host-Stil:
@@ -115,18 +110,6 @@
 - **Warum:** Gibt der Plattform eine unverwechselbare Identität und spricht unterschiedliche Spielertypen zielgenau an.
 - **Implementierungsaufwand:** 2–3 Tage (System-Prompt-Templates, User-Preference-DB-Speicherung).
 - **Technisches Risiko:** **Niedrig**.
-
-#### Stufe Q: Multi-Language Voice Auto-Detect
-- **Was es genau bedeutet:** Der Guide erkennt automatisch die Sprache der Spracheingabe (DE, EN, ES, FR, TR). Antworten werden in derselben Sprache generiert und die TTS-1-Stimme passt sich flüssig an.
-- **Warum:** Macht das Casino ohne manuelle Umschaltung sofort international nutzbar.
-- **Implementierungsaufwand:** 1–2 Tage.
-- **Technisches Risiko:** **Niedrig**.
-
-#### Stufe R: Daily Race & Tournament Caster
-- **Was es genau bedeutet:** Wenn im Daily Race ein Platzierungswechsel stattfindet oder ein Spieler einen außergewöhnlichen Multiplikator erzielt (> 50x), erzeugt die KI einen kurzen, spannenden Live-Ticker und optionalen Audio-Cast.
-- **Warum:** Erzeugt echte Multiplayer-Spannung und Community-Gefühl bei Turnieren.
-- **Implementierungsaufwand:** 2–3 Tage (Supabase Realtime Event Stream, Kurz-Prompt-Generierung).
-- **Technisches Risiko:** **Mittel** (Last auf Supabase Realtime bei vielen gleichzeitigen Events).
 
 #### Stufe S: WebGL Lip-Sync Audio Avatar
 - **Was es genau bedeutet:** Der Cyber-Gold Orb im Chat wird durch einen interaktiven 3D WebGL-Avatar ergänzt, dessen Partikel, Shader-Glow und Lippenbewegungen live auf die Frequenzen der TTS-Audiospur reagieren.
