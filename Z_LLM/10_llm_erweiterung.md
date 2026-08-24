@@ -31,7 +31,7 @@
 > **Status:** Stufen A–M sind zu 100% umgesetzt und verifiziert. Stufen N, P, S und T bilden den freigegebenen Horizont 2.0.
 
 | Stufe / Nr. | Meilenstein | Status | Umgesetzte Funktion | Tests | Verifikation |
-| :--- | :--- | :---: | :--- | :---: | :---: |
+| :--- | :--- | :---: | :--- | :--- | :---: |
 | **Stufe A** | **Foundation: Markdown-Wissensbasis & Zod** | 🟢 Executed | 10 strukturierte `.md`-Dateien mit YAML-Frontmatter & Zod-Registry | 683/683 | Vitest |
 | **Stufe B** | **Topic-Selector & Token-Budgeting** | 🟢 Executed | Heuristischer Tag-/Keyword-Matcher (-72% System-Prompt Tokens, 0 ms Latenz) | 700/700 | Vitest |
 | **Stufe C** | **In-Memory Vektor-Embedding RAG** | 🟢 Executed | 3-Stufen Hybrid-RAG Kaskade (`text-embedding-3-small` + Kosinus-Distanz) | 713/713 | Vitest |
@@ -122,3 +122,19 @@
 - **Warum:** Starker Re-Engagement-Hebel, bringt inaktive Spieler zurück auf die Plattform.
 - **Implementierungsaufwand:** 1–2 Tage (Aggregations-RPC, Prompt-Synthese, Vault-UI-Karte).
 - **Technisches Risiko:** **Niedrig**.
+
+---
+
+### 4.3 — Wissens- & Architektur-Katalog: Next-Gen Enterprise- & Agenten-Architekturen
+
+> **Zweck:** Leitfaden und architektonische Wissensbasis für moderne Enterprise-Wissensbanken, Multi-Agenten-Systeme und zukunftsweisende kognitive KI-Architekturen.
+
+| Architektur-Muster / System | Kategorie | Innovationsgrad | Was es genau bedeutet (1 Satz) | Warum / Nutzen (Enterprise & Casino) | Aufwand | Risiko | Schlüssel-Technologien |
+| :--- | :--- | :---: | :--- | :--- | :---: | :---: | :--- |
+| **1. GraphRAG & Entity Knowledge Graphs** | **Knowledge & Reasoning** | 🧠 **Revolutionär** | Verknüpft Text-Embeddings mit gerichteten Wissensgraphen (Knoten = Entitäten, Kanten = Beziehungen) für relationale Multi-Hop-Abfragen. | Ermöglicht exakte Antworten auf verschachtelte Fragen (*"Welche Bonusstufe gilt für Spiel X bei VIP-Rang Y?"*), bei denen Standard-Vektorsuche scheitert. | 4–6 Tage | **Mittel** | Neo4j / PostgreSQL CTEs, Graph-Embeddings, Cypher / SPARQL |
+| **2. Hierarchical Episodic Memory (MemGPT / Zep)** | **Cognitive State** | 💾 **Sehr Hoch** | Dreistufiges Gedächtnis (*Working, Episodic, Semantic*), das Fakten im Hintergrund autonom extrahiert und persistent abspeichert. | Die KI vergisst nie frühere Interaktionen; baut über Monate ein tiefes Verständnis für Vorlieben, Historie und Ziele des Nutzers auf. | 3–5 Tage | **Niedrig** | PostgreSQL Vector, JSONB Memory Trees, Background Extraction Queues |
+| **3. Corrective RAG (CRAG) & Self-Reflection Loops** | **Reliability & Trust** | 🛡️ **Hoch** | Autonomer Bewertungs-Loop prüft gefundene Wissensdokumente auf Konfidenz und korrigiert die Suchanfrage selbstständig vor der Antwort. | Reduziert Halluzinationen in Unternehmens-Wikis und Compliance-Dokumenten auf nahezu 0 % durch zwingende Faktenvalidierung. | 2–3 Tage | **Niedrig** | Evaluator Prompts, Query Rewriter, LangGraph / StateGraph |
+| **4. Multi-Agent Swarm (Supervisor-Worker Pattern)** | **Agentic Architecture** | 🤖 **Sehr Hoch** | Ein intelligenter Dispatcher leitet Anfragen an spezialisierte Micro-Agenten weiter (`MathAgent`, `SearchAgent`, `ComplianceAgent`). | Verhindert Überlastung monolithischer Prompts; erhöht Lösungsqualität bei komplexen Multitasking-Aufgaben dramatisch. | 3–4 Tage | **Mittel** | OpenAI Function Calling Routing, Parallel Tool Calls, Worker Message Bus |
+| **5. Native WebRTC Realtime Voice (Barge-In Voice)** | **Realtime Audio** | 🎙️ **Revolutionär** | Direkter bidirektionaler Audio-Stream ohne sequentielle STT $\rightarrow$ LLM $\rightarrow$ TTS Kaskade mit Antwortlatenz unter 300 ms. | Ermöglicht natürliche Konversationen wie mit einem echten Menschen am Telefon; Nutzer können die KI mitten im Satz unterbrechen (*Barge-In*). | 4–5 Tage | **Hoch** | OpenAI Realtime API, WebRTC Data Channels, Audio Worklets |
+| **6. On-Device Edge-LLMs (WebGPU / WebLLM)** | **Edge Computing** | ⚡ **Sehr Hoch** | Leichtgewichtige Sprachmodelle (1B–3B Parameter) laufen direkt auf der Grafikkarte des Nutzers im Browser. | 0 $ API-Kosten für Standard-Anfragen, 0 ms Netzwerklatenz, 100 % lokaler Datenschutz und vollständige Offline-Verfügbarkeit. | 3–4 Tage | **Mittel** | WebGPU, Apache TVM, ONNX Runtime Web, Gemma 2B / Llama 3.2 1B |
+| **7. Continuous Synthetic DPO / RLHF Pipeline** | **Continuous Learning** | 📈 **Hoch** | Telemetrie und Feedback-Signale (Daumen hoch/runter) generieren automatisch synthetische Datensätze zum Fine-Tuning. | Das System wird kontinuierlich schlauer und adaptiert vollautomatisch den spezifischen Tonfall und Fachjargon des Unternehmens. | 3–5 Tage | **Mittel** | Supabase Feedback Log, Direct Preference Optimization (DPO), LoRA Adapters |
