@@ -1,7 +1,7 @@
 # 10 — Royale Guide & LLM-Erweiterung Roadmap
 
 > Stand: **2026-08-24**  
-> Status: 🟡 **Stufen A–M Executed (100% grün) · Horizont 2.0 (Stufen N, P, S, T) Geplant**  
+> Status: 🟡 **Stufen A–M Executed (100% grün) · Horizont 2.0 (Stufen N, P, S, T, U, V, W) Geplant**  
 > Projekt: **Casino / Next.js 16.3 / OpenAI Responses API (`gpt-4o-mini` + `text-embedding-3-small`) / SSE Streams / Multimodal Vision / Whisper STT + TTS-1 Voice / Supabase pgvector / Recharts**  
 > Verzeichnis: [`Z_LLM/`](file:///v:/VibeCoding/Casino/Z_LLM/)  
 > Bezug: [`worldmap/05_ZUKUNFTSPLANUNG.md`](file:///v:/VibeCoding/Casino/worldmap/05_ZUKUNFTSPLANUNG.md) — **Tracking-Quelle** für alle LLM-, Guide- und Moderations-Funktionen.  
@@ -28,7 +28,7 @@
 
 ## 1 — Übersicht für Jan: Vollständiger Roadmap-Status (Horizont 1.0 & 2.0)
 
-> **Status:** Stufen A–M sind zu 100% umgesetzt und verifiziert. Stufen N, P, S und T bilden den freigegebenen Horizont 2.0.
+> **Status:** Stufen A–M sind zu 100% umgesetzt und verifiziert. Stufen N bis W bilden den freigegebenen Horizont 2.0.
 
 | Stufe / Nr. | Meilenstein | Status | Umgesetzte Funktion | Tests | Verifikation |
 | :--- | :--- | :---: | :--- | :--- | :---: |
@@ -50,6 +50,9 @@
 | **Stufe P** | **Dynamic VIP Host & Personas** | 🔴 Geplant | Wählbare Bot-Persönlichkeiten (High-Roller, Math Strategist, Casual) & Langzeit-Gedächtnis | Offen | Planungsbereit |
 | **Stufe S** | **WebGL Lip-Sync Audio Avatar** | 🔴 Geplant | 3D Obsidian-Gold Cyber-Avatar mit FFT-Frequenzanalyse lippensynchron zur TTS-Stimme | Offen | Planungsbereit |
 | **Stufe T** | **Autonomous VIP Weekly Digest** | 🔴 Geplant | Wöchentlich automatisierter, persönlicher KI-Wochenrückblick im Vault mit Performance-Charts | Offen | Planungsbereit |
+| **Stufe U** | **Multi-Agent Swarm (Supervisor-Worker)** | 🔴 Geplant | Spezialisierte Sub-Agenten (`MathAgent`, `KnowledgeAgent`, `SafetyAgent`) unter einem Supervisor | Offen | Planungsbereit |
+| **Stufe V** | **GraphRAG & Entity Knowledge Graphs** | 🔴 Geplant | Verknüpfung von Vektor-Embeddings mit Wissensgraphen für fehlerfreie relationale Abfragen | Offen | Planungsbereit |
+| **Stufe W** | **Native WebRTC Realtime Voice (Barge-In)** | 🔴 Geplant | Direkter bidirektionaler Audio-Stream (< 300 ms Latenz) mit natürlicher Unterbrechungsmöglichkeit | Offen | Planungsbereit |
 
 ---
 
@@ -79,28 +82,31 @@
 
 ---
 
-## 4 — Evaluierungs-Katalog: Freigegebene Horizont 2.0 Stufen (N, P, S, T)
+## 4 — Evaluierungs-Katalog: Freigegebene Horizont 2.0 Stufen (N, P, S, T, U, V, W)
 
-> **Zweck:** Detaillierte Spezifikation der von Jan ausgewählten Ausbaustufen zur Transformation in einen proaktiven Live-Game Co-Piloten und VIP-Concierge.
+> **Zweck:** Konsolidierte Spezifikation aller 7 von Jan ausgewählten Ausbaustufen mit detailliertem Lerneffekt-Vergleich für dieses Projekt und zukünftige Enterprise-Systeme.
 
-### 4.1 — Gesamtübersicht & Vergleichstabelle
+### 4.1 — Gesamtübersicht & Master-Vergleichstabelle
 
-| Stufe / Feature | Kategorie | Innovationsgrad | Was es genau bedeutet (1 Satz) | Warum / Nutzen für Spieler & Casino | Aufwand | Risiko | Abhängigkeiten |
-| :--- | :--- | :---: | :--- | :--- | :---: | :---: | :--- |
-| **Stufe N: In-Game Live Co-Pilot & HUD** | **Live-Gaming** | 🔥 **Sehr Hoch** | Schwebender Smart-HUD direkt auf den Spielseiten (Blackjack, Crash, Roulette) mit mathematischen Echtzeit-Tipps und Wahrscheinlichkeits-Radar. | Spieler müssen kein Chat-Modal mehr öffnen; erhalten mathematisch optimale Entscheidungen (Basic Strategy, Crash Cashout Odds) direkt live im Spielverlauf. | 3–4 Tage | **Niedrig** | Spielstatus-Hooks (`useCasinoStore` / Active Round RPCs) |
-| **Stufe P: Dynamic VIP Host & Personas** | **Personalisierung** | 👑 **Hoch** | Wählbare Bot-Persönlichkeiten (*"High-Roller Host"*, *"Math Strategist"*, *"Casual Buddy"*) mit dauerhaftem Spielergedächtnis in `pgvector`. | Erzeugt echte Kundenbindung; die KI merkt sich persönliche Vorlieben, Lieblingsspiele und Risikobereitschaft des Spielers. | 2–3 Tage | **Niedrig** | Migration für `user_guide_preferences` in Supabase |
-| **Stufe S: WebGL Lip-Sync Audio Avatar** | **Visual Experience** | ✨ **Sehr Hoch** | 3D Obsidian-Gold Cyber-Avatar mit FFT-Frequenzanalyse der Web Audio API, der sich lippensynchron zur TTS-Stimme bewegt. | Verwandelt den Guide in einen optisch beeindruckenden, interaktiven 3D-Dealer; hebt das Casino visuell von 99% aller Konkurrenten ab. | 3–4 Tage | **Mittel** | Three.js / Canvas WebGL Shader & Web Audio Analyser |
-| **Stufe T: Autonomous VIP Weekly Digest** | **CRM & Analytics** | 📊 **Mittel** | Automatisch generierter, persönlicher KI-Wochenrückblick im Vault mit Gewinnstatistiken, Meilensteinen und VIP-Tipps. | Maximiert Re-Engagement und Spielerbindung, indem Spieler wöchentlich ihre persönlichen Highlights und Fortschritte reflektieren. | 1–2 Tage | **Niedrig** | Cron-Job / Trigger.dev & Vault-Statistiken |
+| Stufe / Feature | Kategorie | Innovationsgrad | Was es genau bedeutet (1 Satz) | Lerneffekt Generell (Zukunft & Enterprise) | Lerneffekt Spezifisch (Casino-Projekt) | Aufwand | Risiko | Schlüssel-Technologien |
+| :--- | :--- | :---: | :--- | :--- | :--- | :---: | :---: | :--- |
+| **Stufe N: In-Game Live Co-Pilot & HUD** | **Live-Gaming** | 🔥 **Sehr Hoch** | Schwebender Smart-HUD direkt auf den Spielseiten (Blackjack, Crash, Roulette) mit mathematischen Echtzeit-Tipps und Wahrscheinlichkeits-Radar. | Wie man proaktive UI-Overlays baut, die sich synchron an Frontend-State-Changes anheften, statt auf manuelle Nutzer-Prompts im Chat zu warten. | Direkte State-Bindung an `useCasinoStore` und aktive Spielrunden; zeigt z. B. Blackjack Basic Strategy vor dem Hit/Stand live an. | 3–4 Tage | **Niedrig** | React Context / Zustand Hooks, Motion HUD Overlays, Math Engine |
+| **Stufe P: Dynamic VIP Host & Personas** | **Personalisierung** | 👑 **Hoch** | Wählbare Bot-Persönlichkeiten (*"High-Roller Host"*, *"Math Strategist"*, *"Casual Buddy"*) mit dauerhaftem Spielergedächtnis in `pgvector`. | Aufbau modularer Prompt-Persona-Pipelines und Langzeit-Präferenzspeicherung zur Maximierung von Nutzerbindung und Personalisierung. | Der VIP-Host merkt sich über Wochen Spielgewohnheiten, bevorzugte Einsatzhöhen und Lieblingsspiele des Spielers. | 2–3 Tage | **Niedrig** | Supabase DB Schema, Dynamic System Prompt Injector, pgvector |
+| **Stufe S: WebGL Lip-Sync Audio Avatar** | **Visual Experience** | ✨ **Sehr Hoch** | 3D Obsidian-Gold Cyber-Avatar mit FFT-Frequenzanalyse der Web Audio API, der sich lippensynchron zur TTS-Stimme bewegt. | Verbindung von WebGL 3D-Rendering mit der Web Audio API (Echtzeit-Frequenzbänder/Viseme) für reaktive visuelle KI-Repräsentationen. | Verwandelt den Cyber-Gold Orb in einen lebensechten 3D-Dealer mit Shader-Glow und Frequenz-Pulsieren während der TTS-Sprachausgabe. | 3–4 Tage | **Mittel** | Three.js / WebGL Shader, Web Audio AnalyserNode FFT, Framer Motion |
+| **Stufe T: Autonomous VIP Weekly Digest** | **CRM & Analytics** | 📊 **Mittel** | Automatisch generierter, persönlicher KI-Wochenrückblick im Vault mit Gewinnstatistiken, Meilensteinen und VIP-Tipps. | Design von ereignis- und zeitgesteuerten KI-Synthesizer-Jobs, die Rohdaten verdichten und ansprechende persönliche Berichte erzeugen. | Hintergrund-Generierung von wöchentlichen Performance-Karten und XP-Zusammenfassungen für den Spieler-Vault via Trigger.dev/Cron. | 1–2 Tage | **Niedrig** | Trigger.dev / Cron-Worker, Supabase Financial Aggregates, Recharts |
+| **Stufe U: Multi-Agent Swarm (Supervisor-Worker)** | **Agentic Architecture** | 🤖 **Sehr Hoch** | Ein intelligenter Dispatcher leitet Anfragen an spezialisierte Micro-Agenten weiter (`MathAgent`, `KnowledgeAgent`, `SafetyAgent`). | Orchestrierung von verteilten KI-Systemen: Verhindert Überlastung monolithischer Prompts durch gezielte Delegation an spezialisierte Werkzeug-Agenten. | Mathematische Berechnungen (Hausvorteil, Wahrscheinlichkeiten) werden deterministisch durch den `MathAgent` ohne LLM-Rechenfehler gelöst. | 3–4 Tage | **Mittel** | OpenAI Tool Routing, Worker Message Bus, Parallel Subagents |
+| **Stufe V: GraphRAG & Entity Knowledge Graphs** | **Knowledge & Reasoning** | 🧠 **Revolutionär** | Verknüpft Text-Embeddings mit gerichteten Wissensgraphen (Knoten = Entitäten, Kanten = Beziehungen) für relationale Multi-Hop-Abfragen. | Verstehen, warum Vektorsuche bei verschachtelten Daten scheitert und wie man Wissensgraphen mit Vektoren verheiratet, um relationale Fragen fehlerfrei zu lösen. | Komplexe Casino-Regelwerke, Bonus-Voraussetzungen je VIP-Stufe und Spieleigenschaften als deterministischer Graph ohne Halluzinationen. | 4–6 Tage | **Mittel** | Neo4j / PostgreSQL Recursive CTEs, Graph-Embeddings, Cypher / SPARQL |
+| **Stufe W: Native WebRTC Realtime Voice (Barge-In)** | **Realtime Audio** | 🎙️ **Revolutionär** | Direkter bidirektionaler Audio-Stream ohne sequentielle STT $\rightarrow$ LLM $\rightarrow$ TTS Kaskade mit Antwortlatenz unter 300 ms. | Beherrschung von nativer Audio-Streaming-Architektur via WebRTC; Verstehen von echtem Barge-In (Unterbrechungen mitten im Satz). | Der Guide wird zum echten Live-Dealer am Tisch, der in Echtzeit spricht und sofort reagiert, wenn der Spieler dazwischenspricht. | 4–5 Tage | **Hoch** | OpenAI Realtime API, WebRTC Data Channels, Audio Worklets |
 
 ---
 
 ### 4.2 — Detail-Spezifikation der freigegebenen Stufen
 
-#### Stufe N: In-Game Live Co-Pilot & HUD (Empfohlen)
+#### Stufe N: In-Game Live Co-Pilot & HUD
 - **Was es genau bedeutet:** Ein dezentes, schwebendes HUD-Element (im Obsidian-Gold-Design) am Bildschirmrand des jeweiligen Spiels (z. B. Blackjack oder Crash). Beim Austeilen der Karten zeigt das HUD z. B. `Basic Strategy: Stand (Dealer zeigt 6) — Gewinnchance 58%` oder bei Crash einen Echtzeit-Wahrscheinlichkeitskorridor für den Multiplikator.
 - **Warum:** Bricht die Barriere des Chat-Fensters. Spieler nutzen Hilfestellungen genau im Moment der Spielentscheidung, was Engagement und Spielverständnis maximiert.
-- **Implementierungsaufwand:** 3–4 Tage (1 Tag HUD-Komponente, 2 Tage Game-State-Binding für Blackjack/Crash/Roulette, 1 Tag Tests & Feinschliff).
-- **Technisches Risiko:** **Niedrig** (reine Client-Zustandslesung aus dem Store, keine schreibenden Wallet-Eingriffe).
+- **Implementierungsaufwand:** 3–4 Tage.
+- **Technisches Risiko:** **Niedrig**.
 
 #### Stufe P: Dynamic VIP Host & Personas
 - **Was es genau bedeutet:** Spieler wählen im Einstellungsmenü oder Chat-Header ihren bevorzugten Host-Stil:
@@ -108,33 +114,35 @@
   2. *The Math Strategist:* Präzise, mathematisch, zitiert Quoten, Erwartungswerte und Hausvorteile.
   3. *The Casual Buddy:* Humorvoll, motivierend, locker und schnell auf den Punkt.
 - **Warum:** Gibt der Plattform eine unverwechselbare Identität und spricht unterschiedliche Spielertypen zielgenau an.
-- **Implementierungsaufwand:** 2–3 Tage (System-Prompt-Templates, User-Preference-DB-Speicherung).
+- **Implementierungsaufwand:** 2–3 Tage.
 - **Technisches Risiko:** **Niedrig**.
 
 #### Stufe S: WebGL Lip-Sync Audio Avatar
 - **Was es genau bedeutet:** Der Cyber-Gold Orb im Chat wird durch einen interaktiven 3D WebGL-Avatar ergänzt, dessen Partikel, Shader-Glow und Lippenbewegungen live auf die Frequenzen der TTS-Audiospur reagieren.
 - **Warum:** Visuelles Highlight mit absolutem Wow-Effekt für Streamer und Desktop-Nutzer.
-- **Implementierungsaufwand:** 3–4 Tage (Shader-Programmierung, Web Audio FFT-Analyser).
-- **Technisches Risiko:** **Mittel** (Performance auf älteren Mobilgeräten beachten, automatischer Fallback auf CSS-Orb nötig).
+- **Implementierungsaufwand:** 3–4 Tage.
+- **Technisches Risiko:** **Mittel**.
 
 #### Stufe T: Autonomous VIP Weekly Digest
 - **Was es genau bedeutet:** Jeden Montag generiert die KI für eingeloggte Spieler einen persönlichen Bericht im Vault mit Grafiken: *"Dein Wochenrückblick: 124 Runden gespielt, Netto-Ergebnis +420 $, größter Gewinn: 15x bei Slots, +350 XP gesammelt"*.
 - **Warum:** Starker Re-Engagement-Hebel, bringt inaktive Spieler zurück auf die Plattform.
-- **Implementierungsaufwand:** 1–2 Tage (Aggregations-RPC, Prompt-Synthese, Vault-UI-Karte).
+- **Implementierungsaufwand:** 1–2 Tage.
 - **Technisches Risiko:** **Niedrig**.
 
----
+#### Stufe U: Multi-Agent Swarm (Supervisor-Worker Pattern)
+- **Was es genau bedeutet:** Ein schlanker Dispatcher-Agent analysiert die Benutzeranfrage und leitet sie an spezialisierte Sub-Agenten weiter (`MathAgent`, `KnowledgeAgent`, `SafetyAgent`), deren Teilergebnisse in eine finale Antwort synthetisiert werden.
+- **Warum:** Löst das Problem von mathematischen Rechenfehlern und Wissensüberlagerung in monolithischen LLM-Prompts.
+- **Implementierungsaufwand:** 3–4 Tage.
+- **Technisches Risiko:** **Mittel**.
 
-### 4.3 — Wissens- & Architektur-Katalog: Next-Gen Enterprise- & Agenten-Architekturen
+#### Stufe V: GraphRAG & Entity Knowledge Graphs
+- **Was es genau bedeutet:** Wissen wird als gerichteter Graph mit Entitäten und Beziehungen in PostgreSQL gespeichert. Komplexe Regel- und Bonusfragen durchlaufen Graph-Traversal-Pfade, bevor der Kontext an das LLM übergeben wird.
+- **Warum:** Schließt die Lücke von reiner Text-Ähnlichkeitssuche hin zu verifizierter relationaler Logik.
+- **Implementierungsaufwand:** 4–6 Tage.
+- **Technisches Risiko:** **Mittel**.
 
-> **Zweck:** Leitfaden und architektonische Wissensbasis für moderne Enterprise-Wissensbanken, Multi-Agenten-Systeme und zukunftsweisende kognitive KI-Architekturen mit dediziertem Lerneffekt-Vergleich.
-
-| Architektur-Muster / System | Kategorie | Innovationsgrad | Was es genau bedeutet (1 Satz) | Lerneffekt Generell (Zukunft & Enterprise) | Lerneffekt Spezifisch (Casino-Projekt) | Aufwand | Risiko | Schlüssel-Technologien |
-| :--- | :--- | :---: | :--- | :--- | :--- | :---: | :---: | :--- |
-| **1. GraphRAG & Entity Knowledge Graphs** | **Knowledge & Reasoning** | 🧠 **Revolutionär** | Verknüpft Text-Embeddings mit gerichteten Wissensgraphen (Knoten = Entitäten, Kanten = Beziehungen) für relationale Multi-Hop-Abfragen. | Verstehen, warum Vektorsuche bei strukturierten/verschachtelten Daten (Gesetze, Medizindaten, Verträge) versagt und wie man Wissensgraphen mit Vektoren verheiratet, um relationale Fragen ohne Halluzinationen zu beantworten. | Komplexe Casino-Regelwerke, Bonus-Voraussetzungen je VIP-Stufe und mathematische Hausvorteile als deterministischen Graphen abbilden, sodass der Guide niemals inkonsistente Quoten oder falsche Wager-Bedingungen nennt. | 4–6 Tage | **Mittel** | Neo4j / PostgreSQL CTEs, Graph-Embeddings, Cypher / SPARQL |
-| **2. Hierarchical Episodic Memory (MemGPT / Zep)** | **Cognitive State** | 💾 **Sehr Hoch** | Dreistufiges Gedächtnis (*Working, Episodic, Semantic*), das Fakten im Hintergrund autonom extrahiert und persistent abspeichert. | Wie man LLMs ein echtes menschliches Gedächtnis baut: Trennung von flüchtigem Arbeitsgedächtnis (Token-Fenster), episodischen Logs und dauerhaften semantischen Fakten (User Profile Entities) mittels asynchroner Hintergrund-Extraktion. | Der VIP-Host merkt sich über Monate hinweg Spielgewohnheiten, bevorzugte Einsatzhöhen, Lieblings-Spiele und emotionale Muster des Spielers, ohne dass teure Chat-Verläufe in den Prompt geladen werden müssen. | 3–5 Tage | **Niedrig** | PostgreSQL Vector, JSONB Memory Trees, Background Extraction Queues |
-| **3. Corrective RAG (CRAG) & Self-Reflection Loops** | **Reliability & Trust** | 🛡️ **Hoch** | Autonomer Bewertungs-Loop prüft gefundene Wissensdokumente auf Konfidenz und korrigiert die Suchanfrage selbstständig vor der Antwort. | Implementierung von Guardrail- und Self-Correction-Loops (Reflective LLM Agents). Lernen, wie ein LLM die eigene Retrieval-Qualität bewertet und bei schlechten Treffern selbstständig alternative Suchstrategien anstößt, statt zu halluzinieren. | Verhindert fehlerhafte Antworten bei seltenen Spielregeln oder unklaren Nutzeranfragen; triggert automatische Rückfragen oder erweiterte Wissensbank-Scans bei Unsicherheit. | 2–3 Tage | **Niedrig** | Evaluator Prompts, Query Rewriter, LangGraph / StateGraph |
-| **4. Multi-Agent Swarm (Supervisor-Worker Pattern)** | **Agentic Architecture** | 🤖 **Sehr Hoch** | Ein intelligenter Dispatcher leitet Anfragen an spezialisierte Micro-Agenten weiter (`MathAgent`, `SearchAgent`, `ComplianceAgent`). | Orchestrierung von verteilten KI-Systemen. Lernen, wie man eine monolithische Prompt-Überfrachtung verhindert, indem spezialisierte Micro-Agenten mit klaren Werkzeugen (Python, Vektor-DB, SQL) unter einem Supervisor koordiniert werden. | Trennung von Casino-Regel-Experte, mathematischem Quoten-Rechner (`MathAgent`) und Compliance-/Sicherheits-Wächter (`SafetyAgent`) für 100% korrekte Erwartungswerte und Spielanalysen. | 3–4 Tage | **Mittel** | OpenAI Function Calling Routing, Parallel Tool Calls, Worker Message Bus |
-| **5. Native WebRTC Realtime Voice (Barge-In Voice)** | **Realtime Audio** | 🎙️ **Revolutionär** | Direkter bidirektionaler Audio-Stream ohne sequentielle STT $\rightarrow$ LLM $\rightarrow$ TTS Kaskade mit Antwortlatenz unter 300 ms. | Beherrschung von nativer bidirektionaler Audio-Streaming-Architektur via WebRTC. Verstehen, wie moderne Sprachassistenten unter 300 ms Latenz erreichen und echte Unterbrechungen (*Barge-In*) ohne Pipeline-Verzögerung handhaben. | Der Royale Guide wird zum lebensechten Live-Dealer am Spieltisch, der sofort reagiert und während des Sprechens unterbrochen werden kann wie ein echter Croupier. | 4–5 Tage | **Hoch** | OpenAI Realtime API, WebRTC Data Channels, Audio Worklets |
-| **6. On-Device Edge-LLMs (WebGPU / WebLLM)** | **Edge Computing** | ⚡ **Sehr Hoch** | Leichtgewichtige Sprachmodelle (1B–3B Parameter) laufen direkt auf der Grafikkarte des Nutzers im Browser. | Ausführung von modernen Open-Source LLMs (Gemma, Llama) direkt im Client-Browser via WebGPU. Lernen, wie man API-Kosten auf 0 $ senkt, Offline-Fähigkeit ermöglicht und absolute Datensicherheit ohne Server-Transport garantiert. | Kostenlose Live-Eingabevervollständigung, Vorfilterung von Fragen und Sentiment-Erkennung in Echtzeit direkt im Browser des Nutzers, bevor überhaupt ein Server-Request ausgelöst wird. | 3–4 Tage | **Mittel** | WebGPU, Apache TVM, ONNX Runtime Web, Gemma 2B / Llama 3.2 1B |
-| **7. Continuous Synthetic DPO / RLHF Pipeline** | **Continuous Learning** | 📈 **Hoch** | Telemetrie und Feedback-Signale (Daumen hoch/runter) generieren automatisch synthetische Datensätze zum Fine-Tuning. | Aufbau automatisierter Data-Flywheels. Verstehen, wie reale Nutzer-Interaktionen und Telemetrie (Feedback-Logs, Daumen-Bewertungen) in Direct Preference Optimization (DPO) Datensätze umgewandelt werden, um eigene Modelle kontinuierlich zu verfeinern. | Das Casino-eigene Sprachmodell lernt vollautomatisch aus den Bewertungen der Spieler im Admin-Dashboard und adaptiert den perfekten Obsidian-Gold Casino-Jargon ohne manuelle Prompt-Anpassungen. | 3–5 Tage | **Mittel** | Supabase Feedback Log, Direct Preference Optimization (DPO), LoRA Adapters |
+#### Stufe W: Native WebRTC Realtime Voice (Barge-In Voice)
+- **Was es genau bedeutet:** Bidirektionale Audio-Kommunikation via WebRTC mit OpenAI Realtime API. Latenz < 300 ms, natürliche Stimmmodulation und automatische Unterbrechungserkennung (*Barge-In*).
+- **Warum:** Schafft das immersivste Live-Casino-Erlebnis der Branche.
+- **Implementierungsaufwand:** 4–5 Tage.
+- **Technisches Risiko:** **Hoch**.
