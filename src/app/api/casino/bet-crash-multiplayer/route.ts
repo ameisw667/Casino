@@ -32,7 +32,7 @@ const requestSchema = z.object({
     .min(1)
     .max(64)
     .regex(/^[a-zA-Z0-9_-]+$/),
-  action: z.enum(['START_CRASH', 'CASHOUT_CRASH', 'RESOLVE_CRASH']),
+  action: z.enum(['START_CRASH_MULTIPLAYER', 'CASHOUT_CRASH_MULTIPLAYER', 'RESOLVE_CRASH_MULTIPLAYER']),
   roundId: z.string().uuid().optional(),
   cashoutMultiplier: z.number().finite().min(1).max(1_000_000).optional(),
 });
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     }
 
     const rate = await withBetPathSpan('rate-limit', () =>
-      enforceRateLimit(getClientIdentifier(request, userId), 'casino-bet', 30, 10),
+      enforceRateLimit(getClientIdentifier(request, userId), 'casino-bet-crash-mp', 30, 10),
     );
     if (!rate.success) {
       const retryAfterSeconds = Math.max(1, Math.ceil((rate.reset - Date.now()) / 1000));
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
     requestId = params.requestId;
     const gameConfig = await loadGameConfig();
 
-    if (params.action === 'START_CRASH') {
+    if (params.action === 'START_CRASH_MULTIPLAYER') {
       if (!params.amount) {
         return apiErrorResponse(
           APP_ERROR_CODES.VALIDATION_FAILED,
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
           400,
           { requestId: params.requestId },
         );
-      const existingActive = await WalletService.getGameActiveRound({ userId, game: 'CRASH' });
+      const existingActive = await WalletService.getGameActiveRound({ userId, game: 'CRASH_MULTIPLAYER' });
       if (existingActive.hasActiveRound && existingActive.requestId !== params.requestId) {
         return apiErrorResponse(
           APP_ERROR_CODES.CONFLICT,
@@ -152,7 +152,7 @@ export async function POST(request: Request) {
         round = await WalletService.startRound({
           userId,
           requestId: params.requestId,
-          game: 'CRASH',
+          game: 'CRASH_MULTIPLAYER',
           amount: params.amount,
           state: {
             crashRoundId: sharedRound.id,
@@ -200,8 +200,8 @@ export async function POST(request: Request) {
       });
     }
 
-    if (params.action === 'CASHOUT_CRASH' || params.action === 'RESOLVE_CRASH') {
-      if (!params.roundId || (params.action === 'CASHOUT_CRASH' && !params.cashoutMultiplier)) {
+    if (params.action === 'CASHOUT_CRASH_MULTIPLAYER' || params.action === 'RESOLVE_CRASH_MULTIPLAYER') {
+      if (!params.roundId || (params.action === 'CASHOUT_CRASH_MULTIPLAYER' && !params.cashoutMultiplier)) {
         return apiErrorResponse(
           APP_ERROR_CODES.VALIDATION_FAILED,
           'Runde und Multiplikator sind erforderlich.',
@@ -209,7 +209,7 @@ export async function POST(request: Request) {
           { requestId: params.requestId },
         );
       }
-      const round = await WalletService.getActiveRound(userId, params.roundId, 'CRASH');
+      const round = await WalletService.getActiveRound(userId, params.roundId, 'CRASH_MULTIPLAYER');
       const serverSeedHash = z.string().min(1).parse(round.state.serverSeedHash);
       const crashNonce = z.coerce.number().int().nonnegative().parse(round.state.nonce);
       const crashRoundId = z.string().uuid().parse(round.state.crashRoundId);
@@ -217,13 +217,13 @@ export async function POST(request: Request) {
       const sharedRound = await getCrashRoundById(crashRoundId);
       const crashPoint = z.coerce.number().positive().parse(sharedRound.crashPoint);
       const requestedMultiplier = params.cashoutMultiplier ?? crashPoint;
-      const won = params.action === 'CASHOUT_CRASH' && requestedMultiplier <= crashPoint;
+      const won = params.action === 'CASHOUT_CRASH_MULTIPLAYER' && requestedMultiplier <= crashPoint;
       const payout = won ? Math.round(round.betAmount * requestedMultiplier * 100) / 100 : 0;
       const resultId = crypto.randomUUID();
       const jackpotRoll = await WalletService.computeRoundJackpotRoll(round.state, crashNonce);
       const result = {
         id: resultId,
-        game: 'CRASH',
+        game: 'CRASH_MULTIPLAYER',
         win: won,
         payout,
         multiplier: won ? requestedMultiplier : 0,
@@ -245,7 +245,7 @@ export async function POST(request: Request) {
       await notifyBigWinIfEligible({
         userId,
         requestId: params.requestId,
-        game: 'CRASH',
+        game: 'CRASH_MULTIPLAYER',
         payout: result.payout,
         multiplier: result.multiplier,
         win: result.win,

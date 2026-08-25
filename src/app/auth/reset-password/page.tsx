@@ -9,6 +9,7 @@ import { createClient } from '@/utils/supabase/client';
 import { Magnetic } from '@/components/ui/Magnetic';
 import { formatAuthError } from '@/components/auth/AuthForm';
 import { trackAllowedEvent } from '@/lib/analytics/events';
+import { PasswordStrengthMeter } from '@/components/auth/PasswordStrengthMeter';
 
 function CrownEmblem() {
   return (
@@ -295,6 +296,11 @@ export default function ResetPasswordPage() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+
+                {/* Password Strength Meter */}
+                {password.length > 0 && (
+                  <PasswordStrengthMeter password={password} />
+                )}
               </div>
 
               {/* Password Field 2 */}

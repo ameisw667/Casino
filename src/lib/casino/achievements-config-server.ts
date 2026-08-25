@@ -7,6 +7,8 @@ import {
   type AchievementConfig,
   type AchievementConditionOp,
   type AchievementStatKey,
+  type AchievementVisibility,
+  normalizeAchievementVisibility,
 } from './achievements-config';
 
 let cachedConfigs: AchievementConfig[] | null = null;
@@ -22,6 +24,7 @@ const STAT_KEYS: readonly AchievementStatKey[] = [
   'winStreak',
 ];
 const CONDITION_OPS: readonly AchievementConditionOp[] = ['gte', 'gt', 'lte', 'lt', 'eq'];
+const ACHIEVEMENT_VISIBILITIES: readonly AchievementVisibility[] = ['visible', 'secret'];
 
 const conditionSchema = z.object({
   stat: z.enum(STAT_KEYS as [AchievementStatKey, ...AchievementStatKey[]]),
@@ -67,6 +70,16 @@ function normalizeAchievementConfig(row: Record<string, unknown>): AchievementCo
     return null;
   }
 
+  const visibilityParsed = z
+    .enum(ACHIEVEMENT_VISIBILITIES as [AchievementVisibility, ...AchievementVisibility[]])
+    .safeParse(row.visibility ?? 'visible');
+  const visibility = normalizeAchievementVisibility(row.visibility);
+  if (!visibilityParsed.success) {
+    CasinoLogger.warn('ACHIEVEMENTS_CONFIG', `Invalid visibility for "${id}", using visible`, {
+      visibility: row.visibility,
+    });
+  }
+
   const total = Number(row.total);
   if (!Number.isFinite(total) || total <= 0) {
     CasinoLogger.warn(
@@ -89,6 +102,7 @@ function normalizeAchievementConfig(row: Record<string, unknown>): AchievementCo
     conditions: conditionsParsed.data,
     sortOrder: Number(row.sort_order ?? 0),
     isActive: Boolean(row.is_active ?? true),
+    visibility,
   };
 }
 

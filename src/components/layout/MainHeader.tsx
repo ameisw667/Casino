@@ -2,6 +2,7 @@
 import { Menu, Star, Users, Wallet, Eye, EyeOff, LogIn, UserPlus, LogOut } from 'lucide-react';
 import { IconBadge } from '@/components/layout/IconBadge';
 import { AuthHeaderBtn } from '@/components/layout/AuthHeaderBtn';
+import { NotificationCenter } from '@/components/layout/NotificationCenter';
 
 interface MainHeaderProps {
   isMobile: boolean;
@@ -14,6 +15,7 @@ interface MainHeaderProps {
   hideBalance: boolean;
   displayName: string;
   effectiveIsSignedIn: boolean;
+  notificationUserId: string | null;
   onShowRankInfo: () => void;
   onToggleHideBalance: () => void;
   onSignOut: () => void;
@@ -31,6 +33,7 @@ export function MainHeader({
   hideBalance,
   displayName,
   effectiveIsSignedIn,
+  notificationUserId,
   onShowRankInfo,
   onToggleHideBalance,
   onSignOut,
@@ -238,6 +241,7 @@ export function MainHeader({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <NotificationCenter userId={notificationUserId} isMobile={isMobile} />
           {!isMobile && (
             <>
               {!effectiveIsSignedIn ? (

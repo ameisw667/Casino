@@ -44,12 +44,13 @@ npm run lint       # ESLint
 npm run build      # Production-Build
 ```
 
-### Execution Policy
-- Vor Terminal-, Remote- oder Schreibaktionen `xx_docs/03_execution_environment_reference.md` lesen.
-- Für Umsetzungsablauf und Verifikation `xx_sop/02_workflow_jan_execution.md` befolgen.
-- Nicht-interaktive Flags und Pager-Unterdrückung nur verwenden, wenn der Befehl sie unterstützt.
-- Plattformfreigaben ersetzen niemals Nutzerauftrag, Scope oder Autorisierung.
-- K4-Externe Änderungen und K5-destruktive/Live-Aktionen erfordern ausdrückliche Freigabe.
+### Auto-Allow & Execution Policy (Antigravity)
+- **K1/K2 Auto-Allow**: Read-only (`git status`, `git diff`, `git log`) und CI/Test-Befehle (`npm test`, `npm run test`, `npx vitest run`, `npm run typecheck`, `npm run lint`, `npx tsc`, `npm run build`, `npm run vibe-check`) werden global auf Auto-Allow gesetzt.
+- **Keine variablen Dateipfade an Linter**: Niemals `npx eslint file1.tsx ...` aufrufen (erzeugt unbekannte Einzelbefehle), sondern immer **`npm run lint`** ausführen.
+- **Non-Interactive Execution**: Befehle immer mit non-interactive Flags ausführen (`--yes`, `-y`, `CI=true`), um CLI-Hangs zu verhindern.
+- **No-Pager**: `PAGER=cat` oder `--no-pager` für Git-Befehle nutzen.
+- **K5 Block**: Destruktive/Live-Befehle (`git push --force`, `rm -rf`, `supabase db reset`) erfordern immer explizite manuelle Bestätigung.
+- **Detail-Plan**: Siehe [docs/archive/01_Antigravity_Workflow_Optimization.md](docs/archive/01_Antigravity_Workflow_Optimization.md).
 
 ## Architecture
 

@@ -48,7 +48,7 @@ export async function getMicrophoneStream(): Promise<MediaStream> {
     // 2. Fallback to basic audio: true
     try {
       return await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch (err: any) {
+    } catch (err: unknown) {
       // 3. Fallback to enumerated audio devices
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
@@ -177,6 +177,34 @@ export type LiveSpeechRecognizer = {
 };
 
 /**
+ * Minimal vendor-prefixed SpeechRecognition types (no lib.dom typings available).
+ */
+interface LiveSpeechRecognitionResultItem {
+  transcript: string;
+}
+interface LiveSpeechRecognitionResult {
+  isFinal: boolean;
+  0: LiveSpeechRecognitionResultItem;
+}
+interface LiveSpeechRecognitionEvent {
+  resultIndex: number;
+  results: LiveSpeechRecognitionResult[];
+}
+interface LiveSpeechRecognitionErrorEvent {
+  error: string;
+}
+interface LiveSpeechRecognitionLike {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onresult: (event: LiveSpeechRecognitionEvent) => void;
+  onerror: (event: LiveSpeechRecognitionErrorEvent) => void;
+  start: () => void;
+  stop: () => void;
+}
+
+/**
  * Starts real-time browser speech recognition for instant live transcription.
  */
 export function startLiveSpeechRecognition(
@@ -186,8 +214,8 @@ export function startLiveSpeechRecognition(
   if (typeof window === 'undefined') return null;
 
   const SpeechRecognitionClass =
-    (window as unknown as { SpeechRecognition?: new () => any }).SpeechRecognition ||
-    (window as unknown as { webkitSpeechRecognition?: new () => any }).webkitSpeechRecognition;
+    (window as unknown as { SpeechRecognition?: new () => LiveSpeechRecognitionLike }).SpeechRecognition ||
+    (window as unknown as { webkitSpeechRecognition?: new () => LiveSpeechRecognitionLike }).webkitSpeechRecognition;
 
   if (!SpeechRecognitionClass) return null;
 
@@ -200,7 +228,7 @@ export function startLiveSpeechRecognition(
 
     let finalTranscript = '';
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: LiveSpeechRecognitionEvent) => {
       let interimTranscript = '';
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         const item = event.results[i];
@@ -216,7 +244,7 @@ export function startLiveSpeechRecognition(
       }
     };
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: LiveSpeechRecognitionErrorEvent) => {
       onError?.(event);
     };
 

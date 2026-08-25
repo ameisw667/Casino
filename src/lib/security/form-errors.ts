@@ -73,6 +73,8 @@ const SAFE_AUTH_MESSAGES = {
   samePassword: 'Das neue Passwort darf nicht mit deinem bisherigen Passwort identisch sein.',
   recoveryOtpExpired:
     'Der Wiederherstellungs-Link ist abgelaufen oder ungültig. Bitte fordere einen neuen Link an.',
+  otpInvalid:
+    'Ungültiger Einmal-Code. Bitte prüfe die 6 Ziffern aus deiner E-Mail.',
   fallback: 'Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.',
 } as const;
 
@@ -261,6 +263,17 @@ export function mapAuthError(message: string): ApiError {
     return createApiError(
       APP_ERROR_CODES.AUTHENTICATION_FAILED,
       SAFE_AUTH_MESSAGES.recoveryOtpExpired,
+    );
+  }
+  if (
+    normalized.includes('invalid otp') ||
+    normalized.includes('token is invalid') ||
+    normalized.includes('invalid token') ||
+    normalized.includes('token_not_found')
+  ) {
+    return createApiError(
+      APP_ERROR_CODES.AUTHENTICATION_FAILED,
+      SAFE_AUTH_MESSAGES.otpInvalid,
     );
   }
   if (normalized.includes('invalid api key') || normalized.includes('api key')) {

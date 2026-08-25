@@ -38,6 +38,8 @@
 - Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt. Die Ampel ergänzt den festen Kopfstatus.
 - Jeder Meilenstein enthält Ziel, Scope, Abhängigkeiten, Freigabe-Gate, Verifizierung und Nicht-Scope.
 - Wallet-, Auth- oder DB-Schreibpfade enthalten zusätzlich `Money-Pfad: Ja/Nein` und `Security-Review: Pflicht/Nein`.
+- So viele Zuständigkeiten wie möglich sollten bei dem LLM liegen. 
+- So wenig Zuständigkeiten wie möglich sollten bei Jan liegen. Nur welche zwingend notwendig sind 
 
 ## 4 — Selbstprüfung vor `Execution-Ready`
 
@@ -46,3 +48,5 @@
 - Jede neue Datenklasse, API-Grenze oder Schreiboperation enthält Allowlist, Negativtest und Fallback.
 - Statusbehauptungen sind als lokal, verifiziert oder live gekennzeichnet und verlinken auf ihre Quelle.
 - Keine Referenz ist doppelt als SOP, Kontextreferenz und Plan gepflegt.
+- Die erstellte Markdown-Datei oder Planungsdatei sollte von einer neuen LLM-Konversation exakt verstanden werden können. 
+- Hintergrund ist dabei, manchmal nutze ich für die Planung und für die Execution verschiedene LLM-Modelle bzw. verschiedene Konversationen. 

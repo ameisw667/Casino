@@ -11,6 +11,7 @@ import { dicePageStyles } from '@/components/casino/games/dice/dice-page-styles'
 import { useDiceOdometer } from '@/components/casino/games/dice/useDiceOdometer';
 import { DiceControlSidebar } from '@/components/casino/games/dice/DiceControlSidebar';
 import { DiceCenterStage } from '@/components/casino/games/dice/DiceCenterStage';
+import { GameCoPilotHud } from '@/components/casino/hud/GameCoPilotHud';
 import type { DiceHistoryItem, SessionStats } from '@/components/casino/games/dice/dice-config';
 
 export default function DicePage() {
@@ -470,27 +471,40 @@ export default function DicePage() {
         />
 
         {/* 4. LEVER 4: MAIN STAGE WITH GEOMETRIC OBSIDIAN BACKDROP */}
-        <DiceCenterStage
-          isMobile={isMobile}
-          loading={loading}
-          lastResult={lastResult}
-          displayTicker={displayTicker}
-          history={history}
-          winStreak={winStreak}
-          visualResult={visualResult}
-          targetPoint={targetPoint}
-          isRollOver={isRollOver}
-          winChance={winChance}
-          multiplier={multiplier}
-          isDraggingThumb={isDraggingThumb}
-          sliderRef={sliderRef}
-          onMouseDown={onMouseDown}
-          onTouchStart={onTouchStart}
-          onUpdateFromWinChance={updateFromWinChance}
-          onUpdateFromMultiplier={updateFromMultiplier}
-          onUpdateFromTarget={updateFromTarget}
-          onToggleRollMode={toggleRollMode}
-        />
+        <div className="flex flex-col gap-3 w-full min-w-0" style={{ order: isMobile ? 1 : 2 }}>
+          <GameCoPilotHud
+            context={{
+              gameType: 'DICE',
+              diceState: {
+                target: targetPoint,
+                isOver: isRollOver,
+              },
+            }}
+            className="mb-1"
+          />
+
+          <DiceCenterStage
+            isMobile={isMobile}
+            loading={loading}
+            lastResult={lastResult}
+            displayTicker={displayTicker}
+            history={history}
+            winStreak={winStreak}
+            visualResult={visualResult}
+            targetPoint={targetPoint}
+            isRollOver={isRollOver}
+            winChance={winChance}
+            multiplier={multiplier}
+            isDraggingThumb={isDraggingThumb}
+            sliderRef={sliderRef}
+            onMouseDown={onMouseDown}
+            onTouchStart={onTouchStart}
+            onUpdateFromWinChance={updateFromWinChance}
+            onUpdateFromMultiplier={updateFromMultiplier}
+            onUpdateFromTarget={updateFromTarget}
+            onToggleRollMode={toggleRollMode}
+          />
+        </div>
       </div>
     </GameErrorBoundary>
   );

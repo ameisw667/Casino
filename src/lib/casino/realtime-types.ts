@@ -40,3 +40,15 @@ export interface CrashPlayerBroadcastPayload {
 
 export const CRASH_ROUND_EVENT = 'round_state' as const;
 export const CRASH_PLAYER_EVENT = 'player_update' as const;
+
+/** Private refresh signal for the persistent user notification inbox. */
+export const NOTIFICATION_REALTIME_EVENT = 'notification_created' as const;
+
+export interface NotificationCreatedBroadcastPayload {
+  notificationId: string;
+}
+
+/** The policy in migration 050 permits a browser to receive only its own topic. */
+export function getNotificationRealtimeChannel(userId: string): string {
+  return `user-notifications:${userId}`;
+}

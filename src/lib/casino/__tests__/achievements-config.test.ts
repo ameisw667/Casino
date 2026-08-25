@@ -5,9 +5,11 @@ import {
   getAchievementProgress,
   mergeAchievementsWithConfig,
   applyAchievementProgress,
+  normalizeAchievementVisibility,
   type AchievementStatSnapshot,
   type Achievement,
 } from '../achievements-config';
+import { getAchievementPresentation } from '../achievement-presentation';
 
 function makeStats(overrides: Partial<AchievementStatSnapshot> = {}): AchievementStatSnapshot {
   return {
@@ -24,11 +26,18 @@ function makeStats(overrides: Partial<AchievementStatSnapshot> = {}): Achievemen
 }
 
 describe('DEFAULT_ACHIEVEMENT_CONFIGS', () => {
-  it('has exactly 9 active, uniquely-identified achievements', () => {
-    expect(DEFAULT_ACHIEVEMENT_CONFIGS).toHaveLength(9);
+  it('projects the configured secret achievement while keeping its initial progress locked', () => {
+    expect(DEFAULT_ACHIEVEMENT_CONFIGS).toHaveLength(10);
     const ids = DEFAULT_ACHIEVEMENT_CONFIGS.map((c) => c.id);
-    expect(new Set(ids).size).toBe(9);
+    expect(new Set(ids).size).toBe(10);
     expect(DEFAULT_ACHIEVEMENT_CONFIGS.every((c) => c.isActive)).toBe(true);
+
+    const achievements = mergeAchievementsWithConfig([], DEFAULT_ACHIEVEMENT_CONFIGS);
+    expect(achievements.find((achievement) => achievement.id === 'lucky_seven')).toMatchObject({
+      unlocked: false,
+      progress: 0,
+      visibility: 'secret',
+    });
   });
 
   it('every achievement has at least one condition and a positive total', () => {
@@ -36,6 +45,14 @@ describe('DEFAULT_ACHIEVEMENT_CONFIGS', () => {
       expect(config.conditions.length).toBeGreaterThan(0);
       expect(config.total).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('normalizeAchievementVisibility', () => {
+  it('fails closed to visible for an unsupported config value', () => {
+    expect(normalizeAchievementVisibility('secret')).toBe('secret');
+    expect(normalizeAchievementVisibility('hidden')).toBe('visible');
+    expect(normalizeAchievementVisibility(undefined)).toBe('visible');
   });
 });
 
@@ -95,7 +112,7 @@ describe('getAchievementProgress', () => {
 describe('mergeAchievementsWithConfig', () => {
   it('builds fresh achievements (unlocked:false, progress:0) when no prior state exists', () => {
     const merged = mergeAchievementsWithConfig([], DEFAULT_ACHIEVEMENT_CONFIGS);
-    expect(merged).toHaveLength(9);
+    expect(merged).toHaveLength(10);
     expect(merged.every((a) => !a.unlocked && a.progress === 0)).toBe(true);
     expect(merged.map((a) => a.id)).toEqual(DEFAULT_ACHIEVEMENT_CONFIGS.map((c) => c.id));
   });
@@ -110,6 +127,7 @@ describe('mergeAchievementsWithConfig', () => {
         unlocked: true,
         progress: 50,
         total: 50,
+        visibility: 'visible',
       },
     ];
     const merged = mergeAchievementsWithConfig(existing, DEFAULT_ACHIEVEMENT_CONFIGS);
@@ -128,6 +146,36 @@ describe('mergeAchievementsWithConfig', () => {
     ];
     const merged = mergeAchievementsWithConfig([], configs);
     expect(merged.map((a) => a.id)).toEqual([configs[1].id, configs[0].id]);
+  });
+});
+
+describe('getAchievementPresentation', () => {
+  it('redacts every metadata field for a locked secret achievement', () => {
+    const secret = mergeAchievementsWithConfig([], DEFAULT_ACHIEVEMENT_CONFIGS).find(
+      (achievement) => achievement.id === 'lucky_seven',
+    )!;
+
+    expect(getAchievementPresentation(secret)).toEqual({
+      isMystery: true,
+      icon: '🔒',
+      title: 'MYSTERY ACHIEVEMENT',
+      description: 'Keep playing to reveal this achievement.',
+      showProgress: false,
+    });
+  });
+
+  it('reveals metadata and progress only after the secret achievement unlocks', () => {
+    const secret = mergeAchievementsWithConfig([], DEFAULT_ACHIEVEMENT_CONFIGS).find(
+      (achievement) => achievement.id === 'lucky_seven',
+    )!;
+
+    expect(getAchievementPresentation({ ...secret, unlocked: true, progress: 7 })).toEqual({
+      isMystery: false,
+      icon: '🎰',
+      title: 'Lucky Seven',
+      description: 'Hit a 7x multiplier in Dice',
+      showProgress: false,
+    });
   });
 });
 
@@ -207,6 +255,7 @@ describe('applyAchievementProgress', () => {
         unlocked: false,
         progress: 0,
         total: 1,
+        visibility: 'visible',
       },
     ];
     const result = applyAchievementProgress(achievements, DEFAULT_ACHIEVEMENT_CONFIGS, makeStats());

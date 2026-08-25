@@ -17,6 +17,7 @@ import TelegramLinkSection from './TelegramLinkSection';
 import PasskeyManagementSection from './PasskeyManagementSection';
 import MfaManagementSection from './MfaManagementSection';
 import LinkedAccountsSection from './LinkedAccountsSection';
+import LoginHistorySection from './LoginHistorySection';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -487,6 +488,18 @@ export default function SettingsModal({
                       }}
                     >
                       <MfaManagementSection />
+                    </div>
+
+                    {/* Login History / Audit Log */}
+                    <div
+                      style={{
+                        background: 'hsla(0, 0%, 100%, 0.02)',
+                        padding: '12px 14px',
+                        borderRadius: '12px',
+                        border: '1px solid hsla(0, 0%, 100%, 0.05)',
+                      }}
+                    >
+                      <LoginHistorySection />
                     </div>
                   </div>
                 )}

@@ -75,27 +75,41 @@ describe('performance & mobile optimization', () => {
   });
 
   it('stretches dice columns to the mobile container width', () => {
-    const diceContent = readFileSync(resolve(root, 'src/app/games/dice/page.tsx'), 'utf8');
-
-    expect(diceContent).toMatch(/\.dice-sidebar\s*\{[\s\S]*min-width:\s*0\s*!important;/);
-    expect(diceContent).toMatch(/\.dice-main\s*\{[\s\S]*width:\s*100%\s*!important;/);
-    expect(diceContent).toMatch(/\.dice-container\s*\{[\s\S]*flex-wrap:\s*nowrap\s*!important;/);
-    expect(diceContent).toMatch(
-      /\.dice-stat-grid\s*\{[\s\S]*grid-template-columns:\s*1fr 1fr\s*!important;/,
-    );
-    expect(diceContent).toContain('.dice-stat-grid > div:last-child');
-    expect(diceContent).toContain('.dice-stat-grid > div {');
-  });
-
-  it('allows the roulette center to shrink before the board scrolls horizontally', () => {
-    const rouletteContent = readFileSync(
-      resolve(root, 'src/app/games/roulette/RouletteClient.tsx'),
+    const diceStyles = readFileSync(
+      resolve(root, 'src/components/casino/games/dice/dice-page-styles.ts'),
       'utf8',
     );
 
-    expect(rouletteContent).toMatch(
+    expect(diceStyles).toMatch(/\.dice-sidebar\s*\{[\s\S]*min-width:\s*0\s*!important;/);
+    expect(diceStyles).toMatch(/\.dice-main\s*\{[\s\S]*width:\s*100%\s*!important;/);
+    expect(diceStyles).toMatch(/\.dice-container\s*\{[\s\S]*flex-wrap:\s*nowrap\s*!important;/);
+    expect(diceStyles).toMatch(
+      /\.dice-stat-grid\s*\{[\s\S]*grid-template-columns:\s*1fr 1fr\s*!important;/,
+    );
+    expect(diceStyles).toContain('.dice-stat-grid > div:last-child');
+    expect(diceStyles).toContain('.dice-stat-grid > div {');
+
+    // The responsive CSS is injected by the dice page via the styles module.
+    const dicePage = readFileSync(resolve(root, 'src/app/games/dice/page.tsx'), 'utf8');
+    expect(dicePage).toContain('dicePageStyles');
+  });
+
+  it('allows the roulette center to shrink before the board scrolls horizontally', () => {
+    const rouletteStyles = readFileSync(
+      resolve(root, 'src/components/casino/games/roulette/roulette-page-styles.ts'),
+      'utf8',
+    );
+
+    expect(rouletteStyles).toMatch(
       /\.roulette-center\s*\{[\s\S]*min-width:\s*0;[\s\S]*width:\s*100%;/,
     );
+
+    // The responsive CSS is injected by RouletteClient via the styles module.
+    const rouletteClient = readFileSync(
+      resolve(root, 'src/app/games/roulette/RouletteClient.tsx'),
+      'utf8',
+    );
+    expect(rouletteClient).toContain('roulettePageStyles');
   });
 
   it('keeps exposed QA navigation and showcase presets responsive', () => {

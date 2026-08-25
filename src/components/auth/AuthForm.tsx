@@ -4,12 +4,18 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Loader2, KeyRound } from 'lucide-react';
+import { Eye, EyeOff, Loader2, KeyRound, CheckCircle2, ArrowLeft, Mail } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { Magnetic } from '@/components/ui/Magnetic';
 import { validateAuthCredentials } from './auth-validation';
 import { mapAuthError } from '@/lib/security/form-errors';
 import { trackAllowedEvent } from '@/lib/analytics/events';
+import { PasswordStrengthMeter } from './PasswordStrengthMeter';
+import { OtpInput } from './OtpInput';
+
+export function formatAuthError(message: string): string {
+  return mapAuthError(message).message;
+}
 
 interface AuthFormProps {
   mode: 'sign-in' | 'sign-up';
@@ -103,117 +109,155 @@ function AuthField({
   type: string;
   placeholder: string;
   value: string;
-  onChange: (v: string) => void;
+  onChange: (val: string) => void;
   autoComplete?: string;
   error?: string;
 }) {
-  const [focused, setFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const isPasswordField = type === 'password';
-  const effectiveType = isPasswordField && showPassword ? 'text' : type;
+  const effectiveType = isPasswordField ? (showPassword ? 'text' : 'password') : type;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
       <label
         htmlFor={id}
         style={{
-          fontSize: '0.8rem',
-          fontWeight: 600,
-          color: 'rgba(255,255,255,0.65)',
+          fontSize: '0.82rem',
+          fontWeight: 700,
+          color: 'rgba(255, 255, 255, 0.75)',
           letterSpacing: '0.02em',
-          userSelect: 'none',
         }}
       >
         {label}
       </label>
-      <div style={{ position: 'relative', width: '100%' }}>
+
+      {/* Input container with CSS classes for hover & focus states */}
+      <div
+        className="auth-input-wrapper"
+        style={{
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          borderRadius: '12px',
+          background: isFocused ? 'rgba(255, 255, 255, 0.07)' : 'rgba(255, 255, 255, 0.04)',
+          border: error
+            ? '1px solid rgba(255, 51, 102, 0.6)'
+            : isFocused
+              ? '1px solid rgba(212, 175, 55, 0.8)'
+              : '1px solid var(--glass-border)',
+          boxShadow: error
+            ? '0 0 12px rgba(255, 51, 102, 0.2)'
+            : isFocused
+              ? '0 0 16px rgba(212, 175, 55, 0.25)'
+              : 'none',
+          transition: 'border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
+        }}
+      >
         <input
           id={id}
           type={effectiveType}
-          autoComplete={autoComplete}
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          required
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          autoComplete={autoComplete}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${id}-error` : undefined}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
           style={{
-            padding: '13px 16px',
-            paddingRight: isPasswordField ? '44px' : '16px',
-            borderRadius: '12px',
-            background: 'rgba(255,255,255,0.05)',
-            border: focused ? '1.5px solid hsl(45,100%,50%)' : '1.5px solid rgba(255,255,255,0.12)',
-            color: '#fff',
-            fontSize: '0.9rem',
-            outline: 'none',
-            transition: 'border-color 0.18s ease, box-shadow 0.18s ease',
-            boxShadow: focused ? '0 0 0 3px hsla(45,100%,50%,0.12)' : 'none',
             width: '100%',
+            height: '46px',
+            background: 'transparent',
+            border: 'none',
+            outline: 'none',
+            padding: isPasswordField ? '0 44px 0 14px' : '0 14px',
+            color: '#FFFFFF',
+            fontSize: '0.92rem',
+            fontFamily: 'inherit',
             boxSizing: 'border-box',
           }}
         />
+
+        {/* Password visibility toggle button inside input box */}
         {isPasswordField && (
-          <motion.button
+          <button
             type="button"
+            tabIndex={-1}
             onClick={() => setShowPassword(!showPassword)}
             aria-label={showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
             style={{
               position: 'absolute',
               right: '12px',
               top: '50%',
-              translateY: '-50%',
-              background: 'transparent',
+              transform: 'translateY(-50%)',
+              background: 'none',
               border: 'none',
-              color: showPassword ? 'hsl(var(--primary))' : 'rgba(255,255,255,0.4)',
+              padding: '4px',
               cursor: 'pointer',
+              color: showPassword ? 'hsl(var(--primary))' : 'rgba(255, 255, 255, 0.4)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '4px',
-              borderRadius: '6px',
-              transition: 'color 0.18s ease',
+              transition: 'color 0.15s ease',
             }}
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </motion.button>
+          </button>
         )}
       </div>
+
+      {/* Inline Field Validation Error Message */}
       {error && (
-        <p
+        <span
           id={`${id}-error`}
           role="alert"
-          style={{ margin: 0, color: 'hsl(0,85%,65%)', fontSize: '0.75rem' }}
+          style={{
+            fontSize: '0.75rem',
+            color: '#ff3366',
+            fontWeight: 600,
+            marginTop: '2px',
+          }}
         >
           {error}
-        </p>
+        </span>
       )}
     </div>
   );
 }
 
-export function formatAuthError(message: string): string {
-  return mapAuthError(message).message;
+function notifyLoginAudit(
+  authMethod: 'password' | 'passkey' | 'google' | 'otp_magic_link',
+  status: 'success' | 'failed' = 'success',
+) {
+  void fetch('/api/user/login-history', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ authMethod, status }),
+  }).catch(() => {});
 }
 
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const [supabase] = useState(() => createClient());
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [hasPasskeySupport, setHasPasskeySupport] = useState(false);
+  const [hasPasskeySupport] = useState(() => typeof window !== 'undefined' && Boolean(window.PublicKeyCredential));
+  const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const [isMagicLink, setIsMagicLink] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && Boolean(window.PublicKeyCredential)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setHasPasskeySupport(true);
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
+      return () => clearTimeout(timer);
     }
-  }, []);
+  }, [cooldown]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -236,12 +280,109 @@ export function AuthForm({ mode }: AuthFormProps) {
       }
       if (mode === 'sign-up') {
         void trackAllowedEvent({ name: 'sign_up_completed' });
+      } else {
+        notifyLoginAudit('password', 'success');
       }
       router.push('/');
       router.refresh();
     } catch {
       setStatus('Die Anfrage konnte nicht abgeschlossen werden. Bitte versuche es erneut.');
     } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleForgotPassword(event: React.FormEvent) {
+    event.preventDefault();
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail || !normalizedEmail.includes('@')) {
+      setStatus('Bitte gib eine gültige E-Mail-Adresse ein.');
+      return;
+    }
+
+    setLoading(true);
+    setStatus(null);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
+      });
+
+      if (error) {
+        setStatus(formatAuthError(error.message));
+        setLoading(false);
+        return;
+      }
+
+      void trackAllowedEvent({ name: 'password_reset_requested' });
+      setResetEmailSent(true);
+      setCooldown(60);
+    } catch {
+      setStatus('Der Wiederherstellungs-Link konnte nicht gesendet werden. Bitte versuche es erneut.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleMagicLinkRequest(event?: React.FormEvent) {
+    if (event) event.preventDefault();
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail || !normalizedEmail.includes('@')) {
+      setStatus('Bitte gib eine gültige E-Mail-Adresse ein.');
+      return;
+    }
+    setLoading(true);
+    setStatus(null);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: normalizedEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/`,
+        },
+      });
+      if (error) {
+        setStatus(formatAuthError(error.message));
+        setLoading(false);
+        return;
+      }
+      void trackAllowedEvent({ name: 'magic_link_requested' });
+      setMagicLinkSent(true);
+      setCooldown(60);
+    } catch {
+      setStatus('Der Anmeldecode konnte nicht gesendet werden. Bitte versuche es erneut.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleVerifyOtp(codeToVerify?: string) {
+    const token = (codeToVerify || otpCode).trim();
+    if (token.length !== 6) {
+      setStatus('Bitte gib den vollständigen 6-stelligen Code ein.');
+      return;
+    }
+    setLoading(true);
+    setStatus(null);
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token,
+        type: 'email',
+      });
+      if (error) {
+        setStatus(formatAuthError(error.message));
+        setLoading(false);
+        return;
+      }
+      if (data?.session) {
+        void trackAllowedEvent({ name: 'magic_link_sign_in_completed' });
+        notifyLoginAudit('otp_magic_link', 'success');
+        router.push('/');
+        router.refresh();
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setStatus(formatAuthError(message));
       setLoading(false);
     }
   }
@@ -276,6 +417,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       }
       if (data?.session) {
         void trackAllowedEvent({ name: 'passkey_sign_in_completed' });
+        notifyLoginAudit('passkey', 'success');
         router.push('/');
         router.refresh();
       }
@@ -288,7 +430,7 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   const validationErrors = validateAuthCredentials(email, password);
   const isFormReady = Object.keys(validationErrors).length === 0;
-  const isSignUp = mode === 'sign-up';
+  const isSignUp = !isForgotPassword && mode === 'sign-up';
 
   return (
     <div style={{ position: 'relative', width: '100%', maxWidth: '420px' }}>
@@ -331,221 +473,583 @@ export function AuthForm({ mode }: AuthFormProps) {
               letterSpacing: '-0.02em',
             }}
           >
-            {isSignUp ? 'Konto erstellen' : 'Willkommen zurück'}
+            {isForgotPassword
+              ? 'Passwort wiederherstellen'
+              : isMagicLink
+                ? magicLinkSent
+                  ? 'Code eingeben'
+                  : 'Passwortlos anmelden'
+                : isSignUp
+                  ? 'Konto erstellen'
+                  : 'Willkommen zurück'}
           </h1>
           <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.45)', margin: 0 }}>
-            {isSignUp
-              ? 'Gib deine Daten ein, um loszulegen.'
-              : 'Melde dich an, um weiterzuspielen.'}
+            {isForgotPassword
+              ? 'Wir senden dir einen sicheren Link zum Zurücksetzen.'
+              : isMagicLink
+                ? magicLinkSent
+                  ? `Wir haben einen 6-stelligen Code an ${email} gesendet.`
+                  : 'Wir senden dir einen 1-Klick-Link und einen 6-stelligen Code.'
+                : isSignUp
+                  ? 'Gib deine Daten ein, um loszulegen.'
+                  : 'Melde dich an, um weiterzuspielen.'}
           </p>
         </div>
 
-        {/* Form Fields */}
-        <form
-          onSubmit={handleSubmit}
-          style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}
-        >
-          <AuthField
-            id="auth-email"
-            label="E-Mail-Adresse"
-            type="email"
-            placeholder="name@beispiel.de"
-            value={email}
-            onChange={setEmail}
-            autoComplete="email"
-            error={email.length > 0 ? validationErrors.email : undefined}
-          />
-          <AuthField
-            id="auth-password"
-            label="Passwort"
-            type="password"
-            placeholder="Dein Passwort"
-            value={password}
-            onChange={setPassword}
-            autoComplete={isSignUp ? 'new-password' : 'current-password'}
-            error={password.length > 0 ? validationErrors.password : undefined}
-          />
-
-          {/* Submit Button with Animated Spinner Loader */}
-          <Magnetic strength={0.3} style={{ display: 'block', width: '100%' }}>
-            <motion.button
-              id={isSignUp ? 'auth-submit-signup' : 'auth-submit-signin'}
-              type="submit"
-              disabled={loading || !isFormReady}
-              whileHover={
-                loading || !isFormReady
-                  ? {}
-                  : {
-                      scale: 1.02,
-                      y: -1,
-                      boxShadow: '0 0 24px hsla(45,100%,50%,0.6), 0 4px 16px rgba(0,0,0,0.3)',
-                    }
-              }
-              whileTap={loading || !isFormReady ? {} : { scale: 0.97 }}
-              style={{
-                marginTop: '4px',
-                width: '100%',
-                height: '50px',
-                borderRadius: '12px',
-                border: 'none',
-                cursor: loading || !isFormReady ? 'not-allowed' : 'pointer',
-                fontWeight: 900,
-                fontSize: '0.95rem',
-                letterSpacing: '0.04em',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                background:
-                  loading || !isFormReady
-                    ? 'rgba(255,255,255,0.08)'
-                    : 'linear-gradient(135deg, hsl(var(--primary)), hsl(38,100%,42%))',
-                color: loading || !isFormReady ? 'rgba(255,255,255,0.3)' : '#000',
-                boxShadow: !loading && isFormReady ? '0 0 12px hsla(45,100%,50%,0.3)' : 'none',
-              }}
-            >
-              {loading ? (
-                <Loader2 className="animate-spin" size={20} />
-              ) : isSignUp ? (
-                'Konto erstellen'
-              ) : (
-                'Anmelden'
-              )}
-            </motion.button>
-          </Magnetic>
-        </form>
-
-        {/* Divider */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            margin: '24px 0',
-            color: 'rgba(255,255,255,0.3)',
-            fontSize: '0.75rem',
-            letterSpacing: '0.06em',
-          }}
-        >
-          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
-          ODER
-          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
-        </div>
-
-        {/* Google Button */}
-        <motion.button
-          id="auth-google-btn"
-          type="button"
-          onClick={handleGoogleSignIn}
-          disabled={loading}
-          whileHover={
-            loading
-              ? {}
-              : {
-                  scale: 1.01,
-                  background: 'rgba(255,255,255,0.08)',
-                  borderColor: 'rgba(255,255,255,0.35)',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-                }
-          }
-          whileTap={loading ? {} : { scale: 0.98 }}
-          style={{
-            width: '100%',
-            height: '50px',
-            borderRadius: '12px',
-            border: '1.5px solid rgba(255,255,255,0.18)',
-            background: 'rgba(255,255,255,0.04)',
-            color: '#fff',
-            fontWeight: 700,
-            fontSize: '0.9rem',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '10px',
-            backdropFilter: 'blur(8px)',
-          }}
-        >
-          <GoogleLogo />
-          Mit Google fortfahren
-        </motion.button>
-
-        {/* Passkey Button (Sign-In only, conditional on WebAuthn support) */}
-        {!isSignUp && hasPasskeySupport && (
-          <motion.button
-            id="auth-passkey-btn"
-            type="button"
-            onClick={handlePasskeySignIn}
-            disabled={loading}
-            whileHover={
-              loading
-                ? {}
-                : {
-                    scale: 1.01,
-                    background: 'rgba(212, 175, 55, 0.12)',
-                    borderColor: 'rgba(212, 175, 55, 0.45)',
-                    boxShadow: '0 4px 16px rgba(212, 175, 55, 0.15)',
-                  }
-            }
-            whileTap={loading ? {} : { scale: 0.98 }}
-            style={{
-              width: '100%',
-              height: '50px',
-              borderRadius: '12px',
-              border: '1.5px solid rgba(212, 175, 55, 0.3)',
-              background: 'rgba(212, 175, 55, 0.05)',
-              color: 'hsl(45, 100%, 75%)',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              backdropFilter: 'blur(8px)',
-              marginTop: '12px',
-            }}
-          >
-            <KeyRound size={18} color="hsl(45, 100%, 50%)" />
-            Mit Passkey anmelden
-          </motion.button>
-        )}
-
-        {/* Error Notification */}
+        {/* Global Error/Status Message */}
         {status && (
-          <p
+          <div
             role="alert"
             style={{
-              fontSize: '0.8rem',
-              color: 'hsl(0,85%,60%)',
-              margin: '16px 0 0',
-              padding: '10px 14px',
-              background: 'hsla(0,85%,60%,0.1)',
-              borderRadius: '8px',
-              border: '1px solid hsla(0,85%,60%,0.25)',
+              padding: '12px 14px',
+              borderRadius: '10px',
+              background: 'rgba(255, 51, 102, 0.1)',
+              border: '1px solid rgba(255, 51, 102, 0.3)',
+              color: '#ff6688',
+              fontSize: '0.85rem',
+              marginBottom: '18px',
+              textAlign: 'center',
             }}
           >
             {status}
-          </p>
+          </div>
         )}
 
-        {/* Footer Link */}
-        <p
-          style={{
-            textAlign: 'center',
-            fontSize: '0.85rem',
-            color: 'rgba(255,255,255,0.4)',
-            margin: '24px 0 0',
-          }}
-        >
-          {isSignUp ? 'Bereits registriert? ' : 'Noch kein Konto? '}
-          <Link
-            href={isSignUp ? '/sign-in' : '/sign-up'}
-            style={{ color: 'hsl(45,100%,50%)', fontWeight: 700, textDecoration: 'none' }}
-          >
-            {isSignUp ? 'Anmelden' : 'Jetzt registrieren'}
-          </Link>
-        </p>
+        {/* MAGIC LINK & OTP VIEW */}
+        {isMagicLink ? (
+          <div>
+            {!magicLinkSent ? (
+              <form onSubmit={handleMagicLinkRequest} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                <AuthField
+                  id="auth-magic-email"
+                  label="E-Mail-Adresse"
+                  type="email"
+                  placeholder="name@beispiel.de"
+                  value={email}
+                  onChange={setEmail}
+                  autoComplete="email"
+                />
+
+                <Magnetic strength={0.3} style={{ display: 'block', width: '100%' }}>
+                  <motion.button
+                    id="auth-submit-magic-request"
+                    type="submit"
+                    disabled={loading || !email.includes('@') || cooldown > 0}
+                    whileHover={loading || !email.includes('@') || cooldown > 0 ? {} : { scale: 1.02, y: -1 }}
+                    whileTap={loading || !email.includes('@') || cooldown > 0 ? {} : { scale: 0.97 }}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '12px',
+                      border: 'none',
+                      cursor: loading || !email.includes('@') || cooldown > 0 ? 'not-allowed' : 'pointer',
+                      fontWeight: 900,
+                      fontSize: '0.95rem',
+                      letterSpacing: '0.04em',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      background:
+                        loading || !email.includes('@') || cooldown > 0
+                          ? 'rgba(255,255,255,0.08)'
+                          : 'linear-gradient(135deg, hsl(var(--primary)), hsl(38,100%,42%))',
+                      color: loading || !email.includes('@') || cooldown > 0 ? 'rgba(255,255,255,0.3)' : '#000',
+                    }}
+                  >
+                    {loading ? (
+                      <Loader2 className="animate-spin" size={20} />
+                    ) : cooldown > 0 ? (
+                      `Erneut anfordern in ${cooldown}s`
+                    ) : (
+                      'Code & Magic Link anfordern'
+                    )}
+                  </motion.button>
+                </Magnetic>
+              </form>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <OtpInput
+                    value={otpCode}
+                    onChange={setOtpCode}
+                    onComplete={(code) => handleVerifyOtp(code)}
+                    disabled={loading}
+                  />
+                </div>
+
+                <Magnetic strength={0.3} style={{ display: 'block', width: '100%' }}>
+                  <motion.button
+                    id="auth-submit-verify-otp"
+                    type="button"
+                    onClick={() => handleVerifyOtp()}
+                    disabled={loading || otpCode.length !== 6}
+                    whileHover={loading || otpCode.length !== 6 ? {} : { scale: 1.02, y: -1 }}
+                    whileTap={loading || otpCode.length !== 6 ? {} : { scale: 0.97 }}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '12px',
+                      border: 'none',
+                      cursor: loading || otpCode.length !== 6 ? 'not-allowed' : 'pointer',
+                      fontWeight: 900,
+                      fontSize: '0.95rem',
+                      letterSpacing: '0.04em',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      background:
+                        loading || otpCode.length !== 6
+                          ? 'rgba(255,255,255,0.08)'
+                          : 'linear-gradient(135deg, hsl(var(--primary)), hsl(38,100%,42%))',
+                      color: loading || otpCode.length !== 6 ? 'rgba(255,255,255,0.3)' : '#000',
+                    }}
+                  >
+                    {loading ? (
+                      <Loader2 className="animate-spin" size={20} />
+                    ) : (
+                      'Einmal-Code bestätigen'
+                    )}
+                  </motion.button>
+                </Magnetic>
+
+                {/* Resend Code Button */}
+                <div style={{ textAlign: 'center' }}>
+                  <button
+                    type="button"
+                    disabled={loading || cooldown > 0}
+                    onClick={() => handleMagicLinkRequest()}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: cooldown > 0 ? 'rgba(255,255,255,0.35)' : 'hsl(var(--primary))',
+                      fontSize: '0.8rem',
+                      cursor: cooldown > 0 ? 'not-allowed' : 'pointer',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {cooldown > 0 ? `Neuen Code anfordern in ${cooldown}s` : 'Neuen Code zusenden'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Back button to standard login */}
+            <div style={{ textAlign: 'center', marginTop: '20px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setStatus(null);
+                  setIsMagicLink(false);
+                  setMagicLinkSent(false);
+                  setOtpCode('');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255,255,255,0.6)',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontWeight: 600,
+                }}
+              >
+                <ArrowLeft size={16} />
+                Zurück zur Passwort-Anmeldung
+              </button>
+            </div>
+          </div>
+        ) : isForgotPassword ? (
+          <div>
+            {resetEmailSent ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                style={{
+                  padding: '20px 16px',
+                  borderRadius: '12px',
+                  background: 'rgba(0, 230, 118, 0.08)',
+                  border: '1px solid rgba(0, 230, 118, 0.3)',
+                  textAlign: 'center',
+                  marginBottom: '20px',
+                }}
+              >
+                <CheckCircle2 size={32} color="#00e676" style={{ margin: '0 auto 10px' }} />
+                <h3 style={{ color: '#00e676', margin: '0 0 6px', fontSize: '0.95rem', fontWeight: 800 }}>
+                  E-Mail wurde gesendet!
+                </h3>
+                <p style={{ color: 'rgba(255,255,255,0.7)', margin: 0, fontSize: '0.82rem', lineHeight: 1.4 }}>
+                  Prüfe dein Postfach für <strong>{email}</strong> und klicke auf den Link, um dein Passwort neu zu vergeben.
+                </p>
+              </motion.div>
+            ) : (
+              <form onSubmit={handleForgotPassword} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                <AuthField
+                  id="auth-reset-email"
+                  label="E-Mail-Adresse"
+                  type="email"
+                  placeholder="name@beispiel.de"
+                  value={email}
+                  onChange={setEmail}
+                  autoComplete="email"
+                />
+
+                <Magnetic strength={0.3} style={{ display: 'block', width: '100%' }}>
+                  <motion.button
+                    id="auth-submit-reset-request"
+                    type="submit"
+                    disabled={loading || !email.includes('@') || cooldown > 0}
+                    whileHover={loading || !email.includes('@') || cooldown > 0 ? {} : { scale: 1.02, y: -1 }}
+                    whileTap={loading || !email.includes('@') || cooldown > 0 ? {} : { scale: 0.97 }}
+                    style={{
+                      width: '100%',
+                      height: '48px',
+                      borderRadius: '12px',
+                      border: 'none',
+                      cursor: loading || !email.includes('@') || cooldown > 0 ? 'not-allowed' : 'pointer',
+                      fontWeight: 900,
+                      fontSize: '0.95rem',
+                      letterSpacing: '0.04em',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      background:
+                        loading || !email.includes('@') || cooldown > 0
+                          ? 'rgba(255,255,255,0.08)'
+                          : 'linear-gradient(135deg, hsl(var(--primary)), hsl(38,100%,42%))',
+                      color: loading || !email.includes('@') || cooldown > 0 ? 'rgba(255,255,255,0.3)' : '#000',
+                    }}
+                  >
+                    {loading ? (
+                      <Loader2 className="animate-spin" size={20} />
+                    ) : cooldown > 0 ? (
+                      `Erneut senden in ${cooldown}s`
+                    ) : (
+                      'Reset-Link anfordern'
+                    )}
+                  </motion.button>
+                </Magnetic>
+              </form>
+            )}
+
+            {/* Back to sign in button */}
+            <div style={{ textAlign: 'center', marginTop: '20px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setStatus(null);
+                  setIsForgotPassword(false);
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255,255,255,0.6)',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontWeight: 600,
+                }}
+              >
+                <ArrowLeft size={16} />
+                Zurück zur Anmeldung
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* STANDARD SIGN-IN & SIGN-UP VIEW */
+          <div>
+            <form
+              onSubmit={handleSubmit}
+              style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}
+            >
+              <AuthField
+                id="auth-email"
+                label="E-Mail-Adresse"
+                type="email"
+                placeholder="name@beispiel.de"
+                value={email}
+                onChange={setEmail}
+                autoComplete="email"
+                error={email.length > 0 ? validationErrors.email : undefined}
+              />
+              <AuthField
+                id="auth-password"
+                label="Passwort"
+                type="password"
+                placeholder="Dein Passwort"
+                value={password}
+                onChange={setPassword}
+                autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                error={password.length > 0 ? validationErrors.password : undefined}
+              />
+
+              {/* Password Strength Meter for Sign-Up */}
+              {isSignUp && password.length > 0 && (
+                <PasswordStrengthMeter password={password} />
+              )}
+
+              {/* Forgot Password Link for Sign-In Mode */}
+              {!isSignUp && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStatus(null);
+                      setIsForgotPassword(true);
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'hsl(var(--primary))',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                      padding: '2px 0',
+                      fontWeight: 600,
+                    }}
+                  >
+                    Passwort vergessen?
+                  </button>
+                </div>
+              )}
+
+              {/* Submit Button with Animated Spinner Loader */}
+              <Magnetic strength={0.3} style={{ display: 'block', width: '100%' }}>
+                <motion.button
+                  id={isSignUp ? 'auth-submit-signup' : 'auth-submit-signin'}
+                  type="submit"
+                  disabled={loading || !isFormReady}
+                  whileHover={
+                    loading || !isFormReady
+                      ? {}
+                      : {
+                          scale: 1.02,
+                          y: -1,
+                          boxShadow: '0 0 24px hsla(45,100%,50%,0.6), 0 4px 16px rgba(0,0,0,0.3)',
+                        }
+                  }
+                  whileTap={loading || !isFormReady ? {} : { scale: 0.97 }}
+                  style={{
+                    marginTop: '4px',
+                    width: '100%',
+                    height: '50px',
+                    borderRadius: '12px',
+                    border: 'none',
+                    cursor: loading || !isFormReady ? 'not-allowed' : 'pointer',
+                    fontWeight: 900,
+                    fontSize: '0.95rem',
+                    letterSpacing: '0.04em',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    background:
+                      loading || !isFormReady
+                        ? 'rgba(255,255,255,0.08)'
+                        : 'linear-gradient(135deg, hsl(var(--primary)), hsl(38,100%,42%))',
+                    color: loading || !isFormReady ? 'rgba(255,255,255,0.3)' : '#000',
+                    boxShadow: !loading && isFormReady ? '0 0 12px hsla(45,100%,50%,0.3)' : 'none',
+                  }}
+                >
+                  {loading ? (
+                    <Loader2 className="animate-spin" size={20} />
+                  ) : isSignUp ? (
+                    'Konto erstellen'
+                  ) : (
+                    'Anmelden'
+                  )}
+                </motion.button>
+              </Magnetic>
+            </form>
+
+            {/* Divider */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                margin: '24px 0',
+                color: 'rgba(255,255,255,0.3)',
+                fontSize: '0.75rem',
+                letterSpacing: '0.06em',
+              }}
+            >
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
+              ODER
+              <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }} />
+            </div>
+
+            {/* Google Button */}
+            <motion.button
+              id="auth-google-btn"
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              whileHover={
+                loading
+                  ? {}
+                  : {
+                      scale: 1.01,
+                      background: 'rgba(255,255,255,0.08)',
+                      borderColor: 'rgba(255,255,255,0.35)',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                    }
+              }
+              whileTap={loading ? {} : { scale: 0.98 }}
+              style={{
+                width: '100%',
+                height: '46px',
+                borderRadius: '12px',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid var(--glass-border)',
+                color: '#fff',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontWeight: 700,
+                fontSize: '0.88rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                marginBottom: '10px',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <GoogleLogo />
+              Mit Google fortfahren
+            </motion.button>
+
+            {/* Magic Link / OTP Button */}
+            {!isSignUp && (
+              <motion.button
+                id="auth-magic-link-btn"
+                type="button"
+                onClick={() => {
+                  setStatus(null);
+                  setIsMagicLink(true);
+                  setMagicLinkSent(false);
+                  setOtpCode('');
+                }}
+                disabled={loading}
+                whileHover={
+                  loading
+                    ? {}
+                    : {
+                        scale: 1.01,
+                        background: 'rgba(255,255,255,0.08)',
+                        borderColor: 'rgba(255,255,255,0.35)',
+                        boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                      }
+                }
+                whileTap={loading ? {} : { scale: 0.98 }}
+                style={{
+                  width: '100%',
+                  height: '46px',
+                  borderRadius: '12px',
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid var(--glass-border)',
+                  color: '#fff',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontWeight: 700,
+                  fontSize: '0.88rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  marginBottom: '10px',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <Mail size={18} color="hsl(var(--primary))" />
+                Ohne Passwort anmelden (E-Mail-Code)
+              </motion.button>
+            )}
+
+            {/* Passkey Button */}
+            {hasPasskeySupport && (
+              <motion.button
+                id="auth-passkey-btn"
+                type="button"
+                onClick={handlePasskeySignIn}
+                disabled={loading}
+                whileHover={
+                  loading
+                    ? {}
+                    : {
+                        scale: 1.01,
+                        background: 'rgba(212, 175, 55, 0.08)',
+                        borderColor: 'rgba(212, 175, 55, 0.4)',
+                        boxShadow: '0 4px 16px rgba(212, 175, 55, 0.15)',
+                      }
+                }
+                whileTap={loading ? {} : { scale: 0.98 }}
+                style={{
+                  width: '100%',
+                  height: '46px',
+                  borderRadius: '12px',
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid var(--glass-border)',
+                  color: '#fff',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontWeight: 700,
+                  fontSize: '0.88rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <KeyRound size={18} color="hsl(var(--primary))" />
+                Mit Passkey anmelden
+              </motion.button>
+            )}
+
+            {/* Footer Navigation Link between Sign-In & Sign-Up */}
+            <div
+              style={{
+                marginTop: '28px',
+                textAlign: 'center',
+                fontSize: '0.85rem',
+                color: 'rgba(255,255,255,0.5)',
+              }}
+            >
+              {isSignUp ? (
+                <>
+                  Bereits ein Konto?{' '}
+                  <Link
+                    href="/sign-in"
+                    style={{
+                      color: 'hsl(var(--primary))',
+                      fontWeight: 700,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    Anmelden
+                  </Link>
+                </>
+              ) : (
+                <>
+                  Noch kein Konto?{' '}
+                  <Link
+                    href="/sign-up"
+                    style={{
+                      color: 'hsl(var(--primary))',
+                      fontWeight: 700,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    Jetzt registrieren
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

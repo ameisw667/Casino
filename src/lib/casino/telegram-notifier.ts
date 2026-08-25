@@ -3,6 +3,7 @@ import 'server-only';
 import { CasinoLogger } from '@/lib/casino/logger';
 import { isBigWin } from '@/lib/casino/big-win';
 import { WalletService } from '@/lib/casino/wallet';
+import { createNotificationBestEffort } from '@/lib/casino/notifications';
 
 export interface BigWinNotificationInput {
   userId: string;
@@ -17,17 +18,24 @@ export interface BigWinNotificationInput {
 export type BigWinNotificationOutcome = 'sent' | 'skipped';
 
 /**
- * Never blocks or fails the settlement response: fast local filter, then a durable outbox insert
- * (4.3, worldmap/12_EVENT_BUS_BIG_WIN_CONSUMER.md) instead of calling tasks.trigger() directly.
- * The outbox's own trigger/route/pg_cron-backstop chain retries delivery to the unchanged
- * big-win-notify Trigger.dev task if the initial dispatch fails — the previous direct-call
- * version had no retry, so a transient Trigger.dev failure silently dropped the notification.
+ * Never blocks or fails the settlement response: a local eligibility filter
+ * queues the existing Telegram outbox event and independently creates the
+ * durable in-app inbox entry. Both paths are idempotent and best-effort.
  */
 export async function notifyBigWinIfEligible(
   input: BigWinNotificationInput,
 ): Promise<BigWinNotificationOutcome> {
   if (input.replayed || !input.win) return 'skipped';
   if (!isBigWin({ payout: input.payout, multiplier: input.multiplier })) return 'skipped';
+
+  createNotificationBestEffort({
+    userId: input.userId,
+    kind: 'big_win',
+    title: 'Big Win!',
+    body: `${input.game} paid ${input.multiplier.toFixed(2)}x ($${input.payout.toFixed(2)}).`,
+    metadata: { game: input.game, payout: input.payout, multiplier: input.multiplier },
+    sourceKey: `big_win:${input.requestId}`,
+  });
 
   try {
     await WalletService.emitBigWinNotifyEvent({

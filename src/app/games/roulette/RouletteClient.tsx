@@ -23,6 +23,7 @@ import { RouletteHistoryBar } from '@/components/casino/games/roulette/RouletteH
 import { LuxuryRouletteWheel } from '@/components/casino/games/roulette/LuxuryRouletteWheel';
 import { RouletteWinnerReveal } from '@/components/casino/games/roulette/RouletteWinnerReveal';
 import { RouletteFeltBoard } from '@/components/casino/games/roulette/RouletteFeltBoard';
+import { GameCoPilotHud } from '@/components/casino/hud/GameCoPilotHud';
 
 export function RouletteClient() {
   const isMobile = useCasinoStore((state) => state.isMobile);
@@ -508,6 +509,17 @@ export function RouletteClient() {
               backgroundImage: `linear-gradient(rgba(212, 175, 55, 0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(212, 175, 55, 0.4) 1px, transparent 1px)`,
               backgroundSize: '40px 40px',
             }}
+          />
+
+          {/* Live Co-Pilot Roulette HUD */}
+          <GameCoPilotHud
+            context={{
+              gameType: 'ROULETTE',
+              rouletteState: {
+                lastSelectedBet: 'red',
+              },
+            }}
+            className="mb-1"
           />
 
           {/* Top Bar: Hot & Cold + Last 18 History Badges */}

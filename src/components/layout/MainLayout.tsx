@@ -404,6 +404,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             hideBalance={hideBalance}
             displayName={displayName}
             effectiveIsSignedIn={effectiveIsSignedIn}
+            notificationUserId={user?.id ?? null}
             onShowRankInfo={() => setShowRankInfo(true)}
             onToggleHideBalance={() => updateSettings({ hideBalance: !hideBalance })}
             onSignOut={handleSignOut}

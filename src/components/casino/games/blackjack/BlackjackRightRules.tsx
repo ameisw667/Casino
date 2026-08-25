@@ -4,6 +4,7 @@ import { BookOpen, Sparkles, Shield, Gauge, Copy, Layers, Info } from 'lucide-re
 import type { BlackjackGameState } from '@/lib/games/blackjack';
 import StrategyMatrix from '@/components/casino/games/blackjack/StrategyMatrix';
 import CardCountingPanel from '@/components/casino/games/blackjack/CardCountingPanel';
+import { GameCoPilotHud } from '@/components/casino/hud/GameCoPilotHud';
 
 interface BlackjackRightRulesProps {
   strategyAdvice: string;
@@ -38,6 +39,23 @@ export function BlackjackRightRules({
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {/* Live Co-Pilot Smart HUD */}
+        <GameCoPilotHud
+          context={{
+            gameType: 'BLACKJACK',
+            blackjackState: {
+              playerScore: gameState?.playerHand.score ?? 0,
+              isSoft: gameState?.playerHand.isSoft ?? false,
+              cards: gameState?.playerHand.cards ?? [],
+              dealerUpcard: gameState?.dealerHand?.cards?.[0],
+              canDouble: gameState?.canDouble,
+              canSplit: gameState?.canSplit,
+              phase: gameState?.phase,
+            },
+          }}
+          className="mb-1"
+        />
+
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

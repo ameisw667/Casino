@@ -1,47 +1,128 @@
-# 06 — Analytics-Kontext
+# 06 — Analytics, Consent & Privacy-Kontext
 
-> **Zweck:** Modulkarte für consent-gesteuerte PostHog-Produkt-Analytics. Änderungsablauf: [Workflow Analytics-Änderung](../xx_sop/08_analytics_posthog.md).
+> **Zweck:** Kanonische Modulkarte und Spezifikation für privacy-first PostHog-Produkt-Analytics (`src/lib/analytics/`), den Zod-Event-Katalog und die serverseitige HMAC-Pseudonymisierung.
+> **SOP & Handlungsanweisungen:** [`xx_sop/08_analytics_posthog.md`](../xx_sop/08_analytics_posthog.md).
+> **Sicherheits- & Wallet-Invarianten:** [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md).
+> **Qualitätsmaßstab:** [`xx_sop/12_workflow_dokument_qualitaet.md`](../xx_sop/12_workflow_dokument_qualitaet.md).
 
-## 1 — Systemgrenze
+---
 
-- `src/lib/analytics/` misst Produktnutzung über PostHog. Es ist nicht die Admin-BI-Schicht (`src/lib/admin/analytics.ts`) und nicht Sentry- oder Guide-Telemetrie.
-- Analytics bestimmt weder Spielausgänge noch Wallet-, Auth- oder UI-Abläufe. Fehler bleiben best-effort und dürfen den Aufrufer nicht beeinflussen.
-- Lokale Quelldateien und Tests sind für Verhalten maßgeblich; `.env.example` benennt nur Konfigurationsnamen. Live- und Rollout-Status stehen in `worldmap/00_WORLDMAP_STATUS.md`.
+## 1 — Systemgrenze & Laufzeitkette
 
-## 2 — Laufzeitkette
+```mermaid
+flowchart TD
+    User[Nutzer betritt Casino] --> Banner[ConsentBanner in src/components/analytics/]
+    Banner -->|granted| StoreConsent["localStorage: consent.posthog.v1 = 'granted'"]
+    Banner -->|denied| OptOut["posthog.opt_out_capturing() & Teardown"]
+    StoreConsent --> ClientInit["Lazy posthog.init() (Autocapture: OFF, Recording: OFF)"]
+    ClientInit --> Identity["AnalyticsIdentityBootstrap -> GET /api/analytics/identity"]
+    Identity --> HMAC["Server erzeugt HMAC-SHA256 distinctId"]
+    HMAC --> PostHogIdentify["posthog.identify(distinctId)"]
+    StoreConsent --> WebVitals["WebVitalsReporter (LCP, CLS, INP)"]
+    UIEvent[UI Interaktion] --> Track["trackAllowedEvent() via Zod-Allowlist"]
+    Track --> ClientInit
+```
 
-1. `ConsentBanner` schreibt `granted` oder `denied` unter `consent.posthog.v1`.
-2. `trackAllowedEvent()` validiert Name und Properties strikt und fordert erst danach den Client an.
-3. `getAnalyticsClient()` initialisiert `posthog-js` nur bei `granted` und nur bei vorhandener öffentlicher Konfiguration.
-4. `AnalyticsIdentityBootstrap` ruft nach Consent für angemeldete Nutzer `/api/analytics/identity` auf; die Route liefert ausschließlich eine HMAC-`distinctId`.
-5. `posthog-erasure.ts` besitzt eine serverseitige Löschfunktion, hat aber keinen Aufrufer, solange kein Account-Löschpfad existiert.
+* **Best-Effort Prinzip:** Analytics bestimmt weder Spielausgänge noch Wallet-, Auth- oder UI-Abläufe. Ausfälle von PostHog verändern das Nutzererlebnis nicht.
+* **Consent-Zwang:** Vor `granted` wird kein SDK-Script geladen und kein HTTP-Request an `us.i.posthog.com` gesendet.
 
-## 3 — Module und Eigentümerschaft
+---
 
-- `consent.ts`: versionierter Local-Storage-Consent, Lese-/Schreibzugriff und Same-/Cross-Tab-Subscription.
-- `posthog-client.ts`: consent-geschützter Lazy-Browser-Client und Teardown bei Widerruf.
-- `events.ts`: einzige Capture-Grenze, Event-Union und strikte Zod-Allowlist.
-- `identity-hmac.ts`: serverseitige HMAC-SHA-256-`distinctId`; benötigt mindestens 32 Bytes Secret.
-- `identify.ts`: einmalige, best-effort Browser-Identifikation pro Session.
-- `posthog-erasure.ts`: serverseitige Person-/Event-Löschung über die PostHog-Persons-API.
-- `src/app/api/analytics/identity/route.ts`: Auth-, Rate-Limit- und No-Store-Grenze für die HMAC-Identität.
-- `src/components/analytics/`: Consent-UI und Identitäts-Bootstrap; `MainLayout` und `ClientProviders` sind deren Einstiegspunkte.
+## 2 — Modul- & Komponenten-Inventar
 
-## 4 — Privacy- und Client-Vertrag
+| Pfad | Typ | Verantwortung |
+| :--- | :---: | :--- |
+| `src/lib/analytics/consent.ts` | Shared | LocalStorage-State (`consent.posthog.v1`), Cross-Tab-Sync via Storage-Event. |
+| `src/lib/analytics/events.ts` | Shared | Zentrale Capture-Grenze, strikte Zod-Allowlist aller erlaubten Events. |
+| `src/lib/analytics/identify.ts` | Client | Browser-Helfer für `posthog.identify()` mit HMAC-`distinctId`. |
+| `src/lib/analytics/identity-hmac.ts` | Server | Serverseitige SHA-256 HMAC-Hasherstellung aus `user.id` + Secret. |
+| `src/lib/analytics/posthog-client.ts` | Client | Lazy Client-Initialisierung mit erzwungener Privacy-Konfiguration. |
+| `src/lib/analytics/posthog-erasure.ts` | Server | DSGVO-Löschroutine über die PostHog Persons API (`erasePostHogPerson`). |
+| `src/lib/analytics/web-vitals.ts` | Client | RUM-Performance-Messung (LCP, CLS, INP) bei aktivem Consent. |
+| `src/components/analytics/ConsentBanner.tsx` | Client | Glassmorphism-Banner für Cookie- und Analytics-Opt-In. |
+| `src/components/analytics/WebVitalsReporter.tsx`| Client | Mountet Web-Vitals-Observer im Root-Layout. |
+| `src/app/api/analytics/identity/route.ts` | API | Authentifizierter Identity-Endpunkt (`Cache-Control: private, no-store`). |
 
-- Ohne `granted` kein Client und kein Capture. Bei Widerruf wird ein vorhandener Client opt-out gesetzt und zurückgesetzt.
-- Der Client deaktiviert IP-Option, Autocapture, Pageviews und Session Recording; URL-, Pfad- und Referrer-Properties stehen auf der Denylist.
-- Die HMAC-Identität verlässt den Server nur als `distinctId`; Roh-User-ID, E-Mail, Wallet-/Zahlungsdaten, Secrets und IP-Adressen sind keine Event-Properties.
-- `NEXT_PUBLIC_POSTHOG_KEY` und `NEXT_PUBLIC_POSTHOG_HOST` sind Browser-Konfiguration. `POSTHOG_DISTINCT_ID_HMAC_SECRET`, `POSTHOG_PROJECT_ID` und `POSTHOG_PERSONAL_API_KEY` bleiben serverseitig; Werte gehören nie in diese Datei.
+---
 
-## 5 — Event-Vertrag
+## 3 — Kanonische Zod-Event-Allowlist (14 Events)
 
-- Zulässige Events: `landing_viewed`, `cta_play_now_clicked`, `sign_up_completed`, `first_game_started`, `stats_viewed`, `passkey_sign_in_completed`, `passkey_registered`, `mfa_totp_enrolled`, `mfa_totp_unenrolled`, `identity_linked`, `identity_unlinked`.
-- Nur `first_game_started` trägt Properties: `game` ist genau `DICE`, `SLOTS`, `ROULETTE`, `CRASH` oder `BLACKJACK`.
-- Die Deklaration in `events.ts` ist die vollständige Allowlist. Neue Namen oder Properties sind eine Produkt-, Privacy- und Dokumentationsänderung.
+Jedes gesendete Event muss exakt einem dieser Zod-Schemas in `events.ts` entsprechen:
 
-## 6 — Löschung, Tests und Drift
+| Event-Name | Erlaubte Properties (strikt) | Trigger-Ort |
+| :--- | :--- | :--- |
+| `landing_viewed` | Keine | Hero / Startseite |
+| `cta_play_now_clicked`| `source: string` | Hero-CTA-Button |
+| `sign_up_completed` | `method: 'email' \| 'oauth'` | Auth Callback |
+| `first_game_started` | `game: 'DICE' \| 'SLOTS' \| 'ROULETTE' \| 'CRASH' \| 'BLACKJACK'` | Erstes Spiel nach Registrierung |
+| `stats_viewed` | Keine | `/stats` Seitenaufruf |
+| `passkey_registered` | `success: boolean` | Security-Settings |
+| `passkey_sign_in_completed`| `success: boolean` | Login-Flow |
+| `mfa_totp_enrolled` | Keine | 2FA-Aktivierung |
+| `mfa_totp_unenrolled` | Keine | 2FA-Deaktivierung |
+| `identity_linked` | `provider: string` | Account-Verknüpfung |
+| `identity_unlinked` | `provider: string` | Account-Trennung |
+| `password_reset_requested`| Keine | Passwort-Reset-Formular |
+| `password_reset_completed`| Keine | Passwort-Reset-Bestätigung |
+| `web_vital_measured` | `metric: 'LCP' \| 'CLS' \| 'INP'`, `value: number`, `rating: 'good' \| 'needs-improvement' \| 'poor'` | WebVitalsReporter |
 
-- `erasePostHogPerson()` löscht mit pseudonymer `distinctId`; ohne Serverkonfiguration gibt sie `skipped` zurück. Sie ist nicht an eine Kontolöschung angeschlossen.
-- Tests liegen in `src/lib/analytics/__tests__/`; Route- und Call-Site-Verhalten wird zusätzlich in den jeweiligen Security-/Komponententests geprüft.
-- Bei Modul-, Verantwortungs- oder Einstiegspunktänderungen diese Referenz und die SOP im selben Schritt aktualisieren. Historische Entscheidung und Go-Live-Nachweis bleiben im Archiv bzw. der Worldmap, nicht hier.
+---
+
+## 4 — Test- & Validierungsbefehle
+
+```powershell
+# 1. Alle Analytics-Tests ausführen
+npm test -- src/lib/analytics/__tests__/
+
+# 2. Spezifische Tests prüfen
+npm test -- src/lib/analytics/__tests__/events.test.ts
+npm test -- src/lib/analytics/__tests__/identity-hmac.test.ts
+npm test -- src/lib/analytics/__tests__/consent.test.ts
+
+# 3. TypeScript Typ-Integrität prüfen
+npm run typecheck
+```
+
+---
+
+## 5 — Risiko- & Freigabeklassifizierung (K-Level)
+
+| Analytics-Aktion | K-Level | Freigabe-Voraussetzung |
+| :--- | :---: | :--- |
+| **Neues Event in `events.ts` aufnehmen** | **K2** | Lokale Vitest-Tests ausreichend. |
+| **Consent-Banner UI-Design anpassen** | **K2** | Lokale Sichtprüfung. |
+| **Änderung an HMAC-Secret-Länge oder Hashing** | **K4** | **Explizite Jan-Freigabe zwingend erforderlich.** |
+| **Änderung an DSGVO-Datenlöschprozessen** | **K4** | **Explizite Jan-Freigabe zwingend erforderlich.** |
+
+---
+
+## 6 — Didaktischer Mehrwert & Lerneffekt für Jan
+
+1. **Warum strikte Zod-Allowlists statt freier Events?**
+   In vielen Web-Apps werden wahllos Strings getrackt (`posthog.capture('clicked_button_xyz')`). Das führt zu Datenmüll und gefährdet die DSGVO-Compliance. Strikte Zod-Schemas stellen sicher, dass nur vorab definierte, geprüfte Events in der Analytics-Plattform ankommen.
+2. **Warum kein Tracking vor dem Consent?**
+   Nach europäischem Datenschutzrecht (DSGVO/ePrivacy) ist das Setzen von Tracking-Cookies oder Fingerprinting ohne explizites Opt-In unzulässig. Die Architektur blockiert jeden Request, bis `consent.posthog.v1 === 'granted'`.
+3. **Warum HMAC-SHA256 für `distinctId`?**
+   Ermöglicht es, das Verhalten eines Nutzers über mehrere Sessions hinweg zu analysieren, ohne dass PostHog oder Dritte die tatsächliche Identität (E-Mail oder Supabase-ID) erfahren.
+
+---
+
+## 7 — Bekannte offene Probleme & Ist-Diskrepanzen
+
+> **Stand:** 2026-08-23 · Wird bei Behebung aktualisiert.
+
+- **1. Erasure-Aufrufer noch nicht verdrahtet:**
+  `posthog-erasure.ts` stellt die DSGVO-Löschfunktion bereit, besitzt jedoch noch keinen automatischen Trigger aus der UI, da der Kontolösch-Workflow noch nicht final implementiert ist.
+- **2. Historisches Prüfdatum nachgetragen:**
+  Aktualitäts-Check auf `2026-08-23` synchronisiert.
+
+---
+
+## 8 — Verwandte Artefakte
+
+| Bedarf | Datei |
+| :--- | :--- |
+| **Analytics SOP** | [`xx_sop/08_analytics_posthog.md`](../xx_sop/08_analytics_posthog.md) |
+| **API Backend Kontext** | [`xx_docs/08_api_backend_context.md`](08_api_backend_context.md) |
+| **Sicherheits- & Wallet-Invarianten** | [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md) |
+| **Dokument-Qualitäts-Rubrik** | [`xx_sop/12_workflow_dokument_qualitaet.md`](../xx_sop/12_workflow_dokument_qualitaet.md) |

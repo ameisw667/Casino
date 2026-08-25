@@ -46,7 +46,7 @@
 | **Stufe I** | **Dynamische Follow-up Suggestion Chips** | 🟢 Executed | Delimiter-Streaming (`<<<SUGGESTIONS: [...]>>>`), 0 ms Latenz, klickbare Gold-Chips | 899/899 | Vitest / Build |
 | **Stufe L** | **Multimodale Spielanalyse (Vision)** | 🟢 Executed | Client Canvas-Kompression, Screenshot Drag & Drop + `Ctrl+V`, Vision Streaming | 946/946 | Vitest / Build |
 | **Stufe M** | **Voice / Audio-Interface (Whisper + TTS)** | 🟢 Executed | OpenAI Whisper-1 STT Recording & OpenAI TTS-1 HD Audio-Streaming ("onyx") | 972/972 | Vitest / Build |
-| **Stufe N** | **In-Game Live Co-Pilot & HUD** | 🔴 Geplant | Schwebender Smart-HUD auf Spielseiten mit mathematischen Echtzeit-Tipps und Quoten-Radar | Offen | Planungsbereit |
+| **Stufe N** | **In-Game Live Co-Pilot & HUD** | 🟢 Executed | Schwebender Smart-HUD auf allen Spielseiten mit mathematischer Quoten-Engine & Quick-Explain | 1066/1066 | Vitest / Build |
 | **Stufe P** | **Dynamic VIP Host & Personas** | 🔴 Geplant | Wählbare Bot-Persönlichkeiten (High-Roller, Math Strategist, Casual) & Langzeit-Gedächtnis | Offen | Planungsbereit |
 | **Stufe S** | **WebGL Lip-Sync Audio Avatar** | 🔴 Geplant | 3D Obsidian-Gold Cyber-Avatar mit FFT-Frequenzanalyse lippensynchron zur TTS-Stimme | Offen | Planungsbereit |
 | **Stufe T** | **Autonomous VIP Weekly Digest** | 🔴 Geplant | Wöchentlich automatisierter, persönlicher KI-Wochenrückblick im Vault mit Performance-Charts | Offen | Planungsbereit |

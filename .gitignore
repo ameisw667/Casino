@@ -82,6 +82,6 @@ web/
 
 # planning-only docs: user/LLM overview & roadmap notes, no product code
 /worldmap/
-/Z_BUGS/
-/Z_FRONTEND/
+/T_BUGS/
+/T_FRONTEND/
 /Z_LLM/

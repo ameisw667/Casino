@@ -2,11 +2,13 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
+import { recordLoginAuditEntry, type AuthMethod } from '@/lib/security/login-audit';
+
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
   const next = requestUrl.searchParams.get('next') ?? '/';
-  const targetPath = next.startsWith('/') ? next : '/';
+  const targetPath = next.startsWith('/') && !next.startsWith('//') ? next : '/';
 
   const forwardedHost = request.headers.get('x-forwarded-host');
   const forwardedProto = request.headers.get('x-forwarded-proto');
@@ -43,7 +45,22 @@ export async function GET(request: Request) {
         },
       );
 
-      await supabase.auth.exchangeCodeForSession(code);
+      const { data } = await supabase.auth.exchangeCodeForSession(code);
+      if (data?.user) {
+        const provider = data.user.app_metadata?.provider;
+        const authMethod: AuthMethod = provider === 'google' ? 'google' : 'otp_magic_link';
+        const userAgent = request.headers.get('user-agent');
+        const forwardedFor = request.headers.get('x-forwarded-for');
+        const rawIp = forwardedFor ? forwardedFor.split(',')[0].trim() : request.headers.get('x-real-ip');
+
+        await recordLoginAuditEntry({
+          userId: data.user.id,
+          authMethod,
+          userAgent,
+          rawIp,
+          status: 'success',
+        });
+      }
     } catch (err) {
       console.error('[Auth Callback Error]:', err);
     }

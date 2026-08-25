@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { compressImageFile, isAllowedImageFile } from '@/lib/casino/image-compression';
@@ -50,6 +50,18 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [voiceStatusMessage, setVoiceStatusMessage] = useState<string | null>(null);
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleCustomOpen = (e: Event) => {
+      const customEvent = e as CustomEvent<{ prompt?: string }>;
+      setIsOpen(true);
+      if (customEvent.detail?.prompt) {
+        setDraft(customEvent.detail.prompt);
+      }
+    };
+    window.addEventListener('royale-guide-open-with-prompt', handleCustomOpen);
+    return () => window.removeEventListener('royale-guide-open-with-prompt', handleCustomOpen);
+  }, []);
 
   const handleFileSelect = async (file: File) => {
     if (!isAllowedImageFile(file)) return;

@@ -17,12 +17,12 @@ import { loadGameConfig } from '@/lib/casino/game-config-server';
  * hole card. Strip those before this route echoes state back.
  */
 function sanitizeActiveRoundState(
-  game: 'CRASH' | 'BLACKJACK',
+  game: 'CRASH' | 'BLACKJACK' | 'CRASH_MULTIPLAYER',
   state: Record<string, unknown> | undefined,
 ): Record<string, unknown> | undefined {
   if (!state) return state;
   const { serverSeed: _serverSeed, ...withoutSeed } = state;
-  if (game === 'CRASH') {
+  if (game === 'CRASH' || game === 'CRASH_MULTIPLAYER') {
     const { crashPoint: _crashPoint, ...withoutCrashPoint } = withoutSeed;
     return withoutCrashPoint;
   }
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const game = searchParams.get('game')?.toUpperCase();
-    if (game !== 'CRASH' && game !== 'BLACKJACK') {
+    if (game !== 'CRASH' && game !== 'BLACKJACK' && game !== 'CRASH_MULTIPLAYER') {
       return NextResponse.json({ error: 'Invalid game parameter' }, { status: 400 });
     }
 
@@ -58,9 +58,9 @@ export async function GET(request: Request) {
     }
     if (!userId) return new NextResponse('Unauthorized', { status: 401 });
 
-    const round = await WalletService.getGameActiveRound({ userId, game });
+    const round = await WalletService.getGameActiveRound({ userId, game: game as 'CRASH' | 'BLACKJACK' | 'CRASH_MULTIPLAYER' });
     const sanitized = round.hasActiveRound
-      ? { ...round, state: sanitizeActiveRoundState(game, round.state) }
+      ? { ...round, state: sanitizeActiveRoundState(game as 'CRASH' | 'BLACKJACK' | 'CRASH_MULTIPLAYER', round.state) }
       : round;
 
     // NFR3 (worldmap/05_multiplayercrash.md): REST fallback for the shared
@@ -70,7 +70,7 @@ export async function GET(request: Request) {
     // longer be "current"), otherwise fall back to whatever round is active
     // right now.
     let sharedRound: PublicCrashRoundState | undefined;
-    if (game === 'CRASH') {
+    if (game === 'CRASH_MULTIPLAYER') {
       try {
         const linkedRoundId = round.hasActiveRound
           ? z.string().uuid().safeParse(round.state?.crashRoundId).data

@@ -27,6 +27,7 @@ import { slotsPageStyles } from '@/components/casino/games/slots/slots-page-styl
 import { SlotsControlSidebar } from '@/components/casino/games/slots/SlotsControlSidebar';
 import { SlotsCenterStage } from '@/components/casino/games/slots/SlotsCenterStage';
 import { SlotsPaytable } from '@/components/casino/games/slots/SlotsPaytable';
+import { GameCoPilotHud } from '@/components/casino/hud/GameCoPilotHud';
 
 export default function SlotsPage() {
   const isMobile = useCasinoStore((s) => s.isMobile);
@@ -369,8 +370,20 @@ export default function SlotsPage() {
           sessionStats={sessionStats}
         />
 
-        {/* ── 3. RIGHT SIDEBAR: STRUCTURED VIP PAYTABLE ── */}
-        <SlotsPaytable isMobile={isMobile} betAmount={betAmount} />
+        {/* ── 3. RIGHT SIDEBAR: STRUCTURED VIP PAYTABLE & CO-PILOT ── */}
+        <div className="flex flex-col gap-3 w-full min-w-0" style={{ order: isMobile ? 3 : 3 }}>
+          <GameCoPilotHud
+            context={{
+              gameType: 'SLOTS',
+              slotsState: {
+                betAmount,
+                isSpinning,
+              },
+            }}
+            className="mb-1"
+          />
+          <SlotsPaytable isMobile={isMobile} betAmount={betAmount} />
+        </div>
       </div>
     </GameErrorBoundary>
   );

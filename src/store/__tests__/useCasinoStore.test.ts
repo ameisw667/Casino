@@ -246,6 +246,26 @@ describe('processGameResult — Happy Path', () => {
     expect(useCasinoStore.getState().crashHistory[0]).toBe(3.2);
   });
 
+  it('records multiplayer crash multipliers separately from the standard crash history', () => {
+    useCasinoStore.setState({
+      crashHistory: [1.5],
+      multiplayerCrashHistory: [2.5],
+    });
+
+    useCasinoStore.getState().processGameResult({
+      game: 'CRASH_MULTIPLAYER',
+      amount: 5,
+      multiplier: 2,
+      payout: 10,
+      win: true,
+      resultId: resultId(23),
+      crashMultiplier: 11.25,
+    });
+
+    expect(useCasinoStore.getState().multiplayerCrashHistory).toEqual([11.25, 2.5]);
+    expect(useCasinoStore.getState().crashHistory).toEqual([1.5]);
+  });
+
   it('flips communityGoalReached exactly once when the threshold is crossed and dispatches the event', () => {
     useCasinoStore.setState({
       communityWagered: 24995,
@@ -941,6 +961,42 @@ describe('einfache UI-/Settings-Aktionen', () => {
     expect(useCasinoStore.getState().achievements.find((a) => a.id === 'moon_shot')!.unlocked).toBe(
       false,
     );
+  });
+
+  it('addMultiplayerCrashHistory prepends a multiplier without changing the standard crash history', () => {
+    useCasinoStore.setState({
+      crashHistory: [1.5],
+      multiplayerCrashHistory: [2.5],
+    });
+
+    useCasinoStore.getState().addMultiplayerCrashHistory(11.25);
+
+    expect(useCasinoStore.getState().multiplayerCrashHistory).toEqual([11.25, 2.5]);
+    expect(useCasinoStore.getState().crashHistory).toEqual([1.5]);
+  });
+
+  it('mergeServerAchievements keeps locally confirmed progress and accepts higher server progress', () => {
+    useCasinoStore.setState({
+      achievements: useCasinoStore.getState().achievements.map((achievement) =>
+        achievement.id === 'first_bet'
+          ? { ...achievement, unlocked: true, progress: 1 }
+          : achievement,
+      ),
+    });
+
+    useCasinoStore.getState().mergeServerAchievements([
+      { id: 'first_bet', unlocked: false, progress: 0 },
+      { id: 'daily_grinder', unlocked: true, progress: 3 },
+    ]);
+
+    const firstBet = useCasinoStore.getState().achievements.find(
+      (achievement) => achievement.id === 'first_bet',
+    );
+    const dailyGrinder = useCasinoStore.getState().achievements.find(
+      (achievement) => achievement.id === 'daily_grinder',
+    );
+    expect(firstBet).toMatchObject({ unlocked: true, progress: 1 });
+    expect(dailyGrinder).toMatchObject({ unlocked: true, progress: 3 });
   });
 
   it('setProvablyFairSettings merges partial settings', () => {

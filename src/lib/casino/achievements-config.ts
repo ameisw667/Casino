@@ -2,6 +2,12 @@ export type AchievementStatKey =
   'totalBetsCount' | 'betAmount' | 'payout' | 'level' | 'multiplier' | 'winStreak';
 
 export type AchievementConditionOp = 'gte' | 'gt' | 'lte' | 'lt' | 'eq';
+export type AchievementVisibility = 'visible' | 'secret';
+
+/** Fails closed so malformed public configuration never becomes hidden UI content. */
+export function normalizeAchievementVisibility(value: unknown): AchievementVisibility {
+  return value === 'secret' ? 'secret' : 'visible';
+}
 
 export interface AchievementCondition {
   stat: AchievementStatKey;
@@ -21,6 +27,7 @@ export interface AchievementConfig {
   conditions: AchievementCondition[];
   sortOrder: number;
   isActive: boolean;
+  visibility: AchievementVisibility;
 }
 
 export interface AchievementStatSnapshot {
@@ -42,6 +49,7 @@ export interface Achievement {
   unlocked: boolean;
   progress: number;
   total: number;
+  visibility: AchievementVisibility;
 }
 
 export const DEFAULT_ACHIEVEMENT_CONFIGS: AchievementConfig[] = [
@@ -55,6 +63,7 @@ export const DEFAULT_ACHIEVEMENT_CONFIGS: AchievementConfig[] = [
     conditions: [{ stat: 'totalBetsCount', op: 'gte', value: 1 }],
     sortOrder: 1,
     isActive: true,
+    visibility: 'visible',
   },
   {
     id: 'high_roller',
@@ -66,6 +75,7 @@ export const DEFAULT_ACHIEVEMENT_CONFIGS: AchievementConfig[] = [
     conditions: [{ stat: 'betAmount', op: 'gte', value: 1000 }],
     sortOrder: 2,
     isActive: true,
+    visibility: 'visible',
   },
   {
     id: 'lucky_streak',
@@ -77,6 +87,7 @@ export const DEFAULT_ACHIEVEMENT_CONFIGS: AchievementConfig[] = [
     conditions: [{ stat: 'winStreak', op: 'gte', value: 5 }],
     sortOrder: 3,
     isActive: true,
+    visibility: 'visible',
   },
   {
     id: 'big_win',
@@ -88,6 +99,7 @@ export const DEFAULT_ACHIEVEMENT_CONFIGS: AchievementConfig[] = [
     conditions: [{ stat: 'payout', op: 'gte', value: 500 }],
     sortOrder: 4,
     isActive: true,
+    visibility: 'visible',
   },
   {
     id: 'level_10',
@@ -99,6 +111,7 @@ export const DEFAULT_ACHIEVEMENT_CONFIGS: AchievementConfig[] = [
     conditions: [{ stat: 'level', op: 'gte', value: 10 }],
     sortOrder: 5,
     isActive: true,
+    visibility: 'visible',
   },
   {
     id: 'level_50',
@@ -110,6 +123,7 @@ export const DEFAULT_ACHIEVEMENT_CONFIGS: AchievementConfig[] = [
     conditions: [{ stat: 'level', op: 'gte', value: 50 }],
     sortOrder: 6,
     isActive: true,
+    visibility: 'visible',
   },
   {
     id: 'crash_master',
@@ -121,6 +135,7 @@ export const DEFAULT_ACHIEVEMENT_CONFIGS: AchievementConfig[] = [
     conditions: [{ stat: 'multiplier', op: 'gte', value: 10, game: 'CRASH' }],
     sortOrder: 7,
     isActive: true,
+    visibility: 'visible',
   },
   {
     id: 'daily_grinder',
@@ -132,6 +147,7 @@ export const DEFAULT_ACHIEVEMENT_CONFIGS: AchievementConfig[] = [
     conditions: [{ stat: 'totalBetsCount', op: 'gte', value: 50 }],
     sortOrder: 8,
     isActive: true,
+    visibility: 'visible',
   },
   {
     id: 'moon_shot',
@@ -143,6 +159,19 @@ export const DEFAULT_ACHIEVEMENT_CONFIGS: AchievementConfig[] = [
     conditions: [{ stat: 'multiplier', op: 'gte', value: 100, game: 'CRASH' }],
     sortOrder: 9,
     isActive: true,
+    visibility: 'visible',
+  },
+  {
+    id: 'lucky_seven',
+    title: 'Lucky Seven',
+    description: 'Hit a 7x multiplier in Dice',
+    icon: '🎰',
+    total: 7,
+    progressStat: 'multiplier',
+    conditions: [{ stat: 'multiplier', op: 'gte', value: 7, game: 'DICE' }],
+    sortOrder: 10,
+    isActive: true,
+    visibility: 'secret',
   },
 ];
 
@@ -213,6 +242,7 @@ export function mergeAchievementsWithConfig(
         description: config.description,
         icon: config.icon,
         total: config.total,
+        visibility: config.visibility,
         unlocked: prev?.unlocked ?? false,
         progress: prev?.progress ?? 0,
       };

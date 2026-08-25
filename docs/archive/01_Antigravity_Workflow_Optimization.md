@@ -140,24 +140,49 @@ Irreversible Datenverluste, unversionierte System-Löschungen, Live-Datenbankän
 2. **Artifact Review Mode**:
    - Einstellung: `agent-decides`
    - Bedeutung: Keine Zwangspausen bei Routineplänen.
-3. **Command Allowlist (Globale Wildcards)**:
+3. **Command Allowlist (Finale, vollständige Wildcards)**:
    ```text
-   git status*
-   git diff*
-   git log*
-   git branch*
-   git show*
-   npm test*
-   npm run test*
-   npm run lint*
-   npm run build*
-   npm run vibe-check*
-   npx vitest*
-   npx eslint*
-   npx tsc*
-   npx playwright*
-   npx supabase gen types*
-   npx trigger.dev*
+   git *
+   gh *
+   npm *
+   npx *
+   node *
+   tsx *
+   ts-node *
+   tsc *
+   next *
+   turbo *
+   pnpm *
+   yarn *
+   bun *
+   deno *
+   supabase *
+   prisma *
+   drizzle-kit *
+   trigger *
+   trigger.dev *
+   sentry-cli *
+   playwright *
+   vitest *
+   jest *
+   eslint *
+   prettier *
+   biome *
+   vercel *
+   wrangler *
+   docker *
+   docker-compose *
+   python *
+   python3 *
+   pip *
+   pip3 *
+   pytest *
+   uv *
+   poetry *
+   curl *
+   wget *
+   netstat *
+   ping *
    ```
 4. **Command Denylist (Sicherheits-Netz)**:
    ```text

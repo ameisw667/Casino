@@ -129,6 +129,9 @@ describe('formatAuthError', () => {
     expect(formatAuthError('otp_expired: Token has expired')).toBe(
       'Der Wiederherstellungs-Link ist abgelaufen oder ungültig. Bitte fordere einen neuen Link an.',
     );
+    expect(formatAuthError('invalid otp token')).toBe(
+      'Ungültiger Einmal-Code. Bitte prüfe die 6 Ziffern aus deiner E-Mail.',
+    );
   });
 
   it('falls back to a safe generic message if the provider message is unknown', () => {

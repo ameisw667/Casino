@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { SupabaseSessionProvider } from '@/components/auth/SupabaseSessionProvider';
 import { AnalyticsIdentityBootstrap } from '@/components/analytics/AnalyticsIdentityBootstrap';
+import { WebVitalsReporter } from '@/components/analytics/WebVitalsReporter';
 
 export function ClientProviders({
   children,
@@ -14,6 +15,7 @@ export function ClientProviders({
     <SupabaseSessionProvider initialUser={initialUser}>
       {children}
       <AnalyticsIdentityBootstrap />
+      <WebVitalsReporter />
     </SupabaseSessionProvider>
   );
 }

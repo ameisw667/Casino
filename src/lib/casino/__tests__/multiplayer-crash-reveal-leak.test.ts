@@ -7,7 +7,8 @@ const read = (path: string) => readFileSync(resolve(root, path), 'utf8');
 
 /**
  * Regression test for the CRITICAL finding from the L6 security review of
- * worldmap/05_multiplayercrash.md (2026-08-21): CASHOUT_CRASH/RESOLVE_CRASH
+ * worldmap/05_multiplayercrash.md (2026-08-21) and updated in worldmap/05_v2_multiplayer_crash.md:
+ * CASHOUT_CRASH_MULTIPLAYER/RESOLVE_CRASH_MULTIPLAYER
  * echoed the shared room's TRUE crash_point back to the client unconditionally
  * — regardless of whether the room had actually crashed yet — via
  * `...(settlement.result as object)`. Because a single account could hold two
@@ -22,11 +23,11 @@ const read = (path: string) => readFileSync(resolve(root, path), 'utf8');
  * assertion against the route source text. Following that precedent here
  * rather than introducing a new testing style for one file.
  */
-describe('multiplayer crash: crashPoint is masked in the CASHOUT_CRASH/RESOLVE_CRASH response until the room has actually crashed', () => {
-  const betRoute = read('src/app/api/casino/bet/route.ts');
+describe('multiplayer crash: crashPoint is masked in the CASHOUT/RESOLVE response until the room has actually crashed', () => {
+  const betRoute = read('src/app/api/casino/bet-crash-multiplayer/route.ts');
   const cashoutBlock = betRoute.slice(
-    betRoute.indexOf("params.action === 'CASHOUT_CRASH' || params.action === 'RESOLVE_CRASH'"),
-    betRoute.indexOf("if (!params.amount || !params.gameType)"),
+    betRoute.indexOf("params.action === 'CASHOUT_CRASH_MULTIPLAYER' || params.action === 'RESOLVE_CRASH_MULTIPLAYER'"),
+    betRoute.indexOf("return apiErrorResponse(\n      APP_ERROR_CODES.VALIDATION_FAILED,\n      'Ungültige Aktion.'"),
   );
 
   it('computes reveal eligibility from the shared round status, not from win/loss or replay state', () => {
@@ -56,14 +57,14 @@ describe('multiplayer crash: crashPoint is masked in the CASHOUT_CRASH/RESOLVE_C
 });
 
 describe('multiplayer crash: a single account cannot hold two simultaneous ACTIVE crash rounds in the same room', () => {
-  const betRoute = read('src/app/api/casino/bet/route.ts');
+  const betRoute = read('src/app/api/casino/bet-crash-multiplayer/route.ts');
   const startBlock = betRoute.slice(
-    betRoute.indexOf("if (params.action === 'START_CRASH')"),
-    betRoute.indexOf("if (params.action === 'CASHOUT_CRASH'"),
+    betRoute.indexOf("if (params.action === 'START_CRASH_MULTIPLAYER')"),
+    betRoute.indexOf("if (params.action === 'CASHOUT_CRASH_MULTIPLAYER'"),
   );
 
   it('has a fast TS-side pre-check for a clean error message (not the actual guarantee, see below)', () => {
-    expect(startBlock).toContain('WalletService.getGameActiveRound({ userId, game: \'CRASH\' })');
+    expect(startBlock).toContain("WalletService.getGameActiveRound({ userId, game: 'CRASH_MULTIPLAYER' })");
     expect(startBlock).toContain('existingActive.hasActiveRound && existingActive.requestId !== params.requestId');
   });
 
@@ -86,7 +87,7 @@ describe('multiplayer crash: a single account cannot hold two simultaneous ACTIV
   it('catches the authoritative SQL-side race guard (ACTIVE_CRASH_ROUND_EXISTS) and returns 409, not a 500', () => {
     // L6 follow-up (2026-08-21): the TS pre-check above is a TOCTOU race on
     // its own (two parallel requests can both pass it) — start_game_round's
-    // own advisory-locked guard (migration 037) is the actual authority.
+    // own advisory-locked guard (migration 037 / 050) is the actual authority.
     // This is the route-level handling for when THAT one fires instead.
     expect(startBlock).toContain("error.message === 'ACTIVE_CRASH_ROUND_EXISTS'");
     const catchBlock = startBlock.slice(startBlock.indexOf('} catch (error) {'));
@@ -95,7 +96,7 @@ describe('multiplayer crash: a single account cannot hold two simultaneous ACTIV
 
   it('WalletService.startRound translates the SQL exception message into a distinguishable error', () => {
     const wallet = read('src/lib/casino/wallet.ts');
-    expect(wallet).toContain("error.message.includes('Active crash round already exists')");
+    expect(wallet).toContain("error.message.includes('Active crash')");
     expect(wallet).toContain("throw new Error('ACTIVE_CRASH_ROUND_EXISTS')");
   });
 });

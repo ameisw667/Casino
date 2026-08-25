@@ -20,6 +20,7 @@ import { CrashControlSidebar } from '@/components/casino/games/crash/CrashContro
 import { CrashHistoryBar } from '@/components/casino/games/crash/CrashHistoryBar';
 import { CrashStage } from '@/components/casino/games/crash/CrashStage';
 import { useCrashGameLoop } from '@/components/casino/games/crash/useCrashGameLoop';
+import { GameCoPilotHud } from '@/components/casino/hud/GameCoPilotHud';
 
 // Inline LiveBet shape (write-only feed of recent bets; diverges from crash-helpers' broadcast
 // LiveBet which carries a required `action` field — kept local to avoid changing construction).
@@ -702,6 +703,19 @@ export default function CrashPage() {
         >
           {/* History Pills Bar */}
           <CrashHistoryBar history={crashHistory} />
+
+          {/* Live Co-Pilot Radar HUD */}
+          <GameCoPilotHud
+            context={{
+              gameType: 'CRASH',
+              crashState: {
+                multiplier,
+                status,
+                hasPlacedBet: isRoundActive,
+              },
+            }}
+            className="mb-1"
+          />
 
           {/* 5. LEVER 5: STAGE CANVAS & IMMERSIVE STAGE HUD */}
           <CrashStage

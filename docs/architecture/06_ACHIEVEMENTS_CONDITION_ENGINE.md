@@ -219,3 +219,15 @@ Der bestehende serverseitige Persistenzpfad (Migration 013, `sync_user_achieveme
 
 - Vorbestehender, unabhängiger Lint-Fehler `syncTimer` (`useCasinoStore.ts:253`, `prefer-const`) — nicht Teil dieses Auftrags, separat zu entscheiden ob/wann gefixt.
 - Optional: visuelle Prüfung der geänderten Icons/Titel im Vault (Claude prüft laut Projektregel nie selbst visuell).
+
+---
+
+## 9 — P42-Fortsetzung: Visibility und sichtbarer Fortschritt
+
+> **Status:** ✅ Lokal verifiziert und archiviert · **Detailnachweis:** [`docs/archive/05_archivment_engine.md`](../archive/05_archivment_engine.md) · **Remote-Status:** nicht angewendet, daher nicht live behauptet.
+
+- Migration `051_achievement_visibility.sql` ergänzt `achievement_configs.visibility` (`visible` oder `secret`) und seedet `lucky_seven` (`DICE`, Multiplikator ≥ 7). `user_achievements` bleibt unverändert die persistente Fortschrittsprojektion.
+- `AchievementConfig` und `Achievement` tragen die Visibility isomorph. Der Server-Loader validiert weiter per Zod und normalisiert jeden unbekannten Wert fail-closed zu `visible`.
+- `VaultAchievements` zeigt sichtbaren, gesperrten Achievements den bestehenden Balken plus Monospace-Zähler `progress / total`. Ein `secret`-Achievement ohne Unlock bekommt ausschließlich Lock und Mystery-Texte; nach Unlock erscheinen reguläre Metadaten.
+- **Wichtige Grenze:** Das ist keine vertrauliche Geheimhaltung. `achievement_configs` bleibt absichtlich öffentlich lesbar; die Bedingung ist weiter über die öffentliche Config auffindbar. Es gibt keinen Wallet-, Reward-, Auth- oder neuen Browser-Schreibpfad.
+- **Lokale Nachweise:** 27 fokussierte Achievement-Tests, `npm run typecheck`, volle Vitest-Suite (130 Dateien / 1.000 Tests), Production-Build und Vibe-Check sind grün. Die sichtbaren Zähler wurden lokal im Browser geprüft. Die Mystery-Verzweigung ist per Test geprüft, weil die lokale Migration nicht remote angewendet ist. Der Gesamtlint ist inzwischen grün mit 0 Fehlern; verbleiben nur 7 unabhängige Hook-Warnungen außerhalb von P42/P43.

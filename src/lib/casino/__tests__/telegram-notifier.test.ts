@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   from: vi.fn(),
   error: vi.fn(),
   setTelegramNotificationsEnabled: vi.fn(async () => true),
+  createNotificationBestEffort: vi.fn(),
 }));
 
 vi.mock('server-only', () => ({}));
@@ -23,6 +24,9 @@ vi.mock('@/utils/supabase/admin', () => ({
 }));
 vi.mock('@/lib/casino/logger', () => ({
   CasinoLogger: { error: mocks.error },
+}));
+vi.mock('@/lib/casino/notifications', () => ({
+  createNotificationBestEffort: mocks.createNotificationBestEffort,
 }));
 vi.mock('@/lib/casino/telegram-link', () => ({
   setTelegramNotificationsEnabled: mocks.setTelegramNotificationsEnabled,
@@ -78,6 +82,14 @@ describe('notifyBigWinIfEligible (4.3 outbox dispatch)', () => {
       p_multiplier: 25,
     });
     expect(mocks.trigger).not.toHaveBeenCalled();
+    expect(mocks.createNotificationBestEffort).toHaveBeenCalledWith({
+      userId: 'user-1',
+      kind: 'big_win',
+      title: 'Big Win!',
+      body: 'DICE paid 25.00x ($1000.00).',
+      metadata: { game: 'DICE', payout: 1000, multiplier: 25 },
+      sourceKey: 'big_win:req-1',
+    });
   });
 
   it('swallows RPC errors and never throws in the settlement response path', async () => {

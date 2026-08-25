@@ -41,6 +41,8 @@
 | `supabase:start` | Startet lokalen Supabase-Stack | verändert lokalen Docker-Zustand |
 | `supabase:stop` | Stoppt lokalen Supabase-Stack | verändert lokalen Docker-Zustand |
 | `supabase:reset` | Setzt lokalen Supabase-Stack zurück | destruktiv; nur mit ausdrücklicher Freigabe |
+| `supabase:types` | Generiert `src/types/database.types.ts` aus Remote-Schema | liest Remote-Schema, schreibt nur lokal |
+| `supabase:diff` | Vergleicht lokalen Migrationsstand gegen Remote-Schema | liest Remote-Schema; Pflicht-Drift-Check vor `db push` |
 
 Für Supabase-Kontext und -Ablauf zusätzlich `xx_docs/01_supabase_context.md` und `xx_sop/05_database_supabase.md` lesen.
 

@@ -22,6 +22,13 @@ export function CommandPalette() {
       action: () => router.push('/games/crash'),
     },
     {
+      id: 'crash-multiplayer',
+      title: 'Play Crash Multiplayer',
+      icon: <Rocket size={18} />,
+      category: 'Games',
+      action: () => router.push('/games/crash-multiplayer'),
+    },
+    {
       id: 'dice',
       title: 'Play Dice',
       icon: <Dice6 size={18} />,

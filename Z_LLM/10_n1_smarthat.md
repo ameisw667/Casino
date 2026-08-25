@@ -1,6 +1,6 @@
 # 10.N1 — In-Game Live Co-Pilot & Smart-HUD
 
-> **Status:** Execution-Ready · **Stand:** 2026-08-24 · **Owner:** LLM (Umsetzung) / Jan (Finale Abnahme) · **Scope:** Schwebender Smart-HUD mit deterministischer Math-Engine auf allen Spielseiten (`/games/blackjack`, `/games/crash`, `/games/roulette`, `/games/dice`, `/games/slots`).
+> **Status:** In Verification (Bereit für Jan) · **Stand:** 2026-08-25 · **Owner:** LLM (Umsetzung) / Jan (Finale Abnahme) · **Scope:** Schwebender Smart-HUD mit deterministischer Math-Engine auf allen Spielseiten (`/games/blackjack`, `/games/crash`, `/games/roulette`, `/games/dice`, `/games/slots`).
 
 ---
 
@@ -10,12 +10,12 @@
 
 | Schritt | Meilenstein | Status | Nächster Schritt | Zuständigkeit |
 | :--- | :--- | :---: | :--- | :---: |
-| **N1.1** | **Deterministische Math Engine (`copilot-math.ts`)** | 🔴 Geplant | Mathematische Berechnungen für Basic Strategy, Crash Odds, Roulette EV & Dice | **LLM** |
-| **N1.2** | **Co-Pilot State-Hook (`useGameCoPilot.ts`)** | 🔴 Geplant | Reaktive Bindung an `useCasinoStore` und aktive Spielzustände | **LLM** |
-| **N1.3** | **Obsidian-Gold Smart-HUD (`GameCoPilotHud.tsx`)** | 🔴 Geplant | Schwebendes Glassmorphism-HUD mit Odds-Meter, Minimierung & Quick-Explain | **LLM** |
-| **N1.4** | **Game-Pages Integration** | 🔴 Geplant | Nahtloses Mounting auf Blackjack, Crash, Roulette, Dice & Slots | **LLM** |
-| **N1.5** | **Automatisierte Tests (`copilot-math.test.ts`)** | 🔴 Geplant | Vollständige Test-Suite für alle mathematischen Tabellen und Quoten | **LLM** |
-| **N1.6** | **Finale visuelle & funktionale Abnahme** | 🔴 Geplant | Testen der HUD-Live-Anzeige im Browser auf den Spielseiten | **Jan** |
+| **N1.1** | **Deterministische Math Engine (`copilot-math.ts`)** | 🟢 Executed | Mathematische Berechnungen für Basic Strategy, Crash Odds, Roulette EV & Dice verifiziert | **LLM** |
+| **N1.2** | **Co-Pilot State-Hook (`useGameCoPilot.ts`)** | 🟢 Executed | Reaktive Bindung an `useCasinoStore` und aktive Spielzustände verifiziert | **LLM** |
+| **N1.3** | **Obsidian-Gold Smart-HUD (`GameCoPilotHud.tsx`)** | 🟢 Executed | Schwebendes Glassmorphism-HUD mit Odds-Meter, Minimierung & Quick-Explain verifiziert | **LLM** |
+| **N1.4** | **Game-Pages Integration** | 🟢 Executed | Nahtloses Mounting auf Blackjack, Crash, Roulette, Dice & Slots verifiziert | **LLM** |
+| **N1.5** | **Automatisierte Tests (`copilot-math.test.ts`)** | 🟢 Executed | 138/138 Testdateien (1066/1066 Tests) grün, 0 Type-Errors, Build erfolgreich | **LLM** |
+| **N1.6** | **Finale visuelle & funktionale Abnahme** | 🔴 Bereit für Jan | Testen der HUD-Live-Anzeige im Browser auf den Spielseiten | **Jan** |
 
 ---
 

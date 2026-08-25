@@ -6,8 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
-## Output
+## Primärziel: Maximaler Lerneffekt für Jan
+- **Projektzweck:** Das Projekt dient primär dem systematischen Skill- und Wissensaufbau von Jan anhand einer produktionsreifen Next.js/Supabase-Architektur.
+- **Lerneffekt:** Bei der Implantierung von neuen Futures oder der Evaluierung davon ist der Lerneffekt für Jan immer am wichtigsten. 
+- **Keine Blackbox-Lösungen:** Komplexe Logik nicht stillschweigend kapseln, sondern bei Übergaben und Planungsdateien die Funktionsweise in 1–2 Sätzen greifbar machen.
+Editiere CLAUDE.md oder AGENTS.md unter keinen Umständen eigenständig — auch nicht im Rahmen der Doku-Aktualitäts-Pflicht — sondern nur nach expliziter Freigabe von Jan im laufenden Chat.
 
+
+### CI/CD & Deployment
+ [`xx_sop/11_cicd_deployment.md`](xx_sop/11_cicd_deployment.md) · [`xx_docs/11_cicd_deployment_context.md`](xx_docs/11_cicd_deployment_context.md) | Vor CI/CD-, GitHub-Actions-, Vercel-, Release- oder Rollback-Aufgaben zuerst Kontext und SOP lesen; Production nur nach ausdrücklicher Jan-Freigabe. |
+
+## Output
 - Antworte und beginne mit Kernaussage, Entscheidung oder Status.
 - So kurz wie möglich, aber vollständig für Entscheidung, Ausführung oder Prüfung. Nutze Listen oder Tabellen, wenn sie klarer sind.
 - Lasse Voraussetzungen, Risiken, offene Punkte und nächste Schritte nicht nur zur Kürzung weg.
@@ -31,6 +40,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Supabase
 - Bei Supabase-Aufgaben zuerst `xx_docs/01_supabase_context.md` lesen.
 - Bei Schema-, Migrations-, RPC-, RLS-, Service-Role- oder Remote-Änderungen zusätzlich `xx_sop/05_database_supabase.md` lesen.
+- Bei Änderungen unter `supabase/migrations/**` vor Abschluss `@migration-security-guard` als read-only Review ausführen; Ergebnis `PASS`, `FINDING` oder `BLOCKED` folgt `xx_sop/05_database_supabase.md`.
 
 ## Commands
 - Vor einem nicht aufgeführten Script sowie vor Remote- oder Schreibaktionen `xx_docs/02_command_reference.md` lesen.
@@ -44,12 +54,13 @@ npm run lint       # ESLint
 npm run build      # Production-Build
 ```
 
-### Execution Policy
-- Vor Terminal-, Remote- oder Schreibaktionen `xx_docs/03_execution_environment_reference.md` lesen.
-- Für Umsetzungsablauf und Verifikation `xx_sop/02_workflow_jan_execution.md` befolgen.
-- Nicht-interaktive Flags und Pager-Unterdrückung nur verwenden, wenn der Befehl sie unterstützt.
-- Plattformfreigaben ersetzen niemals Nutzerauftrag, Scope oder Autorisierung.
-- K4-Externe Änderungen und K5-destruktive/Live-Aktionen erfordern ausdrückliche Freigabe.
+### Auto-Allow & Execution Policy (Antigravity)
+- **K1/K2 Auto-Allow**: Read-only (`git status`, `git diff`, `git log`) und CI/Test-Befehle (`npm test`, `npm run test`, `npx vitest run`, `npm run typecheck`, `npm run lint`, `npx tsc`, `npm run build`, `npm run vibe-check`) werden global auf Auto-Allow gesetzt.
+- **Keine variablen Dateipfade an Linter**: Niemals `npx eslint file1.tsx ...` aufrufen (erzeugt unbekannte Einzelbefehle), sondern immer **`npm run lint`** ausführen.
+- **Non-Interactive Execution**: Befehle immer mit non-interactive Flags ausführen (`--yes`, `-y`, `CI=true`), um CLI-Hangs zu verhindern.
+- **No-Pager**: `PAGER=cat` oder `--no-pager` für Git-Befehle nutzen.
+- **K5 Block**: Destruktive/Live-Befehle (`git push --force`, `rm -rf`, `supabase db reset`) erfordern immer explizite manuelle Bestätigung.
+- **Detail-Plan**: Siehe [docs/archive/01_Antigravity_Workflow_Optimization.md](docs/archive/01_Antigravity_Workflow_Optimization.md).
 
 ## Architecture
 
@@ -114,9 +125,10 @@ Next.js 16.3 App Router · React 19.2 · TypeScript 5 · Supabase (Auth, DB, SSR
 
 ### Database & Migrations (Supabase)
 
-- Dediziertes Casino-Projekt `hmqwozhdckbwjqzcmire` (kein `casino_`-Präfix); Migrationen `001`–`037` liegen in `supabase/migrations/`.
+- Dediziertes Casino-Projekt `hmqwozhdckbwjqzcmire` (kein `casino_`-Präfix); Migrationen `001`–`049` liegen in `supabase/migrations/`.
 - Atomare Finanz- und Spiel-RPCs (Migration 007) mit striktem `search_path = public`; alte `place_bet() `-Kette ist verboten.
 - Schema-Kontext: `xx_docs/01_supabase_context.md`; Migrations- und Rollout-Ablauf: `xx_sop/05_database_supabase.md`; Live-Status: `worldmap/00_WORLDMAP_STATUS.md`.
+
 
 ## Workflows & SOPs (On-Demand Router)
 

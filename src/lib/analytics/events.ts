@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { getAnalyticsClient } from './posthog-client';
+import { hasAnalyticsConsent } from './consent';
 
-// The 5 events fixed in worldmap/05_ZUKUNFTSPLANUNG.md §3 Initiative 2.9. No other event name
+// The explicit product-analytics allowlist. No other event name
 // or property is reachable from this module — trackAllowedEvent() is the only capture path the
 // rest of the app is allowed to use (05_2.9_PostHog_Analytics.md §3.2).
 export type GameType = 'DICE' | 'SLOTS' | 'ROULETTE' | 'CRASH' | 'BLACKJACK';
@@ -17,7 +18,19 @@ export type AllowedAnalyticsEvent =
   | { name: 'mfa_totp_enrolled' }
   | { name: 'mfa_totp_unenrolled' }
   | { name: 'identity_linked' }
-  | { name: 'identity_unlinked' };
+  | { name: 'identity_unlinked' }
+  | { name: 'password_reset_requested' }
+  | { name: 'password_reset_completed' }
+  | { name: 'magic_link_requested' }
+  | { name: 'magic_link_sign_in_completed' }
+  | {
+      name: 'web_vital_measured';
+      props: {
+        metric: 'LCP' | 'CLS' | 'INP';
+        value: number;
+        rating: 'good' | 'needs-improvement' | 'poor';
+      };
+    };
 
 const gameTypeSchema = z.enum(['DICE', 'SLOTS', 'ROULETTE', 'CRASH', 'BLACKJACK']);
 
@@ -39,6 +52,18 @@ const allowedEventSchema = z.discriminatedUnion('name', [
   z.strictObject({ name: z.literal('mfa_totp_unenrolled') }),
   z.strictObject({ name: z.literal('identity_linked') }),
   z.strictObject({ name: z.literal('identity_unlinked') }),
+  z.strictObject({ name: z.literal('password_reset_requested') }),
+  z.strictObject({ name: z.literal('password_reset_completed') }),
+  z.strictObject({ name: z.literal('magic_link_requested') }),
+  z.strictObject({ name: z.literal('magic_link_sign_in_completed') }),
+  z.strictObject({
+    name: z.literal('web_vital_measured'),
+    props: z.strictObject({
+      metric: z.enum(['LCP', 'CLS', 'INP']),
+      value: z.number().finite().nonnegative(),
+      rating: z.enum(['good', 'needs-improvement', 'poor']),
+    }),
+  }),
 ]);
 
 /**
@@ -54,8 +79,8 @@ export async function trackAllowedEvent(event: AllowedAnalyticsEvent): Promise<v
   if (!parsed.success) return;
   try {
     const client = await getAnalyticsClient();
-    if (!client) return;
-    if (parsed.data.name === 'first_game_started') {
+    if (!hasAnalyticsConsent() || !client) return;
+    if ('props' in parsed.data) {
       client.capture(parsed.data.name, parsed.data.props);
     } else {
       client.capture(parsed.data.name);

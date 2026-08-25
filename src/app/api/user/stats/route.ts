@@ -99,6 +99,30 @@ export async function POST(request: Request) {
       unlocked: parsed.data.unlocked,
     });
 
+    if (parsed.data.unlocked) {
+      void Promise.all([
+        import('@/lib/casino/achievements-config-server'),
+        import('@/lib/casino/notifications'),
+      ])
+        .then(([{ loadAchievementConfig }, { createNotificationBestEffort }]) =>
+          loadAchievementConfig().then((configs) => {
+            const config = configs.find((candidate) => candidate.id === parsed.data.achievementId);
+            if (!config) return;
+            createNotificationBestEffort({
+              userId,
+              kind: 'achievement',
+              title: 'Achievement unlocked',
+              body: `${config.title} — ${config.description}`,
+              metadata: { achievementId: config.id },
+              sourceKey: `achievement:${config.id}`,
+            });
+          }),
+        )
+        .catch((error) => {
+          CasinoLogger.error('API/User/Stats', 'Failed to create achievement notification', error);
+        });
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     CasinoLogger.error('API/User/Stats', 'Failed to sync achievement', error);
