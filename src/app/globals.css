@@ -1208,6 +1208,30 @@ input[type='range']:focus {
   }
 }
 
+/* Auth page shell (/sign-in, /sign-up): zentriert die AuthForm-Card
+   standardmäßig. Auf Mobile kann die Card höher als der Viewport sein
+   (Google- + Magic-Link- + Passkey-Button + Validierungstext), Zentrieren
+   würde dann Ober- und Unterkante gleichermaßen aus dem erreichbaren
+   Bereich schieben. Unter 1024px (gleicher Breakpoint wie .auth-orb oben)
+   startet die Card stattdessen oben, damit hoher Inhalt einfach nach unten
+   fließt und per normalem Scroll erreichbar bleibt (siehe minHeight: 0 -
+   Fix in MainLayout.tsx für den eigentlichen Scroll-Containment-Bug). */
+.auth-page-shell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  padding: clamp(16px, 5vw, 48px);
+}
+
+@media (max-width: 1023px) {
+  .auth-page-shell {
+    align-items: flex-start;
+    min-height: auto;
+    padding-top: clamp(24px, 8vw, 48px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .auth-orb,
   .parallax-orb,

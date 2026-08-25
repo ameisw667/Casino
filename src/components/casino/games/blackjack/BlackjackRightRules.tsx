@@ -39,23 +39,6 @@ export function BlackjackRightRules({
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {/* Live Co-Pilot Smart HUD */}
-        <GameCoPilotHud
-          context={{
-            gameType: 'BLACKJACK',
-            blackjackState: {
-              playerScore: gameState?.playerHand.score ?? 0,
-              isSoft: gameState?.playerHand.isSoft ?? false,
-              cards: gameState?.playerHand.cards ?? [],
-              dealerUpcard: gameState?.dealerHand?.cards?.[0],
-              canDouble: gameState?.canDouble,
-              canSplit: gameState?.canSplit,
-              phase: gameState?.phase,
-            },
-          }}
-          className="mb-1"
-        />
-
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -87,43 +70,22 @@ export function BlackjackRightRules({
           </div>
         </div>
 
-        {/* Live Basic Strategy Coach */}
-        <div
-          style={{
-            padding: '10px 12px',
-            borderRadius: '12px',
-            background: 'rgba(212, 175, 55, 0.08)',
-            border: '1px solid rgba(212, 175, 55, 0.3)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px',
+        {/* Live Co-Pilot Smart HUD */}
+        <GameCoPilotHud
+          context={{
+            gameType: 'BLACKJACK',
+            blackjackState: {
+              playerScore: gameState?.playerHand.score ?? 0,
+              isSoft: gameState?.playerHand.isSoft ?? false,
+              cards: gameState?.playerHand.cards ?? [],
+              dealerUpcard: gameState?.dealerHand?.cards?.[0],
+              canDouble: gameState?.canDouble,
+              canSplit: gameState?.canSplit,
+              phase: gameState?.phase,
+            },
           }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Sparkles size={13} color="#FFD700" />
-            <span
-              style={{
-                fontSize: '0.7rem',
-                fontWeight: 900,
-                color: '#FFD700',
-                letterSpacing: '0.5px',
-              }}
-            >
-              LIVE STRATEGY COACH
-            </span>
-          </div>
-          <p
-            style={{
-              margin: 0,
-              fontSize: '0.72rem',
-              lineHeight: '1.4',
-              color: '#e2e8f0',
-              fontWeight: 600,
-            }}
-          >
-            {strategyAdvice}
-          </p>
-        </div>
+          isFloating={false}
+        />
 
         {/* Interactive Strategy Heatmap */}
         <StrategyMatrix

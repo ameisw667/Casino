@@ -9,15 +9,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '80vh',
-        padding: 'clamp(16px, 5vw, 48px)',
-      }}
-    >
+    <div className="auth-page-shell">
       <AuthCinematicBackground />
       <AuthForm mode="sign-up" />
     </div>

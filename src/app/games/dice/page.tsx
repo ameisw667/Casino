@@ -471,7 +471,14 @@ export default function DicePage() {
         />
 
         {/* 4. LEVER 4: MAIN STAGE WITH GEOMETRIC OBSIDIAN BACKDROP */}
-        <div className="flex flex-col gap-3 w-full min-w-0" style={{ order: isMobile ? 1 : 2 }}>
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            minWidth: 0,
+            order: isMobile ? 1 : 2,
+          }}
+        >
           <GameCoPilotHud
             context={{
               gameType: 'DICE',
@@ -480,7 +487,8 @@ export default function DicePage() {
                 isOver: isRollOver,
               },
             }}
-            className="mb-1"
+            isFloating={!isMobile}
+            style={isMobile ? { marginBottom: '12px' } : undefined}
           />
 
           <DiceCenterStage

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { maskIpAddress, parseDeviceInfo } from '../login-audit';
+import { maskIpAddress, parseDeviceInfo } from '../login-audit-types';
 
 describe('Login Audit helpers', () => {
   describe('maskIpAddress', () => {

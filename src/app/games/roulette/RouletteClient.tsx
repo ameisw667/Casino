@@ -511,7 +511,7 @@ export function RouletteClient() {
             }}
           />
 
-          {/* Live Co-Pilot Roulette HUD */}
+          {/* Live Co-Pilot Roulette HUD (Floating Glass Overlay) */}
           <GameCoPilotHud
             context={{
               gameType: 'ROULETTE',
@@ -519,7 +519,8 @@ export function RouletteClient() {
                 lastSelectedBet: 'red',
               },
             }}
-            className="mb-1"
+            isFloating={!isMobile}
+            style={isMobile ? { marginBottom: '10px' } : undefined}
           />
 
           {/* Top Bar: Hot & Cold + Last 18 History Badges */}

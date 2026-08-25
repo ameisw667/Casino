@@ -9,6 +9,7 @@
 
 | Datei | Status | Kurzbeschreibung |
 | --- | --- | --- |
+| [worldmap/05-RLS-Verteidigungslinie.md](../../worldmap/05-RLS-Verteidigungslinie.md) | Executed (archiviert) | P40/1.26 RLS-Verteidigungslinie (Defense-in-Depth für Wallet-Tabellen, Option 1). Meilensteine L0–L5 vollständig umgesetzt: RLS-Penetrationstest in `src/lib/security/__tests__/rls-defense-in-depth.test.ts` (29 Tests grün) belegt lückenloses Fail-Closed/Default-Deny auf allen Mutationen gegen `users`, `wallet_transactions`, `game_sessions`. SOP 09 §1.1 mit `SECURITY DEFINER`/`INVOKER`-Matrix aller 8 Finanz-RPCs dokumentiert & verifiziert. Fallback A bestätigt (keine Policy-Lücke, keine Migration nötig). |
 | [docs/archive/06_ci_cd_versioncontrol.md](06_ci_cd_versioncontrol.md) | Executed (archiviert) | CI/CD-Dokumentationsinitiative L0–L5: Entscheidungen Q1–Q8, secret-freies Quality-CI-Zielbild, Kontextreferenz, SOP und manueller `CLAUDE.md`-Router lokal verifiziert. Die CI/CD-Kategorie bleibt „nicht erhoben“, bis ein echter Quality-Run und eine Preview-Prüfung nachgewiesen sind; Workflow-/Vercel-Execution ist eine Folgeinitiative. |
 | worldmap/01-offene-commits.md (Quelldatei entfernt) | Executed (R1) | Geordnete Commit-Reihenfolge R1 (C1–C12, alle 🟢 committed `5860f83`→`d2d9777`) |
 | worldmap/02-offene-commits-r2.md (Quelldatei entfernt) | Executed (R2) | Geordnete Commit-Reihenfolge R2 (C13–C21, alle 🟢 committed `e44d712`→C21) für den nach C12 entstandenen Loose-Ends-Stand; Self-Verify durchgeführt |

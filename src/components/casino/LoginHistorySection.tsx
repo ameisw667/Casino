@@ -13,7 +13,7 @@ import {
   CheckCircle2,
   AlertTriangle,
 } from 'lucide-react';
-import type { AuthMethod, LoginAuditRecord } from '@/lib/security/login-audit';
+import type { AuthMethod, LoginAuditRecord } from '@/lib/security/login-audit-types';
 
 function getMethodBadge(method: AuthMethod) {
   switch (method) {
@@ -74,12 +74,8 @@ export default function LoginHistorySection() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchHistory = useCallback(async (isManualRefresh = false) => {
-    if (isManualRefresh) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
+  const fetchHistory = useCallback(async (_isManualRefresh: boolean = true) => {
+    setRefreshing(true);
     setError(null);
 
     try {
@@ -101,8 +97,36 @@ export default function LoginHistorySection() {
   }, []);
 
   useEffect(() => {
-    fetchHistory();
-  }, [fetchHistory]);
+    let cancelled = false;
+    async function loadInitial() {
+      try {
+        const res = await fetch('/api/user/login-history', {
+          headers: { 'Cache-Control': 'no-cache' },
+        });
+        if (!res.ok) {
+          throw new Error('Fehler beim Laden der Login-Historie');
+        }
+        const data = await res.json();
+        if (!cancelled) {
+          setHistory(data.history || []);
+          setError(null);
+        }
+      } catch (err: unknown) {
+        if (!cancelled) {
+          const msg = err instanceof Error ? err.message : 'Konnte nicht geladen werden';
+          setError(msg);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+    loadInitial();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

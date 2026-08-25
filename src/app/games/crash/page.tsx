@@ -704,34 +704,37 @@ export default function CrashPage() {
           {/* History Pills Bar */}
           <CrashHistoryBar history={crashHistory} />
 
-          {/* Live Co-Pilot Radar HUD */}
-          <GameCoPilotHud
-            context={{
-              gameType: 'CRASH',
-              crashState: {
-                multiplier,
-                status,
-                hasPlacedBet: isRoundActive,
-              },
-            }}
-            className="mb-1"
-          />
+          {/* Stage Container with Live Co-Pilot Radar HUD */}
+          <div style={{ position: 'relative', width: '100%', minWidth: 0 }}>
+            <GameCoPilotHud
+              context={{
+                gameType: 'CRASH',
+                crashState: {
+                  multiplier,
+                  status,
+                  hasPlacedBet: isRoundActive,
+                },
+              }}
+              isFloating={!isMobile}
+              style={isMobile ? { marginBottom: '10px' } : undefined}
+            />
 
-          {/* 5. LEVER 5: STAGE CANVAS & IMMERSIVE STAGE HUD */}
-          <CrashStage
-            isMobile={isMobile}
-            status={status}
-            isProcessing={isProcessing}
-            cashoutAt={cashoutAt}
-            betAmount={betAmount}
-            countdown={countdown}
-            milestoneFlash={milestoneFlash}
-            canvasRef={canvasRef}
-            cameraZoomRef={cameraZoomRef}
-            vignetteRef={vignetteRef}
-            multiplierDisplayRef={multiplierDisplayRef}
-            liveProfitDisplayRef={liveProfitDisplayRef}
-          />
+            {/* 5. LEVER 5: STAGE CANVAS & IMMERSIVE STAGE HUD */}
+            <CrashStage
+              isMobile={isMobile}
+              status={status}
+              isProcessing={isProcessing}
+              cashoutAt={cashoutAt}
+              betAmount={betAmount}
+              countdown={countdown}
+              milestoneFlash={milestoneFlash}
+              canvasRef={canvasRef}
+              cameraZoomRef={cameraZoomRef}
+              vignetteRef={vignetteRef}
+              multiplierDisplayRef={multiplierDisplayRef}
+              liveProfitDisplayRef={liveProfitDisplayRef}
+            />
+          </div>
         </div>
       </div>
     </GameErrorBoundary>

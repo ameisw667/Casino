@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { maskIpAddress, parseDeviceInfo } from '@/lib/security/login-audit';
+import { maskIpAddress, parseDeviceInfo } from '@/lib/security/login-audit-types';
 
 describe('LoginHistorySection helpers & data mapping', () => {
   it('correctly maps various auth methods and devices', () => {

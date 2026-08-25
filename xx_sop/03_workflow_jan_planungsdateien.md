@@ -50,3 +50,8 @@
 - Keine Referenz ist doppelt als SOP, Kontextreferenz und Plan gepflegt.
 - Die erstellte Markdown-Datei oder Planungsdatei sollte von einer neuen LLM-Konversation exakt verstanden werden können. 
 - Hintergrund ist dabei, manchmal nutze ich für die Planung und für die Execution verschiedene LLM-Modelle bzw. verschiedene Konversationen. 
+
+
+## 5 — .md 100 % abgeschlossen
+- Wenn es sich um eine temporäre Datei handelt, die in Zukunft nicht mehr benötigt wird, kann diese gelöscht werden. Wir haben ja alles abgeschlossen. 
+- Wenn man diese für die Zukunft noch behalten sollte, soll die in den Ordner `/Docs` verschoben werden. 

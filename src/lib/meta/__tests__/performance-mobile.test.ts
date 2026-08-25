@@ -131,4 +131,37 @@ describe('performance & mobile optimization', () => {
     expect(css).toContain('.qa-route-nav > div');
     expect(css).toContain('.qa-showcase-bet-row');
   });
+
+  it('fixes the MainLayout scroll-containment bug (min-height:0 + 100dvh)', () => {
+    const layoutContent = readFileSync(
+      resolve(root, 'src/components/layout/MainLayout.tsx'),
+      'utf8',
+    );
+
+    expect(layoutContent).toContain("height: '100dvh',");
+    expect(layoutContent).toMatch(/flex:\s*1,\s*minHeight:\s*0,/);
+  });
+
+  it('defines a responsive .auth-page-shell that top-aligns tall auth cards on mobile', () => {
+    const cssContent = readFileSync(resolve(root, 'src/app/globals.css'), 'utf8');
+
+    expect(cssContent).toContain('.auth-page-shell {');
+    expect(cssContent).toMatch(
+      /@media \(max-width: 1023px\)\s*\{\s*\.auth-page-shell\s*\{[\s\S]*align-items:\s*flex-start;/,
+    );
+  });
+
+  it('uses the shared auth-page-shell class on both sign-up and sign-in', () => {
+    const signUpContent = readFileSync(
+      resolve(root, 'src/app/sign-up/[[...sign-up]]/page.tsx'),
+      'utf8',
+    );
+    const signInContent = readFileSync(
+      resolve(root, 'src/app/sign-in/[[...sign-in]]/page.tsx'),
+      'utf8',
+    );
+
+    expect(signUpContent).toContain('className="auth-page-shell"');
+    expect(signInContent).toContain('className="auth-page-shell"');
+  });
 });

@@ -1,4 +1,5 @@
 'use client';
+
 import React from 'react';
 import { motion } from 'framer-motion';
 
@@ -21,31 +22,32 @@ export function LeaderboardHeroStats({
     {
       title: 'GESAMTES VOLUMEN',
       value: `$${totalWagered.toLocaleString('en-US', { maximumFractionDigits: 0 })}`,
+      subtitle: 'Plattform-Einsatz gesamt',
       color: '#D4AF37',
     },
     {
       title: 'TOP HIGH ROLLER',
-      value: topWinnerName
-        ? `${topWinnerName} ($${topWinnerWager.toLocaleString('en-US', { maximumFractionDigits: 0 })})`
-        : '—',
-      color: '#10B981',
+      value: topWinnerName ? topWinnerName : '—',
+      subtitle: topWinnerName ? `$${topWinnerWager.toLocaleString('en-US', { maximumFractionDigits: 0 })} Wagered` : 'Kein Einsatz',
+      color: '#FFFFFF',
     },
     {
       title: 'AKTIVE SPIELER',
-      value: `${activePlayersCount} High Roller`,
-      color: '#ffffff',
+      value: `${activePlayersCount}`,
+      subtitle: 'High Roller in dieser Runde',
+      color: '#FFFFFF',
     },
   ];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.05 }}
+      transition={{ delay: 0.04 }}
       style={{
         display: 'grid',
         gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-        gap: isMobile ? '10px' : '12px',
+        gap: isMobile ? '10px' : '14px',
       }}
     >
       {cards.map((c, i) => (
@@ -54,12 +56,8 @@ export function LeaderboardHeroStats({
           style={{
             padding: isMobile ? '14px 16px' : '16px 20px',
             borderRadius: '14px',
-            background:
-              'linear-gradient(145deg, rgba(24, 24, 32, 0.7) 0%, rgba(12, 12, 18, 0.85) 100%)',
-            border: '1px solid rgba(212, 175, 55, 0.12)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)',
+            background: '#0F131C',
+            border: '1px solid rgba(255, 255, 255, 0.07)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
@@ -67,12 +65,12 @@ export function LeaderboardHeroStats({
         >
           <div
             style={{
-              fontSize: '0.6rem',
-              fontWeight: 700,
-              color: 'rgba(255, 255, 255, 0.35)',
+              fontSize: '0.62rem',
+              fontWeight: 800,
+              color: 'rgba(255, 255, 255, 0.4)',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              marginBottom: '6px',
+              marginBottom: '4px',
             }}
           >
             {c.title}
@@ -80,17 +78,31 @@ export function LeaderboardHeroStats({
           <div
             style={{
               fontFamily: 'var(--font-mono, monospace)',
-              fontSize: isMobile ? '1.15rem' : '1.35rem',
-              fontWeight: 900,
+              fontVariantNumeric: 'tabular-nums',
+              fontSize: isMobile ? '1.15rem' : '1.3rem',
+              fontWeight: 800,
               color: c.color,
               letterSpacing: '-0.02em',
-              lineHeight: 1.1,
+              lineHeight: 1.15,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
             }}
           >
             {c.value}
+          </div>
+          <div
+            style={{
+              fontSize: '0.68rem',
+              color: 'rgba(255, 255, 255, 0.35)',
+              fontWeight: 500,
+              marginTop: '3px',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {c.subtitle}
           </div>
         </div>
       ))}

@@ -21,6 +21,29 @@
 
 ---
 
+## 1.1 — Finanz- & Wallet-RPCs Sicherheitsmodus (`SECURITY DEFINER` vs. `SECURITY INVOKER`)
+
+Alle salden- und progressionsrelevanten Datenbankfunktionen sind als **`SECURITY DEFINER`** deklariert. Das bedeutet:
+- **Ausführungskontext:** Die Funktionen laufen mit den Rechten des Datenbankbesitzers (`postgres`/Migrations-Rolle), nicht mit den Rechten des aufrufenden Nutzers.
+- **RLS-Wirkung:** Row-Level-Security greift **nicht** innerhalb der `SECURITY DEFINER`-Funktionen selbst (Schutz vor Race Conditions und Ledger-Integrität wird stattdessen programmatisch durch Advisory Locks und Constraints gewährleistet). RLS dient als **Defense-in-Depth-Linie** gegen direkte PostgREST-/Client-Zugriffe außerhalb dieser RPCs.
+- **Search-Path-Härtung:** Jede Funktion erzwingt strikt `SET search_path = public, pg_temp`, um Search-Path-Hijacking-Angriffe zu verhindern.
+- **Zugriffsrestriktion:** Sämtliche Ausführungsrechte für `PUBLIC`, `anon` und `authenticated` sind via `REVOKE ALL` entzogen; ausschließlich `service_role` besitzt `GRANT EXECUTE`.
+
+### Matrix der Finanz- & Wallet-RPCs
+
+| RPC-Funktion | Sicherheitsmodus | `search_path` | Berechtigung | Migration(en) | Zweck |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| `settle_game_bet(...)` | `SECURITY DEFINER` | `public, pg_temp` | `service_role` | `007`, `010`, `014`, `019`, `033` | Atomarer Einsatz & Settlement für Dice, Slots, Roulette |
+| `start_game_round(...)` | `SECURITY DEFINER` | `public, pg_temp` | `service_role` | `007` | Rundeninitialisierung & Bet-Debiting (Crash, Blackjack) |
+| `settle_game_round(...)` | `SECURITY DEFINER` | `public, pg_temp` | `service_role` | `007`, `010`, `014` | Rundensettlement & Payout-Crediting (Crash, Blackjack) |
+| `advance_blackjack_round(...)` | `SECURITY DEFINER` | `public, pg_temp` | `service_role` | `007`, `010`, `014` | Zwischenzüge & Additional Bets bei Blackjack |
+| `admin_update_user(...)` | `SECURITY DEFINER` | `public, pg_temp` | `service_role` | `028` | Auditierte manuelle Balance-/Rang-Mutation durch Admins |
+| `reconcile_wallet_ledger(...)` | `SECURITY DEFINER` | `public, pg_temp` | `service_role` | `028` | Deterministiche Ledger-Reconciliation & Discrepancy-Audit |
+| `redeem_promo_code(...)` | `SECURITY DEFINER` | `public, pg_temp` | `service_role` | `021`, `023` | Atomare Promo-Code-Einlösung & Guthabengutschrift |
+| `casino_rank_for_level(...)` | `SECURITY DEFINER` | `public, pg_temp` | Intern / Helper | `007` | Deterministische Rang-Ermittlung aus Level |
+
+---
+
 ## 2 — Atomarer Transaktions-Lebenszyklus
 
 ```mermaid

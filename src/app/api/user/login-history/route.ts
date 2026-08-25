@@ -84,6 +84,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const rate = await enforceRateLimit(
+      getClientIdentifier(request, user.id),
+      'login-history-write',
+      10,
+      60,
+    );
+
+    if (!rate.success) {
+      return NextResponse.json(
+        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
+        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      );
+    }
+
     const rawBody = await request.json().catch(() => ({}));
     const parseResult = postBodySchema.safeParse(rawBody);
 

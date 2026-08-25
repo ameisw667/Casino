@@ -1,4 +1,5 @@
 'use client';
+
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy } from 'lucide-react';
@@ -19,22 +20,18 @@ interface LeaderboardStreamTableProps {
 function getRankBadge(tier: string) {
   const t = (tier ?? '').toLowerCase();
   if (t.includes('diamond')) {
-    return { bg: 'rgba(56, 189, 248, 0.1)', border: 'rgba(56, 189, 248, 0.25)', color: '#38bdf8' };
+    return { bg: 'rgba(56, 189, 248, 0.08)', border: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8' };
   }
   if (t.includes('platinum')) {
-    return {
-      bg: 'rgba(226, 232, 240, 0.1)',
-      border: 'rgba(226, 232, 240, 0.25)',
-      color: '#e2e8f0',
-    };
+    return { bg: 'rgba(226, 232, 240, 0.08)', border: 'rgba(226, 232, 240, 0.2)', color: '#e2e8f0' };
   }
   if (t.includes('gold')) {
-    return { bg: 'rgba(212, 175, 55, 0.12)', border: 'rgba(212, 175, 55, 0.3)', color: '#D4AF37' };
+    return { bg: 'rgba(212, 175, 55, 0.08)', border: 'rgba(212, 175, 55, 0.25)', color: '#D4AF37' };
   }
   if (t.includes('silver')) {
-    return { bg: 'rgba(148, 163, 184, 0.1)', border: 'rgba(148, 163, 184, 0.2)', color: '#94a3b8' };
+    return { bg: 'rgba(148, 163, 184, 0.08)', border: 'rgba(148, 163, 184, 0.18)', color: '#94a3b8' };
   }
-  return { bg: 'rgba(180, 83, 9, 0.1)', border: 'rgba(180, 83, 9, 0.2)', color: '#d97706' };
+  return { bg: 'rgba(180, 83, 9, 0.08)', border: 'rgba(180, 83, 9, 0.18)', color: '#d97706' };
 }
 
 export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTableProps) {
@@ -42,9 +39,9 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
     return (
       <div
         style={{
-          background: 'rgba(12, 12, 14, 0.7)',
-          border: '1px solid rgba(255, 255, 255, 0.05)',
-          borderRadius: '16px',
+          background: '#0F131C',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: '14px',
           padding: '20px',
           display: 'flex',
           flexDirection: 'column',
@@ -72,9 +69,9 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
         style={{
           padding: '60px 24px',
           textAlign: 'center',
-          background: 'rgba(12, 12, 14, 0.7)',
-          borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.05)',
+          background: '#0F131C',
+          borderRadius: '14px',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -83,12 +80,12 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
         }}
       >
         <div style={{ color: 'rgba(255, 255, 255, 0.2)' }}>
-          <Trophy size={32} />
+          <Trophy size={30} />
         </div>
-        <div style={{ fontWeight: 800, fontSize: '1rem', color: '#fff' }}>
+        <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>
           Leaderboard wird aktualisiert
         </div>
-        <div style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.4)', maxWidth: '340px' }}>
+        <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.4)', maxWidth: '340px' }}>
           Sobald Einsätze getätigt werden, werden die Top High Roller hier gelistet.
         </div>
       </div>
@@ -98,13 +95,9 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
   return (
     <div
       style={{
-        background:
-          'linear-gradient(145deg, rgba(20, 20, 28, 0.75) 0%, rgba(10, 10, 15, 0.9) 100%)',
-        border: '1px solid rgba(212, 175, 55, 0.12)',
-        borderRadius: '16px',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        boxShadow: '0 16px 40px rgba(0, 0, 0, 0.5)',
+        background: '#0F131C',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '14px',
         overflowX: 'auto',
         width: '100%',
       }}
@@ -191,32 +184,14 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
               const badgeStyle = getRankBadge(r.rank);
               const isLast = i === rows.length - 1;
 
-              const rowBackground = isFirst
-                ? 'linear-gradient(90deg, rgba(212, 175, 55, 0.16) 0%, rgba(212, 175, 55, 0.04) 50%, transparent 100%)'
-                : isSecond
-                  ? 'linear-gradient(90deg, rgba(226, 232, 240, 0.12) 0%, rgba(226, 232, 240, 0.03) 50%, transparent 100%)'
-                  : isThird
-                    ? 'linear-gradient(90deg, rgba(217, 119, 6, 0.12) 0%, rgba(217, 119, 6, 0.03) 50%, transparent 100%)'
-                    : 'transparent';
-
-              const borderLeftColor = isFirst
-                ? '3px solid #D4AF37'
-                : isSecond
-                  ? '3px solid #e2e8f0'
-                  : isThird
-                    ? '3px solid #d97706'
-                    : '3px solid transparent';
-
               return (
                 <motion.tr
                   key={r.username + i}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.03)' }}
+                  whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.025)' }}
                   style={{
-                    background: rowBackground,
-                    borderLeft: borderLeftColor,
                     borderBottom: isLast ? 'none' : '1px solid rgba(255, 255, 255, 0.04)',
                     transition: 'background-color 0.15s ease',
                   }}
@@ -228,62 +203,37 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                         <span
                           style={{
                             fontFamily: 'var(--font-mono, monospace)',
-                            fontWeight: 900,
+                            fontWeight: 800,
                             fontSize: '0.85rem',
                             color: '#D4AF37',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '5px',
-                            textShadow: '0 0 10px rgba(212, 175, 55, 0.5)',
+                            gap: '4px',
                           }}
                         >
-                          <Trophy size={14} color="#D4AF37" />
+                          <Trophy size={13} color="#D4AF37" />
                           #1
                         </span>
                       ) : isSecond ? (
                         <span
                           style={{
                             fontFamily: 'var(--font-mono, monospace)',
-                            fontWeight: 900,
+                            fontWeight: 800,
                             fontSize: '0.85rem',
-                            color: '#e2e8f0',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '5px',
+                            color: '#CBD5E1',
                           }}
                         >
-                          <span
-                            style={{
-                              width: '8px',
-                              height: '8px',
-                              borderRadius: '50%',
-                              background: '#e2e8f0',
-                              boxShadow: '0 0 6px rgba(226, 232, 240, 0.6)',
-                            }}
-                          />
                           #2
                         </span>
                       ) : isThird ? (
                         <span
                           style={{
                             fontFamily: 'var(--font-mono, monospace)',
-                            fontWeight: 900,
+                            fontWeight: 800,
                             fontSize: '0.85rem',
-                            color: '#f59e0b',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '5px',
+                            color: '#F59E0B',
                           }}
                         >
-                          <span
-                            style={{
-                              width: '8px',
-                              height: '8px',
-                              borderRadius: '50%',
-                              background: '#f59e0b',
-                              boxShadow: '0 0 6px rgba(245, 158, 11, 0.6)',
-                            }}
-                          />
                           #3
                         </span>
                       ) : (
@@ -293,7 +243,6 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                             fontWeight: 700,
                             fontSize: '0.82rem',
                             color: 'rgba(255, 255, 255, 0.35)',
-                            paddingLeft: '11px',
                           }}
                         >
                           #{i + 1}
@@ -315,19 +264,19 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                     </span>
                   </td>
 
-                  {/* VIP Tier Badge (Vault Style) */}
+                  {/* VIP Tier Badge */}
                   <td style={{ padding: '14px 20px' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                       <span
                         style={{
                           fontSize: '0.55rem',
                           fontWeight: 800,
-                          padding: '2px 8px',
+                          padding: '2px 7px',
                           borderRadius: '4px',
                           background: badgeStyle.bg,
                           color: badgeStyle.color,
                           border: `1px solid ${badgeStyle.border}`,
-                          letterSpacing: '0.08em',
+                          letterSpacing: '0.06em',
                           textTransform: 'uppercase',
                         }}
                       >
@@ -337,7 +286,7 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                         style={{
                           fontSize: '0.62rem',
                           fontWeight: 700,
-                          color: 'rgba(255,255,255,0.3)',
+                          color: 'rgba(255, 255, 255, 0.3)',
                         }}
                       >
                         LVL {r.level}
@@ -350,6 +299,7 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                     style={{
                       padding: '14px 20px',
                       fontFamily: 'var(--font-mono, monospace)',
+                      fontVariantNumeric: 'tabular-nums',
                       fontWeight: 800,
                       color: isFirst ? '#D4AF37' : '#ffffff',
                       fontSize: '0.88rem',
@@ -368,6 +318,7 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                       padding: '14px 20px',
                       textAlign: 'right',
                       fontFamily: 'var(--font-mono, monospace)',
+                      fontVariantNumeric: 'tabular-nums',
                       fontWeight: 800,
                       fontSize: '0.88rem',
                       color: '#10b981',
