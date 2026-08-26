@@ -5,6 +5,7 @@ import { RotateCcw, Trash2, Undo2, Zap, ShieldCheck, TrendingUp, Sliders } from 
 import type { BetPlacement } from './types';
 import { VIP_CHIPS } from './roulette-config';
 import { CasinoJeton } from './CasinoJeton';
+import { GameCoPilotHud } from '@/components/casino/hud/GameCoPilotHud';
 
 interface AutoBetSettings {
   numberOfBets: number;
@@ -129,6 +130,17 @@ export function RouletteControlSidebar({
           <span>2.7% EDGE</span>
         </div>
       </div>
+
+      {/* Live Co-Pilot Smart HUD (Embedded into Roulette Controls) */}
+      <GameCoPilotHud
+        context={{
+          gameType: 'ROULETTE',
+          rouletteState: {
+            lastSelectedBet: 'red',
+          },
+        }}
+        isFloating={false}
+      />
 
       {/* Mode Switcher: Manual / Auto Pilot */}
       <div

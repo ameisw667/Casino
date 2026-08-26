@@ -8,7 +8,7 @@ const PRIVATE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
 export async function GET(request: Request) {
   try {
-    const userId = await resolveGuildRouteUser();
+    const userId = await resolveGuildRouteUser(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: PRIVATE_HEADERS });
     }
@@ -22,7 +22,10 @@ export async function GET(request: Request) {
     }
 
     const userGuild = await getUserGuild(userId);
-    return NextResponse.json({ membership: userGuild }, { headers: { ...PRIVATE_HEADERS, ...rateLimitHeaders(rate) } });
+    return NextResponse.json(
+      { membership: userGuild, currentUserId: userId },
+      { headers: { ...PRIVATE_HEADERS, ...rateLimitHeaders(rate) } },
+    );
   } catch (error) {
     if (error instanceof GuildServiceError) {
       return NextResponse.json({ error: error.message }, { status: error.status, headers: PRIVATE_HEADERS });

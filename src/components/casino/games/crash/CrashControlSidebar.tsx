@@ -2,6 +2,8 @@
 
 import type { RefObject } from 'react';
 import { Info, Zap, Sliders, TrendingUp, ShieldCheck } from 'lucide-react';
+import type { CrashStatus } from './crash-helpers';
+import { GameCoPilotHud } from '@/components/casino/hud/GameCoPilotHud';
 
 interface CrashSessionStats {
   rounds: number;
@@ -31,6 +33,7 @@ interface CrashControlSidebarProps {
   onAutoCashoutChange: (val: number) => void;
   onStart: () => void;
   onCashout: () => void;
+  status?: CrashStatus;
 }
 
 /**
@@ -59,6 +62,7 @@ export function CrashControlSidebar({
   onAutoCashoutChange,
   onStart,
   onCashout,
+  status,
 }: CrashControlSidebarProps) {
   return (
     <div
@@ -118,6 +122,19 @@ export function CrashControlSidebar({
           <Info size={16} />
         </button>
       </div>
+
+      {/* Live Co-Pilot Smart HUD (Embedded into Crash Controls) */}
+      <GameCoPilotHud
+        context={{
+          gameType: 'CRASH',
+          crashState: {
+            multiplier,
+            status: status ?? (isRoundActive ? 'RUNNING' : 'IDLE'),
+            hasPlacedBet: isRoundActive,
+          },
+        }}
+        isFloating={false}
+      />
 
       {/* Mode Switcher: Manual / Auto */}
       <div

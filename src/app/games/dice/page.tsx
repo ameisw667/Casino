@@ -11,7 +11,6 @@ import { dicePageStyles } from '@/components/casino/games/dice/dice-page-styles'
 import { useDiceOdometer } from '@/components/casino/games/dice/useDiceOdometer';
 import { DiceControlSidebar } from '@/components/casino/games/dice/DiceControlSidebar';
 import { DiceCenterStage } from '@/components/casino/games/dice/DiceCenterStage';
-import { GameCoPilotHud } from '@/components/casino/hud/GameCoPilotHud';
 import type { DiceHistoryItem, SessionStats } from '@/components/casino/games/dice/dice-config';
 
 export default function DicePage() {
@@ -466,33 +465,15 @@ export default function DicePage() {
           autoBetSettings={autoBetSettings}
           onAutoBetSettingsChange={(patch) => updateAutoSettings(patch)}
           sessionStats={sessionStats}
+          targetPoint={targetPoint}
+          isRollOver={isRollOver}
           onQuickBet={handleQuickBet}
           onPrimaryAction={handlePrimaryAction}
         />
 
         {/* 4. LEVER 4: MAIN STAGE WITH GEOMETRIC OBSIDIAN BACKDROP */}
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            minWidth: 0,
-            order: isMobile ? 1 : 2,
-          }}
-        >
-          <GameCoPilotHud
-            context={{
-              gameType: 'DICE',
-              diceState: {
-                target: targetPoint,
-                isOver: isRollOver,
-              },
-            }}
-            isFloating={!isMobile}
-            style={isMobile ? { marginBottom: '12px' } : undefined}
-          />
-
-          <DiceCenterStage
-            isMobile={isMobile}
+        <DiceCenterStage
+          isMobile={isMobile}
             loading={loading}
             lastResult={lastResult}
             displayTicker={displayTicker}
@@ -512,7 +493,6 @@ export default function DicePage() {
             onUpdateFromTarget={updateFromTarget}
             onToggleRollMode={toggleRollMode}
           />
-        </div>
       </div>
     </GameErrorBoundary>
   );

@@ -4,6 +4,7 @@ import { Trophy, HelpCircle } from 'lucide-react';
 
 import { SlotSymbol } from '@/components/casino/SlotSymbol';
 import { PAYTABLE } from '@/components/casino/games/slots/slots-config';
+import { GameCoPilotHud } from '@/components/casino/hud/GameCoPilotHud';
 
 interface SlotsPaytableProps {
   isMobile: boolean;
@@ -57,6 +58,17 @@ export function SlotsPaytable({ isMobile, betAmount }: SlotsPaytableProps) {
             </h3>
           </div>
         </div>
+
+        {/* Live Co-Pilot Smart HUD (Embedded into Paytable card) */}
+        <GameCoPilotHud
+          context={{
+            gameType: 'SLOTS',
+            slotsState: {
+              betAmount,
+            },
+          }}
+          isFloating={false}
+        />
 
         {/* Payline Info Pill */}
         <div

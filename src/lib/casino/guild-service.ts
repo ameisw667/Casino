@@ -192,7 +192,19 @@ export async function createGuild(
     throw new GuildConflictError('A guild with this tag already exists');
   }
 
-  // 3. Insert guild
+  // 3. Ensure user exists in public.users (foreign key target)
+  try {
+    await supabase
+      .from('users')
+      .upsert(
+        { id: creatorUserId, username: creatorUserId.slice(0, 64) },
+        { onConflict: 'id', ignoreDuplicates: true },
+      );
+  } catch {
+    // Best-effort
+  }
+
+  // 4. Insert guild
   const { data: createdGuild, error: guildInsertError } = await supabase
     .from('guilds')
     .insert({
@@ -597,6 +609,18 @@ export async function respondToInvite(
 
   if (existingMembership) {
     throw new GuildConflictError('User is already a member of a guild');
+  }
+
+  // Ensure user exists in public.users
+  try {
+    await supabase
+      .from('users')
+      .upsert(
+        { id: userId, username: userId.slice(0, 64) },
+        { onConflict: 'id', ignoreDuplicates: true },
+      );
+  } catch {
+    // Best-effort
   }
 
   // Add to guild_members

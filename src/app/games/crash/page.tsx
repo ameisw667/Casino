@@ -20,7 +20,6 @@ import { CrashControlSidebar } from '@/components/casino/games/crash/CrashContro
 import { CrashHistoryBar } from '@/components/casino/games/crash/CrashHistoryBar';
 import { CrashStage } from '@/components/casino/games/crash/CrashStage';
 import { useCrashGameLoop } from '@/components/casino/games/crash/useCrashGameLoop';
-import { GameCoPilotHud } from '@/components/casino/hud/GameCoPilotHud';
 
 // Inline LiveBet shape (write-only feed of recent bets; diverges from crash-helpers' broadcast
 // LiveBet which carries a required `action` field — kept local to avoid changing construction).
@@ -687,6 +686,7 @@ export default function CrashPage() {
           onAutoCashoutChange={(val) => updateAutoSettings({ cashoutAt: val })}
           onStart={handleStart}
           onCashout={handleCashout}
+          status={status}
         />
 
         {/* Main Center: Game Area & Canvas Stage */}
@@ -704,37 +704,21 @@ export default function CrashPage() {
           {/* History Pills Bar */}
           <CrashHistoryBar history={crashHistory} />
 
-          {/* Stage Container with Live Co-Pilot Radar HUD */}
-          <div style={{ position: 'relative', width: '100%', minWidth: 0 }}>
-            <GameCoPilotHud
-              context={{
-                gameType: 'CRASH',
-                crashState: {
-                  multiplier,
-                  status,
-                  hasPlacedBet: isRoundActive,
-                },
-              }}
-              isFloating={!isMobile}
-              style={isMobile ? { marginBottom: '10px' } : undefined}
-            />
-
-            {/* 5. LEVER 5: STAGE CANVAS & IMMERSIVE STAGE HUD */}
-            <CrashStage
-              isMobile={isMobile}
-              status={status}
-              isProcessing={isProcessing}
-              cashoutAt={cashoutAt}
-              betAmount={betAmount}
-              countdown={countdown}
-              milestoneFlash={milestoneFlash}
-              canvasRef={canvasRef}
-              cameraZoomRef={cameraZoomRef}
-              vignetteRef={vignetteRef}
-              multiplierDisplayRef={multiplierDisplayRef}
-              liveProfitDisplayRef={liveProfitDisplayRef}
-            />
-          </div>
+          {/* 5. LEVER 5: STAGE CANVAS & IMMERSIVE STAGE HUD */}
+          <CrashStage
+            isMobile={isMobile}
+            status={status}
+            isProcessing={isProcessing}
+            cashoutAt={cashoutAt}
+            betAmount={betAmount}
+            countdown={countdown}
+            milestoneFlash={milestoneFlash}
+            canvasRef={canvasRef}
+            cameraZoomRef={cameraZoomRef}
+            vignetteRef={vignetteRef}
+            multiplierDisplayRef={multiplierDisplayRef}
+            liveProfitDisplayRef={liveProfitDisplayRef}
+          />
         </div>
       </div>
     </GameErrorBoundary>

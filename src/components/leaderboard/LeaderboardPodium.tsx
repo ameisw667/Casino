@@ -40,10 +40,10 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
     {
       player: first,
       rank: 1,
-      rankLabel: 'Champion',
-      rankBadgeBg: 'rgba(212, 175, 55, 0.15)',
+      rankLabel: 'Platz 1 · Champion',
+      rankBadgeBg: 'rgba(212, 175, 55, 0.18)',
       rankBadgeColor: '#D4AF37',
-      borderColor: 'rgba(212, 175, 55, 0.4)',
+      borderColor: 'rgba(212, 175, 55, 0.45)',
       cardBg: '#141414',
       order: isMobile ? 1 : 2,
       delay: 0.02,
@@ -68,7 +68,7 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
         gridTemplateColumns: isMobile ? '1fr' : '1fr 1.08fr 1fr',
         gap: isMobile ? '12px' : '16px',
         alignItems: isMobile ? 'stretch' : 'flex-end',
-        margin: '4px 0 12px',
+        margin: '4px 0 16px',
       }}
     >
       {cards.map((card) => {
@@ -88,10 +88,10 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
               background: card.cardBg,
               border: `1px solid ${card.borderColor}`,
               boxShadow: isFirst ? '0 10px 30px rgba(0, 0, 0, 0.6)' : '0 4px 20px rgba(0, 0, 0, 0.3)',
-              padding: isMobile ? '16px' : isFirst ? '22px 24px' : '18px 20px',
+              padding: isMobile ? '16px' : isFirst ? '22px 24px' : '20px 22px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '14px',
+              gap: '16px',
             }}
           >
             {/* Header: Rank Chip and Level */}
@@ -100,11 +100,11 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  padding: '3px 10px',
+                  padding: '4px 12px',
                   borderRadius: '6px',
                   background: card.rankBadgeBg,
                   color: card.rankBadgeColor,
-                  fontSize: '0.72rem',
+                  fontSize: isFirst ? '0.85rem' : '0.8rem',
                   fontWeight: 700,
                   letterSpacing: '0.02em',
                 }}
@@ -112,25 +112,25 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
                 {card.rankLabel}
               </span>
 
-              <span style={{ fontSize: '0.72rem', color: '#737373', fontWeight: 500 }}>
+              <span style={{ fontSize: '0.8rem', color: '#8A8A8A', fontWeight: 600 }}>
                 {card.player.rank} · Lv. {card.player.level}
               </span>
             </div>
 
             {/* Player Info with Monogram Avatar */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
               <div
                 style={{
-                  width: isFirst ? '44px' : '38px',
-                  height: isFirst ? '44px' : '38px',
+                  width: isFirst ? '48px' : '42px',
+                  height: isFirst ? '48px' : '42px',
                   borderRadius: '50%',
                   background: isFirst ? 'rgba(212, 175, 55, 0.2)' : '#1F1F1F',
-                  border: isFirst ? '1px solid rgba(212, 175, 55, 0.4)' : '1px solid #2E2E2E',
+                  border: isFirst ? '1px solid rgba(212, 175, 55, 0.45)' : '1px solid #2E2E2E',
                   color: isFirst ? '#D4AF37' : '#D4D4D4',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: isFirst ? '0.9rem' : '0.8rem',
+                  fontSize: isFirst ? '1rem' : '0.88rem',
                   fontWeight: 800,
                   letterSpacing: '0.04em',
                   flexShrink: 0,
@@ -142,7 +142,7 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div
                   style={{
-                    fontSize: isFirst ? '1.25rem' : '1.05rem',
+                    fontSize: isFirst ? '1.35rem' : '1.15rem',
                     fontWeight: 700,
                     color: '#FFFFFF',
                     letterSpacing: '-0.02em',
@@ -153,7 +153,7 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
                 >
                   {card.player.username}
                 </div>
-                <div style={{ fontSize: '0.72rem', color: '#737373', marginTop: '1px' }}>
+                <div style={{ fontSize: '0.78rem', color: '#8A8A8A', marginTop: '2px' }}>
                   Höchster Gewinn: +${card.player.biggest_win.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </div>
               </div>
@@ -162,21 +162,21 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
             {/* Financial Hero: Total Wagered */}
             <div
               style={{
-                paddingTop: '12px',
-                borderTop: '1px solid #1F1F1F',
+                paddingTop: '14px',
+                borderTop: '1px solid #222222',
                 display: 'flex',
                 alignItems: 'baseline',
                 justifyContent: 'space-between',
               }}
             >
-              <span style={{ fontSize: '0.72rem', color: '#737373', fontWeight: 500 }}>
+              <span style={{ fontSize: '0.8rem', color: '#8A8A8A', fontWeight: 600 }}>
                 Einsatz gesamt
               </span>
               <div
                 style={{
                   fontFamily: 'var(--font-mono, monospace)',
                   fontVariantNumeric: 'tabular-nums',
-                  fontSize: isFirst ? '1.15rem' : '1rem',
+                  fontSize: isFirst ? '1.25rem' : '1.1rem',
                   fontWeight: 700,
                   color: isFirst ? '#D4AF37' : '#FFFFFF',
                   letterSpacing: '-0.02em',

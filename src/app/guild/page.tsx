@@ -26,6 +26,8 @@ export default function GuildPage() {
 
   const [invites, setInvites] = useState<GuildInviteRecord[]>([]);
   const [directoryGuilds, setDirectoryGuilds] = useState<GuildRecord[]>([]);
+  const [resolvedUserId, setResolvedUserId] = useState<string | null>(null);
+  const effectiveUserId = resolvedUserId || user?.id || null;
 
   // Modals & States
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -44,6 +46,9 @@ export default function GuildPage() {
       if (meRes.ok) {
         const meJson = await meRes.json();
         setMembership(meJson.membership ?? null);
+        if (meJson.currentUserId) {
+          setResolvedUserId(meJson.currentUserId);
+        }
       } else {
         setMembership(null);
       }
@@ -187,10 +192,10 @@ export default function GuildPage() {
 
   // Leave guild (self)
   const handleLeaveGuild = async () => {
-    if (!user) return;
+    if (!effectiveUserId) return;
     try {
       setActionError(null);
-      const res = await fetch(`/api/casino/guild/member/${user.id}`, {
+      const res = await fetch(`/api/casino/guild/member/${effectiveUserId}`, {
         method: 'DELETE',
       });
 
@@ -302,7 +307,7 @@ export default function GuildPage() {
 
           <GuildMemberList
             members={membership.members}
-            currentUserId={user?.id}
+            currentUserId={effectiveUserId ?? undefined}
             currentUserRole={membership.role}
             onUpdateRole={handleUpdateRole}
             onRemoveMember={handleRemoveMember}

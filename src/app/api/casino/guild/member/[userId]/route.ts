@@ -14,7 +14,7 @@ export async function PATCH(
   if (originFailure) return originFailure;
 
   try {
-    const actorUserId = await resolveGuildRouteUser();
+    const actorUserId = await resolveGuildRouteUser(request);
     if (!actorUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: PRIVATE_HEADERS });
     }
@@ -66,7 +66,7 @@ export async function DELETE(
   if (originFailure) return originFailure;
 
   try {
-    const actorUserId = await resolveGuildRouteUser();
+    const actorUserId = await resolveGuildRouteUser(request);
     if (!actorUserId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: PRIVATE_HEADERS });
     }

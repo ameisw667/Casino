@@ -24,6 +24,8 @@ import {
   ROCKET_X_FRACTION,
 } from './crash-helpers';
 
+export type { CrashStatus } from './crash-helpers';
+
 interface MilestoneFlash {
   value: number;
   key: number;

@@ -43,7 +43,7 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
           <div
             key={i}
             style={{
-              height: '44px',
+              height: '48px',
               borderRadius: '6px',
               background: '#161616',
             }}
@@ -69,10 +69,10 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
           gap: '8px',
         }}
       >
-        <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#FFFFFF' }}>
+        <div style={{ fontWeight: 700, fontSize: '1rem', color: '#FFFFFF' }}>
           Leaderboard wird synchronisiert
         </div>
-        <div style={{ fontSize: '0.8rem', color: '#737373', maxWidth: '340px' }}>
+        <div style={{ fontSize: '0.85rem', color: '#737373', maxWidth: '340px' }}>
           Sobald Einsätze getätigt werden, erscheinen die qualifizierten Spieler hier.
         </div>
       </div>
@@ -100,52 +100,56 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
           <tr style={{ borderBottom: '1px solid #222222' }}>
             <th
               style={{
-                padding: '14px 20px',
-                color: '#737373',
-                fontSize: '0.72rem',
-                fontWeight: 600,
-                width: '70px',
+                padding: '16px 20px',
+                color: '#8A8A8A',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                width: '80px',
               }}
             >
               Rang
             </th>
             <th
               style={{
-                padding: '14px 20px',
-                color: '#737373',
-                fontSize: '0.72rem',
-                fontWeight: 600,
+                padding: '16px 20px',
+                color: '#8A8A8A',
+                fontSize: '0.85rem',
+                fontWeight: 700,
               }}
             >
               Spieler
             </th>
             <th
               style={{
-                padding: '14px 20px',
-                color: '#737373',
-                fontSize: '0.72rem',
-                fontWeight: 600,
+                padding: '16px 20px',
+                color: '#8A8A8A',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                width: '180px',
               }}
             >
               VIP-Status
             </th>
             <th
               style={{
-                padding: '14px 20px',
-                color: '#737373',
-                fontSize: '0.72rem',
-                fontWeight: 600,
+                padding: '16px 24px',
+                color: '#8A8A8A',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                textAlign: 'right',
+                width: '220px',
               }}
             >
               Einsatz gesamt
             </th>
             <th
               style={{
-                padding: '14px 20px',
-                color: '#737373',
-                fontSize: '0.72rem',
-                fontWeight: 600,
+                padding: '16px 24px',
+                color: '#8A8A8A',
+                fontSize: '0.85rem',
+                fontWeight: 700,
                 textAlign: 'right',
+                width: '200px',
               }}
             >
               Höchster Gewinn
@@ -173,7 +177,7 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                     transition: 'background-color 0.12s ease',
                   }}
                 >
-                  {/* Rank Column */}
+                  {/* Rank Column — Enlarged Badges for Platz 1, 2, 3 */}
                   <td style={{ padding: '14px 20px' }}>
                     {isFirst ? (
                       <span
@@ -181,13 +185,14 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          width: '24px',
-                          height: '24px',
+                          width: '32px',
+                          height: '32px',
                           borderRadius: '50%',
-                          background: 'rgba(212, 175, 55, 0.15)',
+                          background: 'rgba(212, 175, 55, 0.18)',
+                          border: '1px solid rgba(212, 175, 55, 0.4)',
                           color: '#D4AF37',
                           fontFamily: 'var(--font-mono, monospace)',
-                          fontSize: '0.78rem',
+                          fontSize: '0.95rem',
                           fontWeight: 800,
                         }}
                       >
@@ -199,14 +204,15 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          width: '24px',
-                          height: '24px',
+                          width: '32px',
+                          height: '32px',
                           borderRadius: '50%',
                           background: '#262626',
+                          border: '1px solid #383838',
                           color: '#E5E5E5',
                           fontFamily: 'var(--font-mono, monospace)',
-                          fontSize: '0.78rem',
-                          fontWeight: 700,
+                          fontSize: '0.95rem',
+                          fontWeight: 800,
                         }}
                       >
                         2
@@ -217,14 +223,15 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          width: '24px',
-                          height: '24px',
+                          width: '32px',
+                          height: '32px',
                           borderRadius: '50%',
                           background: '#262626',
+                          border: '1px solid rgba(217, 119, 6, 0.35)',
                           color: '#D97706',
                           fontFamily: 'var(--font-mono, monospace)',
-                          fontSize: '0.78rem',
-                          fontWeight: 700,
+                          fontSize: '0.95rem',
+                          fontWeight: 800,
                         }}
                       >
                         3
@@ -233,10 +240,10 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                       <span
                         style={{
                           fontFamily: 'var(--font-mono, monospace)',
-                          fontWeight: 600,
-                          fontSize: '0.82rem',
-                          color: '#737373',
-                          paddingLeft: '6px',
+                          fontWeight: 700,
+                          fontSize: '0.95rem',
+                          color: '#8A8A8A',
+                          paddingLeft: '10px',
                         }}
                       >
                         {i + 1}
@@ -244,21 +251,21 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                     )}
                   </td>
 
-                  {/* Player Name with Avatar Initials */}
+                  {/* Player Name with Avatar Initials — Enlarged */}
                   <td style={{ padding: '14px 20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div
                         style={{
-                          width: '28px',
-                          height: '28px',
+                          width: '34px',
+                          height: '34px',
                           borderRadius: '50%',
                           background: '#1F1F1F',
-                          border: '1px solid #2A2A2A',
-                          color: '#A3A3A3',
+                          border: '1px solid #2E2E2E',
+                          color: '#D4D4D4',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: '0.72rem',
+                          fontSize: '0.82rem',
                           fontWeight: 700,
                           flexShrink: 0,
                         }}
@@ -267,9 +274,10 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                       </div>
                       <span
                         style={{
-                          fontWeight: 600,
-                          fontSize: '0.9rem',
+                          fontWeight: 700,
+                          fontSize: '1.02rem',
                           color: isFirst ? '#D4AF37' : '#FFFFFF',
+                          letterSpacing: '-0.01em',
                         }}
                       >
                         {r.username}
@@ -277,33 +285,35 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                     </div>
                   </td>
 
-                  {/* VIP Status */}
+                  {/* VIP Status — Enlarged & Clear */}
                   <td style={{ padding: '14px 20px' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                       <span
                         style={{
-                          fontSize: '0.72rem',
-                          fontWeight: 600,
+                          fontSize: '0.88rem',
+                          fontWeight: 700,
                           color: isFirst ? '#D4AF37' : '#E5E5E5',
                         }}
                       >
                         {r.rank}
                       </span>
-                      <span style={{ fontSize: '0.68rem', color: '#525252' }}>
+                      <span style={{ fontSize: '0.78rem', color: '#737373', fontWeight: 500 }}>
                         Lv. {r.level}
                       </span>
                     </div>
                   </td>
 
-                  {/* Total Wagered */}
+                  {/* Total Wagered — Enlarged & Tight Right-Aligned */}
                   <td
                     style={{
-                      padding: '14px 20px',
+                      padding: '14px 24px',
+                      textAlign: 'right',
                       fontFamily: 'var(--font-mono, monospace)',
                       fontVariantNumeric: 'tabular-nums',
-                      fontWeight: 600,
+                      fontWeight: 700,
                       color: isFirst ? '#D4AF37' : '#FFFFFF',
-                      fontSize: '0.88rem',
+                      fontSize: '1.05rem',
+                      letterSpacing: '-0.02em',
                     }}
                   >
                     $
@@ -313,16 +323,17 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                     })}
                   </td>
 
-                  {/* Highest Win */}
+                  {/* Highest Win — Enlarged & Tight Right-Aligned */}
                   <td
                     style={{
-                      padding: '14px 20px',
+                      padding: '14px 24px',
                       textAlign: 'right',
                       fontFamily: 'var(--font-mono, monospace)',
                       fontVariantNumeric: 'tabular-nums',
-                      fontWeight: 600,
-                      fontSize: '0.88rem',
+                      fontWeight: 700,
+                      fontSize: '1.05rem',
                       color: '#10B981',
+                      letterSpacing: '-0.02em',
                     }}
                   >
                     +$

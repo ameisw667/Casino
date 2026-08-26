@@ -16,7 +16,7 @@ export async function POST(
   if (originFailure) return originFailure;
 
   try {
-    const userId = await resolveGuildRouteUser();
+    const userId = await resolveGuildRouteUser(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: PRIVATE_HEADERS });
     }

@@ -164,7 +164,7 @@ describe('Guild API Routes', () => {
       const res = await getGuildMeHandler(req);
       expect(res.status).toBe(200);
       const json = await res.json();
-      expect(json).toEqual({ membership: mockMembership });
+      expect(json).toEqual({ membership: mockMembership, currentUserId: 'user_1' });
     });
   });
 

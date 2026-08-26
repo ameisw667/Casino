@@ -7,11 +7,14 @@ import {
   type DiceAutoBetSettings,
   type SessionStats,
 } from '@/components/casino/games/dice/dice-config';
+import { GameCoPilotHud } from '@/components/casino/hud/GameCoPilotHud';
 
 interface DiceControlSidebarProps {
   isMobile: boolean;
   balance: number;
   betAmount: number;
+  targetPoint?: number;
+  isRollOver?: boolean;
   onBetAmountChange: (val: number) => void;
   isAutoMode: boolean;
   onSetAutoMode: (mode: boolean) => void;
@@ -31,6 +34,8 @@ export function DiceControlSidebar({
   isMobile,
   balance,
   betAmount,
+  targetPoint,
+  isRollOver,
   onBetAmountChange,
   isAutoMode,
   onSetAutoMode,
@@ -103,6 +108,18 @@ export function DiceControlSidebar({
           <span>1% EDGE</span>
         </div>
       </div>
+
+      {/* Live Co-Pilot Smart HUD (Embedded into Dice Controls) */}
+      <GameCoPilotHud
+        context={{
+          gameType: 'DICE',
+          diceState: {
+            target: targetPoint ?? 50.5,
+            isOver: isRollOver ?? true,
+          },
+        }}
+        isFloating={false}
+      />
 
       {/* Mode Switcher: Manual / Auto Pilot */}
       <div
