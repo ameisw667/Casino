@@ -8,6 +8,9 @@ function useHydrated(): boolean {
     () => false,
   );
 }
+
+export const STORAGE_KEY_HUD_EXPANDED = 'casino_copilot_hud_expanded';
+export const STORAGE_KEY_HUD_VISIBLE = 'casino_copilot_hud_visible';
 import {
   getBlackjackRecommendation,
   getCrashCurrentZone,
@@ -50,17 +53,24 @@ export interface GameCoPilotContext {
   };
 }
 
-const STORAGE_KEY_HUD_EXPANDED = 'royale_copilot_hud_expanded';
-const STORAGE_KEY_HUD_VISIBLE = 'royale_copilot_hud_visible';
+export interface UseGameCoPilotOptions {
+  defaultExpanded?: boolean;
+}
 
-export function useGameCoPilot(context: GameCoPilotContext) {
+export function useGameCoPilot(
+  context: GameCoPilotContext,
+  options?: UseGameCoPilotOptions,
+) {
+  const initialExpanded = options?.defaultExpanded ?? false;
+  const storageKey = `${STORAGE_KEY_HUD_EXPANDED}_${context.gameType.toLowerCase()}`;
+
   const [isExpanded, setIsExpanded] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return true;
+    if (typeof window === 'undefined') return initialExpanded;
     try {
-      const stored = localStorage.getItem(STORAGE_KEY_HUD_EXPANDED);
-      return stored !== null ? stored === 'true' : true;
+      const stored = localStorage.getItem(storageKey);
+      return stored !== null ? stored === 'true' : initialExpanded;
     } catch {
-      return true;
+      return initialExpanded;
     }
   });
 
@@ -80,13 +90,13 @@ export function useGameCoPilot(context: GameCoPilotContext) {
     setIsExpanded((prev) => {
       const next = !prev;
       try {
-        localStorage.setItem(STORAGE_KEY_HUD_EXPANDED, String(next));
+        localStorage.setItem(storageKey, String(next));
       } catch {
         // Ignore
       }
       return next;
     });
-  }, []);
+  }, [storageKey]);
 
   const toggleVisible = useCallback(() => {
     setIsVisible((prev) => {

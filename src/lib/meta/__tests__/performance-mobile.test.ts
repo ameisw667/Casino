@@ -132,22 +132,28 @@ describe('performance & mobile optimization', () => {
     expect(css).toContain('.qa-showcase-bet-row');
   });
 
-  it('fixes the MainLayout scroll-containment bug (min-height:0 + 100dvh)', () => {
+  it('fixes the MainLayout scroll-containment bug (min-height:0 + 100dvh + no outer scroll conflict)', () => {
     const layoutContent = readFileSync(
       resolve(root, 'src/components/layout/MainLayout.tsx'),
       'utf8',
     );
 
     expect(layoutContent).toContain("height: '100dvh',");
+    expect(layoutContent).toContain("overflow: 'hidden',");
     expect(layoutContent).toMatch(/flex:\s*1,\s*minHeight:\s*0,/);
+    expect(layoutContent).toContain("WebkitOverflowScrolling: 'touch'");
+    expect(layoutContent).toContain("overscrollBehaviorY: 'contain'");
   });
 
-  it('defines a responsive .auth-page-shell that top-aligns tall auth cards on mobile', () => {
+  it('defines a responsive .auth-page-shell and flex .mobile-only for navigation bar', () => {
     const cssContent = readFileSync(resolve(root, 'src/app/globals.css'), 'utf8');
 
     expect(cssContent).toContain('.auth-page-shell {');
     expect(cssContent).toMatch(
       /@media \(max-width: 1023px\)\s*\{\s*\.auth-page-shell\s*\{[\s\S]*align-items:\s*flex-start;/,
+    );
+    expect(cssContent).toMatch(
+      /@media \(max-width: 1023px\)[\s\S]*nav\.mobile-only[\s\S]*display:\s*flex\s*!important;/,
     );
   });
 

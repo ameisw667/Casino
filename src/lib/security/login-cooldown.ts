@@ -29,7 +29,7 @@ export interface RecordAttemptResult {
  */
 export function getStoredCooldownState(customStorage?: Storage): LoginCooldownState {
   const fallback: LoginCooldownState = { failedAttempts: 0, lockedUntilMs: null };
-  if (typeof window === 'undefined') return fallback;
+  if (typeof window === 'undefined' && !customStorage) return fallback;
 
   try {
     const storage = customStorage || window.sessionStorage || window.localStorage;
@@ -57,7 +57,7 @@ export function getStoredCooldownState(customStorage?: Storage): LoginCooldownSt
  * Saves cooldown state into storage safely.
  */
 export function saveCooldownState(state: LoginCooldownState, customStorage?: Storage): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' && !customStorage) return;
 
   try {
     const storage = customStorage || window.sessionStorage || window.localStorage;

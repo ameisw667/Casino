@@ -1,13 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  DEFAULT_COOLDOWN_SECONDS,
   formatCooldownMessage,
   formatWarningMessage,
   getRemainingCooldownSeconds,
   getStoredCooldownState,
   isLoginLocked,
-  LOGIN_COOLDOWN_STORAGE_KEY,
-  MAX_ATTEMPTS_BEFORE_COOLDOWN,
   recordFailedAttempt,
   resetCooldownState,
   saveCooldownState,

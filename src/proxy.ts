@@ -20,6 +20,7 @@ const PUBLIC_ROUTES = [
   '/games(.*)',
   '/history(.*)',
   '/leaderboard(.*)',
+  '/guild(.*)',
   '/vault(.*)',
   '/stats(.*)',
   '/affiliate(.*)',

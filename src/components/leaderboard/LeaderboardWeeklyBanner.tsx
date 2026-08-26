@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useSyncExternalStore } from 'react';
-import { Trophy, Clock, TrendingUp, Users } from 'lucide-react';
 import { useProgressiveJackpot } from '@/hooks/useProgressiveJackpot';
 
 interface LeaderboardWeeklyBannerProps {
@@ -72,180 +71,93 @@ export function LeaderboardWeeklyBanner({
   const timeLeft = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const { formatted: jackpotFormatted } = useProgressiveJackpot();
 
-  const formattedCountdown = `${String(timeLeft.days).padStart(2, '0')}T : ${String(timeLeft.hours).padStart(2, '0')}Std : ${String(timeLeft.minutes).padStart(2, '0')}Min : ${String(timeLeft.seconds).padStart(2, '0')}Sek`;
+  const formattedCountdown = `${timeLeft.days}T ${String(timeLeft.hours).padStart(2, '0')}h ${String(timeLeft.minutes).padStart(2, '0')}m ${String(timeLeft.seconds).padStart(2, '0')}s`;
 
   return (
     <div
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: isMobile ? '8px' : '16px',
-        padding: isMobile ? '10px 14px' : '12px 20px',
+        display: 'grid',
+        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+        gap: isMobile ? '12px' : '24px',
+        padding: isMobile ? '16px' : '18px 24px',
         borderRadius: '12px',
-        background: 'linear-gradient(90deg, rgba(20, 20, 28, 0.85) 0%, rgba(10, 10, 14, 0.95) 100%)',
-        border: '1px solid rgba(212, 175, 55, 0.15)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)',
+        background: '#111111',
+        border: '1px solid #222222',
       }}
     >
-      {/* 1. Progressive Jackpot Item */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      {/* 1. Progressive Jackpot */}
+      <div>
+        <div style={{ fontSize: '0.72rem', color: '#737373', fontWeight: 500, marginBottom: '4px' }}>
+          Progressiver Jackpot
+        </div>
         <div
           style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '6px',
-            background: 'rgba(212, 175, 55, 0.12)',
-            border: '1px solid rgba(212, 175, 55, 0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            fontFamily: 'var(--font-mono, monospace)',
+            fontVariantNumeric: 'tabular-nums',
+            fontSize: isMobile ? '1.15rem' : '1.3rem',
+            fontWeight: 700,
+            color: '#D4AF37',
+            letterSpacing: '-0.02em',
           }}
         >
-          <Trophy size={14} color="#D4AF37" />
-        </div>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.58rem', fontWeight: 800, color: 'rgba(255, 255, 255, 0.45)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              PROGRESSIVE JACKPOT
-            </span>
-            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#10B981' }} />
-          </div>
-          <div
-            style={{
-              fontFamily: 'var(--font-mono, monospace)',
-              fontVariantNumeric: 'tabular-nums',
-              fontSize: '1rem',
-              fontWeight: 900,
-              color: '#FFD700',
-              lineHeight: 1.1,
-            }}
-          >
-            {jackpotFormatted !== '—' ? jackpotFormatted : '$125,480.00'}
-          </div>
+          {jackpotFormatted !== '—' ? jackpotFormatted : '$125,480.00'}
         </div>
       </div>
 
-      {/* Divider */}
-      {!isMobile && (
-        <div style={{ width: '1px', height: '24px', background: 'rgba(255, 255, 255, 0.08)' }} />
-      )}
-
-      {/* 2. Tournament Reset Countdown */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      {/* 2. Wochen-Reset */}
+      <div>
+        <div style={{ fontSize: '0.72rem', color: '#737373', fontWeight: 500, marginBottom: '4px' }}>
+          Wöchentlicher Reset
+        </div>
         <div
           style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '6px',
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            fontFamily: 'var(--font-mono, monospace)',
+            fontVariantNumeric: 'tabular-nums',
+            fontSize: isMobile ? '1.05rem' : '1.2rem',
+            fontWeight: 600,
+            color: '#E5E5E5',
+            letterSpacing: '-0.01em',
           }}
         >
-          <Clock size={14} color="#CBD5E1" />
-        </div>
-        <div>
-          <div style={{ fontSize: '0.58rem', fontWeight: 800, color: 'rgba(255, 255, 255, 0.45)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-            WOCHEN-RESET IN
-          </div>
-          <div
-            style={{
-              fontFamily: 'var(--font-mono, monospace)',
-              fontVariantNumeric: 'tabular-nums',
-              fontSize: '0.92rem',
-              fontWeight: 800,
-              color: '#FFFFFF',
-              lineHeight: 1.1,
-            }}
-          >
-            {formattedCountdown}
-          </div>
+          {formattedCountdown}
         </div>
       </div>
 
-      {/* Divider */}
-      {!isMobile && (
-        <div style={{ width: '1px', height: '24px', background: 'rgba(255, 255, 255, 0.08)' }} />
-      )}
-
-      {/* 3. Gesamt-Volumen */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      {/* 3. Gesamt-Einsatz */}
+      <div>
+        <div style={{ fontSize: '0.72rem', color: '#737373', fontWeight: 500, marginBottom: '4px' }}>
+          Gesamter Einsatz
+        </div>
         <div
           style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '6px',
-            background: 'rgba(212, 175, 55, 0.08)',
-            border: '1px solid rgba(212, 175, 55, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            fontFamily: 'var(--font-mono, monospace)',
+            fontVariantNumeric: 'tabular-nums',
+            fontSize: isMobile ? '1.05rem' : '1.2rem',
+            fontWeight: 600,
+            color: '#E5E5E5',
+            letterSpacing: '-0.01em',
           }}
         >
-          <TrendingUp size={14} color="#D4AF37" />
-        </div>
-        <div>
-          <div style={{ fontSize: '0.58rem', fontWeight: 800, color: 'rgba(255, 255, 255, 0.45)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-            GESAMT-VOLUMEN
-          </div>
-          <div
-            style={{
-              fontFamily: 'var(--font-mono, monospace)',
-              fontVariantNumeric: 'tabular-nums',
-              fontSize: '0.92rem',
-              fontWeight: 800,
-              color: '#D4AF37',
-              lineHeight: 1.1,
-            }}
-          >
-            ${totalWagered.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-          </div>
+          ${totalWagered.toLocaleString('en-US', { maximumFractionDigits: 0 })}
         </div>
       </div>
 
-      {/* Divider */}
-      {!isMobile && (
-        <div style={{ width: '1px', height: '24px', background: 'rgba(255, 255, 255, 0.08)' }} />
-      )}
-
-      {/* 4. Active Players Count */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      {/* 4. Platzierte Spieler */}
+      <div>
+        <div style={{ fontSize: '0.72rem', color: '#737373', fontWeight: 500, marginBottom: '4px' }}>
+          Qualifizierte Spieler
+        </div>
         <div
           style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '6px',
-            background: 'rgba(56, 189, 248, 0.08)',
-            border: '1px solid rgba(56, 189, 248, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            fontFamily: 'var(--font-mono, monospace)',
+            fontVariantNumeric: 'tabular-nums',
+            fontSize: isMobile ? '1.05rem' : '1.2rem',
+            fontWeight: 600,
+            color: '#E5E5E5',
+            letterSpacing: '-0.01em',
           }}
         >
-          <Users size={14} color="#38BDF8" />
-        </div>
-        <div>
-          <div style={{ fontSize: '0.58rem', fontWeight: 800, color: 'rgba(255, 255, 255, 0.45)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-            HIGH ROLLER
-          </div>
-          <div
-            style={{
-              fontFamily: 'var(--font-mono, monospace)',
-              fontVariantNumeric: 'tabular-nums',
-              fontSize: '0.92rem',
-              fontWeight: 800,
-              color: '#FFFFFF',
-              lineHeight: 1.1,
-            }}
-          >
-            {activePlayersCount} Spieler
-          </div>
+          {activePlayersCount} High Roller
         </div>
       </div>
     </div>

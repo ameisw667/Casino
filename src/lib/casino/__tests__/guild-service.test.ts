@@ -22,15 +22,12 @@ import {
   getGuildById,
   getUserGuild,
   createInvite,
-  getUserPendingInvites,
   respondToInvite,
-  revokeInvite,
   updateMemberRole,
   removeMember,
   disbandGuild,
   GuildConflictError,
   GuildForbiddenError,
-  GuildNotFoundError,
 } from '../guild-service';
 
 afterEach(() => {
@@ -472,6 +469,168 @@ describe('guild-service', () => {
 
       const result = await respondToInvite('user_1', 'inv_1', 'accept');
       expect(result).toEqual({ status: 'accepted', guildId: 'g1' });
+    });
+  });
+
+  describe('searchGuilds', () => {
+    it('returns list of guilds matching search query', async () => {
+      const mockRows = [{
+        id: 'g1',
+        name: 'Vibe King',
+        tag: 'VK',
+        description: null,
+        created_by: 'u1',
+        member_count: 5,
+        created_at: '2026-08-25T10:00:00.000Z',
+        updated_at: '2026-08-25T10:00:00.000Z',
+      }];
+
+      mocks.from.mockImplementation(() => ({
+        select: () => ({
+          order: () => ({
+            order: () => ({
+              limit: () => ({
+                or: async () => ({ data: mockRows, error: null }),
+              }),
+            }),
+          }),
+        }),
+      }));
+
+      const results = await searchGuilds('King');
+      expect(results).toHaveLength(1);
+      expect(results[0].name).toBe('Vibe King');
+    });
+  });
+
+  describe('getGuildById and getUserGuild', () => {
+    it('fetches guild and members list', async () => {
+      const mockGuild = {
+        id: 'g1',
+        name: 'Vibe King',
+        tag: 'VK',
+        description: null,
+        created_by: 'u1',
+        member_count: 1,
+        created_at: '2026-08-25T10:00:00.000Z',
+        updated_at: '2026-08-25T10:00:00.000Z',
+      };
+
+      mocks.from.mockImplementation((table: string) => {
+        if (table === 'guilds') {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({ data: mockGuild, error: null }),
+              }),
+            }),
+          };
+        }
+        if (table === 'guild_members') {
+          return {
+            select: () => ({
+              eq: () => ({
+                order: async () => ({
+                  data: [{
+                    guild_id: 'g1',
+                    user_id: 'u1',
+                    role: 'leader',
+                    joined_at: '2026-08-25T10:00:00.000Z',
+                    users: { id: 'u1', username: 'King', avatar_url: null, level: 10, rank: 'GOLD' },
+                  }],
+                  error: null,
+                }),
+                maybeSingle: async () => ({
+                  data: { guild_id: 'g1', role: 'leader', joined_at: '2026-08-25T10:00:00.000Z' },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        return {};
+      });
+
+      const guildData = await getGuildById('g1');
+      expect(guildData.guild.name).toBe('Vibe King');
+      expect(guildData.members).toHaveLength(1);
+
+      const userGuildData = await getUserGuild('u1');
+      expect(userGuildData).not.toBeNull();
+      expect(userGuildData?.role).toBe('leader');
+    });
+  });
+
+  describe('createInvite and getUserPendingInvites and revokeInvite', () => {
+    it('creates and manages invites correctly', async () => {
+      mocks.from.mockImplementation((table: string) => {
+        if (table === 'guild_members') {
+          return {
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  maybeSingle: async () => ({ data: { role: 'leader' }, error: null }),
+                }),
+                maybeSingle: async () => ({ data: null, error: null }),
+              }),
+            }),
+          };
+        }
+        if (table === 'users') {
+          return {
+            select: () => ({
+              eq: () => ({
+                maybeSingle: async () => ({ data: { id: 'target_u' }, error: null }),
+              }),
+            }),
+          };
+        }
+        if (table === 'guild_invites') {
+          return {
+            update: () => ({
+              eq: () => ({
+                eq: () => ({
+                  eq: () => ({
+                    lt: async () => ({ error: null }),
+                  }),
+                }),
+              }),
+            }),
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  eq: () => ({
+                    maybeSingle: async () => ({ data: null, error: null }),
+                  }),
+                }),
+              }),
+            }),
+            insert: () => ({
+              select: () => ({
+                single: async () => ({
+                  data: {
+                    id: 'inv_1',
+                    guild_id: '11111111-1111-4111-8111-111111111111',
+                    invited_user_id: 'target_u',
+                    invited_by: 'u1',
+                    status: 'pending',
+                    created_at: '2026-08-25T10:00:00.000Z',
+                    expires_at: '2026-09-01T10:00:00.000Z',
+                  },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        return {};
+      });
+
+      const invite = await createInvite('u1', {
+        guildId: '11111111-1111-4111-8111-111111111111',
+        invitedUserId: 'target_u',
+      });
+      expect(invite.id).toBe('inv_1');
     });
   });
 

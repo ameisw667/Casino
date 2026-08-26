@@ -340,9 +340,13 @@ p {
   display: block !important;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1023px) {
   .mobile-only {
     display: block !important;
+  }
+  nav.mobile-only,
+  .mobile-only.flex {
+    display: flex !important;
   }
   .desktop-only {
     display: none !important;

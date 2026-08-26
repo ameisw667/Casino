@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Flame } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { LeaderboardWeeklyBanner } from '@/components/leaderboard/LeaderboardWeeklyBanner';
 import { LeaderboardPodium } from '@/components/leaderboard/LeaderboardPodium';
@@ -53,26 +52,26 @@ export default function LeaderboardPage() {
   const totalWagered = rows.reduce((acc, r) => acc + r.total_wagered, 0);
 
   const timeframes: { id: TimeframeFilter; label: string }[] = [
-    { id: 'weekly', label: 'WÖCHENTLICH' },
-    { id: 'monthly', label: 'MONATLICH' },
-    { id: 'all-time', label: 'ALL-TIME' },
+    { id: 'weekly', label: 'Wöchentlich' },
+    { id: 'monthly', label: 'Monatlich' },
+    { id: 'all-time', label: 'Alle Zeiten' },
   ];
 
   return (
     <div
       style={{
-        maxWidth: '1400px',
+        maxWidth: '1360px',
         width: '100%',
         margin: '0 auto',
         display: 'flex',
         flexDirection: 'column',
         gap: isMobile ? '14px' : '20px',
-        padding: isMobile ? '14px 16px 80px' : '12px 24px 32px',
+        padding: isMobile ? '14px 16px 80px' : '16px 24px 40px',
         minHeight: 'calc(100vh - 80px)',
         position: 'relative',
       }}
     >
-      {/* Monolith Header — Matches /games Monolith style */}
+      {/* Header — Understated, Natural, Human-Crafted */}
       <header
         style={{
           display: 'flex',
@@ -80,70 +79,47 @@ export default function LeaderboardPage() {
           justifyContent: 'space-between',
           gap: '16px',
           flexWrap: 'wrap',
-          padding: isMobile ? '14px 16px' : '18px 24px',
-          borderRadius: '16px',
-          border: '1px solid rgba(212, 175, 55, 0.15)',
-          background: 'linear-gradient(145deg, rgba(24, 24, 32, 0.75) 0%, rgba(12, 12, 18, 0.9) 100%)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.45)',
+          padding: isMobile ? '16px' : '20px 24px',
+          borderRadius: '12px',
+          border: '1px solid #222222',
+          background: '#111111',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <div>
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                background: 'rgba(212, 175, 55, 0.12)',
-                border: '1px solid rgba(212, 175, 55, 0.25)',
-                color: '#D4AF37',
-                fontSize: '0.58rem',
-                fontWeight: 800,
-                padding: '2px 8px',
-                borderRadius: '4px',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-              }}
-            >
-              <Flame size={12} /> PROVABLY FAIR · HIGH ROLLER TOURNAMENT
-            </span>
-          </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
           <h1
             style={{
-              fontSize: isMobile ? '1.4rem' : '1.85rem',
-              fontWeight: 900,
+              fontSize: isMobile ? '1.4rem' : '1.75rem',
+              fontWeight: 800,
               letterSpacing: '-0.02em',
-              color: '#ffffff',
-              lineHeight: 1.1,
+              color: '#FFFFFF',
+              lineHeight: 1.15,
               margin: 0,
             }}
           >
-            GLOBAL LEADERBOARD
+            Leaderboard
           </h1>
           <p
             style={{
-              fontSize: '0.78rem',
-              color: 'rgba(255, 255, 255, 0.45)',
+              fontSize: '0.8rem',
+              color: '#737373',
               margin: 0,
-              fontWeight: 500,
+              fontWeight: 400,
             }}
           >
-            Die aktivsten VIP-Spieler und High Roller im verifizierten Plattform-Vergleich.
+            Live-Übersicht der erfolgreichsten Spieler und getätigten Einsätze.
           </p>
         </div>
 
-        {/* Timeframe Switcher Tabs */}
+        {/* Timeframe Switcher */}
         <div
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            background: 'rgba(0, 0, 0, 0.45)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: '10px',
-            padding: '4px',
-            gap: '3px',
+            background: '#1A1A1A',
+            border: '1px solid #282828',
+            borderRadius: '8px',
+            padding: '3px',
+            gap: '2px',
           }}
         >
           {timeframes.map((tf) => {
@@ -154,17 +130,15 @@ export default function LeaderboardPage() {
                 type="button"
                 onClick={() => setActiveTimeframe(tf.id)}
                 style={{
-                  padding: isMobile ? '6px 10px' : '7px 16px',
-                  borderRadius: '7px',
+                  padding: isMobile ? '6px 12px' : '6px 16px',
+                  borderRadius: '6px',
                   border: 'none',
                   cursor: 'pointer',
-                  fontSize: '0.68rem',
-                  fontWeight: 800,
-                  letterSpacing: '0.04em',
-                  background: isActive ? 'linear-gradient(135deg, #D4AF37 0%, #AA8010 100%)' : 'transparent',
-                  color: isActive ? '#000000' : 'rgba(255, 255, 255, 0.6)',
-                  boxShadow: isActive ? '0 2px 8px rgba(212, 175, 55, 0.3)' : 'none',
-                  transition: 'all 0.15s ease',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  background: isActive ? '#292929' : 'transparent',
+                  color: isActive ? '#FFFFFF' : '#8A8A8A',
+                  transition: 'background-color 0.15s ease, color 0.15s ease',
                 }}
               >
                 {tf.label}
@@ -174,14 +148,14 @@ export default function LeaderboardPage() {
         </div>
       </header>
 
-      {/* Live Tournament Ribbon */}
+      {/* Tournament Stats Bar */}
       <LeaderboardWeeklyBanner
         isMobile={isMobile}
         totalWagered={totalWagered}
         activePlayersCount={rows.length}
       />
 
-      {/* Physical 3D Stepped VIP Podium Stage */}
+      {/* Podium Stage with Avatars */}
       {!loading && rows.length >= 3 && (
         <LeaderboardPodium topThree={rows.slice(0, 3)} isMobile={isMobile} />
       )}
@@ -191,7 +165,7 @@ export default function LeaderboardPage() {
         <LeaderboardStreamTable loading={loading} rows={rows} />
       </div>
 
-      {/* Floating Sticky Personal Rank Bar */}
+      {/* Floating Personal Rank Dock */}
       <PersonalRankBar
         username={user?.email?.split('@')[0] || 'User'}
         rank={rank}

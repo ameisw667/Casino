@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Crown, Shield, User, MoreVertical, UserMinus, ArrowUpCircle, ArrowDownCircle, Award } from 'lucide-react';
+import { Crown, Shield, User, MoreVertical, UserMinus, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import type { GuildMemberRecord, GuildRole } from '@/lib/casino/guild-service';
 
 interface GuildMemberListProps {
@@ -60,7 +60,6 @@ export function GuildMemberList({
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {members.map((member) => {
           const isSelf = member.userId === currentUserId;
-          const targetIsLeader = member.role === 'leader';
           const targetIsOfficer = member.role === 'officer';
           const targetIsMember = member.role === 'member';
 

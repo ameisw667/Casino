@@ -220,6 +220,39 @@ describe('Guild API Routes', () => {
     });
   });
 
+  describe('GET /api/casino/guild/invites', () => {
+    it('returns user pending invites', async () => {
+      mocks.resolveUser.mockResolvedValueOnce('user_1');
+      const mockInvites = [{ id: 'inv_1', guildId: 'g1', status: 'pending' }];
+      mocks.getUserPendingInvites.mockResolvedValueOnce(mockInvites);
+
+      const req = new Request('http://localhost/api/casino/guild/invites');
+      const res = await getGuildInvitesHandler(req);
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json).toEqual({ invites: mockInvites });
+    });
+  });
+
+  describe('DELETE /api/casino/guild/invite/[id]', () => {
+    it('allows officer/leader to revoke invite', async () => {
+      mocks.resolveUser.mockResolvedValueOnce('leader_1');
+      mocks.revokeInvite.mockResolvedValueOnce({ success: true });
+
+      const req = new Request('http://localhost/api/casino/guild/invite/11111111-1111-4111-8111-111111111111', {
+        method: 'DELETE',
+        headers: { origin: 'http://localhost' },
+      });
+
+      const res = await revokeInviteHandler(req, {
+        params: Promise.resolve({ id: '11111111-1111-4111-8111-111111111111' }),
+      });
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json).toEqual({ success: true });
+    });
+  });
+
   describe('PATCH & DELETE /api/casino/guild/member/[userId]', () => {
     it('returns 403 when officer attempts to demote leader', async () => {
       mocks.resolveUser.mockResolvedValueOnce('officer_1');

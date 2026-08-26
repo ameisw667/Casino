@@ -389,8 +389,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             display: 'flex',
             flexDirection: 'column',
             height: '100dvh',
-            overflowY: 'auto',
-            overflowX: 'hidden',
+            overflow: 'hidden',
             position: 'relative',
           }}
         >
@@ -416,8 +415,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               flex: 1,
               minHeight: 0,
               padding: isMobile ? '16px' : '24px',
-              overflowY: 'scroll',
-              paddingBottom: isMobile ? '100px' : '24px',
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              paddingBottom: isMobile ? 'calc(88px + env(safe-area-inset-bottom))' : '24px',
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehaviorY: 'contain',
               display: 'flex',
               flexDirection: 'column',
             }}

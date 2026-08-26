@@ -12,6 +12,16 @@ import { mapAuthError } from '@/lib/security/form-errors';
 import { trackAllowedEvent } from '@/lib/analytics/events';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter';
 import { OtpInput } from './OtpInput';
+import {
+  getStoredCooldownState,
+  getRemainingCooldownSeconds,
+  recordFailedAttempt,
+  resetCooldownState,
+  formatCooldownMessage,
+  formatWarningMessage,
+  type LoginCooldownState,
+} from '@/lib/security/login-cooldown';
+import { ShieldAlert } from 'lucide-react';
 
 export function formatAuthError(message: string): string {
   return mapAuthError(message).message;
@@ -103,6 +113,7 @@ function AuthField({
   onChange,
   autoComplete,
   error,
+  disabled,
 }: {
   id: string;
   label: string;
@@ -112,6 +123,7 @@ function AuthField({
   onChange: (val: string) => void;
   autoComplete?: string;
   error?: string;
+  disabled?: boolean;
 }) {
   const [showPassword, setShowPassword] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -119,7 +131,7 @@ function AuthField({
   const effectiveType = isPasswordField ? (showPassword ? 'text' : 'password') : type;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', opacity: disabled ? 0.6 : 1 }}>
       <label
         htmlFor={id}
         style={{
@@ -163,6 +175,7 @@ function AuthField({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           autoComplete={autoComplete}
+          disabled={disabled}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${id}-error` : undefined}
           style={{
@@ -248,6 +261,8 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [hasPasskeySupport] = useState(() => typeof window !== 'undefined' && Boolean(window.PublicKeyCredential));
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [loginCooldownState, setLoginCooldownState] = useState<LoginCooldownState>(() => getStoredCooldownState());
+  const [loginCooldownSeconds, setLoginCooldownSeconds] = useState(() => getRemainingCooldownSeconds(getStoredCooldownState()));
   const [isMagicLink, setIsMagicLink] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [otpCode, setOtpCode] = useState('');
@@ -259,8 +274,25 @@ export function AuthForm({ mode }: AuthFormProps) {
     }
   }, [cooldown]);
 
+  useEffect(() => {
+    if (loginCooldownSeconds > 0) {
+      const timer = setInterval(() => {
+        const remaining = getRemainingCooldownSeconds(loginCooldownState);
+        setLoginCooldownSeconds(remaining);
+        if (remaining <= 0) {
+          setLoginCooldownState(getStoredCooldownState());
+        }
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [loginCooldownSeconds, loginCooldownState]);
+
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    if (!isSignUp && loginCooldownSeconds > 0) {
+      setStatus(formatCooldownMessage(loginCooldownSeconds));
+      return;
+    }
     const validationErrors = validateAuthCredentials(email, password);
     if (Object.keys(validationErrors).length > 0) {
       setStatus(Object.values(validationErrors)[0] ?? null);
@@ -275,12 +307,28 @@ export function AuthForm({ mode }: AuthFormProps) {
           ? await supabase.auth.signUp({ email: normalizedEmail, password })
           : await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
       if (error) {
-        setStatus(formatAuthError(error.message));
+        if (!isSignUp) {
+          const attempt = recordFailedAttempt(loginCooldownState);
+          setLoginCooldownState(attempt.newState);
+          setLoginCooldownSeconds(attempt.remainingSeconds);
+          notifyLoginAudit('password', 'failed');
+
+          if (attempt.isLocked) {
+            setStatus(formatCooldownMessage(attempt.remainingSeconds));
+          } else {
+            setStatus(formatWarningMessage(attempt.failedAttempts));
+          }
+        } else {
+          setStatus(formatAuthError(error.message));
+        }
         return;
       }
       if (mode === 'sign-up') {
         void trackAllowedEvent({ name: 'sign_up_completed' });
       } else {
+        resetCooldownState();
+        setLoginCooldownState({ failedAttempts: 0, lockedUntilMs: null });
+        setLoginCooldownSeconds(0);
         notifyLoginAudit('password', 'success');
       }
       router.push('/');
@@ -497,7 +545,32 @@ export function AuthForm({ mode }: AuthFormProps) {
         </div>
 
         {/* Global Error/Status Message */}
-        {status && (
+        {loginCooldownSeconds > 0 ? (
+          <div
+            role="alert"
+            style={{
+              padding: '14px 16px',
+              borderRadius: '12px',
+              background: 'rgba(255, 179, 0, 0.1)',
+              border: '1px solid rgba(255, 179, 0, 0.4)',
+              color: '#ffc107',
+              fontSize: '0.85rem',
+              marginBottom: '18px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              textAlign: 'left',
+            }}
+          >
+            <ShieldAlert size={20} color="#ffc107" style={{ flexShrink: 0 }} />
+            <div>
+              <div style={{ fontWeight: 700 }}>Login vorübergehend gesperrt</div>
+              <div style={{ opacity: 0.85, fontSize: '0.8rem', marginTop: '2px' }}>
+                Zu viele Fehlversuche. Bitte warte noch <strong>{loginCooldownSeconds}s</strong> vor dem nächsten Versuch.
+              </div>
+            </div>
+          </div>
+        ) : status ? (
           <div
             role="alert"
             style={{
@@ -513,7 +586,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           >
             {status}
           </div>
-        )}
+        ) : null}
 
         {/* MAGIC LINK & OTP VIEW */}
         {isMagicLink ? (
@@ -787,6 +860,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 onChange={setPassword}
                 autoComplete={isSignUp ? 'new-password' : 'current-password'}
                 error={password.length > 0 ? validationErrors.password : undefined}
+                disabled={!isSignUp && loginCooldownSeconds > 0}
               />
 
               {/* Password Strength Meter for Sign-Up */}
@@ -823,9 +897,9 @@ export function AuthForm({ mode }: AuthFormProps) {
                 <motion.button
                   id={isSignUp ? 'auth-submit-signup' : 'auth-submit-signin'}
                   type="submit"
-                  disabled={loading || !isFormReady}
+                  disabled={loading || !isFormReady || (!isSignUp && loginCooldownSeconds > 0)}
                   whileHover={
-                    loading || !isFormReady
+                    loading || !isFormReady || (!isSignUp && loginCooldownSeconds > 0)
                       ? {}
                       : {
                           scale: 1.02,
@@ -833,14 +907,14 @@ export function AuthForm({ mode }: AuthFormProps) {
                           boxShadow: '0 0 24px hsla(45,100%,50%,0.6), 0 4px 16px rgba(0,0,0,0.3)',
                         }
                   }
-                  whileTap={loading || !isFormReady ? {} : { scale: 0.97 }}
+                  whileTap={loading || !isFormReady || (!isSignUp && loginCooldownSeconds > 0) ? {} : { scale: 0.97 }}
                   style={{
                     marginTop: '4px',
                     width: '100%',
                     height: '50px',
                     borderRadius: '12px',
                     border: 'none',
-                    cursor: loading || !isFormReady ? 'not-allowed' : 'pointer',
+                    cursor: loading || !isFormReady || (!isSignUp && loginCooldownSeconds > 0) ? 'not-allowed' : 'pointer',
                     fontWeight: 900,
                     fontSize: '0.95rem',
                     letterSpacing: '0.04em',
@@ -849,15 +923,17 @@ export function AuthForm({ mode }: AuthFormProps) {
                     justifyContent: 'center',
                     gap: '8px',
                     background:
-                      loading || !isFormReady
+                      loading || !isFormReady || (!isSignUp && loginCooldownSeconds > 0)
                         ? 'rgba(255,255,255,0.08)'
                         : 'linear-gradient(135deg, hsl(var(--primary)), hsl(38,100%,42%))',
-                    color: loading || !isFormReady ? 'rgba(255,255,255,0.3)' : '#000',
-                    boxShadow: !loading && isFormReady ? '0 0 12px hsla(45,100%,50%,0.3)' : 'none',
+                    color: loading || !isFormReady || (!isSignUp && loginCooldownSeconds > 0) ? 'rgba(255,255,255,0.3)' : '#000',
+                    boxShadow: !loading && isFormReady && (isSignUp || loginCooldownSeconds === 0) ? '0 0 12px hsla(45,100%,50%,0.3)' : 'none',
                   }}
                 >
                   {loading ? (
                     <Loader2 className="animate-spin" size={20} />
+                  ) : !isSignUp && loginCooldownSeconds > 0 ? (
+                    `Sperre aktiv (${loginCooldownSeconds}s)`
                   ) : isSignUp ? (
                     'Konto erstellen'
                   ) : (

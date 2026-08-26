@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { UserCheck } from 'lucide-react';
 
 interface PersonalRankBarProps {
   username: string;
@@ -11,7 +10,18 @@ interface PersonalRankBarProps {
   wagered: number;
 }
 
+function getInitials(name: string): string {
+  if (!name) return 'VIP';
+  const parts = name.split(/[._\s-]+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+}
+
 export function PersonalRankBar({ username, rank, level, wagered }: PersonalRankBarProps) {
+  const initials = getInitials(username);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -21,10 +31,10 @@ export function PersonalRankBar({ username, rank, level, wagered }: PersonalRank
         position: 'sticky',
         bottom: '16px',
         zIndex: 35,
-        background: '#0F131C',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
-        borderRadius: '14px',
+        background: '#141414',
+        border: '1px solid #2A2A2A',
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.7)',
+        borderRadius: '12px',
         padding: '12px 20px',
         display: 'flex',
         justifyContent: 'space-between',
@@ -33,52 +43,55 @@ export function PersonalRankBar({ username, rank, level, wagered }: PersonalRank
         gap: '12px',
       }}
     >
+      {/* Left: User Avatar & Status */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <div
           style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '6px',
-            background: 'rgba(255, 255, 255, 0.05)',
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            background: '#222222',
+            border: '1px solid #333333',
+            color: '#D4AF37',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            flexShrink: 0,
           }}
         >
-          <UserCheck size={15} color="#D4AF37" />
+          {initials}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#ffffff' }}>
-            {username || 'VIP Spieler'}
-          </span>
-          <span
-            style={{
-              fontSize: '0.62rem',
-              color: '#D4AF37',
-              background: 'rgba(212, 175, 55, 0.1)',
-              border: '1px solid rgba(212, 175, 55, 0.2)',
-              padding: '2px 7px',
-              borderRadius: '4px',
-              fontWeight: 800,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-            }}
-          >
-            LVL {level} • {rank}
-          </span>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#FFFFFF' }}>
+              {username || 'VIP Spieler'}
+            </span>
+            <span
+              style={{
+                fontSize: '0.7rem',
+                color: '#D4AF37',
+                fontWeight: 600,
+              }}
+            >
+              {rank} · Lv. {level}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{ fontSize: '0.72rem', color: 'rgba(255, 255, 255, 0.4)', fontWeight: 600 }}>
-          Dein Einsatz:
+      {/* Right: Personal Wagered */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <span style={{ fontSize: '0.75rem', color: '#737373', fontWeight: 500 }}>
+          Dein Einsatz
         </span>
         <div
           style={{
             fontFamily: 'var(--font-mono, monospace)',
             fontVariantNumeric: 'tabular-nums',
-            fontWeight: 800,
+            fontWeight: 700,
             color: '#FFFFFF',
             fontSize: '1.05rem',
             letterSpacing: '-0.02em',

@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { GuildHeader } from '@/components/casino/guild/GuildHeader';
