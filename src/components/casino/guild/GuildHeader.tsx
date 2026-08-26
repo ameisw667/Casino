@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Shield, Users, Crown, Calendar, Sparkles } from 'lucide-react';
+import { Shield, Users, Crown, Calendar, UserPlus, LogOut, Trash2 } from 'lucide-react';
 import type { GuildRecord, GuildRole } from '@/lib/casino/guild-service';
 
 interface GuildHeaderProps {
@@ -26,34 +25,15 @@ export function GuildHeader({
   const isOfficerOrLeader = userRole === 'leader' || userRole === 'officer';
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       style={{
-        background: 'rgba(11, 14, 20, 0.85)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        border: '1px solid rgba(212, 175, 55, 0.25)',
-        borderRadius: '16px',
-        padding: isMobile ? '16px' : '24px',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.45)',
+        background: '#111111',
+        border: '1px solid #222222',
+        borderRadius: '12px',
+        padding: isMobile ? '16px' : '20px 24px',
         position: 'relative',
-        overflow: 'hidden',
       }}
     >
-      {/* Background ambient gold flare */}
-      <div
-        style={{
-          position: 'absolute',
-          top: -40,
-          right: -40,
-          width: '180px',
-          height: '180px',
-          background: 'radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, rgba(11, 14, 20, 0) 70%)',
-          pointerEvents: 'none',
-        }}
-      />
-
       <div
         style={{
           display: 'flex',
@@ -67,27 +47,26 @@ export function GuildHeader({
           {/* Guild Emblem Shield */}
           <div
             style={{
-              width: isMobile ? '52px' : '64px',
-              height: isMobile ? '52px' : '64px',
-              borderRadius: '14px',
-              background: 'linear-gradient(135deg, #1A1F2C 0%, #0B0E14 100%)',
-              border: '2px solid #D4AF37',
+              width: isMobile ? '44px' : '52px',
+              height: isMobile ? '44px' : '52px',
+              borderRadius: '10px',
+              background: '#181818',
+              border: '1px solid #282828',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 0 16px rgba(212, 175, 55, 0.25)',
               flexShrink: 0,
             }}
           >
-            <Shield size={isMobile ? 28 : 34} color="#D4AF37" />
+            <Shield size={isMobile ? 22 : 26} color="#D4AF37" />
           </div>
 
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
               <h1
                 style={{
-                  fontSize: isMobile ? '1.35rem' : '1.75rem',
-                  fontWeight: 900,
+                  fontSize: isMobile ? '1.25rem' : '1.5rem',
+                  fontWeight: 800,
                   letterSpacing: '-0.02em',
                   color: '#ffffff',
                   margin: 0,
@@ -97,14 +76,15 @@ export function GuildHeader({
               </h1>
               <span
                 style={{
-                  background: 'linear-gradient(135deg, #D4AF37 0%, #F59E0B 100%)',
-                  color: '#0B0E14',
-                  fontWeight: 900,
-                  fontSize: '0.85rem',
+                  background: '#1A1A1A',
+                  border: '1px solid #282828',
+                  color: '#D4AF37',
+                  fontWeight: 700,
+                  fontSize: '0.78rem',
                   padding: '2px 8px',
-                  borderRadius: '6px',
+                  borderRadius: '4px',
                   letterSpacing: '0.05em',
-                  fontFamily: 'monospace',
+                  fontFamily: 'var(--font-mono, monospace)',
                 }}
               >
                 [{guild.tag}]
@@ -114,10 +94,10 @@ export function GuildHeader({
             {guild.description && (
               <p
                 style={{
-                  color: '#9CA3AF',
-                  fontSize: '0.9rem',
-                  marginTop: '6px',
-                  marginBottom: '8px',
+                  color: '#8A8A8A',
+                  fontSize: '0.85rem',
+                  marginTop: '4px',
+                  marginBottom: '6px',
                   maxWidth: '650px',
                   lineHeight: '1.4',
                 }}
@@ -126,17 +106,17 @@ export function GuildHeader({
               </p>
             )}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#D1D5DB', fontSize: '0.85rem' }}>
-                <Users size={15} color="#D4AF37" />
-                <span className="font-mono tabular-nums" style={{ fontWeight: 700, color: '#ffffff' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginTop: '4px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#8A8A8A', fontSize: '0.78rem' }}>
+                <Users size={14} color="#737373" />
+                <span className="font-mono tabular-nums" style={{ fontWeight: 600, color: '#E5E5E5' }}>
                   {guild.memberCount}
                 </span>
-                <span>Mitglieder</span>
+                <span>{guild.memberCount === 1 ? 'Mitglied' : 'Mitglieder'}</span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#9CA3AF', fontSize: '0.85rem' }}>
-                <Calendar size={15} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#737373', fontSize: '0.78rem' }}>
+                <Calendar size={13} />
                 <span>Gegründet {new Date(guild.createdAt).toLocaleDateString('de-DE')}</span>
               </div>
 
@@ -145,35 +125,19 @@ export function GuildHeader({
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '5px',
+                    gap: '4px',
                     padding: '2px 8px',
-                    borderRadius: '999px',
-                    fontSize: '0.75rem',
-                    fontWeight: 800,
+                    borderRadius: '4px',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    background:
-                      userRole === 'leader'
-                        ? 'rgba(212, 175, 55, 0.15)'
-                        : userRole === 'officer'
-                        ? 'rgba(59, 130, 246, 0.15)'
-                        : 'rgba(156, 163, 175, 0.15)',
-                    color:
-                      userRole === 'leader'
-                        ? '#D4AF37'
-                        : userRole === 'officer'
-                        ? '#60A5FA'
-                        : '#9CA3AF',
-                    border: `1px solid ${
-                      userRole === 'leader'
-                        ? 'rgba(212, 175, 55, 0.3)'
-                        : userRole === 'officer'
-                        ? 'rgba(59, 130, 246, 0.3)'
-                        : 'rgba(156, 163, 175, 0.3)'
-                    }`,
+                    letterSpacing: '0.04em',
+                    background: '#1A1A1A',
+                    border: '1px solid #282828',
+                    color: userRole === 'leader' ? '#D4AF37' : '#A3A3A3',
                   }}
                 >
-                  {userRole === 'leader' && <Crown size={12} />}
+                  {userRole === 'leader' && <Crown size={11} color="#D4AF37" />}
                   {userRole}
                 </div>
               )}
@@ -184,73 +148,80 @@ export function GuildHeader({
         {/* Action Buttons */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
           {isOfficerOrLeader && onInviteClick && (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
+            <button
+              type="button"
               onClick={onInviteClick}
               style={{
-                background: 'linear-gradient(135deg, #D4AF37 0%, #B89628 100%)',
-                color: '#0B0E14',
-                border: 'none',
-                padding: '8px 16px',
+                background: '#1A1A1A',
+                border: '1px solid #282828',
                 borderRadius: '8px',
-                fontWeight: 800,
-                fontSize: '0.85rem',
+                padding: '8px 14px',
+                color: '#D4AF37',
+                fontSize: '0.8rem',
+                fontWeight: 600,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                boxShadow: '0 2px 10px rgba(212, 175, 55, 0.3)',
                 flex: isMobile ? 1 : undefined,
                 justifyContent: 'center',
+                transition: 'background-color 0.15s ease, border-color 0.15s ease',
               }}
             >
-              <Sparkles size={15} />
+              <UserPlus size={14} />
               Einladen
-            </motion.button>
+            </button>
           )}
 
           {userRole && onLeaveClick && (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
+            <button
+              type="button"
               onClick={onLeaveClick}
               style={{
-                background: 'rgba(239, 68, 68, 0.1)',
-                color: '#EF4444',
-                border: '1px solid rgba(239, 68, 68, 0.25)',
-                padding: '8px 14px',
+                background: 'transparent',
+                border: '1px solid #282828',
                 borderRadius: '8px',
-                fontWeight: 700,
-                fontSize: '0.85rem',
+                padding: '8px 14px',
+                color: '#8A8A8A',
+                fontSize: '0.8rem',
+                fontWeight: 500,
                 cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'color 0.15s ease, border-color 0.15s ease',
               }}
             >
+              <LogOut size={13} />
               Verlassen
-            </motion.button>
+            </button>
           )}
 
           {isLeader && onDisbandClick && (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
+            <button
+              type="button"
               onClick={onDisbandClick}
               style={{
-                background: 'rgba(239, 68, 68, 0.2)',
-                color: '#EF4444',
-                border: '1px solid rgba(239, 68, 68, 0.4)',
-                padding: '8px 14px',
+                background: 'transparent',
+                border: '1px solid #282828',
                 borderRadius: '8px',
-                fontWeight: 800,
-                fontSize: '0.85rem',
+                padding: '8px 14px',
+                color: '#737373',
+                fontSize: '0.8rem',
+                fontWeight: 500,
                 cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'color 0.15s ease, border-color 0.15s ease',
               }}
             >
+              <Trash2 size={13} />
               Auflösen
-            </motion.button>
+            </button>
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

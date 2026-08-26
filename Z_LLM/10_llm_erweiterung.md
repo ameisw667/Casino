@@ -46,7 +46,7 @@
 | **Stufe I** | **Dynamische Follow-up Suggestion Chips** | 🟢 Executed | Delimiter-Streaming (`<<<SUGGESTIONS: [...]>>>`), 0 ms Latenz, klickbare Gold-Chips | 899/899 | Vitest / Build |
 | **Stufe L** | **Multimodale Spielanalyse (Vision)** | 🟢 Executed | Client Canvas-Kompression, Screenshot Drag & Drop + `Ctrl+V`, Vision Streaming | 946/946 | Vitest / Build |
 | **Stufe M** | **Voice / Audio-Interface (Whisper + TTS)** | 🟢 Executed | OpenAI Whisper-1 STT Recording & OpenAI TTS-1 HD Audio-Streaming ("onyx") | 972/972 | Vitest / Build |
-| **Stufe N** | **In-Game Live Co-Pilot & HUD** | 🟢 Executed | Schwebender Smart-HUD auf allen Spielseiten mit mathematischer Quoten-Engine & Quick-Explain | 1066/1066 | Vitest / Build |
+| **Stufe N** | **In-Game Live Co-Pilot & HUD** | 🟢 Executed | Smart-HUD direkt in Controller & Sidebars integriert mit mathematischer Quoten-Engine & Quick-Explain | 1153/1153 | Vitest / Build |
 | **Stufe P** | **Dynamic VIP Host & Personas** | 🔴 Geplant | Wählbare Bot-Persönlichkeiten (High-Roller, Math Strategist, Casual) & Langzeit-Gedächtnis | Offen | Planungsbereit |
 | **Stufe S** | **WebGL Lip-Sync Audio Avatar** | 🔴 Geplant | 3D Obsidian-Gold Cyber-Avatar mit FFT-Frequenzanalyse lippensynchron zur TTS-Stimme | Offen | Planungsbereit |
 | **Stufe T** | **Autonomous VIP Weekly Digest** | 🔴 Geplant | Wöchentlich automatisierter, persönlicher KI-Wochenrückblick im Vault mit Performance-Charts | Offen | Planungsbereit |
@@ -60,6 +60,8 @@
 
 | Kategorie | Dokument | Dateipfad | Zweck / Inhalt |
 | :--- | :--- | :--- | :--- |
+| **In-Game HUD** | Co-Pilot Math Engine | [`copilot-math.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/copilot-math.ts) | Deterministische 0 ms Quoten-, EV- & Basic Strategy-Engine |
+| **In-Game HUD** | Obsidian Smart-HUD | [`GameCoPilotHud.tsx`](file:///v:/VibeCoding/Casino/src/components/casino/hud/GameCoPilotHud.tsx) | Obsidian-Glass Co-Pilot HUD mit Cyber-Pill & nahtloser Controller-Integration |
 | **Database** | Migration 042 | [`042_guide_feedback_evals.sql`](file:///v:/VibeCoding/Casino/supabase/migrations/042_guide_feedback_evals.sql) | Tabelle `guide_feedback`, Indizes & RPC `get_guide_feedback_summary` |
 | **Database** | Migration 039 | [`039_guide_knowledge_pgvector.sql`](file:///v:/VibeCoding/Casino/supabase/migrations/039_guide_knowledge_pgvector.sql) | `CREATE EXTENSION vector`, Tabelle `guide_documents`, HNSW Index & RPC `match_guide_documents` |
 | **CMS UI** | Admin Knowledge Page | [`page.tsx`](file:///v:/VibeCoding/Casino/src/app/admin/knowledge/page.tsx) & [`AdminKnowledgeClient.tsx`](file:///v:/VibeCoding/Casino/src/app/admin/knowledge/AdminKnowledgeClient.tsx) | Obsidian & Gold Knowledge Dashboard: Artikel-CRUD, Live-Vektorisierung & Suche |

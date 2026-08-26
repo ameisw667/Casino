@@ -74,18 +74,14 @@ export function GuildInviteModal({ isOpen, guildId, onClose, onSuccess }: GuildI
           padding: '16px',
         }}
       >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95 }}
+        <div
           style={{
-            background: '#0B0E14',
-            border: '1px solid rgba(212, 175, 55, 0.3)',
-            borderRadius: '16px',
+            background: '#111111',
+            border: '1px solid #222222',
+            borderRadius: '12px',
             maxWidth: '440px',
             width: '100%',
             padding: '24px',
-            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.7)',
             position: 'relative',
           }}
         >
@@ -93,19 +89,19 @@ export function GuildInviteModal({ isOpen, guildId, onClose, onSuccess }: GuildI
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div
                 style={{
-                  width: '36px',
-                  height: '36px',
+                  width: '34px',
+                  height: '34px',
                   borderRadius: '8px',
-                  background: 'rgba(212, 175, 55, 0.15)',
-                  border: '1px solid #D4AF37',
+                  background: '#181818',
+                  border: '1px solid #282828',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <UserPlus size={20} color="#D4AF37" />
+                <UserPlus size={18} color="#D4AF37" />
               </div>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>
                 Mitglied einladen
               </h2>
             </div>
@@ -177,8 +173,8 @@ export function GuildInviteModal({ isOpen, guildId, onClose, onSuccess }: GuildI
                 placeholder="User-ID des Spielers eingeben..."
                 style={{
                   width: '100%',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  background: '#161616',
+                  border: '1px solid #282828',
                   borderRadius: '8px',
                   padding: '10px 14px',
                   color: '#ffffff',
@@ -195,11 +191,11 @@ export function GuildInviteModal({ isOpen, guildId, onClose, onSuccess }: GuildI
                 onClick={onClose}
                 style={{
                   flex: 1,
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: 'transparent',
+                  border: '1px solid #282828',
                   borderRadius: '8px',
                   padding: '10px',
-                  color: '#9CA3AF',
+                  color: '#8A8A8A',
                   fontWeight: 600,
                   fontSize: '0.9rem',
                   cursor: 'pointer',
@@ -208,34 +204,32 @@ export function GuildInviteModal({ isOpen, guildId, onClose, onSuccess }: GuildI
                 Schließen
               </button>
 
-              <motion.button
+              <button
                 type="submit"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.96 }}
                 disabled={loading}
                 style={{
                   flex: 1,
-                  background: 'linear-gradient(135deg, #D4AF37 0%, #B89628 100%)',
-                  border: 'none',
+                  background: '#1A1A1A',
+                  border: '1px solid #282828',
                   borderRadius: '8px',
                   padding: '10px',
-                  color: '#0B0E14',
-                  fontWeight: 800,
+                  color: '#D4AF37',
+                  fontWeight: 700,
                   fontSize: '0.9rem',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '6px',
-                  boxShadow: '0 2px 10px rgba(212, 175, 55, 0.3)',
+                  transition: 'background-color 0.15s ease, border-color 0.15s ease',
                 }}
               >
-                <Sparkles size={16} />
+                <UserPlus size={15} />
                 {loading ? 'Wird gesendet...' : 'Einladen'}
-              </motion.button>
+              </button>
             </div>
           </form>
-        </motion.div>
+        </div>
       </div>
     </AnimatePresence>
   );

@@ -30,13 +30,10 @@ export function GuildSearchDirectory({
   return (
     <div
       style={{
-        background: 'rgba(11, 14, 20, 0.75)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: '16px',
-        padding: isMobile ? '16px' : '24px',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+        background: '#111111',
+        border: '1px solid #222222',
+        borderRadius: '12px',
+        padding: isMobile ? '16px' : '20px 24px',
       }}
     >
       <div
@@ -50,47 +47,46 @@ export function GuildSearchDirectory({
         }}
       >
         <div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+          <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>
             Gilden-Verzeichnis
           </h2>
-          <p style={{ color: '#9CA3AF', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
+          <p style={{ color: '#737373', fontSize: '0.8rem', margin: '4px 0 0 0' }}>
             Finde bestehende Spielgemeinschaften oder gründe deine eigene Gilde.
           </p>
         </div>
 
         {onCreateClick && (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.96 }}
+          <button
+            type="button"
             onClick={onCreateClick}
             style={{
-              background: 'linear-gradient(135deg, #D4AF37 0%, #B89628 100%)',
-              color: '#0B0E14',
-              border: 'none',
-              padding: '10px 18px',
-              borderRadius: '10px',
-              fontWeight: 800,
-              fontSize: '0.9rem',
+              background: '#1A1A1A',
+              border: '1px solid #282828',
+              borderRadius: '8px',
+              padding: '8px 16px',
+              color: '#D4AF37',
+              fontSize: '0.82rem',
+              fontWeight: 600,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 2px 10px rgba(212, 175, 55, 0.3)',
+              gap: '6px',
               width: isMobile ? '100%' : 'auto',
               justifyContent: 'center',
+              transition: 'background-color 0.15s ease, border-color 0.15s ease',
             }}
           >
-            <Sparkles size={16} />
+            <Shield size={15} />
             Gilde gründen
-          </motion.button>
+          </button>
         )}
       </div>
 
       {/* Search Input */}
       <div style={{ position: 'relative', marginBottom: '20px' }}>
         <Search
-          size={18}
-          color="#9CA3AF"
+          size={16}
+          color="#737373"
           style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }}
         />
         <input
@@ -100,12 +96,12 @@ export function GuildSearchDirectory({
           placeholder="Nach Gildenname oder Kürzel suchen..."
           style={{
             width: '100%',
-            background: 'rgba(255, 255, 255, 0.03)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '10px',
-            padding: '12px 16px 12px 42px',
+            background: '#161616',
+            border: '1px solid #282828',
+            borderRadius: '8px',
+            padding: '10px 14px 10px 38px',
             color: '#ffffff',
-            fontSize: '0.95rem',
+            fontSize: '0.9rem',
             outline: 'none',
             boxSizing: 'border-box',
           }}

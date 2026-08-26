@@ -7,7 +7,6 @@ import {
   isLoginLocked,
   recordFailedAttempt,
   resetCooldownState,
-  saveCooldownState,
 } from '../login-cooldown';
 
 class MockStorage implements Storage {

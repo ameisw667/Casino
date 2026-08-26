@@ -28,22 +28,17 @@ export function GuildInvitesInbox({ invites, onRespond, isMobile = false }: Guil
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       style={{
-        background: 'rgba(212, 175, 55, 0.05)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        border: '1px solid rgba(212, 175, 55, 0.3)',
-        borderRadius: '16px',
-        padding: isMobile ? '16px' : '20px',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.35)',
+        background: '#111111',
+        border: '1px solid #222222',
+        borderRadius: '12px',
+        padding: isMobile ? '16px' : '20px 24px',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-        <Mail size={18} color="#D4AF37" />
-        <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+        <Mail size={16} color="#D4AF37" />
+        <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>
           Offene Gilden-Einladungen ({invites.length})
         </h2>
       </div>
@@ -60,9 +55,9 @@ export function GuildInvitesInbox({ invites, onRespond, isMobile = false }: Guil
                 justifyContent: 'space-between',
                 alignItems: isMobile ? 'flex-start' : 'center',
                 padding: '12px 16px',
-                background: 'rgba(11, 14, 20, 0.75)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: '10px',
+                background: '#141414',
+                border: '1px solid #202020',
+                borderRadius: '8px',
                 gap: '12px',
               }}
             >
@@ -72,38 +67,39 @@ export function GuildInvitesInbox({ invites, onRespond, isMobile = false }: Guil
                     width: '36px',
                     height: '36px',
                     borderRadius: '8px',
-                    background: 'rgba(212, 175, 55, 0.15)',
-                    border: '1px solid #D4AF37',
+                    background: '#1A1A1A',
+                    border: '1px solid #282828',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
                   }}
                 >
-                  <Shield size={18} color="#D4AF37" />
+                  <Shield size={16} color="#D4AF37" />
                 </div>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontWeight: 800, color: '#ffffff', fontSize: '1rem' }}>
+                    <span style={{ fontWeight: 700, color: '#ffffff', fontSize: '0.95rem' }}>
                       {invite.guild?.name || 'Gilde'}
                     </span>
                     {invite.guild?.tag && (
                       <span
                         style={{
-                          background: '#D4AF37',
-                          color: '#0B0E14',
-                          fontWeight: 900,
+                          background: '#1A1A1A',
+                          border: '1px solid #282828',
+                          color: '#D4AF37',
+                          fontWeight: 700,
                           fontSize: '0.75rem',
                           padding: '1px 6px',
                           borderRadius: '4px',
-                          fontFamily: 'monospace',
+                          fontFamily: 'var(--font-mono, monospace)',
                         }}
                       >
                         [{invite.guild.tag}]
                       </span>
                     )}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px', fontSize: '0.78rem', color: '#9CA3AF' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px', fontSize: '0.75rem', color: '#737373' }}>
                     <Clock size={12} />
                     <span>Gültig bis {new Date(invite.expiresAt).toLocaleDateString('de-DE')}</span>
                   </div>
@@ -112,59 +108,59 @@ export function GuildInvitesInbox({ invites, onRespond, isMobile = false }: Guil
 
               {/* Action Buttons */}
               <div style={{ display: 'flex', gap: '8px', width: isMobile ? '100%' : 'auto' }}>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.96 }}
+                <button
+                  type="button"
                   disabled={isBusy}
                   onClick={() => handleAction(invite.id, 'accept')}
                   style={{
-                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                    color: '#ffffff',
-                    border: 'none',
-                    padding: '8px 16px',
+                    background: '#1A1A1A',
+                    border: '1px solid #282828',
+                    color: '#10B981',
+                    padding: '7px 14px',
                     borderRadius: '8px',
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    fontSize: '0.8rem',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '6px',
                     flex: isMobile ? 1 : undefined,
+                    transition: 'background-color 0.15s ease, border-color 0.15s ease',
                   }}
                 >
-                  <Check size={16} />
+                  <Check size={14} />
                   Annehmen
-                </motion.button>
+                </button>
 
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.96 }}
+                <button
+                  type="button"
                   disabled={isBusy}
                   onClick={() => handleAction(invite.id, 'decline')}
                   style={{
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    color: '#9CA3AF',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    padding: '8px 14px',
+                    background: 'transparent',
+                    color: '#737373',
+                    border: '1px solid #282828',
+                    padding: '7px 12px',
                     borderRadius: '8px',
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
+                    fontWeight: 500,
+                    fontSize: '0.8rem',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '6px',
+                    transition: 'color 0.15s ease, border-color 0.15s ease',
                   }}
                 >
-                  <X size={16} />
+                  <X size={14} />
                   Ablehnen
-                </motion.button>
+                </button>
               </div>
             </div>
           );
         })}
       </div>
-    </motion.div>
+    </div>
   );
 }

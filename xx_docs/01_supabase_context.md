@@ -42,7 +42,7 @@ flowchart TD
 
 ## 3 — Kanonisches Datenbankschema & Tabellen-Inventar
 
-Das Datenbankschema basiert auf 53 Migrationen (`001_users.sql` bis `051_achievement_visibility.sql`):
+Das Datenbankschema basiert auf Migrationen (`001_users.sql` bis `053_guild_core.sql`):
 
 ### 3.1 Finanzen, Ledger & Benutzer
 | Tabelle | Primärschlüssel | RLS-Policy | Zweck |
@@ -69,6 +69,12 @@ Das Datenbankschema basiert auf 53 Migrationen (`001_users.sql` bis `051_achieve
 | `seeds` | `user_id` | Read: Own (`server_seed_hash`) | Provably-Fair Server-Seed-Hashes, Client-Seeds und Nonces. |
 | `guide_knowledge` | `id` | Read: Service Role (pgvector) | Vektor-Indexierte KI-Wissensdokumente (`text-embedding-3-small`). |
 | `risk_events` | `id` | Read: Admin / Write: Service Role | Heuristische Anomalie-Erfassung und Betrugs-Signale. |
+
+### 3.4 Auth, Identity & Audit
+| Tabelle / Hook | Primärschlüssel | RLS-Policy | Zweck |
+| :--- | :--- | :--- | :--- |
+| `user_login_history` (Migration 052) | `id` (UUID) | Read: Own (`user_id = auth.uid()::text`) / Write: Service Role | Fälschungssicheres Login-Audit-Log mit DSGVO-IP-Maskierung (`192.168.***.***`). |
+| `custom_access_token_hook` (Migration 049) | Function | `auth.hook` / `supabase_auth_admin` | Injektiert VIP-Tier, Level und Rollen direkt in `claims.app_metadata`. |
 
 ---
 

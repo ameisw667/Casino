@@ -157,12 +157,12 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
           zIndex: 4,
           maxWidth: '1560px',
           margin: '0 auto',
-          padding: isMobile ? '24px 16px 28px' : '28px 24px 32px',
+          padding: isMobile ? '12px 16px 14px' : '28px 24px 32px',
           display: 'flex',
           flexDirection: isMobile ? 'column' : 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: isMobile ? '24px' : '28px',
+          gap: isMobile ? '14px' : '28px',
         }}
       >
         {/* Column 1 (Left): Headline, CTAs & Trust Metrics */}

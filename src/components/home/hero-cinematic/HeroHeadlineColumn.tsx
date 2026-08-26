@@ -24,12 +24,12 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.7 }}
         style={{
-          fontSize: isMobile ? 'clamp(2.1rem, 7.5vw, 2.8rem)' : 'clamp(2.6rem, 3.6vw, 3.5rem)',
+          fontSize: isMobile ? 'clamp(1.7rem, 6.2vw, 2.2rem)' : 'clamp(2.6rem, 3.6vw, 3.5rem)',
           fontWeight: 1000,
-          lineHeight: 0.95,
+          lineHeight: isMobile ? 1.0 : 0.95,
           letterSpacing: '-0.04em',
           color: '#ffffff',
-          marginBottom: '12px',
+          marginBottom: isMobile ? '8px' : '12px',
           textTransform: 'uppercase',
           textShadow: '0 4px 20px rgba(0,0,0,0.9)',
         }}
@@ -53,10 +53,10 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.7 }}
         style={{
-          fontSize: isMobile ? '0.9rem' : '0.98rem',
+          fontSize: isMobile ? '0.82rem' : '0.98rem',
           color: 'rgba(255, 255, 255, 0.88)',
-          lineHeight: 1.45,
-          marginBottom: '20px',
+          lineHeight: isMobile ? 1.35 : 1.45,
+          marginBottom: isMobile ? '12px' : '20px',
           fontWeight: 500,
           textShadow: '0 2px 10px rgba(0,0,0,0.9)',
         }}
@@ -70,7 +70,7 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        style={{ marginBottom: '18px' }}
+        style={{ marginBottom: isMobile ? '10px' : '18px' }}
       >
         <div
           style={{
@@ -78,12 +78,12 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
             background:
               'linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(18, 18, 24, 0.9) 100%)',
             border: '1px solid rgba(212, 175, 55, 0.35)',
-            padding: isMobile ? '12px' : '12px 16px',
+            padding: isMobile ? '10px 12px' : '12px 16px',
             display: 'flex',
             flexDirection: isMobile ? 'column' : 'row',
             alignItems: isMobile ? 'stretch' : 'center',
             justifyContent: isMobile ? 'flex-start' : 'space-between',
-            gap: isMobile ? '10px' : '12px',
+            gap: isMobile ? '8px' : '12px',
             backdropFilter: 'blur(16px)',
             boxShadow: '0 10px 28px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.15)',
           }}
@@ -224,7 +224,7 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
           display: 'inline-flex',
           alignItems: 'center',
           gap: isMobile ? '4px' : '6px',
-          padding: isMobile ? '6px 8px' : '4px 8px',
+          padding: isMobile ? '4px 6px' : '4px 8px',
           borderRadius: '24px',
           background: 'rgba(14, 17, 24, 0.85)',
           backdropFilter: 'blur(16px)',
@@ -234,8 +234,9 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
           fontSize: '0.68rem',
           fontWeight: 700,
           maxWidth: '100%',
-          flexWrap: isMobile ? 'wrap' : 'nowrap',
-          justifyContent: 'center',
+          flexWrap: 'nowrap',
+          overflowX: 'auto',
+          justifyContent: isMobile ? 'flex-start' : 'center',
         }}
       >
         {/* Micro-Chip 1: 100% Provably Fair */}
@@ -244,32 +245,30 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
             display: 'flex',
             alignItems: 'center',
             gap: '4px',
-            padding: '2px 7px',
+            padding: isMobile ? '2px 5px' : '2px 7px',
             borderRadius: '12px',
             background: 'rgba(212, 175, 55, 0.08)',
             border: '1px solid rgba(212, 175, 55, 0.22)',
             color: '#D4AF37',
-            fontSize: '0.64rem',
+            fontSize: isMobile ? '0.60rem' : '0.64rem',
             fontWeight: 900,
             letterSpacing: '0.03em',
             flexShrink: 0,
           }}
         >
           <ShieldCheck size={11} color="#D4AF37" />
-          <span>100% PROVABLY FAIR</span>
+          <span>{isMobile ? 'PROVABLY FAIR' : '100% PROVABLY FAIR'}</span>
         </div>
 
         {/* Micro-Divider */}
-        {!isMobile && (
-          <div
-            style={{
-              width: '1px',
-              height: '12px',
-              background: 'rgba(255, 255, 255, 0.12)',
-              flexShrink: 0,
-            }}
-          />
-        )}
+        <div
+          style={{
+            width: '1px',
+            height: '12px',
+            background: 'rgba(255, 255, 255, 0.12)',
+            flexShrink: 0,
+          }}
+        />
 
         {/* Micro-Chip 2: Rating */}
         <div
@@ -277,7 +276,7 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
             display: 'flex',
             alignItems: 'center',
             gap: '4px',
-            padding: '2px 7px',
+            padding: isMobile ? '2px 5px' : '2px 7px',
             borderRadius: '12px',
             background: 'rgba(255, 255, 255, 0.04)',
             border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -287,7 +286,7 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
         >
           <div style={{ display: 'flex', gap: '1px' }}>
             {[...Array(5)].map((_, i) => (
-              <Star key={i} size={9} fill="#D4AF37" color="#D4AF37" />
+              <Star key={i} size={isMobile ? 8 : 9} fill="#D4AF37" color="#D4AF37" />
             ))}
           </div>
           <span
@@ -295,33 +294,33 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
               fontFamily: 'var(--font-mono, monospace)',
               fontWeight: 900,
               color: '#fff',
-              fontSize: '0.67rem',
+              fontSize: isMobile ? '0.63rem' : '0.67rem',
             }}
           >
             4.9/5
           </span>
-          <span
-            style={{
-              fontSize: '0.60rem',
-              color: 'rgba(255, 255, 255, 0.45)',
-              fontWeight: 800,
-            }}
-          >
-            RATING
-          </span>
+          {!isMobile && (
+            <span
+              style={{
+                fontSize: '0.60rem',
+                color: 'rgba(255, 255, 255, 0.45)',
+                fontWeight: 800,
+              }}
+            >
+              RATING
+            </span>
+          )}
         </div>
 
         {/* Micro-Divider */}
-        {!isMobile && (
-          <div
-            style={{
-              width: '1px',
-              height: '12px',
-              background: 'rgba(255, 255, 255, 0.12)',
-              flexShrink: 0,
-            }}
-          />
-        )}
+        <div
+          style={{
+            width: '1px',
+            height: '12px',
+            background: 'rgba(255, 255, 255, 0.12)',
+            flexShrink: 0,
+          }}
+        />
 
         {/* Micro-Chip 3: Instant Payouts */}
         <div
@@ -329,19 +328,19 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
             display: 'flex',
             alignItems: 'center',
             gap: '4px',
-            padding: '2px 7px',
+            padding: isMobile ? '2px 5px' : '2px 7px',
             borderRadius: '12px',
             background: 'rgba(0, 231, 1, 0.08)',
             border: '1px solid rgba(0, 231, 1, 0.2)',
             color: '#00E701',
-            fontSize: '0.64rem',
+            fontSize: isMobile ? '0.60rem' : '0.64rem',
             fontWeight: 900,
             letterSpacing: '0.03em',
             flexShrink: 0,
           }}
         >
           <Zap size={11} color="#00E701" />
-          <span>INSTANT AUSZAHLUNG</span>
+          <span>{isMobile ? 'INSTANT PAY' : 'INSTANT AUSZAHLUNG'}</span>
         </div>
       </motion.div>
     </div>

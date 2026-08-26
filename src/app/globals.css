@@ -433,6 +433,26 @@ p {
   }
 }
 
+/* Live Activity Feed Responsive Layout */
+.live-activity-desktop-table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.live-activity-mobile-list {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .live-activity-desktop-table {
+    display: none !important;
+  }
+  .live-activity-mobile-list {
+    display: flex !important;
+  }
+}
+
 /* Dice Game Optimizations */
 .dice-container {
   background: transparent;

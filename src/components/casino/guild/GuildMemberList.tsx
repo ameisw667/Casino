@@ -41,18 +41,15 @@ export function GuildMemberList({
   return (
     <div
       style={{
-        background: 'rgba(11, 14, 20, 0.75)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: '16px',
-        padding: isMobile ? '16px' : '20px',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+        background: '#111111',
+        border: '1px solid #222222',
+        borderRadius: '12px',
+        padding: isMobile ? '16px' : '20px 24px',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Shield size={18} color="#D4AF37" />
+        <h2 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Shield size={16} color="#D4AF37" />
           Mitgliederliste ({members.length})
         </h2>
       </div>
@@ -78,9 +75,9 @@ export function GuildMemberList({
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '12px 16px',
-                background: isSelf ? 'rgba(212, 175, 55, 0.06)' : 'rgba(255, 255, 255, 0.02)',
-                border: isSelf ? '1px solid rgba(212, 175, 55, 0.2)' : '1px solid rgba(255, 255, 255, 0.05)',
-                borderRadius: '10px',
+                background: isSelf ? '#161616' : '#131313',
+                border: isSelf ? '1px solid #2E2E2E' : '1px solid #202020',
+                borderRadius: '8px',
                 gap: '12px',
                 position: 'relative',
               }}
@@ -89,11 +86,11 @@ export function GuildMemberList({
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
                 <div
                   style={{
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '10px',
-                    background: member.role === 'leader' ? 'rgba(212, 175, 55, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                    border: member.role === 'leader' ? '1px solid #D4AF37' : '1px solid rgba(255, 255, 255, 0.1)',
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '8px',
+                    background: '#1A1A1A',
+                    border: '1px solid #282828',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -101,11 +98,11 @@ export function GuildMemberList({
                   }}
                 >
                   {member.role === 'leader' ? (
-                    <Crown size={18} color="#D4AF37" />
+                    <Crown size={16} color="#D4AF37" />
                   ) : member.role === 'officer' ? (
-                    <Shield size={18} color="#60A5FA" />
+                    <Shield size={16} color="#93C5FD" />
                   ) : (
-                    <User size={18} color="#9CA3AF" />
+                    <User size={16} color="#737373" />
                   )}
                 </div>
 
@@ -115,7 +112,7 @@ export function GuildMemberList({
                       style={{
                         fontWeight: 700,
                         color: '#ffffff',
-                        fontSize: '0.95rem',
+                        fontSize: '0.9rem',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
@@ -126,8 +123,9 @@ export function GuildMemberList({
                     {isSelf && (
                       <span
                         style={{
-                          fontSize: '0.7rem',
-                          background: 'rgba(212, 175, 55, 0.2)',
+                          fontSize: '0.68rem',
+                          background: '#1A1A1A',
+                          border: '1px solid #282828',
                           color: '#D4AF37',
                           padding: '1px 6px',
                           borderRadius: '4px',
@@ -139,7 +137,7 @@ export function GuildMemberList({
                     )}
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px', fontSize: '0.78rem', color: '#9CA3AF' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px', fontSize: '0.75rem', color: '#737373' }}>
                     <span className="font-mono tabular-nums" style={{ color: '#D4AF37', fontWeight: 600 }}>
                       Lv. {member.user?.level ?? 1}
                     </span>
@@ -155,31 +153,20 @@ export function GuildMemberList({
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span
                   style={{
-                    padding: '3px 10px',
-                    borderRadius: '999px',
-                    fontSize: '0.75rem',
-                    fontWeight: 800,
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.04em',
-                    background:
-                      member.role === 'leader'
-                        ? 'rgba(212, 175, 55, 0.15)'
-                        : member.role === 'officer'
-                        ? 'rgba(59, 130, 246, 0.15)'
-                        : 'rgba(156, 163, 175, 0.1)',
+                    background: '#1A1A1A',
+                    border: '1px solid #282828',
                     color:
                       member.role === 'leader'
                         ? '#D4AF37'
                         : member.role === 'officer'
-                        ? '#60A5FA'
-                        : '#9CA3AF',
-                    border: `1px solid ${
-                      member.role === 'leader'
-                        ? 'rgba(212, 175, 55, 0.3)'
-                        : member.role === 'officer'
-                        ? 'rgba(59, 130, 246, 0.3)'
-                        : 'rgba(156, 163, 175, 0.2)'
-                    }`,
+                        ? '#93C5FD'
+                        : '#8A8A8A',
                   }}
                 >
                   {member.role}

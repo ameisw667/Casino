@@ -11,7 +11,7 @@ import { getOrCreateSessionId } from '@/lib/casino/session';
 import { isBigWin } from '@/lib/casino/big-win';
 import { useMounted } from '@/hooks/useMounted';
 import { KeyboardShortcutProvider } from '@/hooks/useKeyboardShortcuts';
-import { Home, Gamepad2, History, Trophy, Users, Target, BarChart3, Settings } from 'lucide-react';
+import { Home, Gamepad2, History, Trophy, Target, BarChart3, Settings } from 'lucide-react';
 import { NavigationShortcuts } from './NavigationShortcuts';
 import { MainSidebar, type MenuItem } from './MainSidebar';
 import { MainHeader } from './MainHeader';
@@ -312,7 +312,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     { icon: <Gamepad2 size={20} />, label: 'Games', path: '/games' },
     { icon: <History size={20} />, label: 'My Bets', path: '/history' },
     { icon: <Trophy size={20} />, label: 'Leaderboard', path: '/leaderboard' },
-    { icon: <Users size={20} />, label: 'Guild', path: '/guild' },
     { icon: <Target size={20} />, label: 'Vault', path: '/vault' },
     { icon: <BarChart3 size={20} />, label: 'Stats', path: '/stats' },
     {

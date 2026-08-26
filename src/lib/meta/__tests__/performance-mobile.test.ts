@@ -170,4 +170,26 @@ describe('performance & mobile optimization', () => {
     expect(signUpContent).toContain('className="auth-page-shell"');
     expect(signInContent).toContain('className="auth-page-shell"');
   });
+
+  it('renders 2-column game grid on mobile and preserves 5-column grid on desktop', () => {
+    const gridContent = readFileSync(
+      resolve(root, 'src/components/home/InteractiveArcadeGrid.tsx'),
+      'utf8',
+    );
+
+    expect(gridContent).toContain("isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(5, minmax(0, 1fr))'");
+  });
+
+  it('provides compact mobile stream list and maintains desktop table in LiveActivityFeedV2', () => {
+    const feedContent = readFileSync(
+      resolve(root, 'src/components/social/LiveActivityFeedV2.tsx'),
+      'utf8',
+    );
+    const cssContent = readFileSync(resolve(root, 'src/app/globals.css'), 'utf8');
+
+    expect(feedContent).toContain('live-activity-desktop-table desktop-only');
+    expect(feedContent).toContain('live-activity-mobile-list mobile-only');
+    expect(cssContent).toContain('.live-activity-desktop-table');
+    expect(cssContent).toContain('.live-activity-mobile-list');
+  });
 });
