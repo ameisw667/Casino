@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, UserPlus, Sparkles, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, UserPlus, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface GuildInviteModalProps {
   isOpen: boolean;
@@ -57,9 +56,8 @@ export function GuildInviteModal({ isOpen, guildId, onClose, onSuccess }: GuildI
   };
 
   return (
-    <AnimatePresence>
-      <div
-        style={{
+    <div
+      style={{
           position: 'fixed',
           top: 0,
           left: 0,
@@ -231,6 +229,5 @@ export function GuildInviteModal({ isOpen, guildId, onClose, onSuccess }: GuildI
           </form>
         </div>
       </div>
-    </AnimatePresence>
   );
 }

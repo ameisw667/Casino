@@ -74,17 +74,18 @@ export default function GuildDetailsPage() {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
-            color: '#9CA3AF',
+            color: '#8A8A8A',
             textDecoration: 'none',
-            fontSize: '0.9rem',
-            fontWeight: 600,
-            padding: '6px 12px',
+            fontSize: '0.85rem',
+            fontWeight: 500,
+            padding: '6px 14px',
             borderRadius: '8px',
-            background: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            background: '#1A1A1A',
+            border: '1px solid #282828',
+            transition: 'color 0.15s ease',
           }}
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={14} />
           Zurück zu Gilden
         </Link>
       </div>

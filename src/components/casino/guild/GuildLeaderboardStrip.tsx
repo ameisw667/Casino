@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Shield, Users, UserPlus, ArrowRight } from 'lucide-react';
 import type { GuildRecord, GuildRole, GuildMemberRecord } from '@/lib/casino/guild-service';
@@ -20,25 +20,30 @@ export function GuildLeaderboardStrip({ isMobile = false }: GuildLeaderboardStri
   } | null>(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
 
-  const loadMembership = useCallback(async () => {
-    try {
-      const res = await fetch('/api/casino/guild/me', { cache: 'no-store' });
-      if (res.ok) {
-        const json = await res.json();
-        setMembership(json.membership ?? null);
-      } else {
-        setMembership(null);
-      }
-    } catch {
-      setMembership(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    loadMembership();
-  }, [loadMembership]);
+    let cancelled = false;
+    async function load() {
+      try {
+        const res = await fetch('/api/casino/guild/me', { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (!cancelled) setMembership(json.membership ?? null);
+        } else {
+          if (!cancelled) setMembership(null);
+        }
+      } catch {
+        if (!cancelled) setMembership(null);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshKey]);
 
   if (loading) {
     return (
@@ -265,7 +270,7 @@ export function GuildLeaderboardStrip({ isMobile = false }: GuildLeaderboardStri
           isOpen={showInviteModal}
           guildId={membership.guild.id}
           onClose={() => setShowInviteModal(false)}
-          onSuccess={loadMembership}
+          onSuccess={() => setRefreshKey((k) => k + 1)}
         />
       )}
     </>

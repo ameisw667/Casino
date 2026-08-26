@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Search, Shield, Users, ArrowRight, Sparkles } from 'lucide-react';
+import { Search, Shield, Users, ArrowRight } from 'lucide-react';
 import type { GuildRecord } from '@/lib/casino/guild-service';
 
 interface GuildSearchDirectoryProps {

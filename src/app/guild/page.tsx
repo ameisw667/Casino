@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { ArrowLeft } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { useSupabaseSession } from '@/components/auth/SupabaseSessionProvider';
 import { GuildHeader } from '@/components/casino/guild/GuildHeader';
@@ -247,6 +249,30 @@ export default function GuildPage() {
         position: 'relative',
       }}
     >
+      {/* Back to Leaderboard link */}
+      <div>
+        <Link
+          href="/leaderboard"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            color: '#8A8A8A',
+            textDecoration: 'none',
+            fontSize: '0.85rem',
+            fontWeight: 500,
+            padding: '6px 14px',
+            borderRadius: '8px',
+            background: '#111111',
+            border: '1px solid #222222',
+            transition: 'color 0.15s ease',
+          }}
+        >
+          <ArrowLeft size={14} />
+          Zurück zum Leaderboard
+        </Link>
+      </div>
+
       {/* Error alert toast */}
       {actionError && (
         <motion.div
@@ -334,48 +360,53 @@ export default function GuildPage() {
             >
               <div
                 style={{
-                  background: '#0B0E14',
-                  border: '1px solid rgba(239, 68, 68, 0.4)',
-                  borderRadius: '16px',
+                  background: '#111111',
+                  border: '1px solid #222222',
+                  borderRadius: '12px',
                   maxWidth: '400px',
                   width: '100%',
                   padding: '24px',
                   textAlign: 'center',
                 }}
               >
-                <h3 style={{ color: '#ffffff', fontSize: '1.2rem', fontWeight: 800, margin: '0 0 10px 0' }}>
+                <h3 style={{ color: '#ffffff', fontSize: '1.15rem', fontWeight: 700, margin: '0 0 8px 0' }}>
                   Gilde verlassen?
                 </h3>
-                <p style={{ color: '#9CA3AF', fontSize: '0.9rem', marginBottom: '20px' }}>
+                <p style={{ color: '#737373', fontSize: '0.85rem', marginBottom: '20px', lineHeight: '1.4' }}>
                   Möchtest du die Gilde <strong>{membership.guild.name}</strong> wirklich verlassen?
                 </p>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button
+                    type="button"
                     onClick={() => setConfirmLeave(false)}
                     style={{
                       flex: 1,
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      color: '#9CA3AF',
+                      background: 'transparent',
+                      border: '1px solid #282828',
+                      color: '#8A8A8A',
                       borderRadius: '8px',
                       padding: '10px',
                       fontWeight: 600,
+                      fontSize: '0.85rem',
                       cursor: 'pointer',
                     }}
                   >
                     Abbrechen
                   </button>
                   <button
+                    type="button"
                     onClick={handleLeaveGuild}
                     style={{
                       flex: 1,
-                      background: '#EF4444',
-                      border: 'none',
-                      color: '#ffffff',
+                      background: '#1A1A1A',
+                      border: '1px solid rgba(239, 68, 68, 0.4)',
+                      color: '#EF4444',
                       borderRadius: '8px',
                       padding: '10px',
-                      fontWeight: 800,
+                      fontWeight: 700,
+                      fontSize: '0.85rem',
                       cursor: 'pointer',
+                      transition: 'background-color 0.15s ease',
                     }}
                   >
                     Verlassen
@@ -405,51 +436,55 @@ export default function GuildPage() {
             >
               <div
                 style={{
-                  background: '#0B0E14',
-                  border: '1px solid rgba(239, 68, 68, 0.5)',
-                  borderRadius: '16px',
+                  background: '#111111',
+                  border: '1px solid #222222',
+                  borderRadius: '12px',
                   maxWidth: '420px',
                   width: '100%',
                   padding: '24px',
                   textAlign: 'center',
                 }}
               >
-                <h3 style={{ color: '#EF4444', fontSize: '1.25rem', fontWeight: 800, margin: '0 0 10px 0' }}>
-                  Gilde unwiderruflich auflösen?
+                <h3 style={{ color: '#ffffff', fontSize: '1.15rem', fontWeight: 700, margin: '0 0 8px 0' }}>
+                  Gilde auflösen?
                 </h3>
-                <p style={{ color: '#D1D5DB', fontSize: '0.9rem', marginBottom: '20px' }}>
+                <p style={{ color: '#737373', fontSize: '0.85rem', marginBottom: '20px', lineHeight: '1.4' }}>
                   Alle Mitglieder werden entfernt und offene Einladungen gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
                 </p>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button
+                    type="button"
                     onClick={() => setConfirmDisband(false)}
                     style={{
                       flex: 1,
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      color: '#9CA3AF',
+                      background: 'transparent',
+                      border: '1px solid #282828',
+                      color: '#8A8A8A',
                       borderRadius: '8px',
                       padding: '10px',
                       fontWeight: 600,
+                      fontSize: '0.85rem',
                       cursor: 'pointer',
                     }}
                   >
                     Abbrechen
                   </button>
                   <button
+                    type="button"
                     onClick={handleDisbandGuild}
                     style={{
                       flex: 1,
-                      background: '#DC2626',
-                      border: 'none',
-                      color: '#ffffff',
+                      background: '#1A1A1A',
+                      border: '1px solid rgba(239, 68, 68, 0.4)',
+                      color: '#EF4444',
                       borderRadius: '8px',
                       padding: '10px',
-                      fontWeight: 800,
+                      fontWeight: 700,
+                      fontSize: '0.85rem',
                       cursor: 'pointer',
                     }}
                   >
-                    Unwiderruflich auflösen
+                    Auflösen
                   </button>
                 </div>
               </div>

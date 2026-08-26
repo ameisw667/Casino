@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Shield, Sparkles, AlertCircle } from 'lucide-react';
+import { X, Shield, AlertCircle } from 'lucide-react';
 import type { GuildRecord } from '@/lib/casino/guild-service';
 
 interface GuildCreateModalProps {
@@ -54,9 +53,8 @@ export function GuildCreateModal({ isOpen, onClose, onSuccess }: GuildCreateModa
   };
 
   return (
-    <AnimatePresence>
-      <div
-        style={{
+    <div
+      style={{
           position: 'fixed',
           top: 0,
           left: 0,
@@ -229,7 +227,6 @@ export function GuildCreateModal({ isOpen, onClose, onSuccess }: GuildCreateModa
           </form>
         </div>
       </div>
-    </AnimatePresence>
   );
 }
 

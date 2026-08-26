@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Mail, Check, X, Shield, Clock } from 'lucide-react';
 import type { GuildInviteRecord } from '@/lib/casino/guild-service';
 
