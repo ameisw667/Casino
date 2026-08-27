@@ -50,8 +50,6 @@ describe('isPublicRoute pattern matching', () => {
     expect(isPublicRoute('/sign-up')).toBe(true);
     expect(isPublicRoute('/games/slots')).toBe(true);
     expect(isPublicRoute('/games/dice')).toBe(true);
-    expect(isPublicRoute('/guild')).toBe(true);
-    expect(isPublicRoute('/guild/some-id')).toBe(true);
     expect(isPublicRoute('/fairness')).toBe(true);
   });
 

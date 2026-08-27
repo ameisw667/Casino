@@ -47,6 +47,14 @@ describe('Follow-up Suggestions Extraction & Stream Filtering (Stufe I)', () => 
       expect(result.suggestions).toHaveLength(3);
       expect(result.suggestions).toEqual(['Eins', 'Zwei', 'Drei']);
     });
+
+    it('truncates an overlong suggestion instead of forwarding it verbatim (prompt only asks for <45 chars, not enforced by the model)', () => {
+      const raw = `Text.\n<<<SUGGESTIONS: ["${'x'.repeat(500)}"]>>>`;
+      const result = extractSuggestionsFromText(raw);
+
+      expect(result.suggestions).toHaveLength(1);
+      expect(result.suggestions[0]).toHaveLength(45);
+    });
   });
 
   describe('SuggestionStreamFilter', () => {

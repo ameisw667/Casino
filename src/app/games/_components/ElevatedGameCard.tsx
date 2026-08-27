@@ -96,9 +96,9 @@ export function ElevatedGameCard({
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '10px',
-            padding: '14px',
-            borderRadius: '20px',
+            gap: isMobile ? '6px' : '10px',
+            padding: isMobile ? '10px' : '14px',
+            borderRadius: '16px',
             background:
               'linear-gradient(145deg, rgba(24, 24, 32, 0.8) 0%, rgba(12, 12, 18, 0.9) 100%)',
             backdropFilter: 'blur(16px)',
@@ -401,7 +401,8 @@ export function ElevatedGameCard({
               lineHeight: 1.4,
               color: 'hsl(var(--text-muted))',
               margin: 0,
-              minHeight: '2em',
+              minHeight: isMobile ? '0' : '2em',
+              display: isMobile ? 'none' : 'block',
             }}
           >
             {game.desc}
@@ -412,18 +413,18 @@ export function ElevatedGameCard({
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              padding: '8px 10px',
-              borderRadius: '12px',
+              padding: isMobile ? '4px 8px' : '8px 10px',
+              borderRadius: '10px',
               background: 'hsla(0,0%,100%,0.02)',
               border: '1px solid hsla(0,0%,100%,0.05)',
             }}
           >
-            <span style={{ fontSize: '0.55rem', fontWeight: 800, color: 'hsl(var(--text-dim))' }}>
+            <span style={{ fontSize: isMobile ? '0.50rem' : '0.55rem', fontWeight: 800, color: 'hsl(var(--text-dim))' }}>
               TOP PAYOUT
             </span>
             <span
               style={{
-                fontSize: '0.85rem',
+                fontSize: isMobile ? '0.75rem' : '0.85rem',
                 fontWeight: 950,
                 color: '#D4AF37',
                 fontFamily: 'var(--font-mono), monospace',
@@ -440,10 +441,10 @@ export function ElevatedGameCard({
             className="btn btn-primary"
             style={{
               width: '100%',
-              height: '40px',
-              borderRadius: '12px',
+              height: isMobile ? '32px' : '40px',
+              borderRadius: '10px',
               fontWeight: 950,
-              fontSize: '0.8rem',
+              fontSize: isMobile ? '0.70rem' : '0.8rem',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -454,34 +455,36 @@ export function ElevatedGameCard({
               marginTop: 'auto',
             }}
           >
-            <Play size={14} fill="currentColor" />
+            <Play size={isMobile ? 12 : 14} fill="currentColor" />
             PLAY {game.name.toUpperCase()}
           </motion.button>
 
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '6px',
-              color: 'hsl(var(--text-dim))',
-              fontSize: '0.6rem',
-              fontWeight: 800,
-            }}
-          >
-            <kbd
+          {!isMobile && (
+            <div
               style={{
-                padding: '1px 6px',
-                borderRadius: '5px',
-                border: '1px solid hsla(0,0%,100%,0.12)',
-                background: 'hsla(0,0%,100%,0.03)',
-                fontFamily: 'var(--font-mono), monospace',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '6px',
+                color: 'hsl(var(--text-dim))',
+                fontSize: '0.6rem',
+                fontWeight: 800,
               }}
             >
-              {index + 1}
-            </kbd>
-            to launch
-          </div>
+              <kbd
+                style={{
+                  padding: '1px 6px',
+                  borderRadius: '5px',
+                  border: '1px solid hsla(0,0%,100%,0.12)',
+                  background: 'hsla(0,0%,100%,0.03)',
+                  fontFamily: 'var(--font-mono), monospace',
+                }}
+              >
+                {index + 1}
+              </kbd>
+              to launch
+            </div>
+          )}
         </motion.article>
       </Link>
     </motion.div>

@@ -5,6 +5,7 @@ import { loadGuideLeaderboardSnippet } from '../guide-live-leaderboard';
 import { requestCasinoGuideAnswer } from './answer';
 import { buildCasinoGuideContextAsync } from './context';
 import { buildCasinoGuideInstructions } from './instructions';
+import { DEFAULT_PERSONA, type GuidePersona } from './personas';
 import { buildCasinoGuideRequest, createGuideHeaders, GUIDE_REQUEST_TIMEOUT_MS } from './request';
 import { getGuideFunctionCalls } from './response-parser';
 import { SuggestionStreamFilter } from './suggestions';
@@ -22,6 +23,7 @@ export async function requestCasinoGuideAnswerStream(
   userId?: string,
   history?: readonly GuideConversationHistoryItem[],
   image?: string,
+  persona: GuidePersona = DEFAULT_PERSONA,
 ): Promise<GuideStreamResult> {
   if (!process.env.OPENAI_API_KEY?.trim()) {
     throw new CasinoGuideError('configuration');
@@ -32,13 +34,13 @@ export async function requestCasinoGuideAnswerStream(
 
   const context = await buildCasinoGuideContextAsync(retrievalQuery);
   const leaderboard = await loadGuideLeaderboardSnippet();
-  const instructions = buildCasinoGuideInstructions(context, leaderboard);
+  const instructions = buildCasinoGuideInstructions(context, leaderboard, persona);
 
   // Turn 1: Check if structured live player tools are needed
   let toolContextExtra = '';
   let uiAction: { type: string; target?: string; label: string } | null = null;
   try {
-    const toolCheckRequest = await buildCasinoGuideRequest(message, history, image);
+    const toolCheckRequest = await buildCasinoGuideRequest(message, history, image, persona);
     const turn1Res = await fetch(toolCheckRequest.url, toolCheckRequest.init);
     if (turn1Res.ok) {
       const turn1Payload = await turn1Res.json();
@@ -109,7 +111,7 @@ export async function requestCasinoGuideAnswerStream(
     });
   } catch {
     // If chat completions stream fails, fallback to standard answer stream
-    const fallbackAnswer = await requestCasinoGuideAnswer(message, userId, history, image);
+    const fallbackAnswer = await requestCasinoGuideAnswer(message, userId, history, image, persona);
     const encoder = new TextEncoder();
     const fallbackStream = new ReadableStream<Uint8Array>({
       start(controller) {
@@ -139,7 +141,7 @@ export async function requestCasinoGuideAnswerStream(
   }
 
   if (!openAiStreamRes.ok || !openAiStreamRes.body) {
-    const fallbackAnswer = await requestCasinoGuideAnswer(message, userId, history);
+    const fallbackAnswer = await requestCasinoGuideAnswer(message, userId, history, undefined, persona);
     const encoder = new TextEncoder();
     const fallbackStream = new ReadableStream<Uint8Array>({
       start(controller) {

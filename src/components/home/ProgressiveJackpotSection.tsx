@@ -10,10 +10,10 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
   const { formatted: jackpotFormatted } = useProgressiveJackpot();
 
   const stats = [
-    { label: 'GESAMT AUSGEZAHLT', value: '$14,280,450+', icon: Coins, color: '#D4AF37' },
-    { label: 'DURCHSCHN. AUSZAHLUNG', value: '1.8 SEKUNDEN', icon: Zap, color: '#00E701' },
-    { label: 'PLATZIERTE WETTEN', value: '4,892,100+', icon: Activity, color: '#00B67A' },
-    { label: 'PROVABLY FAIR', value: '100% TRANSPARENT', icon: ShieldCheck, color: '#D4AF37' },
+    { label: 'GESAMT AUSGEZAHLT', mobileLabel: 'AUSGEZAHLT', value: '$14,280,450+', icon: Coins, color: '#D4AF37' },
+    { label: 'DURCHSCHN. AUSZAHLUNG', mobileLabel: 'AUSZAHLUNGSSPEED', value: '1.8 SEKUNDEN', mobileValue: '1.8 SEKUNDEN', icon: Zap, color: '#00E701' },
+    { label: 'PLATZIERTE WETTEN', mobileLabel: 'WETTEN GESAMT', value: '4,892,100+', icon: Activity, color: '#00B67A' },
+    { label: 'PROVABLY FAIR', mobileLabel: 'PROVABLY FAIR', value: '100% TRANSPARENT', icon: ShieldCheck, color: '#D4AF37' },
   ];
 
   return (
@@ -170,22 +170,22 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
                   marginBottom: '4px',
                 }}
               >
-                <Icon size={14} color={stat.color} />
+                <Icon size={isMobile ? 12 : 14} color={stat.color} />
                 <span
                   style={{
-                    fontSize: '0.68rem',
+                    fontSize: isMobile ? '0.58rem' : '0.68rem',
                     fontWeight: 900,
                     color: 'rgba(255, 255, 255, 0.55)',
-                    letterSpacing: '0.08em',
+                    letterSpacing: '0.06em',
                     textTransform: 'uppercase',
                   }}
                 >
-                  {stat.label}
+                  {isMobile ? stat.mobileLabel : stat.label}
                 </span>
               </div>
               <div
                 style={{
-                  fontSize: isMobile ? '0.92rem' : '1.35rem',
+                  fontSize: isMobile ? '0.85rem' : '1.35rem',
                   fontWeight: 1000,
                   color: '#ffffff',
                   fontFamily: 'monospace',
@@ -196,7 +196,7 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
                   whiteSpace: 'nowrap',
                 }}
               >
-                {stat.value}
+                {isMobile ? (stat.mobileValue || stat.value) : stat.value}
               </div>
             </motion.div>
           );

@@ -77,3 +77,28 @@
 | **4** | **Unit- & Integrationstests** | 🟢 Executed | 96/96 Vitest-Suites, 802/802 Tests grün | LLM |
 | **5** | **Verifikation & Build** | 🟢 Executed | `tsc --noEmit` & `next build` (39/39 Seiten) 100% grün | LLM |
 | **6** | **Abschluss & Archivierung** | 🟢 Executed | In `10_llm_erweiterung.md` aktualisiert, archiviert und auf `main` gepusht | LLM |
+
+---
+
+## 5 — Security-Review (Nachtrag Stufe R / R1, 2026-08-27)
+
+> Scope: [`guide-tools.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/guide-tools.ts) (die 3 Read-Only Tools `get_player_vip_progress`, `get_player_session_stats`, `get_player_account_limits`), deren Aufruf aus [`chat-guide/answer.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/chat-guide/answer.ts) & [`chat-guide/stream.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/chat-guide/stream.ts), sowie die Auth-/Rate-Limit-Kette in [`api/chat/bot-response/route.ts`](file:///v:/VibeCoding/Casino/src/app/api/chat/bot-response/route.ts).
+
+Befund vor Korrektur: kein IDOR — `userId` stammt ausschließlich aus `supabase.auth.getUser()` (nie aus Modell-Argumenten, da alle 3 Tool-Schemas `parameters: { type: 'object', properties: {} }` erzwingen); kein Prompt-Injection-Risiko über die Tool-Ergebnisse (alle Felder sind server-generierte Zahlen/Enums, kein spielerkontrollierter Freitext wie beim Leaderboard-Review); Timeout (8s) und Rate-Limiting (30/60s) konsistent auf beiden Turns durchgesetzt. Zwei MEDIUM-Findings wurden noch am selben Tag behoben:
+
+| Finding | Korrektur |
+| --- | --- |
+| **Fail-open Fabrikation statt Fail-Closed:** `executeGetPlayerVipProgress`/`executeGetPlayerSessionStats` gaben bei einem `WalletService`-Fehler plausibel aussehende Default-Werte (`BRONZE`, Level 1, `$0.00`) zurück, die der Guide dem Spieler als echten Live-Stand präsentiert hätte — ein Widerspruch zum in Abschnitt 3 dokumentierten Invariant "bei Tool-Fehlern fällt das Modell auf neutrale Information zurück" und zur Instruction "never make up product facts". | Neues Feld `dataUnavailable?: true` auf beiden Result-Typen, gesetzt nur im `catch`-Pfad (nicht im bewussten Dev-/Anonymous-Fallback). Instructions ergänzt: bei `dataUnavailable: true` sagt der Guide, dass die Live-Daten temporär nicht verfügbar sind, statt die Zahlen zu nennen. |
+| **Veraltete/falsche Selbstauskunft:** `get_player_account_limits` gab `guideRateLimit: '10 Anfragen pro 60 Sekunden'` zurück — der tatsächlich in `route.ts` durchgesetzte und in Abschnitt 3 der `10_llm_erweiterung.md` dokumentierte Wert ist 30/60s. Der Guide hätte Spielern auf Nachfrage ein falsches Rate-Limit genannt. | String auf `'30 Anfragen pro 60 Sekunden'` korrigiert, deckungsgleich mit `enforceRateLimit('guide-chat', clientIp, 30, 60)`. |
+
+## 6 — Verifizierung (R1)
+
+| Prüfung | Ergebnis |
+| --- | --- |
+| `guide-tools.test.ts` (inkl. 3 neue Fälle: DB-Fehler-Fallback VIP, DB-Fehler-Fallback Stats, Dev-Fallback bleibt unflagged) | 9/9 grün |
+| `chat-guide.test.ts` (unverändert, Regressionscheck) | 18/18 grün |
+| Vollständiger Testlauf | `npm run test`: 147 Dateien, 1158/1158 grün |
+| TypeScript | `npm run typecheck` grün |
+| ESLint | 0 Fehler (10 vorbestehende Warnungen in unberührten Dateien) |
+| `npm run vibe-check` | grün |
+| Security-Review | Durchgeführt, beide Findings behoben (Abschnitt 5) |

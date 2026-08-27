@@ -6,7 +6,6 @@ import { LeaderboardWeeklyBanner } from '@/components/leaderboard/LeaderboardWee
 import { LeaderboardPodium } from '@/components/leaderboard/LeaderboardPodium';
 import { LeaderboardStreamTable, LeaderRow } from '@/components/leaderboard/LeaderboardStreamTable';
 import { PersonalRankBar } from '@/components/leaderboard/PersonalRankBar';
-import { GuildLeaderboardStrip } from '@/components/casino/guild/GuildLeaderboardStrip';
 
 import { useSupabaseSession } from '@/components/auth/SupabaseSessionProvider';
 
@@ -148,9 +147,6 @@ export default function LeaderboardPage() {
           })}
         </div>
       </header>
-
-      {/* Guild Status Strip */}
-      <GuildLeaderboardStrip isMobile={isMobile} />
 
       {/* Tournament Stats Bar */}
       <LeaderboardWeeklyBanner

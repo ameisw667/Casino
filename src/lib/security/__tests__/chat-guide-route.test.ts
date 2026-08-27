@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { z } from 'zod';
 
 const mocks = vi.hoisted(() => {
   class GuideError extends Error {
@@ -31,6 +32,7 @@ vi.mock('@/lib/security/request-security', () => ({
 vi.mock('@/lib/casino/chat-guide', () => ({
   CASINO_GUIDE_CONTEXT_VERSION: '2026-08-21',
   CasinoGuideError: mocks.GuideError,
+  guidePersonaSchema: z.string(),
   requestCasinoGuideAnswer: mocks.requestCasinoGuideAnswer,
 }));
 vi.mock('@/lib/casino/guide-telemetry', () => ({
@@ -90,6 +92,16 @@ describe('chat guide response route', () => {
     expect(response.status).toBe(401);
     expect(await response.json()).toEqual({ error: 'Unauthorized' });
     expect(mocks.requestCasinoGuideAnswer).not.toHaveBeenCalled();
+  });
+
+  it('rate-limits per user, not on a single shared bucket (regression: identifier/scope args were swapped)', async () => {
+    await POST(request());
+
+    // enforceRateLimit(identifier, scope, limit, windowSeconds) — identifier must be the
+    // per-user/IP key (here the mocked getClientIdentifier() result), not the constant scope
+    // name. Swapping them made every user share one 'guide-chat' bucket and, on Upstash, leaked
+    // one uncollected Ratelimit/Redis client per distinct user for the life of the process.
+    expect(mocks.enforceRateLimit).toHaveBeenCalledWith('user:player-1', 'guide-chat', 30, 60);
   });
 
   it('returns a success response without caching an authorized guide answer', async () => {

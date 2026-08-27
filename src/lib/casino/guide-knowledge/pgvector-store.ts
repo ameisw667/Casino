@@ -174,21 +174,29 @@ export async function upsertAdminGuideDocument(input: {
     updated_at: new Date().toISOString(),
   };
 
-  // Always save to in-memory store for instant zero-latency feedback & fallback
+  // Always save to in-memory store for instant zero-latency admin-list feedback,
+  // independent of whether the durable Supabase write below succeeds.
   memoryStoreCache.set(id, payload);
 
   try {
     const supabase = createAdminClient();
     const { error } = await supabase.from('guide_documents').upsert(payload);
     if (error) {
-      CasinoLogger.warn('PgVectorStore', 'Supabase upsert failed, saved in-memory', { error: error.message });
+      CasinoLogger.error('PgVectorStore', 'Supabase upsert failed, change is not persisted', new Error(error.message));
+      return { success: false, id, error: error.message };
     }
     return { success: true, id };
   } catch (err) {
-    CasinoLogger.warn('PgVectorStore', 'Supabase upsert exception, saved in-memory', {
-      error: err instanceof Error ? err.message : String(err),
-    });
-    return { success: true, id };
+    CasinoLogger.error(
+      'PgVectorStore',
+      'Supabase upsert exception, change is not persisted',
+      err instanceof Error ? err : undefined,
+    );
+    return {
+      success: false,
+      id,
+      error: err instanceof Error ? err.message : 'Unknown database error',
+    };
   }
 }
 
@@ -202,13 +210,16 @@ export async function deleteAdminGuideDocument(id: string): Promise<{ success: b
     const supabase = createAdminClient();
     const { error } = await supabase.from('guide_documents').delete().eq('id', id);
     if (error) {
-      CasinoLogger.warn('PgVectorStore', 'Supabase delete failed, removed from memory', { error: error.message });
+      CasinoLogger.error('PgVectorStore', 'Supabase delete failed, document still exists in DB', new Error(error.message));
+      return { success: false, error: error.message };
     }
     return { success: true };
   } catch (err) {
-    CasinoLogger.warn('PgVectorStore', 'Supabase delete exception, removed from memory', {
-      error: err instanceof Error ? err.message : String(err),
-    });
-    return { success: true };
+    CasinoLogger.error(
+      'PgVectorStore',
+      'Supabase delete exception, document still exists in DB',
+      err instanceof Error ? err : undefined,
+    );
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown database error' };
   }
 }

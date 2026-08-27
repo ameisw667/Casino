@@ -13,25 +13,27 @@ async function testLobby() {
     isMobile: true,
   });
   const mobilePage = await mobileContext.newPage();
-  await mobilePage.goto('http://localhost:3015/', { waitUntil: 'domcontentloaded' });
-  await mobilePage.waitForTimeout(2500);
+  await mobilePage.goto('http://localhost:3015/', { waitUntil: 'networkidle' });
+  await mobilePage.waitForTimeout(1000);
+
+  // Scroll to bottom to ensure all components in view
+  await mobilePage.evaluate(() => {
+    window.scrollTo(0, document.body.scrollHeight);
+  });
+  await mobilePage.waitForTimeout(1000);
 
   const mobileMetrics = await mobilePage.evaluate(() => {
-    // Check Hero Headline & Column
     const h1 = document.querySelector('h1');
     const h1Rect = h1 ? h1.getBoundingClientRect() : null;
 
-    // Check Game Grid
-    const gameGrid = document.querySelector('section > div[style*="grid"]');
     const gameCards = document.querySelectorAll('section > div[style*="grid"] > div');
     const firstCard = gameCards[0] ? gameCards[0].getBoundingClientRect() : null;
     const secondCard = gameCards[1] ? gameCards[1].getBoundingClientRect() : null;
 
-    // Check Live Activity Feed
     const desktopTable = document.querySelector('.live-activity-desktop-table');
     const mobileList = document.querySelector('.live-activity-mobile-list');
     const mobileBetRows = document.querySelectorAll('.live-activity-mobile-list > div');
-    const firstRow = mobileBetRows[1] ? mobileBetRows[1].getBoundingClientRect() : null; // [0] is header
+    const firstRow = mobileBetRows[1] ? mobileBetRows[1].getBoundingClientRect() : null;
 
     return {
       h1: {
@@ -49,6 +51,8 @@ async function testLobby() {
       feed: {
         desktopTableVisible: desktopTable ? window.getComputedStyle(desktopTable).display !== 'none' : false,
         mobileListVisible: mobileList ? window.getComputedStyle(mobileList).display !== 'none' : false,
+        desktopTableDisplay: desktopTable ? window.getComputedStyle(desktopTable).display : null,
+        mobileListDisplay: mobileList ? window.getComputedStyle(mobileList).display : null,
         rowCount: mobileBetRows.length,
         firstRowHeight: firstRow ? Math.round(firstRow.height) : null,
       },
@@ -66,8 +70,8 @@ async function testLobby() {
     viewport: { width: 1440, height: 900 },
   });
   const desktopPage = await desktopContext.newPage();
-  await desktopPage.goto('http://localhost:3015/', { waitUntil: 'domcontentloaded' });
-  await desktopPage.waitForTimeout(2500);
+  await desktopPage.goto('http://localhost:3015/', { waitUntil: 'networkidle' });
+  await desktopPage.waitForTimeout(1000);
 
   const desktopMetrics = await desktopPage.evaluate(() => {
     const gameCards = document.querySelectorAll('section > div[style*="grid"] > div');
@@ -87,6 +91,8 @@ async function testLobby() {
       feed: {
         desktopTableVisible: desktopTable ? window.getComputedStyle(desktopTable).display !== 'none' : false,
         mobileListVisible: mobileList ? window.getComputedStyle(mobileList).display !== 'none' : false,
+        desktopTableDisplay: desktopTable ? window.getComputedStyle(desktopTable).display : null,
+        mobileListDisplay: mobileList ? window.getComputedStyle(mobileList).display : null,
         headerCount: tableHeaders.length,
         headers: Array.from(tableHeaders).map(h => h.innerText.trim()),
       },

@@ -131,11 +131,11 @@ export function LiveHighrollerTickerBar() {
           }}
         >
           {/* Left Badge: Live Highroller Label */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '5px' : '8px', flexShrink: 0 }}>
             <span
               style={{
-                width: '8px',
-                height: '8px',
+                width: isMobile ? '6px' : '8px',
+                height: isMobile ? '6px' : '8px',
                 borderRadius: '50%',
                 background: '#00E701',
                 boxShadow: '0 0 8px #00E701',
@@ -144,14 +144,14 @@ export function LiveHighrollerTickerBar() {
             />
             <span
               style={{
-                fontSize: '0.72rem',
+                fontSize: isMobile ? '0.62rem' : '0.72rem',
                 fontWeight: 900,
-                letterSpacing: '0.08em',
+                letterSpacing: '0.06em',
                 color: '#D4AF37',
                 textTransform: 'uppercase',
               }}
             >
-              LIVE AUSZAHLUNGEN
+              {isMobile ? 'LIVE' : 'LIVE AUSZAHLUNGEN'}
             </span>
           </div>
 
@@ -164,7 +164,7 @@ export function LiveHighrollerTickerBar() {
               alignItems: 'center',
               justifyContent: 'center',
               overflow: 'hidden',
-              margin: isMobile ? '0 8px' : '0 16px',
+              margin: isMobile ? '0 4px' : '0 16px',
               height: '100%',
               cursor: 'pointer',
             }}
@@ -181,8 +181,8 @@ export function LiveHighrollerTickerBar() {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: isMobile ? '6px' : '10px',
-                  fontSize: isMobile ? '0.72rem' : '0.8rem',
+                  gap: isMobile ? '4px' : '10px',
+                  fontSize: isMobile ? '0.68rem' : '0.8rem',
                   fontWeight: 700,
                   minWidth: 0,
                   overflow: 'hidden',
@@ -195,7 +195,7 @@ export function LiveHighrollerTickerBar() {
                     color: 'rgba(255, 255, 255, 0.9)',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    maxWidth: isMobile ? '70px' : 'none',
+                    maxWidth: isMobile ? '80px' : 'none',
                   }}
                 >
                   {activeWin.user}
@@ -219,43 +219,47 @@ export function LiveHighrollerTickerBar() {
                 {!isMobile && (
                   <>
                     <span style={{ color: 'rgba(255, 255, 255, 0.45)', fontSize: '0.75rem' }}>
-                      auf
+                      in
                     </span>
-                    <span style={{ color: '#fff', fontWeight: 800 }}>{activeWin.game}</span>
+                    <span style={{ color: '#D4AF37', fontWeight: 800 }}>{activeWin.game}</span>
+                    <span
+                      style={{
+                        padding: '1px 5px',
+                        borderRadius: '4px',
+                        background: 'rgba(212, 175, 55, 0.15)',
+                        border: '1px solid rgba(212, 175, 55, 0.3)',
+                        color: '#D4AF37',
+                        fontSize: '0.66rem',
+                        fontWeight: 900,
+                      }}
+                    >
+                      {activeWin.mult}
+                    </span>
                   </>
                 )}
-                <span
-                  style={{
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                    background: 'rgba(212, 175, 55, 0.15)',
-                    border: '1px solid rgba(212, 175, 55, 0.25)',
-                    color: '#D4AF37',
-                    fontSize: '0.7rem',
-                    fontWeight: 900,
-                    fontFamily: 'monospace',
-                    flexShrink: 0,
-                  }}
-                >
-                  {activeWin.mult}
-                </span>
               </motion.div>
             </AnimatePresence>
           </div>
 
-          {/* Right: Live Activity Rate */}
+          {/* Right: High-Confidence Trust Indicator */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              fontSize: '0.72rem',
-              color: 'rgba(255, 255, 255, 0.6)',
+              gap: isMobile ? '4px' : '6px',
+              padding: isMobile ? '2px 6px' : '4px 10px',
+              borderRadius: '8px',
+              background: 'rgba(0, 231, 1, 0.08)',
+              border: '1px solid rgba(0, 231, 1, 0.2)',
+              color: '#00E701',
+              fontSize: isMobile ? '0.62rem' : '0.72rem',
+              fontWeight: 900,
+              letterSpacing: '0.02em',
               flexShrink: 0,
             }}
           >
-            <TrendingUp size={13} color="#00E701" />
-            <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#fff' }}>99.2% RTP</span>
+            <TrendingUp size={isMobile ? 10 : 13} />
+            <span>99.2% RTP</span>
           </div>
         </div>
       </div>

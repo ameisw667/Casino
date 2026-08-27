@@ -5,11 +5,12 @@ import { Sparkles } from 'lucide-react';
 
 interface GuideTriggerButtonProps {
   isOpen: boolean;
+  isMobile?: boolean;
   panelBottom: string;
   onOpen: () => void;
 }
 
-export function GuideTriggerButton({ isOpen, panelBottom, onOpen }: GuideTriggerButtonProps) {
+export function GuideTriggerButton({ isOpen, isMobile = false, panelBottom, onOpen }: GuideTriggerButtonProps) {
   return (
     <motion.button
       type="button"
@@ -31,33 +32,33 @@ export function GuideTriggerButton({ isOpen, panelBottom, onOpen }: GuideTrigger
       onClick={onOpen}
       style={{
         position: 'fixed',
-        right: '24px',
+        right: isMobile ? '12px' : '24px',
         bottom: panelBottom,
         zIndex: 46,
         display: isOpen ? 'none' : 'inline-flex',
         alignItems: 'center',
-        gap: '9px',
+        gap: isMobile ? '6px' : '9px',
         border: '1px solid hsla(var(--primary), 0.38)',
         borderRadius: '999px',
-        padding: '12px 18px',
+        padding: isMobile ? '7px 12px' : '12px 18px',
         background: 'hsla(var(--bg-color), 0.92)',
         backdropFilter: 'blur(16px)',
         color: 'hsl(var(--text-main))',
         cursor: 'pointer',
-        fontSize: '0.74rem',
+        fontSize: isMobile ? '0.66rem' : '0.74rem',
         fontWeight: 800,
         letterSpacing: '0.07em',
         textTransform: 'uppercase',
       }}
     >
-      <Sparkles size={16} color="hsl(var(--primary))" aria-hidden />
-      <span>Royale Guide</span>
+      <Sparkles size={isMobile ? 13 : 16} color="hsl(var(--primary))" aria-hidden />
+      <span>{isMobile ? 'GUIDE' : 'Royale Guide'}</span>
       <span
         style={{
-          fontSize: '0.62rem',
+          fontSize: isMobile ? '0.55rem' : '0.62rem',
           lineHeight: 1,
-          padding: '3px 6px',
-          borderRadius: '6px',
+          padding: isMobile ? '2px 4px' : '3px 6px',
+          borderRadius: '4px',
           background: 'hsla(var(--primary), 0.18)',
           border: '1px solid hsla(var(--primary), 0.35)',
           color: 'hsl(var(--primary))',
@@ -69,8 +70,8 @@ export function GuideTriggerButton({ isOpen, panelBottom, onOpen }: GuideTrigger
       </span>
       <span
         style={{
-          width: '7px',
-          height: '7px',
+          width: isMobile ? '5px' : '7px',
+          height: isMobile ? '5px' : '7px',
           borderRadius: '50%',
           background: '#10b981',
           boxShadow: '0 0 8px #10b981',

@@ -5,6 +5,7 @@ import { executeGuideTool, GUIDE_OPENAI_TOOLS } from '../guide-tools';
 import { loadGuideLeaderboardSnippet } from '../guide-live-leaderboard';
 import { buildCasinoGuideContextAsync } from './context';
 import { buildCasinoGuideInstructions } from './instructions';
+import { DEFAULT_PERSONA, type GuidePersona } from './personas';
 import {
   buildCasinoGuideRequest,
   buildGuideInputPayload,
@@ -33,12 +34,13 @@ export async function requestCasinoGuideAnswer(
   userId?: string,
   history?: readonly GuideConversationHistoryItem[],
   image?: string,
+  persona: GuidePersona = DEFAULT_PERSONA,
 ): Promise<GuideAnswerResult> {
   if (!process.env.OPENAI_API_KEY?.trim()) {
     throw new CasinoGuideError('configuration');
   }
 
-  const request = await buildCasinoGuideRequest(message, history, image);
+  const request = await buildCasinoGuideRequest(message, history, image, persona);
   let response: Response;
 
   try {
@@ -108,7 +110,7 @@ export async function requestCasinoGuideAnswer(
         body: JSON.stringify({
           model: CASINO_GUIDE_MODEL,
           store: false,
-          instructions: buildCasinoGuideInstructions(context, leaderboard),
+          instructions: buildCasinoGuideInstructions(context, leaderboard, persona),
           input: toolInputs,
           tools: GUIDE_OPENAI_TOOLS,
           text: {

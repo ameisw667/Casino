@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 import {
   CASINO_GUIDE_CONTEXT_VERSION,
   CasinoGuideError,
+  guidePersonaSchema,
   requestCasinoGuideAnswer,
   requestCasinoGuideAnswerStream,
 } from '@/lib/casino/chat-guide';
@@ -33,6 +34,7 @@ const guideRequestSchema = z.object({
     .optional(),
   history: z.array(guideHistoryItemSchema).max(6).optional(),
   stream: z.boolean().optional(),
+  persona: guidePersonaSchema.optional(),
 });
 
 const PRIVATE_NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
@@ -72,7 +74,7 @@ export async function POST(request: Request) {
     currentUserId = userId;
 
     const clientIp = getClientIdentifier(request, userId);
-    const rate = await enforceRateLimit('guide-chat', clientIp, 30, 60);
+    const rate = await enforceRateLimit(clientIp, 'guide-chat', 30, 60);
     const responseHeaders = {
       ...PRIVATE_NO_STORE_HEADERS,
       ...rateLimitHeaders(rate),
@@ -116,6 +118,7 @@ export async function POST(request: Request) {
         userId,
         parsed.data.history,
         parsed.data.image,
+        parsed.data.persona,
       );
 
       await recordGuideTelemetry({
@@ -141,6 +144,7 @@ export async function POST(request: Request) {
       userId,
       parsed.data.history,
       parsed.data.image,
+      parsed.data.persona,
     );
 
     await recordGuideTelemetry({

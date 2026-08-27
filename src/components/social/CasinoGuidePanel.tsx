@@ -30,6 +30,11 @@ import { GuideImagePreview } from '@/components/social/casino-guide/GuideImagePr
 import { GuideVoiceBanner } from '@/components/social/casino-guide/GuideVoiceBanner';
 import { GuideVoiceErrorBanner } from '@/components/social/casino-guide/GuideVoiceErrorBanner';
 import { GuideInputForm } from '@/components/social/casino-guide/GuideInputForm';
+import {
+  DEFAULT_PERSONA,
+  type GuidePersona,
+  guidePersonaSchema,
+} from '@/lib/casino/chat-guide/personas';
 
 export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,6 +45,18 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
   const [isSending, setIsSending] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [feedbackMap, setFeedbackMap] = useState<Record<string, 1 | -1>>({});
+  const [activePersona, setActivePersona] = useState<GuidePersona>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('royale_guide_persona');
+        const parsed = guidePersonaSchema.safeParse(saved);
+        if (parsed.success) return parsed.data;
+      } catch {
+        // Fallback
+      }
+    }
+    return DEFAULT_PERSONA;
+  });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const liveRecognizerRef = useRef<LiveSpeechRecognizer | null>(null);
@@ -50,6 +67,28 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [voiceStatusMessage, setVoiceStatusMessage] = useState<string | null>(null);
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/api/casino/guide-persona')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { persona?: GuidePersona } | null) => {
+        if (isMounted && data?.persona) {
+          setActivePersona(data.persona);
+          try {
+            localStorage.setItem('royale_guide_persona', data.persona);
+          } catch {
+            // Ignore
+          }
+        }
+      })
+      .catch(() => {
+        // Offline / fallback to localStorage
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const handleCustomOpen = (e: Event) => {
@@ -249,6 +288,22 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
     setIsOpen(true);
   };
 
+  const handleSelectPersona = (persona: GuidePersona) => {
+    setActivePersona(persona);
+    try {
+      localStorage.setItem('royale_guide_persona', persona);
+    } catch {
+      // Ignore localStorage errors
+    }
+    fetch('/api/casino/guide-persona', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ persona }),
+    }).catch(() => {
+      // Ignore network errors silently
+    });
+  };
+
   const copyToClipboard = async (id: string, text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -304,6 +359,7 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
           history,
           stream: true,
           image: currentImage ?? undefined,
+          persona: activePersona,
         }),
       });
 
@@ -461,7 +517,7 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
   return (
     <>
       {/* Floating Trigger Button (Option 1A — Subtiler Obsidian & Gold Glow) */}
-      <GuideTriggerButton isOpen={isOpen} panelBottom={panelBottom} onOpen={openPanel} />
+      <GuideTriggerButton isOpen={isOpen} isMobile={isMobile} panelBottom={panelBottom} onOpen={openPanel} />
 
       {/* Backdrop for Expanded Center-Modal */}
       <GuideBackdrop
@@ -516,6 +572,8 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
             <GuideHeader
               isExpanded={isExpanded}
               isMobile={isMobile}
+              activePersona={activePersona}
+              onSelectPersona={handleSelectPersona}
               onToggleExpand={() => setIsExpanded(!isExpanded)}
               onClose={() => {
                 setIsOpen(false);

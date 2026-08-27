@@ -75,8 +75,29 @@ describe('Guide Tools Specification & Execution', () => {
     const limits = executeGetPlayerAccountLimits();
     expect(limits.minBetPerRound).toBe('$0.10');
     expect(limits.maxBetPerRound).toBe('$10,000.00');
-    expect(limits.guideRateLimit).toContain('10');
+    expect(limits.guideRateLimit).toBe('30 Anfragen pro 60 Sekunden');
     expect(limits.provablyFairVerification).toContain('HMAC-SHA256');
+  });
+
+  it('flags VIP progress as unavailable instead of presenting fabricated stats on a DB error', async () => {
+    vi.spyOn(WalletService, 'getWallet').mockRejectedValue(new Error('db down'));
+
+    const vip = await executeGetPlayerVipProgress('test-user-id');
+    expect(vip.dataUnavailable).toBe(true);
+    expect(vip.currentRank).toBe('BRONZE');
+  });
+
+  it('flags session stats as unavailable instead of presenting fabricated stats on a DB error', async () => {
+    vi.spyOn(WalletService, 'getUserStats').mockRejectedValue(new Error('db down'));
+
+    const stats = await executeGetPlayerSessionStats('test-user-id');
+    expect(stats.dataUnavailable).toBe(true);
+    expect(stats.totalBets).toBe(0);
+  });
+
+  it('does not flag the dev/anonymous fallback as a data error', async () => {
+    const vip = await executeGetPlayerVipProgress('dev_user_fallback');
+    expect(vip.dataUnavailable).toBeUndefined();
   });
 
   it('routes tool calls by name via executeGuideTool', async () => {
@@ -95,5 +116,31 @@ describe('Guide Tools Specification & Execution', () => {
 
     const unknownResult = await executeGuideTool('unknown_tool', {});
     expect(unknownResult.error).toContain('Unknown tool');
+  });
+
+  it('falls back to a safe default when the model sends an action outside the declared enum', async () => {
+    const result = await executeGuideTool('trigger_ui_action', {
+      action: 'delete_account',
+      target: 'vault',
+      label: 'Konto löschen',
+    });
+    expect(result.action).toBe('open_vault');
+  });
+
+  it('drops a target that is not on the known page/game allowlist instead of forwarding it verbatim', async () => {
+    const result = await executeGuideTool('trigger_ui_action', {
+      action: 'navigate_game',
+      target: 'javascript:alert(1)',
+      label: 'Spielen',
+    });
+    expect(result.target).toBeUndefined();
+  });
+
+  it('truncates an overlong model-generated label instead of forwarding it verbatim', async () => {
+    const result = await executeGuideTool('trigger_ui_action', {
+      action: 'open_vault',
+      label: 'x'.repeat(500),
+    });
+    expect((result.label as string).length).toBe(60);
   });
 });

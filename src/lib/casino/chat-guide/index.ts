@@ -15,6 +15,14 @@ export {
 
 export { buildCasinoGuideContext, buildCasinoGuideContextAsync } from './context';
 export { buildCasinoGuideInstructions } from './instructions';
+export {
+  GUIDE_PERSONAS,
+  type GuidePersona,
+  guidePersonaSchema,
+  DEFAULT_PERSONA,
+  PERSONA_META,
+  buildPersonaBlock,
+} from './personas';
 export { buildGuideInputPayload, buildCasinoGuideRequest } from './request';
 export { extractSuggestionsFromText, SuggestionStreamFilter } from './suggestions';
 export { requestCasinoGuideAnswer } from './answer';

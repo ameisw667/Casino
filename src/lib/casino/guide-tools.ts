@@ -96,6 +96,7 @@ export type PlayerVipProgressResult = {
   nextTier: string | null;
   nextTierMinXp: number | null;
   xpNeededForNextTier: number;
+  dataUnavailable?: true;
 };
 
 export type PlayerSessionStatsResult = {
@@ -104,6 +105,7 @@ export type PlayerSessionStatsResult = {
   winRatePercent: string;
   totalWagered: string;
   totalProfit: string;
+  dataUnavailable?: true;
 };
 
 export type PlayerAccountLimitsResult = {
@@ -158,6 +160,7 @@ export async function executeGetPlayerVipProgress(
       nextTier: 'SILVER',
       nextTierMinXp: 5000,
       xpNeededForNextTier: 5000,
+      dataUnavailable: true,
     };
   }
 }
@@ -192,6 +195,7 @@ export async function executeGetPlayerSessionStats(
       winRatePercent: '0.0%',
       totalWagered: '$0.00',
       totalProfit: '$0.00',
+      dataUnavailable: true,
     };
   }
 }
@@ -200,9 +204,55 @@ export function executeGetPlayerAccountLimits(): PlayerAccountLimitsResult {
   return {
     minBetPerRound: '$0.10',
     maxBetPerRound: '$10,000.00',
-    guideRateLimit: '10 Anfragen pro 60 Sekunden',
+    guideRateLimit: '30 Anfragen pro 60 Sekunden',
     provablyFairVerification: 'Aktiv (HMAC-SHA256 mit Client Seed & Nonce)',
   };
+}
+
+const UI_ACTION_TYPES = [
+  'open_vault',
+  'open_settings',
+  'open_rank_benefits',
+  'open_history',
+  'navigate_game',
+  'open_leaderboard',
+] as const;
+
+const UI_ACTION_TARGETS = [
+  'blackjack',
+  'crash',
+  'dice',
+  'roulette',
+  'slots',
+  'vault',
+  'settings',
+  'rank_benefits',
+  'history',
+  'leaderboard',
+] as const;
+
+const UI_ACTION_LABEL_MAX_LENGTH = 60;
+
+function sanitizeUiAction(args: Record<string, unknown>): {
+  success: true;
+  action: (typeof UI_ACTION_TYPES)[number];
+  target?: (typeof UI_ACTION_TARGETS)[number];
+  label: string;
+} {
+  const rawAction = typeof args.action === 'string' ? args.action : '';
+  const action = (UI_ACTION_TYPES as readonly string[]).includes(rawAction)
+    ? (rawAction as (typeof UI_ACTION_TYPES)[number])
+    : 'open_vault';
+
+  const rawTarget = typeof args.target === 'string' ? args.target : '';
+  const target = (UI_ACTION_TARGETS as readonly string[]).includes(rawTarget)
+    ? (rawTarget as (typeof UI_ACTION_TARGETS)[number])
+    : undefined;
+
+  const rawLabel = typeof args.label === 'string' ? args.label.trim() : '';
+  const label = rawLabel.length > 0 ? rawLabel.slice(0, UI_ACTION_LABEL_MAX_LENGTH) : 'Öffnen';
+
+  return { success: true, action, target, label };
 }
 
 export async function executeGuideTool(
@@ -218,12 +268,7 @@ export async function executeGuideTool(
     case 'get_player_account_limits':
       return executeGetPlayerAccountLimits();
     case 'trigger_ui_action':
-      return {
-        success: true,
-        action: typeof _args.action === 'string' ? _args.action : 'open_vault',
-        target: typeof _args.target === 'string' ? _args.target : undefined,
-        label: typeof _args.label === 'string' ? _args.label : 'Öffnen',
-      };
+      return sanitizeUiAction(_args);
     default:
       return { error: `Unknown tool: ${toolName}` };
   }

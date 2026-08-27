@@ -64,7 +64,17 @@ export default function MobileNav() {
 
         if (item.path) {
           return (
-            <Link key={index} href={item.path} style={{ textDecoration: 'none', padding: '8px' }}>
+            <Link
+              key={index}
+              href={item.path}
+              style={{
+                textDecoration: 'none',
+                padding: '6px 0',
+                flex: 1,
+                display: 'flex',
+                justifyContent: 'center',
+              }}
+            >
               {content}
             </Link>
           );
@@ -77,8 +87,11 @@ export default function MobileNav() {
             style={{
               background: 'none',
               border: 'none',
-              padding: '8px',
+              padding: '6px 0',
               cursor: 'pointer',
+              flex: 1,
+              display: 'flex',
+              justifyContent: 'center',
               WebkitTapHighlightColor: 'transparent',
             }}
           >

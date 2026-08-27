@@ -5,6 +5,7 @@ import { GUIDE_OPENAI_TOOLS } from '../guide-tools';
 import { loadGuideLeaderboardSnippet } from '../guide-live-leaderboard';
 import { buildCasinoGuideContextAsync } from './context';
 import { buildCasinoGuideInstructions } from './instructions';
+import { DEFAULT_PERSONA, type GuidePersona } from './personas';
 import { CASINO_GUIDE_MODEL, type GuideConversationHistoryItem } from './types';
 
 export const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
@@ -96,6 +97,7 @@ export async function buildCasinoGuideRequest(
   message: string,
   history?: readonly GuideConversationHistoryItem[],
   image?: string,
+  persona: GuidePersona = DEFAULT_PERSONA,
 ): Promise<{ url: string; init: RequestInit }> {
   const lastUserQuery = history?.filter((h) => h.role === 'user').slice(-1)[0]?.content;
   const retrievalQuery = lastUserQuery ? `${lastUserQuery} ${message}`.trim() : message;
@@ -118,7 +120,7 @@ export async function buildCasinoGuideRequest(
       body: JSON.stringify({
         model: CASINO_GUIDE_MODEL,
         store: false,
-        instructions: buildCasinoGuideInstructions(context, leaderboard),
+        instructions: buildCasinoGuideInstructions(context, leaderboard, persona),
         input: inputPayload,
         tools: GUIDE_OPENAI_TOOLS,
         text: {

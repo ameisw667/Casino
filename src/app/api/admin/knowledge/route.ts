@@ -161,21 +161,38 @@ export async function DELETE(request: Request) {
     if (user && !isAdminEmail(user.email) && !isDev)
       return new NextResponse('Forbidden', { status: 403 });
 
+    const userId = user?.id || 'dev_admin';
+    const rate = await enforceRateLimit(
+      getClientIdentifier(request, userId),
+      'admin-knowledge-write',
+      10,
+      60,
+    );
+    if (!rate.success) {
+      return NextResponse.json(
+        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
+        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     if (!id) {
-      return NextResponse.json({ error: 'Missing document id parameter' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Missing document id parameter' },
+        { status: 400, headers: rateLimitHeaders(rate) },
+      );
     }
 
     const result = await deleteAdminGuideDocument(id);
     if (!result.success) {
       return NextResponse.json(
         { error: result.error ?? 'Failed to delete guide document' },
-        { status: 500 },
+        { status: 500, headers: rateLimitHeaders(rate) },
       );
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { headers: rateLimitHeaders(rate) });
   } catch (error) {
     CasinoLogger.error('API/Admin/Knowledge', 'DELETE failed', error instanceof Error ? error : undefined);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

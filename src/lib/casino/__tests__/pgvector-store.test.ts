@@ -117,6 +117,37 @@ describe('pgvector Guide Knowledge Store', () => {
     expect(mockEq).toHaveBeenCalledWith('id', 'guide-test-slug');
   });
 
+  it('reports failure instead of a false success when the Supabase upsert actually fails', async () => {
+    const mockUpsert = vi.fn().mockResolvedValueOnce({ error: { message: 'db unreachable' } });
+    mockFrom.mockReturnValueOnce({
+      upsert: mockUpsert,
+    });
+
+    const result = await upsertAdminGuideDocument({
+      slug: 'test-slug',
+      topic: 'dice',
+      title: 'Dice Guide',
+      content: 'Dice rules and payout',
+      tags: ['dice'],
+      isActive: true,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('db unreachable');
+  });
+
+  it('reports failure instead of a false success when the Supabase delete actually fails', async () => {
+    const mockEq = vi.fn().mockResolvedValueOnce({ error: { message: 'db unreachable' } });
+    const mockDelete = vi.fn().mockReturnValueOnce({ eq: mockEq });
+    mockFrom.mockReturnValueOnce({
+      delete: mockDelete,
+    });
+
+    const result = await deleteAdminGuideDocument('guide-test-slug');
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('db unreachable');
+  });
+
   it('generates null embedding when API key is unconfigured or test key', async () => {
     process.env.OPENAI_API_KEY = 'test-key';
     const embedding = await generateOpenAiEmbedding1536('Test content');

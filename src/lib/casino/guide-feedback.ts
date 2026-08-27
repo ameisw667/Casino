@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/utils/supabase/admin';
 import { CasinoLogger } from '@/lib/casino/logger';
+import { createGuideActorHash } from './guide-telemetry';
 
 export type GuideFeedbackRating = 1 | -1;
 

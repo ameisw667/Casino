@@ -293,30 +293,8 @@ export function LiveActivityFeedV2() {
           </tbody>
         </table>
 
-        {/* Mobile Stream: Kompakte 4-Spalten-Zeilendarstellung (<=768px) */}
+        {/* Mobile Stream: High-Density 2-Sided Bet Rows (<=768px) */}
         <div className="live-activity-mobile-list mobile-only" style={{ width: '100%' }}>
-          {/* Header Row */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1.4fr 0.9fr 0.8fr 1.1fr',
-              padding: '8px 12px',
-              fontSize: '0.64rem',
-              fontWeight: 800,
-              color: '#8892b0',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-              background: 'rgba(0, 0, 0, 0.3)',
-              alignItems: 'center',
-            }}
-          >
-            <span>Spiel / User</span>
-            <span style={{ textAlign: 'right' }}>Einsatz</span>
-            <span style={{ textAlign: 'center' }}>Mult</span>
-            <span style={{ textAlign: 'right' }}>Gewinn</span>
-          </div>
-
           <AnimatePresence>
             {filteredBets.length > 0 ? (
               filteredBets.map((bet) => (
@@ -327,28 +305,28 @@ export function LiveActivityFeedV2() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                   style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1.4fr 0.9fr 0.8fr 1.1fr',
+                    display: 'flex',
                     alignItems: 'center',
-                    padding: '8px 12px',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
                     borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
                     background: bet.user === 'You' ? 'hsla(var(--primary), 0.06)' : 'transparent',
-                    fontSize: '0.74rem',
+                    gap: '12px',
                   }}
                 >
-                  {/* Game & Player */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
+                  {/* Left: Game & Player */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0, flex: 1 }}>
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '4px',
+                        gap: '6px',
                         fontWeight: 900,
                         color: 'hsl(var(--primary))',
-                        fontSize: '0.74rem',
+                        fontSize: '0.78rem',
                       }}
                     >
-                      <Gamepad2 size={11} style={{ flexShrink: 0 }} />
+                      <Gamepad2 size={13} style={{ flexShrink: 0 }} />
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {bet.game}
                       </span>
@@ -358,70 +336,71 @@ export function LiveActivityFeedV2() {
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '3px',
+                        gap: '4px',
                         color: '#8892b0',
-                        fontSize: '0.64rem',
+                        fontSize: '0.66rem',
                         fontWeight: 600,
                         cursor: 'pointer',
                       }}
                     >
-                      <User size={9} style={{ flexShrink: 0 }} />
+                      <User size={10} style={{ flexShrink: 0 }} />
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {bet.user}
                       </span>
                     </div>
                   </div>
 
-                  {/* Wager */}
+                  {/* Right: Payout + Wager & Multiplier */}
                   <div
                     style={{
-                      textAlign: 'right',
-                      fontWeight: 700,
-                      color: 'rgba(255, 255, 255, 0.9)',
-                      fontFamily: 'var(--font-mono, monospace)',
-                      fontSize: '0.72rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-end',
+                      gap: '2px',
+                      flexShrink: 0,
                     }}
                   >
-                    ${bet.amount.toFixed(2)}
-                  </div>
-
-                  {/* Multiplier Badge */}
-                  <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <span
+                    <div
                       style={{
-                        padding: '1px 5px',
-                        borderRadius: '5px',
-                        background: bet.isWin ? 'rgba(0, 231, 1, 0.12)' : 'rgba(255, 255, 255, 0.05)',
-                        border: bet.isWin
-                          ? '1px solid rgba(0, 231, 1, 0.3)'
-                          : '1px solid rgba(255, 255, 255, 0.08)',
-                        color: bet.isWin ? '#00e701' : '#8892b0',
                         fontWeight: 900,
+                        color: bet.isWin ? '#00e701' : '#8892b0',
                         fontFamily: 'var(--font-mono, monospace)',
-                        fontSize: '0.66rem',
-                        whiteSpace: 'nowrap',
+                        fontSize: '0.82rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
                       }}
                     >
-                      {bet.multiplier > 0 ? `${bet.multiplier.toFixed(2)}x` : '-'}
-                    </span>
-                  </div>
-
-                  {/* Payout */}
-                  <div
-                    style={{
-                      textAlign: 'right',
-                      fontWeight: 900,
-                      color: bet.isWin ? '#00e701' : '#8892b0',
-                      fontFamily: 'var(--font-mono, monospace)',
-                      fontSize: '0.74rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'flex-end',
-                      gap: '3px',
-                    }}
-                  >
-                    <span>${bet.payout.toFixed(2)}</span>
-                    {bet.isWin && bet.multiplier >= 10 && <Trophy size={11} color="#FFD700" />}
+                      <span>${bet.payout.toFixed(2)}</span>
+                      {bet.isWin && bet.multiplier >= 10 && <Trophy size={12} color="#FFD700" />}
+                    </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '0.66rem',
+                        color: 'rgba(255, 255, 255, 0.55)',
+                        fontFamily: 'var(--font-mono, monospace)',
+                      }}
+                    >
+                      <span>${bet.amount.toFixed(2)}</span>
+                      <span
+                        style={{
+                          padding: '1px 5px',
+                          borderRadius: '4px',
+                          background: bet.isWin ? 'rgba(0, 231, 1, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                          border: bet.isWin
+                            ? '1px solid rgba(0, 231, 1, 0.3)'
+                            : '1px solid rgba(255, 255, 255, 0.08)',
+                          color: bet.isWin ? '#00e701' : '#8892b0',
+                          fontWeight: 900,
+                          fontSize: '0.62rem',
+                        }}
+                      >
+                        {bet.multiplier > 0 ? `${bet.multiplier.toFixed(2)}x` : '-'}
+                      </span>
+                    </div>
                   </div>
                 </motion.div>
               ))

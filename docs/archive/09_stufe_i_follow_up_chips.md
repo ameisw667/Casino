@@ -70,3 +70,29 @@ FOLLOW-UP SUGGESTIONS RULE:
 | **3** | **Unit- & Integrationstests** | `src/lib/casino/__tests__/chat-guide-suggestions.test.ts` (899/899 Tests bestanden) | 🟢 899/899 grün |
 | **4** | **Build & Typisierung** | `npm run typecheck` & `npm run build` (0 Fehler, 43/43 Routen) | 🟢 Next Build OK |
 | **5** | **Abschluss & Dokumentation** | `Z_LLM/10_llm_erweiterung.md` aktualisieren, Plan archivieren und auf `main` pushen | 🟢 Git Push |
+
+---
+
+## 4 — Security-Review (Nachtrag Stufe R / R6, 2026-08-27)
+
+> Scope: Delimiter-Parsing in [`chat-guide/suggestions.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/chat-guide/suggestions.ts) (`extractSuggestionsFromText`, `SuggestionStreamFilter`), Rendering & Klick-Dispatch in [`GuideMessageList.tsx`](file:///v:/VibeCoding/Casino/src/components/social/casino-guide/GuideMessageList.tsx) & [`CasinoGuidePanel.tsx`](file:///v:/VibeCoding/Casino/src/components/social/CasinoGuidePanel.tsx).
+
+Befund vor Korrektur: Der Extraktions-Regex (`/<<<SUGGESTIONS:\s*(\[.*?\])\s*>>>/s`) ist ein einzelner non-greedy Match ohne verschachtelte Quantifiers — kein ReDoS-Risiko. Array-Länge bereits korrekt auf 3 Einträge gedeckelt. Chips rendern als reiner JSX-Text (`<span>{suggestion}</span>`), React escaped automatisch — kein XSS-Pfad. Ein Klick auf einen Chip sendet den Vorschlagstext 1:1 als neue Guide-Nachricht (`sendQuestion(query)`) — durchläuft dieselbe serverseitige Zod-Validierung (`message.max(1000)`) wie jede manuell getippte Nachricht, keine Privilegien-Eskalation möglich, da der Guide ohnehin nur lesend arbeitet.
+
+Ein MEDIUM-Finding wurde noch am selben Tag behoben:
+
+| Finding | Korrektur |
+| --- | --- |
+| **Zeichenlimit nur im Prompt, nicht im Code durchgesetzt:** Die Instructions verlangen vom Modell "Keep each suggestion concise and under 45 characters", aber `extractSuggestionsFromText` prüfte das nie — ein einzelner überlanger String (z. B. durch ein hallucinierendes Modell oder einen erfolgreichen Prompt-Injection-Versuch über den in R2 dokumentierten History-Spoofing-Vektor) hätte einen deformierten, übergroßen Chip im UI gerendert. Serverseitig wäre ein Klick zwar durch die 1000-Zeichen-Grenze der Nachricht abgefangen worden, aber die UI selbst hatte kein Netz — derselbe Lückentyp wie das in R5 behobene Finding bei `trigger_ui_action.label`. | `extractSuggestionsFromText` kappt jeden Vorschlag jetzt hart auf 45 Zeichen (`SUGGESTION_MAX_LENGTH`), zusätzlich zur bestehenden 3-Item-Grenze. |
+
+## 5 — Verifizierung (R6)
+
+| Prüfung | Ergebnis |
+| --- | --- |
+| `chat-guide-suggestions.test.ts` (inkl. 1 neuer Fall: Truncation bei 500-Zeichen-Vorschlag) | 8/8 grün |
+| `chat-guide-regression.test.ts` / `chat-guide.test.ts` (unverändert, Regressionscheck) | 36/36 grün |
+| TypeScript | `npm run typecheck` grün |
+| ESLint | 0 Fehler (10 vorbestehende Warnungen in unberührten Dateien) |
+| `npm run vibe-check` | grün |
+| Vollständiger Testlauf | Weiterhin nicht als alleiniges Gate verwendet (siehe Stufe F / R3 Abschnitt 5 — parallele, unabhängige Arbeit im selben Repo); gezielte Testläufe auf den Stufe-I-Dateien oben sind grün. |
+| Security-Review | Durchgeführt, Finding behoben (Abschnitt 4) |

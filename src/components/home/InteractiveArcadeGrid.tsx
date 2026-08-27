@@ -277,15 +277,19 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
         }}
       >
         <AnimatePresence mode="popLayout">
-          {filteredGames.map((game, idx) => (
-            <ArcadeGameCard
-              key={game.id}
-              game={game}
-              idx={idx}
-              isMobile={isMobile}
-              isFeatured={game.id === 'crash'}
-            />
-          ))}
+          {filteredGames.map((game, idx) => {
+            const isSpan2 = isMobile && filteredGames.length % 2 === 1 && idx === filteredGames.length - 1;
+            return (
+              <ArcadeGameCard
+                key={game.id}
+                game={game}
+                idx={idx}
+                isMobile={isMobile}
+                isFeatured={game.id === 'crash'}
+                isSpan2={isSpan2}
+              />
+            );
+          })}
         </AnimatePresence>
       </div>
     </section>
@@ -297,11 +301,13 @@ function ArcadeGameCard({
   idx,
   isMobile,
   isFeatured = false,
+  isSpan2 = false,
 }: {
   game: GameItem;
   idx: number;
   isMobile: boolean;
   isFeatured?: boolean;
+  isSpan2?: boolean;
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [rotateX, setRotateX] = useState(0);
@@ -358,6 +364,7 @@ function ArcadeGameCard({
       style={{
         position: 'relative',
         perspective: 1000,
+        gridColumn: isSpan2 ? '1 / -1' : 'auto',
       }}
     >
       {/* 3D Stage Spotlight Aura for Featured Game */}
@@ -450,7 +457,7 @@ function ArcadeGameCard({
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              gap: '6px',
+              gap: isMobile ? '4px' : '6px',
               zIndex: 2,
               minWidth: 0,
             }}
@@ -458,13 +465,13 @@ function ArcadeGameCard({
             {isFeatured ? (
               <span
                 style={{
-                  fontSize: '0.58rem',
+                  fontSize: isMobile ? '0.52rem' : '0.58rem',
                   fontWeight: 950,
                   color: '#FFD700',
                   background:
                     'linear-gradient(135deg, rgba(212, 175, 55, 0.28) 0%, rgba(212, 175, 55, 0.12) 100%)',
-                  padding: '2px 6px',
-                  borderRadius: '5px',
+                  padding: isMobile ? '1px 5px' : '2px 6px',
+                  borderRadius: '4px',
                   border: '1px solid rgba(212, 175, 55, 0.55)',
                   letterSpacing: '0.04em',
                   textTransform: 'uppercase',
@@ -480,12 +487,12 @@ function ArcadeGameCard({
             ) : (
               <span
                 style={{
-                  padding: '2px 6px',
-                  borderRadius: '5px',
+                  padding: isMobile ? '1px 5px' : '2px 6px',
+                  borderRadius: '4px',
                   background: 'rgba(255, 255, 255, 0.08)',
                   border: '1px solid rgba(255, 255, 255, 0.12)',
                   color: game.accentColor,
-                  fontSize: '0.62rem',
+                  fontSize: isMobile ? '0.54rem' : '0.62rem',
                   fontWeight: 900,
                   letterSpacing: '0.04em',
                   whiteSpace: 'nowrap',
@@ -498,7 +505,7 @@ function ArcadeGameCard({
 
             <div
               style={{
-                fontSize: '0.66rem',
+                fontSize: isMobile ? '0.56rem' : '0.66rem',
                 fontWeight: 800,
                 color: 'rgba(255, 255, 255, 0.65)',
                 fontFamily: 'monospace',
@@ -506,7 +513,7 @@ function ArcadeGameCard({
                 flexShrink: 0,
               }}
             >
-              Max {game.maxPayout}
+              {isMobile ? game.maxPayout : `Max ${game.maxPayout}`}
             </div>
           </div>
 

@@ -118,3 +118,33 @@ $$;
 | **6** | **Unit- & Integrationstests** | 🟢 Executed | 97/97 Vitest-Suites, 810/810 Tests grün | LLM |
 | **7** | **Verifikation & Build** | 🟢 Executed | `tsc --noEmit` & `next build` (40/40 Seiten) 100% grün | LLM |
 | **8** | **Dokumentation & Archivierung** | 🟢 Executed | In `AGENTS.md`, `GEMINI.md`, `10_llm_erweiterung.md` synchronisiert, archiviert und auf `main` gepusht | LLM |
+
+---
+
+## 4 — Security-Review (Nachtrag Stufe R / R3, 2026-08-27)
+
+> Scope: [`guide-knowledge/pgvector-store.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/guide-knowledge/pgvector-store.ts) (Admin-CRUD & Embedding-Generierung), [`api/admin/knowledge/route.ts`](file:///v:/VibeCoding/Casino/src/app/api/admin/knowledge/route.ts) (Auth/Rate-Limit/Zod-Grenze), [`supabase/migrations/039_guide_knowledge_pgvector.sql`](file:///v:/VibeCoding/Casino/supabase/migrations/039_guide_knowledge_pgvector.sql) (RLS & RPC), [`hybrid-retriever.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/guide-knowledge/hybrid-retriever.ts) (Query-Pfad in die DB).
+
+Befund vor Korrektur: Migration 039 ist sauber — RLS aktiv, öffentliches `SELECT` nur auf `is_active = true` beschränkt, `service_role` hat vollen Zugriff nur serverseitig (Admin-Client, nie im Browser), RPC `match_guide_documents` erzwingt `SET search_path = public` (Migration-Guard-konform). Kein SQL-Injection-Pfad — Retrieval läuft ausschließlich über parametrisierte Supabase-Client-Calls (`.rpc(...)`, `.eq('id', id)`), nie über String-Konkatenation. Admin-Auth (Supabase-Session + `isAdminEmail`) und Zod-Validierung (`documentSchema`, 10.000-Zeichen-Cap auf `content`) korrekt vor jedem Schreibpfad. Embedding-Aufruf fail-safe mit 5s-Timeout, gibt bei jedem Fehler `null` statt zu werfen.
+
+Zwei Findings wurden noch am selben Tag behoben:
+
+| Finding | Korrektur |
+| --- | --- |
+| **HIGH — Fail-open Fake-Success maskiert echten Datenverlust:** `upsertAdminGuideDocument`/`deleteAdminGuideDocument` gaben bei einem tatsächlichen Supabase-Fehler (DB down, Constraint-Verletzung etc.) immer `{ success: true }` zurück — der Fehler wurde nur als Warning geloggt, nie an den Admin durchgereicht. Der In-Memory-Fallback (`memoryStoreCache`) suggeriert Persistenz, ist aber ein reiner Prozess-lokaler `Map`, der beim nächsten Kaltstart/Redeploy verschwindet und den echten Retrieval-Pfad des Live-Guide (`hybrid-retriever.ts` → `searchDatabaseDocuments` → direkte Supabase-RPC) nie erreicht. Ein Admin hätte im CMS-Dashboard "Gespeichert ✓" gesehen, während die Änderung nie in der DB ankam und der Guide weiterhin die alte/gelöschte Version ausliefert — ein stiller Widerspruch zum projektweiten Fail-Closed-Invariant. | Beide Funktionen geben jetzt `{ success: false, error: <Supabase-Fehlermeldung> }` zurück, wenn der DB-Schreibzugriff fehlschlägt (In-Memory-Cache bleibt als reines Zero-Latency-UX-Hilfsmittel, beeinflusst aber nicht mehr den Erfolgsstatus). `route.ts` hatte die `!result.success`-Behandlung bereits korrekt implementiert — mit der Korrektur greift der bestehende 500er-Pfad jetzt tatsächlich. |
+| **MEDIUM — Inkonsistentes Rate-Limiting:** `GET` und `POST` in `api/admin/knowledge/route.ts` waren rate-limitiert (30/60 bzw. 10/60), `DELETE` überhaupt nicht — ein Admin-Account (oder eine kompromittierte Admin-Session) hätte die komplette Wissensdatenbank ungebremst leerräumen können. | `DELETE` bekommt denselben Schreib-Rate-Limit wie `POST` (`admin-knowledge-write`, 10/60), inkl. `429`-Response und Rate-Limit-Headern. |
+
+**Cross-Cutting-Beobachtung (nicht in diesem Scope behoben, an anderer Stelle nachverfolgt):** Beim Durchsehen aller `enforceRateLimit`-Aufrufe im Projekt fiel auf, dass 3 von ~50 Call-Sites (alle unter `src/app/api/chat/`) die Parameter `identifier`/`scope` vertauscht übergeben, was pro Nutzer einen dauerhaft gecachten, nie freigegebenen `Ratelimit`/`Redis`-Client erzeugt (Memory-Leak-Risiko bei langlebigem Serverprozess). `bot-response/route.ts` (Stufe D/G) wird im Rahmen von R4 korrigiert; `voice-transcribe`/`voice-synthesize` (Stufe M, außerhalb des aktuellen R3–R7-Auftragsumfangs) als eigene Background-Task geflaggt.
+
+## 5 — Verifizierung (R3)
+
+| Prüfung | Ergebnis |
+| --- | --- |
+| Neuer Test [`api/admin/knowledge/__tests__/route.test.ts`](file:///v:/VibeCoding/Casino/src/app/api/admin/knowledge/__tests__/route.test.ts) (Auth, Rate-Limit auf allen 3 Methoden inkl. DELETE-Regression, 500 bei echtem DB-Fehler) | 9/9 grün |
+| `pgvector-store.test.ts` (inkl. 2 neue Fälle: Upsert-Fehler, Delete-Fehler geben jetzt `success: false`) | 9/9 grün |
+| `guide-knowledge.test.ts` (unverändert, Regressionscheck) | 10/10 grün |
+| TypeScript | `npm run typecheck` grün |
+| ESLint | 0 Fehler (12 vorbestehende Warnungen in unberührten Dateien) |
+| `npm run vibe-check` | grün |
+| Vollständiger Testlauf | **Nicht als Gate verwendet** — zum Review-Zeitpunkt lief parallel ein anderer, unabhängiger Arbeitsstand im selben Repo (Guild-Feature-Entfernung + neues Persona-Feature, unstaged), der 3 vorbestehende, mit Stufe F/R3 nicht verwandte Testdateien rot zeigt (`guild-security-review.test.ts` u. a., wegen bereits gelöschter `guild-service.ts`/Migration `053`). Gezielter Testlauf auf den Stufe-F-Dateien ist daher aussagekräftiger als der Gesamtlauf; siehe Zeile oben. |
+| Security-Review | Durchgeführt, beide Findings behoben (Abschnitt 4) |

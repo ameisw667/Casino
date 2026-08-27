@@ -1,3 +1,8 @@
+// Matches the "under 45 characters" instruction given to the model in
+// instructions.ts — enforced here too so a malformed or manipulated model
+// response can't render a degenerate oversized chip in the client.
+const SUGGESTION_MAX_LENGTH = 45;
+
 export function extractSuggestionsFromText(rawText: string): {
   cleanText: string;
   suggestions: string[];
@@ -18,7 +23,7 @@ export function extractSuggestionsFromText(rawText: string): {
     if (Array.isArray(parsed)) {
       suggestions = parsed
         .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
-        .map((item) => item.trim())
+        .map((item) => item.trim().slice(0, SUGGESTION_MAX_LENGTH))
         .slice(0, 3);
     }
   } catch {
