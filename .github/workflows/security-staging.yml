@@ -1,8 +1,19 @@
 name: Security staging regression
 
+# Redesigned 2026-08-28 (worldmap/00-09-CICD.md, M9 — decided with Jan: ephemeral local Supabase
+# instead of a persistent cloud staging project, to avoid the cost/secret-maintenance overhead of a
+# real second Supabase instance for a solo project). `supabase start` runs the same local Docker
+# stack Jan uses locally (npm run supabase:start), applies supabase/migrations/**, and is torn down
+# with the runner — no cloud account, no GitHub secrets, nothing to rotate.
+#
+# Known interaction: supabase/migrations/ has 2 real filename-number collisions (049, 050) tracked
+# separately in worldmap/05_datenbank_haertung.md. If `supabase start` fails to apply migrations,
+# check that plan first before assuming this workflow is broken.
+
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     paths:
       - 'supabase/migrations/**'
       - 'scripts/verify-security-phase1.sql'
@@ -17,19 +28,33 @@ jobs:
   security-staging:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      PHASE1_TARGET_CONFIRMED: ${{ secrets.PHASE1_TARGET_CONFIRMED }}
-      PHASE1_STAGING_URL: ${{ secrets.PHASE1_STAGING_URL }}
-      PHASE1_STAGING_DATABASE_URL: ${{ secrets.PHASE1_STAGING_DATABASE_URL }}
-      PHASE1_STAGING_SERVICE_ROLE_KEY: ${{ secrets.PHASE1_STAGING_SERVICE_ROLE_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: '.nvmrc'
           cache: npm
       - run: npm ci
+
+      - name: Start ephemeral local Supabase
+        run: npx supabase start
+
+      - name: Export local Supabase connection vars
+        run: |
+          npx supabase status -o env > .supabase-status.env
+          {
+            echo "PHASE1_STAGING_URL=$(grep '^API_URL=' .supabase-status.env | cut -d= -f2-)"
+            echo "PHASE1_STAGING_SERVICE_ROLE_KEY=$(grep '^SERVICE_ROLE_KEY=' .supabase-status.env | cut -d= -f2-)"
+            echo "PHASE1_STAGING_DATABASE_URL=$(grep '^DB_URL=' .supabase-status.env | cut -d= -f2-)"
+            echo "PHASE1_TARGET_CONFIRMED=true"
+          } >> "$GITHUB_ENV"
+          rm .supabase-status.env
+
       - run: npm test -- src/lib/security/__tests__/staging-regression-contract.test.ts
       - run: npx tsx scripts/phase1-target-guard.ts
       - run: psql "$PHASE1_STAGING_DATABASE_URL" -v phase1_target_confirmed="$PHASE1_TARGET_CONFIRMED" -f scripts/verify-security-phase1.sql
       - run: npx tsx scripts/phase1-concurrency.ts
+
+      - name: Stop ephemeral local Supabase
+        if: always()
+        run: npx supabase stop

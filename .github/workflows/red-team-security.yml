@@ -1,29 +1,75 @@
 name: Security red team probes
 
+# Redesigned 2026-08-28 (worldmap/00-09-CICD.md, M9 — same ephemeral-local-Supabase decision as
+# security-staging.yml). Runs the app via `next dev` rather than a production build: the fail-closed
+# rate-limit behavior in src/lib/security/request-security.ts (enforceRateLimit) only serves 503s
+# once NODE_ENV=production and no Upstash is configured, which would make rate-limit-bypass.ts's
+# probe meaningless in an ephemeral runner with no real Upstash instance. Dev mode uses the same
+# tested in-memory rate-limit fallback Jan already relies on locally.
+
 on:
   workflow_dispatch:
 
 permissions:
   contents: read
 
+env:
+  CI_ADMIN_EMAIL: ci-red-team-admin@ephemeral.test
+
 jobs:
   red-team:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      PHASE1_TARGET_CONFIRMED: ${{ secrets.PHASE1_TARGET_CONFIRMED }}
-      PHASE1_STAGING_URL: ${{ secrets.PHASE1_STAGING_URL }}
-      RED_TEAM_AUTH_COOKIE: ${{ secrets.RED_TEAM_AUTH_COOKIE }}
-      RED_TEAM_NON_ADMIN_COOKIE: ${{ secrets.RED_TEAM_NON_ADMIN_COOKIE }}
-      RED_TEAM_FOREIGN_USER_ID: ${{ secrets.RED_TEAM_FOREIGN_USER_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: '.nvmrc'
           cache: npm
       - run: npm ci
+
+      - name: Start ephemeral local Supabase
+        run: npx supabase start
+
+      - name: Export local Supabase connection vars
+        run: |
+          npx supabase status -o env > .supabase-status.env
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$(grep '^API_URL=' .supabase-status.env | cut -d= -f2-)"
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$(grep '^ANON_KEY=' .supabase-status.env | cut -d= -f2-)"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$(grep '^SERVICE_ROLE_KEY=' .supabase-status.env | cut -d= -f2-)"
+            echo "PHASE1_STAGING_URL=http://127.0.0.1:3015"
+            echo "PHASE1_TARGET_CONFIRMED=true"
+            echo "SUPABASE_ADMIN_EMAILS=${CI_ADMIN_EMAIL}"
+          } >> "$GITHUB_ENV"
+          rm .supabase-status.env
+
       - run: npm test -- src/lib/security/__tests__/red-team-contract.test.ts
+
+      - name: Start app (dev mode, ephemeral Supabase backend)
+        run: nohup npm run dev > app.log 2>&1 &
+
+      - name: Wait for app readiness
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:3015/api/health > /dev/null; then
+              echo "App is up"; exit 0
+            fi
+            sleep 2
+          done
+          echo "App did not become ready in time"; cat app.log; exit 1
+
+      - name: Create ephemeral red-team users and derive session cookies
+        run: npx tsx scripts/red-team/ephemeral-bootstrap.ts
+
       - run: npx tsx scripts/red-team/target-guard.ts
       - run: npx tsx scripts/red-team/rate-limit-bypass.ts
       - run: npx tsx scripts/red-team/admin-idor.ts
+
+      - name: Show app log on failure
+        if: failure()
+        run: cat app.log || true
+
+      - name: Stop ephemeral local Supabase
+        if: always()
+        run: npx supabase stop
