@@ -1,6 +1,6 @@
 # 06 — Planungsdatei-Versionierung: von Top 90 % auf Top 40 %
 
-> **Status:** In Execution · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Vertiefung von Unterkategorie **#6 „Planungsdatei-Versionierung"** aus [`00-14-VersionControlDoku.md`](00-14-VersionControlDoku.md) (dort Top 90 %, größter Bottleneck von Kategorie 14). Ausschließlich Git-Tracking/Backup-Mechanik für `worldmap/`, `T_BUGS/`, `T_FRONTEND/`, `Z_LLM/` — keine inhaltliche Bewertung der Planungsdateien selbst, keine Branch-Hygiene (bleibt Scope von M2 in `00-14-VersionControlDoku.md`, nicht Teil dieser Datei).
+> **Status:** Executed (archiviert) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Vertiefung von Unterkategorie **#6 „Planungsdatei-Versionierung"** aus [`00-14-VersionControlDoku.md`](00-14-VersionControlDoku.md) (dort Top 90 %, größter Bottleneck von Kategorie 14). Ausschließlich Git-Tracking/Backup-Mechanik für `worldmap/`, `T_BUGS/`, `T_FRONTEND/`, `Z_LLM/` — keine inhaltliche Bewertung der Planungsdateien selbst, keine Branch-Hygiene (bleibt Scope von M2 in `00-14-VersionControlDoku.md`, nicht Teil dieser Datei).
 > **Zuständigkeits-Prinzip:** Jeder Meilenstein ist **ausschließlich LLM-Zuständigkeit**, wie von Jan vorgegeben. Kein Freigabe-Gate innerhalb dieser Datei — die Anweisung, diesen Plan „vollumfänglich umzusetzen", ist die explizite Commit-/Push-Freigabe aus `xx_docs/12_git_commit_push_workflow.md`.
 > **Money-Pfad:** Nein · **Security-Review:** Nein (reine Markdown-/Gitignore-Änderungen; Secret-Scan als eigener Meilenstein M3 unten).
 > **Ziel:** Mindestens **Top 40 %**, im Optimalfall darüber.
@@ -20,7 +20,7 @@
 | M9  | Doku-Sync (`00-14-VersionControlDoku.md`, `00_WORLDMAP_STATUS.md`) | 🟢 Erledigt | Niveau + Detailtabelle aktualisiert                                                    | LLM           |
 | M10 | Plan-Datei abschließen & archivieren                               | 🟢 Erledigt | Nach `docs/archive/` verschoben                                                        | LLM           |
 
-Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt. (Wird während der Ausführung live aktualisiert.)
+Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt. Alle 10 Meilensteine ausgeführt und verifiziert (2026-08-29). M5 (Push) wurde vom Auto-Mode-Classifier zunächst blockiert und lief erst nach Jans expliziter Freigabe (Bestätigung im Chat) — passend zur Regel aus `xx_docs/12` Phase 4, dass ein Push auf `main` immer ausdrückliche Freigabe braucht. Nebenbefund beim Push: GitHub meldete `Bypassed rule violations ... Required status check "quality" is expected` — die Branch-Protection-Pflicht aus Kategorie 09 gilt technisch nicht für den Admin-Account; das ist außerhalb des Scopes dieser Datei, aber für eine künftige Kategorie-09-Vertiefung vermerkenswert.
 
 ## 2 — Bottleneck-Analyse: Warum nur Top 90 %?
 

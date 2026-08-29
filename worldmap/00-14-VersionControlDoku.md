@@ -1,16 +1,16 @@
 # 14 — Version Control + Doku — Sub-Kategorie-Aufschlüsselung & Härtungsplan
 
-> **Status:** Execution-Ready · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Erstaufschlüsselung von Kategorie **14 „Version Control + Doku"** aus [`00_WORLDMAP_STATUS.md`](00_WORLDMAP_STATUS.md) (dort geführt als **Top 18 %**, Prio 2) in 10 einzeln bewertete Unterkategorien, plus ein vollständig spezifizierter Härtungsplan für die 6 schwächsten Unterkategorien (#2, #3, #6, #7, #8, #10 — alle Top 55 % oder schlechter).
+> **Status:** In Execution (Teilfortschritt: #6 vollständig behoben) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Erstaufschlüsselung von Kategorie **14 „Version Control + Doku"** aus [`00_WORLDMAP_STATUS.md`](00_WORLDMAP_STATUS.md) (dort geführt als **Top 18 %**, Prio 2) in 10 einzeln bewertete Unterkategorien, plus ein Härtungsplan für die schwächsten Unterkategorien. #6 (Planungsdatei-Versionierung) ist vollständig ausgeführt und behoben (Top 90 % → Top 15 %, siehe [`06_planungsdatei_versionierung.md`](../docs/archive/06_planungsdatei_versionierung.md)); #2, #3, #7, #8, #10 (alle Top 55 % oder schlechter) sind weiterhin nur spezifiziert, nicht ausgeführt.
 > **Zuständigkeits-Prinzip (auf Jans ausdrücklichen Wunsch):** Jeder Meilenstein unten ist **ausschließlich LLM-Zuständigkeit** — keine Jan-Entscheidung, kein Freigabe-Gate innerhalb dieser Datei. Jede Stelle, an der eine frühere Fassung dieses Plans noch eine Jan-Rückfrage vorsah (Git-Tracking reaktivieren, Schicksal der 2 unmerged Branches), wurde durch reale Recherche/Diff-Analyse in dieser Planungsphase selbst aufgelöst — Begründung jeweils im Meilenstein dokumentiert. Der einzige weiterhin geltende Prozessschritt ist die **globale, projektweite Commit-/Push-Freigabe** aus `xx_docs/12_git_commit_push_workflow.md` (kein Commit/Push ohne expliziten Auftrag) — das ist ein Standard-Mechanismus für jede Session, keine kategoriespezifische Zuständigkeit dieses Plans.
 > **Vorlage/Methodik:** identisch zu [`04_datenbank_migrationen.md`](04_datenbank_migrationen.md) (Kategorie 02) und [`00-09-CICD.md`](00-09-CICD.md) (Kategorie 09), Detailtiefe der Meilensteine analog zu [`05_datenbank_haertung.md`](05_datenbank_haertung.md) (L0–LN je Teil, L0 bereits während der Planung recherchiert/verifiziert).
 > **Money-Pfad:** Nein (reine Repo-/Doku-Hygiene, kein Wallet-/Auth-/RNG-Code betroffen) · **Security-Review:** Nein für alle Meilensteine unten (reine Git-Metadaten- und Markdown-Änderungen, keine Secrets, keine DB-Schreibzugriffe; Secret-Scan für M1 bereits negativ verifiziert, siehe M1/L0).
-> **Diese Datei ist vollständig recherchiert und spezifiziert, aber noch nicht ausgeführt.** Kein Branch wurde gelöscht, kein `.gitignore` geändert, kein Commit erstellt — alle mutierenden Schritte stehen auf 🔴 Geplant. Nur die reinen Analyse-/Recherche-Schritte (als L0 markiert) sind bereits 🟢 erledigt, weil sie nötig waren, um die Jan-Rückfragen aus der vorherigen Fassung aufzulösen. Diese Datei ist damit für eine andere LLM-Sitzung direkt ausführbar, ohne weitere Rückfragen an Jan.
+> **Update 2026-08-29 (nach Jans Freigabe):** Unterkategorie #6 (Planungsdatei-Versionierung) ist vollständig ausgeführt — siehe [`06_planungsdatei_versionierung.md`](../docs/archive/06_planungsdatei_versionierung.md) (dediziertes M1–M10-Programm, `docs/archive/` nach Abschluss). Niveau **Top 90 % → Top 15 %**. Die übrigen Meilensteine (M1–M5 unten, jetzt für #2/#3/#7/#8/#10) stehen weiterhin auf 🔴 Geplant — kein Branch gelöscht, keine Doku-Sync-Automatisierung gebaut, kein `CHANGELOG.md` angelegt.
 
 ## Kernaussage für Jan
 
 Die bisherige **Top-18-%-Bewertung ist real für die am besten gemessene Teilfläche, aber schmal begründet** — sie stützt sich fast ausschließlich auf Commit-Message-Disziplin (30/30 bzw. jetzt frisch 50/50 Conventional Commits) und die schiere Dateizahl in `docs/`. Bei dieser Aufschlüsselung in 10 Unterkategorien liegt der rechnerische Schnitt bei **≈ Top 51 %**, nicht Top 18 % — derselbe Effekt wie bei Kategorie 02 (Top 15 % → ≈ Top 47 %) und Kategorie 09 (Top 70 % nie gemessen → real bestätigt).
 
-**Der mit Abstand größte und ironischste Bottleneck (#6 unten): Die gesamte Planungs- und Statusnachweis-Ebene — `worldmap/` inklusive dieser Datei und der zentralen `00_WORLDMAP_STATUS.md` selbst — ist zu 100 % NICHT in Git getrackt.** Sie existiert ausschließlich auf Jans lokaler Festplatte. Für eine Kategorie, die explizit „Version Control" im Namen trägt, ist das der am schwersten wiegende Einzelbefund dieser gesamten Aufschlüsselung: kein Backup, keine Historie, kein Diff, kein Wiederherstellungspfad bei Datenverlust — für genau die Dateien, die den Fortschritt aller anderen 18 Kategorien dokumentieren.
+**✅ Behoben (2026-08-29):** Der mit Abstand größte und ironischste Bottleneck war #6 — die gesamte Planungs- und Statusnachweis-Ebene (`worldmap/` inklusive dieser Datei und der zentralen `00_WORLDMAP_STATUS.md` selbst) war zu 100 % nicht in Git getrackt und existierte ausschließlich auf Jans lokaler Festplatte. Für eine Kategorie, die explizit „Version Control" im Namen trägt, war das der am schwersten wiegende Einzelbefund dieser gesamten Aufschlüsselung. Per [`06_planungsdatei_versionierung.md`](../docs/archive/06_planungsdatei_versionierung.md) vollständig ausgeführt: getrackt, committed (`10f63b7`), auf `origin/main` gepusht und per frischem Klon real verifiziert (17 `.md`-Dateien in `worldmap/`, 19 in `T_BUGS/`, 3 in `T_FRONTEND/`, 2 in `Z_LLM/` — `worldmap/.research/` korrekt abwesend). Neues Niveau: **Top 15 %**.
 
 **Zweitgrößter Bottleneck (#2): 2 lokale Branches mit zusammen 23 nie gemergten Commits liegen seit über 3 Monaten unberührt** (`worktree-fix-critical-bugs`, 21 Commits, zuletzt 2026-05-17; `worktree-performance-optimizations`, 2 Commits, zuletzt 2026-05-24) — echtes, bisher unbemerktes Risiko verlorener Arbeit, kein rein kosmetischer Befund.
 
@@ -18,20 +18,20 @@ Die bisherige **Top-18-%-Bewertung ist real für die am besten gemessene Teilfl�
 
 ## Kompaktübersicht (sortiert nach Niveau, bestes zuerst)
 
-| #   | Unterkategorie                                        | Niveau       | Status                | Kernbefund                                                                                                              |
-| --- | ----------------------------------------------------- | ------------ | --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 1   | Commit-Message-Disziplin & Workflow-Doku              | **Top 5 %**  | 🟢                    | 50/50 letzte Commits konform, dedizierte Top-1%-Referenzdatei (`xx_docs/12`)                                            |
-| 9   | SOP-/Kontextreferenz-Struktur                         | **Top 15 %** | 🟢                    | 16 SOPs + 11 Kontextreferenzen, durchgängig nummeriert, im CLAUDE.md-Router verlinkt                                    |
-| 5   | `.gitignore` & Repo-Hygiene                           | **Top 20 %** | 🟢                    | 89 saubere, kommentierte Zeilen; ein struktureller Nebeneffekt siehe #6                                                 |
-| 4   | Pre-Commit-Gate & lokale Schreibsicherung             | **Top 25 %** | 🟡                    | Migrations-Kollisions-Check + `lint-staged` aktiv; bewusst kein lokales Test-/Build-Gate (Jan-Entscheidung, Kat. 09/M6) |
-| 8   | Cross-Referenz-Integrität (tote Links)                | **Top 55 %** | 🔴                    | Nie systematisch geprüft; mind. 1 bekannte tote Referenz (`05_Gildensystem.md`)                                         |
-| 7   | Doku-Index-Aktualität (`docs/README.md`)              | **Top 60 %** | 🔴                    | Index behauptet 41 Dateien, real 163; zusätzlich ein Encoding-Defekt gefunden                                           |
-| 2   | Branch-Hygiene & Merge-Disziplin                      | **Top 65 %** | 🔴                    | 4 verwaiste lokale Branches, davon 2 mit 23 nie gemergten Commits; 0 % PR-Review für Jans eigene Commits                |
-| 10  | Doku-Sync-Automatisierung (Drift-Check, PR-Template)  | **Top 85 %** | 🔴                    | Drift-Register komplett manuell, seit 2026-07-28 nicht fortgeführt; kein PR-Template im Repo                            |
-| 3   | Release- & Versionierungs-Disziplin (Tags, CHANGELOG) | **Top 90 %** | ⬜                    | 0 Git-Tags, kein `CHANGELOG.md`, keine SemVer-Konvention                                                                |
-| 6   | Planungsdatei-Versionierung (`worldmap/` etc.)        | **Top 90 %** | 🔴 größter Bottleneck | `worldmap/`, `T_BUGS/`, `T_FRONTEND/` zu 0 % in Git getrackt — inkl. dieser Datei                                       |
+| #   | Unterkategorie                                        | Niveau       | Status                  | Kernbefund                                                                                                                                                                                      |
+| --- | ----------------------------------------------------- | ------------ | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Commit-Message-Disziplin & Workflow-Doku              | **Top 5 %**  | 🟢                      | 50/50 letzte Commits konform, dedizierte Top-1%-Referenzdatei (`xx_docs/12`)                                                                                                                    |
+| 9   | SOP-/Kontextreferenz-Struktur                         | **Top 15 %** | 🟢                      | 16 SOPs + 11 Kontextreferenzen, durchgängig nummeriert, im CLAUDE.md-Router verlinkt                                                                                                            |
+| 6   | Planungsdatei-Versionierung (`worldmap/` etc.)        | **Top 15 %** | 🟢 behoben (2026-08-29) | Getrackt, committed (`10f63b7`), auf `origin/main` gepusht, per frischem Klon real verifiziert — siehe [`06_planungsdatei_versionierung.md`](../docs/archive/06_planungsdatei_versionierung.md) |
+| 5   | `.gitignore` & Repo-Hygiene                           | **Top 20 %** | 🟢                      | 89 saubere, kommentierte Zeilen; Planungsdatei-Ausschluss auf `.research/` präzisiert (siehe #6)                                                                                                |
+| 4   | Pre-Commit-Gate & lokale Schreibsicherung             | **Top 25 %** | 🟡                      | Migrations-Kollisions-Check + `lint-staged` aktiv; bewusst kein lokales Test-/Build-Gate (Jan-Entscheidung, Kat. 09/M6)                                                                         |
+| 8   | Cross-Referenz-Integrität (tote Links)                | **Top 55 %** | 🔴                      | Nie systematisch geprüft; mind. 1 bekannte tote Referenz (`05_Gildensystem.md`)                                                                                                                 |
+| 7   | Doku-Index-Aktualität (`docs/README.md`)              | **Top 60 %** | 🔴                      | Index behauptet 41 Dateien, real 163; zusätzlich ein Encoding-Defekt gefunden                                                                                                                   |
+| 2   | Branch-Hygiene & Merge-Disziplin                      | **Top 65 %** | 🔴                      | 4 verwaiste lokale Branches, davon 2 mit 23 nie gemergten Commits; 0 % PR-Review für Jans eigene Commits                                                                                        |
+| 10  | Doku-Sync-Automatisierung (Drift-Check, PR-Template)  | **Top 85 %** | 🔴                      | Drift-Register komplett manuell, seit 2026-07-28 nicht fortgeführt; kein PR-Template im Repo                                                                                                    |
+| 3   | Release- & Versionierungs-Disziplin (Tags, CHANGELOG) | **Top 90 %** | ⬜                      | 0 Git-Tags, kein `CHANGELOG.md`, keine SemVer-Konvention                                                                                                                                        |
 
-> **Rechnerischer Schnitt über alle 10 Positionen:** (5+65+90+25+20+90+60+55+15+85)/10 = **Top 51 %**. Die bisherige Top-18-%-Angabe in `00_WORLDMAP_STATUS.md` bleibt vorerst unverändert stehen — analog zur Konvention bei Kategorie 02 ist eine Änderung des Headline-Werts Jans Entscheidung, nicht automatisch.
+> **Rechnerischer Schnitt über alle 10 Positionen:** (5+65+90+25+20+**15**+60+55+15+85)/10 = **Top 44 %** (vorher Top 51 %, vor der #6-Behebung). Die bisherige Top-18-%-Angabe in `00_WORLDMAP_STATUS.md` bleibt vorerst unverändert stehen — analog zur Konvention bei Kategorie 02 ist eine Änderung des Headline-Werts Jans Entscheidung, nicht automatisch.
 
 ## Detailtabellen je Unterkategorie
 
@@ -62,17 +62,22 @@ Zusätzlich: Von 203 Commits insgesamt trägt nur **3** einen Merge-Commit-Titel
 
 ### 5 — `.gitignore` & Repo-Hygiene (Top 20 %)
 
-89 Zeilen, sauber nach Zweck kommentiert (dependencies/testing/next.js/production/misc/debug/env/vercel/typescript/temporäre Reports/claude code/supabase/sentry/scratch). `.env*` korrekt ausgeschlossen mit expliziter `.env.example`-Gegenausnahme — Best Practice. Zwei kleinere Unschärfen: `*.txt` ist eine sehr breite globale Regel (könnte legitime `.txt`-Artefakte verschlucken, kein akuter Vorfall bekannt); der strukturell größere Punkt ist die bewusste Exklusion von `/worldmap/`, `/T_BUGS/`, `/T_FRONTEND/` — sauber für „Repo ist nur Code", aber der Preis dafür ist Unterkategorie 6.
+89 Zeilen (Stand vor der #6-Behebung; seit 2026-08-29 leicht kürzer, siehe unten), sauber nach Zweck kommentiert (dependencies/testing/next.js/production/misc/debug/env/vercel/typescript/temporäre Reports/claude code/supabase/sentry/scratch). `.env*` korrekt ausgeschlossen mit expliziter `.env.example`-Gegenausnahme — Best Practice. Eine kleinere Unschärfe bleibt: `*.txt` ist eine sehr breite globale Regel (könnte legitime `.txt`-Artefakte verschlucken, kein akuter Vorfall bekannt). Die vormals pauschale Exklusion von `/worldmap/`, `/T_BUGS/`, `/T_FRONTEND/`, `/Z_LLM/` wurde im Rahmen von #6 durch die präzise Regel `/worldmap/.research/` ersetzt — der Grund für den früheren Punktabzug ist damit entfallen.
 
-### 6 — Planungsdatei-Versionierung (Top 90 %) 🔴 größter Bottleneck
+### 6 — Planungsdatei-Versionierung (Top 15 %) 🟢 behoben (2026-08-29)
 
-`git ls-files worldmap/ | wc -l` → **0**. Kein einziges File in `worldmap/` ist in Git getrackt — inklusive `00_WORLDMAP_STATUS.md` selbst und dieser Datei. Gleiches Bild bei `T_BUGS/` (0) und `T_FRONTEND/` (0). `Z_LLM/` ist ein inkonsistenter Sonderfall: genau 1 Datei (`10_llm_erweiterung.md`) ist getrackt, der Rest des Ordners nicht.
+**Ursprünglicher Befund:** `git ls-files worldmap/ | wc -l` → 0 — kein einziges File in `worldmap/` war in Git getrackt, inklusive `00_WORLDMAP_STATUS.md` selbst. Gleiches Bild bei `T_BUGS/` (0) und `T_FRONTEND/` (0); `Z_LLM/` war ein inkonsistenter Sonderfall (1 von 2 Dateien getrackt). Ursache: der frühere, bewusste Commit `9cc9b9f`. Zusätzlich entdeckt: `worldmap/.research/tonejs/` ist ein 16-MB-Klon des externen Tone.js-Repos inklusive eigenem verschachteltem `.git`-Ordner — ein naives Zurückholen ins Tracking hätte das mitgezogen.
 
-**Ursache (per `git log --oneline --all -- .gitignore`):** Commit `9cc9b9f "chore(git): stop tracking planning-only docs (worldmap, Z_BUGS, Z_FRONTEND, Z_LLM)"` — eine frühere, bewusste Entscheidung, keine versehentliche Lücke.
+**Vollständig behoben durch [`06_planungsdatei_versionierung.md`](../docs/archive/06_planungsdatei_versionierung.md) (M1–M10, alle ausgeführt und verifiziert):**
 
-**Konsequenz:** Der komplette Planungs- und Statusnachweis-Layer (17 Worldmap-Dateien laut `find worldmap -name "*.md" | wc -l` aus der bisherigen Kategorie-14-Messung) existiert ausschließlich auf Jans lokaler Festplatte. Kein Remote-Backup, keine Versionshistorie, kein Diff bei Änderungen, kein Wiederherstellungspfad bei Festplattendefekt oder versehentlichem Löschen — das genaue Gegenteil dessen, was „Version Control" leisten soll, ausgerechnet bei den Dateien, die den Fortschritt aller 19 Kategorien dokumentieren.
+- `.gitignore` chirurgisch auf `/worldmap/.research/` verengt (statt der 4 pauschalen Ordner-Ausschlüsse).
+- Secret-Scan unmittelbar vor dem Staging wiederholt: 0 Treffer.
+- Ein einzelner Commit `10f63b7` trackt `worldmap/` (ohne `.research/`), `T_BUGS/`, `T_FRONTEND/`, `Z_LLM/` — 42 Dateien.
+- Auf Jans expliziter Freigabe (Auto-Mode-Classifier hatte den Push zunächst blockiert, siehe SOP `xx_docs/12` Phase 4) nach `origin/main` gepusht.
+- **Restore-Verifizierung mit einem echten frischen Klon von `origin/main`** (nicht nur lokale Prüfung): 17 `.md`-Dateien in `worldmap/`, 19 in `T_BUGS/`, 3 in `T_FRONTEND/`, 2 in `Z_LLM/` — `worldmap/.research/` korrekt abwesend.
+- Konventionen für die Zukunft ergänzt: `xx_docs/12` (neuer Vendored-Klon → sofort eigene `.gitignore`-Zeile) und `00_WORLDMAP_STATUS.md` Abschnitt 6 (Git-Merge-Konflikt-Risiko bei paralleler Bearbeitung jetzt real möglich, da versioniert).
 
-**Vertiefungs-Nachtrag (2026-08-29):** Vollaudit der 4 betroffenen Ordner durchgeführt. `worldmap/` enthält real 553 Dateien, aber fast alle davon (359 `.ts`, 65 `.wav`, 38 `.html`, u. a.) liegen unter `worldmap/.research/tonejs/` — einem vollständigen, 16 MB großen Klon des externen Tone.js-Repos **inklusive eigenem verschachteltem `.git`-Ordner**. Nur 25 `.md`-Dateien direkt in `worldmap/` plus 3 weitere unter `worldmap/13_claude_code/` sind echter Planungsinhalt. `T_BUGS/` (19 Dateien) und `T_FRONTEND/` (3 Dateien) sind vollständig sauber, nur Markdown. `Z_LLM/` ist inkonsistent: `10_llm_erweiterung.md` ist bereits getrackt (aber lokal modifiziert, `git status` zeigt `M`), `00_LLM.md` ist durch die `.gitignore`-Regel als `!!` (ignoriert) markiert. Secret-Scan (Muster für API-Keys, Private-Key-Blöcke, Slack-Tokens, Supabase-Service-Role-Strings) über alle vier Ordner: **0 Treffer** — Tracking ist aus Secrets-Sicht unbedenklich.
+**Einziger Abzug von Top 5–10 % auf Top 15 %:** Kein automatisierter, wiederkehrender Check, der die `.research/`-Exklusion und die Restore-Integrität künftig erneut prüft (z. B. ein CI-Job) — die Verifizierung war real und gründlich, aber einmalig, nicht dauerhaft überwacht.
 
 ### 7 — Doku-Index-Aktualität — `docs/README.md` (Top 60 %)
 
@@ -105,75 +110,33 @@ Das Doku-Drift-Register (Abschnitt 7 der Status-Datei) dokumentiert 10 behobene 
 
 ## Empfohlene Bearbeitungsreihenfolge
 
-| Prio | Unterkategorie                        | Warum zuerst/danach                                                                                                                          |
-| ---- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | #6 Planungsdatei-Versionierung        | Einziger Befund mit echtem, laufendem Datenverlust-Risiko für die gesamte Planungsebene — niedriger Aufwand, höchster Hebel                  |
-| 2    | #2 Branch-Hygiene                     | Zweiter echter Datenverlust-Kandidat (23 nie gemergte Commits) — je länger die Branches liegen, desto schwerer wird ein sauberer Diff-Review |
-| 3    | #7 + #8 Doku-Index & Cross-Referenzen | Reine Textkorrekturen ohne Risiko, schnell erledigt, verhindert weitere Verwirrung beim Navigieren                                           |
-| 4    | #10 Doku-Sync-Automatisierung         | Baut auf #7/#8 auf (Link-Checker), macht künftigen Drift automatisch sichtbar statt erst bei der nächsten Vollprüfung                        |
-| 5    | #3 Release-Disziplin                  | Niedrigste Priorität — bei Continuous Deployment ohne klassische Release-Artefakte ist ein CHANGELOG „nice to have", kein Blocker            |
+| Prio  | Unterkategorie                                     | Warum zuerst/danach                                                                                                                                                                                                  |
+| ----- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ~~1~~ | ~~#6 Planungsdatei-Versionierung~~ **✅ erledigt** | War der einzige Befund mit echtem, laufendem Datenverlust-Risiko für die gesamte Planungsebene — vollständig behoben, siehe [`06_planungsdatei_versionierung.md`](../docs/archive/06_planungsdatei_versionierung.md) |
+| 1     | #2 Branch-Hygiene                                  | Jetzt höchste verbleibende Priorität: zweiter echter Datenverlust-Kandidat (23 nie gemergte Commits) — je länger die Branches liegen, desto schwerer wird ein sauberer Diff-Review                                   |
+| 2     | #7 + #8 Doku-Index & Cross-Referenzen              | Reine Textkorrekturen ohne Risiko, schnell erledigt, verhindert weitere Verwirrung beim Navigieren                                                                                                                   |
+| 3     | #10 Doku-Sync-Automatisierung                      | Baut auf #7/#8 auf (Link-Checker), macht künftigen Drift automatisch sichtbar statt erst bei der nächsten Vollprüfung                                                                                                |
+| 4     | #3 Release-Disziplin                               | Niedrigste Priorität — bei Continuous Deployment ohne klassische Release-Artefakte ist ein CHANGELOG „nice to have", kein Blocker                                                                                    |
 
-Unterkategorien 1, 4, 5, 9 (bereits Top 5–25 %) bekommen keinen eigenen Meilenstein — sie sind gut genug, um die Bearbeitungskapazität auf die 5 oben zu konzentrieren.
+Unterkategorien 1, 4, 5, 6, 9 (jetzt alle Top 5–20 %) bekommen keinen eigenen Meilenstein mehr in dieser Tabelle — #6 ist über die dedizierte Datei erledigt, die übrigen vier waren es bereits vorher.
 
 ## Umsetzungsplan
 
 Jeder Meilenstein ist **ausschließlich LLM-Zuständigkeit**. Die L0-Schritte (Recherche/Analyse) sind bereits während dieser Planungsphase ausgeführt und verifiziert — sie mussten erledigt werden, um jede Stelle aufzulösen, an der eine frühere Fassung noch eine Jan-Entscheidung vorgesehen hätte. Alle mutierenden Schritte (L1+) sind vollständig spezifiziert, aber nicht ausgeführt.
 
-| Meilenstein                                               | Behebt # | Status                        | Zuständigkeit |
-| --------------------------------------------------------- | -------- | ----------------------------- | ------------- |
-| M1 — Planungsdateien präzise ins Git-Tracking zurückholen | 6        | 🟡 L0 erledigt, L1–L3 geplant | LLM           |
-| M2 — Verwaiste Worktree-Branches bereinigen               | 2        | 🟡 L0 erledigt, L1–L3 geplant | LLM           |
-| M3 — Doku-Index & Cross-Referenzen reparieren             | 7, 8     | 🟡 L0 erledigt, L1–L4 geplant | LLM           |
-| M4 — Release-Disziplin einführen                          | 3        | 🔴 Geplant                    | LLM           |
-| M5 — Doku-Sync-Automatisierung + PR-Template              | 10       | 🔴 Geplant                    | LLM           |
+| Meilenstein                                                   | Behebt # | Status                                                                                                      | Zuständigkeit |
+| ------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------- | ------------- |
+| ~~M1 — Planungsdateien präzise ins Git-Tracking zurückholen~~ | 6        | 🟢 Erledigt, siehe [`06_planungsdatei_versionierung.md`](../docs/archive/06_planungsdatei_versionierung.md) | LLM           |
+| M2 — Verwaiste Worktree-Branches bereinigen                   | 2        | 🟡 L0 erledigt, L1–L3 geplant                                                                               | LLM           |
+| M3 — Doku-Index & Cross-Referenzen reparieren                 | 7, 8     | 🟡 L0 erledigt, L1–L4 geplant                                                                               | LLM           |
+| M4 — Release-Disziplin einführen                              | 3        | 🔴 Geplant                                                                                                  | LLM           |
+| M5 — Doku-Sync-Automatisierung + PR-Template                  | 10       | 🔴 Geplant                                                                                                  | LLM           |
 
-Ampel: 🔴 geplant, 🟡 teilweise (Analyse erledigt, Ausführung offen), 🟢 verifiziert ausgeführt. **Kein Branch wurde gelöscht, keine `.gitignore`-Zeile geändert, kein Commit erstellt — nur Analyse-Schritte sind bereits gelaufen.**
+Ampel: 🔴 geplant, 🟡 teilweise (Analyse erledigt, Ausführung offen), 🟢 verifiziert ausgeführt. **M1 (#6) ist vollständig ausgeführt und verifiziert (Commit `10f63b7`, gepusht, Restore getestet). M2–M5 sind unverändert nur spezifiziert, nicht ausgeführt.**
 
-### M1 — Planungsdateien präzise ins Git-Tracking zurückholen (behebt #6)
+### M1 — Planungsdateien präzise ins Git-Tracking zurückholen (behebt #6) — ✅ vollständig erledigt
 
-**Ziel:** `worldmap/`, `T_BUGS/`, `T_FRONTEND/`, `Z_LLM/` sind vollständig und ausschließlich für ihren echten Planungsinhalt in Git getrackt — ohne den vendorten `.research/`-Klon versehentlich mitzuziehen.
-
-**L0 — Vollaudit (🟢 erledigt, 2026-08-29):** Siehe Unterkategorie 6 oben (Detailtabelle). Zusammengefasst: 25 `.md`-Dateien direkt in `worldmap/` + 3 unter `worldmap/13_claude_code/` sind der eigentliche Planungsinhalt; `worldmap/.research/tonejs/` (553 von insgesamt gezählten Dateien, 16 MB, inkl. eigenem `.git`) ist ein vendorter Fremd-Repo-Klon und muss ausgeschlossen bleiben; `T_BUGS/` (19 Dateien) und `T_FRONTEND/` (3 Dateien) sind sauber; `Z_LLM/` hat einen inkonsistenten Zwischenzustand (1 von 2 Dateien bereits getrackt); Secret-Scan negativ (0 Treffer).
-
-**L1 — `.gitignore` präzise anpassen (🔴 geplant):**
-
-Aktueller Block (Zeilen unter dem Kommentar „planning-only docs"):
-
-```gitignore
-# planning-only docs: user/LLM overview & roadmap notes, no product code
-/worldmap/
-/T_BUGS/
-/T_FRONTEND/
-/Z_LLM/
-```
-
-Neuer Block:
-
-```gitignore
-# planning docs are tracked for durability since 2026-08-29 (worldmap/00-14-VersionControlDoku.md, M1).
-# .research/ stays excluded: vendored third-party research clones (e.g. a full external repo
-# checkout with its own nested .git) — never track without stripping the nested .git first.
-/worldmap/.research/
-```
-
-(Die Zeilen `/T_BUGS/`, `/T_FRONTEND/`, `/Z_LLM/` entfallen ersatzlos.)
-
-**L2 — Tracking nachziehen (🔴 geplant):**
-
-1. Unmittelbar vor der Ausführung frisch prüfen: `find worldmap -maxdepth 1` (Grund: siehe Kernaussage-Nachtrag zur parallelen Session — der Ordnerinhalt kann sich seit dieser Planung verändert haben).
-2. `git add worldmap/ T_BUGS/ T_FRONTEND/ Z_LLM/`
-3. Kontrolle **vor** dem Commit, dass die Ausnahme greift: `git status --porcelain worldmap/.research | wc -l` muss `0` sein (nichts davon darf als `A`/`??` auftauchen).
-4. Ein einzelner, klar benannter Commit: `docs: track planning and status docs in git for durability` (folgt der Kohorten-Regel aus `xx_docs/12_git_commit_push_workflow.md` — reine Doku-Kohorte, nicht mit Code mischen).
-
-**L3 — Verifizieren (🔴 geplant):**
-
-```bash
-git ls-files worldmap/ | wc -l              # Ziel: > 0 (vorher 0)
-git ls-files worldmap/.research | wc -l     # Ziel: exakt 0 (Ausschluss bestätigt)
-git log -1 --stat | grep -c '\.research/'   # Ziel: 0 Treffer im letzten Commit
-```
-
-**Security-Review:** Nein (reine Markdown-Dateien, Secret-Scan in L0 bereits negativ).
+Vollständig ausgeführt und verifiziert am 2026-08-29 als eigenes, tieferes M1–M10-Programm — siehe [`06_planungsdatei_versionierung.md`](../docs/archive/06_planungsdatei_versionierung.md) (nach Abschluss nach `docs/archive/` verschoben). Kurzfassung: `.gitignore` auf `/worldmap/.research/` verengt, Secret-Scan negativ, Commit `10f63b7` (`worldmap/`, `T_BUGS/`, `T_FRONTEND/`, `Z_LLM/`, ohne `.research/`), nach Jans Freigabe auf `origin/main` gepusht, Restore per frischem Klon real verifiziert. Niveau von Top 90 % auf Top 15 %.
 
 ### M2 — Verwaiste Worktree-Branches bereinigen (behebt #2)
 
@@ -346,7 +309,7 @@ Rückwirkende Befüllung ist ein separater, klar abgegrenzter Rechercheschritt (
 
 ## Definition of Done für die nächste Stufe (Top 20 %)
 
-- `worldmap/`, `T_BUGS/`, `T_FRONTEND/`, `Z_LLM/` sind vollständig in Git getrackt (`worldmap/.research/` bleibt bewusst ausgeschlossen), ein einzelner Commit dazu ist gelandet.
+- ✅ **Erledigt:** `worldmap/`, `T_BUGS/`, `T_FRONTEND/`, `Z_LLM/` sind vollständig in Git getrackt (`worldmap/.research/` bleibt bewusst ausgeschlossen), Commit `10f63b7` ist auf `origin/main` gelandet und per frischem Klon verifiziert (siehe `06_planungsdatei_versionierung.md`).
 - 0 verwaiste Branches ohne dokumentierte Entscheidung (`git branch -a` zeigt nur `main` + Remotes).
 - `docs/README.md`-Index deckt ≥ 95 % der `docs/`-Dateien ab, 0 Encoding-Fehler.
 - `npm run check-doc-links` existiert und meldet 0 tote Links in lebendigen (nicht-archivierten) Dateien.
@@ -357,8 +320,9 @@ Rückwirkende Befüllung ist ein separater, klar abgegrenzter Rechercheschritt (
 
 ```bash
 git log --oneline -50 --format="%s" | grep -cE "^(feat|fix|docs|refactor|test|chore|perf|ci)(\(.+\))?:"   # 50/50
-git ls-files worldmap/ | wc -l              # aktuell 0 — Ziel nach M1: > 0
-git ls-files worldmap/.research | wc -l     # muss nach M1 weiterhin 0 bleiben
+git ls-files worldmap/ | wc -l              # ✅ nach M1: > 0 (war 0)
+git ls-files worldmap/.research | wc -l     # ✅ nach M1: 0 (Ausschluss bestätigt)
+git log origin/main -1 --oneline            # ✅ zeigt 10f63b7 — Commit ist auf dem Remote
 git branch -a                                # aktuell 4 verwaiste worktree-*-Branches — Ziel nach M2: 0
 find docs -name "*.md" | wc -l              # 163
 git tag -l                                   # aktuell leer
