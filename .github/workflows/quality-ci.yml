@@ -3,6 +3,8 @@ name: Quality CI
 # Specification frozen 2026-08-23 by Jan (docs/archive/06_ci_cd_versioncontrol.md, decisions Q1-Q8),
 # implemented 2026-08-28 (worldmap/00-09-CICD.md, M1). Secret-free quality gate: test, typecheck,
 # lint, build. Required status check for branch protection (M2, separate Jan-approved step).
+# Doc-link-check step added 2026-08-29 (worldmap/00-14-DokuSync.md, M6) — extends this existing,
+# already-approved gate rather than introducing a new local pre-commit gate (see M6/L0 for rationale).
 
 on:
   pull_request:
@@ -31,4 +33,5 @@ jobs:
       - run: npm test
       - run: npm run typecheck
       - run: npm run lint
+      - run: npm run check-doc-links
       - run: npm run build

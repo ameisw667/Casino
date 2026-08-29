@@ -136,6 +136,25 @@ Die Sequenz folgt einer einzigen Logik: **Jeder Schritt ist einzeln revertierbar
 
 ---
 
+## Release- & Versions-Pflege
+
+- Jeder `feat:`- oder `fix:`-Commit-Batch auf `main`, der einen sichtbaren Produktions-Effekt hat, bekommt
+  einen `CHANGELOG.md`-Eintrag unter `[Unreleased]` (nicht bei `chore:`/`docs:`/`ci:`).
+- Beim Verschieben von `[Unreleased]` in eine versionierte Sektion: `package.json`-Version bumpen
+  (PATCH bei reinen Fixes, MINOR bei Features, MAJOR nur nach dokumentierter Breaking-Change-Entscheidung)
+  und `git tag -a vX.Y.Z` auf demselben Commit setzen.
+- Keine rückwirkenden Tags auf bereits vergangene Commits — Historie vor der Einführung dieser Konvention
+  (siehe [`worldmap/00-14-Release.md`](../worldmap/00-14-Release.md) M1/M2) bleibt tag-los, nur im `CHANGELOG.md` nach Datum dokumentiert.
+
+### Version → Deployment nachschlagen
+
+1. Ziel-Version in `CHANGELOG.md` finden (z. B. `0.2.0`).
+2. `git log vX.Y.Z -1 --format=%H` → zugehöriger Commit-Hash.
+3. Im Vercel-Dashboard (Projekt `casino`) nach diesem Commit-Hash im Deployment-Verlauf suchen.
+4. Rollback-Ausführung folgt dem bestehenden Dry-Run in [`worldmap/00-09-CICD.md`](../worldmap/00-09-CICD.md) M8.
+
+---
+
 ## 4 — Verweise
 
 | Thema                                             | Datei                                                                                     |

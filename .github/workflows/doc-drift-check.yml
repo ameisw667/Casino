@@ -1,0 +1,34 @@
+name: Doc Drift Check
+
+# Wöchentlicher, rein informativer Scan (kein PR-Blocker) — ergänzt den blockierenden
+# check-doc-links-Schritt in quality-ci.yml um eine zeitgesteuerte Erinnerung, damit Drift
+# nicht erst beim nächsten Push auffällt. Siehe worldmap/00-14-DokuSync.md M6/L2.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # montags 06:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  drift-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+      - run: npm ci
+      - name: Run doc-link drift scan
+        run: |
+          npm run check-doc-links | tee doc-drift-report.txt || true
+          {
+            echo "## Doku-Drift-Scan"
+            echo '```'
+            cat doc-drift-report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

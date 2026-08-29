@@ -1,10 +1,12 @@
 # 14 — Version Control + Doku — Sub-Kategorie-Aufschlüsselung & Härtungsplan
 
-> **Status:** In Execution (Teilfortschritt: #6 vollständig behoben) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Erstaufschlüsselung von Kategorie **14 „Version Control + Doku"** aus [`00_WORLDMAP_STATUS.md`](00_WORLDMAP_STATUS.md) (dort geführt als **Top 18 %**, Prio 2) in 10 einzeln bewertete Unterkategorien, plus ein Härtungsplan für die schwächsten Unterkategorien. #6 (Planungsdatei-Versionierung) ist vollständig ausgeführt und behoben (Top 90 % → Top 15 %, siehe [`06_planungsdatei_versionierung.md`](../docs/archive/06_planungsdatei_versionierung.md)); #2, #3, #7, #8, #10 (alle Top 55 % oder schlechter) sind weiterhin nur spezifiziert, nicht ausgeführt.
+> **Status:** In Execution (Teilfortschritt: #6 vollständig behoben) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Erstaufschlüsselung von Kategorie **14 „Version Control + Doku"** aus [`00_WORLDMAP_STATUS.md`](./00_WORLDMAP_STATUS.md) (dort geführt als **Top 18 %**, Prio 2) in 10 einzeln bewertete Unterkategorien, plus ein Härtungsplan für die schwächsten Unterkategorien. #6 (Planungsdatei-Versionierung) ist vollständig ausgeführt und behoben (Top 90 % → Top 15 %, siehe [`06_planungsdatei_versionierung.md`](../docs/archive/06_planungsdatei_versionierung.md)); #2, #3, #7, #8, #10 (alle Top 55 % oder schlechter) sind weiterhin nur spezifiziert, nicht ausgeführt.
 > **Zuständigkeits-Prinzip (auf Jans ausdrücklichen Wunsch):** Jeder Meilenstein unten ist **ausschließlich LLM-Zuständigkeit** — keine Jan-Entscheidung, kein Freigabe-Gate innerhalb dieser Datei. Jede Stelle, an der eine frühere Fassung dieses Plans noch eine Jan-Rückfrage vorsah (Git-Tracking reaktivieren, Schicksal der 2 unmerged Branches), wurde durch reale Recherche/Diff-Analyse in dieser Planungsphase selbst aufgelöst — Begründung jeweils im Meilenstein dokumentiert. Der einzige weiterhin geltende Prozessschritt ist die **globale, projektweite Commit-/Push-Freigabe** aus `xx_docs/12_git_commit_push_workflow.md` (kein Commit/Push ohne expliziten Auftrag) — das ist ein Standard-Mechanismus für jede Session, keine kategoriespezifische Zuständigkeit dieses Plans.
-> **Vorlage/Methodik:** identisch zu [`04_datenbank_migrationen.md`](04_datenbank_migrationen.md) (Kategorie 02) und [`00-09-CICD.md`](00-09-CICD.md) (Kategorie 09), Detailtiefe der Meilensteine analog zu [`05_datenbank_haertung.md`](05_datenbank_haertung.md) (L0–LN je Teil, L0 bereits während der Planung recherchiert/verifiziert).
+> **Vorlage/Methodik:** identisch zu [`04_datenbank_migrationen.md`](./04_datenbank_migrationen.md) (Kategorie 02) und [`00-09-CICD.md`](./00-09-CICD.md) (Kategorie 09), Detailtiefe der Meilensteine analog zu [`05_datenbank_haertung.md`](./05_datenbank_haertung.md) (L0–LN je Teil, L0 bereits während der Planung recherchiert/verifiziert).
 > **Money-Pfad:** Nein (reine Repo-/Doku-Hygiene, kein Wallet-/Auth-/RNG-Code betroffen) · **Security-Review:** Nein für alle Meilensteine unten (reine Git-Metadaten- und Markdown-Änderungen, keine Secrets, keine DB-Schreibzugriffe; Secret-Scan für M1 bereits negativ verifiziert, siehe M1/L0).
 > **Update 2026-08-29 (nach Jans Freigabe):** Unterkategorie #6 (Planungsdatei-Versionierung) ist vollständig ausgeführt — siehe [`06_planungsdatei_versionierung.md`](../docs/archive/06_planungsdatei_versionierung.md) (dediziertes M1–M10-Programm, `docs/archive/` nach Abschluss). Niveau **Top 90 % → Top 15 %**. Die übrigen Meilensteine (M1–M5 unten, jetzt für #2/#3/#7/#8/#10) stehen weiterhin auf 🔴 Geplant — kein Branch gelöscht, keine Doku-Sync-Automatisierung gebaut, kein `CHANGELOG.md` angelegt.
+> **Update 2026-08-29 (Vertiefung #3 + #10):** Unterkategorien #3 (Release-Disziplin) und #10 (Doku-Sync-Automatisierung) sind jeweils in eine eigene Planungsdatei mit 10 einzeln bewerteten Sub-Unterkategorien vertieft — [`00-14-Release.md`](./00-14-Release.md) bzw. [`00-14-DokuSync.md`](./00-14-DokuSync.md). M4 und M5 unten sind entsprechend auf Kurzfassungen mit Verweis reduziert (identisches Prinzip wie bei #6/`06_planungsdatei_versionierung.md`), um keine Referenz doppelt zu pflegen.
+> **Update 2026-08-29 (Ausführung #3 + #10):** Beide Vertiefungen sind ausgeführt. **#10 Doku-Sync-Automatisierung: Top 85 % → Top 29,5 %** — `scripts/check-doc-links.mjs` real angelegt (2 reale Bugs der Erstspezifikation dabei gefunden+behoben), `.github/pull_request_template.md` angelegt, Doku-Drift-Register aufgefrischt, Scan-Scope erweitert (fand 1 neuen realen toten Link), Doku-Index-Zähler automatisiert (fand sofort reale Drift: 161 behauptet vs. 175 real), CI-Gate + wöchentlicher Cron angelegt. **#3 Release-Disziplin: Top 90 % → Top 53,5 %** — `CHANGELOG.md` real erstellt (19 Abschnitte, 57 Einträge, gegen `git log` verifiziert), `package.json`-Version `0.1.0` → `0.2.0`, Pflege-Konvention + Rollback-Lookup in `xx_docs/12` dokumentiert. **Beide bleiben in „In Execution", nicht „Executed"**, da je 2 Meilensteine strukturell auf Jans Commit-/Push-Freigabe warten (v0.2.0-Tag, echter GitHub-Actions-Lauf für PR-Template + CI-Gate) — siehe die jeweiligen Dateien für den genauen Blockierstatus. Kompaktübersicht unten und Detailabschnitte #3/#10 unverändert belassen (Baseline-Nachweis), Fortschritt nur in den Update-Notizen und den Vertiefungsdateien selbst geführt.
 
 ## Kernaussage für Jan
 
@@ -18,18 +20,18 @@ Die bisherige **Top-18-%-Bewertung ist real für die am besten gemessene Teilfl�
 
 ## Kompaktübersicht (sortiert nach Niveau, bestes zuerst)
 
-| #   | Unterkategorie                                        | Niveau       | Status                  | Kernbefund                                                                                                                                                                                      |
-| --- | ----------------------------------------------------- | ------------ | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Commit-Message-Disziplin & Workflow-Doku              | **Top 5 %**  | 🟢                      | 50/50 letzte Commits konform, dedizierte Top-1%-Referenzdatei (`xx_docs/12`)                                                                                                                    |
-| 9   | SOP-/Kontextreferenz-Struktur                         | **Top 15 %** | 🟢                      | 16 SOPs + 11 Kontextreferenzen, durchgängig nummeriert, im CLAUDE.md-Router verlinkt                                                                                                            |
-| 6   | Planungsdatei-Versionierung (`worldmap/` etc.)        | **Top 15 %** | 🟢 behoben (2026-08-29) | Getrackt, committed (`10f63b7`), auf `origin/main` gepusht, per frischem Klon real verifiziert — siehe [`06_planungsdatei_versionierung.md`](../docs/archive/06_planungsdatei_versionierung.md) |
-| 5   | `.gitignore` & Repo-Hygiene                           | **Top 20 %** | 🟢                      | 89 saubere, kommentierte Zeilen; Planungsdatei-Ausschluss auf `.research/` präzisiert (siehe #6)                                                                                                |
-| 4   | Pre-Commit-Gate & lokale Schreibsicherung             | **Top 25 %** | 🟡                      | Migrations-Kollisions-Check + `lint-staged` aktiv; bewusst kein lokales Test-/Build-Gate (Jan-Entscheidung, Kat. 09/M6)                                                                         |
-| 8   | Cross-Referenz-Integrität (tote Links)                | **Top 55 %** | 🔴                      | Nie systematisch geprüft; mind. 1 bekannte tote Referenz (`05_Gildensystem.md`)                                                                                                                 |
-| 7   | Doku-Index-Aktualität (`docs/README.md`)              | **Top 60 %** | 🔴                      | Index behauptet 41 Dateien, real 163; zusätzlich ein Encoding-Defekt gefunden                                                                                                                   |
-| 2   | Branch-Hygiene & Merge-Disziplin                      | **Top 65 %** | 🔴                      | 4 verwaiste lokale Branches, davon 2 mit 23 nie gemergten Commits; 0 % PR-Review für Jans eigene Commits                                                                                        |
-| 10  | Doku-Sync-Automatisierung (Drift-Check, PR-Template)  | **Top 85 %** | 🔴                      | Drift-Register komplett manuell, seit 2026-07-28 nicht fortgeführt; kein PR-Template im Repo                                                                                                    |
-| 3   | Release- & Versionierungs-Disziplin (Tags, CHANGELOG) | **Top 90 %** | ⬜                      | 0 Git-Tags, kein `CHANGELOG.md`, keine SemVer-Konvention                                                                                                                                        |
+| #   | Unterkategorie                                        | Niveau         | Status                     | Kernbefund                                                                                                                                                                                      |
+| --- | ----------------------------------------------------- | -------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Commit-Message-Disziplin & Workflow-Doku              | **Top 5 %**    | 🟢                         | 50/50 letzte Commits konform, dedizierte Top-1%-Referenzdatei (`xx_docs/12`)                                                                                                                    |
+| 9   | SOP-/Kontextreferenz-Struktur                         | **Top 15 %**   | 🟢                         | 16 SOPs + 11 Kontextreferenzen, durchgängig nummeriert, im CLAUDE.md-Router verlinkt                                                                                                            |
+| 6   | Planungsdatei-Versionierung (`worldmap/` etc.)        | **Top 15 %**   | 🟢 behoben (2026-08-29)    | Getrackt, committed (`10f63b7`), auf `origin/main` gepusht, per frischem Klon real verifiziert — siehe [`06_planungsdatei_versionierung.md`](../docs/archive/06_planungsdatei_versionierung.md) |
+| 5   | `.gitignore` & Repo-Hygiene                           | **Top 20 %**   | 🟢                         | 89 saubere, kommentierte Zeilen; Planungsdatei-Ausschluss auf `.research/` präzisiert (siehe #6)                                                                                                |
+| 4   | Pre-Commit-Gate & lokale Schreibsicherung             | **Top 25 %**   | 🟡                         | Migrations-Kollisions-Check + `lint-staged` aktiv; bewusst kein lokales Test-/Build-Gate (Jan-Entscheidung, Kat. 09/M6)                                                                         |
+| 8   | Cross-Referenz-Integrität (tote Links)                | **Top 55 %**   | 🔴                         | Nie systematisch geprüft; mind. 1 bekannte tote Referenz (`05_Gildensystem.md`)                                                                                                                 |
+| 7   | Doku-Index-Aktualität (`docs/README.md`)              | **Top 60 %**   | 🔴                         | Index behauptet 41 Dateien, real 163; zusätzlich ein Encoding-Defekt gefunden                                                                                                                   |
+| 2   | Branch-Hygiene & Merge-Disziplin                      | **Top 65 %**   | 🔴                         | 4 verwaiste lokale Branches, davon 2 mit 23 nie gemergten Commits; 0 % PR-Review für Jans eigene Commits                                                                                        |
+| 10  | Doku-Sync-Automatisierung (Drift-Check, PR-Template)  | **Top 29,5 %** | 🟡 ausgeführt (2026-08-29) | Link-Checker + PR-Template + CI-Gate real angelegt, 4/6 Meilensteine grün — 2/6 warten auf Remote-Lauf, siehe [`00-14-DokuSync.md`](./00-14-DokuSync.md)                                        |
+| 3   | Release- & Versionierungs-Disziplin (Tags, CHANGELOG) | **Top 53,5 %** | 🟡 ausgeführt (2026-08-29) | `CHANGELOG.md` + Versions-Bump real angelegt, 2/4 Meilensteine grün — Git-Tag wartet auf Commit-Freigabe, siehe [`00-14-Release.md`](./00-14-Release.md)                                        |
 
 > **Rechnerischer Schnitt über alle 10 Positionen:** (5+65+90+25+20+**15**+60+55+15+85)/10 = **Top 44 %** (vorher Top 51 %, vor der #6-Behebung). Die bisherige Top-18-%-Angabe in `00_WORLDMAP_STATUS.md` bleibt vorerst unverändert stehen — analog zur Konvention bei Kategorie 02 ist eine Änderung des Headline-Werts Jans Entscheidung, nicht automatisch.
 
@@ -53,6 +55,8 @@ Die bisherige **Top-18-%-Bewertung ist real für die am besten gemessene Teilfl�
 Zusätzlich: Von 203 Commits insgesamt trägt nur **3** einen Merge-Commit-Titel (`git log --merges --oneline`); die weit überwiegende Mehrheit sind Direct-Commits auf `main`. Von den Nicht-Dependabot-Commits stammt keiner aus einem regulären PR-Review-Flow — Jans eigene Arbeit geht zu 100 % direkt auf `main`, nur Dependabot nutzt den PR-Mechanismus (siehe Kategorie 09, 8/10 gemerged). Branch Protection auf `main` erzwingt zwar den `quality`-Status-Check, aber keine Pflicht-Reviewer-Regel.
 
 ### 3 — Release- & Versionierungs-Disziplin (Top 90 %)
+
+> **Vertiefung 2026-08-29:** Diese Unterkategorie ist in [`00-14-Release.md`](./00-14-Release.md) auf 10 einzeln bewertete Sub-Unterkategorien aufgeschlüsselt (rechnerischer Schnitt: Top 85,5 %) und trägt dort den vollständigen, Execution-Ready Umsetzungsplan (M1–M4). Der folgende Absatz bleibt als ursprünglicher Erstbefund erhalten, wird aber für Detailtiefe nicht mehr eigenständig gepflegt.
 
 `git tag -l` → leer, 0 Tags im gesamten Repo. `ls CHANGELOG.md` → existiert nicht. Keine sichtbare SemVer-Konvention. Bei Continuous Deployment (Vercel deployt automatisch bei jedem `main`-Push, siehe Kategorie 09) ist das Fehlen von Tags nicht unüblich, aber es fehlt jede Möglichkeit, „was lief wann in Produktion" an einer lesbaren Versionsnummer statt nur am rohen Commit-Hash festzumachen.
 
@@ -106,6 +110,8 @@ Nie repo-weit systematisch geprüft. CLAUDE.md fordert zwar „Aktualisiere bei 
 
 ### 10 — Doku-Sync-Automatisierung (Drift-Check, PR-Template) (Top 85 %)
 
+> **Vertiefung 2026-08-29:** Diese Unterkategorie ist in [`00-14-DokuSync.md`](./00-14-DokuSync.md) auf 10 einzeln bewertete Sub-Unterkategorien aufgeschlüsselt (rechnerischer Schnitt: Top 85,5 %) und trägt dort den vollständigen, Execution-Ready Umsetzungsplan (M1–M6). Der folgende Absatz bleibt als ursprünglicher Erstbefund erhalten, wird aber für Detailtiefe nicht mehr eigenständig gepflegt.
+
 Das Doku-Drift-Register (Abschnitt 7 der Status-Datei) dokumentiert 10 behobene Fälle, Stand **2026-07-28** — seither nicht weitergeführt, komplett manuell entdeckt und gepflegt, kein wiederkehrender automatisierter Check. `ls .github/` zeigt nur `workflows/` und `dependabot.yml` — **kein `pull_request_template.md`**, selbst für die einzigen real genutzten PRs (Dependabot) gibt es keine strukturierte Beschreibung/Checkliste. Keine automatisierte Prüfung, ob eine Code-Änderung die in CLAUDE.md verlinkte zuständige Doku im selben Schritt mitgeändert hat — rein Prompt-/Disziplin-getrieben (die „Doku-Aktualität"-Pflicht in `CLAUDE.md`).
 
 ## Empfohlene Bearbeitungsreihenfolge
@@ -124,13 +130,13 @@ Unterkategorien 1, 4, 5, 6, 9 (jetzt alle Top 5–20 %) bekommen keinen eigenen 
 
 Jeder Meilenstein ist **ausschließlich LLM-Zuständigkeit**. Die L0-Schritte (Recherche/Analyse) sind bereits während dieser Planungsphase ausgeführt und verifiziert — sie mussten erledigt werden, um jede Stelle aufzulösen, an der eine frühere Fassung noch eine Jan-Entscheidung vorgesehen hätte. Alle mutierenden Schritte (L1+) sind vollständig spezifiziert, aber nicht ausgeführt.
 
-| Meilenstein                                                   | Behebt # | Status                                                                                                      | Zuständigkeit |
-| ------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------- | ------------- |
-| ~~M1 — Planungsdateien präzise ins Git-Tracking zurückholen~~ | 6        | 🟢 Erledigt, siehe [`06_planungsdatei_versionierung.md`](../docs/archive/06_planungsdatei_versionierung.md) | LLM           |
-| M2 — Verwaiste Worktree-Branches bereinigen                   | 2        | 🟡 L0 erledigt, L1–L3 geplant                                                                               | LLM           |
-| M3 — Doku-Index & Cross-Referenzen reparieren                 | 7, 8     | 🟡 L0 erledigt, L1–L4 geplant                                                                               | LLM           |
-| M4 — Release-Disziplin einführen                              | 3        | 🔴 Geplant                                                                                                  | LLM           |
-| M5 — Doku-Sync-Automatisierung + PR-Template                  | 10       | 🔴 Geplant                                                                                                  | LLM           |
+| Meilenstein                                                   | Behebt # | Status                                                                                                           | Zuständigkeit |
+| ------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------- | ------------- |
+| ~~M1 — Planungsdateien präzise ins Git-Tracking zurückholen~~ | 6        | 🟢 Erledigt, siehe [`06_planungsdatei_versionierung.md`](../docs/archive/06_planungsdatei_versionierung.md)      | LLM           |
+| M2 — Verwaiste Worktree-Branches bereinigen                   | 2        | 🟡 L0 erledigt, L1–L3 geplant                                                                                    | LLM           |
+| M3 — Doku-Index & Cross-Referenzen reparieren                 | 7, 8     | 🟡 L0 erledigt, L1–L4 geplant                                                                                    | LLM           |
+| M4 — Release-Disziplin einführen                              | 3        | 🟡 Ausgeführt, siehe [`00-14-Release.md`](./00-14-Release.md) (M1–M4) — 2/4 grün, 2/4 warten auf Commit-Freigabe | LLM           |
+| M5 — Doku-Sync-Automatisierung + PR-Template                  | 10       | 🟡 Ausgeführt, siehe [`00-14-DokuSync.md`](./00-14-DokuSync.md) (M1–M6) — 4/6 grün, 2/6 warten auf Remote-Lauf   | LLM           |
 
 Ampel: 🔴 geplant, 🟡 teilweise (Analyse erledigt, Ausführung offen), 🟢 verifiziert ausgeführt. **M1 (#6) ist vollständig ausgeführt und verifiziert (Commit `10f63b7`, gepusht, Restore getestet). M2–M5 sind unverändert nur spezifiziert, nicht ausgeführt.**
 
@@ -247,63 +253,15 @@ Die 50 Archiv-Treffer bleiben bewusst offen (Script markiert sie als `[archiv]`,
 
 **Security-Review:** Nein.
 
-### M4 — Release-Disziplin einführen (behebt #3)
+### M4 — Release-Disziplin einführen (behebt #3) — vertieft, ausgeführt
 
-**Ziel:** Ein lesbarer Änderungsverlauf existiert unabhängig von rohen Commit-Hashes, ohne für eine Continuous-Deployment-Webapp Overengineering (strikte SemVer-Tags) zu erzwingen.
-
-**L0 — Quellenlage geprüft (🟢 erledigt, 2026-08-29):** `git tag -l` leer, kein `CHANGELOG.md`. Als Startinhalt eignen sich die „Executed"-Einträge aus `docs/archive/00_WORLDMAP_ARCHIVLOG.md` sowie die `Executed (archiviert)`-Zeilen der aktiven Pläne in `00_WORLDMAP_STATUS.md` Abschnitt 2 — beide Quellen sind bereits chronologisch datiert.
-
-**L1 — `CHANGELOG.md` anlegen (🔴 geplant):** [Keep a Changelog](https://keepachangelog.com)-Format, Abschnitte nach Datum statt Versionsnummer (da kein SemVer-Tagging existiert):
-
-```markdown
-# Changelog
-
-Alle nennenswerten Änderungen an diesem Projekt. Format lose an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) angelehnt; Einträge sind nach Datum statt Versionsnummer sortiert, da dieses Projekt kontinuierlich (kein SemVer-Tagging) deployt wird.
-
-## 2026-08-29
-
-- docs: Kategorie-14-Aufschlüsselung (Version Control + Doku) + Härtungsplan
-
-## [rückwirkend befüllt aus docs/archive/00_WORLDMAP_ARCHIVLOG.md und 00_WORLDMAP_STATUS.md Abschnitt 2]
-
-...
-```
-
-Rückwirkende Befüllung ist ein separater, klar abgegrenzter Rechercheschritt (Quelle: siehe L0) — kein Vollständigkeitsanspruch für die Vergangenheit, nur die wichtigsten Meilensteine.
-
-**L2 — Konvention dokumentieren (🔴 geplant):** Ergänzung in `xx_docs/12_git_commit_push_workflow.md`: CHANGELOG wird bei jedem `feat:`/`fix:`-Commit auf `main` aktualisiert, nicht bei `chore:`/`docs:`/`ci:`.
-
-**L3 — Git-Tags bewusst zurückgestellt:** Bei Auto-Deploy ohne klassische Release-Artefakte ist der Nutzen von SemVer-Tags fraglich — als offene, niedrigpriorisierte Konventionsfrage in dieser Datei vermerkt, kein Blocker, keine Ausführung ohne weiteren Anlass.
+Vollständig aufgeschlüsselt und ausgeführt in 10 Sub-Unterkategorien mit eigenem Umsetzungsplan (M1–M4) — siehe [`00-14-Release.md`](./00-14-Release.md). `CHANGELOG.md` existiert real (19 Abschnitte, 57 Einträge, rückwirkend aus `docs/archive/00_WORLDMAP_ARCHIVLOG.md` + `git log` befüllt und gegengeprüft), `package.json`-Version `0.1.0` → `0.2.0` gebumpt, Pflege-Konvention + Rollback-Lookup-Tabelle in `xx_docs/12` dokumentiert. Der erste echte Git-Tag `v0.2.0` ist vollständig spezifiziert, aber bewusst zurückgestellt — er würde sonst einen unpassenden bestehenden Commit markieren, was der Plan explizit als Historien-Fälschung ausschließt; er wird gesetzt, sobald Jan den Commit dieser Änderungen freigibt. Rechnerischer Schnitt der 10 Sub-Unterkategorien: Top 85,5 % → **Top 53,5 %**.
 
 **Security-Review:** Nein.
 
-### M5 — Doku-Sync-Automatisierung + PR-Template (behebt #10)
+### M5 — Doku-Sync-Automatisierung + PR-Template (behebt #10) — vertieft, ausgeführt
 
-**Ziel:** Künftiger Doku-Drift wird strukturell sichtbarer, auch die wenigen realen PRs (Dependabot) laufen über eine dokumentierte Mindeststruktur.
-
-**L0 — Ist-Zustand geprüft (🟢 erledigt, 2026-08-29):** `.github/` enthält nur `workflows/` und `dependabot.yml`, kein `pull_request_template.md`. Doku-Drift-Register (Abschnitt 7 der Status-Datei) zuletzt am 2026-07-28 gepflegt.
-
-**L1 — PR-Template anlegen (🔴 geplant):** `.github/pull_request_template.md`:
-
-```markdown
-## Was ändert sich?
-
-## Welche Tests liefen?
-
-- [ ] `npm run typecheck`
-- [ ] `npm run test`
-- [ ] `npm run lint`
-- [ ] `npm run build`
-
-## Betrifft diese Änderung Money-/Auth-/RNG-Pfade?
-
-- [ ] Ja — Security-Review-Ergebnis unten verlinken
-- [ ] Nein
-```
-
-**L2 — Doku-Drift-Register fortführen (🔴 geplant):** Abschnitt 7 der Status-Datei neu durchgehen — gibt es seit 2026-07-28 neue Drift-Fälle (z. B. die in dieser Datei bereits gefundenen: `docs/README.md`-Encoding-Bug, die ≈ 18 Live-Dead-Links aus M3, die Guild-Migrations-Diskrepanz aus `04_datenbank_migrationen.md`)?
-
-**L3 — Optionales Warn-Script (🔴 geplant, niedrige Prio):** Leichtgewichtiges Script, das bei geänderten `src/`-Kern-Dateien (Wallet/Auth/API) prüft, ob eine der in CLAUDE.md verlinkten Kontextreferenzen im selben Commit mitgeändert wurde — als Hinweis im Pre-Commit-Output, kein Blocker.
+Vollständig aufgeschlüsselt und ausgeführt in 10 Sub-Unterkategorien mit eigenem Umsetzungsplan (M1–M6) — siehe [`00-14-DokuSync.md`](./00-14-DokuSync.md). `scripts/check-doc-links.mjs` existiert real und läuft (dabei 2 reale Bugs der ursprünglichen Spezifikation gefunden+behoben), `.github/pull_request_template.md` existiert, Doku-Drift-Register ist auf Stand 2026-08-29, Scan-Scope erweitert (fand 1 neuen realen toten Link in `T_BUGS/`), Doku-Index-Zähler automatisiert (fand sofort reale Drift: 161 behauptet vs. 175 real), CI-Gate in `quality-ci.yml` + neuer wöchentlicher Cron-Workflow `doc-drift-check.yml` angelegt und lokal verifiziert (Blockierverhalten per Testlink real bestätigt). Ein echter Remote-Nachweis (GitHub-Actions-Lauf, realer PR) steht noch aus — setzt einen Push voraus. Rechnerischer Schnitt der 10 Sub-Unterkategorien: Top 85,5 % → **Top 29,5 %**.
 
 **Security-Review:** Nein.
 
