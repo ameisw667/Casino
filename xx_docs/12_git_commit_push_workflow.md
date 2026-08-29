@@ -144,7 +144,7 @@ Die Sequenz folgt einer einzigen Logik: **Jeder Schritt ist einzeln revertierbar
   (PATCH bei reinen Fixes, MINOR bei Features, MAJOR nur nach dokumentierter Breaking-Change-Entscheidung)
   und `git tag -a vX.Y.Z` auf demselben Commit setzen.
 - Keine rückwirkenden Tags auf bereits vergangene Commits — Historie vor der Einführung dieser Konvention
-  (siehe [`worldmap/00-14-Release.md`](../worldmap/00-14-Release.md) M1/M2) bleibt tag-los, nur im `CHANGELOG.md` nach Datum dokumentiert.
+  (siehe [`docs/archive/00-14-Release.md`](../docs/archive/00-14-Release.md) M1/M2) bleibt tag-los, nur im `CHANGELOG.md` nach Datum dokumentiert.
 
 ### Version → Deployment nachschlagen
 

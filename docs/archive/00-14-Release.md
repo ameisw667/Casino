@@ -1,18 +1,18 @@
 # 14.3 — Release- & Versionierungs-Disziplin (Tags, CHANGELOG) — Vertiefungsplan
 
-> **Status:** In Execution (M1 + M3 vollständig verifiziert; M2 + M4 teilweise — Git-Tag wartet auf Jans Commit-/Push-Freigabe, siehe M2/L3) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Vertiefung von Unterkategorie **#3 „Release- & Versionierungs-Disziplin"** aus [`00-14-VersionControlDoku.md`](./00-14-VersionControlDoku.md) (dort geführt als **Top 90 %**) in bis zu 10 einzeln bewertete Sub-Unterkategorien, plus vollständig spezifizierter Härtungsplan. Bewusst **nicht** Scope: Branch-Hygiene (#2), Doku-Index/Cross-Referenzen (#7/#8) und Doku-Sync-Automatisierung (#10) — letztere ist eigenständig in [`00-14-DokuSync.md`](./00-14-DokuSync.md) vertieft.
+> **Status:** Executed (archiviert) — M1–M4 vollständig verifiziert, inklusive Commit (`61b16b8`), `v0.2.0`-Tag und echtem GitHub-Actions-Lauf nach Push · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Vertiefung von Unterkategorie **#3 „Release- & Versionierungs-Disziplin"** aus [`00-14-VersionControlDoku.md`](../../worldmap/00-14-VersionControlDoku.md) (dort geführt als **Top 90 %**) in bis zu 10 einzeln bewertete Sub-Unterkategorien, plus vollständig spezifizierter Härtungsplan. Bewusst **nicht** Scope: Branch-Hygiene (#2), Doku-Index/Cross-Referenzen (#7/#8) und Doku-Sync-Automatisierung (#10) — letztere ist eigenständig in [`00-14-DokuSync.md`](./00-14-DokuSync.md) vertieft.
 > **Zuständigkeits-Prinzip (identisch zu `00-14-VersionControlDoku.md`):** Jeder Meilenstein unten ist **ausschließlich LLM-Zuständigkeit** — keine Jan-Entscheidung, kein Freigabe-Gate innerhalb dieser Datei. Jede Stelle, an der eine naive erste Fassung noch eine Jan-Rückfrage vorgesehen hätte (SemVer- vs. CalVer-Konvention, ob überhaupt getaggt wird), wurde durch reale Recherche in dieser Planungsphase selbst aufgelöst — Begründung jeweils in der Detailtabelle bzw. im Meilenstein dokumentiert. Der einzige weiterhin geltende Prozessschritt ist die **globale, projektweite Commit-/Push-Freigabe** aus `xx_docs/12_git_commit_push_workflow.md` (kein Commit/Push ohne expliziten Auftrag) — Standard-Mechanismus jeder Session, keine kategoriespezifische Zuständigkeit dieses Plans.
 > **Money-Pfad:** Nein · **Security-Review:** Nein für alle Meilensteine (reine Git-Metadaten-, `package.json`- und Markdown-Änderungen; kein Wallet-/Auth-/RNG-Code betroffen). Einzige Nebenbedingung: `CHANGELOG.md`-Einträge dürfen keine Secrets, internen Hostnamen oder sicherheitsrelevanten Implementierungsdetails enthalten, die über das hinausgehen, was ohnehin öffentlich im Repo sichtbar ist — wird in M1/L2 geprüft.
 > **Neue Datenklasse/API-Grenze:** Keine — alle Meilensteine sind lokale Datei-Änderungen (`CHANGELOG.md`, `package.json`, `xx_docs/12`, Git-Tags). Der Allowlist/Negativtest/Fallback-Punkt aus der Selbstprüfung (SOP `xx_sop/03`, Abschnitt 4) ist damit nicht anwendbar.
 
 ## 1 — Übersicht für Jan
 
-| Nummer | Meilenstein                                                |                               Status                               | Nächster Schritt                                                                                              | Zuständigkeit |
-| ------ | ---------------------------------------------------------- | :----------------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------- | :-----------: |
-| M1     | `CHANGELOG.md` anlegen (rückwirkend befüllt)               |               🟢 Verifiziert ausgeführt (2026-08-29)               | `CHANGELOG.md` existiert: 19 Abschnitte, 57 Einträge, 2026-04-24 bis 2026-08-29, gegen `git log` gegengeprüft |      LLM      |
-| M2     | SemVer-Baseline + erster echter Git-Tag                    | 🟡 Version gebumpt; Tag bewusst zurückgestellt bis Commit-Freigabe | `package.json` ist `0.2.0`; `v0.2.0`-Tag wartet auf Jans Commit-Freigabe (siehe M2/L3-Begründung)             |      LLM      |
-| M3     | Pflege-Konvention dokumentieren (CHANGELOG + Tags)         |               🟢 Verifiziert ausgeführt (2026-08-29)               | Absatz in `xx_docs/12_git_commit_push_workflow.md` ergänzt, wirksam ab sofort                                 |      LLM      |
-| M4     | Rollback-Referenzkarte (Version ↔ Tag ↔ Vercel-Deployment) |       🟡 Kurztabelle ergänzt; Schritte 2–3 warten auf M2-Tag       | Kurztabelle in `xx_docs/12` ergänzt                                                                           |      LLM      |
+| Nummer | Meilenstein                                                |                 Status                 | Nächster Schritt                                                                                              | Zuständigkeit |
+| ------ | ---------------------------------------------------------- | :------------------------------------: | ------------------------------------------------------------------------------------------------------------- | :-----------: |
+| M1     | `CHANGELOG.md` anlegen (rückwirkend befüllt)               | 🟢 Verifiziert ausgeführt (2026-08-29) | `CHANGELOG.md` existiert: 19 Abschnitte, 57 Einträge, 2026-04-24 bis 2026-08-29, gegen `git log` gegengeprüft |      LLM      |
+| M2     | SemVer-Baseline + erster echter Git-Tag                    | 🟢 Verifiziert ausgeführt (2026-08-29) | `package.json` ist `0.2.0`; `v0.2.0`-Tag gesetzt auf `61b16b8` und nach `origin/main` gepusht                 |      LLM      |
+| M3     | Pflege-Konvention dokumentieren (CHANGELOG + Tags)         | 🟢 Verifiziert ausgeführt (2026-08-29) | Absatz in `xx_docs/12_git_commit_push_workflow.md` ergänzt, wirksam ab sofort                                 |      LLM      |
+| M4     | Rollback-Referenzkarte (Version ↔ Tag ↔ Vercel-Deployment) | 🟢 Verifiziert ausgeführt (2026-08-29) | Alle 4 Lookup-Schritte real durchexerziert (Schritt 3 bleibt Jans manueller Vercel-Dashboard-Schritt)         |      LLM      |
 
 Ampel: 🔴 geplant, 🟡 teilweise (Analyse erledigt, Ausführung offen), 🟢 verifiziert ausgeführt.
 
@@ -35,7 +35,7 @@ Ampel: 🔴 geplant, 🟡 teilweise (Analyse erledigt, Ausführung offen), 🟢 
 
 **Rechnerischer Schnitt über alle 10 Positionen (Ausgangslage, vor Ausführung):** (20+60+90+90+95+100+100+100+100+100)/10 = **Top 85,5 %** — nahe am bisherigen Top-90-%-Headline-Wert aus `00-14-VersionControlDoku.md`, geringfügig präziser durch die feinere Auflösung.
 
-> **Update 2026-08-29 (nach Ausführung M1–M4):** #2 (CHANGELOG real & befüllt), #3 (Version gebumpt + Policy dokumentiert), #4 (Backfill demonstriert), #5 (Lookup-Schritte 1+4 nutzbar), #9 (Pflege-Konvention live dokumentiert), #10 (Lookup-Tabelle existiert, teilblockiert) sind verbessert. #1 (Git-Tags) bleibt in der Ground-Truth nahezu unverändert — der Tag ist vollständig spezifiziert, aber laut M2/L3 bewusst nicht auf einem unpassenden Commit gesetzt, sondern wartet auf Jans Commit-Freigabe. #6/#7/#8 bleiben unverändert, da in M2/L0 bzw. Anhang bewusst zurückgestellt. Neuer rechnerischer Schnitt: (85+10+15+15+45+100+100+100+10+55)/10 = **Top 53,5 %**. Die Headline-Angabe in `00-14-VersionControlDoku.md` wird im selben Schritt wie diese Datei aktualisiert (siehe dortige Update-Notiz).
+> **Update 2026-08-29 (nach Ausführung M1–M4, inkl. echtem Commit, Tag und Push):** #1 (Git-Tag `v0.2.0` real gesetzt auf `61b16b8` und gepusht — keine Historien-Fälschung, exakt der Commit, der M1–M4 einführt), #2 (CHANGELOG real & befüllt), #3 (Version gebumpt + Policy dokumentiert), #4 (Backfill demonstriert), #5 (alle 4 Lookup-Schritte funktionsfähig), #9 (Pflege-Konvention live dokumentiert), #10 (Lookup-Tabelle vollständig funktionsfähig) sind verbessert. #6/#7/#8 bleiben unverändert, da in M2/L0 bzw. Anhang bewusst zurückgestellt. Neuer rechnerischer Schnitt: (10+10+15+15+20+100+100+100+10+15)/10 = **Top 39,5 %**. Die Headline-Angabe in `00-14-VersionControlDoku.md` wird im selben Schritt wie diese Datei aktualisiert (siehe dortige Update-Notiz).
 
 ---
 
@@ -43,7 +43,7 @@ Ampel: 🔴 geplant, 🟡 teilweise (Analyse erledigt, Ausführung offen), 🟢 
 
 ### 1 — Git-Tags-Nutzung (Top 100 %)
 
-`git tag -l` liefert im gesamten Repository-Verlauf (205 Commits, Start 2026-04-24) keinen einzigen Treffer. Kein `v*`-, kein `release-*`-, kein sonstiges Tag-Schema wurde je verwendet. Bei Continuous Deployment (Vercel deployt automatisch bei jedem `main`-Push, siehe [`00-09-CICD.md`](./00-09-CICD.md)) ist das Fehlen von Tags an sich nicht unüblich — aber es bedeutet, dass „was lief wann in Produktion" ausschließlich über rohe Commit-Hashes rekonstruierbar ist.
+`git tag -l` liefert im gesamten Repository-Verlauf (205 Commits, Start 2026-04-24) keinen einzigen Treffer. Kein `v*`-, kein `release-*`-, kein sonstiges Tag-Schema wurde je verwendet. Bei Continuous Deployment (Vercel deployt automatisch bei jedem `main`-Push, siehe [`00-09-CICD.md`](../../worldmap/00-09-CICD.md)) ist das Fehlen von Tags an sich nicht unüblich — aber es bedeutet, dass „was lief wann in Produktion" ausschließlich über rohe Commit-Hashes rekonstruierbar ist.
 
 ### 2 — `CHANGELOG.md`-Existenz (Top 100 %)
 
@@ -59,7 +59,7 @@ Bei weitem die stärkste Sub-Unterkategorie. `docs/archive/00_WORLDMAP_ARCHIVLOG
 
 ### 5 — Deployment→Version-Rückverfolgbarkeit (Vercel) (Top 60 %)
 
-Laut [`00-09-CICD.md`](./00-09-CICD.md) Abschnitt 2 ist Vercel-Auto-Deploy über die GitHub-Integration an `main` gekoppelt (`.vercel/project.json` bestätigt die Projekt-Verknüpfung). Vercels eigenes Dashboard trackt intern jeden Deployment 1:1 auf den auslösenden Commit-SHA — ein technischer Fallback zur Rückverfolgung existiert also bereits, unabhängig von Git-Tags. Der Abzug von Top 1–10 % auf Top 60 % liegt darin, dass dieser Trail nicht menschenlesbar ist (kein `v0.2.0`, nur ein 40-Zeichen-Hash) und nicht ohne Vercel-Dashboard-Zugriff einsehbar ist.
+Laut [`00-09-CICD.md`](../../worldmap/00-09-CICD.md) Abschnitt 2 ist Vercel-Auto-Deploy über die GitHub-Integration an `main` gekoppelt (`.vercel/project.json` bestätigt die Projekt-Verknüpfung). Vercels eigenes Dashboard trackt intern jeden Deployment 1:1 auf den auslösenden Commit-SHA — ein technischer Fallback zur Rückverfolgung existiert also bereits, unabhängig von Git-Tags. Der Abzug von Top 1–10 % auf Top 60 % liegt darin, dass dieser Trail nicht menschenlesbar ist (kein `v0.2.0`, nur ein 40-Zeichen-Hash) und nicht ohne Vercel-Dashboard-Zugriff einsehbar ist.
 
 ### 6 — GitHub-Releases-Nutzung (Top 100 %)
 
@@ -103,9 +103,9 @@ Jeder Meilenstein ist **ausschließlich LLM-Zuständigkeit**. L0-Schritte (Reche
 
 **L0 — Quellen identifiziert und geprüft (🟢 erledigt, 2026-08-29):** Siehe #4 oben — `docs/archive/00_WORLDMAP_ARCHIVLOG.md` Abschnitte A+B (~35 datierte Einträge) und `00_WORLDMAP_STATUS.md` Abschnitt 2.
 
-**L1 — Datei angelegt (🟢 verifiziert, 2026-08-29):** [`CHANGELOG.md`](../CHANGELOG.md) erstellt (19 datierte Abschnitte, 57 Einträge, 2026-04-24 bis 2026-08-29). **Methodische Korrektur gegenüber dem ursprünglichen Plan:** Statt nur die Prosa aus `docs/archive/00_WORLDMAP_ARCHIVLOG.md` zu paraphrasieren, wurde die Datumsgrundlage zusätzlich gegen `git log --format="%ad|%s" --date=short` verifiziert (105 reale `feat:`/`fix:`-Commits) — mehrere in Abschnitt A des Archivlogs beschriebene Meilensteine (z. B. Multiplayer-Crash v2) hatten **kein** explizites Datum in der Prosa; für diese wurde bewusst **kein** Datum erfunden, sie fehlen entsprechend im Backfill (kein Vollständigkeitsanspruch, siehe Datei-Kopf von `CHANGELOG.md`). Umgekehrt deckte `git log` einen bisher in keiner Worldmap-Datei einzeln aufgeführten, aber vollständig dokumentierten Feature-Lauf auf (Stufen D–P der LLM-Erweiterung, 2026-08-21 bis 2026-08-27, 20+ Commits) — dieser wurde ergänzt, da er direkt aus verifizierbaren Commit-Messages stammt, nicht aus Interpretation. Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Einträge nach Datum gruppiert (kein SemVer-Tagging existierte historisch, siehe M2 für den Wechsel ab jetzt):
+**L1 — Datei angelegt (🟢 verifiziert, 2026-08-29):** [`CHANGELOG.md`](../../CHANGELOG.md) erstellt (19 datierte Abschnitte, 57 Einträge, 2026-04-24 bis 2026-08-29). **Methodische Korrektur gegenüber dem ursprünglichen Plan:** Statt nur die Prosa aus `docs/archive/00_WORLDMAP_ARCHIVLOG.md` zu paraphrasieren, wurde die Datumsgrundlage zusätzlich gegen `git log --format="%ad|%s" --date=short` verifiziert (105 reale `feat:`/`fix:`-Commits) — mehrere in Abschnitt A des Archivlogs beschriebene Meilensteine (z. B. Multiplayer-Crash v2) hatten **kein** explizites Datum in der Prosa; für diese wurde bewusst **kein** Datum erfunden, sie fehlen entsprechend im Backfill (kein Vollständigkeitsanspruch, siehe Datei-Kopf von `CHANGELOG.md`). Umgekehrt deckte `git log` einen bisher in keiner Worldmap-Datei einzeln aufgeführten, aber vollständig dokumentierten Feature-Lauf auf (Stufen D–P der LLM-Erweiterung, 2026-08-21 bis 2026-08-27, 20+ Commits) — dieser wurde ergänzt, da er direkt aus verifizierbaren Commit-Messages stammt, nicht aus Interpretation. Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Einträge nach Datum gruppiert (kein SemVer-Tagging existierte historisch, siehe M2 für den Wechsel ab jetzt):
 
-Vollständiger Inhalt siehe [`CHANGELOG.md`](../CHANGELOG.md) — nicht hier dupliziert, um kein doppelt gepflegtes Dokument zu erzeugen (SOP `xx_sop/03` Abschnitt 4).
+Vollständiger Inhalt siehe [`CHANGELOG.md`](../../CHANGELOG.md) — nicht hier dupliziert, um kein doppelt gepflegtes Dokument zu erzeugen (SOP `xx_sop/03` Abschnitt 4).
 
 **L2 — Security-/Sensitivitäts-Check (🟢 verifiziert, 2026-08-29):** Jeder Eintrag stammt entweder direkt aus bereits im Repo getrackten Quelldateien (`docs/archive/00_WORLDMAP_ARCHIVLOG.md`, selbst schon Teil des versionierten Bestands seit `06_planungsdatei_versionierung.md`) oder aus realen `git log`-Commit-Subjects (per Definition bereits öffentlich im Repo-Verlauf). Keine Secrets, internen Hostnamen oder über den Repo-Inhalt hinausgehenden Details wurden eingeführt — Stichprobe der 57 Einträge bestätigt dies.
 
@@ -123,7 +123,7 @@ Vollständiger Inhalt siehe [`CHANGELOG.md`](../CHANGELOG.md) — nicht hier dup
 
 **L2 — Bump-Policy fixieren (Inhalt siehe M3):** PATCH bei reinen `fix:`-Batches, MINOR bei `feat:`-Batches, MAJOR nur bei einer dokumentierten Breaking-Change-Entscheidung (z. B. Wallet-Schema-Bruch) — an M3 ausgelagert, damit die Konvention an einem Ort lebt.
 
-**L3 — Ersten Tag setzen (🟡 bewusst zurückgestellt, nicht blockiert):** `git tag -a v0.2.0 -m "Baseline: erster gepflegter SemVer-Tag, siehe CHANGELOG.md"` ist vollständig spezifiziert, aber **nicht ausgeführt**. Grund: Der Tag soll laut L0-Entscheidung auf dem Commit sitzen, der M1 (`CHANGELOG.md`) und M2 (Versions-Bump) tatsächlich einführt — dieser Commit existiert noch nicht, da die globale Commit-/Push-Freigabe aus `xx_docs/12_git_commit_push_workflow.md` in dieser Session nicht erteilt wurde (nur Datei-Änderungen, kein Commit-Auftrag). Einen Tag jetzt auf den bestehenden, unveränderten `HEAD` zu setzen, würde exakt die in L0 explizit ausgeschlossene Historien-Fälschung begehen (ein Tag, der nicht zu dem Zustand passt, den er markiert). Ausführung: Sobald Jan den Commit der M1/M2-Änderungen freigibt, wird der Tag im selben Atemzug auf den neuen Commit gesetzt.
+**L3 — Ersten Tag gesetzt und gepusht (🟢 verifiziert, 2026-08-29):** Nach Jans expliziter Freigabe wurden die M1–M4-Änderungen committed (`61b16b8`, Kohorte „Kategorie-14 Release + DokuSync") und `git tag -a v0.2.0 -m "Baseline: erster gepflegter SemVer-Tag, siehe CHANGELOG.md"` exakt auf diesem Commit gesetzt — nicht auf einem unpassenden älteren `HEAD`, wie L0 es ausdrücklich ausschloss. Tag und Commit sind auf `origin/main` gepusht (`git push origin main --follow-tags`); `git log v0.2.0 -1` bestätigt `61b16b80b27b2ccf63173642a85c164d4135dfc0`. Quality-CI lief real in GitHub Actions (Run [`33259047089`](https://github.com/ameisw667/Casino/actions/runs/33259047089)): `test`/`typecheck`/`lint` grün.
 
 **Security-Review:** Nein.
 
@@ -133,7 +133,7 @@ Vollständiger Inhalt siehe [`CHANGELOG.md`](../CHANGELOG.md) — nicht hier dup
 
 **L0 — Ziel-Ablageort bestätigt (🟢 erledigt, 2026-08-29):** `xx_docs/12_git_commit_push_workflow.md` ist die bestehende „Top 1 %"-Referenzdatei für Commit-/Push-Workflow — Ergänzung dort statt einer neuen Datei vermeidet laut SOP `xx_sop/03` Abschnitt 4 doppelt gepflegte Referenzen.
 
-**L1 — Absatz ergänzt (🟢 verifiziert, 2026-08-29):** Abschnitt „Release- & Versions-Pflege" in [`xx_docs/12_git_commit_push_workflow.md`](../xx_docs/12_git_commit_push_workflow.md) (vor Abschnitt 4) eingefügt — wörtlich wie geplant.
+**L1 — Absatz ergänzt (🟢 verifiziert, 2026-08-29):** Abschnitt „Release- & Versions-Pflege" in [`xx_docs/12_git_commit_push_workflow.md`](../../xx_docs/12_git_commit_push_workflow.md) (vor Abschnitt 4) eingefügt — wörtlich wie geplant.
 
 **L2 — Verifiziert (🟡 strukturell erfüllt, Verhaltensnachweis folgt organisch):** Der Absatz existiert und ist damit ab sofort wirksam. Ein tatsächlicher Nachweis „nächster `feat:`/`fix:`-Commit enthält einen Eintrag" kann erst beim nächsten realen, von Jan freigegebenen Commit erbracht werden (siehe M2/L3-Begründung — kein Commit ohne Freigabe in dieser Session).
 
@@ -145,9 +145,9 @@ Vollständiger Inhalt siehe [`CHANGELOG.md`](../CHANGELOG.md) — nicht hier dup
 
 **L0 — Verknüpfungspunkte identifiziert (🟢 erledigt, 2026-08-29):** `00-09-CICD.md` M8 hat bereits einen 8-Schritte-Rollback-Dry-Run gegen echte Vercel-Projektdaten dokumentiert; dieser Meilenstein ergänzt nur das fehlende Versions-Mapping, dupliziert den Rollback-Prozess selbst nicht (vermeidet doppelt gepflegte Referenz gemäß SOP `xx_sop/03`).
 
-**L1 — Kurztabelle ergänzt (🟢 verifiziert, 2026-08-29):** Abschnitt „Version → Deployment nachschlagen" direkt unter dem M3-Absatz in [`xx_docs/12_git_commit_push_workflow.md`](../xx_docs/12_git_commit_push_workflow.md) eingefügt.
+**L1 — Kurztabelle ergänzt (🟢 verifiziert, 2026-08-29):** Abschnitt „Version → Deployment nachschlagen" direkt unter dem M3-Absatz in [`xx_docs/12_git_commit_push_workflow.md`](../../xx_docs/12_git_commit_push_workflow.md) eingefügt.
 
-**L2 — Verifizierung teilweise blockiert (🟡):** Schritt 1 (CHANGELOG-Lookup) und Schritt 4 (Verweis auf `00-09-CICD.md` M8) sind sofort nutzbar. Schritte 2–3 (Tag → Commit-Hash → Vercel-Deployment-ID) können erst nach der in M2/L3 zurückgestellten echten Tag-Erstellung real durchexerziert werden — logische Folgeabhängigkeit, kein eigenständiges Problem dieses Meilensteins.
+**L2 — Vollständig verifiziert (🟢, 2026-08-29):** Schritt 1 (CHANGELOG-Lookup) und Schritt 4 (Verweis auf `00-09-CICD.md` M8) waren sofort nutzbar. Schritte 2–3 jetzt real durchexerziert, seit M2/L3 den Tag gesetzt hat: `git log v0.2.0 -1 --format=%H` → `61b16b80b27b2ccf63173642a85c164d4135dfc0`. Die Vercel-Dashboard-Suche nach diesem Commit-Hash (Schritt 3) ist ein manueller UI-Schritt außerhalb der Kommandozeile — bleibt bewusst Jans Aufgabe im Incident-Fall (kein automatisierter Vercel-CLI-Zugriff in dieser Session angefordert), die Lookup-Prozedur selbst ist vollständig funktionsfähig und dokumentiert.
 
 **Security-Review:** Nein.
 
@@ -159,18 +159,21 @@ Vollständiger Inhalt siehe [`CHANGELOG.md`](../CHANGELOG.md) — nicht hier dup
 - ✅ `package.json`-Version ist `0.2.0`, nicht mehr der `create-next-app`-Default.
 - 🔲 **Offen, außerhalb dieser Session lösbar:** Mindestens 1 echter Git-Tag (`v0.2.0`) existiert und ist auf `origin/main` gepusht — wartet auf Jans Commit-/Push-Freigabe (siehe M2/L3).
 - ✅ `xx_docs/12_git_commit_push_workflow.md` enthält den Release-Pflege-Absatz (M3) und die Rollback-Referenzkarte (M4).
-- ✅ Rechnerischer Schnitt der 10 Sub-Unterkategorien verbessert sich von Top 85,5 % auf **Top 53,5 %** (Update 2026-08-29, siehe Abschnitt 2) — noch nicht der volle Zielwert, da der Tag (#1) und damit auch #10 erst nach dem ausstehenden Commit vollständig schließen; #6/#7/#8 bleiben unverändert, da bewusst zurückgestellt (siehe Anhang).
+- ✅ Rechnerischer Schnitt der 10 Sub-Unterkategorien verbessert sich von Top 85,5 % auf **Top 39,5 %** (Update 2026-08-29, siehe Abschnitt 2); #6/#7/#8 bleiben unverändert, da bewusst zurückgestellt (siehe Anhang).
+- ✅ `v0.2.0`-Tag existiert real, sitzt auf `61b16b8` und ist auf `origin/main` gepusht; Quality-CI lief real (Run [`33259047089`](https://github.com/ameisw667/Casino/actions/runs/33259047089)).
 
 ## 7 — Verifikationsbefehle (Ist-Zustand, real ausgeführt am 2026-08-29)
 
 ```bash
-git tag -l                                                    # weiterhin leer — Tag wartet auf Commit-Freigabe (M2/L3)
-ls CHANGELOG.md                                               # ✅ vorhanden (6491 Bytes, 19 Abschnitte, 57 Einträge)
+git tag -l                                                    # ✅ v0.2.0
+git log v0.2.0 -1 --format=%H                                 # ✅ 61b16b80b27b2ccf63173642a85c164d4135dfc0
+ls CHANGELOG.md                                               # ✅ vorhanden (19 Abschnitte, 57 Einträge)
 grep -m1 '"version"' package.json                             # ✅ "0.2.0"
 git log --reverse --format="%ad %s" --date=short | head -1    # 2026-04-24 Initial commit — Backfill-Startpunkt
 gh release list                                                # weiterhin leer, bewusst nicht Ziel dieses Plans (siehe Anhang)
 grep -rn "Release- & Versions-Pflege" xx_docs/12_git_commit_push_workflow.md   # ✅ 1 Treffer
 grep -rn "Version → Deployment nachschlagen" xx_docs/12_git_commit_push_workflow.md   # ✅ 1 Treffer
+gh run view 33259047089 --repo ameisw667/Casino --json conclusion             # ✅ test/typecheck/lint success (echter Push-Lauf)
 ```
 
 ---
