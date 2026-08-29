@@ -80,8 +80,10 @@ web/
 
 .trigger
 
-# planning-only docs: user/LLM overview & roadmap notes, no product code
-/worldmap/
-/T_BUGS/
-/T_FRONTEND/
-/Z_LLM/
+# planning docs are tracked for durability since 2026-08-29 (worldmap/06_planungsdatei_versionierung.md).
+# .research/ stays excluded: vendored third-party research clones (e.g. a full external repo
+# checkout with its own nested .git) — never track without stripping the nested .git first.
+/worldmap/.research/
+
+# remotion-ad: local Remotion experiment by Jan (own npm package, testing only)
+/remotion-ad/
