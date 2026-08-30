@@ -6,6 +6,15 @@ name: Security red team probes
 # once NODE_ENV=production and no Upstash is configured, which would make rate-limit-bypass.ts's
 # probe meaningless in an ephemeral runner with no real Upstash instance. Dev mode uses the same
 # tested in-memory rate-limit fallback Jan already relies on locally.
+#
+# PHASE1_STAGING_URL uses `localhost`, not `127.0.0.1` (2026-08-30 fix): validateMutationOrigin()
+# in src/lib/security/request-security.ts falls back to `new URL(request.url).origin` in
+# non-production, and Next.js's dev server reports its own request.url using the hostname it was
+# started with (`next dev` logs "- Local: http://localhost:3015"). Sending an `Origin` header of
+# `http://127.0.0.1:3015` against that never matches, so every mutating request got a 403
+# PERMISSION_DENIED before reaching auth/rate-limiting — confirmed via a raw curl showing the JSON
+# error body (route-level validateMutationOrigin, not the separate proxy.ts hasValidOrigin check,
+# which was already passing).
 
 on:
   workflow_dispatch:
@@ -46,7 +55,7 @@ jobs:
             echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
             echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY"
             echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
-            echo "PHASE1_STAGING_URL=http://127.0.0.1:3015"
+            echo "PHASE1_STAGING_URL=http://localhost:3015"
             echo "PHASE1_TARGET_CONFIRMED=true"
             echo "SUPABASE_ADMIN_EMAILS=${CI_ADMIN_EMAIL}"
           } >> "$GITHUB_ENV"
@@ -55,8 +64,6 @@ jobs:
       - run: npm test -- src/lib/security/__tests__/red-team-contract.test.ts
 
       - name: Start app (dev mode, ephemeral Supabase backend)
-        env:
-          ORIGIN_GUARD_DEBUG: 'true'
         run: nohup npm run dev > app.log 2>&1 &
 
       - name: Wait for app readiness
@@ -71,15 +78,6 @@ jobs:
 
       - name: Create ephemeral red-team users and derive session cookies
         run: npx tsx scripts/red-team/ephemeral-bootstrap.ts
-
-      - name: Debug - raw curl to /api/casino/bet
-        run: |
-          curl -sv -X POST http://127.0.0.1:3015/api/casino/bet \
-            -H "origin: http://127.0.0.1:3015" \
-            -H "cookie: $RED_TEAM_AUTH_COOKIE" \
-            -H "content-type: application/json" \
-            -H "Idempotency-Key: $(node -e 'console.log(crypto.randomUUID())')" \
-            -d '{}' 2>&1
 
       - run: npx tsx scripts/red-team/target-guard.ts
       - run: npx tsx scripts/red-team/rate-limit-bypass.ts
