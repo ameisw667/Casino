@@ -1,0 +1,78 @@
+name: Dependency audit
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Pinned to commit SHA 2026-08-29 (worldmap/04_07_dependency_audit_gate.md L4) — a mutable
+      # tag could be repointed to different code without this file changing.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+          cache: npm
+
+      # worldmap/04_07_dependency_audit_gate.md L5 (not fixed, deliberately): `npm ci` runs
+      # arbitrary install-time scripts from third-party packages by default (currently 4 in this
+      # tree: core-js, esbuild, libxmljs2, protobufjs — verified 2026-08-29, all legitimate native
+      # binary/build needs). `--ignore-scripts` would close that supply-chain surface but risks
+      # silently breaking the build (Playwright's own browser-binary download and Husky's own
+      # `prepare` script both rely on install-time scripts elsewhere in this repo) — a change with
+      # exactly the kind of untested material impact the execution SOP says to stop and verify
+      # before making, not to flip blind. Documented as an accepted, known risk rather than fixed.
+      - run: npm ci
+
+      # worldmap/04_07_dependency_audit_gate.md L1: hard gate via audit-ci with a tracked,
+      # commented allowlist (.audit-ci.jsonc) instead of npm's own continue-on-error escape hatch —
+      # a NEW high-severity finding now actually fails the build. Only the two ws advisories Jan
+      # has already been shown (docs/status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md S-3)
+      # are allowlisted; everything else blocks. Verified 2026-08-29: this correctly fails on the
+      # newer deepmerge-ts/@opentelemetry findings (not yet triaged/allowlisted) while passing the
+      # two known/tracked ws findings.
+      - run: npx audit-ci --config .audit-ci.jsonc
+
+      # worldmap/04_07_dependency_audit_gate.md L3: moderate/low findings were previously entirely
+      # invisible (the gate above only covers --audit-level=high equivalent). This is informational
+      # only — it must never block a merge on its own, so failures here are swallowed and only
+      # summarized, never propagated as a job failure.
+      - name: Moderate-severity visibility (advisory only)
+        if: always()
+        run: |
+          npm audit --audit-level=moderate --json > audit-moderate.json || true
+          node -e "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('audit-moderate.json', 'utf8'));
+            const v = data.metadata?.vulnerabilities ?? {};
+            const lines = [
+              '## Dependency audit — moderate/low visibility (informational)',
+              '',
+              '| Severity | Count |',
+              '| --- | --- |',
+              \`| critical | \${v.critical ?? 0} |\`,
+              \`| high | \${v.high ?? 0} |\`,
+              \`| moderate | \${v.moderate ?? 0} |\`,
+              \`| low | \${v.low ?? 0} |\`,
+              '',
+              'High/critical are hard-gated above via audit-ci. Moderate/low are visible here only — never block a merge.',
+            ];
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\\n') + '\\n');
+          "
+
+      # worldmap/04_07_dependency_audit_gate.md L2: CycloneDX SBOM as a build artifact — full
+      # dependency + license inventory, previously 0 visibility into this.
+      - run: npx @cyclonedx/cyclonedx-npm --output-file sbom.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sbom
+          path: sbom.json
+          retention-days: 90

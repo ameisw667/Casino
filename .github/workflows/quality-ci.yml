@@ -24,8 +24,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      # Pinned to commit SHA 2026-08-29 (worldmap/04_07_dependency_audit_gate.md L4) — a mutable
+      # tag (e.g. @v4) could be repointed to different code without this file changing; this is a
+      # mechanical supply-chain hardening only, it does not reopen the frozen Q1-Q8 gate decisions.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: '.nvmrc'
           cache: npm

@@ -1,0 +1,28 @@
+# gitleaks config — Casino
+# Ergänzt die Default-Regeln (https://github.com/gitleaks/gitleaks) um projektspezifische
+# Allowlist-Einträge für bekannte False-Positives. Neue Einträge nur mit Begründung ergänzen.
+title = "Casino gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Bekannte False-Positives: Platzhalterwerte, keine echten Secrets"
+regexes = [
+  # .env.example enthält ausschließlich Platzhalter (verifiziert 2026-08-29, siehe
+  # worldmap/04_08_secret_rotation.md #L3) — Muster "your_..." ist nie ein echter Secret-Wert.
+  '''your_[a-z_]+''',
+  # Synthetische Test-Fixture-Werte für GUIDE_TELEMETRY_HMAC_SECRET in
+  # src/lib/casino/__tests__/guide-telemetry.test.ts — verifiziert 2026-08-29 per lokalem
+  # gitleaks-Docker-Scan (worldmap/04_08_secret_rotation.md L1): 9 Funde, alle dieselben zwei
+  # sequenziellen Hex-Strings, nie außerhalb von Tests verwendet, kein echtes Secret.
+  '''0123456789abcdef0123456789abcdef''',
+  '''fedcba9876543210fedcba9876543210''',
+]
+paths = [
+  '''\.env\.example$''',
+]
+# Bewusst kein pfadbasiertes Allowlisting ganzer __tests__-Verzeichnisse — das würde jeden
+# echten, versehentlich in einen Test eingefügten Secret-Wert ebenfalls verstecken. Die beiden
+# regexes oben greifen nur bei exakt diesem bekannten, synthetischen Fixture-Wert, unabhängig
+# vom Dateipfad.

@@ -6,9 +6,15 @@ name: Security staging regression
 # stack Jan uses locally (npm run supabase:start), applies supabase/migrations/**, and is torn down
 # with the runner — no cloud account, no GitHub secrets, nothing to rotate.
 #
-# Known interaction: supabase/migrations/ has 2 real filename-number collisions (049, 050) tracked
-# separately in worldmap/05_datenbank_haertung.md. If `supabase start` fails to apply migrations,
-# check that plan first before assuming this workflow is broken.
+# Known interaction (updated 2026-08-29, docs/archive/06_4_security_ci_gate_hardening_plan.md L1/L5): the historical
+# failure (`ERROR: duplicate key value violates unique constraint "schema_migrations_pkey" ...
+# Key (version)=(049) already exists`, run 33210240496, 2026-08-28) was a real filename-number
+# collision, tracked in docs/archive/05_datenbank_haertung.md (Kategorie 02/09, outside this
+# category's scope). As of 2026-08-29 the working tree no longer has that collision
+# (`ls supabase/migrations | sed -E 's/_.*//' | sort | uniq -d` is empty) — the fix exists locally
+# but is not yet committed/pushed, so this workflow is expected to go green on the next run after
+# that commit lands. If a future run still fails at "Applying migration", re-check for a *new*
+# collision with the same command before assuming this workflow itself is broken.
 
 on:
   workflow_dispatch:
@@ -29,8 +35,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      # Pinned to commit SHA 2026-08-29 (worldmap/04_07_dependency_audit_gate.md L4).
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -58,3 +65,20 @@ jobs:
       - name: Stop ephemeral local Supabase
         if: always()
         run: npx supabase stop
+
+      # worldmap/04_02_security_ci_gate.md L3 — a red run was previously only visible to someone
+      # actively checking the Actions tab. This writes a short, readable summary so a failure is
+      # legible directly from the run page without opening raw logs. Native GitHub Actions feature
+      # ($GITHUB_STEP_SUMMARY), no new secret, no external notification channel.
+      - name: Summarize failure
+        if: failure()
+        run: |
+          {
+            echo "## Security staging regression failed"
+            echo ""
+            echo "Check the failed step's log above for the exact error."
+            echo "If it fails while applying a migration (\"duplicate key value violates unique"
+            echo "constraint\"), that's a migration filename-number collision — see"
+            echo "[docs/archive/05_datenbank_haertung.md](../../blob/main/docs/archive/05_datenbank_haertung.md)"
+            echo "before assuming this workflow itself is broken."
+          } >> "$GITHUB_STEP_SUMMARY"

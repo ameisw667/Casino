@@ -1,1 +1,20 @@
+if git diff --cached --name-only | grep -q '^supabase/migrations/'; then
+  collisions=$(ls supabase/migrations | sed -E 's/_.*//' | sort | uniq -d)
+  if [ -n "$collisions" ]; then
+    echo "Migrations-Nummernkollision gefunden: $collisions"
+    exit 1
+  fi
+fi
+
+# worldmap/04_08_secret_rotation.md L2: lokale zweite Verteidigungslinie gegen versehentlich
+# committete Secrets, zusätzlich zum CI-Gate (secret-scan.yml). Läuft nur gegen den Staging-Bereich
+# (schnell), ist per --no-verify umgehbar — deshalb bleibt secret-scan.yml die verbindliche Linie.
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --no-git -c .gitleaks.toml -v
+  if [ $? -ne 0 ]; then
+    echo "gitleaks: möglicher Secret-Fund im Staging-Bereich, Commit abgebrochen."
+    exit 1
+  fi
+fi
+
 npx lint-staged

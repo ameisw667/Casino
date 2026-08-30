@@ -1,0 +1,17 @@
+{
+  // worldmap/04_07_dependency_audit_gate.md L1 — hard gate (no continue-on-error) for anything
+  // NOT in the allowlist below. Only advisories Jan has already been shown and has a pending
+  // decision on belong here — a new high-severity finding should fail the build, not be silently
+  // absorbed. Never add an entry here without a matching note in
+  // docs/status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md explaining why.
+  "high": true,
+  "allowlist": [
+    // ws (via engine.io-client/socket.io-client, transitive through @trigger.dev/sdk).
+    // Non-breaking fix unavailable — only `npm audit fix --force`, which bumps
+    // @trigger.dev/sdk/react-hooks/build to a breaking version. Needs Jan's explicit decision
+    // (K5-adjacent: breaking dependency change), tracked in
+    // docs/status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md S-3.
+    "GHSA-58qx-3vcg-4xpx",
+    "GHSA-96hv-2xvq-fx4p"
+  ]
+}

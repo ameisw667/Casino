@@ -65,6 +65,14 @@ describe('isPublicRoute pattern matching', () => {
     expect(isPublicRoute('/api/internal/big-win-events')).toBe(true);
   });
 
+  it('exposes the internal csp-report route, which the browser posts to unauthenticated (M6)', () => {
+    expect(isPublicRoute('/api/internal/csp-report')).toBe(true);
+  });
+
+  it('exposes .well-known/ so security.txt is reachable without auth (M10)', () => {
+    expect(isPublicRoute('/.well-known/security.txt')).toBe(true);
+  });
+
   it('does not list /api/health in PUBLIC_ROUTES — it bypasses proxy() before the Supabase client is created instead (see the dedicated source-order test)', () => {
     expect(isPublicRoute('/api/health')).toBe(false);
   });
