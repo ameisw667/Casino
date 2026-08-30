@@ -23,7 +23,7 @@ werden ab jetzt bei jedem `feat:`/`fix:`-Release-Batch mitgef√ºhrt. Kein Vollst√
 
 ### Added
 
-- CI-Quality-Gate (`quality-ci.yml`: Test/Typecheck/Lint/Build) live, Security-Workflows auf ephemeres lokales Supabase umgestellt (`00-09-CICD.md` M1/M9)
+- CI-Quality-Gate (`quality-ci.yml`: Test/Typecheck/Lint/Build) live, Security-Workflows auf ephemeres lokales Supabase umgestellt (archiviert: `docs/archive/00-09-CICD.md` M1/M9)
 
 ## 2026-08-27
 
