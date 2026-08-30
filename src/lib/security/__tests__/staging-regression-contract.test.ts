@@ -32,6 +32,7 @@ describe('P1.3 staging security regression contract', () => {
 
   it('makes the staging regression a required CI job with no green skip path', () => {
     expect(workflow).toContain('PHASE1_TARGET_CONFIRMED');
+    expect(workflow).toContain('source .supabase-status.env');
     expect(workflow).toContain('scripts/phase1-target-guard.ts');
     expect(workflow).toContain('scripts/verify-security-phase1.sql');
     expect(workflow).toContain('scripts/phase1-concurrency.ts');

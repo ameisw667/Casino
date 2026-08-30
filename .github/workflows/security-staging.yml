@@ -49,10 +49,15 @@ jobs:
       - name: Export local Supabase connection vars
         run: |
           npx supabase status -o env > .supabase-status.env
+          # Supabase CLI emits shell-quoted values. Source its own generated env file so
+          # the GITHUB_ENV values do not retain literal quote characters.
+          set -a
+          source .supabase-status.env
+          set +a
           {
-            echo "PHASE1_STAGING_URL=$(grep '^API_URL=' .supabase-status.env | cut -d= -f2-)"
-            echo "PHASE1_STAGING_SERVICE_ROLE_KEY=$(grep '^SERVICE_ROLE_KEY=' .supabase-status.env | cut -d= -f2-)"
-            echo "PHASE1_STAGING_DATABASE_URL=$(grep '^DB_URL=' .supabase-status.env | cut -d= -f2-)"
+            echo "PHASE1_STAGING_URL=$API_URL"
+            echo "PHASE1_STAGING_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+            echo "PHASE1_STAGING_DATABASE_URL=$DB_URL"
             echo "PHASE1_TARGET_CONFIRMED=true"
           } >> "$GITHUB_ENV"
           rm .supabase-status.env
