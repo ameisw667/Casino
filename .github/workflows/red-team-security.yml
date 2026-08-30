@@ -72,6 +72,15 @@ jobs:
       - name: Create ephemeral red-team users and derive session cookies
         run: npx tsx scripts/red-team/ephemeral-bootstrap.ts
 
+      - name: Debug - raw curl to /api/casino/bet
+        run: |
+          curl -sv -X POST http://127.0.0.1:3015/api/casino/bet \
+            -H "origin: http://127.0.0.1:3015" \
+            -H "cookie: $RED_TEAM_AUTH_COOKIE" \
+            -H "content-type: application/json" \
+            -H "Idempotency-Key: $(node -e 'console.log(crypto.randomUUID())')" \
+            -d '{}' 2>&1
+
       - run: npx tsx scripts/red-team/target-guard.ts
       - run: npx tsx scripts/red-team/rate-limit-bypass.ts
       - run: npx tsx scripts/red-team/admin-idor.ts
