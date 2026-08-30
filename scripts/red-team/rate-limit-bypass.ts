@@ -28,7 +28,9 @@ async function runTarget(target: (typeof targets)[number], cookie: string, origi
 
   const accepted = statuses.filter((status) => status !== 429).length;
   if (!statuses.includes(429) || accepted > target.limit) {
-    throw new Error(`P1.4 rate-limit contract failed for ${target.path}`);
+    throw new Error(
+      `P1.4 rate-limit contract failed for ${target.path}: statuses=${JSON.stringify(statuses)}`,
+    );
   }
   return { path: target.path, total: statuses.length, throttled: statuses.length - accepted };
 }
