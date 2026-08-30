@@ -42,7 +42,7 @@ health_timeout = "2m"
 major_version = 17
 
 [db.pooler]
-enabled = false
+enabled = true
 # Port to use for the local connection pooler.
 port = 54329
 # Specifies when a server connection can be reused by other clients.
@@ -64,11 +64,9 @@ enabled = true
 schema_paths = []
 
 [db.seed]
-# If enabled, seeds the database after migrations during a db reset.
-enabled = true
-# Specifies an ordered list of seed files to load during db reset.
-# Supports glob patterns relative to supabase directory: "./seeds/*.sql"
-sql_paths = ["./seed.sql"]
+# No local seed fixture is maintained. Keep reset behavior explicit rather than
+# referencing a non-existent file.
+enabled = false
 
 [db.network_restrictions]
 # Enable management of network restrictions.

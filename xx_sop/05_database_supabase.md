@@ -2,7 +2,7 @@
 
 > **Zweck:** Schema-, Migrations- und RPC-Änderungen sicher, nachvollziehbar und kollisionsfrei ausführen.
 > Kontext: [`xx_docs/01_supabase_context.md`](../xx_docs/01_supabase_context.md).
-> Sicherheits-Invarianten: [`xx_sop/09_security_wallet_invariants.md`](09_security_wallet_invariants.md).
+> Sicherheits-Invarianten: [`xx_sop/09_security_wallet_invariants.md`](./09_security_wallet_invariants.md).
 
 ## 1 — Trigger und Start-Gate
 
@@ -69,7 +69,7 @@ npm run supabase:types
   ```bash
   npm run supabase:diff
   ```
-  Muss leer sein. Ein Ergebnis bedeutet: Remote weicht vom lokalen Migrationsstand ab — Ursache klären, bevor weitergeschrieben wird.
+  Muss semantisch leer sein. Ein Ergebnis bedeutet grundsätzlich: Remote weicht vom lokalen Migrationsstand ab — Ursache klären, bevor weitergeschrieben wird. **Ausnahme nur mit Nachweis:** Das Engine-Format `pg-delta` kann bereits identische `CREATE OR REPLACE FUNCTION`-Blöcke erneut ausgeben. Dann sind Anzahl und Byte-Gleichheit gegen die kanonische Migration, fehlende Rechte-/Trigger-/Kommentar-/destructive-Diffs und der Security-Review im Plan zu dokumentieren; nie bloß als „harmlos“ annehmen.
 - RPC- und Autoritätsverhalten: bestehende Vitest-Integrationstests decken das ab (siehe `xx_sop/09`).
 - Neue oder geänderte RLS-Policy: zusätzlich manueller Rollen-Check (`SET ROLE authenticated;` / `SET ROLE anon;` gegen die Zieltabelle im Studio), bis eine automatisierte DB-Testschicht (z. B. pgTAP) im Projekt eingeführt ist — aktuell nicht vorhanden.
 
@@ -94,10 +94,8 @@ Eine lokale Datei ist nicht automatisch remote angewendet; eine remote angewende
 
 > Wird bei Behebung aus diesem Abschnitt entfernt, nicht stillschweigend gelöscht.
 
-- **Doppelte Migrationsnummern:** `049_crash_room_realtime_authorization.sql` / `049_custom_access_token_hook.sql` sowie `050_crash_multiplayer_game_type.sql` / `050_user_notifications.sql`. Die Ausführungsreihenfolge dieser Paare wird aktuell durch alphabetische Dateinamen-Sortierung bestimmt, nicht durch fachliche Absicht. Nicht eigenständig umbenennen — vorher klären, ob beide Dateien bereits remote angewendet sind (`npm run supabase:migrations`); eine nachträgliche Umbenennung bereits angewendeter Migrationen verfälscht den Versionsabgleich.
-- **Seed-Daten inkonsistent konfiguriert:** `supabase/config.toml` referenziert unter `[db.seed]` die Datei `./seed.sql`, die im Repo nicht existiert. `supabase db reset` lädt aktuell keine Seed-Daten trotz aktivierter Konfiguration.
-- **Keine generierten TypeScript-Typen:** Vor Einführung von Abschnitt 5 existierte kein `src/types/database.types.ts`; alle Supabase-Clients waren ungetypt aufgerufen.
-- **`supabase/consolidated-setup.sql` veraltet:** Deckt nur Migrationen `001`–`007` ab, bei mittlerweile 51 vorhandenen Migrationen. Historischer Rest aus der Vor-CLI-Ära (manuelles Copy-Paste in den SQL-Editor); Verbleib (archivieren vs. löschen) ist eine offene Entscheidung.
+- **Lokaler Pooler-Test verifiziert (2026-08-29):** `[db.pooler] enabled = true`; `supabase_pooler_Casino` ist healthy, `Test-NetConnection 127.0.0.1 -Port 54329` liefert `TcpTestSucceeded : True` und eine SQL-Abfrage über `postgres.pooler-dev` liefert `pooler_ok = 1`.
+- **Schema-Drift K6-A abgeschlossen (2026-08-29):** `npm run supabase:diff` lief mit einer Shadow-DB über 001–059. Der alleinige Rest sind 28 bytegleiche Funktions-Reemissionen von `pg-delta`, bereits vollständig in 058 enthalten; keine Rechte-, Trigger-, Kommentar-, Guild- oder destructive-Differenz. Für künftige Abweichungen gilt weiterhin die Verifikationsregel aus Abschnitt 6.
 
 ## 10 — Verwandte Artefakte
 

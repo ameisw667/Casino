@@ -24,7 +24,7 @@ flowchart TD
 
 ### Verbindliche Projekt-Parameter:
 * **Aktive Projekt-ID:** `hmqwozhdckbwjqzcmire` (konfiguriert in `.env.local` und `supabase/.temp/project-ref`).
-* **Kein Tabellen-Präfix:** Im dedizierten Casino-Projekt heißen Tabellen regulär `profiles`, `transactions`, `bets`, `game_rounds` (kein `casino_`-Präfix).
+* **Kein Tabellen-Präfix:** Im dedizierten Casino-Projekt heißen Tabellen regulär (kein `casino_`-Präfix), z. B. `users` (Nutzer-Kerntabelle mit `guide_persona`; die frühere Fehlannahme einer `profiles`-Tabelle ist durch Migration 054 und die Route korrigiert), `wallet_transactions`, `game_sessions`, `game_rounds`.
 * **Master-DB Abgrenzung:** Die alte Master-DB ist **kein** Casino-Produktivsystem. Sollte historischer Zugriff nötig sein, dürfen dort ausschließlich `casino_*`-Tabellen isoliert angesprochen werden.
 * **Secret-Isolation:** `SUPABASE_SERVICE_ROLE_KEY` existiert ausschließlich in `.env.local` bzw. Vercel Server-Secrets und darf niemals in Client-Bundles oder Dokumenten stehen.
 
@@ -42,12 +42,12 @@ flowchart TD
 
 ## 3 — Kanonisches Datenbankschema & Tabellen-Inventar
 
-Das Datenbankschema basiert auf Migrationen (`001_users.sql` bis `053_guild_core.sql`):
+Das Datenbankschema basiert auf Migrationen (`001_users.sql` bis `059_harden_legacy_definer_search_path.sql`). Version 053 ist ein historischer No-op-Marker für das bewusst entfernte Guild-Feature; 057 entfernt den verbliebenen Remote-Altbestand, 058 dokumentiert den geprüften historischen Remote-Drift reproduzierbar und 059 härtet zwei ungenutzte Legacy-RPCs mit festem Suchpfad und ohne externe EXECUTE-Rechte.
 
 ### 3.1 Finanzen, Ledger & Benutzer
 | Tabelle | Primärschlüssel | RLS-Policy | Zweck |
 | :--- | :--- | :--- | :--- |
-| `profiles` | `id` (`auth.users.id`) | Read: Own / Write: Own (non-financial) | Benutzerprofil, Username, Avatar, anonyme Session-Verknüpfung. |
+| `users` | `id` (`auth.users.id`) | Read: Own / Write: Server-Route bzw. RPC | Nutzer-Kerndaten, inklusive `guide_persona`; keine `profiles`-Tabelle vorhanden. |
 | `wallets` | `user_id` | Read: Own / Write: **RPC-Only** | Kontostand (`balance`), `xp`, `level`, `vip_tier`, VIP-Punkte. |
 | `transactions` | `id` (UUID) | Read: Own / Write: **RPC-Only** | Unveränderliches Hauptbuch (Ledger) aller Einzahlungen, Einsätze und Gewinne (`requestId` Idempotenz). |
 | `bets` | `id` (UUID) | Read: Own / Write: **RPC-Only** | Einzelwetten aller Spiele (Spieltyp, Einsatz, Payout, Multiplikator, Status). |
@@ -111,7 +111,7 @@ SELECT * FROM public.settle_game_round(...);
 # 1. Lokale vs. Remote-Migrationsprüfung
 npm run supabase:migrations
 
-# 2. Schema-Drift-Prüfung (muss leer sein)
+# 2. Schema-Drift-Prüfung (kein semantischer Drift)
 npm run supabase:diff
 
 # 3. TypeScript Typgenerierung ausführen
@@ -150,14 +150,14 @@ npm test -- src/lib/casino/__tests__/vault-integration.test.ts
 
 ## 8 — Bekannte offene Probleme & Ist-Diskrepanzen
 
-> **Stand:** 2026-08-23 · Wird bei Behebung aktualisiert.
+> **Stand:** 2026-08-29 · Wird bei Behebung aktualisiert.
 
-- **1. Doppelte Migrationsnummern im Repo:**
-  `049_crash_room_realtime_authorization.sql` / `049_custom_access_token_hook.sql` sowie `050_crash_multiplayer_game_type.sql` / `050_user_notifications.sql`. Nicht eigenmächtig umbenennen, da Remote-Versionsabgleiche daran hängen.
-- **2. `supabase/consolidated-setup.sql` veraltet:**
-  Deckt nur Migrationen `001`–`007` ab (historischer Stand vor Einführung der Supabase CLI).
-- **3. Fehlende `./seed.sql` in `supabase/config.toml`:**
-  `supabase db reset` lädt aktuell keine Testdaten.
+- **Migrationshistorie und Drift (K6-A, 2026-08-29):** Die kollisionsfreie lokale und Remote-Reihe ist 001–059. 058 erfasst den zuvor geprüften Remote-Drift reproduzierbar; 059 setzt für die ungenutzten Legacy-RPCs `place_bet` und `settle_bet` `search_path = public, pg_temp` und entzieht `PUBLIC`, `anon`, `authenticated` und `service_role` EXECUTE. Der finale CLI-Diff enthält nur 28 bytegleiche, bereits in 058 gespeicherte Funktions-Reemissionen des Engines `pg-delta`; Berechtigungen, Hook-Kommentar und Event-Trigger konvergieren.
+- **Guild-Altbestand:** K5 wurde am 2026-08-29 ausgeführt. Migration 057 entfernte `guilds`, `guild_members`, `guild_invites` sowie `enforce_single_guild_leader()` und `update_guild_member_count()` ohne `CASCADE`. Der Remote-Check bestätigt, dass alle fünf Objekte nicht mehr existieren; die generierten TypeScript-Typen enthalten keine Guild-Typen mehr.
+- **Indexing-Baseline:** Der aktuelle Remote-Audit zählt 35 FK-Spalten, davon 9 ohne führenden Index. Die betroffenen Tabellen sind klein; Remote-Outlier und der lokale `EXPLAIN ANALYZE`-Plan für Wallet-Historie zeigen keinen belastbaren Bedarf für eine neue Indexmigration.
+- **`pg_stat_statements`:** Aktiv; `npx supabase inspect db calls --linked` und `npx supabase inspect db outliers --linked` liefern reale Statistiken. Die teuersten Statements sind Infrastruktur- und Retry-Abfragen, kein Casino-Hot-Path.
+- **Pooler-Stand:** Shared Supavisor auf Nano mit Pool Size 15 und Max Client Connections 200; Nano erlaubt maximal 60 direkte Datenbankverbindungen. Die App nutzt `@supabase/supabase-js` über REST/PostgREST, keinen direkten PostgreSQL-Treiber. Der lokale Pooler ist aktiviert und wurde erfolgreich verifiziert: Container healthy, TCP-Port 54329 erreichbar und SQL-Verbindung über `postgres.pooler-dev` erfolgreich. Eskalation prüfen, wenn die Dashboard-Reports 15 Minuten lang mindestens 140 Pooler-Clients oder 42 Datenbankverbindungen zeigen oder der Grenzwert erreicht wird.
+- **Backup/PITR:** Der Free-Tier-PITR-Status wird separat beobachtet; daraus folgt keine Schema- oder Codeänderung.
 
 ---
 

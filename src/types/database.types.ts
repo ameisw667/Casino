@@ -51,6 +51,7 @@ export type Database = {
           sort_order: number
           title: string
           total: number
+          visibility: string
         }
         Insert: {
           conditions: Json
@@ -63,6 +64,7 @@ export type Database = {
           sort_order?: number
           title: string
           total: number
+          visibility?: string
         }
         Update: {
           conditions?: Json
@@ -75,6 +77,7 @@ export type Database = {
           sort_order?: number
           title?: string
           total?: number
+          visibility?: string
         }
         Relationships: []
       }
@@ -1124,6 +1127,44 @@ export type Database = {
           },
         ]
       }
+      user_login_history: {
+        Row: {
+          auth_method: string
+          created_at: string
+          device_info: string
+          id: string
+          ip_masked: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          auth_method: string
+          created_at?: string
+          device_info: string
+          id?: string
+          ip_masked: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          auth_method?: string
+          created_at?: string
+          device_info?: string
+          id?: string
+          ip_masked?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_login_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_notifications: {
         Row: {
           body: string
@@ -1174,6 +1215,7 @@ export type Database = {
           balance: number | null
           created_at: string | null
           email: string | null
+          guide_persona: string
           id: string
           level: number | null
           rakeback_pool: number | null
@@ -1187,6 +1229,7 @@ export type Database = {
           balance?: number | null
           created_at?: string | null
           email?: string | null
+          guide_persona?: string
           id: string
           level?: number | null
           rakeback_pool?: number | null
@@ -1200,6 +1243,7 @@ export type Database = {
           balance?: number | null
           created_at?: string | null
           email?: string | null
+          guide_persona?: string
           id?: string
           level?: number | null
           rakeback_pool?: number | null
