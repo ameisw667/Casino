@@ -48,7 +48,7 @@ Im Plan festhalten:
   ```
   Das vermeidet Nummernkollisionen strukturell, weil die CLI durchgehend fortlaufend benennt, und macht sichtbar, was eine UI-Änderung tatsächlich in DDL bedeutet.
 - Freihand-SQL (z. B. reine RPC-Änderung ohne Schema-Diff) ist zulässig, aber nur nach bestandenem Pre-Flight-Check aus Abschnitt 2.
-- DDL und RPCs idempotent gestalten (`CREATE OR REPLACE`, `IF NOT EXISTS` wo möglich — **Ausnahme:** `CREATE POLICY` unterstützt kein `IF NOT EXISTS`, siehe Hinweis in `supabase/consolidated-setup.sql`).
+- DDL und RPCs idempotent gestalten (`CREATE OR REPLACE`, `IF NOT EXISTS` wo möglich — **Ausnahme:** `CREATE POLICY` unterstützt kein `IF NOT EXISTS`, siehe historischen Hinweis in `docs/archive/consolidated-setup.sql`).
 - Funktionen mit festem `search_path` absichern.
 - Finanzielle RPCs folgen der Server-Autorität aus `xx_sop/09_security_wallet_invariants.md` Abschnitt 1. Balance oder Progression nie direkt aus dem Browser mutieren.
 
