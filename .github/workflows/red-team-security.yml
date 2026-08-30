@@ -55,6 +55,8 @@ jobs:
       - run: npm test -- src/lib/security/__tests__/red-team-contract.test.ts
 
       - name: Start app (dev mode, ephemeral Supabase backend)
+        env:
+          ORIGIN_GUARD_DEBUG: 'true'
         run: nohup npm run dev > app.log 2>&1 &
 
       - name: Wait for app readiness

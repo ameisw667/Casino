@@ -14,6 +14,14 @@ export interface OriginGuardRequest {
 
 export function hasValidOrigin(req: OriginGuardRequest): boolean {
   const secFetchSite = req.headers.get('sec-fetch-site');
+  if (process.env.ORIGIN_GUARD_DEBUG === 'true') {
+    console.error('[origin-guard-debug]', {
+      secFetchSite,
+      origin: req.headers.get('origin'),
+      host: req.headers.get('host'),
+      xForwardedHost: req.headers.get('x-forwarded-host'),
+    });
+  }
   if (secFetchSite) {
     // 'same-origin'/'same-site': this site (or a subdomain of it) made the request.
     // 'none': direct user action (typed URL, bookmark) — not a forged cross-site request.
