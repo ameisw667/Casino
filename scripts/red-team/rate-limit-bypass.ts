@@ -3,7 +3,7 @@ import { assertSafePhase1Target } from './target-guard';
 
 const targets = [
   { path: '/api/casino/bet', limit: 30 },
-  { path: '/api/casino/blackjack', limit: 10 },
+  { path: '/api/casino/blackjack', limit: 20 },
 ] as const;
 
 async function runTarget(target: (typeof targets)[number], cookie: string, origin: string) {
