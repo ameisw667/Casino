@@ -6,6 +6,14 @@ const REQUEST_COUNT = 20;
 
 async function main(): Promise<void> {
   const target = assertSafePhase1Target();
+  const targetHost = new URL(target.url).hostname;
+  if (
+    process.env.PHASE1_EPHEMERAL_LOCAL !== 'true' ||
+    !['127.0.0.1', 'localhost', '::1'].includes(targetHost)
+  ) {
+    throw new Error('P1.3 concurrency requires an explicitly confirmed ephemeral loopback target');
+  }
+
   const serviceRoleKey = process.env.PHASE1_STAGING_SERVICE_ROLE_KEY?.trim();
   if (!serviceRoleKey) throw new Error('PHASE1_STAGING_SERVICE_ROLE_KEY is required');
 
@@ -76,8 +84,10 @@ async function main(): Promise<void> {
     console.log(`P1.3 concurrency passed: ${REQUEST_COUNT} requests, one ledger row`);
   } finally {
     if (created) {
-      const { error } = await supabase.from('users').delete().eq('id', userId);
-      if (error) throw new Error('P1.3 synthetic cleanup failed');
+      // The append-only ledger intentionally blocks DELETE cascades. This probe is
+      // restricted to the disposable local Supabase runner; the CI VM teardown
+      // removes its synthetic user and ledger row without weakening that invariant.
+      console.log('P1.3 synthetic data will be discarded with the ephemeral local runner');
     }
   }
 }

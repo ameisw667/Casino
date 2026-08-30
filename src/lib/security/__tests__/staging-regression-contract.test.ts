@@ -27,6 +27,8 @@ describe('P1.3 staging security regression contract', () => {
     expect(concurrency).toContain('Array.from({ length: REQUEST_COUNT }');
     expect(concurrency).toContain('admin_update_user');
     expect(concurrency).toContain('PHASE1_STAGING_SERVICE_ROLE_KEY');
+    expect(concurrency).toContain('PHASE1_EPHEMERAL_LOCAL');
+    expect(workflow).toContain('PHASE1_EPHEMERAL_LOCAL=true');
     expect(concurrency).not.toContain('console.log(process.env');
   });
 

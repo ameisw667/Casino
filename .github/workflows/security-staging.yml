@@ -59,6 +59,7 @@ jobs:
             echo "PHASE1_STAGING_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
             echo "PHASE1_STAGING_DATABASE_URL=$DB_URL"
             echo "PHASE1_TARGET_CONFIRMED=true"
+            echo "PHASE1_EPHEMERAL_LOCAL=true"
           } >> "$GITHUB_ENV"
           rm .supabase-status.env
 
