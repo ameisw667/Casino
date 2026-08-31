@@ -137,7 +137,10 @@ export async function executeGetPlayerVipProgress(
 
     const sortedTiers = [...tiers].sort((a, b) => a.minXp - b.minXp);
     const currentIndex = sortedTiers.findIndex((t) => t.name === currentTier.name);
-    const nextTier = currentIndex >= 0 && currentIndex < sortedTiers.length - 1 ? sortedTiers[currentIndex + 1] : null;
+    const nextTier =
+      currentIndex >= 0 && currentIndex < sortedTiers.length - 1
+        ? sortedTiers[currentIndex + 1]
+        : null;
 
     const remainingXp = nextTier ? Math.max(0, nextTier.minXp - wallet.xp) : 0;
 
@@ -151,7 +154,11 @@ export async function executeGetPlayerVipProgress(
       xpNeededForNextTier: remainingXp,
     };
   } catch (error) {
-    CasinoLogger.error('GuideTools', 'Failed to load player VIP progress', error instanceof Error ? error : undefined);
+    CasinoLogger.error(
+      'GuideTools',
+      'Failed to load player VIP progress',
+      error instanceof Error ? error : undefined,
+    );
     return {
       level: 1,
       xp: 0,
@@ -188,7 +195,11 @@ export async function executeGetPlayerSessionStats(
       totalProfit: `${(stats.totalProfit ?? 0) >= 0 ? '+' : '-'}$${Math.abs(stats.totalProfit ?? 0).toFixed(2)}`,
     };
   } catch (error) {
-    CasinoLogger.error('GuideTools', 'Failed to load player session stats', error instanceof Error ? error : undefined);
+    CasinoLogger.error(
+      'GuideTools',
+      'Failed to load player session stats',
+      error instanceof Error ? error : undefined,
+    );
     return {
       totalBets: 0,
       totalWins: 0,

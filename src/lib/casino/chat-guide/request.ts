@@ -83,7 +83,12 @@ export function buildGuideInputPayload(
       role: 'user',
       content: [
         { type: 'input_text', text: message },
-        { type: 'input_image', image_url: image },
+        // 'low' detail matches the deliberate cost choice already made for the
+        // streaming Chat Completions path in stream.ts — omitting it here defaults
+        // to OpenAI's 'auto' (usually resolves to 'high'), multiplying vision token
+        // cost on every message with an attached screenshot for no accuracy benefit
+        // at this UI's thumbnail resolution.
+        { type: 'input_image', image_url: image, detail: 'low' },
       ],
     });
   } else {

@@ -47,7 +47,11 @@ interface PlayerBet {
   payout: number;
 }
 
-export function previousSevenDaysUtcRange(reference: Date): { start: string; end: string; label: string } {
+export function previousSevenDaysUtcRange(reference: Date): {
+  start: string;
+  end: string;
+  label: string;
+} {
   const end = new Date(reference.getTime());
   const start = new Date(reference.getTime() - WEEK_MS);
   const startStr = start.toISOString().slice(5, 10).replace('-', '.');
@@ -76,7 +80,8 @@ export function buildPlayerRecapMessage(label: string, bets: PlayerBet[]): strin
   for (const bet of bets) {
     wagerByGame.set(bet.game, (wagerByGame.get(bet.game) ?? 0) + bet.wager);
   }
-  const topGame = [...wagerByGame.entries()].sort((left, right) => right[1] - left[1])[0]?.[0] ?? '—';
+  const topGame =
+    [...wagerByGame.entries()].sort((left, right) => right[1] - left[1])[0]?.[0] ?? '—';
 
   return [
     `🎰 Dein Casino-Wochenrückblick (${label})`,

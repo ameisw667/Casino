@@ -91,7 +91,9 @@ export async function executePlayerOnboardingDrip(payload: PlayerOnboardingDripP
   const day0Message = buildDay0WelcomeMessage(payload.username);
   const day0Result = await sendStageNotification(payload.userId, payload.chatId, day0Message);
   if (!day0Result.ok) {
-    logger.log('Onboarding drip aborted at Stage 1 (opted out or blocked)', { userId: payload.userId });
+    logger.log('Onboarding drip aborted at Stage 1 (opted out or blocked)', {
+      userId: payload.userId,
+    });
     return { completed: false, reason: 'unlinked_or_muted', stage: 'day_0' };
   }
   metadata.set('stage', 'day_0_sent');
@@ -123,7 +125,9 @@ export async function executePlayerOnboardingDrip(payload: PlayerOnboardingDripP
 
   const day2Result = await sendStageNotification(payload.userId, payload.chatId, day2Message);
   if (!day2Result.ok) {
-    logger.log('Onboarding drip aborted at Stage 2 (opted out or blocked)', { userId: payload.userId });
+    logger.log('Onboarding drip aborted at Stage 2 (opted out or blocked)', {
+      userId: payload.userId,
+    });
     return { completed: false, reason: 'unlinked_or_muted', stage: 'day_2' };
   }
   metadata.set('stage', 'day_2_sent');
@@ -136,7 +140,9 @@ export async function executePlayerOnboardingDrip(payload: PlayerOnboardingDripP
   const day7Message = buildDay7Message();
   const day7Result = await sendStageNotification(payload.userId, payload.chatId, day7Message);
   if (!day7Result.ok) {
-    logger.log('Onboarding drip aborted at Stage 3 (opted out or blocked)', { userId: payload.userId });
+    logger.log('Onboarding drip aborted at Stage 3 (opted out or blocked)', {
+      userId: payload.userId,
+    });
     return { completed: false, reason: 'unlinked_or_muted', stage: 'day_7' };
   }
 

@@ -2,7 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 import { previousUtcDayRange } from '../../../trigger/daily-activity-digest';
-import { buildMessage, deliverDigestPayloadSchema, type DailyBet } from '../../../trigger/deliver-digest';
+import {
+  buildMessage,
+  deliverDigestPayloadSchema,
+  type DailyBet,
+} from '../../../trigger/deliver-digest';
 
 describe('daily-activity-digest utilities and schemas', () => {
   it('calculates previous UTC day range accurately', () => {

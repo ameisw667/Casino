@@ -150,9 +150,7 @@ const STOP_WORDS = new Set([
  * Includes sub-word splitting for hyphenated terms and common compound prefixes.
  */
 export function tokenizeQuery(query: string): string[] {
-  const normalized = query
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s-]/gu, ' ');
+  const normalized = query.toLowerCase().replace(/[^\p{L}\p{N}\s-]/gu, ' ');
 
   const rawWords = normalized
     .split(/\s+/)

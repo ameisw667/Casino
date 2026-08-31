@@ -38,7 +38,7 @@ describe('chat-guide-vision', () => {
         role: 'user',
         content: [
           { type: 'input_text', text: 'Was für ein Blatt habe ich hier?' },
-          { type: 'input_image', image_url: dummyBase64Image },
+          { type: 'input_image', image_url: dummyBase64Image, detail: 'low' },
         ],
       });
     });
@@ -72,7 +72,7 @@ describe('chat-guide-vision', () => {
         role: 'user',
         content: [
           { type: 'input_text', text: 'Erklär mir dieses Bild' },
-          { type: 'input_image', image_url: dummyBase64Image },
+          { type: 'input_image', image_url: dummyBase64Image, detail: 'low' },
         ],
       });
     });
@@ -92,7 +92,7 @@ describe('chat-guide-vision', () => {
           role: 'user',
           content: [
             { type: 'input_text', text: 'Analysiere diese Runde' },
-            { type: 'input_image', image_url: dummyBase64Image },
+            { type: 'input_image', image_url: dummyBase64Image, detail: 'low' },
           ],
         },
       ]);

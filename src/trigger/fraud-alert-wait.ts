@@ -117,4 +117,3 @@ export const fraudAlertWait = schemaTask({
   maxDuration: 172800, // 48h in seconds
   run: async (payload) => executeFraudAlertWait(payload),
 });
-

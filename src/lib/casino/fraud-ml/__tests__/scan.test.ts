@@ -68,7 +68,10 @@ describe('runFraudMlScan', () => {
   });
 
   it('skips the scan and records nothing below the minimum user threshold', async () => {
-    const { client, recordCalls } = makeClient([makeRow({ userId: 'a' }), makeRow({ userId: 'b' })]);
+    const { client, recordCalls } = makeClient([
+      makeRow({ userId: 'a' }),
+      makeRow({ userId: 'b' }),
+    ]);
 
     const summary = await runFraudMlScan(client);
 

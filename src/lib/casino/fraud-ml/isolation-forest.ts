@@ -137,10 +137,7 @@ function pathLength(node: TreeNode, point: number[], depth: number): number {
 // (indistinguishable from a typical point), the isolation-forest literature convention is that
 // scores well above 0.5 indicate anomalies and well below 0.5 indicate clearly normal points.
 export function scoreSample(forest: IsolationForest, point: number[]): number {
-  const totalPathLength = forest.trees.reduce(
-    (sum, tree) => sum + pathLength(tree, point, 0),
-    0,
-  );
+  const totalPathLength = forest.trees.reduce((sum, tree) => sum + pathLength(tree, point, 0), 0);
   const avgPathLength = totalPathLength / forest.trees.length;
   const c = averagePathLength(forest.sampleSize);
   if (c === 0) return 0;

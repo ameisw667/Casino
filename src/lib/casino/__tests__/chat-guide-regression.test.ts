@@ -119,7 +119,7 @@ describe('chat-guide pure contracts (L12.5 regression net)', () => {
         role: 'user',
         content: [
           { type: 'input_text', text: 'Describe this hand' },
-          { type: 'input_image', image_url: 'data:image/png;base64,abc' },
+          { type: 'input_image', image_url: 'data:image/png;base64,abc', detail: 'low' },
         ],
       });
     });
@@ -149,7 +149,7 @@ describe('chat-guide pure contracts (L12.5 regression net)', () => {
         role: 'user',
         content: [
           { type: 'input_text', text: 'Now look at this' },
-          { type: 'input_image', image_url: 'data:image/png;base64,xyz' },
+          { type: 'input_image', image_url: 'data:image/png;base64,xyz', detail: 'low' },
         ],
       });
     });

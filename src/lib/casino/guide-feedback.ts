@@ -5,12 +5,7 @@ import { createGuideActorHash } from './guide-telemetry';
 export type GuideFeedbackRating = 1 | -1;
 
 export type GuideFeedbackCategory =
-  | 'helpful'
-  | 'accurate'
-  | 'inaccurate'
-  | 'unhelpful'
-  | 'slow'
-  | 'other';
+  'helpful' | 'accurate' | 'inaccurate' | 'unhelpful' | 'slow' | 'other';
 
 export type GuideFeedbackItem = {
   id: string;
@@ -44,12 +39,18 @@ export async function recordGuideFeedback(input: {
   comment?: string;
 }): Promise<{ success: boolean; id?: string; error?: string }> {
   const id = crypto.randomUUID();
+  // Never persist the raw Supabase user id / IP-derived identifier — this table
+  // (`guide_feedback.user_id`) is documented as pseudonymized, matching the same
+  // HMAC actor-hash convention already used for guide telemetry (guide-telemetry.ts).
+  // No hash if the secret is unconfigured or userId is empty (fail closed: the
+  // feedback itself is still worth recording anonymously, but never with a raw id).
+  const actorHash = input.userId ? createGuideActorHash(input.userId) : null;
   const item: GuideFeedbackItem = {
     id,
     createdAt: new Date().toISOString(),
     rating: input.rating,
     messageId: input.messageId?.slice(0, 128) || null,
-    userId: input.userId?.slice(0, 128) || null,
+    userId: actorHash?.hash ?? null,
     category: input.category || null,
     comment: input.comment?.slice(0, 1000) || null,
   };
@@ -73,24 +74,35 @@ export async function recordGuideFeedback(input: {
     });
 
     if (error) {
-      CasinoLogger.warn('GuideFeedback', 'Supabase feedback insert skipped, saved in memory', {
-        error: error.message,
-      });
+      CasinoLogger.error(
+        'GuideFeedback',
+        'Supabase feedback insert failed, not persisted',
+        new Error(error.message),
+      );
+      return { success: false, id, error: error.message };
     }
 
     return { success: true, id };
   } catch (err) {
-    CasinoLogger.warn('GuideFeedback', 'Supabase feedback insert exception, saved in memory', {
-      error: err instanceof Error ? err.message : String(err),
-    });
-    return { success: true, id };
+    CasinoLogger.error(
+      'GuideFeedback',
+      'Supabase feedback insert exception, not persisted',
+      err instanceof Error ? err : undefined,
+    );
+    return {
+      success: false,
+      id,
+      error: err instanceof Error ? err.message : 'Unknown database error',
+    };
   }
 }
 
 /**
  * Retrieves the 7-day feedback satisfaction summary and recent feedback items.
  */
-export async function getGuideFeedbackSummary(asOf: Date = new Date()): Promise<GuideFeedbackSummary> {
+export async function getGuideFeedbackSummary(
+  asOf: Date = new Date(),
+): Promise<GuideFeedbackSummary> {
   try {
     const supabase = createAdminClient();
     const { data, error } = await supabase.rpc('get_guide_feedback_summary', {
@@ -122,7 +134,8 @@ export async function getGuideFeedbackSummary(asOf: Date = new Date()): Promise<
   const totalRatings = memoryFeedbackStore.length;
   const positiveRatings = memoryFeedbackStore.filter((f) => f.rating === 1).length;
   const negativeRatings = memoryFeedbackStore.filter((f) => f.rating === -1).length;
-  const satisfactionRate = totalRatings === 0 ? 100.0 : Math.round((positiveRatings / totalRatings) * 1000) / 10;
+  const satisfactionRate =
+    totalRatings === 0 ? 100.0 : Math.round((positiveRatings / totalRatings) * 1000) / 10;
 
   return {
     totalRatings,

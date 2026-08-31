@@ -82,12 +82,16 @@ describe('Guide Document Selection (Deterministic Routing)', () => {
   });
 
   it('selects VIP document for rakeback and rank tier queries', () => {
-    const selected = selectKnowledgeDocs('How does the VIP tier system and XP level progression work?');
+    const selected = selectKnowledgeDocs(
+      'How does the VIP tier system and XP level progression work?',
+    );
     expect(selected[0]?.id).toBe('guide-vip');
   });
 
   it('selects Fairness document for provably fair and seed queries', () => {
-    const selected = selectKnowledgeDocs('How is HMAC-SHA256 used with server seed and client seed for fairness?');
+    const selected = selectKnowledgeDocs(
+      'How is HMAC-SHA256 used with server seed and client seed for fairness?',
+    );
     expect(selected[0]?.id).toBe('guide-fairness');
   });
 

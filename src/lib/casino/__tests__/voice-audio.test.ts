@@ -10,7 +10,8 @@ describe('voice-audio unit tests', () => {
     });
 
     it('strips markdown tables and headers', () => {
-      const raw = '# Roulette Quoten\n\n| Wette | Auszahlung |\n|---|---|\n| Rot | 1:1 |\n| Zahl | 35:1 |';
+      const raw =
+        '# Roulette Quoten\n\n| Wette | Auszahlung |\n|---|---|\n| Rot | 1:1 |\n| Zahl | 35:1 |';
       const cleaned = cleanMarkdownForSpeech(raw);
       expect(cleaned).toContain('Roulette Quoten');
       expect(cleaned).not.toContain('|');

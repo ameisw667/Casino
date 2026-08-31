@@ -15,22 +15,25 @@ export const DEFAULT_PERSONA: GuidePersona = 'math_strategist';
 
 export const PERSONA_META: Record<
   GuidePersona,
-  { label: string; emoji: string; description: string }
+  { label: string; emoji: string; description: string; imagePath: string }
 > = {
   math_strategist: {
     label: 'Math Strategist',
     emoji: '🧮',
     description: 'Analytisch, präzise, zahlengetrieben',
+    imagePath: '/images/personas/math_strategist.jpg',
   },
   high_roller: {
     label: 'High-Roller Host',
     emoji: '👑',
     description: 'Exklusiv, aristokratisch, VIP-fokussiert',
+    imagePath: '/images/personas/high_roller.jpg',
   },
   casual_buddy: {
     label: 'Casual Buddy',
     emoji: '🍻',
     description: 'Locker, humorvoll, motivierend',
+    imagePath: '/images/personas/casual_buddy.jpg',
   },
 };
 

@@ -43,7 +43,10 @@ export function parseFrontmatter(rawText: string): ParsedMarkdownDoc {
 
     // Handle YAML list item e.g. "- tag1"
     if (trimmedLine.startsWith('- ') && currentArrayKey) {
-      const itemVal = trimmedLine.slice(2).trim().replace(/^['"]|['"]$/g, '');
+      const itemVal = trimmedLine
+        .slice(2)
+        .trim()
+        .replace(/^['"]|['"]$/g, '');
       const existing = Array.isArray(frontmatter[currentArrayKey])
         ? (frontmatter[currentArrayKey] as string[])
         : [];

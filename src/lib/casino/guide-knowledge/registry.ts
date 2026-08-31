@@ -35,11 +35,15 @@ function buildRegistryFromRawMarkdown(rawList: readonly string[]): GuideKnowledg
 export const GUIDE_KNOWLEDGE_SOURCES: readonly GuideKnowledgeSource[] =
   buildRegistryFromRawMarkdown(RAW_KNOWLEDGE_MARKDOWN);
 
-export function getKnowledgeDocById(id: GuideKnowledgeSourceId | string): GuideKnowledgeSource | undefined {
+export function getKnowledgeDocById(
+  id: GuideKnowledgeSourceId | string,
+): GuideKnowledgeSource | undefined {
   return GUIDE_KNOWLEDGE_SOURCES.find((doc) => doc.id === id);
 }
 
-export function getKnowledgeDocsByTopic(topic: GuideKnowledgeTopic | string): GuideKnowledgeSource[] {
+export function getKnowledgeDocsByTopic(
+  topic: GuideKnowledgeTopic | string,
+): GuideKnowledgeSource[] {
   return GUIDE_KNOWLEDGE_SOURCES.filter((doc) => doc.topic === topic);
 }
 
@@ -53,7 +57,11 @@ export function getKnowledgeDocsByTag(tag: string): GuideKnowledgeSource[] {
 export { selectKnowledgeDocs, scoreDocument, tokenizeQuery } from './matcher';
 export type { ScoredKnowledgeDoc, SelectKnowledgeOptions } from './matcher';
 export { retrieveKnowledgeDocs } from './hybrid-retriever';
-export type { HybridRetrievalResult, HybridRetrieverOptions, RetrievalStrategy } from './hybrid-retriever';
+export type {
+  HybridRetrievalResult,
+  HybridRetrieverOptions,
+  RetrievalStrategy,
+} from './hybrid-retriever';
 export { chunkKnowledgeDoc, chunkAllKnowledgeDocs } from './chunker';
 export type { GuideKnowledgeChunk } from './chunker';
 export { cosineSimilarity, dotProduct, normalizeVector, vectorNorm } from './vector-math';

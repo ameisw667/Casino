@@ -61,7 +61,9 @@ describe('Hybrid RAG Cascade (retrieveKnowledgeDocs)', () => {
 
   it('executes Stage 2 (Semantic Vector Fallback) for complex / conversational queries', async () => {
     // A question without the exact keyword 'blackjack' or 'cards' that scores below 10 in keyword matcher
-    const result = await retrieveKnowledgeDocs('Can I duplicate my wager when holding 11 against dealer?');
+    const result = await retrieveKnowledgeDocs(
+      'Can I duplicate my wager when holding 11 against dealer?',
+    );
 
     expect(['vector-semantic', 'keyword-fast-path']).toContain(result.strategy);
     expect(result.docs.length).toBeGreaterThan(0);

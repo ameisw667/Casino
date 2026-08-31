@@ -13,7 +13,7 @@ describe('multiplayer crash game type migration (worldmap/05_v2_multiplayer_cras
   });
 
   it('updates game_rounds_game_check constraint to include CRASH_MULTIPLAYER', () => {
-    expect(migration).toContain('game IN (\'CRASH\', \'BLACKJACK\', \'CRASH_MULTIPLAYER\')');
+    expect(migration).toContain("game IN ('CRASH', 'BLACKJACK', 'CRASH_MULTIPLAYER')");
   });
 
   it('redefines start_game_round with CRASH_MULTIPLAYER support and generalized race guard', () => {

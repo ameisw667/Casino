@@ -30,10 +30,10 @@ class SoundManager {
   private volume: number = 0.5;
   private sounds: Record<string, HTMLAudioElement> = {};
   private soundUrls: Record<SoundKey, string> = {
-    bet: '/sounds/dice-roll.mp3',
+    bet: '/sounds/chip.mp3',
     win: '/sounds/win.mp3',
     loss: '/sounds/loss.mp3',
-    click: '/sounds/dice-roll.mp3',
+    click: '/sounds/chip.mp3',
     notification: '/sounds/win.mp3',
     chip: '/sounds/chip.mp3',
     spin: '/sounds/dice-roll.mp3',
@@ -54,10 +54,33 @@ class SoundManager {
     'blackjack-loss': '/sounds/blackjack-loss.mp3',
   };
 
+  private audioCtx: AudioContext | null = null;
+  private lastHoverTimestamp: number = 0;
+
   private constructor() {
     if (typeof window !== 'undefined') {
       // Lazy-load sounds on demand (not preload)
       this.sounds = {};
+    }
+  }
+
+  private getAudioContext(): AudioContext | null {
+    if (typeof window === 'undefined') return null;
+    try {
+      if (!this.audioCtx) {
+        const AudioContextClass =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        if (AudioContextClass) {
+          this.audioCtx = new AudioContextClass();
+        }
+      }
+      if (this.audioCtx && this.audioCtx.state === 'suspended') {
+        void this.audioCtx.resume();
+      }
+      return this.audioCtx;
+    } catch {
+      return null;
     }
   }
 
@@ -112,8 +135,48 @@ class SoundManager {
     this.play('click');
   }
 
+  /**
+   * Ultra-subtle, velvety micro-tick for UI hover interactions.
+   * Synthesized via Web Audio API to prevent lag, asset loading, and audio spam.
+   */
   public playHover() {
-    this.play('click');
+    if (!this.enabled || typeof window === 'undefined') return;
+
+    const now = Date.now();
+    // Throttle hover sounds to max 1 per 75ms to prevent sensory overload when moving mouse across cards
+    if (now - this.lastHoverTimestamp < 75) return;
+    this.lastHoverTimestamp = now;
+
+    try {
+      const ctx = this.getAudioContext();
+      if (!ctx) {
+        return;
+      }
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      const startTime = ctx.currentTime;
+      const duration = 0.012; // 12ms soft micro-chirp
+
+      // Gentle pitch slide for a clean, non-intrusive UI tick
+      osc.frequency.setValueAtTime(1200, startTime);
+      osc.frequency.exponentialRampToValueAtTime(500, startTime + duration);
+
+      // Very soft peak volume (proportional to sound settings)
+      const peakVol = Math.max(0.001, Math.min(0.04, 0.04 * this.volume));
+      gain.gain.setValueAtTime(peakVol, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(startTime);
+      osc.stop(startTime + duration + 0.002);
+    } catch {
+      // Ignore any Web Audio synthesis failure gracefully
+    }
   }
 }
 

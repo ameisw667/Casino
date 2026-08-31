@@ -40,15 +40,11 @@ describe('getDiceMultiplierWithConfig', () => {
   });
 
   it('throws for target above the valid range', () => {
-    expect(() => getDiceMultiplierWithConfig(100, 'OVER', DEFAULT_GAME_CONFIG)).toThrow(
-      RangeError,
-    );
+    expect(() => getDiceMultiplierWithConfig(100, 'OVER', DEFAULT_GAME_CONFIG)).toThrow(RangeError);
   });
 
   it('throws for a non-finite target', () => {
-    expect(() => getDiceMultiplierWithConfig(NaN, 'OVER', DEFAULT_GAME_CONFIG)).toThrow(
-      RangeError,
-    );
+    expect(() => getDiceMultiplierWithConfig(NaN, 'OVER', DEFAULT_GAME_CONFIG)).toThrow(RangeError);
   });
 });
 

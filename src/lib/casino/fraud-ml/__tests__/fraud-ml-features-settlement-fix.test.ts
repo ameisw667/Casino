@@ -35,8 +35,12 @@ describe('044 fixes 040s stale bet/win settlement-model assumption', () => {
   });
 
   it('044 drops the function before recreating it (Postgres 42P13: CREATE OR REPLACE cannot change the RETURNS TABLE column set)', () => {
-    const dropIndex = fixMigration.indexOf('DROP FUNCTION IF EXISTS public.compute_fraud_ml_features');
-    const createIndex = fixMigration.indexOf('CREATE OR REPLACE FUNCTION public.compute_fraud_ml_features(');
+    const dropIndex = fixMigration.indexOf(
+      'DROP FUNCTION IF EXISTS public.compute_fraud_ml_features',
+    );
+    const createIndex = fixMigration.indexOf(
+      'CREATE OR REPLACE FUNCTION public.compute_fraud_ml_features(',
+    );
     expect(dropIndex).toBeGreaterThan(-1);
     expect(createIndex).toBeGreaterThan(-1);
     expect(dropIndex).toBeLessThan(createIndex);

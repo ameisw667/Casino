@@ -1,20 +1,33 @@
 import { describe, expect, it } from 'vitest';
 
 type StateModule = {
-  applyReadState: <T extends { id: string; readAt: string | null }>(items: T[], id: string, readAt: string) => T[];
+  applyReadState: <T extends { id: string; readAt: string | null }>(
+    items: T[],
+    id: string,
+    readAt: string,
+  ) => T[];
   countUnread: (items: Array<{ readAt: string | null }>) => number;
 };
 
 type SurfaceModule = {
-  notificationInboxSurfaceStyle: { background: string; backdropFilter: string; border: string; boxShadow: string };
+  notificationInboxSurfaceStyle: {
+    background: string;
+    backdropFilter: string;
+    border: string;
+    boxShadow: string;
+  };
   getNotificationCardStyle: (isRead: boolean) => { background: string; border: string };
 };
 
 async function loadState(): Promise<StateModule | null> {
-  return import('@/components/layout/notification-center-state').catch(() => null) as Promise<StateModule | null>;
+  return import('@/components/layout/notification-center-state').catch(
+    () => null,
+  ) as Promise<StateModule | null>;
 }
 async function loadSurface(): Promise<SurfaceModule | null> {
-  return import('@/components/layout/notification-center-surface').catch(() => null) as Promise<SurfaceModule | null>;
+  return import('@/components/layout/notification-center-surface').catch(
+    () => null,
+  ) as Promise<SurfaceModule | null>;
 }
 
 describe('notification center state', () => {

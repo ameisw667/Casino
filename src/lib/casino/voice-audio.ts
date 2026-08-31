@@ -31,7 +31,11 @@ export function isAudioRecordingSupported(): boolean {
  * Gets user audio stream with multi-fallback constraints and device enumeration.
  */
 export async function getMicrophoneStream(): Promise<MediaStream> {
-  if (typeof navigator === 'undefined' || !navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+  if (
+    typeof navigator === 'undefined' ||
+    !navigator.mediaDevices ||
+    typeof navigator.mediaDevices.getUserMedia !== 'function'
+  ) {
     throw new Error('Mikrofon-Zugriff (getUserMedia) wird von diesem Browser nicht unterstützt.');
   }
 
@@ -92,11 +96,20 @@ export async function startAudioRecording(): Promise<void> {
 
   let recorder: MediaRecorder;
   if (typeof MediaRecorder !== 'undefined') {
-    if (typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+    if (
+      typeof MediaRecorder.isTypeSupported === 'function' &&
+      MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+    ) {
       recorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
-    } else if (typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported('audio/webm')) {
+    } else if (
+      typeof MediaRecorder.isTypeSupported === 'function' &&
+      MediaRecorder.isTypeSupported('audio/webm')
+    ) {
       recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-    } else if (typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported('audio/mp4')) {
+    } else if (
+      typeof MediaRecorder.isTypeSupported === 'function' &&
+      MediaRecorder.isTypeSupported('audio/mp4')
+    ) {
       recorder = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
     } else {
       recorder = new MediaRecorder(stream);
@@ -214,8 +227,10 @@ export function startLiveSpeechRecognition(
   if (typeof window === 'undefined') return null;
 
   const SpeechRecognitionClass =
-    (window as unknown as { SpeechRecognition?: new () => LiveSpeechRecognitionLike }).SpeechRecognition ||
-    (window as unknown as { webkitSpeechRecognition?: new () => LiveSpeechRecognitionLike }).webkitSpeechRecognition;
+    (window as unknown as { SpeechRecognition?: new () => LiveSpeechRecognitionLike })
+      .SpeechRecognition ||
+    (window as unknown as { webkitSpeechRecognition?: new () => LiveSpeechRecognitionLike })
+      .webkitSpeechRecognition;
 
   if (!SpeechRecognitionClass) return null;
 
@@ -238,7 +253,9 @@ export function startLiveSpeechRecognition(
           interimTranscript += item[0].transcript;
         }
       }
-      const combined = (finalTranscript + (interimTranscript ? ' ' + interimTranscript : '')).trim();
+      const combined = (
+        finalTranscript + (interimTranscript ? ' ' + interimTranscript : '')
+      ).trim();
       if (combined) {
         onTranscript(combined, !interimTranscript);
       }

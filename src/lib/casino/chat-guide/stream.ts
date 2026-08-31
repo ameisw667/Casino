@@ -141,7 +141,13 @@ export async function requestCasinoGuideAnswerStream(
   }
 
   if (!openAiStreamRes.ok || !openAiStreamRes.body) {
-    const fallbackAnswer = await requestCasinoGuideAnswer(message, userId, history, undefined, persona);
+    const fallbackAnswer = await requestCasinoGuideAnswer(
+      message,
+      userId,
+      history,
+      undefined,
+      persona,
+    );
     const encoder = new TextEncoder();
     const fallbackStream = new ReadableStream<Uint8Array>({
       start(controller) {

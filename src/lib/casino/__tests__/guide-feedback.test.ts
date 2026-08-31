@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 
@@ -12,17 +12,21 @@ vi.mock('@/utils/supabase/admin', () => ({
   }),
 }));
 
-import {
-  recordGuideFeedback,
-  getGuideFeedbackSummary,
-} from '../guide-feedback';
+import { recordGuideFeedback, getGuideFeedbackSummary } from '../guide-feedback';
 
 describe('Guide Feedback & Evals Service', () => {
+  const originalEnvironment = process.env;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env = { ...originalEnvironment };
     mockFrom.mockReturnValue({
       insert: vi.fn().mockResolvedValue({ error: null }),
     });
+  });
+
+  afterEach(() => {
+    process.env = originalEnvironment;
   });
 
   it('records a positive user feedback rating', async () => {
@@ -36,6 +40,41 @@ describe('Guide Feedback & Evals Service', () => {
 
     expect(res.success).toBe(true);
     expect(res.id).toBeDefined();
+  });
+
+  it('pseudonymizes the actor id with the same HMAC convention as guide telemetry, never storing the raw id', async () => {
+    process.env.GUIDE_TELEMETRY_HMAC_SECRET = '0123456789abcdef0123456789abcdef';
+    process.env.GUIDE_TELEMETRY_HMAC_VERSION = '1';
+    const mockInsert = vi.fn().mockResolvedValue({ error: null });
+    mockFrom.mockReturnValue({ insert: mockInsert });
+
+    await recordGuideFeedback({ rating: 1, userId: 'player-42' });
+
+    const insertedRow = mockInsert.mock.calls[0]?.[0] as { user_id: string | null };
+    expect(insertedRow.user_id).toMatch(/^[a-f0-9]{64}$/);
+    expect(insertedRow.user_id).not.toContain('player-42');
+  });
+
+  it('stores no actor id at all (fail closed) instead of a raw id when the HMAC secret is unconfigured', async () => {
+    delete process.env.GUIDE_TELEMETRY_HMAC_SECRET;
+    delete process.env.GUIDE_TELEMETRY_HMAC_VERSION;
+    const mockInsert = vi.fn().mockResolvedValue({ error: null });
+    mockFrom.mockReturnValue({ insert: mockInsert });
+
+    await recordGuideFeedback({ rating: 1, userId: 'player-42' });
+
+    const insertedRow = mockInsert.mock.calls[0]?.[0] as { user_id: string | null };
+    expect(insertedRow.user_id).toBeNull();
+  });
+
+  it('reports failure instead of a false success when the Supabase insert actually fails', async () => {
+    mockFrom.mockReturnValue({
+      insert: vi.fn().mockResolvedValue({ error: { message: 'db unreachable' } }),
+    });
+
+    const res = await recordGuideFeedback({ rating: 1, userId: 'player-1' });
+    expect(res.success).toBe(false);
+    expect(res.error).toBe('db unreachable');
   });
 
   it('records a negative user feedback rating', async () => {

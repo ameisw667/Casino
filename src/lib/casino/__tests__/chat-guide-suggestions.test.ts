@@ -2,10 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 
-import {
-  extractSuggestionsFromText,
-  SuggestionStreamFilter,
-} from '../chat-guide';
+import { extractSuggestionsFromText, SuggestionStreamFilter } from '../chat-guide';
 
 describe('Follow-up Suggestions Extraction & Stream Filtering (Stufe I)', () => {
   describe('extractSuggestionsFromText', () => {
@@ -40,8 +37,7 @@ describe('Follow-up Suggestions Extraction & Stream Filtering (Stufe I)', () => 
     });
 
     it('caps suggestions at 3 items maximum', () => {
-      const raw =
-        'Text.\n<<<SUGGESTIONS: ["Eins", "Zwei", "Drei", "Vier", "Fünf"]>>>';
+      const raw = 'Text.\n<<<SUGGESTIONS: ["Eins", "Zwei", "Drei", "Vier", "Fünf"]>>>';
       const result = extractSuggestionsFromText(raw);
 
       expect(result.suggestions).toHaveLength(3);

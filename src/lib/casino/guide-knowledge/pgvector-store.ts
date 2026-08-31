@@ -182,7 +182,11 @@ export async function upsertAdminGuideDocument(input: {
     const supabase = createAdminClient();
     const { error } = await supabase.from('guide_documents').upsert(payload);
     if (error) {
-      CasinoLogger.error('PgVectorStore', 'Supabase upsert failed, change is not persisted', new Error(error.message));
+      CasinoLogger.error(
+        'PgVectorStore',
+        'Supabase upsert failed, change is not persisted',
+        new Error(error.message),
+      );
       return { success: false, id, error: error.message };
     }
     return { success: true, id };
@@ -203,14 +207,20 @@ export async function upsertAdminGuideDocument(input: {
 /**
  * Deletes a guide document by ID.
  */
-export async function deleteAdminGuideDocument(id: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteAdminGuideDocument(
+  id: string,
+): Promise<{ success: boolean; error?: string }> {
   memoryStoreCache.delete(id);
 
   try {
     const supabase = createAdminClient();
     const { error } = await supabase.from('guide_documents').delete().eq('id', id);
     if (error) {
-      CasinoLogger.error('PgVectorStore', 'Supabase delete failed, document still exists in DB', new Error(error.message));
+      CasinoLogger.error(
+        'PgVectorStore',
+        'Supabase delete failed, document still exists in DB',
+        new Error(error.message),
+      );
       return { success: false, error: error.message };
     }
     return { success: true };

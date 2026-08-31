@@ -124,7 +124,9 @@ describe('P27/1.15 ML-fraud-anomaly signal', () => {
   });
 
   it('adds a read-only, service-role-only feature-aggregation RPC, no new table', () => {
-    expect(fraudMlMigration).toContain('CREATE OR REPLACE FUNCTION public.compute_fraud_ml_features');
+    expect(fraudMlMigration).toContain(
+      'CREATE OR REPLACE FUNCTION public.compute_fraud_ml_features',
+    );
     expect(fraudMlMigration).not.toContain('CREATE TABLE');
     expect(fraudMlMigration).toContain(
       'REVOKE ALL ON FUNCTION public.compute_fraud_ml_features(INT, INT) FROM PUBLIC, anon, authenticated;',

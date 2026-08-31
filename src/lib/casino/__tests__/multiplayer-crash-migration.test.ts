@@ -40,7 +40,10 @@ describe('multiplayer crash rounds migration (worldmap/05_multiplayercrash.md)',
   it('makes set_crash_round_point idempotent via a conditional UPDATE, not a second advisory lock', () => {
     const setPointStart = migration.indexOf('FUNCTION public.set_crash_round_point');
     const setPointEnd = migration.indexOf('-- Redefinition of start_game_round');
-    const setPointFunction = migration.slice(setPointStart, setPointEnd !== -1 ? setPointEnd : undefined);
+    const setPointFunction = migration.slice(
+      setPointStart,
+      setPointEnd !== -1 ? setPointEnd : undefined,
+    );
     expect(setPointFunction).toContain('WHERE id = p_round_id AND crash_point IS NULL');
     expect(setPointFunction).not.toContain('pg_advisory_xact_lock');
   });
@@ -50,7 +53,9 @@ describe('multiplayer crash rounds migration (worldmap/05_multiplayercrash.md)',
       'sync_crash_round(INTEGER, INTEGER, TIMESTAMPTZ)',
       'set_crash_round_point(UUID, NUMERIC)',
     ]) {
-      expect(migration).toContain(`REVOKE ALL ON FUNCTION public.${fn} FROM PUBLIC, anon, authenticated;`);
+      expect(migration).toContain(
+        `REVOKE ALL ON FUNCTION public.${fn} FROM PUBLIC, anon, authenticated;`,
+      );
       expect(migration).toContain(`GRANT EXECUTE ON FUNCTION public.${fn} TO service_role;`);
     }
   });
@@ -88,7 +93,10 @@ describe('multiplayer crash rounds migration (worldmap/05_multiplayercrash.md)',
     });
 
     it('scopes the guard to CRASH only — BLACKJACK concurrent-round semantics are untouched (out of scope)', () => {
-      const guardBlock = startFn.slice(startFn.indexOf('IF p_game = \'CRASH\' AND EXISTS'), insertIndex);
+      const guardBlock = startFn.slice(
+        startFn.indexOf("IF p_game = 'CRASH' AND EXISTS"),
+        insertIndex,
+      );
       expect(guardBlock).toContain("game = 'CRASH'");
       expect(guardBlock).not.toContain('BLACKJACK');
     });

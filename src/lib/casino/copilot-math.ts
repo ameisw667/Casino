@@ -483,15 +483,7 @@ export function getCrashCurrentZone(currentMultiplier: number): CoPilotRecommend
 // ---------------------------------------------------------------------------
 
 export type RouletteBetKind =
-  | 'red'
-  | 'black'
-  | 'even'
-  | 'odd'
-  | 'low'
-  | 'high'
-  | 'dozen'
-  | 'column'
-  | 'straight';
+  'red' | 'black' | 'even' | 'odd' | 'low' | 'high' | 'dozen' | 'column' | 'straight';
 
 export function getRouletteOdds(betKind: RouletteBetKind): CoPilotRecommendation {
   const isEvenMoney = ['red', 'black', 'even', 'odd', 'low', 'high'].includes(betKind);
@@ -502,7 +494,8 @@ export function getRouletteOdds(betKind: RouletteBetKind): CoPilotRecommendation
       action: '1:1 OUTSIDE BET',
       winProbability: 48.65, // 18 / 37
       expectedValue: -0.027,
-      reasoning: 'Einfache Chance: 18 von 37 Zahlen gewinnen (48.65% Chance, 2.70% Hausvorteil durch die Grüne 0).',
+      reasoning:
+        'Einfache Chance: 18 von 37 Zahlen gewinnen (48.65% Chance, 2.70% Hausvorteil durch die Grüne 0).',
       riskLevel: 'low',
       badgeText: 'Geringe Volatilität',
       suggestedPrompt: 'Wie wirkt sich die Grüne Null beim Roulette auf die Gewinnchancen aus?',
@@ -519,7 +512,8 @@ export function getRouletteOdds(betKind: RouletteBetKind): CoPilotRecommendation
       action: '2:1 DOZEN / COLUMN',
       winProbability: 32.43, // 12 / 37
       expectedValue: -0.027,
-      reasoning: 'Dutzend / Kolonne: 12 von 37 Zahlen gewinnen (32.43% Chance, 3x Gesamtauszahlung).',
+      reasoning:
+        'Dutzend / Kolonne: 12 von 37 Zahlen gewinnen (32.43% Chance, 3x Gesamtauszahlung).',
       riskLevel: 'medium',
       badgeText: 'Mittlere Volatilität',
       suggestedPrompt: 'Welche Wetten sind beim Roulette mathematisch am effektivsten?',

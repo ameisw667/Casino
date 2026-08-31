@@ -2,10 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 vi.mock('server-only', () => ({}));
 
-import {
-  requestCasinoGuideAnswerStream,
-  CASINO_GUIDE_MODEL,
-} from '../chat-guide';
+import { requestCasinoGuideAnswerStream, CASINO_GUIDE_MODEL } from '../chat-guide';
 
 describe('Casino Guide Token-Streaming Service', () => {
   beforeEach(() => {
