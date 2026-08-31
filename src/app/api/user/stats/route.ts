@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { createClient } from '@/utils/supabase/server';
 import { WalletService } from '@/lib/casino/wallet';
 import { CasinoLogger } from '@/lib/casino/logger';
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     ) {
       userId = 'dev_user_fallback';
     }
-    if (!userId) return new NextResponse('Unauthorized', { status: 401 });
+    if (!userId) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
 
     const rate = await enforceRateLimit(
       getClientIdentifier(request, userId),
@@ -43,15 +43,18 @@ export async function GET(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
     const stats = await WalletService.getUserStats(userId);
 
-    return NextResponse.json(stats, {
+    return apiSuccessResponse(stats, {
       headers: {
         'Cache-Control': 'private, no-store',
         ...rateLimitHeaders(rate),
@@ -59,7 +62,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     CasinoLogger.error('API/User/Stats', 'Failed to load user stats', error);
-    return NextResponse.json({ error: 'Stats unavailable' }, { status: 503 });
+    return apiErrorResponse('STATS_UNAVAILABLE', 'Stats unavailable', 503);
   }
 }
 
@@ -84,12 +87,12 @@ export async function POST(request: Request) {
     ) {
       userId = 'dev_user_fallback';
     }
-    if (!userId) return new NextResponse('Unauthorized', { status: 401 });
+    if (!userId) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
 
     const body = await request.json();
     const parsed = syncAchievementSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid achievement payload' }, { status: 400 });
+      return apiErrorResponse('INVALID_ACHIEVEMENT_PAYLOAD', 'Invalid achievement payload', 400);
     }
 
     await WalletService.syncAchievement({
@@ -123,9 +126,9 @@ export async function POST(request: Request) {
         });
     }
 
-    return NextResponse.json({ success: true });
+    return apiSuccessResponse({ success: true });
   } catch (error) {
     CasinoLogger.error('API/User/Stats', 'Failed to sync achievement', error);
-    return NextResponse.json({ error: 'Achievement sync failed' }, { status: 500 });
+    return apiErrorResponse('ACHIEVEMENT_SYNC_FAILED', 'Achievement sync failed', 500);
   }
 }

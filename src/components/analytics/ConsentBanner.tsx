@@ -45,8 +45,7 @@ export function ConsentBanner() {
               background: 'hsla(0, 0%, 100%, 0.025)',
               borderRadius: '12px',
               border: '1px solid hsla(45, 100%, 50%, 0.22)',
-              boxShadow:
-                '0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
             }}
           >
             <div

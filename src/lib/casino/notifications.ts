@@ -8,7 +8,10 @@ import { publishNotificationCreated } from '@/lib/casino/realtime';
 export const notificationKindSchema = z.enum(['big_win', 'achievement', 'system']);
 export type NotificationKind = z.infer<typeof notificationKindSchema>;
 
-const notificationMetadataSchema = z.record(z.string(), z.union([z.string(), z.number(), z.boolean()]));
+const notificationMetadataSchema = z.record(
+  z.string(),
+  z.union([z.string(), z.number(), z.boolean()]),
+);
 const notificationCreateSchema = z.object({
   userId: z.string().trim().min(1).max(128),
   kind: notificationKindSchema,
@@ -61,7 +64,9 @@ function toNotificationRecord(row: {
  * Writes the durable inbox entry before signalling the browser. Duplicate
  * source keys intentionally produce no second record and no second broadcast.
  */
-export async function createNotification(input: z.input<typeof notificationCreateSchema>): Promise<NotificationRecord | null> {
+export async function createNotification(
+  input: z.input<typeof notificationCreateSchema>,
+): Promise<NotificationRecord | null> {
   const parsed = notificationCreateSchema.parse(input);
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -88,7 +93,9 @@ export async function createNotification(input: z.input<typeof notificationCreat
   return notification;
 }
 
-export async function listNotifications(userId: string): Promise<{ notifications: NotificationRecord[]; unreadCount: number }> {
+export async function listNotifications(
+  userId: string,
+): Promise<{ notifications: NotificationRecord[]; unreadCount: number }> {
   const supabase = createAdminClient();
   const [listResult, unreadResult] = await Promise.all([
     supabase
@@ -107,12 +114,17 @@ export async function listNotifications(userId: string): Promise<{ notifications
     throw new NotificationServiceError('Failed to load notifications');
   }
   return {
-    notifications: ((listResult.data ?? []) as Parameters<typeof toNotificationRecord>[0][]).map(toNotificationRecord),
+    notifications: ((listResult.data ?? []) as Parameters<typeof toNotificationRecord>[0][]).map(
+      toNotificationRecord,
+    ),
     unreadCount: unreadResult.count ?? 0,
   };
 }
 
-export async function markNotificationRead(userId: string, notificationId: string): Promise<NotificationRecord | null> {
+export async function markNotificationRead(
+  userId: string,
+  notificationId: string,
+): Promise<NotificationRecord | null> {
   const { data, error } = await createAdminClient()
     .from('user_notifications')
     .update({ read_at: new Date().toISOString() })
@@ -137,7 +149,9 @@ export async function markAllNotificationsRead(userId: string): Promise<number> 
 }
 
 /** Producer failures are intentionally isolated from the game and stats paths. */
-export function createNotificationBestEffort(input: z.input<typeof notificationCreateSchema>): void {
+export function createNotificationBestEffort(
+  input: z.input<typeof notificationCreateSchema>,
+): void {
   void createNotification(input).catch((error) => {
     CasinoLogger.error('Notifications', `Failed to create notification: ${String(error)}`);
   });

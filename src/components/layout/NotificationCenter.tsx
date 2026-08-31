@@ -3,9 +3,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Bell, Check, CheckCheck, Info, Trophy, X } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
-import { getNotificationRealtimeChannel, NOTIFICATION_REALTIME_EVENT } from '@/lib/casino/realtime-types';
+import {
+  getNotificationRealtimeChannel,
+  NOTIFICATION_REALTIME_EVENT,
+} from '@/lib/casino/realtime-types';
 import { applyReadState, countUnread } from './notification-center-state';
-import { getNotificationCardStyle, notificationInboxSurfaceStyle } from './notification-center-surface';
+import {
+  getNotificationCardStyle,
+  notificationInboxSurfaceStyle,
+} from './notification-center-surface';
 
 type InboxNotification = {
   id: string;
@@ -16,7 +22,13 @@ type InboxNotification = {
   readAt: string | null;
 };
 
-export function NotificationCenter({ userId, isMobile }: { userId: string | null; isMobile: boolean }) {
+export function NotificationCenter({
+  userId,
+  isMobile,
+}: {
+  userId: string | null;
+  isMobile: boolean;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<InboxNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -34,9 +46,13 @@ export function NotificationCenter({ userId, isMobile }: { userId: string | null
     try {
       const response = await fetch('/api/notifications', { cache: 'no-store' });
       if (!response.ok) throw new Error('Inbox unavailable');
-      const data = (await response.json()) as { notifications: InboxNotification[]; unreadCount: number };
-      setNotifications(data.notifications);
-      setUnreadCount(data.unreadCount);
+      const raw = await response.json();
+      const data = (raw?.data ?? raw) as {
+        notifications: InboxNotification[];
+        unreadCount: number;
+      };
+      setNotifications(data.notifications ?? []);
+      setUnreadCount(data.unreadCount ?? 0);
       setError(null);
     } catch {
       setError('Notifications are temporarily unavailable.');
@@ -73,8 +89,11 @@ export function NotificationCenter({ userId, isMobile }: { userId: string | null
       setError('Could not update this notification.');
       return;
     }
-    const { notification } = (await response.json()) as { notification: InboxNotification };
-    setNotifications((current) => applyReadState(current, id, notification.readAt ?? new Date().toISOString()));
+    const raw = await response.json();
+    const { notification } = (raw?.data ?? raw) as { notification: InboxNotification };
+    setNotifications((current) =>
+      applyReadState(current, id, notification?.readAt ?? new Date().toISOString()),
+    );
     setUnreadCount((current) => Math.max(0, current - 1));
   };
 
@@ -103,11 +122,36 @@ export function NotificationCenter({ userId, isMobile }: { userId: string | null
         aria-label={`Notifications${displayedUnread ? `, ${displayedUnread} unread` : ''}`}
         aria-expanded={isOpen}
         className="btn btn-ghost"
-        style={{ position: 'relative', width: '40px', height: '40px', padding: 0, display: 'grid', placeItems: 'center' }}
+        style={{
+          position: 'relative',
+          width: '40px',
+          height: '40px',
+          padding: 0,
+          display: 'grid',
+          placeItems: 'center',
+        }}
       >
         <Bell size={18} />
         {displayedUnread > 0 && (
-          <span aria-live="polite" style={{ position: 'absolute', top: '-3px', right: '-3px', minWidth: '17px', height: '17px', padding: '0 4px', borderRadius: '999px', background: 'hsl(var(--primary))', color: '#000', fontSize: '0.62rem', fontWeight: 900, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-mono)' }}>
+          <span
+            aria-live="polite"
+            style={{
+              position: 'absolute',
+              top: '-3px',
+              right: '-3px',
+              minWidth: '17px',
+              height: '17px',
+              padding: '0 4px',
+              borderRadius: '999px',
+              background: 'hsl(var(--primary))',
+              color: '#000',
+              fontSize: '0.62rem',
+              fontWeight: 900,
+              display: 'grid',
+              placeItems: 'center',
+              fontFamily: 'var(--font-mono)',
+            }}
+          >
             {displayedUnread > 99 ? '99+' : displayedUnread}
           </span>
         )}
@@ -129,18 +173,63 @@ export function NotificationCenter({ userId, isMobile }: { userId: string | null
             padding: '12px',
           }}
         >
-          <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
+          <header
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '8px',
+              marginBottom: '8px',
+            }}
+          >
             <strong style={{ color: 'hsl(var(--text-main))' }}>Notifications</strong>
             <div style={{ display: 'flex', gap: '4px' }}>
-              {displayedUnread > 0 && <button type="button" onClick={() => void markAllRead()} className="btn btn-ghost" aria-label="Mark all notifications as read" style={{ padding: '6px' }}><CheckCheck size={16} /></button>}
-              <button type="button" onClick={() => setIsOpen(false)} className="btn btn-ghost" aria-label="Close notifications" style={{ padding: '6px' }}><X size={16} /></button>
+              {displayedUnread > 0 && (
+                <button
+                  type="button"
+                  onClick={() => void markAllRead()}
+                  className="btn btn-ghost"
+                  aria-label="Mark all notifications as read"
+                  style={{ padding: '6px' }}
+                >
+                  <CheckCheck size={16} />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="btn btn-ghost"
+                aria-label="Close notifications"
+                style={{ padding: '6px' }}
+              >
+                <X size={16} />
+              </button>
             </div>
           </header>
-          {error && <p role="status" style={{ margin: '8px 0', color: 'hsl(var(--error))', fontSize: '0.8rem' }}>{error}</p>}
-          {loading && notifications.length === 0 ? <p style={{ color: 'hsl(var(--text-muted))' }}>Loading inbox…</p> : notifications.length === 0 ? <p style={{ color: 'hsl(var(--text-muted))', padding: '16px 4px' }}>No notifications yet.</p> : (
+          {error && (
+            <p
+              role="status"
+              style={{ margin: '8px 0', color: 'hsl(var(--error))', fontSize: '0.8rem' }}
+            >
+              {error}
+            </p>
+          )}
+          {loading && notifications.length === 0 ? (
+            <p style={{ color: 'hsl(var(--text-muted))' }}>Loading inbox…</p>
+          ) : notifications.length === 0 ? (
+            <p style={{ color: 'hsl(var(--text-muted))', padding: '16px 4px' }}>
+              No notifications yet.
+            </p>
+          ) : (
             <div style={{ display: 'grid', gap: '8px' }}>
               {notifications.map((notification) => (
-                <button key={notification.id} type="button" onClick={() => { if (!notification.readAt) void markRead(notification.id); }} style={{
+                <button
+                  key={notification.id}
+                  type="button"
+                  onClick={() => {
+                    if (!notification.readAt) void markRead(notification.id);
+                  }}
+                  style={{
                     ...getNotificationCardStyle(notification.readAt !== null),
                     textAlign: 'left',
                     cursor: notification.readAt ? 'default' : 'pointer',
@@ -150,9 +239,41 @@ export function NotificationCenter({ userId, isMobile }: { userId: string | null
                     borderRadius: '12px',
                     padding: '10px',
                     color: 'hsl(var(--text-main))',
-                  }}>
-                  {notification.kind === 'big_win' ? <Trophy size={18} color="hsl(var(--primary))" /> : notification.kind === 'achievement' ? <Check size={18} color="hsl(var(--success))" /> : <Info size={18} color="hsl(var(--primary))" />}
-                  <span style={{ minWidth: 0, flex: 1 }}><strong style={{ display: 'block', fontSize: '0.82rem' }}>{notification.title}</strong><span style={{ display: 'block', marginTop: '3px', color: 'hsl(var(--text-muted))', fontSize: '0.76rem' }}>{notification.body}</span><time style={{ display: 'block', marginTop: '5px', color: 'hsl(var(--text-muted))', fontSize: '0.68rem', fontFamily: 'var(--font-mono)' }}>{new Date(notification.createdAt).toLocaleString()}</time></span>
+                  }}
+                >
+                  {notification.kind === 'big_win' ? (
+                    <Trophy size={18} color="hsl(var(--primary))" />
+                  ) : notification.kind === 'achievement' ? (
+                    <Check size={18} color="hsl(var(--success))" />
+                  ) : (
+                    <Info size={18} color="hsl(var(--primary))" />
+                  )}
+                  <span style={{ minWidth: 0, flex: 1 }}>
+                    <strong style={{ display: 'block', fontSize: '0.82rem' }}>
+                      {notification.title}
+                    </strong>
+                    <span
+                      style={{
+                        display: 'block',
+                        marginTop: '3px',
+                        color: 'hsl(var(--text-muted))',
+                        fontSize: '0.76rem',
+                      }}
+                    >
+                      {notification.body}
+                    </span>
+                    <time
+                      style={{
+                        display: 'block',
+                        marginTop: '5px',
+                        color: 'hsl(var(--text-muted))',
+                        fontSize: '0.68rem',
+                        fontFamily: 'var(--font-mono)',
+                      }}
+                    >
+                      {new Date(notification.createdAt).toLocaleString()}
+                    </time>
+                  </span>
                 </button>
               ))}
             </div>

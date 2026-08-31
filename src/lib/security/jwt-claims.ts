@@ -10,7 +10,9 @@ export const customJwtAppMetadataSchema = z.object({
     .transform((val) => {
       if (typeof val !== 'string') return 'BRONZE';
       const upper = val.toUpperCase();
-      return (VIP_TIER_NAMES as readonly string[]).includes(upper) ? (upper as VipTierName) : 'BRONZE';
+      return (VIP_TIER_NAMES as readonly string[]).includes(upper)
+        ? (upper as VipTierName)
+        : 'BRONZE';
     })
     .default('BRONZE'),
   vip_level: z
@@ -22,7 +24,9 @@ export const customJwtAppMetadataSchema = z.object({
     .default(1),
   user_role: z
     .unknown()
-    .transform((val) => (typeof val === 'string' && val.trim().length > 0 ? val.trim() : 'authenticated'))
+    .transform((val) =>
+      typeof val === 'string' && val.trim().length > 0 ? val.trim() : 'authenticated',
+    )
     .default('authenticated'),
 });
 

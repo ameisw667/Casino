@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { CasinoLogger } from '@/lib/casino/logger';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 
 // Called only by the pg_net POST inside public.notify_wallet_event() (see migration
 // 036_wallet_events_outbox.sql) right after a settlement RPC inserts a wallet_events row, and
@@ -32,13 +32,13 @@ const rpcResultSchema = z.object({
 
 export async function POST(request: Request) {
   if (!hasValidWalletEventSecret(request)) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
   }
 
   const body = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
-    return new NextResponse('Invalid payload', { status: 400 });
+    return apiErrorResponse('INVALID_PAYLOAD', 'Invalid payload', 400);
   }
 
   const supabase = createAdminClient();
@@ -48,14 +48,14 @@ export async function POST(request: Request) {
 
   if (error) {
     CasinoLogger.error('WalletEvents', 'apply_xp_gain RPC call failed', error);
-    return NextResponse.json({ ok: false }, { status: 500 });
+    return apiErrorResponse('APPLY_XP_FAILED', 'Failed to apply XP gain', 500);
   }
 
   const result = rpcResultSchema.safeParse(data);
   if (!result.success || !result.data.success) {
     CasinoLogger.error('WalletEvents', 'apply_xp_gain reported failure', result);
-    return NextResponse.json({ ok: false }, { status: 500 });
+    return apiErrorResponse('APPLY_XP_REJECTED', 'XP gain reported failure', 500);
   }
 
-  return NextResponse.json({ ok: true });
+  return apiSuccessResponse({ ok: true });
 }

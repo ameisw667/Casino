@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { isAdminEmail } from '@/lib/security/admin';
@@ -11,9 +11,6 @@ import {
   validateMutationOrigin,
 } from '@/lib/security/request-security';
 
-// Stricter than other admin writes (N6 in docs/archive/05_2.8_Anti_Fraud.md): each scan runs three
-// aggregation queries against wallet_transactions/bet_network_fingerprints, so this guards
-// against accidental repeated-click query load, on top of the lock below.
 const SCAN_RATE_LIMIT = 1;
 const SCAN_RATE_WINDOW_SECONDS = 300;
 
@@ -26,8 +23,8 @@ export async function POST(request: Request) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return new NextResponse('Unauthorized', { status: 401 });
-    if (!isAdminEmail(user.email)) return new NextResponse('Forbidden', { status: 403 });
+    if (!user) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
+    if (!isAdminEmail(user.email)) return apiErrorResponse('FORBIDDEN', 'Forbidden', 403);
 
     const rate = await enforceRateLimit(
       getClientIdentifier(request, user.id),
@@ -36,9 +33,12 @@ export async function POST(request: Request) {
       SCAN_RATE_WINDOW_SECONDS,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
@@ -48,16 +48,16 @@ export async function POST(request: Request) {
     });
     if (lockError) {
       CasinoLogger.error('API/Admin/FraudScan', 'Lock acquisition failed', lockError);
-      return NextResponse.json({ error: 'Scan lock unavailable' }, { status: 503 });
+      return apiErrorResponse('LOCK_UNAVAILABLE', 'Scan lock unavailable', 503);
     }
     if (!acquired) {
-      return NextResponse.json({ error: 'Scan already running' }, { status: 409 });
+      return apiErrorResponse('SCAN_RUNNING', 'Scan already running', 409);
     }
 
     try {
       const summary = await runFraudSignalScan();
       CasinoLogger.info('API/Admin/FraudScan', `Admin ${user.email} ran a fraud scan`, summary);
-      return NextResponse.json(summary, { headers: rateLimitHeaders(rate) });
+      return apiSuccessResponse(summary, { headers: rateLimitHeaders(rate) });
     } finally {
       const { error: unlockError } = await admin.rpc('release_fraud_scan_lock');
       if (unlockError) {
@@ -66,6 +66,6 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     CasinoLogger.error('API/Admin/FraudScan', 'Scan unexpected failure', error);
-    return NextResponse.json({ error: 'Fraud scan unavailable' }, { status: 503 });
+    return apiErrorResponse('SCAN_UNAVAILABLE', 'Fraud scan unavailable', 503);
   }
 }

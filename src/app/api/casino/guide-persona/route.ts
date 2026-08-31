@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
-import { guidePersonaSchema, DEFAULT_PERSONA, type GuidePersona } from '@/lib/casino/chat-guide/personas';
+import {
+  guidePersonaSchema,
+  DEFAULT_PERSONA,
+  type GuidePersona,
+} from '@/lib/casino/chat-guide/personas';
 
 const PRIVATE_NO_STORE = { 'Cache-Control': 'private, no-store' };
 
@@ -24,7 +28,7 @@ export async function GET() {
     }
 
     const { data, error } = await supabase
-      .from('profiles')
+      .from('users')
       .select('guide_persona')
       .eq('id', user.id)
       .single();
@@ -59,7 +63,10 @@ export async function PATCH(request: Request) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: PRIVATE_NO_STORE });
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401, headers: PRIVATE_NO_STORE },
+      );
     }
 
     const body = await request.json().catch(() => null);
@@ -73,7 +80,7 @@ export async function PATCH(request: Request) {
     }
 
     const { error } = await supabase
-      .from('profiles')
+      .from('users')
       .update({ guide_persona: parsed.data.persona })
       .eq('id', user.id);
 

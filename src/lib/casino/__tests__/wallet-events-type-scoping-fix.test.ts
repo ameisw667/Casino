@@ -15,7 +15,7 @@ describe('wallet_events type-scoping fix (security-review finding, worldmap/12_E
     );
   });
 
-  it('scopes apply_xp_gain\'s row lookup to xp_gain, so it can never mark a big_win_notify row processed', () => {
+  it("scopes apply_xp_gain's row lookup to xp_gain, so it can never mark a big_win_notify row processed", () => {
     expect(sql).toContain('CREATE OR REPLACE FUNCTION apply_xp_gain');
     expect(sql).toContain("WHERE id = p_event_id AND event_type = 'xp_gain' FOR UPDATE");
   });

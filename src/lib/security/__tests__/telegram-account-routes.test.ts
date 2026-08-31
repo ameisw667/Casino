@@ -101,9 +101,11 @@ describe('POST /api/telegram/link', () => {
     const response = await link(request('/api/telegram/link', {}));
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
-      token: 'abc',
-      deepLink: 'https://t.me/CasinoRoyaleBot?start=abc',
-      expiresAt: '2026-01-01T00:10:00.000Z',
+      data: {
+        token: 'abc',
+        deepLink: 'https://t.me/CasinoRoyaleBot?start=abc',
+        expiresAt: '2026-01-01T00:10:00.000Z',
+      },
     });
   });
 });
@@ -125,10 +127,12 @@ describe('GET /api/telegram/status', () => {
     const response = await status(request('/api/telegram/status'));
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
-      configured: true,
-      linked: true,
-      username: 'jan',
-      notificationsEnabled: true,
+      data: {
+        configured: true,
+        linked: true,
+        username: 'jan',
+        notificationsEnabled: true,
+      },
     });
   });
 });

@@ -1,4 +1,4 @@
-import { NextResponse, after } from 'next/server';
+import { after } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 import { BlackjackEngine, type BlackjackGameState, type Card } from '@/lib/games/blackjack';
@@ -16,6 +16,7 @@ import {
   validateMutationOrigin,
 } from '@/lib/security/request-security';
 import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
+import { apiSuccessResponse } from '@/lib/api/response';
 
 const dealSchema = z.object({
   action: z.literal('DEAL'),
@@ -175,7 +176,7 @@ export async function POST(request: Request) {
         },
       });
       const isFirstBet = await isFirstBetSignal(userId, round.replayed);
-      return NextResponse.json({
+      return apiSuccessResponse({
         roundId: round.roundId,
         version: round.version,
         gameState: publicState(state),
@@ -265,7 +266,7 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json({
+    return apiSuccessResponse({
       roundId: input.roundId,
       version: advanced.version,
       gameState: publicState(advanced.state as BlackjackGameState),

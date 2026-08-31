@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 import {
@@ -8,6 +7,7 @@ import {
   validateMutationOrigin,
 } from '@/lib/security/request-security';
 import { CasinoLogger } from '@/lib/casino/logger';
+import { apiErrorResponse } from '@/lib/api/response';
 
 const synthesizeSchema = z.object({
   text: z.string().trim().min(1, 'Text required').max(3000, 'Text too long for synthesis'),
@@ -80,49 +80,56 @@ export async function POST(request: Request) {
     }
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401, headers: PRIVATE_NO_STORE_HEADERS },
-      );
+      return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401, undefined, {
+        headers: PRIVATE_NO_STORE_HEADERS,
+      });
     }
 
     const clientIp = getClientIdentifier(request, userId);
-    const rate = await enforceRateLimit('guide-voice-tts', clientIp, 15, 60);
+    const rate = await enforceRateLimit(clientIp, 'guide-voice-tts', 15, 60);
     const responseHeaders = {
       ...PRIVATE_NO_STORE_HEADERS,
       ...rateLimitHeaders(rate),
     };
 
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: responseHeaders },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: responseHeaders },
       );
     }
 
     const body = await request.json().catch(() => null);
     const parsed = synthesizeSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? 'Invalid synthesis request' },
-        { status: 400, headers: responseHeaders },
+      return apiErrorResponse(
+        'INVALID_REQUEST',
+        parsed.error.issues[0]?.message ?? 'Invalid synthesis request',
+        400,
+        parsed.error.issues,
+        { headers: responseHeaders },
       );
     }
 
     const speakableText = cleanMarkdownForSpeech(parsed.data.text);
     if (!speakableText) {
-      return NextResponse.json(
-        { error: 'No speakable text content remaining after sanitizing' },
-        { status: 400, headers: responseHeaders },
+      return apiErrorResponse(
+        'NO_SPEAKABLE_TEXT',
+        'No speakable text content remaining after sanitizing',
+        400,
+        undefined,
+        { headers: responseHeaders },
       );
     }
 
     const apiKey = process.env.OPENAI_API_KEY?.trim();
     if (!apiKey) {
-      return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
-        { status: 503, headers: responseHeaders },
-      );
+      return apiErrorResponse('CONFIG_ERROR', 'OpenAI API key not configured', 503, undefined, {
+        headers: responseHeaders,
+      });
     }
 
     const openAiRes = await fetch(OPENAI_AUDIO_SPEECH_URL, {
@@ -144,9 +151,14 @@ export async function POST(request: Request) {
     if (!openAiRes.ok || !openAiRes.body) {
       const errorBody = await openAiRes.text().catch(() => '');
       CasinoLogger.error('VoiceSynthesize', `OpenAI TTS failure: ${openAiRes.status} ${errorBody}`);
-      return NextResponse.json(
-        { error: 'Audio synthesis failed upstream' },
-        { status: 502, headers: responseHeaders },
+      return apiErrorResponse(
+        'SYNTHESIS_UPSTREAM_ERROR',
+        'Audio synthesis failed upstream',
+        502,
+        undefined,
+        {
+          headers: responseHeaders,
+        },
       );
     }
 
@@ -158,9 +170,12 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     CasinoLogger.error('VoiceSynthesize', error instanceof Error ? error.message : 'Unknown error');
-    return NextResponse.json(
-      { error: 'Voice synthesis service unavailable' },
-      { status: 500, headers: PRIVATE_NO_STORE_HEADERS },
+    return apiErrorResponse(
+      'SERVICE_UNAVAILABLE',
+      'Voice synthesis service unavailable',
+      500,
+      undefined,
+      { headers: PRIVATE_NO_STORE_HEADERS },
     );
   }
 }

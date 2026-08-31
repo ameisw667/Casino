@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { z } from 'zod';
 import { wait } from '@trigger.dev/sdk';
 import { createClient } from '@/utils/supabase/server';
@@ -43,8 +43,8 @@ export async function GET(request: Request) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return new NextResponse('Unauthorized', { status: 401 });
-    if (!isAdminEmail(user.email)) return new NextResponse('Forbidden', { status: 403 });
+    if (!user) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
+    if (!isAdminEmail(user.email)) return apiErrorResponse('FORBIDDEN', 'Forbidden', 403);
 
     const rate = await enforceRateLimit(
       getClientIdentifier(request, user.id),
@@ -53,9 +53,12 @@ export async function GET(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
@@ -66,7 +69,7 @@ export async function GET(request: Request) {
       signalType: url.searchParams.get('signalType') ?? undefined,
     });
     if (!filters.success) {
-      return NextResponse.json({ error: 'Invalid filter parameters' }, { status: 400 });
+      return apiErrorResponse('INVALID_FILTER_PARAMETERS', 'Invalid filter parameters', 400);
     }
 
     const admin = createAdminClient();
@@ -86,13 +89,13 @@ export async function GET(request: Request) {
     const { data, error } = await query;
     if (error) {
       CasinoLogger.error('API/Admin/Fraud', 'List failed', error);
-      return NextResponse.json({ error: 'Failed to load fraud signals' }, { status: 503 });
+      return apiErrorResponse('LOAD_FAILED', 'Failed to load fraud signals', 503);
     }
 
-    return NextResponse.json({ events: data ?? [] }, { headers: rateLimitHeaders(rate) });
+    return apiSuccessResponse({ events: data ?? [] }, { headers: rateLimitHeaders(rate) });
   } catch (error) {
     CasinoLogger.error('API/Admin/Fraud', 'List unexpected failure', error);
-    return NextResponse.json({ error: 'Fraud signals unavailable' }, { status: 503 });
+    return apiErrorResponse('FRAUD_UNAVAILABLE', 'Fraud signals unavailable', 503);
   }
 }
 
@@ -105,8 +108,8 @@ export async function PATCH(request: Request) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return new NextResponse('Unauthorized', { status: 401 });
-    if (!isAdminEmail(user.email)) return new NextResponse('Forbidden', { status: 403 });
+    if (!user) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
+    if (!isAdminEmail(user.email)) return apiErrorResponse('FORBIDDEN', 'Forbidden', 403);
 
     const rate = await enforceRateLimit(
       getClientIdentifier(request, user.id),
@@ -115,18 +118,22 @@ export async function PATCH(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
     const body = await request.json().catch(() => null);
     const parsed = reviewSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? 'Invalid review payload' },
-        { status: 400 },
+      return apiErrorResponse(
+        'INVALID_REVIEW_PAYLOAD',
+        parsed.error.issues[0]?.message ?? 'Invalid review payload',
+        400,
       );
     }
 
@@ -141,10 +148,10 @@ export async function PATCH(request: Request) {
     if (error) {
       const msg = (error as { message?: string }).message ?? '';
       if (msg.includes('not found')) {
-        return NextResponse.json({ error: 'Fraud signal not found' }, { status: 404 });
+        return apiErrorResponse('FRAUD_SIGNAL_NOT_FOUND', 'Fraud signal not found', 404);
       }
       CasinoLogger.error('API/Admin/Fraud', 'Review failed', error);
-      return NextResponse.json({ error: 'Failed to review fraud signal' }, { status: 500 });
+      return apiErrorResponse('REVIEW_FAILED', 'Failed to review fraud signal', 500);
     }
 
     if (parsed.data.tokenId) {
@@ -165,9 +172,9 @@ export async function PATCH(request: Request) {
       { reason: parsed.data.reason },
     );
 
-    return NextResponse.json({ success: true, event: data });
+    return apiSuccessResponse({ success: true, event: data });
   } catch (error) {
     CasinoLogger.error('API/Admin/Fraud', 'Review unexpected failure', error);
-    return NextResponse.json({ error: 'Fraud signal review unavailable' }, { status: 503 });
+    return apiErrorResponse('REVIEW_UNAVAILABLE', 'Fraud signal review unavailable', 503);
   }
 }

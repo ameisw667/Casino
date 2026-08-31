@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
@@ -10,7 +10,7 @@ import {
   rateLimitHeaders,
   validateMutationOrigin,
 } from '@/lib/security/request-security';
-import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
+import { APP_ERROR_CODES, zodErrorResponse } from '@/lib/security/form-errors';
 
 const USER_LIST_LIMIT = 200;
 
@@ -31,8 +31,8 @@ export async function GET(request: Request) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return new NextResponse('Unauthorized', { status: 401 });
-    if (!isAdminEmail(user.email)) return new NextResponse('Forbidden', { status: 403 });
+    if (!user) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
+    if (!isAdminEmail(user.email)) return apiErrorResponse('FORBIDDEN', 'Forbidden', 403);
 
     const rate = await enforceRateLimit(
       getClientIdentifier(request, user.id),
@@ -41,9 +41,12 @@ export async function GET(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
@@ -56,7 +59,7 @@ export async function GET(request: Request) {
 
     if (error) {
       CasinoLogger.error('API/Admin/Users', 'User list load failed closed', error);
-      return NextResponse.json({ error: 'User list unavailable' }, { status: 503 });
+      return apiErrorResponse('USER_LIST_UNAVAILABLE', 'User list unavailable', 503);
     }
 
     const users = (data ?? []) as AdminUserRow[];
@@ -65,7 +68,7 @@ export async function GET(request: Request) {
       { balance: 0, xp: 0 },
     );
 
-    return NextResponse.json(
+    return apiSuccessResponse(
       {
         users,
         meta: {
@@ -79,7 +82,7 @@ export async function GET(request: Request) {
     );
   } catch (error) {
     CasinoLogger.error('API/Admin/Users', 'Admin user list failed closed', error);
-    return NextResponse.json({ error: 'User list unavailable' }, { status: 503 });
+    return apiErrorResponse('USER_LIST_UNAVAILABLE', 'User list unavailable', 503);
   }
 }
 
@@ -136,6 +139,7 @@ export async function PATCH(request: Request) {
           ? 'Der Dienst ist vorübergehend nicht verfügbar.'
           : 'Zu viele Anfragen. Bitte versuche es später erneut.',
         rate.unavailable ? 503 : 429,
+        undefined,
         { headers: rateLimitHeaders(rate) },
       );
     }
@@ -183,7 +187,7 @@ export async function PATCH(request: Request) {
       replayed: data.replayed,
     });
 
-    return NextResponse.json({
+    return apiSuccessResponse({
       success: true,
       user: data.user,
       transactionId: data.transactionId,

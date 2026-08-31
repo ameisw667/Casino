@@ -41,7 +41,9 @@ describe('RLS Defense-in-Depth: Schema & Policy Verification (L1)', () => {
 
   describe('2. Negative Tests — Client Mutation Deny (Defense-in-Depth)', () => {
     it('drops and revokes UPDATE on users table from anon and authenticated roles', () => {
-      expect(metaFeaturesSql).toContain('DROP POLICY IF EXISTS "users_update_own" ON public.users;');
+      expect(metaFeaturesSql).toContain(
+        'DROP POLICY IF EXISTS "users_update_own" ON public.users;',
+      );
       expect(metaFeaturesSql).toContain(
         'REVOKE UPDATE ON TABLE public.users FROM PUBLIC, anon, authenticated;',
       );
@@ -54,9 +56,7 @@ describe('RLS Defense-in-Depth: Schema & Policy Verification (L1)', () => {
     });
 
     it('enforces append-only immutable guard trigger on wallet_transactions', () => {
-      expect(ledgerInvariantsSql).toContain(
-        'CREATE TRIGGER wallet_transactions_append_only_guard',
-      );
+      expect(ledgerInvariantsSql).toContain('CREATE TRIGGER wallet_transactions_append_only_guard');
       expect(ledgerInvariantsSql).toContain(
         'BEFORE UPDATE OR DELETE ON public.wallet_transactions',
       );
@@ -80,9 +80,7 @@ describe('RLS Defense-in-Depth: Schema & Policy Verification (L1)', () => {
     });
 
     it('completely revokes all table access on game_rounds from client roles', () => {
-      expect(serverAuthSql).toContain(
-        'REVOKE ALL ON TABLE game_rounds FROM anon, authenticated;',
-      );
+      expect(serverAuthSql).toContain('REVOKE ALL ON TABLE game_rounds FROM anon, authenticated;');
     });
 
     it('completely revokes ledger baselines and invariant events from client roles', () => {

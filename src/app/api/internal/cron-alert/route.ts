@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
 import * as Sentry from '@sentry/nextjs';
 import { z } from 'zod';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 
 // Called only by the pg_net POST inside public.run_guide_telemetry_purge_job() (see migration
 // 027_guide_telemetry_purge_cron.sql) when the scheduled purge fails. Authenticates via a shared
@@ -25,13 +25,13 @@ const alertSchema = z.object({
 
 export async function POST(request: Request) {
   if (!hasValidAlertSecret(request)) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
   }
 
   const body = await request.json().catch(() => null);
   const parsed = alertSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ ok: true });
+    return apiSuccessResponse({ ok: true });
   }
 
   Sentry.captureMessage(`Cron job failed: ${parsed.data.job}`, {
@@ -39,5 +39,5 @@ export async function POST(request: Request) {
     extra: { error: parsed.data.error },
   });
 
-  return NextResponse.json({ ok: true });
+  return apiSuccessResponse({ ok: true });
 }

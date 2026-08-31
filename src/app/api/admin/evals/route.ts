@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { isAdminEmail } from '@/lib/security/admin';
 import { getGuideFeedbackSummary } from '@/lib/casino/guide-feedback';
+import { CasinoLogger } from '@/lib/casino/logger';
+import {
+  enforceRateLimit,
+  getClientIdentifier,
+  rateLimitHeaders,
+} from '@/lib/security/request-security';
 
-export async function GET(_request: Request) {
+export async function GET(request: Request) {
   try {
     const supabase = await createClient();
     const {
@@ -13,9 +20,26 @@ export async function GET(_request: Request) {
 
     const isDev =
       process.env.NODE_ENV === 'development' && process.env.ALLOW_DEV_FALLBACK === 'true';
-    if (!user && !isDev) return new NextResponse('Unauthorized', { status: 401 });
+    if (!user && !isDev) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
     if (user && !isAdminEmail(user.email) && !isDev) {
-      return new NextResponse('Forbidden', { status: 403 });
+      return apiErrorResponse('FORBIDDEN', 'Forbidden', 403);
+    }
+
+    const userId = user?.id || 'dev_admin';
+    const rate = await enforceRateLimit(
+      getClientIdentifier(request, userId),
+      'admin-evals-read',
+      30,
+      60,
+    );
+    if (!rate.success) {
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
+      );
     }
 
     const adminClient = createAdminClient();
@@ -82,15 +106,16 @@ export async function GET(_request: Request) {
     // 2. Fetch User Satisfaction Feedback
     const feedbackSummary = await getGuideFeedbackSummary();
 
-    return NextResponse.json({
-      success: true,
-      observability,
-      feedback: feedbackSummary,
-    });
-  } catch (err) {
-    return NextResponse.json(
-      { error: 'Failed to load evals telemetry', message: err instanceof Error ? err.message : 'Unknown error' },
-      { status: 500 },
+    return apiSuccessResponse(
+      {
+        success: true,
+        observability,
+        feedback: feedbackSummary,
+      },
+      { headers: rateLimitHeaders(rate) },
     );
+  } catch (err) {
+    CasinoLogger.error('API/Admin/Evals', 'GET failed', err instanceof Error ? err : undefined);
+    return apiErrorResponse('EVALS_LOAD_FAILED', 'Failed to load evals telemetry', 500);
   }
 }

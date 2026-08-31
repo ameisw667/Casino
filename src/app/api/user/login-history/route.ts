@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { z } from 'zod';
 import { createClient as createSupabaseServerClient } from '@/utils/supabase/server';
 import {
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
     }
 
     const rate = await enforceRateLimit(
@@ -36,9 +36,12 @@ export async function GET(request: Request) {
     );
 
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
@@ -51,7 +54,7 @@ export async function GET(request: Request) {
 
     if (error) {
       console.error('[LoginHistory] Select error:', error.message);
-      return NextResponse.json({ error: 'Failed to fetch login history' }, { status: 500 });
+      return apiErrorResponse('LOGIN_HISTORY_FAILED', 'Failed to fetch login history', 500);
     }
 
     const records = (data || []).map((row) => ({
@@ -63,13 +66,13 @@ export async function GET(request: Request) {
       createdAt: row.created_at,
     }));
 
-    return NextResponse.json(
+    return apiSuccessResponse(
       { history: records },
       { headers: { 'Cache-Control': 'private, no-store' } },
     );
   } catch (err) {
     console.error('[LoginHistory] GET error:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse('INTERNAL_SERVER_ERROR', 'Internal Server Error', 500);
   }
 }
 
@@ -81,7 +84,7 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
     }
 
     const rate = await enforceRateLimit(
@@ -92,9 +95,12 @@ export async function POST(request: Request) {
     );
 
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
@@ -102,12 +108,14 @@ export async function POST(request: Request) {
     const parseResult = postBodySchema.safeParse(rawBody);
 
     if (!parseResult.success) {
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+      return apiErrorResponse('INVALID_REQUEST_BODY', 'Invalid request body', 400);
     }
 
     const userAgent = request.headers.get('user-agent');
     const forwardedFor = request.headers.get('x-forwarded-for');
-    const rawIp = forwardedFor ? forwardedFor.split(',')[0].trim() : request.headers.get('x-real-ip');
+    const rawIp = forwardedFor
+      ? forwardedFor.split(',')[0].trim()
+      : request.headers.get('x-real-ip');
 
     const success = await recordLoginAuditEntry({
       userId: user.id,
@@ -118,12 +126,12 @@ export async function POST(request: Request) {
     });
 
     if (!success) {
-      return NextResponse.json({ error: 'Failed to record login entry' }, { status: 500 });
+      return apiErrorResponse('AUDIT_RECORD_FAILED', 'Failed to record login entry', 500);
     }
 
-    return NextResponse.json({ success: true }, { status: 201 });
+    return apiSuccessResponse({ success: true }, { status: 201 });
   } catch (err) {
     console.error('[LoginHistory] POST error:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiErrorResponse('INTERNAL_SERVER_ERROR', 'Internal Server Error', 500);
   }
 }

@@ -59,6 +59,21 @@ describe('voice-routes security and contract tests', () => {
       const res = await transcribePOST(req);
       expect(res.status).toBe(429);
     });
+
+    it('rate-limits per user, not on a single shared bucket (regression: identifier/scope args were swapped)', async () => {
+      const req = new Request('https://casino.test/api/chat/voice-transcribe', { method: 'POST' });
+      await transcribePOST(req);
+
+      // enforceRateLimit(identifier, scope, limit, windowSeconds) — identifier must be the
+      // per-user/IP key, not the constant scope name (see chat-guide-route.test.ts for the
+      // sibling regression on bot-response/route.ts, fixed under the same review).
+      expect(mocks.enforceRateLimit).toHaveBeenCalledWith(
+        'user:player-1',
+        'guide-voice-stt',
+        10,
+        60,
+      );
+    });
   });
 
   describe('POST /api/chat/voice-synthesize', () => {
@@ -81,6 +96,22 @@ describe('voice-routes security and contract tests', () => {
       });
       const res = await synthesizePOST(req);
       expect(res.status).toBe(400);
+    });
+
+    it('rate-limits per user, not on a single shared bucket (regression: identifier/scope args were swapped)', async () => {
+      const req = new Request('https://casino.test/api/chat/voice-synthesize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: 'Hallo Spieler' }),
+      });
+      await synthesizePOST(req);
+
+      expect(mocks.enforceRateLimit).toHaveBeenCalledWith(
+        'user:player-1',
+        'guide-voice-tts',
+        15,
+        60,
+      );
     });
   });
 });

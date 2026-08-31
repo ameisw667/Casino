@@ -13,7 +13,11 @@ async function fetchAndIdentify(): Promise<void> {
     if (!client) return;
     const response = await fetch('/api/analytics/identity');
     if (!response.ok) return;
-    const body: unknown = await response.json();
+    const raw: unknown = await response.json();
+    const body: unknown =
+      typeof raw === 'object' && raw !== null && 'data' in raw
+        ? (raw as { data: unknown }).data
+        : raw;
     const distinctId =
       typeof body === 'object' && body !== null && 'distinctId' in body
         ? (body as { distinctId: unknown }).distinctId

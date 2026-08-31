@@ -33,7 +33,8 @@ export default function TelegramLinkSection() {
         setVisible(false);
         return;
       }
-      const data = (await response.json()) as TelegramStatus;
+      const raw = await response.json();
+      const data = (raw?.data ?? raw) as TelegramStatus;
       setStatus(data);
       setVisible(true);
     } catch (error) {
@@ -52,7 +53,8 @@ export default function TelegramLinkSection() {
     try {
       const response = await fetch('/api/telegram/link', { method: 'POST' });
       if (!response.ok) return;
-      const data = (await response.json()) as { deepLink: string };
+      const raw = await response.json();
+      const data = (raw?.data ?? raw) as { deepLink: string };
       window.open(data.deepLink, '_blank', 'noopener,noreferrer');
     } catch (error) {
       CasinoLogger.error('TelegramLinkSection', 'Failed to start telegram link flow', error);

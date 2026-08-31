@@ -139,7 +139,10 @@ describe('request security', () => {
       vi.stubEnv('NODE_ENV', 'development');
       vi.stubEnv('ALLOW_DEV_FALLBACK', 'true');
       expect(
-        resolveDevFallbackUserId(req({ 'x-loadtest-user-id': '../../etc/passwd; DROP TABLE users' }), false),
+        resolveDevFallbackUserId(
+          req({ 'x-loadtest-user-id': '../../etc/passwd; DROP TABLE users' }),
+          false,
+        ),
       ).toBe('dev_user_fallback');
     });
   });

@@ -19,7 +19,9 @@ describe('wallet_events outbox migration (worldmap/05_OutboxWallet.md)', () => {
     expect(sql).toContain('CREATE OR REPLACE FUNCTION apply_xp_gain');
     expect(sql).toContain('pg_advisory_xact_lock');
     expect(sql).toContain("'alreadyProcessed', true");
-    expect(sql).toContain('REVOKE ALL ON FUNCTION apply_xp_gain(UUID) FROM PUBLIC, anon, authenticated');
+    expect(sql).toContain(
+      'REVOKE ALL ON FUNCTION apply_xp_gain(UUID) FROM PUBLIC, anon, authenticated',
+    );
     expect(sql).toContain('GRANT EXECUTE ON FUNCTION apply_xp_gain(UUID) TO service_role');
   });
 
@@ -48,7 +50,8 @@ describe('wallet_events outbox migration (worldmap/05_OutboxWallet.md)', () => {
       expect(sql).toContain(`CREATE OR REPLACE FUNCTION ${fn}`);
     }
     expect(sql).not.toMatch(/UPDATE users SET balance[^;]*xp = v_xp/s);
-    expect(sql.match(/INSERT INTO wallet_events \(user_id, request_id, event_type, xp_gain\)/g))
-      .toHaveLength(3);
+    expect(
+      sql.match(/INSERT INTO wallet_events \(user_id, request_id, event_type, xp_gain\)/g),
+    ).toHaveLength(3);
   });
 });

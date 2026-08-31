@@ -7,7 +7,9 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('server-only', () => ({}));
-vi.mock('@/utils/supabase/admin', () => ({ createAdminClient: vi.fn(() => ({ from: mocks.from })) }));
+vi.mock('@/utils/supabase/admin', () => ({
+  createAdminClient: vi.fn(() => ({ from: mocks.from })),
+}));
 vi.mock('@/lib/casino/realtime', () => ({ publishNotificationCreated: mocks.publish }));
 vi.mock('@/lib/casino/logger', () => ({ CasinoLogger: { error: mocks.error } }));
 
@@ -67,7 +69,11 @@ describe('createNotification', () => {
       sourceKey: 'big-win:request-1',
     });
 
-    expect(result).toMatchObject({ id: '11111111-1111-4111-8111-111111111111', kind: 'big_win', readAt: null });
+    expect(result).toMatchObject({
+      id: '11111111-1111-4111-8111-111111111111',
+      kind: 'big_win',
+      readAt: null,
+    });
     expect(mocks.from).toHaveBeenCalledWith('user_notifications');
     expect(mocks.publish).toHaveBeenCalledWith('player-1', {
       notificationId: '11111111-1111-4111-8111-111111111111',

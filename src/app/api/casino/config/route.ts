@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { loadVipConfig } from '@/lib/casino/vip-config-server';
 import { loadGameConfig } from '@/lib/casino/game-config-server';
 import { loadAchievementConfig } from '@/lib/casino/achievements-config-server';
@@ -11,9 +11,9 @@ export async function GET() {
       loadGameConfig(),
       loadAchievementConfig(),
     ]);
-    return NextResponse.json({ ...vipConfig, gameConfig, achievementConfigs });
+    return apiSuccessResponse({ ...vipConfig, gameConfig, achievementConfigs });
   } catch (error) {
     CasinoLogger.error('API/Casino/Config', 'Failed to load configuration', error);
-    return NextResponse.json({ error: 'Unable to load configuration' }, { status: 500 });
+    return apiErrorResponse('CONFIG_LOAD_FAILED', 'Unable to load configuration', 500);
   }
 }

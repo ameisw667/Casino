@@ -76,8 +76,8 @@ describe('GET /api/admin/fraud', () => {
     mocks.isAdminEmail.mockReturnValue(true);
     const res = await GET(new Request('https://casino.example/api/admin/fraud?status=open'));
     expect(res.status).toBe(200);
-    const json = (await res.json()) as { events: unknown[] };
-    expect(json.events).toEqual([{ id: 'evt_1' }]);
+    const json = (await res.json()) as { data: { events: unknown[] } };
+    expect(json.data.events).toEqual([{ id: 'evt_1' }]);
   });
 });
 
@@ -205,8 +205,8 @@ describe('POST /api/admin/fraud/scan', () => {
     const res = await scanPOST(jsonRequest({}, 'POST'));
 
     expect(res.status).toBe(200);
-    const json = (await res.json()) as { createdOrUpdated: number };
-    expect(json.createdOrUpdated).toBe(3);
+    const json = (await res.json()) as { data: { createdOrUpdated: number } };
+    expect(json.data.createdOrUpdated).toBe(3);
     expect(mocks.rpc).toHaveBeenCalledWith('release_fraud_scan_lock');
   });
 

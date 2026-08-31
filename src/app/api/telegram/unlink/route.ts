@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { createClient } from '@/utils/supabase/server';
 import { unlinkTelegram } from '@/lib/casino/telegram-link';
 import { CasinoLogger } from '@/lib/casino/logger';
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     ) {
       userId = 'dev_user_fallback';
     }
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!userId) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
 
     const rate = await enforceRateLimit(
       getClientIdentifier(request, userId),
@@ -40,23 +40,31 @@ export async function POST(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
     const ok = await unlinkTelegram(userId);
     if (!ok) {
-      return NextResponse.json(
-        { error: 'Failed to disconnect telegram' },
-        { status: 500, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        'DISCONNECT_FAILED',
+        'Failed to disconnect telegram',
+        500,
+        undefined,
+        {
+          headers: rateLimitHeaders(rate),
+        },
       );
     }
 
-    return NextResponse.json({ success: true }, { headers: rateLimitHeaders(rate) });
+    return apiSuccessResponse({ success: true }, { headers: rateLimitHeaders(rate) });
   } catch (error) {
     CasinoLogger.error('API/Telegram/Unlink', 'Failed to disconnect telegram', error);
-    return NextResponse.json({ error: 'Failed to disconnect telegram' }, { status: 500 });
+    return apiErrorResponse('DISCONNECT_FAILED', 'Failed to disconnect telegram', 500);
   }
 }

@@ -1,6 +1,6 @@
 /**
  * Login Cooldown & Brute-Force Mitigation Engine (Level 9 / Initiative 20.9)
- * 
+ *
  * Rules:
  * 1. Tracks consecutive failed login attempts (e.g. invalid password).
  * 2. If 5 failures are reached, a 60-second cooldown lockout is triggered.
@@ -37,8 +37,14 @@ export function getStoredCooldownState(customStorage?: Storage): LoginCooldownSt
     if (!raw) return fallback;
 
     const parsed = JSON.parse(raw) as Partial<LoginCooldownState>;
-    const failedAttempts = typeof parsed.failedAttempts === 'number' && parsed.failedAttempts >= 0 ? parsed.failedAttempts : 0;
-    const lockedUntilMs = typeof parsed.lockedUntilMs === 'number' && parsed.lockedUntilMs > 0 ? parsed.lockedUntilMs : null;
+    const failedAttempts =
+      typeof parsed.failedAttempts === 'number' && parsed.failedAttempts >= 0
+        ? parsed.failedAttempts
+        : 0;
+    const lockedUntilMs =
+      typeof parsed.lockedUntilMs === 'number' && parsed.lockedUntilMs > 0
+        ? parsed.lockedUntilMs
+        : null;
 
     // Check if lockout has already expired
     if (lockedUntilMs && Date.now() >= lockedUntilMs) {
@@ -86,10 +92,7 @@ export function getRemainingCooldownSeconds(
 /**
  * Checks if login is currently locked.
  */
-export function isLoginLocked(
-  state?: LoginCooldownState,
-  nowMs: number = Date.now(),
-): boolean {
+export function isLoginLocked(state?: LoginCooldownState, nowMs: number = Date.now()): boolean {
   return getRemainingCooldownSeconds(state, nowMs) > 0;
 }
 

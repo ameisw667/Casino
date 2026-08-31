@@ -1,4 +1,4 @@
-import { NextResponse, after } from 'next/server';
+import { after } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 import { CasinoCore } from '@/lib/casino/casino-core';
@@ -8,6 +8,7 @@ import { loadGameConfig } from '@/lib/casino/game-config-server';
 import { notifyBigWinIfEligible } from '@/lib/casino/telegram-notifier';
 import { recordBetNetworkFingerprintBestEffort } from '@/lib/casino/network-fingerprint';
 import {
+  isWithinCrashCashoutFairWindow,
   ensureCurrentCrashRound,
   getCrashRoundById,
   toPublicRoundState,
@@ -23,6 +24,7 @@ import {
 } from '@/lib/security/request-security';
 import { withBetPathSpan, flushBetPathTracer } from '@/lib/otel/tracer';
 import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
+import { apiSuccessResponse } from '@/lib/api/response';
 
 const requestSchema = z.object({
   requestId: z.string().uuid(),
@@ -32,7 +34,11 @@ const requestSchema = z.object({
     .min(1)
     .max(64)
     .regex(/^[a-zA-Z0-9_-]+$/),
-  action: z.enum(['START_CRASH_MULTIPLAYER', 'CASHOUT_CRASH_MULTIPLAYER', 'RESOLVE_CRASH_MULTIPLAYER']),
+  action: z.enum([
+    'START_CRASH_MULTIPLAYER',
+    'CASHOUT_CRASH_MULTIPLAYER',
+    'RESOLVE_CRASH_MULTIPLAYER',
+  ]),
   roundId: z.string().uuid().optional(),
   cashoutMultiplier: z.number().finite().min(1).max(1_000_000).optional(),
 });
@@ -48,6 +54,10 @@ function walletOnly(settlement: Awaited<ReturnType<typeof WalletService.settleBe
 }
 
 export async function POST(request: Request) {
+  // Arrival is stamped before any await so server processing time (auth, rate
+  // limit, config load, RPC) never counts as client lateness in the C3
+  // fair-window check below.
+  const requestArrivalMs = Date.now();
   const originFailure = validateMutationOrigin(request);
   if (originFailure) {
     return apiErrorResponse(
@@ -121,7 +131,11 @@ export async function POST(request: Request) {
           400,
           { requestId: params.requestId },
         );
-      const existingActive = await WalletService.getGameActiveRound({ userId, game: 'CRASH_MULTIPLAYER' });
+      const existingActive = await WalletService.getGameActiveRound({
+        userId,
+        game: 'CRASH_MULTIPLAYER',
+      });
+
       if (existingActive.hasActiveRound && existingActive.requestId !== params.requestId) {
         return apiErrorResponse(
           APP_ERROR_CODES.CONFLICT,
@@ -188,7 +202,7 @@ export async function POST(request: Request) {
         });
       }
       const isFirstBet = await isFirstBetSignal(userId, round.replayed);
-      return NextResponse.json({
+      return apiSuccessResponse({
         roundId: round.roundId,
         crashRoundId: sharedRound.id,
         bettingEndsAt: sharedRound.bettingEndsAt,
@@ -200,8 +214,14 @@ export async function POST(request: Request) {
       });
     }
 
-    if (params.action === 'CASHOUT_CRASH_MULTIPLAYER' || params.action === 'RESOLVE_CRASH_MULTIPLAYER') {
-      if (!params.roundId || (params.action === 'CASHOUT_CRASH_MULTIPLAYER' && !params.cashoutMultiplier)) {
+    if (
+      params.action === 'CASHOUT_CRASH_MULTIPLAYER' ||
+      params.action === 'RESOLVE_CRASH_MULTIPLAYER'
+    ) {
+      if (
+        !params.roundId ||
+        (params.action === 'CASHOUT_CRASH_MULTIPLAYER' && !params.cashoutMultiplier)
+      ) {
         return apiErrorResponse(
           APP_ERROR_CODES.VALIDATION_FAILED,
           'Runde und Multiplikator sind erforderlich.',
@@ -217,7 +237,19 @@ export async function POST(request: Request) {
       const sharedRound = await getCrashRoundById(crashRoundId);
       const crashPoint = z.coerce.number().positive().parse(sharedRound.crashPoint);
       const requestedMultiplier = params.cashoutMultiplier ?? crashPoint;
-      const won = params.action === 'CASHOUT_CRASH_MULTIPLAYER' && requestedMultiplier <= crashPoint;
+      // C3 (TO-04 fund matrix): the payout is authorized against the server
+      // round clock — the client claim alone (requestedMultiplier <= crashPoint)
+      // is insufficient, see isWithinCrashCashoutFairWindow for the three gates.
+      const isClaimInFairWindow = isWithinCrashCashoutFairWindow({
+        nowMs: requestArrivalMs,
+        bettingEndsAtMs: new Date(sharedRound.bettingEndsAt).getTime(),
+        crashedAtMs: sharedRound.crashedAt ? Date.parse(sharedRound.crashedAt) : null,
+        requestedMultiplier,
+      });
+      const won =
+        params.action === 'CASHOUT_CRASH_MULTIPLAYER' &&
+        requestedMultiplier <= crashPoint &&
+        isClaimInFairWindow;
       const payout = won ? Math.round(round.betAmount * requestedMultiplier * 100) / 100 : 0;
       const resultId = crypto.randomUUID();
       const jackpotRoll = await WalletService.computeRoundJackpotRoll(round.state, crashNonce);
@@ -266,7 +298,7 @@ export async function POST(request: Request) {
           });
         }
       });
-      return NextResponse.json({
+      return apiSuccessResponse({
         ...(settlement.result as object),
         crashPoint: revealCrashPoint ? crashPoint : null,
         wallet: walletOnly(settlement),
@@ -274,12 +306,9 @@ export async function POST(request: Request) {
       });
     }
 
-    return apiErrorResponse(
-      APP_ERROR_CODES.VALIDATION_FAILED,
-      'Ungültige Aktion.',
-      400,
-      { requestId: params.requestId },
-    );
+    return apiErrorResponse(APP_ERROR_CODES.VALIDATION_FAILED, 'Ungültige Aktion.', 400, {
+      requestId: params.requestId,
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal Server Error';
     CasinoLogger.error(

@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 import {
@@ -16,6 +15,7 @@ import {
   validateMutationOrigin,
 } from '@/lib/security/request-security';
 import { CasinoLogger } from '@/lib/casino/logger';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 
 const guideHistoryItemSchema = z.object({
   role: z.enum(['user', 'assistant']),
@@ -65,10 +65,9 @@ export async function POST(request: Request) {
     }
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401, headers: PRIVATE_NO_STORE_HEADERS },
-      );
+      return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401, undefined, {
+        headers: PRIVATE_NO_STORE_HEADERS,
+      });
     }
 
     currentUserId = userId;
@@ -92,25 +91,30 @@ export async function POST(request: Request) {
         });
       }
 
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: responseHeaders },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: responseHeaders },
       );
     }
 
     const body = await request.json().catch(() => null);
     const parsed = guideRequestSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? 'Invalid guide request' },
-        { status: 400, headers: responseHeaders },
+      return apiErrorResponse(
+        'INVALID_GUIDE_REQUEST',
+        parsed.error.issues[0]?.message ?? 'Invalid guide request',
+        400,
+        parsed.error.issues,
+        { headers: responseHeaders },
       );
     }
 
     guideStartedAt = performance.now();
     const shouldStream =
-      parsed.data.stream === true ||
-      request.headers.get('accept')?.includes('text/event-stream');
+      parsed.data.stream === true || request.headers.get('accept')?.includes('text/event-stream');
 
     if (shouldStream) {
       const streamResult = await requestCasinoGuideAnswerStream(
@@ -155,7 +159,7 @@ export async function POST(request: Request) {
       usage: answerResult.usage,
     });
 
-    return NextResponse.json(
+    return apiSuccessResponse(
       { answer: answerResult.answer, contextVersion: CASINO_GUIDE_CONTEXT_VERSION },
       { headers: responseHeaders },
     );
@@ -185,15 +189,21 @@ export async function POST(request: Request) {
       error instanceof CasinoGuideError &&
       (error.kind === 'configuration' || error.kind === 'quota')
     ) {
-      return NextResponse.json(
-        { error: 'Casino guide is temporarily unavailable' },
-        { status: 503, headers: PRIVATE_NO_STORE_HEADERS },
+      return apiErrorResponse(
+        'GUIDE_UNAVAILABLE',
+        'Casino guide is temporarily unavailable',
+        503,
+        undefined,
+        { headers: PRIVATE_NO_STORE_HEADERS },
       );
     }
 
-    return NextResponse.json(
-      { error: 'Casino guide is temporarily unavailable' },
-      { status: 502, headers: PRIVATE_NO_STORE_HEADERS },
+    return apiErrorResponse(
+      'GUIDE_UPSTREAM_ERROR',
+      'Casino guide is temporarily unavailable',
+      502,
+      undefined,
+      { headers: PRIVATE_NO_STORE_HEADERS },
     );
   }
 }

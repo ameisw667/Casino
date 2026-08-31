@@ -111,9 +111,9 @@ describe('formatAuthError', () => {
   });
 
   it('maps identity linking and unlinking errors', () => {
-    expect(formatAuthError('identity_already_exists: Identity is already linked to another user')).toBe(
-      'Dieses Konto ist bereits mit einem anderen Spielerprofil verknüpft.',
-    );
+    expect(
+      formatAuthError('identity_already_exists: Identity is already linked to another user'),
+    ).toBe('Dieses Konto ist bereits mit einem anderen Spielerprofil verknüpft.');
     expect(formatAuthError('cannot_unlink_last_identity')).toBe(
       'Die letzte verbleibende Anmeldemethode kann nicht getrennt werden.',
     );

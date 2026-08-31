@@ -122,7 +122,10 @@ export async function consumeTelegramLinkToken(input: {
       { idempotencyKey },
     );
   } catch (triggerError) {
-    CasinoLogger.error('TelegramLink', `Failed to trigger onboarding drip: ${String(triggerError)}`);
+    CasinoLogger.error(
+      'TelegramLink',
+      `Failed to trigger onboarding drip: ${String(triggerError)}`,
+    );
   }
 
   return { ok: true };

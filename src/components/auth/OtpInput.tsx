@@ -40,7 +40,7 @@ export function OtpInput({
         onComplete(newValue);
       }
     },
-    [digits, length, onChange, onComplete]
+    [digits, length, onChange, onComplete],
   );
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -138,9 +138,7 @@ export function OtpInput({
               height: '52px',
               borderRadius: '10px',
               background: 'rgba(255, 255, 255, 0.04)',
-              border: isFilled
-                ? '1px solid hsl(var(--primary))'
-                : '1px solid var(--glass-border)',
+              border: isFilled ? '1px solid hsl(var(--primary))' : '1px solid var(--glass-border)',
               color: '#fff',
               fontSize: '1.35rem',
               fontWeight: 800,
@@ -148,9 +146,7 @@ export function OtpInput({
               fontFamily: 'var(--font-mono, monospace)',
               outline: 'none',
               transition: 'all 0.15s ease',
-              boxShadow: isFilled
-                ? '0 0 10px rgba(212, 175, 55, 0.25)'
-                : 'none',
+              boxShadow: isFilled ? '0 0 10px rgba(212, 175, 55, 0.25)' : 'none',
             }}
           />
         );

@@ -51,7 +51,9 @@ describe('fraud-alert-wait task (M5)', () => {
     expect(text).toContain('⚠️ High-Severity Fraud-Signal erkannt!');
     expect(text).toContain('Signal: bet_velocity');
     expect(text).toContain('Score: 85');
-    expect(text).toContain('https://casino.example/admin/fraud?id=123e4567-e89b-12d3-a456-426614174000');
+    expect(text).toContain(
+      'https://casino.example/admin/fraud?id=123e4567-e89b-12d3-a456-426614174000',
+    );
   });
 
   it('validates schema correctly for payload', () => {

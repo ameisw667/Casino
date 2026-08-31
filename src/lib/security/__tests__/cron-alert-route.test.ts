@@ -59,7 +59,7 @@ describe('POST /api/internal/cron-alert', () => {
   it('forwards a valid alert to Sentry and acknowledges', async () => {
     const response = await POST(alertRequest({ job: 'guide_telemetry_purge', error: 'boom' }));
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true });
+    expect(await response.json()).toEqual({ data: { ok: true } });
     expect(mocks.captureMessage).toHaveBeenCalledWith(
       'Cron job failed: guide_telemetry_purge',
       expect.objectContaining({ level: 'error', extra: { error: 'boom' } }),

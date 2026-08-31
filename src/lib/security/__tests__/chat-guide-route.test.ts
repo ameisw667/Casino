@@ -1,5 +1,7 @@
+// @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { z } from 'zod';
+
+vi.mock('server-only', () => ({}));
 
 const mocks = vi.hoisted(() => {
   class GuideError extends Error {
@@ -29,12 +31,15 @@ vi.mock('@/lib/security/request-security', () => ({
   getClientIdentifier: mocks.getClientIdentifier,
   rateLimitHeaders: mocks.rateLimitHeaders,
 }));
-vi.mock('@/lib/casino/chat-guide', () => ({
-  CASINO_GUIDE_CONTEXT_VERSION: '2026-08-21',
-  CasinoGuideError: mocks.GuideError,
-  guidePersonaSchema: z.string(),
-  requestCasinoGuideAnswer: mocks.requestCasinoGuideAnswer,
-}));
+vi.mock('@/lib/casino/chat-guide', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return {
+    ...actual,
+    CASINO_GUIDE_CONTEXT_VERSION: '2026-08-21',
+    CasinoGuideError: mocks.GuideError,
+    requestCasinoGuideAnswer: mocks.requestCasinoGuideAnswer,
+  };
+});
 vi.mock('@/lib/casino/guide-telemetry', () => ({
   recordGuideTelemetry: mocks.recordGuideTelemetry,
 }));
@@ -90,7 +95,9 @@ describe('chat guide response route', () => {
     const response = await POST(request());
 
     expect(response.status).toBe(401);
-    expect(await response.json()).toEqual({ error: 'Unauthorized' });
+    expect(await response.json()).toEqual({
+      error: { code: 'UNAUTHORIZED', message: 'Unauthorized' },
+    });
     expect(mocks.requestCasinoGuideAnswer).not.toHaveBeenCalled();
   });
 
@@ -111,8 +118,10 @@ describe('chat guide response route', () => {
     expect(response.headers.get('Cache-Control')).toBe('private, no-store');
     expect(response.headers.get('X-RateLimit-Limit')).toBe('10');
     await expect(response.json()).resolves.toEqual({
-      answer: 'Set a target before you roll.',
-      contextVersion: '2026-08-21',
+      data: {
+        answer: 'Set a target before you roll.',
+        contextVersion: '2026-08-21',
+      },
     });
     expect(mocks.recordGuideTelemetry).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -144,7 +153,9 @@ describe('chat guide response route', () => {
     const response = await POST(request());
 
     expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({ error: 'Rate limit service unavailable' });
+    expect(await response.json()).toEqual({
+      error: { code: 'RATE_LIMIT_UNAVAILABLE', message: 'Rate limit service unavailable' },
+    });
     expect(mocks.requestCasinoGuideAnswer).not.toHaveBeenCalled();
     expect(mocks.recordGuideTelemetry).not.toHaveBeenCalled();
   });
@@ -161,7 +172,9 @@ describe('chat guide response route', () => {
     const response = await POST(request());
 
     expect(response.status).toBe(429);
-    expect(await response.json()).toEqual({ error: 'Too Many Requests' });
+    expect(await response.json()).toEqual({
+      error: { code: 'RATE_LIMIT_EXCEEDED', message: 'Too Many Requests' },
+    });
     expect(response.headers.get('X-RateLimit-Limit')).toBe('10');
     expect(mocks.requestCasinoGuideAnswer).not.toHaveBeenCalled();
     expect(mocks.recordGuideTelemetry).toHaveBeenCalledWith(
@@ -179,7 +192,9 @@ describe('chat guide response route', () => {
     const response = await POST(request());
 
     expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({ error: 'Casino guide is temporarily unavailable' });
+    expect(await response.json()).toEqual({
+      error: { code: 'GUIDE_UNAVAILABLE', message: 'Casino guide is temporarily unavailable' },
+    });
     expect(mocks.recordGuideTelemetry).toHaveBeenCalledWith(
       expect.objectContaining({ outcome: 'configuration' }),
     );
@@ -196,7 +211,9 @@ describe('chat guide response route', () => {
 
     expect(response.status).toBe(503);
     expect(response.headers.get('Cache-Control')).toBe('private, no-store');
-    expect(await response.json()).toEqual({ error: 'Casino guide is temporarily unavailable' });
+    expect(await response.json()).toEqual({
+      error: { code: 'GUIDE_UNAVAILABLE', message: 'Casino guide is temporarily unavailable' },
+    });
     expect(mocks.recordGuideTelemetry).toHaveBeenCalledWith(
       expect.objectContaining({ outcome: 'quota' }),
     );
@@ -208,7 +225,9 @@ describe('chat guide response route', () => {
     const response = await POST(request());
 
     expect(response.status).toBe(502);
-    expect(await response.json()).toEqual({ error: 'Casino guide is temporarily unavailable' });
+    expect(await response.json()).toEqual({
+      error: { code: 'GUIDE_UPSTREAM_ERROR', message: 'Casino guide is temporarily unavailable' },
+    });
     expect(mocks.recordGuideTelemetry).toHaveBeenCalledWith(
       expect.objectContaining({ outcome: 'invalid_response' }),
     );

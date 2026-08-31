@@ -1,11 +1,15 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 import { WalletService } from '@/lib/casino/wallet';
 import { CasinoLogger } from '@/lib/casino/logger';
 import { publicState } from '@/app/api/casino/blackjack/route';
 import type { BlackjackGameState } from '@/lib/games/blackjack';
-import { ensureCurrentCrashRound, getCrashRoundById, toPublicRoundState } from '@/lib/casino/crash-round';
+import {
+  ensureCurrentCrashRound,
+  getCrashRoundById,
+  toPublicRoundState,
+} from '@/lib/casino/crash-round';
 import type { PublicCrashRoundState } from '@/lib/casino/crash-round';
 import { loadGameConfig } from '@/lib/casino/game-config-server';
 
@@ -37,7 +41,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const game = searchParams.get('game')?.toUpperCase();
     if (game !== 'CRASH' && game !== 'BLACKJACK' && game !== 'CRASH_MULTIPLAYER') {
-      return NextResponse.json({ error: 'Invalid game parameter' }, { status: 400 });
+      return apiErrorResponse('INVALID_GAME_PARAM', 'Invalid game parameter', 400);
     }
 
     const supabase = await createClient();
@@ -56,11 +60,20 @@ export async function GET(request: Request) {
     ) {
       userId = 'dev_user_fallback';
     }
-    if (!userId) return new NextResponse('Unauthorized', { status: 401 });
+    if (!userId) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
 
-    const round = await WalletService.getGameActiveRound({ userId, game: game as 'CRASH' | 'BLACKJACK' | 'CRASH_MULTIPLAYER' });
+    const round = await WalletService.getGameActiveRound({
+      userId,
+      game: game as 'CRASH' | 'BLACKJACK' | 'CRASH_MULTIPLAYER',
+    });
     const sanitized = round.hasActiveRound
-      ? { ...round, state: sanitizeActiveRoundState(game as 'CRASH' | 'BLACKJACK' | 'CRASH_MULTIPLAYER', round.state) }
+      ? {
+          ...round,
+          state: sanitizeActiveRoundState(
+            game as 'CRASH' | 'BLACKJACK' | 'CRASH_MULTIPLAYER',
+            round.state,
+          ),
+        }
       : round;
 
     // NFR3 (worldmap/05_multiplayercrash.md): REST fallback for the shared
@@ -84,12 +97,15 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json(
+    return apiSuccessResponse(
       { ...sanitized, sharedRound },
       { headers: { 'Cache-Control': 'private, no-store' } },
     );
   } catch (error) {
     CasinoLogger.error('API/ActiveRound', 'Failed to fetch active round', error);
-    return NextResponse.json({ hasActiveRound: false }, { status: 200 });
+    return apiSuccessResponse(
+      { hasActiveRound: false },
+      { headers: { 'Cache-Control': 'private, no-store' } },
+    );
   }
 }

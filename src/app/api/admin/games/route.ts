@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { isAdminEmail } from '@/lib/security/admin';
@@ -16,8 +16,8 @@ export async function GET(request: Request) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return new NextResponse('Unauthorized', { status: 401 });
-    if (!isAdminEmail(user.email)) return new NextResponse('Forbidden', { status: 403 });
+    if (!user) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
+    if (!isAdminEmail(user.email)) return apiErrorResponse('FORBIDDEN', 'Forbidden', 403);
 
     const rate = await enforceRateLimit(
       getClientIdentifier(request, user.id),
@@ -26,9 +26,12 @@ export async function GET(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
@@ -117,7 +120,7 @@ export async function GET(request: Request) {
       };
     });
 
-    return NextResponse.json(
+    return apiSuccessResponse(
       {
         games: gameStats,
         config: {
@@ -129,6 +132,6 @@ export async function GET(request: Request) {
     );
   } catch (error) {
     CasinoLogger.error('API/Admin/Games', 'Admin games unexpected failure', error);
-    return NextResponse.json({ error: 'Games data unavailable' }, { status: 503 });
+    return apiErrorResponse('GAMES_UNAVAILABLE', 'Games data unavailable', 503);
   }
 }

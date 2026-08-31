@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 import { isAdminEmail } from '@/lib/security/admin';
@@ -46,9 +46,9 @@ export async function GET(request: Request) {
 
     const isDev =
       process.env.NODE_ENV === 'development' && process.env.ALLOW_DEV_FALLBACK === 'true';
-    if (!user && !isDev) return new NextResponse('Unauthorized', { status: 401 });
+    if (!user && !isDev) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
     if (user && !isAdminEmail(user.email) && !isDev)
-      return new NextResponse('Forbidden', { status: 403 });
+      return apiErrorResponse('FORBIDDEN', 'Forbidden', 403);
 
     const userId = user?.id || 'dev_admin';
     const rate = await enforceRateLimit(
@@ -58,9 +58,12 @@ export async function GET(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
@@ -84,10 +87,14 @@ export async function GET(request: Request) {
             updated_at: new Date().toISOString(),
           }));
 
-    return NextResponse.json({ documents }, { headers: rateLimitHeaders(rate) });
+    return apiSuccessResponse({ documents }, { headers: rateLimitHeaders(rate) });
   } catch (error) {
-    CasinoLogger.error('API/Admin/Knowledge', 'GET failed', error instanceof Error ? error : undefined);
-    return NextResponse.json({ error: 'Failed to load knowledge documents' }, { status: 500 });
+    CasinoLogger.error(
+      'API/Admin/Knowledge',
+      'GET failed',
+      error instanceof Error ? error : undefined,
+    );
+    return apiErrorResponse('LOAD_FAILED', 'Failed to load knowledge documents', 500);
   }
 }
 
@@ -103,9 +110,9 @@ export async function POST(request: Request) {
 
     const isDev =
       process.env.NODE_ENV === 'development' && process.env.ALLOW_DEV_FALLBACK === 'true';
-    if (!user && !isDev) return new NextResponse('Unauthorized', { status: 401 });
+    if (!user && !isDev) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
     if (user && !isAdminEmail(user.email) && !isDev)
-      return new NextResponse('Forbidden', { status: 403 });
+      return apiErrorResponse('FORBIDDEN', 'Forbidden', 403);
 
     const userId = user?.id || 'dev_admin';
     const rate = await enforceRateLimit(
@@ -115,33 +122,49 @@ export async function POST(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
     const body = await request.json().catch(() => null);
     const parsed = documentSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? 'Invalid document payload' },
-        { status: 400, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        'INVALID_DOCUMENT_PAYLOAD',
+        parsed.error.issues[0]?.message ?? 'Invalid document payload',
+        400,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
     const result = await upsertAdminGuideDocument(parsed.data);
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error ?? 'Failed to upsert guide document' },
-        { status: 500, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        'UPSERT_FAILED',
+        result.error ?? 'Failed to upsert guide document',
+        500,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
-    return NextResponse.json({ success: true, id: result.id }, { headers: rateLimitHeaders(rate) });
+    return apiSuccessResponse(
+      { success: true, id: result.id },
+      { headers: rateLimitHeaders(rate) },
+    );
   } catch (error) {
-    CasinoLogger.error('API/Admin/Knowledge', 'POST failed', error instanceof Error ? error : undefined);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    CasinoLogger.error(
+      'API/Admin/Knowledge',
+      'POST failed',
+      error instanceof Error ? error : undefined,
+    );
+    return apiErrorResponse('INTERNAL_SERVER_ERROR', 'Internal server error', 500);
   }
 }
 
@@ -157,9 +180,9 @@ export async function DELETE(request: Request) {
 
     const isDev =
       process.env.NODE_ENV === 'development' && process.env.ALLOW_DEV_FALLBACK === 'true';
-    if (!user && !isDev) return new NextResponse('Unauthorized', { status: 401 });
+    if (!user && !isDev) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
     if (user && !isAdminEmail(user.email) && !isDev)
-      return new NextResponse('Forbidden', { status: 403 });
+      return apiErrorResponse('FORBIDDEN', 'Forbidden', 403);
 
     const userId = user?.id || 'dev_admin';
     const rate = await enforceRateLimit(
@@ -169,32 +192,49 @@ export async function DELETE(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     if (!id) {
-      return NextResponse.json(
-        { error: 'Missing document id parameter' },
-        { status: 400, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        'MISSING_DOCUMENT_ID',
+        'Missing document id parameter',
+        400,
+        undefined,
+        {
+          headers: rateLimitHeaders(rate),
+        },
       );
     }
 
     const result = await deleteAdminGuideDocument(id);
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error ?? 'Failed to delete guide document' },
-        { status: 500, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        'DELETE_FAILED',
+        result.error ?? 'Failed to delete guide document',
+        500,
+        undefined,
+        {
+          headers: rateLimitHeaders(rate),
+        },
       );
     }
 
-    return NextResponse.json({ success: true }, { headers: rateLimitHeaders(rate) });
+    return apiSuccessResponse({ success: true }, { headers: rateLimitHeaders(rate) });
   } catch (error) {
-    CasinoLogger.error('API/Admin/Knowledge', 'DELETE failed', error instanceof Error ? error : undefined);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    CasinoLogger.error(
+      'API/Admin/Knowledge',
+      'DELETE failed',
+      error instanceof Error ? error : undefined,
+    );
+    return apiErrorResponse('INTERNAL_SERVER_ERROR', 'Internal server error', 500);
   }
 }

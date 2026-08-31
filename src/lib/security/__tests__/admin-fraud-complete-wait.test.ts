@@ -41,19 +41,29 @@ describe('POST /api/admin/fraud/complete-wait', () => {
 
   it('rejects unauthenticated requests', async () => {
     mocks.getUser.mockResolvedValue({ data: { user: null }, error: new Error('No user') });
-    const res = await POST(createPostRequest({ tokenId: 'tok_1', status: 'reviewed', reason: 'ok' }));
+    const res = await POST(
+      createPostRequest({ tokenId: 'tok_1', status: 'reviewed', reason: 'ok' }),
+    );
     expect(res.status).toBe(401);
   });
 
   it('rejects non-admin users', async () => {
-    mocks.getUser.mockResolvedValue({ data: { user: { id: 'u1', email: 'user@example.com' } }, error: null });
+    mocks.getUser.mockResolvedValue({
+      data: { user: { id: 'u1', email: 'user@example.com' } },
+      error: null,
+    });
     mocks.isAdminEmail.mockReturnValue(false);
-    const res = await POST(createPostRequest({ tokenId: 'tok_1', status: 'reviewed', reason: 'ok' }));
+    const res = await POST(
+      createPostRequest({ tokenId: 'tok_1', status: 'reviewed', reason: 'ok' }),
+    );
     expect(res.status).toBe(403);
   });
 
   it('completes waitpoint token on authorized admin request', async () => {
-    mocks.getUser.mockResolvedValue({ data: { user: { id: 'admin_1', email: 'admin@example.com' } }, error: null });
+    mocks.getUser.mockResolvedValue({
+      data: { user: { id: 'admin_1', email: 'admin@example.com' } },
+      error: null,
+    });
     mocks.isAdminEmail.mockReturnValue(true);
     mocks.completeToken.mockResolvedValue(undefined);
 
@@ -67,7 +77,7 @@ describe('POST /api/admin/fraud/complete-wait', () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.success).toBe(true);
+    expect(body.data.success).toBe(true);
     expect(mocks.completeToken).toHaveBeenCalledWith('token_wait_123', {
       status: 'reviewed',
       reason: 'Manual inspection cleared player',

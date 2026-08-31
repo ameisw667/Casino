@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { WalletService } from '@/lib/casino/wallet';
 import { CasinoLogger } from '@/lib/casino/logger';
@@ -9,6 +8,7 @@ import {
   validateMutationOrigin,
 } from '@/lib/security/request-security';
 import { z } from 'zod';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 
 const postChatSchema = z.object({
   message: z.string().min(1).max(500),
@@ -17,7 +17,7 @@ const postChatSchema = z.object({
 export async function GET(_request: Request) {
   try {
     const messages = await WalletService.getChatMessages(50);
-    return NextResponse.json(
+    return apiSuccessResponse(
       { messages },
       {
         headers: { 'Cache-Control': 'private, no-store' },
@@ -25,7 +25,12 @@ export async function GET(_request: Request) {
     );
   } catch (error) {
     CasinoLogger.error('API/Chat', 'Failed to fetch chat messages', error);
-    return NextResponse.json({ messages: [] }, { status: 200 });
+    return apiSuccessResponse(
+      { messages: [] },
+      {
+        headers: { 'Cache-Control': 'private, no-store' },
+      },
+    );
   }
 }
 
@@ -50,20 +55,23 @@ export async function POST(request: Request) {
     ) {
       userId = 'dev_user_fallback';
     }
-    if (!userId) return new NextResponse('Unauthorized', { status: 401 });
+    if (!userId) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
 
     const rate = await enforceRateLimit(getClientIdentifier(request, userId), 'chat-post', 10, 60);
     if (!rate.success) {
-      return NextResponse.json(
-        { error: 'Too Many Requests' },
-        { status: 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
     const body = await request.json();
     const parsed = postChatSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid message' }, { status: 400 });
+      return apiErrorResponse('INVALID_MESSAGE', 'Invalid message', 400);
     }
 
     const msg = await WalletService.postChatMessage({
@@ -71,9 +79,9 @@ export async function POST(request: Request) {
       message: parsed.data.message,
     });
 
-    return NextResponse.json({ message: msg });
+    return apiSuccessResponse({ message: msg });
   } catch (error) {
     CasinoLogger.error('API/Chat', 'Failed to post chat message', error);
-    return NextResponse.json({ error: 'Chat post failed' }, { status: 500 });
+    return apiErrorResponse('CHAT_POST_FAILED', 'Chat post failed', 500);
   }
 }

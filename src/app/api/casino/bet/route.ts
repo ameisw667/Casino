@@ -1,4 +1,4 @@
-import { NextResponse, after } from 'next/server';
+import { after } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 import { CasinoCore } from '@/lib/casino/casino-core';
@@ -17,6 +17,7 @@ import {
 } from '@/lib/security/request-security';
 import { withBetPathSpan, flushBetPathTracer } from '@/lib/otel/tracer';
 import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
+import { apiSuccessResponse } from '@/lib/api/response';
 
 const rouletteBetSchema = z.object({
   type: z.object({
@@ -43,6 +44,10 @@ const requestSchema = z.object({
   roundId: z.string().uuid().optional(),
   cashoutMultiplier: z.number().finite().min(1).max(1_000_000).optional(),
 });
+
+// C1 (TO-04): tolerance for |Σ bets[].amount − amount|, covering only float
+// noise — the legit client sums the exact same stakes it sends.
+const ROULETTE_STAKE_TOLERANCE = 0.005;
 
 function walletOnly(settlement: Awaited<ReturnType<typeof WalletService.settleBet>>) {
   return {
@@ -159,9 +164,8 @@ export async function POST(request: Request) {
         },
       });
       const isFirstBet = await isFirstBetSignal(userId, round.replayed);
-      return NextResponse.json({
+      return apiSuccessResponse({
         roundId: round.roundId,
-        crashPoint: crash.crashPoint,
         hash: crash.hash,
         nonce: crash.nonce,
         wallet: walletOnly({ ...round, result: undefined }),
@@ -222,7 +226,7 @@ export async function POST(request: Request) {
         win: result.win,
         replayed: settlement.replayed,
       });
-      return NextResponse.json({
+      return apiSuccessResponse({
         ...(settlement.result as object),
         wallet: walletOnly(settlement),
         replayed: settlement.replayed,
@@ -250,6 +254,39 @@ export async function POST(request: Request) {
     // TS does not carry property-access narrowing across a function boundary.
     const amount = params.amount;
     const gameType = params.gameType;
+
+    // C1 (TO-04 fund matrix): settlement debits `amount`, but the roulette
+    // payout is derived from the individual bets[] stakes — leaving the two
+    // uncoupled would let a request pay out on stake it never wagered
+    // (zero-trust mandate 1: the server controls the bet).
+    if (gameType === 'ROULETTE') {
+      const bets = params.bets;
+      if (!bets || bets.length === 0) {
+        return apiErrorResponse(
+          APP_ERROR_CODES.VALIDATION_FAILED,
+          'Roulette erfordert mindestens eine Einzelwette.',
+          400,
+          { requestId: params.requestId },
+        );
+      }
+      const totalStake = Math.round(bets.reduce((sum, bet) => sum + bet.amount, 0) * 100) / 100;
+      if (totalStake <= 0 || Math.abs(totalStake - amount) > ROULETTE_STAKE_TOLERANCE) {
+        return apiErrorResponse(
+          APP_ERROR_CODES.VALIDATION_FAILED,
+          'Die Summe der Einzelwetten muss dem Einsatz entsprechen.',
+          400,
+          { requestId: params.requestId },
+        );
+      }
+      if (bets.some((bet) => bet.amount > gameConfig.limits.maxBetHardcap)) {
+        return apiErrorResponse(
+          APP_ERROR_CODES.BET_LIMIT_EXCEEDED,
+          'Eine Einzelwette überschreitet das erlaubte Limit.',
+          400,
+          { requestId: params.requestId },
+        );
+      }
+    }
 
     const seed = await withBetPathSpan('seed-consume', () =>
       WalletService.consumeActiveSeed({ userId, requestId: params.requestId }),
@@ -310,7 +347,7 @@ export async function POST(request: Request) {
     const isFirstBet = await isFirstBetSignal(userId, settlement.replayed);
 
     return withBetPathSpan('response-serialize', async () =>
-      NextResponse.json({
+      apiSuccessResponse({
         ...(settlement.result as object),
         wallet: walletOnly(settlement),
         replayed: settlement.replayed,

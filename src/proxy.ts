@@ -19,6 +19,10 @@ const PUBLIC_ROUTES = [
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/games(.*)',
+  // Motion-Lab Testing-Route (Bare Sandbox, kein Auth; siehe xx_docs/09 §2)
+  '/games-2(.*)',
+  // PULS-Partikel-Lab — Bare-Sandbox wie /games-2; rein visuell, kein Wallet/DB-Pfad.
+  '/lab(.*)',
   '/history(.*)',
   '/leaderboard(.*)',
   '/vault(.*)',

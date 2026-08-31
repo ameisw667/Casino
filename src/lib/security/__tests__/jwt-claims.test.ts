@@ -1,10 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { User } from '@supabase/supabase-js';
-import {
-  getJwtClaimsFromUser,
-  isJwtAdminUser,
-  customJwtAppMetadataSchema,
-} from '../jwt-claims';
+import { getJwtClaimsFromUser, isJwtAdminUser, customJwtAppMetadataSchema } from '../jwt-claims';
 
 describe('Custom JWT Claims Extractor & Schema', () => {
   it('returns default fallback claims when user is null or undefined', () => {

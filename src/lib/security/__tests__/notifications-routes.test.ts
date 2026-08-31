@@ -26,7 +26,11 @@ vi.mock('@/lib/casino/notifications', () => ({
 }));
 vi.mock('@/lib/casino/logger', () => ({ CasinoLogger: { error: mocks.error } }));
 
-type RouteModule = { GET?: (request: Request) => Promise<Response>; POST?: (request: Request) => Promise<Response>; PATCH?: (request: Request, context: { params: Promise<{ id: string }> }) => Promise<Response> };
+type RouteModule = {
+  GET?: (request: Request) => Promise<Response>;
+  POST?: (request: Request) => Promise<Response>;
+  PATCH?: (request: Request, context: { params: Promise<{ id: string }> }) => Promise<Response>;
+};
 
 function authClient(user: { id: string } | null) {
   return { auth: { getUser: async () => ({ data: { user } }) } };
@@ -42,8 +46,12 @@ function request(method: string, path: string) {
 async function loadRoutes() {
   return {
     list: (await import('@/app/api/notifications/route').catch(() => null)) as RouteModule | null,
-    item: (await import('@/app/api/notifications/[id]/route').catch(() => null)) as RouteModule | null,
-    all: (await import('@/app/api/notifications/read-all/route').catch(() => null)) as RouteModule | null,
+    item: (await import('@/app/api/notifications/[id]/route').catch(
+      () => null,
+    )) as RouteModule | null,
+    all: (await import('@/app/api/notifications/read-all/route').catch(
+      () => null,
+    )) as RouteModule | null,
   };
 }
 
@@ -51,7 +59,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.createClient.mockResolvedValue(authClient({ id: 'player-1' }));
   mocks.validateMutationOrigin.mockReturnValue(null);
-  mocks.enforceRateLimit.mockResolvedValue({ success: true, limit: 30, remaining: 29, reset: Date.now() + 60_000 });
+  mocks.enforceRateLimit.mockResolvedValue({
+    success: true,
+    limit: 30,
+    remaining: 29,
+    reset: Date.now() + 60_000,
+  });
 });
 
 describe('notification routes', () => {
@@ -77,7 +90,7 @@ describe('notification routes', () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get('cache-control')).toBe('private, no-store');
-    expect(await response.json()).toEqual({ notifications: [], unreadCount: 2 });
+    expect(await response.json()).toEqual({ data: { notifications: [], unreadCount: 2 } });
     expect(mocks.listNotifications).toHaveBeenCalledWith('player-1');
   });
 
@@ -85,11 +98,16 @@ describe('notification routes', () => {
     const { item } = await loadRoutes();
     expect(item?.PATCH).toBeTypeOf('function');
     if (!item?.PATCH) return;
-    mocks.validateMutationOrigin.mockReturnValue(new Response('Cross-site mutation rejected', { status: 403 }));
+    mocks.validateMutationOrigin.mockReturnValue(
+      new Response('Cross-site mutation rejected', { status: 403 }),
+    );
 
-    const response = await item.PATCH(request('PATCH', '/api/notifications/11111111-1111-4111-8111-111111111111'), {
-      params: Promise.resolve({ id: '11111111-1111-4111-8111-111111111111' }),
-    });
+    const response = await item.PATCH(
+      request('PATCH', '/api/notifications/11111111-1111-4111-8111-111111111111'),
+      {
+        params: Promise.resolve({ id: '11111111-1111-4111-8111-111111111111' }),
+      },
+    );
 
     expect(response.status).toBe(403);
     expect(mocks.markNotificationRead).not.toHaveBeenCalled();
@@ -101,12 +119,18 @@ describe('notification routes', () => {
     if (!item?.PATCH) return;
     mocks.markNotificationRead.mockResolvedValue(null);
 
-    const response = await item.PATCH(request('PATCH', '/api/notifications/11111111-1111-4111-8111-111111111111'), {
-      params: Promise.resolve({ id: '11111111-1111-4111-8111-111111111111' }),
-    });
+    const response = await item.PATCH(
+      request('PATCH', '/api/notifications/11111111-1111-4111-8111-111111111111'),
+      {
+        params: Promise.resolve({ id: '11111111-1111-4111-8111-111111111111' }),
+      },
+    );
 
     expect(response.status).toBe(404);
-    expect(mocks.markNotificationRead).toHaveBeenCalledWith('player-1', '11111111-1111-4111-8111-111111111111');
+    expect(mocks.markNotificationRead).toHaveBeenCalledWith(
+      'player-1',
+      '11111111-1111-4111-8111-111111111111',
+    );
   });
 
   it('marks all unread notifications for the authenticated user only', async () => {
@@ -118,7 +142,7 @@ describe('notification routes', () => {
     const response = await all.POST(request('POST', '/api/notifications/read-all'));
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ markedRead: 3 });
+    expect(await response.json()).toEqual({ data: { markedRead: 3 } });
     expect(mocks.markAllNotificationsRead).toHaveBeenCalledWith('player-1');
   });
 });

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { createClient } from '@/utils/supabase/server';
 import { issueTelegramLinkToken, isTelegramConfigured } from '@/lib/casino/telegram-link';
 import { CasinoLogger } from '@/lib/casino/logger';
@@ -31,12 +31,13 @@ export async function POST(request: Request) {
     ) {
       userId = 'dev_user_fallback';
     }
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!userId) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
 
     if (!isTelegramConfigured()) {
-      return NextResponse.json(
-        { error: 'Telegram notifications are not configured' },
-        { status: 503 },
+      return apiErrorResponse(
+        'TELEGRAM_NOT_CONFIGURED',
+        'Telegram notifications are not configured',
+        503,
       );
     }
 
@@ -47,23 +48,25 @@ export async function POST(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
     const issued = await issueTelegramLinkToken(userId);
     if (!issued) {
-      return NextResponse.json(
-        { error: 'Failed to create link token' },
-        { status: 500, headers: rateLimitHeaders(rate) },
-      );
+      return apiErrorResponse('LINK_TOKEN_FAILED', 'Failed to create link token', 500, undefined, {
+        headers: rateLimitHeaders(rate),
+      });
     }
 
-    return NextResponse.json(issued, { headers: rateLimitHeaders(rate) });
+    return apiSuccessResponse(issued, { headers: rateLimitHeaders(rate) });
   } catch (error) {
     CasinoLogger.error('API/Telegram/Link', 'Failed to issue telegram link token', error);
-    return NextResponse.json({ error: 'Failed to create link token' }, { status: 500 });
+    return apiErrorResponse('LINK_TOKEN_FAILED', 'Failed to create link token', 500);
   }
 }

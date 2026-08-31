@@ -9,10 +9,16 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/utils/supabase/server', () => ({ createClient: mocks.createClient }));
-vi.mock('@/lib/security/request-security', () => ({ validateMutationOrigin: mocks.validateMutationOrigin }));
+vi.mock('@/lib/security/request-security', () => ({
+  validateMutationOrigin: mocks.validateMutationOrigin,
+}));
 vi.mock('@/lib/casino/wallet', () => ({ WalletService: mocks.WalletService }));
-vi.mock('@/lib/casino/achievements-config-server', () => ({ loadAchievementConfig: mocks.loadAchievementConfig }));
-vi.mock('@/lib/casino/notifications', () => ({ createNotificationBestEffort: mocks.createNotificationBestEffort }));
+vi.mock('@/lib/casino/achievements-config-server', () => ({
+  loadAchievementConfig: mocks.loadAchievementConfig,
+}));
+vi.mock('@/lib/casino/notifications', () => ({
+  createNotificationBestEffort: mocks.createNotificationBestEffort,
+}));
 vi.mock('@/lib/casino/logger', () => ({ CasinoLogger: { error: vi.fn() } }));
 
 import { POST } from '@/app/api/user/stats/route';
@@ -40,7 +46,9 @@ beforeEach(() => {
 
 describe('achievement inbox producer', () => {
   it('creates one best-effort inbox entry only for an unlocked, known achievement', async () => {
-    const response = await POST(request({ achievementId: 'first_bet', progress: 1, unlocked: true }));
+    const response = await POST(
+      request({ achievementId: 'first_bet', progress: 1, unlocked: true }),
+    );
 
     expect(response.status).toBe(200);
     await vi.waitFor(() => {

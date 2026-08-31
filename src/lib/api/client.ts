@@ -1,7 +1,8 @@
 import { getApiErrorCode, getApiErrorMessage, type AppErrorCode } from '@/lib/security/form-errors';
 import type { ApiSuccessPayload } from '@/lib/api/response';
 
-export type ApiFetchErrorCode = AppErrorCode | 'UNKNOWN_ERROR' | 'NETWORK_ERROR' | 'INVALID_RESPONSE';
+export type ApiFetchErrorCode =
+  AppErrorCode | 'UNKNOWN_ERROR' | 'NETWORK_ERROR' | 'INVALID_RESPONSE';
 
 export class ApiFetchError extends Error {
   readonly code: ApiFetchErrorCode;
@@ -20,9 +21,7 @@ function isSuccessPayload<T>(payload: unknown): payload is ApiSuccessPayload<T> 
 }
 
 /**
- * Typed fetch wrapper for routes that follow the `{ data: T }` / `{ error }` envelope
- * (see worldmap/01_api_response_envelope.md). Existing un-enveloped routes keep using
- * plain fetch() until they are opportunistically migrated.
+ * Universal typed fetch wrapper for API routes following the standard `{ data: T }` envelope.
  */
 export async function apiFetch<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
   let response: Response;
@@ -65,3 +64,83 @@ export async function apiFetch<T>(input: RequestInfo | URL, init?: RequestInit):
 
   return payload.data;
 }
+
+/**
+ * Helper to build standard JSON POST request options with optional Idempotency-Key.
+ */
+function postOptions<B>(body: B, idempotencyKey?: string): RequestInit {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (idempotencyKey) {
+    headers['Idempotency-Key'] = idempotencyKey;
+  }
+  return {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  };
+}
+
+/**
+ * End-to-End Typed API Client Suite
+ */
+export const apiClient = {
+  health: () => apiFetch<{ status: string; timestamp: string; version?: string }>('/api/health'),
+
+  casino: {
+    config: () => apiFetch<Record<string, unknown>>('/api/casino/config'),
+    jackpot: () => apiFetch<{ currentAmount: number }>('/api/casino/jackpot'),
+    activeRound: () => apiFetch<Record<string, unknown>>('/api/casino/active-round'),
+    seeds: () => apiFetch<Record<string, unknown>>('/api/casino/seeds'),
+    seedsHistory: () => apiFetch<Array<Record<string, unknown>>>('/api/casino/seeds/history'),
+    bet: <T = Record<string, unknown>>(body: Record<string, unknown>, idempotencyKey?: string) =>
+      apiFetch<T>('/api/casino/bet', postOptions(body, idempotencyKey)),
+    blackjack: <T = Record<string, unknown>>(
+      body: Record<string, unknown>,
+      idempotencyKey?: string,
+    ) => apiFetch<T>('/api/casino/blackjack', postOptions(body, idempotencyKey)),
+    crashMultiplayer: <T = Record<string, unknown>>(
+      body: Record<string, unknown>,
+      idempotencyKey?: string,
+    ) => apiFetch<T>('/api/casino/bet-crash-multiplayer', postOptions(body, idempotencyKey)),
+    redeemCode: <T = Record<string, unknown>>(
+      body: { code: string; requestId?: string },
+      idempotencyKey?: string,
+    ) => apiFetch<T>('/api/casino/redeem-code', postOptions(body, idempotencyKey)),
+  },
+
+  user: {
+    balance: <T = Record<string, unknown>>() => apiFetch<T>('/api/user/balance'),
+    history: <T = { rows: Array<Record<string, unknown>> }>(limit = 20, offset = 0) =>
+      apiFetch<T>(`/api/user/history?limit=${limit}&offset=${offset}`),
+    stats: <T = Record<string, unknown>>() => apiFetch<T>('/api/user/stats'),
+    loginHistory: <T = { history: Array<Record<string, unknown>> }>() =>
+      apiFetch<T>('/api/user/login-history'),
+  },
+
+  community: {
+    activity: <T = Record<string, unknown>>() => apiFetch<T>('/api/community'),
+    leaderboard: <T = { rows: Array<Record<string, unknown>> }>(period = 'all') =>
+      apiFetch<T>(`/api/leaderboard?period=${period}`),
+    dailyRace: <T = Record<string, unknown>>() => apiFetch<T>('/api/tournaments/daily-race'),
+  },
+
+  notifications: {
+    list: <T = { notifications: Array<Record<string, unknown>>; unreadCount: number }>() =>
+      apiFetch<T>('/api/notifications'),
+    markRead: (id: string) =>
+      apiFetch<{ id: string; read: boolean }>(`/api/notifications/${id}`, { method: 'PATCH' }),
+    readAll: () =>
+      apiFetch<{ updatedCount: number }>('/api/notifications/read-all', { method: 'POST' }),
+  },
+
+  admin: {
+    overview: <T = Record<string, unknown>>() => apiFetch<T>('/api/admin/overview'),
+    users: <T = Array<Record<string, unknown>>>() => apiFetch<T>('/api/admin/users'),
+    games: <T = Record<string, unknown>>() => apiFetch<T>('/api/admin/games'),
+    analytics: <T = Record<string, unknown>>() => apiFetch<T>('/api/admin/analytics'),
+    fraud: <T = Array<Record<string, unknown>>>() => apiFetch<T>('/api/admin/fraud'),
+    promoCodes: <T = Array<Record<string, unknown>>>() => apiFetch<T>('/api/admin/promo-codes'),
+  },
+};

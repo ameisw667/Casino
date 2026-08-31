@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import { tasks } from '@trigger.dev/sdk';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { CasinoLogger } from '@/lib/casino/logger';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 
 // Called only by the pg_net POST inside public.notify_big_win_event() (see migration
 // 047_event_bus_big_win_consumer.sql) right after emit_big_win_notify_event() inserts a
@@ -42,13 +42,13 @@ const claimResultSchema = z.object({
 
 export async function POST(request: Request) {
   if (!hasValidBigWinEventSecret(request)) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
   }
 
   const body = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
-    return new NextResponse('Invalid payload', { status: 400 });
+    return apiErrorResponse('INVALID_PAYLOAD', 'Invalid payload', 400);
   }
 
   const supabase = createAdminClient();
@@ -58,16 +58,16 @@ export async function POST(request: Request) {
 
   if (claimError) {
     CasinoLogger.error('BigWinEvents', 'claim_big_win_notify_event RPC call failed', claimError);
-    return NextResponse.json({ ok: false }, { status: 500 });
+    return apiErrorResponse('CLAIM_FAILED', 'Failed to claim big win notify event', 500);
   }
 
   const claim = claimResultSchema.safeParse(claimData);
   if (!claim.success || !claim.data.success) {
     CasinoLogger.error('BigWinEvents', 'claim_big_win_notify_event reported failure', claim);
-    return NextResponse.json({ ok: false }, { status: 500 });
+    return apiErrorResponse('CLAIM_REJECTED', 'Claim reported failure', 500);
   }
   if (claim.data.alreadyProcessed || !claim.data.payload || !claim.data.userId) {
-    return NextResponse.json({ ok: true });
+    return apiSuccessResponse({ ok: true });
   }
 
   try {
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
   } catch (error) {
     // No ack — processed_at stays NULL, so the pg_cron backstop retries this event later.
     CasinoLogger.error('BigWinEvents', `Trigger.dev dispatch failed: ${String(error)}`);
-    return NextResponse.json({ ok: false }, { status: 500 });
+    return apiErrorResponse('TRIGGER_DISPATCH_FAILED', 'Trigger.dev dispatch failed', 500);
   }
 
   const { error: ackError } = await supabase.rpc('ack_big_win_notify_event', {
@@ -90,8 +90,8 @@ export async function POST(request: Request) {
   });
   if (ackError) {
     CasinoLogger.error('BigWinEvents', 'ack_big_win_notify_event RPC call failed', ackError);
-    return NextResponse.json({ ok: false }, { status: 500 });
+    return apiErrorResponse('ACK_FAILED', 'Failed to ack big win notify event', 500);
   }
 
-  return NextResponse.json({ ok: true });
+  return apiSuccessResponse({ ok: true });
 }

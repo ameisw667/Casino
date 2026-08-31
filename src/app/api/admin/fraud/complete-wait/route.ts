@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { z } from 'zod';
 import { wait } from '@trigger.dev/sdk';
 import { createClient } from '@/utils/supabase/server';
@@ -27,8 +27,8 @@ export async function POST(request: Request) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) return new NextResponse('Unauthorized', { status: 401 });
-    if (!isAdminEmail(user.email)) return new NextResponse('Forbidden', { status: 403 });
+    if (!user) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
+    if (!isAdminEmail(user.email)) return apiErrorResponse('FORBIDDEN', 'Forbidden', 403);
 
     const rate = await enforceRateLimit(
       getClientIdentifier(request, user.id),
@@ -37,18 +37,22 @@ export async function POST(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
     const body = await request.json().catch(() => null);
     const parsed = completeWaitSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? 'Invalid waitpoint completion payload' },
-        { status: 400 },
+      return apiErrorResponse(
+        'INVALID_PAYLOAD',
+        parsed.error.issues[0]?.message ?? 'Invalid waitpoint completion payload',
+        400,
       );
     }
 
@@ -64,9 +68,9 @@ export async function POST(request: Request) {
       { status: parsed.data.status },
     );
 
-    return NextResponse.json({ success: true });
+    return apiSuccessResponse({ success: true });
   } catch (error) {
     CasinoLogger.error('API/Admin/Fraud/CompleteWait', 'Failed to complete wait token', error);
-    return NextResponse.json({ error: 'Failed to complete waitpoint token' }, { status: 500 });
+    return apiErrorResponse('COMPLETE_FAILED', 'Failed to complete waitpoint token', 500);
   }
 }

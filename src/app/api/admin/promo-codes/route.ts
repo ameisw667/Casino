@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
@@ -10,7 +10,7 @@ import {
   rateLimitHeaders,
   validateMutationOrigin,
 } from '@/lib/security/request-security';
-import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
+import { APP_ERROR_CODES, zodErrorResponse } from '@/lib/security/form-errors';
 
 const createSchema = z.object({
   code: z
@@ -31,8 +31,8 @@ export async function GET(request: Request) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return new NextResponse('Unauthorized', { status: 401 });
-    if (!isAdminEmail(user.email)) return new NextResponse('Forbidden', { status: 403 });
+    if (!user) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
+    if (!isAdminEmail(user.email)) return apiErrorResponse('FORBIDDEN', 'Forbidden', 403);
 
     const rate = await enforceRateLimit(
       getClientIdentifier(request, user.id),
@@ -41,9 +41,12 @@ export async function GET(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
@@ -56,13 +59,13 @@ export async function GET(request: Request) {
 
     if (error) {
       CasinoLogger.error('API/Admin/PromoCodes', 'List failed', error);
-      return NextResponse.json({ error: 'Failed to load promo codes' }, { status: 503 });
+      return apiErrorResponse('LOAD_FAILED', 'Failed to load promo codes', 503);
     }
 
-    return NextResponse.json({ codes: data ?? [] }, { headers: rateLimitHeaders(rate) });
+    return apiSuccessResponse({ codes: data ?? [] }, { headers: rateLimitHeaders(rate) });
   } catch (error) {
     CasinoLogger.error('API/Admin/PromoCodes', 'List unexpected failure', error);
-    return NextResponse.json({ error: 'Promo codes unavailable' }, { status: 503 });
+    return apiErrorResponse('PROMO_UNAVAILABLE', 'Promo codes unavailable', 503);
   }
 }
 
@@ -101,6 +104,7 @@ export async function POST(request: Request) {
           ? 'Der Dienst ist vorübergehend nicht verfügbar.'
           : 'Zu viele Anfragen. Bitte versuche es später erneut.',
         rate.unavailable ? 503 : 429,
+        undefined,
         { headers: rateLimitHeaders(rate) },
       );
     }
@@ -147,7 +151,7 @@ export async function POST(request: Request) {
       max_uses: data.max_uses,
     });
 
-    return NextResponse.json({ success: true, code: data });
+    return apiSuccessResponse({ success: true, code: data });
   } catch (error) {
     CasinoLogger.error('API/Admin/PromoCodes', 'Create unexpected failure', error);
     return apiErrorResponse(

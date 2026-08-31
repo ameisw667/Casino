@@ -48,7 +48,7 @@ describe('GET /api/analytics/identity', () => {
     const response = await GET(request());
     expect(response.status).toBe(200);
     const body = await response.json();
-    expect(body).toEqual({ distinctId: 'a'.repeat(64), version: 1 });
+    expect(body).toEqual({ data: { distinctId: 'a'.repeat(64), version: 1 } });
     expect(mocks.createAnalyticsDistinctId).toHaveBeenCalledWith('user-123');
   });
 

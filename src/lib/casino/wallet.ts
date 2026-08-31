@@ -3,7 +3,11 @@ import { createAdminClient } from '@/utils/supabase/admin';
 import { type WalletSnapshot, walletSnapshotSchema } from './wallet-contract';
 import { CasinoLogger } from './logger';
 import { ProvablyFairEngine } from './provably-fair';
-import { dailyRaceStandingSchema, secondsUntilNextUtcMidnight, type DailyRaceSnapshot } from './daily-race';
+import {
+  dailyRaceStandingSchema,
+  secondsUntilNextUtcMidnight,
+  type DailyRaceSnapshot,
+} from './daily-race';
 
 const ZERO_TRANSACTION_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -174,7 +178,10 @@ export class WalletService {
     });
     if (error) {
       if (error.message.includes('Insufficient')) throw new Error('Insufficient balance');
-      if (error.message.includes('Active crash') || error.message.includes('Active crash_multiplayer')) {
+      if (
+        error.message.includes('Active crash') ||
+        error.message.includes('Active crash_multiplayer')
+      ) {
         throw new Error('ACTIVE_CRASH_ROUND_EXISTS');
       }
       throw new Error('Game round could not be started');
@@ -568,7 +575,11 @@ export class WalletService {
     }
     const parsed = z.array(dailyRaceStandingSchema).safeParse(data);
     if (!parsed.success) {
-      CasinoLogger.warn('WalletService', 'Invalid daily race standings shape from RPC', parsed.error);
+      CasinoLogger.warn(
+        'WalletService',
+        'Invalid daily race standings shape from RPC',
+        parsed.error,
+      );
       return { standings: [], secondsUntilResetUtc };
     }
     return { standings: parsed.data, secondsUntilResetUtc };
@@ -612,7 +623,10 @@ export class WalletService {
     }
   }
 
-  static async getGameActiveRound(params: { userId: string; game: 'CRASH' | 'BLACKJACK' | 'CRASH_MULTIPLAYER' }) {
+  static async getGameActiveRound(params: {
+    userId: string;
+    game: 'CRASH' | 'BLACKJACK' | 'CRASH_MULTIPLAYER';
+  }) {
     const supabase = createAdminClient();
     const { data, error } = await supabase.rpc('get_active_game_round', {
       p_user_id: params.userId,
@@ -680,9 +694,14 @@ export class WalletService {
    * only (game_rounds has no client grants) — never exposes raw user_id to
    * the browser; callers must derive a display label themselves.
    */
-  static async getCrashRoundParticipants(
-    crashRoundId: string,
-  ): Promise<Array<{ userId: string; betAmount: number; status: 'ACTIVE' | 'SETTLED'; state: Record<string, unknown> }>> {
+  static async getCrashRoundParticipants(crashRoundId: string): Promise<
+    Array<{
+      userId: string;
+      betAmount: number;
+      status: 'ACTIVE' | 'SETTLED';
+      state: Record<string, unknown>;
+    }>
+  > {
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from('game_rounds')

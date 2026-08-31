@@ -10,7 +10,11 @@ function reportWebVital(metric: CoreWebVital): void {
   if (!hasAnalyticsConsent()) return;
   if (metric.name !== 'LCP' && metric.name !== 'CLS' && metric.name !== 'INP') return;
   if (!Number.isFinite(metric.value) || metric.value < 0) return;
-  if (metric.rating !== 'good' && metric.rating !== 'needs-improvement' && metric.rating !== 'poor') {
+  if (
+    metric.rating !== 'good' &&
+    metric.rating !== 'needs-improvement' &&
+    metric.rating !== 'poor'
+  ) {
     return;
   }
 

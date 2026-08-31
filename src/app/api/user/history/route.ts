@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { createClient } from '@/utils/supabase/server';
 import {
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
       userId = 'dev_user_fallback';
     }
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
     }
 
     // Rate limit
@@ -53,9 +53,12 @@ export async function GET(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
@@ -71,7 +74,7 @@ export async function GET(request: Request) {
 
     if (error) {
       console.error('History query failed:', error);
-      return NextResponse.json({ error: 'History unavailable' }, { status: 503 });
+      return apiErrorResponse('HISTORY_UNAVAILABLE', 'History unavailable', 503);
     }
 
     const rows = (data ?? []).map((row) => ({
@@ -85,7 +88,7 @@ export async function GET(request: Request) {
 
     const parsed = HistoryResponseSchema.parse({ rows, count: rows.length });
 
-    return NextResponse.json(parsed, {
+    return apiSuccessResponse(parsed, {
       headers: {
         'Cache-Control': 'private, no-store',
         ...rateLimitHeaders(rate),
@@ -93,6 +96,6 @@ export async function GET(request: Request) {
     });
   } catch (err) {
     console.error('History route error:', err);
-    return NextResponse.json({ error: 'History unavailable' }, { status: 503 });
+    return apiErrorResponse('HISTORY_UNAVAILABLE', 'History unavailable', 503);
   }
 }

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { useModalKeyboard } from '@/hooks/useModalKeyboard';
+import { Z_INDEX } from '@/lib/design/tokens.generated';
 interface WalletModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -95,7 +96,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 5000,
+        zIndex: Z_INDEX.modal.priority,
         display: 'flex',
         alignItems: isMobile ? 'flex-end' : 'center',
         justifyContent: 'center',

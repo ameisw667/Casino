@@ -32,11 +32,17 @@ vi.mock('@/lib/casino/guide-knowledge/pgvector-store', () => ({
 import { GET, POST, DELETE } from '../route';
 
 function adminUser() {
-  mocks.getUser.mockResolvedValue({ data: { user: { id: 'admin-1', email: 'admin@example.com' } } });
+  mocks.getUser.mockResolvedValue({
+    data: { user: { id: 'admin-1', email: 'admin@example.com' } },
+  });
   mocks.isAdminEmail.mockReturnValue(true);
 }
 
-function jsonRequest(body: unknown, method: string, url = 'https://casino.example/api/admin/knowledge') {
+function jsonRequest(
+  body: unknown,
+  method: string,
+  url = 'https://casino.example/api/admin/knowledge',
+) {
   return new Request(url, {
     method,
     headers: { 'Content-Type': 'application/json', origin: 'https://casino.example' },
@@ -71,10 +77,7 @@ describe('/api/admin/knowledge auth & rate limiting', () => {
     adminUser();
     mocks.enforceRateLimit.mockResolvedValue({ success: false, limit: 10, remaining: 0, reset: 0 });
     const res = await POST(
-      jsonRequest(
-        { slug: 'x', topic: 'other', title: 'T', content: 'C', tags: [] },
-        'POST',
-      ),
+      jsonRequest({ slug: 'x', topic: 'other', title: 'T', content: 'C', tags: [] }, 'POST'),
     );
     expect(res.status).toBe(429);
     expect(mocks.upsertAdminGuideDocument).not.toHaveBeenCalled();
@@ -84,14 +87,11 @@ describe('/api/admin/knowledge auth & rate limiting', () => {
     adminUser();
     mocks.upsertAdminGuideDocument.mockResolvedValue({ success: false, error: 'db unreachable' });
     const res = await POST(
-      jsonRequest(
-        { slug: 'x', topic: 'other', title: 'T', content: 'C', tags: [] },
-        'POST',
-      ),
+      jsonRequest({ slug: 'x', topic: 'other', title: 'T', content: 'C', tags: [] }, 'POST'),
     );
     expect(res.status).toBe(500);
-    const json = (await res.json()) as { error: string };
-    expect(json.error).toBe('db unreachable');
+    const json = (await res.json()) as { error: { message: string } };
+    expect(json.error.message).toBe('db unreachable');
   });
 
   it('DELETE is rate-limited like POST (regression: DELETE previously had no rate limit at all)', async () => {
@@ -125,8 +125,8 @@ describe('/api/admin/knowledge auth & rate limiting', () => {
       jsonRequest(null, 'DELETE', 'https://casino.example/api/admin/knowledge?id=guide-test'),
     );
     expect(res.status).toBe(500);
-    const json = (await res.json()) as { error: string };
-    expect(json.error).toBe('db unreachable');
+    const json = (await res.json()) as { error: { message: string } };
+    expect(json.error.message).toBe('db unreachable');
   });
 
   it('DELETE succeeds for an admin within the rate limit', async () => {

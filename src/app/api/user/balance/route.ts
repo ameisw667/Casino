@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { WalletService } from '@/lib/casino/wallet';
 import { CasinoLogger } from '@/lib/casino/logger';
 import {
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     if (!userId) {
       userId = resolveDevFallbackUserId(request, isExplicitSignedOut) ?? undefined;
     }
-    if (!userId) return new NextResponse('Unauthorized', { status: 401 });
+    if (!userId) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
 
     const rate = await enforceRateLimit(
       getClientIdentifier(request, userId),
@@ -30,17 +30,20 @@ export async function GET(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
-    return NextResponse.json(await WalletService.getWallet(userId), {
+    return apiSuccessResponse(await WalletService.getWallet(userId), {
       headers: { 'Cache-Control': 'private, no-store' },
     });
   } catch (error) {
     CasinoLogger.error('API/User/Balance', 'Server wallet load failed closed', error);
-    return NextResponse.json({ error: 'Wallet unavailable' }, { status: 503 });
+    return apiErrorResponse('WALLET_UNAVAILABLE', 'Wallet unavailable', 503);
   }
 }

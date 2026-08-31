@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import { consumeTelegramLinkToken, unlinkTelegramByChatId } from '@/lib/casino/telegram-link';
@@ -49,21 +49,21 @@ async function handleStart(chatId: number, token: string | undefined, username: 
 
 export async function POST(request: Request) {
   if (!hasValidWebhookSecret(request)) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
   }
 
   try {
     const body = await request.json().catch(() => null);
     const parsed = updateSchema.safeParse(body);
     const message = parsed.success ? parsed.data.message : undefined;
-    if (!message) return NextResponse.json({ ok: true });
+    if (!message) return apiSuccessResponse({ ok: true });
 
     const chatId = message.chat.id;
     const text = message.text?.trim() ?? '';
 
     if (text.startsWith('/start')) {
       await handleStart(chatId, text.split(/\s+/)[1], message.from?.username ?? null);
-      return NextResponse.json({ ok: true });
+      return apiSuccessResponse({ ok: true });
     }
 
     if (text === '/stop') {
@@ -72,14 +72,14 @@ export async function POST(request: Request) {
         chatId,
         'Disconnected. You will no longer receive notifications here.',
       ).catch(() => undefined);
-      return NextResponse.json({ ok: true });
+      return apiSuccessResponse({ ok: true });
     }
 
     await sendTelegramMessage(chatId, HELP_TEXT).catch(() => undefined);
-    return NextResponse.json({ ok: true });
+    return apiSuccessResponse({ ok: true });
   } catch {
     CasinoLogger.error('API/Telegram/Webhook', 'Failed to process telegram update');
     // Always 200: an internal error here must not make Telegram retry-storm the webhook.
-    return NextResponse.json({ ok: true });
+    return apiSuccessResponse({ ok: true });
   }
 }

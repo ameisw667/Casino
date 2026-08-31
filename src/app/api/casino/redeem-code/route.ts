@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { WalletService } from '@/lib/casino/wallet';
 import { CasinoLogger } from '@/lib/casino/logger';
@@ -11,6 +10,7 @@ import {
 } from '@/lib/security/request-security';
 import { createClient } from '@/utils/supabase/server';
 import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
+import { apiSuccessResponse } from '@/lib/api/response';
 
 const redeemSchema = z.object({
   code: z.string().trim().min(1, 'Please enter a promo code').max(32, 'Code too long'),
@@ -146,7 +146,7 @@ export async function POST(request: Request) {
       { userId },
     );
 
-    return NextResponse.json({
+    return apiSuccessResponse({
       success: true,
       amount: outcome.amount,
       code: rawCode,

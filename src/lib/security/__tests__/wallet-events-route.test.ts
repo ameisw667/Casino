@@ -60,7 +60,7 @@ describe('POST /api/internal/wallet-events', () => {
     mocks.rpc.mockResolvedValue({ data: { success: true, alreadyProcessed: false }, error: null });
     const response = await POST(walletEventRequest({ eventId: EVENT_ID }));
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true });
+    expect(await response.json()).toEqual({ data: { ok: true } });
     expect(mocks.rpc).toHaveBeenCalledWith('apply_xp_gain', { p_event_id: EVENT_ID });
   });
 

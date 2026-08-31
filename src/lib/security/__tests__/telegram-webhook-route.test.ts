@@ -58,7 +58,7 @@ describe('POST /api/telegram/webhook', () => {
   it('acknowledges updates without a message body', async () => {
     const response = await POST(webhookRequest({ update_id: 1 }));
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true });
+    expect(await response.json()).toEqual({ data: { ok: true } });
     expect(mocks.consumeTelegramLinkToken).not.toHaveBeenCalled();
   });
 

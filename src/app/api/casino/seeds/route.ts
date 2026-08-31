@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { createClient } from '@/utils/supabase/server';
 import { WalletService } from '@/lib/casino/wallet';
 import { CasinoLogger } from '@/lib/casino/logger';
@@ -32,17 +32,17 @@ export async function GET(request: Request) {
     ) {
       userId = 'dev_user_fallback';
     }
-    if (!userId) return new NextResponse('Unauthorized', { status: 401 });
+    if (!userId) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
 
     const seeds = await WalletService.getUserSeeds(userId);
-    return NextResponse.json(seeds, {
+    return apiSuccessResponse(seeds, {
       headers: { 'Cache-Control': 'private, no-store' },
     });
   } catch (error) {
     CasinoLogger.error('API/Seeds', 'Failed to fetch seeds', error);
-    return NextResponse.json(
+    return apiSuccessResponse(
       { clientSeed: 'vibe-coder-default', serverSeedHash: '', nonce: 0 },
-      { status: 200 },
+      { headers: { 'Cache-Control': 'private, no-store' } },
     );
   }
 }
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
     ) {
       userId = 'dev_user_fallback';
     }
-    if (!userId) return new NextResponse('Unauthorized', { status: 401 });
+    if (!userId) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
 
     const rate = await enforceRateLimit(
       getClientIdentifier(request, userId),
@@ -77,16 +77,15 @@ export async function POST(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: 'Too Many Requests' },
-        { status: 429, headers: rateLimitHeaders(rate) },
-      );
+      return apiErrorResponse('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429, undefined, {
+        headers: rateLimitHeaders(rate),
+      });
     }
 
     const body = await request.json();
     const parsed = rotateSeedSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid client seed' }, { status: 400 });
+      return apiErrorResponse('INVALID_CLIENT_SEED', 'Invalid client seed', 400);
     }
 
     const newSeeds = await WalletService.rotateUserSeed({
@@ -94,11 +93,11 @@ export async function POST(request: Request) {
       clientSeed: parsed.data.clientSeed,
     });
 
-    return NextResponse.json(newSeeds, {
+    return apiSuccessResponse(newSeeds, {
       headers: { 'Cache-Control': 'private, no-store' },
     });
   } catch (error) {
     CasinoLogger.error('API/Seeds', 'Failed to rotate seeds', error);
-    return NextResponse.json({ error: 'Seed rotation failed' }, { status: 500 });
+    return apiErrorResponse('SEED_ROTATION_FAILED', 'Seed rotation failed', 500);
   }
 }

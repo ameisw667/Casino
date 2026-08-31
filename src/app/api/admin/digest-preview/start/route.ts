@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { auth, tasks } from '@trigger.dev/sdk';
 import { createClient } from '@/utils/supabase/server';
 import { isAdminEmail } from '@/lib/security/admin';
@@ -18,18 +18,19 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
   }
 
   if (!isAdminEmail(user.email)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return apiErrorResponse('FORBIDDEN', 'Forbidden', 403);
   }
 
   const secretKey = process.env.TRIGGER_SECRET_KEY;
   if (!secretKey) {
-    return NextResponse.json(
-      { error: 'TRIGGER_SECRET_KEY is not configured in server environment' },
-      { status: 503 },
+    return apiErrorResponse(
+      'TRIGGER_NOT_CONFIGURED',
+      'TRIGGER_SECRET_KEY is not configured in server environment',
+      503,
     );
   }
 
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({
+    return apiSuccessResponse({
       success: true,
       runId: handle.id,
       publicAccessToken,
@@ -54,9 +55,6 @@ export async function POST(request: Request) {
       'Failed to start digest preview task',
       error instanceof Error ? error : undefined,
     );
-    return NextResponse.json(
-      { error: 'Failed to trigger digest preview' },
-      { status: 500 },
-    );
+    return apiErrorResponse('TRIGGER_FAILED', 'Failed to trigger digest preview', 500);
   }
 }

@@ -65,16 +65,13 @@ const SAFE_AUTH_MESSAGES = {
     'Ungültiger Bestätigungscode. Bitte prüfe die Eingabe in deiner Authenticator-App.',
   mfaFactorNotFound: '2FA-Faktor nicht gefunden oder bereits entfernt.',
   mfaAlreadyVerified: 'Dieser 2FA-Faktor ist bereits aktiviert.',
-  identityAlreadyLinked:
-    'Dieses Konto ist bereits mit einem anderen Spielerprofil verknüpft.',
-  cannotUnlinkLastIdentity:
-    'Die letzte verbleibende Anmeldemethode kann nicht getrennt werden.',
+  identityAlreadyLinked: 'Dieses Konto ist bereits mit einem anderen Spielerprofil verknüpft.',
+  cannotUnlinkLastIdentity: 'Die letzte verbleibende Anmeldemethode kann nicht getrennt werden.',
   identityNotFound: 'Das angegebene verknüpfte Konto wurde nicht gefunden.',
   samePassword: 'Das neue Passwort darf nicht mit deinem bisherigen Passwort identisch sein.',
   recoveryOtpExpired:
     'Der Wiederherstellungs-Link ist abgelaufen oder ungültig. Bitte fordere einen neuen Link an.',
-  otpInvalid:
-    'Ungültiger Einmal-Code. Bitte prüfe die 6 Ziffern aus deiner E-Mail.',
+  otpInvalid: 'Ungültiger Einmal-Code. Bitte prüfe die 6 Ziffern aus deiner E-Mail.',
   fallback: 'Die Anmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.',
 } as const;
 
@@ -197,14 +194,8 @@ export function mapAuthError(message: string): ApiError {
       SAFE_AUTH_MESSAGES.mfaFactorNotFound,
     );
   }
-  if (
-    normalized.includes('factor already verified') ||
-    normalized.includes('already enrolled')
-  ) {
-    return createApiError(
-      APP_ERROR_CODES.CONFLICT,
-      SAFE_AUTH_MESSAGES.mfaAlreadyVerified,
-    );
+  if (normalized.includes('factor already verified') || normalized.includes('already enrolled')) {
+    return createApiError(APP_ERROR_CODES.CONFLICT, SAFE_AUTH_MESSAGES.mfaAlreadyVerified);
   }
   if (
     normalized.includes('invalid_grant') ||
@@ -213,20 +204,14 @@ export function mapAuthError(message: string): ApiError {
     normalized.includes('mfa_challenge_failed') ||
     normalized.includes('invalid challenge')
   ) {
-    return createApiError(
-      APP_ERROR_CODES.AUTHENTICATION_FAILED,
-      SAFE_AUTH_MESSAGES.mfaInvalidCode,
-    );
+    return createApiError(APP_ERROR_CODES.AUTHENTICATION_FAILED, SAFE_AUTH_MESSAGES.mfaInvalidCode);
   }
   if (
     normalized.includes('identity_already_exists') ||
     normalized.includes('already linked to another') ||
     normalized.includes('already linked')
   ) {
-    return createApiError(
-      APP_ERROR_CODES.CONFLICT,
-      SAFE_AUTH_MESSAGES.identityAlreadyLinked,
-    );
+    return createApiError(APP_ERROR_CODES.CONFLICT, SAFE_AUTH_MESSAGES.identityAlreadyLinked);
   }
   if (
     normalized.includes('cannot_unlink_last_identity') ||
@@ -249,10 +234,7 @@ export function mapAuthError(message: string): ApiError {
     normalized.includes('new password should be different') ||
     normalized.includes('same as old password')
   ) {
-    return createApiError(
-      APP_ERROR_CODES.VALIDATION_FAILED,
-      SAFE_AUTH_MESSAGES.samePassword,
-    );
+    return createApiError(APP_ERROR_CODES.VALIDATION_FAILED, SAFE_AUTH_MESSAGES.samePassword);
   }
   if (
     normalized.includes('otp_expired') ||
@@ -271,10 +253,7 @@ export function mapAuthError(message: string): ApiError {
     normalized.includes('invalid token') ||
     normalized.includes('token_not_found')
   ) {
-    return createApiError(
-      APP_ERROR_CODES.AUTHENTICATION_FAILED,
-      SAFE_AUTH_MESSAGES.otpInvalid,
-    );
+    return createApiError(APP_ERROR_CODES.AUTHENTICATION_FAILED, SAFE_AUTH_MESSAGES.otpInvalid);
   }
   if (normalized.includes('invalid api key') || normalized.includes('api key')) {
     return createApiError(APP_ERROR_CODES.SERVICE_UNAVAILABLE, SAFE_AUTH_MESSAGES.apiKey);

@@ -105,8 +105,12 @@ describe('Login Cooldown State Engine', () => {
   });
 
   it('formats user warnings and cooldown messages clearly', () => {
-    expect(formatWarningMessage(1)).toBe('Ungültige Anmeldedaten. Noch 4 Versuche vor einer Sperre.');
-    expect(formatWarningMessage(4)).toBe('Ungültige Anmeldedaten. Noch 1 Fehlversuch vor einer 60-Sekunden-Sperre.');
+    expect(formatWarningMessage(1)).toBe(
+      'Ungültige Anmeldedaten. Noch 4 Versuche vor einer Sperre.',
+    );
+    expect(formatWarningMessage(4)).toBe(
+      'Ungültige Anmeldedaten. Noch 1 Fehlversuch vor einer 60-Sekunden-Sperre.',
+    );
     expect(formatWarningMessage(5)).toBe('Zu viele Fehlversuche. Bitte warte noch 60 Sekunden.');
     expect(formatCooldownMessage(42)).toBe('Zu viele Fehlversuche. Bitte warte noch 42 Sekunden.');
   });

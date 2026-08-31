@@ -51,7 +51,9 @@ export async function GET(request: Request) {
         const authMethod: AuthMethod = provider === 'google' ? 'google' : 'otp_magic_link';
         const userAgent = request.headers.get('user-agent');
         const forwardedFor = request.headers.get('x-forwarded-for');
-        const rawIp = forwardedFor ? forwardedFor.split(',')[0].trim() : request.headers.get('x-real-ip');
+        const rawIp = forwardedFor
+          ? forwardedFor.split(',')[0].trim()
+          : request.headers.get('x-real-ip');
 
         await recordLoginAuditEntry({
           userId: data.user.id,

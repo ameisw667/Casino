@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { createAdminClient } from '@/utils/supabase/admin';
 import {
   enforceRateLimit,
@@ -29,9 +29,12 @@ export async function GET(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
@@ -69,12 +72,10 @@ export async function GET(request: Request) {
 
       if (txResult.error) {
         console.error('Leaderboard query failed:', txResult.error);
-        return NextResponse.json({ error: 'Leaderboard unavailable' }, { status: 503 });
+        return apiErrorResponse('LEADERBOARD_UNAVAILABLE', 'Leaderboard unavailable', 503);
       }
       if (roundsResult.error) {
         console.error('Leaderboard game_rounds query failed:', roundsResult.error);
-        // Continue with wallet_transactions-only aggregation rather than failing the
-        // whole request — crash/blackjack stakes are additive, not load-bearing.
       }
 
       // Aggregate client-side
@@ -167,7 +168,7 @@ export async function GET(request: Request) {
         generated_at: new Date().toISOString(),
       });
 
-      return NextResponse.json(parsed, {
+      return apiSuccessResponse(parsed, {
         headers: {
           'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
           ...rateLimitHeaders(rate),
@@ -189,7 +190,7 @@ export async function GET(request: Request) {
       generated_at: new Date().toISOString(),
     });
 
-    return NextResponse.json(parsed, {
+    return apiSuccessResponse(parsed, {
       headers: {
         'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
         ...rateLimitHeaders(rate),
@@ -197,7 +198,7 @@ export async function GET(request: Request) {
     });
   } catch (err) {
     console.error('Leaderboard route error:', err);
-    return NextResponse.json({ error: 'Leaderboard unavailable' }, { status: 503 });
+    return apiErrorResponse('LEADERBOARD_UNAVAILABLE', 'Leaderboard unavailable', 503);
   }
 }
 

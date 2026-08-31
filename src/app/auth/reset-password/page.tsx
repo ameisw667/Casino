@@ -67,7 +67,9 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     async function checkRecoverySession() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (user) {
           setHasSession(true);
         } else {
@@ -116,7 +118,8 @@ export default function ResetPasswordPage() {
     }
   }
 
-  const isFormValid = password.length >= 8 && confirmPassword.length >= 8 && password === confirmPassword;
+  const isFormValid =
+    password.length >= 8 && confirmPassword.length >= 8 && password === confirmPassword;
 
   return (
     <main
@@ -180,7 +183,11 @@ export default function ResetPasswordPage() {
 
           {checkingSession ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
-              <Loader2 className="animate-spin" size={28} style={{ color: 'hsl(var(--primary))' }} />
+              <Loader2
+                className="animate-spin"
+                size={28}
+                style={{ color: 'hsl(var(--primary))' }}
+              />
             </div>
           ) : isSuccess ? (
             <motion.div
@@ -195,7 +202,9 @@ export default function ResetPasswordPage() {
               }}
             >
               <CheckCircle2 size={36} color="#00e676" style={{ margin: '0 auto 12px' }} />
-              <h3 style={{ color: '#00e676', margin: '0 0 6px', fontSize: '1rem', fontWeight: 800 }}>
+              <h3
+                style={{ color: '#00e676', margin: '0 0 6px', fontSize: '1rem', fontWeight: 800 }}
+              >
                 Passwort erfolgreich gespeichert!
               </h3>
               <p style={{ color: 'rgba(255,255,255,0.6)', margin: 0, fontSize: '0.85rem' }}>
@@ -213,7 +222,9 @@ export default function ResetPasswordPage() {
               }}
             >
               <AlertCircle size={32} color="#ff3366" style={{ margin: '0 auto 10px' }} />
-              <p style={{ color: 'rgba(255,255,255,0.85)', margin: '0 0 16px', fontSize: '0.9rem' }}>
+              <p
+                style={{ color: 'rgba(255,255,255,0.85)', margin: '0 0 16px', fontSize: '0.9rem' }}
+              >
                 Kein gültiger Wiederherstellungs-Link gefunden oder der Link ist abgelaufen.
               </p>
               <Link
@@ -233,7 +244,10 @@ export default function ResetPasswordPage() {
               </Link>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form
+              onSubmit={handleSubmit}
+              style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+            >
               {status && (
                 <div
                   style={{
@@ -253,7 +267,12 @@ export default function ResetPasswordPage() {
               <div>
                 <label
                   htmlFor="auth-new-password"
-                  style={{ display: 'block', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}
+                  style={{
+                    display: 'block',
+                    fontSize: '0.8rem',
+                    color: 'rgba(255,255,255,0.6)',
+                    marginBottom: '6px',
+                  }}
                 >
                   Neues Passwort
                 </label>
@@ -298,16 +317,19 @@ export default function ResetPasswordPage() {
                 </div>
 
                 {/* Password Strength Meter */}
-                {password.length > 0 && (
-                  <PasswordStrengthMeter password={password} />
-                )}
+                {password.length > 0 && <PasswordStrengthMeter password={password} />}
               </div>
 
               {/* Password Field 2 */}
               <div>
                 <label
                   htmlFor="auth-confirm-password"
-                  style={{ display: 'block', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}
+                  style={{
+                    display: 'block',
+                    fontSize: '0.8rem',
+                    color: 'rgba(255,255,255,0.6)',
+                    marginBottom: '6px',
+                  }}
                 >
                   Passwort bestätigen
                 </label>
@@ -353,7 +375,10 @@ export default function ResetPasswordPage() {
               </div>
 
               {/* Submit Button */}
-              <Magnetic strength={0.3} style={{ display: 'block', width: '100%', marginTop: '6px' }}>
+              <Magnetic
+                strength={0.3}
+                style={{ display: 'block', width: '100%', marginTop: '6px' }}
+              >
                 <motion.button
                   id="auth-submit-reset-password"
                   type="submit"

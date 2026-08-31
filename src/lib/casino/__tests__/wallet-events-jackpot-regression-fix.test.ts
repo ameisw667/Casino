@@ -6,7 +6,10 @@ import { describe, expect, it } from 'vitest';
 // 037_multiplayer_crash_rounds.sql, which had already been pushed to the remote database under
 // that number — this file's content is unaffected, only its path/version changed.
 const sql = readFileSync(
-  resolve(__dirname, '../../../../supabase/migrations/045_fix_wallet_events_jackpot_regression.sql'),
+  resolve(
+    __dirname,
+    '../../../../supabase/migrations/045_fix_wallet_events_jackpot_regression.sql',
+  ),
   'utf8',
 );
 // Strips SQL line comments so counts below reflect real code, not the header's prose
@@ -35,9 +38,10 @@ describe('037 restores jackpot integration alongside the wallet_events outbox', 
   });
 
   it('still emits wallet_events instead of writing xp/level/rank inline, for the three real settlement paths', () => {
-    const occurrences = activeFunctionsSql.match(
-      /INSERT INTO (?:public\.)?wallet_events \(user_id, request_id, event_type, xp_gain\)/g,
-    ) ?? [];
+    const occurrences =
+      activeFunctionsSql.match(
+        /INSERT INTO (?:public\.)?wallet_events \(user_id, request_id, event_type, xp_gain\)/g,
+      ) ?? [];
     expect(occurrences.length).toBe(3);
     expect(activeFunctionsSql).not.toMatch(/UPDATE (?:public\.)?users SET balance[^;]*xp = v_xp/s);
   });

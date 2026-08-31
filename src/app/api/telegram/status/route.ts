@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { createClient } from '@/utils/supabase/server';
 import { getTelegramLinkStatus } from '@/lib/casino/telegram-link';
 import { CasinoLogger } from '@/lib/casino/logger';
@@ -30,10 +30,9 @@ export async function GET(request: Request) {
       userId = 'dev_user_fallback';
     }
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401, headers: PRIVATE_NO_STORE_HEADERS },
-      );
+      return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401, undefined, {
+        headers: PRIVATE_NO_STORE_HEADERS,
+      });
     }
 
     const rate = await enforceRateLimit(
@@ -43,24 +42,29 @@ export async function GET(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
         {
-          status: rate.unavailable ? 503 : 429,
           headers: { ...PRIVATE_NO_STORE_HEADERS, ...rateLimitHeaders(rate) },
         },
       );
     }
 
     const status = await getTelegramLinkStatus(userId);
-    return NextResponse.json(status, {
+    return apiSuccessResponse(status, {
       headers: { ...PRIVATE_NO_STORE_HEADERS, ...rateLimitHeaders(rate) },
     });
   } catch (error) {
     CasinoLogger.error('API/Telegram/Status', 'Failed to read telegram link status', error);
-    return NextResponse.json(
-      { error: 'Failed to read telegram link status' },
-      { status: 500, headers: PRIVATE_NO_STORE_HEADERS },
+    return apiErrorResponse(
+      'TELEGRAM_STATUS_FAILED',
+      'Failed to read telegram link status',
+      500,
+      undefined,
+      { headers: PRIVATE_NO_STORE_HEADERS },
     );
   }
 }

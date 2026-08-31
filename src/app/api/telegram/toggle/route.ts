@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 import { setTelegramNotificationsEnabled } from '@/lib/casino/telegram-link';
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     ) {
       userId = 'dev_user_fallback';
     }
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!userId) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
 
     const rate = await enforceRateLimit(
       getClientIdentifier(request, userId),
@@ -43,37 +43,43 @@ export async function POST(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests' },
-        { status: rate.unavailable ? 503 : 429, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
     const parsed = toggleSchema.safeParse(await request.json().catch(() => null));
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid request' },
-        { status: 400, headers: rateLimitHeaders(rate) },
-      );
+      return apiErrorResponse('INVALID_REQUEST', 'Invalid request', 400, undefined, {
+        headers: rateLimitHeaders(rate),
+      });
     }
 
     const ok = await setTelegramNotificationsEnabled(userId, parsed.data.enabled);
     if (!ok) {
-      return NextResponse.json(
-        { error: 'Failed to update notification preference' },
-        { status: 500, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        'UPDATE_PREFERENCE_FAILED',
+        'Failed to update notification preference',
+        500,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
-    return NextResponse.json(
+    return apiSuccessResponse(
       { success: true, enabled: parsed.data.enabled },
       { headers: rateLimitHeaders(rate) },
     );
   } catch (error) {
     CasinoLogger.error('API/Telegram/Toggle', 'Failed to update notification preference', error);
-    return NextResponse.json(
-      { error: 'Failed to update notification preference' },
-      { status: 500 },
+    return apiErrorResponse(
+      'UPDATE_PREFERENCE_FAILED',
+      'Failed to update notification preference',
+      500,
     );
   }
 }

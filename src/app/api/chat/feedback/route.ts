@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { recordGuideFeedback } from '@/lib/casino/guide-feedback';
+import { CasinoLogger } from '@/lib/casino/logger';
 import { createClient } from '@/utils/supabase/server';
 import {
   enforceRateLimit,
@@ -8,13 +8,12 @@ import {
   rateLimitHeaders,
   validateMutationOrigin,
 } from '@/lib/security/request-security';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 
 const feedbackSchema = z.object({
   rating: z.union([z.literal(1), z.literal(-1)]),
   messageId: z.string().max(128).optional(),
-  category: z
-    .enum(['helpful', 'accurate', 'inaccurate', 'unhelpful', 'slow', 'other'])
-    .optional(),
+  category: z.enum(['helpful', 'accurate', 'inaccurate', 'unhelpful', 'slow', 'other']).optional(),
   comment: z.string().max(1000).optional(),
 });
 
@@ -31,19 +30,25 @@ export async function POST(request: Request) {
     const clientIdentifier = getClientIdentifier(request, user?.id);
     const rate = await enforceRateLimit(clientIdentifier, 'guide-feedback', 20, 60);
     if (!rate.success) {
-      return new NextResponse('Too Many Requests', {
-        status: 429,
-        headers: rateLimitHeaders(rate),
-      });
+      return apiErrorResponse(
+        rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
+        rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
+        rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
+      );
     }
 
     const json = await request.json().catch(() => null);
     const parsed = feedbackSchema.safeParse(json);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid feedback data', details: parsed.error.issues },
-        { status: 400, headers: rateLimitHeaders(rate) },
+      return apiErrorResponse(
+        'INVALID_FEEDBACK_DATA',
+        'Invalid feedback data',
+        400,
+        parsed.error.issues,
+        { headers: rateLimitHeaders(rate) },
       );
     }
 
@@ -55,14 +60,31 @@ export async function POST(request: Request) {
       comment: parsed.data.comment,
     });
 
-    return NextResponse.json(
+    if (!result.success) {
+      CasinoLogger.error(
+        'API/Chat/Feedback',
+        'Feedback insert failed',
+        new Error(result.error ?? 'Unknown error'),
+      );
+      return apiErrorResponse(
+        'FEEDBACK_INSERT_FAILED',
+        'Failed to record feedback',
+        500,
+        undefined,
+        { headers: rateLimitHeaders(rate) },
+      );
+    }
+
+    return apiSuccessResponse(
       { success: true, id: result.id },
       { headers: rateLimitHeaders(rate) },
     );
   } catch (err) {
-    return NextResponse.json(
-      { error: 'Failed to record feedback', message: err instanceof Error ? err.message : 'Unknown error' },
-      { status: 500 },
+    CasinoLogger.error(
+      'API/Chat/Feedback',
+      'Feedback route threw',
+      err instanceof Error ? err : undefined,
     );
+    return apiErrorResponse('FEEDBACK_FAILED', 'Failed to record feedback', 500);
   }
 }

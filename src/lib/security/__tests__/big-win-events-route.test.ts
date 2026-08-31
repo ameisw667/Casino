@@ -77,7 +77,9 @@ describe('POST /api/internal/big-win-events', () => {
     const response = await POST(bigWinEventRequest({ eventId: EVENT_ID }));
 
     expect(response.status).toBe(200);
-    expect(mocks.rpc).toHaveBeenNthCalledWith(1, 'claim_big_win_notify_event', { p_event_id: EVENT_ID });
+    expect(mocks.rpc).toHaveBeenNthCalledWith(1, 'claim_big_win_notify_event', {
+      p_event_id: EVENT_ID,
+    });
     expect(mocks.trigger).toHaveBeenCalledWith('big-win-notify', {
       userId: 'user-1',
       game: 'DICE',
@@ -86,7 +88,9 @@ describe('POST /api/internal/big-win-events', () => {
       win: true,
       replayed: false,
     });
-    expect(mocks.rpc).toHaveBeenNthCalledWith(2, 'ack_big_win_notify_event', { p_event_id: EVENT_ID });
+    expect(mocks.rpc).toHaveBeenNthCalledWith(2, 'ack_big_win_notify_event', {
+      p_event_id: EVENT_ID,
+    });
   });
 
   it('acknowledges an already-processed event without re-dispatching', async () => {
@@ -119,7 +123,10 @@ describe('POST /api/internal/big-win-events', () => {
   });
 
   it('returns 500 when the claim RPC reports a logical failure', async () => {
-    mocks.rpc.mockResolvedValueOnce({ data: { success: false, error: 'unknown_event' }, error: null });
+    mocks.rpc.mockResolvedValueOnce({
+      data: { success: false, error: 'unknown_event' },
+      error: null,
+    });
     const response = await POST(bigWinEventRequest({ eventId: EVENT_ID }));
     expect(response.status).toBe(500);
   });

@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('server-only', () => ({}));
+
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
   from: vi.fn(),
@@ -104,7 +106,9 @@ describe('admin analytics route', () => {
     const response = await GET(new Request('https://casino.test/api/admin/analytics'));
 
     expect(response.status).toBe(401);
-    expect(await response.text()).toBe('Unauthorized');
+    expect(await response.json()).toEqual({
+      error: { code: 'UNAUTHORIZED', message: 'Unauthorized' },
+    });
   });
 
   it('returns 403 instead of analytics data for an authenticated non-admin', async () => {
@@ -116,7 +120,9 @@ describe('admin analytics route', () => {
     const response = await GET(new Request('https://casino.test/api/admin/analytics'));
 
     expect(response.status).toBe(403);
-    expect(await response.text()).toBe('Forbidden');
+    expect(await response.json()).toEqual({
+      error: { code: 'FORBIDDEN', message: 'Forbidden' },
+    });
   });
 
   it('returns a private live analytics contract for an allowlisted admin', async () => {
@@ -130,10 +136,12 @@ describe('admin analytics route', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('Cache-Control')).toBe('private, no-store');
     await expect(response.json()).resolves.toMatchObject({
-      cohorts: { registration: [{ users: 1 }], firstWager: [] },
-      summary: { registeredUsers: 1, wager: 0, ggr: 0 },
-      deposits: { available: false },
-      guide: { status: 'ready', last24h: { requests: 0 } },
+      data: {
+        cohorts: { registration: [{ users: 1 }], firstWager: [] },
+        summary: { registeredUsers: 1, wager: 0, ggr: 0 },
+        deposits: { available: false },
+        guide: { status: 'ready', last24h: { requests: 0 } },
+      },
     });
   });
 
@@ -147,7 +155,9 @@ describe('admin analytics route', () => {
     const response = await GET(new Request('https://casino.test/api/admin/analytics'));
 
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({ guide: { status: 'unavailable' } });
+    await expect(response.json()).resolves.toMatchObject({
+      data: { guide: { status: 'unavailable' } },
+    });
   });
 
   it('accepts Supabase UTC-offset timestamps instead of returning 503', async () => {
@@ -171,7 +181,9 @@ describe('admin analytics route', () => {
     const response = await GET(new Request('https://casino.test/api/admin/analytics'));
 
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({ summary: { registeredUsers: 1 } });
+    await expect(response.json()).resolves.toMatchObject({
+      data: { summary: { registeredUsers: 1 } },
+    });
   });
 
   it('ignores historical non-analytics payloads instead of returning 503', async () => {
@@ -228,7 +240,9 @@ describe('admin analytics route', () => {
     const response = await GET(new Request('https://casino.test/api/admin/analytics'));
 
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({ summary: { wager: 25, payout: 0 } });
+    await expect(response.json()).resolves.toMatchObject({
+      data: { summary: { wager: 25, payout: 0 } },
+    });
   });
 
   it('returns the stored snapshot directly without querying live tables when a valid snapshot exists', async () => {
@@ -272,8 +286,10 @@ describe('admin analytics route', () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
-      summary: { registeredUsers: 42, wager: 1000, ggr: 100 },
-      guide: { status: 'ready', last24h: { requests: 0 } },
+      data: {
+        summary: { registeredUsers: 42, wager: 1000, ggr: 100 },
+        guide: { status: 'ready', last24h: { requests: 0 } },
+      },
     });
   });
 
@@ -301,6 +317,8 @@ describe('admin analytics route', () => {
     const response = await GET(new Request('https://casino.test/api/admin/analytics'));
 
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({ summary: { registeredUsers: 1 } });
+    await expect(response.json()).resolves.toMatchObject({
+      data: { summary: { registeredUsers: 1 } },
+    });
   });
 });

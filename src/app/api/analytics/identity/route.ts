@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { createAnalyticsDistinctId } from '@/lib/analytics/identity-hmac';
 import { CasinoLogger } from '@/lib/casino/logger';
@@ -7,7 +6,7 @@ import {
   getClientIdentifier,
   rateLimitHeaders,
 } from '@/lib/security/request-security';
-import { APP_ERROR_CODES, apiErrorResponse } from '@/lib/security/form-errors';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 
 const HMAC_VERSION = 1;
 
@@ -31,7 +30,7 @@ export async function GET(request: Request) {
       userId = 'dev_user_fallback';
     }
     if (!userId) {
-      return apiErrorResponse(APP_ERROR_CODES.AUTHENTICATION_REQUIRED, 'Bitte melde dich an.', 401);
+      return apiErrorResponse('AUTHENTICATION_REQUIRED', 'Bitte melde dich an.', 401);
     }
 
     const rate = await enforceRateLimit(
@@ -42,11 +41,12 @@ export async function GET(request: Request) {
     );
     if (!rate.success) {
       return apiErrorResponse(
-        rate.unavailable ? APP_ERROR_CODES.SERVICE_UNAVAILABLE : APP_ERROR_CODES.RATE_LIMITED,
+        rate.unavailable ? 'SERVICE_UNAVAILABLE' : 'RATE_LIMITED',
         rate.unavailable
           ? 'Der Dienst ist vorübergehend nicht verfügbar.'
           : 'Zu viele Anfragen. Bitte versuche es später erneut.',
         rate.unavailable ? 503 : 429,
+        undefined,
         { headers: rateLimitHeaders(rate) },
       );
     }
@@ -55,20 +55,20 @@ export async function GET(request: Request) {
     if (!distinctId) {
       // Secret missing/misconfigured — fail closed, never fall back to the raw user id.
       return apiErrorResponse(
-        APP_ERROR_CODES.SERVICE_UNAVAILABLE,
+        'SERVICE_UNAVAILABLE',
         'Analytics-Identität derzeit nicht verfügbar.',
         503,
       );
     }
 
-    return NextResponse.json(
+    return apiSuccessResponse(
       { distinctId, version: HMAC_VERSION },
       { headers: { 'Cache-Control': 'private, no-store' } },
     );
   } catch (error) {
     CasinoLogger.error('API/Analytics/Identity', 'Identity lookup failed closed', error);
     return apiErrorResponse(
-      APP_ERROR_CODES.SERVICE_UNAVAILABLE,
+      'SERVICE_UNAVAILABLE',
       'Analytics-Identität derzeit nicht verfügbar.',
       503,
     );

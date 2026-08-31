@@ -45,7 +45,8 @@ export const createWalletSnapshotSlice: StateCreator<CasinoState, [], [], Wallet
       if (response.headers?.get?.('content-type')?.includes('text/html')) {
         throw new Error('Received HTML response instead of JSON configuration');
       }
-      const config = (await response.json()) as {
+      const raw = await response.json();
+      const config = (raw?.data ?? raw) as {
         vipTiers: VipTier[];
         ranks: Rank[];
         gameConfig: GameConfig;
@@ -71,7 +72,8 @@ export const createWalletSnapshotSlice: StateCreator<CasinoState, [], [], Wallet
       if (response.headers?.get?.('content-type')?.includes('text/html')) {
         throw new Error('Received HTML response instead of JSON configuration');
       }
-      const config = (await response.json()) as { gameConfig: GameConfig };
+      const raw = await response.json();
+      const config = (raw?.data ?? raw) as { gameConfig: GameConfig };
       set({ gameConfig: config.gameConfig ?? DEFAULT_GAME_CONFIG });
     } catch (error) {
       CasinoLogger.error('STORE', 'Failed to load game config, keeping defaults', error);

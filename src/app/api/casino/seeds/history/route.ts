@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { createClient } from '@/utils/supabase/server';
 import { WalletService } from '@/lib/casino/wallet';
 import { CasinoLogger } from '@/lib/casino/logger';
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     ) {
       userId = 'dev_user_fallback';
     }
-    if (!userId) return new NextResponse('Unauthorized', { status: 401 });
+    if (!userId) return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
 
     const rate = await enforceRateLimit(
       getClientIdentifier(request, userId),
@@ -35,18 +35,19 @@ export async function GET(request: Request) {
       60,
     );
     if (!rate.success) {
-      return NextResponse.json(
-        { error: 'Too Many Requests' },
-        { status: 429, headers: rateLimitHeaders(rate) },
-      );
+      return apiErrorResponse('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429, undefined, {
+        headers: rateLimitHeaders(rate),
+      });
     }
 
     const history = await WalletService.getSeedHistory(userId);
-    return NextResponse.json(history, {
+    return apiSuccessResponse(history, {
       headers: { 'Cache-Control': 'private, no-store' },
     });
   } catch (error) {
     CasinoLogger.error('API/Seeds/History', 'Failed to fetch seed history', error);
-    return NextResponse.json([], { status: 200 });
+    return apiSuccessResponse([], {
+      headers: { 'Cache-Control': 'private, no-store' },
+    });
   }
 }
