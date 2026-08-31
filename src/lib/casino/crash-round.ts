@@ -50,7 +50,7 @@ export interface InternalCrashRoundState {
   crashedAt: string | null;
 }
 
-/** Client-safe projection — crashPoint/serverSeed only once status is CRASHED (FR5). */
+/** Client-safe projection — crashPoint/crashedAt/serverSeed only once status is CRASHED (FR5). */
 export interface PublicCrashRoundState {
   id: string;
   status: 'WAITING' | 'RUNNING' | 'CRASHED';
@@ -112,7 +112,9 @@ const MAX_SYNC_ITERATIONS = 4;
  * result through toPublicRoundState() before it reaches an HTTP response or
  * a broadcast payload.
  */
-export async function ensureCurrentCrashRound(config: GameConfig): Promise<InternalCrashRoundState> {
+export async function ensureCurrentCrashRound(
+  config: GameConfig,
+): Promise<InternalCrashRoundState> {
   let state = await callSync(config);
   for (let i = 0; i < MAX_SYNC_ITERATIONS; i++) {
     if (state.needsCrashPoint) {
@@ -150,7 +152,9 @@ export async function getCrashRoundById(crashRoundId: string): Promise<InternalC
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('crash_rounds')
-    .select('id, status, server_seed_hash, server_seed, crash_point, betting_ends_at, started_at, crashed_at')
+    .select(
+      'id, status, server_seed_hash, server_seed, crash_point, betting_ends_at, started_at, crashed_at',
+    )
     .eq('id', crashRoundId)
     .single();
   if (error || !data) throw new Error('Crash round not found');
@@ -163,10 +167,7 @@ export async function getCrashRoundById(crashRoundId: string): Promise<InternalC
  * position ("Spieler 3"), never a username/user id. Deliberately minimal:
  * no new identity system, resets every round, zero PII by construction.
  */
-export function deriveSeatLabel(
-  participants: Array<{ userId: string }>,
-  userId: string,
-): string {
+export function deriveSeatLabel(participants: Array<{ userId: string }>, userId: string): string {
   const index = participants.findIndex((p) => p.userId === userId);
   return `Spieler ${index >= 0 ? index + 1 : participants.length + 1}`;
 }
@@ -180,8 +181,52 @@ export function toPublicRoundState(state: InternalCrashRoundState): PublicCrashR
     serverSeedHash: state.serverSeedHash,
     bettingEndsAt: state.bettingEndsAt,
     startedAt: state.startedAt,
-    crashedAt: state.crashedAt,
+    // crashed_at is written at the WAITING→RUNNING transition as exactly
+    // bettingEndsAt + durationMsForCrashPoint(crashPoint) (migration 037/038),
+    // so exposing it mid-flight would let any client invert the deterministic
+    // growth curve and recover the secret crash point mid-flight.
+    crashedAt: revealed ? state.crashedAt : null,
     crashPoint: revealed ? state.crashPoint : null,
     serverSeed: revealed ? state.serverSeed : null,
   };
+}
+
+// C3 (TO-04 fund matrix): once the crash point is publicly revealed, any claim
+// at/below it is a sure win — so the server authorizes a cashout against the
+// round clock instead of trusting the client's timing.
+export const CASHOUT_LATENCY_GRACE_MS = 1000;
+// A claim whose legit display time lies inside this final slice of the flight
+// can only come from a client that saw the crash reveal (the honest display
+// time of a pre-reveal press lies strictly before the crash instant).
+export const CASHOUT_PRESS_MARGIN_MS = 100;
+
+/**
+ * Server-side fair-window check for a claimed multiplayer crash cashout.
+ * Uses only server-known values — no client clock is consulted:
+ * 1. The flight must have started (claims during the betting window are a
+ *    risk-free refund+XP farm, since the crash point is floored at 1.00).
+ * 2. The claim may not be late by more than one network-latency grace past
+ *    its legit display time (the claimed multiplier's display time is
+ *    bettingEndsAt + durationMsForCrashPoint(m) on the shared curve).
+ * 3. Once the crash instant is known, the claim's display time must lie at
+ *    least one press margin before it (blocks the reveal-snipe of claiming
+ *    the exact crash point after the CRASHED broadcast).
+ */
+export function isWithinCrashCashoutFairWindow(args: {
+  nowMs: number;
+  bettingEndsAtMs: number;
+  crashedAtMs: number | null;
+  requestedMultiplier: number;
+}): boolean {
+  const { nowMs, bettingEndsAtMs, crashedAtMs, requestedMultiplier } = args;
+  if (!Number.isFinite(nowMs) || !Number.isFinite(bettingEndsAtMs)) return false;
+  if (!Number.isFinite(requestedMultiplier) || requestedMultiplier <= 0) return false;
+  if (nowMs < bettingEndsAtMs) return false;
+  const multiplierClaimTimeMs = bettingEndsAtMs + durationMsForCrashPoint(requestedMultiplier);
+  if (nowMs > multiplierClaimTimeMs + CASHOUT_LATENCY_GRACE_MS) return false;
+  if (crashedAtMs !== null) {
+    if (!Number.isFinite(crashedAtMs)) return false;
+    if (multiplierClaimTimeMs > crashedAtMs - CASHOUT_PRESS_MARGIN_MS) return false;
+  }
+  return true;
 }

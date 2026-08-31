@@ -80,13 +80,21 @@ describe('toPublicRoundState (FR5 / NFR1 — crash point secrecy)', () => {
     expect(publicState.serverSeed).toBeNull();
   });
 
-  it('never reveals crashPoint or serverSeed while RUNNING', () => {
-    const publicState = toPublicRoundState({ ...base, status: 'RUNNING', startedAt: base.bettingEndsAt });
+  it('never reveals crashPoint, crashedAt or serverSeed while RUNNING', () => {
+    const publicState = toPublicRoundState({
+      ...base,
+      status: 'RUNNING',
+      startedAt: base.bettingEndsAt,
+      // crashed_at is pre-written at the RUNNING transition (migration 037/038)
+      // and encodes the crash point via the deterministic curve — TO-04 review.
+      crashedAt: '2026-08-21T00:00:12.000Z',
+    });
     expect(publicState.crashPoint).toBeNull();
+    expect(publicState.crashedAt).toBeNull();
     expect(publicState.serverSeed).toBeNull();
   });
 
-  it('reveals crashPoint and serverSeed only once CRASHED', () => {
+  it('reveals crashPoint, crashedAt and serverSeed only once CRASHED', () => {
     const publicState = toPublicRoundState({
       ...base,
       status: 'CRASHED',
@@ -94,6 +102,7 @@ describe('toPublicRoundState (FR5 / NFR1 — crash point secrecy)', () => {
       crashedAt: '2026-08-21T00:00:12.000Z',
     });
     expect(publicState.crashPoint).toBe(4.2);
+    expect(publicState.crashedAt).toBe('2026-08-21T00:00:12.000Z');
     expect(publicState.serverSeed).toBe('super-secret-seed');
   });
 

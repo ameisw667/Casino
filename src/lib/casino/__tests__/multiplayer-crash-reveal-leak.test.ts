@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const root = resolve(__dirname, '../../../..');
-const read = (path: string) => readFileSync(resolve(root, path), 'utf8');
+const read = (path: string) => readFileSync(resolve(root, path), 'utf8').replace(/\r\n/g, '\n');
 
 /**
  * Regression test for the CRITICAL finding from the L6 security review of
@@ -26,8 +26,8 @@ const read = (path: string) => readFileSync(resolve(root, path), 'utf8');
 describe('multiplayer crash: crashPoint is masked in the CASHOUT/RESOLVE response until the room has actually crashed', () => {
   const betRoute = read('src/app/api/casino/bet-crash-multiplayer/route.ts');
   const cashoutBlock = betRoute.slice(
-    betRoute.indexOf("params.action === 'CASHOUT_CRASH_MULTIPLAYER' || params.action === 'RESOLVE_CRASH_MULTIPLAYER'"),
-    betRoute.indexOf("return apiErrorResponse(\n      APP_ERROR_CODES.VALIDATION_FAILED,\n      'Ungültige Aktion.'"),
+    betRoute.indexOf("params.action === 'CASHOUT_CRASH_MULTIPLAYER'"),
+    betRoute.indexOf("'Ungültige Aktion.'"),
   );
 
   it('computes reveal eligibility from the shared round status, not from win/loss or replay state', () => {
@@ -35,9 +35,12 @@ describe('multiplayer crash: crashPoint is masked in the CASHOUT/RESOLVE respons
   });
 
   it('never spreads the raw settlement result without overriding crashPoint in the same response', () => {
-    const responseIndex = cashoutBlock.lastIndexOf('return NextResponse.json({');
+    const responseIndex = cashoutBlock.lastIndexOf('return apiSuccessResponse({');
     expect(responseIndex).toBeGreaterThan(-1);
-    const responseBlock = cashoutBlock.slice(responseIndex, cashoutBlock.indexOf('});', responseIndex));
+    const responseBlock = cashoutBlock.slice(
+      responseIndex,
+      cashoutBlock.indexOf('});', responseIndex),
+    );
 
     expect(responseBlock).toContain('...(settlement.result as object)');
     // The override must be a literal sibling key after the spread — object
@@ -64,8 +67,12 @@ describe('multiplayer crash: a single account cannot hold two simultaneous ACTIV
   );
 
   it('has a fast TS-side pre-check for a clean error message (not the actual guarantee, see below)', () => {
-    expect(startBlock).toContain("WalletService.getGameActiveRound({ userId, game: 'CRASH_MULTIPLAYER' })");
-    expect(startBlock).toContain('existingActive.hasActiveRound && existingActive.requestId !== params.requestId');
+    expect(startBlock).toMatch(
+      /WalletService\.getGameActiveRound\(\{\s*userId,\s*game: 'CRASH_MULTIPLAYER',\s*\}\)/,
+    );
+    expect(startBlock).toContain(
+      'existingActive.hasActiveRound && existingActive.requestId !== params.requestId',
+    );
   });
 
   it('checks for an existing active round before the shared round is joined or the seed is consumed', () => {
