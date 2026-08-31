@@ -30,7 +30,9 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts",
-    "trigger.config.ts"
+    "trigger.config.ts",
+    ".next-k6a-build/types/**/*.ts",
+    ".next-k6a-build/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "remotion-ad"]
 }

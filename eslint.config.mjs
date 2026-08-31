@@ -25,6 +25,10 @@ const eslintConfig = defineConfig([
     // Supabase CLI local runtime generated temp files (gitignored)
     'supabase/.temp/**',
     'supabase/.branches/**',
+    // Research / documentation sub-repos
+    'worldmap/**',
+    // Agent evaluations & test fixtures
+    '.claude/**',
   ]),
   {
     rules: {
@@ -34,6 +38,30 @@ const eslintConfig = defineConfig([
         'warn',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+    },
+  },
+  {
+    // WebGL (three/@react-three) ist auf die PULS-Sandbox beschränkt, damit die
+    // 3D-Bundle-Größe niemals in App-Chunks landet (T_FRONTEND/02-4 §4.2).
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['three', 'three/*', '@react-three/*'],
+              message: 'WebGL-Imports nur innerhalb src/app/lab/** (PULS-Sandbox).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/app/lab/**/*.ts', 'src/app/lab/**/*.tsx'],
+    rules: {
+      'no-restricted-imports': 'off',
     },
   },
 ]);

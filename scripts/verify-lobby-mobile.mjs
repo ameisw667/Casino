@@ -8,7 +8,8 @@ async function testLobby() {
   console.log('--- 1. Testing Mobile Viewport (iPhone 15: 393x852) ---');
   const mobileContext = await browser.newContext({
     viewport: { width: 393, height: 852 },
-    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+    userAgent:
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
     hasTouch: true,
     isMobile: true,
   });
@@ -46,11 +47,16 @@ async function testLobby() {
         firstCardHeight: firstCard ? Math.round(firstCard.height) : null,
         secondCardWidth: secondCard ? Math.round(secondCard.width) : null,
         secondCardTop: secondCard ? Math.round(secondCard.top) : null,
-        isSideBySide: firstCard && secondCard ? Math.abs(firstCard.top - secondCard.top) < 10 : false,
+        isSideBySide:
+          firstCard && secondCard ? Math.abs(firstCard.top - secondCard.top) < 10 : false,
       },
       feed: {
-        desktopTableVisible: desktopTable ? window.getComputedStyle(desktopTable).display !== 'none' : false,
-        mobileListVisible: mobileList ? window.getComputedStyle(mobileList).display !== 'none' : false,
+        desktopTableVisible: desktopTable
+          ? window.getComputedStyle(desktopTable).display !== 'none'
+          : false,
+        mobileListVisible: mobileList
+          ? window.getComputedStyle(mobileList).display !== 'none'
+          : false,
         desktopTableDisplay: desktopTable ? window.getComputedStyle(desktopTable).display : null,
         mobileListDisplay: mobileList ? window.getComputedStyle(mobileList).display : null,
         rowCount: mobileBetRows.length,
@@ -58,7 +64,8 @@ async function testLobby() {
       },
       scrollWidth: document.documentElement.scrollWidth,
       clientWidth: document.documentElement.clientWidth,
-      hasHorizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      hasHorizontalOverflow:
+        document.documentElement.scrollWidth > document.documentElement.clientWidth,
     };
   });
 
@@ -75,8 +82,10 @@ async function testLobby() {
 
   const desktopMetrics = await desktopPage.evaluate(() => {
     const gameCards = document.querySelectorAll('section > div[style*="grid"] > div');
-    const cardsTops = Array.from(gameCards).slice(0, 5).map(c => Math.round(c.getBoundingClientRect().top));
-    const allSameRow = cardsTops.every(t => Math.abs(t - cardsTops[0]) < 10);
+    const cardsTops = Array.from(gameCards)
+      .slice(0, 5)
+      .map((c) => Math.round(c.getBoundingClientRect().top));
+    const allSameRow = cardsTops.every((t) => Math.abs(t - cardsTops[0]) < 10);
 
     const desktopTable = document.querySelector('.live-activity-desktop-table');
     const mobileList = document.querySelector('.live-activity-mobile-list');
@@ -89,16 +98,21 @@ async function testLobby() {
         cardsTops,
       },
       feed: {
-        desktopTableVisible: desktopTable ? window.getComputedStyle(desktopTable).display !== 'none' : false,
-        mobileListVisible: mobileList ? window.getComputedStyle(mobileList).display !== 'none' : false,
+        desktopTableVisible: desktopTable
+          ? window.getComputedStyle(desktopTable).display !== 'none'
+          : false,
+        mobileListVisible: mobileList
+          ? window.getComputedStyle(mobileList).display !== 'none'
+          : false,
         desktopTableDisplay: desktopTable ? window.getComputedStyle(desktopTable).display : null,
         mobileListDisplay: mobileList ? window.getComputedStyle(mobileList).display : null,
         headerCount: tableHeaders.length,
-        headers: Array.from(tableHeaders).map(h => h.innerText.trim()),
+        headers: Array.from(tableHeaders).map((h) => h.innerText.trim()),
       },
       scrollWidth: document.documentElement.scrollWidth,
       clientWidth: document.documentElement.clientWidth,
-      hasHorizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      hasHorizontalOverflow:
+        document.documentElement.scrollWidth > document.documentElement.clientWidth,
     };
   });
 
@@ -108,7 +122,7 @@ async function testLobby() {
   console.log('\n=== VERIFICATION COMPLETE ===');
 }
 
-testLobby().catch(err => {
+testLobby().catch((err) => {
   console.error('Error during test:', err);
   process.exit(1);
 });

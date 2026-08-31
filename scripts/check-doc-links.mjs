@@ -55,6 +55,7 @@ let liveDeadCount = 0;
 let archiveDeadCount = 0;
 let mojibakeCount = 0;
 let caseWarnCount = 0;
+let externalCount = 0;
 
 function checkFile(file) {
   const content = readFileSync(file, 'utf8');
@@ -64,6 +65,14 @@ function checkFile(file) {
     const targetPath = resolve(dirname(file), relTarget.replace(/:\d+$/, '')); // Zeilennummer-Suffix abschneiden
     const normalizedTarget = relative(process.cwd(), targetPath).replace(/\\/g, '/');
     if (KNOWN_EXCEPTIONS.has(normalizedTarget)) continue;
+    // Verweis verlässt die Repo-Wurzel (Geschwister-Ordner wie _Brain/ oder ReactLandingpages/
+    // unter V:\VibeCoding\). GitHub Actions checkt nur dieses Repo aus, solche Ziele sind dort
+    // strukturell nie prüfbar — egal ob sie lokal auf Jans Platte existieren. Überspringen statt
+    // als tot zu zählen; der Markdown-Link bleibt für Menschen als Referenz erhalten.
+    if (normalizedTarget === '..' || normalizedTarget.startsWith('../')) {
+      externalCount++;
+      continue;
+    }
     if (!existsSync(targetPath)) {
       if (resolveCaseInsensitive(normalizedTarget)) {
         console.error(
@@ -110,7 +119,7 @@ function main() {
   }
 
   console.log(
-    `\n${liveDeadCount} tote Links in lebendigen Dateien, ${archiveDeadCount} in docs/archive/, ${caseWarnCount} Groß-/Kleinschreibungs-Warnungen (nicht blockierend), ${mojibakeCount} mögliche Encoding-Defekte.`,
+    `\n${liveDeadCount} tote Links in lebendigen Dateien, ${archiveDeadCount} in docs/archive/, ${caseWarnCount} Groß-/Kleinschreibungs-Warnungen (nicht blockierend), ${mojibakeCount} mögliche Encoding-Defekte, ${externalCount} repo-externe Verweise übersprungen (nicht prüfbar).`,
   );
   if (liveDeadCount > 0) process.exitCode = 1; // Archiv-Treffer, Mojibake- und Index-Drift-Warnungen blockieren bewusst nicht
 }

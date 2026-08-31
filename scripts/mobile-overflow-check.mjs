@@ -17,7 +17,9 @@ const VIEWPORTS = [
   ['desktop-1280', 1280, 800],
 ];
 
-function fmt(n) { return n.toFixed(1); }
+function fmt(n) {
+  return n.toFixed(1);
+}
 
 const results = [];
 const browser = await chromium.launch();
@@ -32,7 +34,11 @@ for (const [vname, w, h] of VIEWPORTS) {
       await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
     } catch {
       // Fallback: domcontentloaded + settle
-      try { await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 }); } catch { status = 'nav-error'; }
+      try {
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      } catch {
+        status = 'nav-error';
+      }
     }
     // Allow client hydration / Framer Motion mount
     await page.waitForTimeout(1200);
@@ -54,7 +60,8 @@ for (const [vname, w, h] of VIEWPORTS) {
           const cs = getComputedStyle(el);
           if (cs.visibility === 'hidden' || cs.display === 'none' || cs.opacity === '0') continue;
           const tag = el.tagName.toLowerCase();
-          const cls = (el.className && typeof el.className === 'string') ? el.className.slice(0, 40) : '';
+          const cls =
+            el.className && typeof el.className === 'string' ? el.className.slice(0, 40) : '';
           offenders.push({
             tag,
             cls,
@@ -66,7 +73,9 @@ for (const [vname, w, h] of VIEWPORTS) {
         }
       }
       // Limit offenders
-      offenders.sort((a, b) => (Math.max(b.right - b.vw, -b.left)) - (Math.max(a.right - a.vw, -a.left)));
+      offenders.sort(
+        (a, b) => Math.max(b.right - b.vw, -b.left) - Math.max(a.right - a.vw, -a.left),
+      );
       return {
         docW,
         vw,
@@ -76,7 +85,15 @@ for (const [vname, w, h] of VIEWPORTS) {
       };
     });
 
-    results.push({ view: vname, vw: w, page: pname, status, hOverflow: m.hOverflow, offenderCount: m.offenderCount, top: m.topOffenders });
+    results.push({
+      view: vname,
+      vw: w,
+      page: pname,
+      status,
+      hOverflow: m.hOverflow,
+      offenderCount: m.offenderCount,
+      top: m.topOffenders,
+    });
   }
   await ctx.close();
 }
@@ -84,12 +101,19 @@ for (const [vname, w, h] of VIEWPORTS) {
 // --- Drawer-coverage check (mobile menu): open hamburger, compare z-indexes (numbers only) ---
 let drawerCheck = { ok: false, reason: 'not-run' };
 {
-  const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext({
+    viewport: { width: 375, height: 812 },
+    deviceScaleFactor: 1,
+  });
   const page = await ctx.newPage();
   try {
     await page.goto(BASE + '/', { waitUntil: 'networkidle', timeout: 30000 });
   } catch {
-    try { await page.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 30000 }); } catch { drawerCheck.reason = 'nav-error'; }
+    try {
+      await page.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    } catch {
+      drawerCheck.reason = 'nav-error';
+    }
   }
   await page.waitForTimeout(1200);
   try {
@@ -111,7 +135,11 @@ let drawerCheck = { ok: false, reason: 'not-run' };
         const zv = getZ(el);
         if (zv < 1000 || zv > 1100) continue;
         const r = el.getBoundingClientRect();
-        if (r.width >= vw - 4 && r.height >= vh - 4 && /rgba\(0,\s*0,\s*0/.test(st.backgroundColor)) {
+        if (
+          r.width >= vw - 4 &&
+          r.height >= vh - 4 &&
+          /rgba\(0,\s*0,\s*0/.test(st.backgroundColor)
+        ) {
           backdrop = el;
           break;
         }
@@ -132,22 +160,30 @@ console.log('=== PROGRAMMATIC OVERFLOW MEASUREMENT (numbers only, no visual judg
 for (const r of results) {
   const overflow = r.hOverflow > 0.5;
   const flag = overflow ? 'OVERFLOW' : 'ok';
-  console.log(`[${r.view} ${r.vw}px] ${r.page.padEnd(10)} status=${r.status} hOverflow=${fmt(r.hOverflow)}px offenders=${r.offenderCount} -> ${flag}`);
+  console.log(
+    `[${r.view} ${r.vw}px] ${r.page.padEnd(10)} status=${r.status} hOverflow=${fmt(r.hOverflow)}px offenders=${r.offenderCount} -> ${flag}`,
+  );
   if (overflow && r.top.length) {
     for (const o of r.top) {
-      console.log(`     offender: <${o.tag} ${o.cls}> left=${o.left} right=${o.right} width=${o.w} (vw=${o.vw})`);
+      console.log(
+        `     offender: <${o.tag} ${o.cls}> left=${o.left} right=${o.right} width=${o.w} (vw=${o.vw})`,
+      );
     }
   }
 }
 console.log('=== SUMMARY ===');
-const fails = results.filter(r => r.hOverflow > 0.5);
+const fails = results.filter((r) => r.hOverflow > 0.5);
 console.log(`Total checks: ${results.length} | Overflow cases: ${fails.length}`);
 // Desktop-stability: ensure no desktop page has overflow (desktop must be unchanged/clean)
-const desktopFails = results.filter(r => r.view === 'desktop-1280' && r.hOverflow > 0.5);
+const desktopFails = results.filter((r) => r.view === 'desktop-1280' && r.hOverflow > 0.5);
 console.log(`Desktop overflow cases (must be 0): ${desktopFails.length}`);
 
 console.log('=== MOBILE MENU DRAWER COVERAGE (z-index numbers, no visual judgment) ===');
-console.log(`drawerCheck: ok=${drawerCheck.ok} drawerZ=${drawerCheck.drawerZ ?? 'n/a'} backdropZ=${drawerCheck.backdropZ ?? 'n/a'} mobileNavZ=${drawerCheck.mobileNavZ ?? 'n/a'}${drawerCheck.reason ? ' reason=' + drawerCheck.reason : ''}`);
-console.log(`Drawer covers MobileNav (drawerZ > mobileNavZ AND backdropZ > mobileNavZ): ${drawerCheck.ok}`);
+console.log(
+  `drawerCheck: ok=${drawerCheck.ok} drawerZ=${drawerCheck.drawerZ ?? 'n/a'} backdropZ=${drawerCheck.backdropZ ?? 'n/a'} mobileNavZ=${drawerCheck.mobileNavZ ?? 'n/a'}${drawerCheck.reason ? ' reason=' + drawerCheck.reason : ''}`,
+);
+console.log(
+  `Drawer covers MobileNav (drawerZ > mobileNavZ AND backdropZ > mobileNavZ): ${drawerCheck.ok}`,
+);
 
-process.exitCode = (fails.length > 0 || !drawerCheck.ok) ? 1 : 0;
+process.exitCode = fails.length > 0 || !drawerCheck.ok ? 1 : 0;

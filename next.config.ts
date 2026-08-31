@@ -2,6 +2,8 @@ import type { NextConfig } from 'next';
 import { withSentryConfig } from '@sentry/nextjs';
 
 const nextConfig: NextConfig = {
+  // Allows an isolated production build while next dev owns the default .next directory.
+  distDir: process.env.NEXT_DIST_DIR ?? '.next',
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'ui-avatars.com' },

@@ -98,9 +98,7 @@ function addBet(stats: GameStats, wager: number, payout: number): void {
   stats.betCount += 1;
 }
 
-async function fetchWalletBetStats(
-  supabase: SupabaseClient,
-): Promise<Map<string, GameStats>> {
+async function fetchWalletBetStats(supabase: SupabaseClient): Promise<Map<string, GameStats>> {
   const { data, error } = await supabase
     .from('wallet_transactions')
     .select('game, type, metadata')
@@ -120,9 +118,7 @@ async function fetchWalletBetStats(
   return byGame;
 }
 
-async function fetchRoundBetStats(
-  supabase: SupabaseClient,
-): Promise<Map<string, GameStats>> {
+async function fetchRoundBetStats(supabase: SupabaseClient): Promise<Map<string, GameStats>> {
   const { data, error } = await supabase
     .from('game_rounds')
     .select('game, status, bet_amount, state')
@@ -244,11 +240,7 @@ async function main(): Promise<void> {
   const jsonOutput = process.argv.includes('--json');
   if (jsonOutput) {
     console.log(
-      JSON.stringify(
-        { reports, rouletteBetTypeEdges: rouletteBetTypeEdges(config) },
-        null,
-        2,
-      ),
+      JSON.stringify({ reports, rouletteBetTypeEdges: rouletteBetTypeEdges(config) }, null, 2),
     );
     return;
   }

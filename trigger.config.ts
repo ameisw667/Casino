@@ -4,6 +4,7 @@ export default defineConfig({
   project: 'proj_kktqoexlvytkmoewzysl',
   runtime: 'node',
   logLevel: 'log',
+  // Neuer wiederkehrender Job? xx_sop/20_background_jobs_scheduling.md klärt Trigger.dev vs. pg_cron.
   // The max compute seconds a task is allowed to run. If the task run exceeds this duration, it will be stopped.
   // You can override this on an individual task.
   // See https://trigger.dev/docs/runs/max-duration

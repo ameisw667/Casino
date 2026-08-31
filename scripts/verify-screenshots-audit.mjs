@@ -8,7 +8,8 @@ async function runAudit() {
   console.log('--- 1. Testing Mobile Lobby (/ at 393x841) ---');
   const mobileContext = await browser.newContext({
     viewport: { width: 393, height: 841 },
-    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+    userAgent:
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
     hasTouch: true,
     isMobile: true,
   });
@@ -38,7 +39,7 @@ async function runAudit() {
 
   const lobbyGridMetrics = await mobilePage.evaluate(() => {
     const cards = document.querySelectorAll('section > div[style*="grid"] > div');
-    const cardRects = Array.from(cards).map(c => {
+    const cardRects = Array.from(cards).map((c) => {
       const r = c.getBoundingClientRect();
       return { width: Math.round(r.width), height: Math.round(r.height), top: Math.round(r.top) };
     });
@@ -48,7 +49,10 @@ async function runAudit() {
       firstCard: cardRects[0] || null,
       secondCard: cardRects[1] || null,
       lastCard: cardRects[cardRects.length - 1] || null,
-      isSpan2: cardRects[cardRects.length - 1] && cardRects[0] ? cardRects[cardRects.length - 1].width > cardRects[0].width * 1.5 : false,
+      isSpan2:
+        cardRects[cardRects.length - 1] && cardRects[0]
+          ? cardRects[cardRects.length - 1].width > cardRects[0].width * 1.5
+          : false,
     };
   });
   console.log('Lobby Grid Metrics:', JSON.stringify(lobbyGridMetrics, null, 2));
@@ -63,8 +67,12 @@ async function runAudit() {
     const desktopTable = document.querySelector('.live-activity-desktop-table');
 
     return {
-      desktopTableHidden: desktopTable ? window.getComputedStyle(desktopTable).display === 'none' : true,
-      mobileListVisible: mobileList ? window.getComputedStyle(mobileList).display !== 'none' : false,
+      desktopTableHidden: desktopTable
+        ? window.getComputedStyle(desktopTable).display === 'none'
+        : true,
+      mobileListVisible: mobileList
+        ? window.getComputedStyle(mobileList).display !== 'none'
+        : false,
       mobileRowCount: rows.length,
       hasOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
     };
@@ -82,7 +90,9 @@ async function runAudit() {
     const firstCard = gameCards[0] ? gameCards[0].getBoundingClientRect() : null;
 
     return {
-      kbdHintsVisibleCount: Array.from(kbdHints).filter(k => window.getComputedStyle(k).display !== 'none').length,
+      kbdHintsVisibleCount: Array.from(kbdHints).filter(
+        (k) => window.getComputedStyle(k).display !== 'none',
+      ).length,
       cardCount: gameCards.length,
       firstCardWidth: firstCard ? Math.round(firstCard.width) : null,
       firstCardHeight: firstCard ? Math.round(firstCard.height) : null,
@@ -93,8 +103,29 @@ async function runAudit() {
   });
   console.log('Games Catalog Metrics:', JSON.stringify(gamesMetrics, null, 2));
 
-  // 3. DESKTOP INTEGRITY AUDIT (1440x900)
-  console.log('\n--- 3. Testing Desktop Viewport (1440x900) ---');
+  // 3. MOBILE HISTORY / MY BETS AUDIT (/history at 393x841)
+  console.log('\n--- 3. Testing Mobile History (/history at 393x841) ---');
+  await mobilePage.goto('http://localhost:3015/history', { waitUntil: 'domcontentloaded' });
+  await mobilePage.waitForTimeout(2000);
+
+  const historyMetrics = await mobilePage.evaluate(() => {
+    const statCards = document.querySelectorAll('div[style*="gridTemplateColumns"] > div');
+    const tableEl = document.querySelector('table');
+    const mobileRows = document.querySelectorAll('div[style*="flexDirection: column"] > div');
+
+    return {
+      statCardsCount: statCards.length,
+      desktopTableRendered: !!tableEl,
+      mobileStreamRendered: !tableEl,
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+      hasOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    };
+  });
+  console.log('History Page Metrics:', JSON.stringify(historyMetrics, null, 2));
+
+  // 4. DESKTOP INTEGRITY AUDIT (1440x900)
+  console.log('\n--- 4. Testing Desktop Viewport (1440x900) ---');
   const desktopContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const desktopPage = await desktopContext.newPage();
   await desktopPage.goto('http://localhost:3015/', { waitUntil: 'domcontentloaded' });
@@ -108,10 +139,12 @@ async function runAudit() {
 
     return {
       gameCardsCount: cards.length,
-      desktopTableVisible: desktopTable ? window.getComputedStyle(desktopTable).display !== 'none' : false,
+      desktopTableVisible: desktopTable
+        ? window.getComputedStyle(desktopTable).display !== 'none'
+        : false,
       mobileListHidden: mobileList ? window.getComputedStyle(mobileList).display === 'none' : true,
       headersCount: tableHeaders.length,
-      headers: Array.from(tableHeaders).map(h => h.innerText.trim()),
+      headers: Array.from(tableHeaders).map((h) => h.innerText.trim()),
       hasOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
     };
   });
@@ -121,7 +154,7 @@ async function runAudit() {
   console.log('\n=== AUDIT COMPLETE ===');
 }
 
-runAudit().catch(err => {
+runAudit().catch((err) => {
   console.error('Audit failed with error:', err);
   process.exit(1);
 });
