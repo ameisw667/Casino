@@ -20,23 +20,23 @@ Niveau: **Top 29 %** (Erstaufschlüsselung 2026-08-29 in 10 Unterkategorien, rec
 - `.github/workflows/dependency-audit.yml`
 - `xx_sop/14_secret_rotation.md`
 
-**Nicht im Scope:** Auth/Identity (Kategorie 03), Rate Limiting (Kategorie 06), CI/CD-Workflow-Infrastruktur allgemein (Kategorie 09, siehe `worldmap/00-09-CICD.md`).
+**Nicht im Scope:** Auth/Identity (Kategorie 03), Rate Limiting (Kategorie 06), CI/CD-Workflow-Infrastruktur allgemein (Kategorie 09, siehe `docs/archive/00-09-CICD.md`).
 
 ## Ist-Zustand (frisch gemessen 2026-08-29)
 
-| Messgröße | Wert | Befehl/Quelle |
-| --- | --- | --- |
-| CSP `script-src` | Nonce-basiert (`'nonce-{random}' 'strict-dynamic'`), `unsafe-eval` nur `NODE_ENV=development` | `src/proxy.ts` Zeilen ~102–122 |
-| Security-Header-Set | HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, **COOP**, **CORP** (neu), Permissions-Policy (3→21 Direktiven) | `src/proxy.ts` Zeilen ~150–175 |
-| CSP-Violation-Reporting | `/api/internal/csp-report` + `Reporting-Endpoints`-Header, Sentry-Weiterleitung | `src/app/api/internal/csp-report/route.ts`, 6/6 Tests grün |
-| CSRF/Origin-Guard | Härtet über `Sec-Fetch-Site`, lehnt Requests ohne Origin/Sec-Fetch-Site ab (vorher: durchgelassen) | `src/lib/security/origin-guard.ts`, 8/8 Tests grün |
-| Env-Fail-Fast | 3 Supabase-Kernvariablen, Boot-Fail statt Runtime-Crash | `src/lib/env.ts`, 6/6 Tests grün |
-| `security.txt` (RFC 9116) | Vorhanden, Contact = GitHub Security Advisories | `public/.well-known/security.txt` |
-| Secret-Rotation-SOP | Vorhanden, Rotationsturnus nach Blast-Radius (90–365 Tage) | `xx_sop/14_secret_rotation.md` |
-| `npm audit --audit-level=high` | **1** verbleibender High-Fund (`ws`, nur per `--force`/Breaking Change lösbar) — war 6 vor dieser Runde | `npm audit --audit-level=high`, 2026-08-29 |
-| **Alle obigen Änderungen: Commit-Status** | **Unversioniert** — `git status --short` zeigt sie als `M`/`??`, kein Commit, kein Push, keine PR | `git status --short`, 2026-08-29 |
-| Live-Produktionsstand (`casino-xi-six.vercel.app`) | **Unverändert** — läuft weiterhin auf der alten CSP (`unsafe-inline`/`unsafe-eval`), altem Header-Set, ohne `security.txt`/CSP-Reporting | Kein Deploy in dieser Session |
-| `security-staging.yml` (verwandte CI-Regression, Kategorie 09) | **Live rot** — bricht an einer Migrations-Nummern-Kollision ab (`049` doppelt vergeben), nicht an dieser Kategorie | `gh run view 33210240496 --log-failed`, 2026-08-28 |
+| Messgröße                                                      | Wert                                                                                                                                     | Befehl/Quelle                                              |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| CSP `script-src`                                               | Nonce-basiert (`'nonce-{random}' 'strict-dynamic'`), `unsafe-eval` nur `NODE_ENV=development`                                            | `src/proxy.ts` Zeilen ~102–122                             |
+| Security-Header-Set                                            | HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, **COOP**, **CORP** (neu), Permissions-Policy (3→21 Direktiven)           | `src/proxy.ts` Zeilen ~150–175                             |
+| CSP-Violation-Reporting                                        | `/api/internal/csp-report` + `Reporting-Endpoints`-Header, Sentry-Weiterleitung                                                          | `src/app/api/internal/csp-report/route.ts`, 6/6 Tests grün |
+| CSRF/Origin-Guard                                              | Härtet über `Sec-Fetch-Site`, lehnt Requests ohne Origin/Sec-Fetch-Site ab (vorher: durchgelassen)                                       | `src/lib/security/origin-guard.ts`, 8/8 Tests grün         |
+| Env-Fail-Fast                                                  | 3 Supabase-Kernvariablen, Boot-Fail statt Runtime-Crash                                                                                  | `src/lib/env.ts`, 6/6 Tests grün                           |
+| `security.txt` (RFC 9116)                                      | Vorhanden, Contact = GitHub Security Advisories                                                                                          | `public/.well-known/security.txt`                          |
+| Secret-Rotation-SOP                                            | Vorhanden, Rotationsturnus nach Blast-Radius (90–365 Tage)                                                                               | `xx_sop/14_secret_rotation.md`                             |
+| `npm audit --audit-level=high`                                 | **1** verbleibender High-Fund (`ws`, nur per `--force`/Breaking Change lösbar) — war 6 vor dieser Runde                                  | `npm audit --audit-level=high`, 2026-08-29                 |
+| **Alle obigen Änderungen: Commit-Status**                      | **Unversioniert** — `git status --short` zeigt sie als `M`/`??`, kein Commit, kein Push, keine PR                                        | `git status --short`, 2026-08-29                           |
+| Live-Produktionsstand (`casino-xi-six.vercel.app`)             | **Unverändert** — läuft weiterhin auf der alten CSP (`unsafe-inline`/`unsafe-eval`), altem Header-Set, ohne `security.txt`/CSP-Reporting | Kein Deploy in dieser Session                              |
+| `security-staging.yml` (verwandte CI-Regression, Kategorie 09) | **Live rot** — bricht an einer Migrations-Nummern-Kollision ab (`049` doppelt vergeben), nicht an dieser Kategorie                       | `gh run view 33210240496 --log-failed`, 2026-08-28         |
 
 ## Warum kein Upgrade auf Top 1–10 % (Abschnitt 3 der Worldmap: „Automatisiert verifiziert" ist die Messlatte)
 
@@ -53,23 +53,22 @@ Kurz: Der Unterschied zwischen „Code ist fertig" und „Kategorie ist auf ein 
 
 ## Befunde
 
-| ID | Schwere | Befund | Ort | Belegt durch |
-| --- | --- | --- | --- | --- |
-| S-1 | HIGH | Gesamte Security-Hardening-Arbeit (M1–M10) ist unversioniert — kein Commit, kein Push, kein PR | `git status --short` | 2026-08-29, alle 6 Kern-Dateien als `M`/`??` gelistet |
-| S-2 | MEDIUM | `security-staging.yml` scheitert live an Migrations-Kollision `049` — außerhalb dieses Scopes (Kategorie 02, historisch im [Archiv der Datenbankhärtung](../archive/05_datenbank_haertung.md)), war ein damaliger Befund und ist durch K6-A (001–059 synchron) behoben | `gh run view 33210240496 --log-failed` | 2026-08-28, `ERROR: duplicate key value violates unique constraint "schema_migrations_pkey" ... Key (version)=(049) already exists` |
-| S-3 | MEDIUM | **Korrigiert (worldmap/04_07_dependency_audit_gate.md):** 3 verbleibende High-Severity-Funde (nicht 1 wie zuvor gemeldet) — `ws` (K5, `--force`/Breaking Change), plus `deepmerge-ts` und eine `@opentelemetry/*`-Kette, beide neu seit dem letzten Report (vermutlich durch spätere Dependabot-Merges eingeschleppt), von `npm audit fix` trotz gegenteiliger Eigenaussage nicht lösbar (getestet, 0 Netto-Änderung) | `npm audit --audit-level=high`, `npx audit-ci --config .audit-ci.jsonc` | 2026-08-29 |
-| S-4 | LOW | `dependency-audit.yml` existiert weiterhin nur im lokalen Arbeitsbaum, läuft nirgends — jetzt aber als echtes Hard-Gate (`audit-ci` + Allowlist statt `continue-on-error`), plus SBOM- und Moderate-Sichtbarkeits-Schritte ergänzt (`worldmap/04_07_dependency_audit_gate.md`) | `gh run list --workflow=dependency-audit.yml` → `404` | 2026-08-29 |
-| S-5 | LOW | `worldmap/.research/tonejs/` unklarer Herkunft während der Arbeit aufgetaucht, nicht geprüft/entfernt | `git check-ignore -v worldmap/.research/tonejs` | 2026-08-28, Herkunft ungeklärt |
+| ID  | Schwere | Befund                                                                                                                                                                                                                                                                                                                                                                                                                | Ort                                                                     | Belegt durch                                                                                                                        |
+| --- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| S-1 | HIGH    | Gesamte Security-Hardening-Arbeit (M1–M10) ist unversioniert — kein Commit, kein Push, kein PR                                                                                                                                                                                                                                                                                                                        | `git status --short`                                                    | 2026-08-29, alle 6 Kern-Dateien als `M`/`??` gelistet                                                                               |
+| S-2 | MEDIUM  | `security-staging.yml` scheitert live an Migrations-Kollision `049` — außerhalb dieses Scopes (Kategorie 02, historisch im [Archiv der Datenbankhärtung](../archive/05_datenbank_haertung.md)), war ein damaliger Befund und ist durch K6-A (001–059 synchron) behoben                                                                                                                                                | `gh run view 33210240496 --log-failed`                                  | 2026-08-28, `ERROR: duplicate key value violates unique constraint "schema_migrations_pkey" ... Key (version)=(049) already exists` |
+| S-3 | MEDIUM  | **Korrigiert (worldmap/04_07_dependency_audit_gate.md):** 3 verbleibende High-Severity-Funde (nicht 1 wie zuvor gemeldet) — `ws` (K5, `--force`/Breaking Change), plus `deepmerge-ts` und eine `@opentelemetry/*`-Kette, beide neu seit dem letzten Report (vermutlich durch spätere Dependabot-Merges eingeschleppt), von `npm audit fix` trotz gegenteiliger Eigenaussage nicht lösbar (getestet, 0 Netto-Änderung) | `npm audit --audit-level=high`, `npx audit-ci --config .audit-ci.jsonc` | 2026-08-29                                                                                                                          |
+| S-4 | LOW     | `dependency-audit.yml` existiert weiterhin nur im lokalen Arbeitsbaum, läuft nirgends — jetzt aber als echtes Hard-Gate (`audit-ci` + Allowlist statt `continue-on-error`), plus SBOM- und Moderate-Sichtbarkeits-Schritte ergänzt (`worldmap/04_07_dependency_audit_gate.md`)                                                                                                                                        | `gh run list --workflow=dependency-audit.yml` → `404`                   | 2026-08-29                                                                                                                          |
 
 ## Nächste Schritte
 
-| # | Schritt | Effekt auf Niveau | Aufwand |
-| --- | --- | --- | --- |
-| 1 | Änderungen aus `docs/archive/06_2_security_hardening_plan_m1_m10.md` committen und pushen (Jan-Freigabe für den Commit selbst nötig, siehe globale Git-Regel) | Voraussetzung für jedes weitere Upgrade | Niedrig |
-| 2 | Migrations-Kollision `049` beheben (Kategorie 02, separater Scope) — schaltet `security-staging.yml` wieder frei | Ermöglicht automatisierte Verifikation dieser Kategorie erstmals | Mittel (nicht hier) |
-| 3 | Nach Commit: `dependency-audit.yml` läuft live, `security-staging.yml` läuft grün → dann echte CI-Historie als Beleg für Hochstufung sammeln | Voraussetzung für Top 1–10 % | Niedrig, sobald #1/#2 erledigt |
-| 4 | Breaking-Change-Entscheidung zu `ws`/`@trigger.dev/sdk` treffen (Jan) | Schließt S-3 | Niedrig (Entscheidung) + Mittel (Verifikation nach Upgrade) |
-| 5 | Live-Deploy verifizieren: `curl -I https://casino-xi-six.vercel.app` zeigt neue Header/CSP | Erst dann gilt „live" statt „lokal" | Niedrig, nach Deploy |
+| #   | Schritt                                                                                                                                                       | Effekt auf Niveau                                                | Aufwand                                                     |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------- |
+| 1   | Änderungen aus `docs/archive/06_2_security_hardening_plan_m1_m10.md` committen und pushen (Jan-Freigabe für den Commit selbst nötig, siehe globale Git-Regel) | Voraussetzung für jedes weitere Upgrade                          | Niedrig                                                     |
+| 2   | Migrations-Kollision `049` beheben (Kategorie 02, separater Scope) — schaltet `security-staging.yml` wieder frei                                              | Ermöglicht automatisierte Verifikation dieser Kategorie erstmals | Mittel (nicht hier)                                         |
+| 3   | Nach Commit: `dependency-audit.yml` läuft live, `security-staging.yml` läuft grün → dann echte CI-Historie als Beleg für Hochstufung sammeln                  | Voraussetzung für Top 1–10 %                                     | Niedrig, sobald #1/#2 erledigt                              |
+| 4   | Breaking-Change-Entscheidung zu `ws`/`@trigger.dev/sdk` treffen (Jan)                                                                                         | Schließt S-3                                                     | Niedrig (Entscheidung) + Mittel (Verifikation nach Upgrade) |
+| 5   | Live-Deploy verifizieren: `curl -I https://casino-xi-six.vercel.app` zeigt neue Header/CSP                                                                    | Erst dann gilt „live" statt „lokal"                              | Niedrig, nach Deploy                                        |
 
 ## Dependabot-Merge-Policy (ergänzt 2026-08-29, `worldmap/04_07_dependency_audit_gate.md` L6)
 
@@ -86,11 +85,11 @@ Kurz: Der Unterschied zwischen „Code ist fertig" und „Kategorie ist auf ein 
 
 ## Verwandte Artefakte
 
-| Bedarf | Datei |
-| :--- | :--- |
-| Sub-Kategorie-Bewertung (10 Unterkategorien einzeln, Bottleneck-Identifikation, Quelle des Top-29-%-Werts) | [`worldmap/04_security_hardening.md`](../../worldmap/04_security_hardening.md) |
-| Vollständige Entscheidungshistorie M1–M10 (Herkunft dieses Reports) | [`docs/archive/06_2_security_hardening_plan_m1_m10.md`](../archive/06_2_security_hardening_plan_m1_m10.md) |
-| Auth & Identity (bisher mitgenutzter Testlauf) | [`05_AUTH_SECURITY.md`](./05_auth_security.md) |
-| CI/CD-Kontext (Migrations-Kollision, `security-staging.yml`) | [`worldmap/00-09-CICD.md`](../../worldmap/00-09-cicd.md) |
-| Secret-Rotation | [`xx_sop/14_secret_rotation.md`](../../xx_sop/14_secret_rotation.md) |
-| Live-Status-Master-Quelle | [`worldmap/00_WORLDMAP_STATUS.md`](../../worldmap/00_worldmap_status.md) |
+| Bedarf                                                                                                     | Datei                                                                                                      |
+| :--------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------- |
+| Sub-Kategorie-Bewertung (10 Unterkategorien einzeln, Bottleneck-Identifikation, Quelle des Top-29-%-Werts) | [`worldmap/04_security_hardening.md`](../../worldmap/04_security_hardening.md)                             |
+| Vollständige Entscheidungshistorie M1–M10 (Herkunft dieses Reports)                                        | [`docs/archive/06_2_security_hardening_plan_m1_m10.md`](../archive/06_2_security_hardening_plan_m1_m10.md) |
+| Auth & Identity (bisher mitgenutzter Testlauf)                                                             | [`05_AUTH_SECURITY.md`](./05_auth_security.md)                                                             |
+| CI/CD-Kontext (Migrations-Kollision, `security-staging.yml`)                                               | [`docs/archive/00-09-CICD.md`](../archive/00-09-CICD.md)                                                   |
+| Secret-Rotation                                                                                            | [`xx_sop/14_secret_rotation.md`](../../xx_sop/14_secret_rotation.md)                                       |
+| Live-Status-Master-Quelle                                                                                  | [`worldmap/00_WORLDMAP_STATUS.md`](../../worldmap/00_worldmap_status.md)                                   |

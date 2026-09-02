@@ -47,7 +47,7 @@ eslint_report.json
 tsconfig.staged-*.json
 scratch/
 errors/
-database/
+/database/
 PRE_PUSH_TEST_PLAN.md
 CASINO_DEBUDGING_CHECKLIST.md
 CASINO_COMMUNITY_CHECKLIST.md
