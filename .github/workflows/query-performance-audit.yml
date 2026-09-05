@@ -1,14 +1,17 @@
 name: Query performance audit
 
 # Quartalsweiser, rein informativer Read-Only-Audit (T_DATABASE/11 L7, Vorlage:
-# doc-drift-check.yml). Läuft die vier `supabase inspect db`-Sichten aus
-# scripts/audit-query-performance.ts gegen das verlinkte Remote-Projekt und schreibt
-# eine datierte Audit-Datei unter docs/database/audits/. Kein PR-Blocker.
+# doc-drift-check.yml). Läuft die drei Audit-Sichten (calls, outliers, index-stats)
+# aus scripts/audit-query-performance.ts gegen das Remote-Projekt und schreibt eine
+# datierte Audit-Datei unter docs/database/audits/. Kein PR-Blocker.
 #
 # BENÖTIGT (Jan-exklusiv, siehe xx_sop/09_security_wallet_invariants.md):
-# GitHub-Repo-Secret `SUPABASE_ACCESS_TOKEN` — solange es fehlt, schlägt der Lauf
-# beim Login fehl und der Audit bleibt ein manueller Vierteljahres-Check
-# (`npm run db:perf-audit`).
+# GitHub-Repo-Secret `SUPABASE_ACCESS_TOKEN` (granulares Token mit Project-Settings-/
+# Database-Read-Rechten). Der Lauf nutzt den Management-API-Endpoint
+# /database/query/read-only direkt — `supabase link` wird bewusst NICHT verwendet,
+# weil die CLI granulare Tokens für link bisher nicht akzeptiert (supabase/cli#6392).
+# Ohne Secret schlägt der Lauf fehl; der Audit bleibt dann ein manueller
+# Vierteljahres-Check (`npm run db:perf-audit`, CLI-Modus).
 
 on:
   schedule:
@@ -22,6 +25,9 @@ jobs:
   perf-audit:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: hmqwozhdckbwjqzcmire
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (Pinning wie security-staging.yml)
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -29,17 +35,8 @@ jobs:
           node-version-file: '.nvmrc'
           cache: npm
       - run: npm ci
-      - name: Link Supabase project
-        run: npx supabase link --project-ref hmqwozhdckbwjqzcmire
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          # supabase/cli#3705-Workaround: explizite Projekt-Ref-Env-Var umgeht die
-          # CLI-interne Kontext-/Account-Auflösung (granulare Tokens: supabase/cli#6392).
-          SUPABASE_PROJECT_REF: hmqwozhdckbwjqzcmire
-      - name: Run query performance audit
+      - name: Run query performance audit (Management-API-Modus)
         run: npm run db:perf-audit
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       - name: Summarize result
         if: always()
         run: |

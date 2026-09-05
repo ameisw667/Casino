@@ -4,8 +4,13 @@ name: Migration Drift Check
 # gleicht lokale Migrationsdateien gegen die Remote-Historie ab, damit Drift nicht erst beim
 # manuellen `npm run supabase:migrations` vor einem Push auffällt. Analog doc-drift-check.yml
 # (informativ statt blockierend, da Drift zwischen Entwicklungsphasen beabsichtigt sein kann).
-# Benötigt das GitHub-Secret SUPABASE_ACCESS_TOKEN (read-only Nutzung); ohne Secret läuft der
-# Job mit sichtbarem Skip-Hinweis durch statt zu failen.
+# Benötigt das GitHub-Secret SUPABASE_ACCESS_TOKEN (granulares Token mit Database-/
+# Migrations-Read-Rechten, read-only Nutzung); ohne Secret läuft der Job mit sichtbarem
+# Skip-Hinweis durch statt zu failen.
+#
+# Bewusst KEIN `supabase link`/`migration list` (CLI): die CLI akzeptiert granulare
+# Access-Tokens für link nicht (supabase/cli#6392) — der Abgleich läuft direkt gegen
+# den Management-API-Endpoint GET /v1/projects/{ref}/database/migrations.
 
 on:
   schedule:
@@ -21,9 +26,6 @@ jobs:
     timeout-minutes: 10
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      # supabase/cli#3705-Workaround: explizite Projekt-Ref-Env-Var umgeht die
-      # CLI-interne Kontext-/Account-Auflösung (granulare Tokens: supabase/cli#6392).
-      SUPABASE_PROJECT_REF: hmqwozhdckbwjqzcmire
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -36,31 +38,43 @@ jobs:
             echo "## Migration-Drift-Check übersprungen"
             echo ""
             echo "Das GitHub-Secret \`SUPABASE_ACCESS_TOKEN\` ist nicht hinterlegt. Einmalig anlegen"
-            echo "(read-only Access-Token des Supabase-Projekts), danach läuft dieser Check wöchentlich automatisch."
+            echo "(granulares Access-Token des Supabase-Projekts mit Database-/Migrations-Read),"
+            echo "danach läuft dieser Check wöchentlich automatisch."
             echo "Siehe \`T_DATABASE/01_database_migrations_disziplin.md\` L3."
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Lokale vs. Remote-Migrationen vergleichen
         if: ${{ env.SUPABASE_ACCESS_TOKEN != '' }}
         run: |
-          npx supabase link --project-ref hmqwozhdckbwjqzcmire
-          npx supabase migration list --linked > migration-list.json
           node -e '
-          const fs = require("fs");
-          const raw = fs.readFileSync("migration-list.json", "utf8");
-          const data = JSON.parse(raw.slice(raw.indexOf("{")));
-          const drift = data.migrations.filter((m) => m.local !== m.remote);
-          const lines = [
-            "## Migration-Drift-Check (informativ, nicht blockierend)",
-            "",
-            "Verglichene Einträge: " + data.migrations.length,
-            "",
-          ];
-          if (drift.length === 0) {
-            lines.push("✅ Lokal und Remote synchron.");
-          } else {
-            lines.push("⚠️ **Drift erkannt** (local ≠ remote):");
-            for (const d of drift) lines.push("- `" + d.local + " | " + d.remote + "`");
-            lines.push("", "Drift zwischen Entwicklungsphasen kann beabsichtigt sein — gegen `npm run supabase:migrations` bewerten, nicht blockieren.");
-          }
-          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
+          (async () => {
+            const fs = require("fs");
+            const response = await fetch(
+              "https://api.supabase.com/v1/projects/hmqwozhdckbwjqzcmire/database/migrations",
+              { headers: { Authorization: "Bearer " + process.env.SUPABASE_ACCESS_TOKEN } },
+            );
+            if (!response.ok) {
+              throw new Error("Management-API /database/migrations fehlgeschlagen: HTTP " + response.status + " — " + await response.text());
+            }
+            const remote = (await response.json()).map((m) => String(m.id));
+            const local = fs.readdirSync("supabase/migrations", { withFileTypes: true })
+              .filter((entry) => entry.isFile() && entry.name.endsWith(".sql"))
+              .map((entry) => entry.name.split("_")[0]);
+            const localOnly = local.filter((v) => !remote.includes(v));
+            const remoteOnly = remote.filter((v) => !local.includes(v));
+            const lines = [
+              "## Migration-Drift-Check (informativ, nicht blockierend)",
+              "",
+              "Verglichene Einträge: lokal " + local.length + " / remote " + remote.length,
+              "",
+            ];
+            if (localOnly.length === 0 && remoteOnly.length === 0) {
+              lines.push("✅ Lokal und Remote synchron.");
+            } else {
+              lines.push("⚠️ **Drift erkannt**:");
+              if (localOnly.length > 0) lines.push("- Nur lokal (remote noch nicht angewendet): " + localOnly.join(", "));
+              if (remoteOnly.length > 0) lines.push("- Nur remote (lokal nicht committet): " + remoteOnly.join(", "));
+              lines.push("", "Drift zwischen Entwicklungsphasen kann beabsichtigt sein — gegen `npm run supabase:migrations` bewerten, nicht blockieren.");
+            }
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
+          })().catch((error) => { console.error(error); process.exit(1); });
           '
