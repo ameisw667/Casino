@@ -1,0 +1,57 @@
+name: Schema Drift Check
+
+# T_DATABASE/02_database_schema_design L3 (2026-09-05): fails the PR when the committed
+# src/types/database.types.ts no longer matches the migration chain. Deterministic baseline:
+# types are regenerated from the ephemeral local Supabase stack (same pattern as
+# security-staging.yml — no cloud, no secrets) using the repo-pinned supabase CLI from
+# package.json. The committed types file MUST therefore be generated with
+# `npx supabase gen types typescript --local` (not --linked, which embeds the remote
+# PostgREST version in an __InternalSupabase header and never matches CI).
+# Remote-vs-local migration drift is tracked separately by migration-drift-check.yml.
+# If this gate is red, run `npx supabase start && npx supabase gen types typescript
+# --local > src/types/database.types.ts` and commit the result.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+      - 'src/types/database.types.ts'
+
+concurrency:
+  group: schema-drift-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  drift-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+      - run: npm ci
+      - name: Start ephemeral local Supabase
+        run: npx supabase start
+      - name: Compare fresh types against committed types
+        run: |
+          npx supabase gen types typescript --local > database.types.fresh.ts
+          if git diff --no-index --quiet src/types/database.types.ts database.types.fresh.ts; then
+            echo "✅ database.types.ts is in sync with the migration chain."
+            exit 0
+          fi
+          echo "❌ database.types.ts ist veraltet — läuft nicht mehr mit supabase/migrations/** synchron." >&2
+          echo "   Behebung: 'npx supabase start && npx supabase gen types typescript --local" >&2
+          echo "   > src/types/database.types.ts' lokal ausführen und das Ergebnis committen." >&2
+          git diff --no-index --stat src/types/database.types.ts database.types.fresh.ts || true
+          exit 1
+      - name: Stop ephemeral local Supabase
+        if: always()
+        run: npx supabase stop

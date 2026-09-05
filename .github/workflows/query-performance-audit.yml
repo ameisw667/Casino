@@ -1,0 +1,52 @@
+name: Query performance audit
+
+# Quartalsweiser, rein informativer Read-Only-Audit (T_DATABASE/11 L7, Vorlage:
+# doc-drift-check.yml). Läuft die vier `supabase inspect db`-Sichten aus
+# scripts/audit-query-performance.ts gegen das verlinkte Remote-Projekt und schreibt
+# eine datierte Audit-Datei unter docs/database/audits/. Kein PR-Blocker.
+#
+# BENÖTIGT (Jan-exklusiv, siehe xx_sop/09_security_wallet_invariants.md):
+# GitHub-Repo-Secret `SUPABASE_ACCESS_TOKEN` — solange es fehlt, schlägt der Lauf
+# beim Login fehl und der Audit bleibt ein manueller Vierteljahres-Check
+# (`npm run db:perf-audit`).
+
+on:
+  schedule:
+    - cron: '0 6 1 1,4,7,10 *' # quartalsweise: 1. Jan/Apr/Jul/Okt, 06:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  perf-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (Pinning wie security-staging.yml)
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+      - run: npm ci
+      - name: Link Supabase project
+        run: npx supabase link --project-ref hmqwozhdckbwjqzcmire
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      - name: Run query performance audit
+        run: npm run db:perf-audit
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      - name: Summarize result
+        if: always()
+        run: |
+          {
+            echo "## Query-Performance-Audit"
+            echo ""
+            latest=$(ls -t docs/database/audits/query-performance-*.md 2>/dev/null | head -n 1)
+            if [ -n "$latest" ]; then
+              sed -n '1,30p' "$latest"
+            else
+              echo "Keine Audit-Datei erzeugt — Lauf fehlgeschlagen (fehlendes SUPABASE_ACCESS_TOKEN-Secret?)."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

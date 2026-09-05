@@ -22,6 +22,7 @@ on:
     branches: [main]
     paths:
       - 'supabase/migrations/**'
+      - 'supabase/tests/**'
       - 'scripts/verify-security-phase1.sql'
       - 'scripts/phase1-*.ts'
       - 'src/lib/casino/**'
@@ -62,6 +63,12 @@ jobs:
             echo "PHASE1_EPHEMERAL_LOCAL=true"
           } >> "$GITHUB_ENV"
           rm .supabase-status.env
+
+      # T_DATABASE/10 L8 — pgTAP-Laufzeittests (supabase/tests/*.sql) gegen dieselbe
+      # ephemere lokale Supabase-Instanz. `supabase start` hat bereits alle Migrationen
+      # inkl. 064_enable_pgtap.sql angewendet, daher läuft die Suite direkt danach.
+      - name: Run pgTAP database tests
+        run: npx supabase test db
 
       - run: npm test -- src/lib/security/__tests__/staging-regression-contract.test.ts
       - run: npx tsx scripts/phase1-target-guard.ts

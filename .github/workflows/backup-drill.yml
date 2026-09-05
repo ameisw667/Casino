@@ -1,0 +1,58 @@
+name: Backup Restore Drill
+
+# T_DATABASE/05_database_backup_and_recovery.md L9 (2026-09-05): runs the full local
+# recovery cycle — fresh `supabase db dump --local`, ephemeral restore container on port
+# 55432, restore via restoreSupabaseArtifacts() with the port-55432 safety guard, live
+# financial/RLS invariant queries, plus the four static wallet/RLS test suites
+# (npm run test:restore-drill, see L8). No cloud, no secrets: everything runs against
+# local dev data inside the runner. Uses the repo-pinned supabase CLI (devDependencies).
+# Real offsite backups are deliberately NOT part of this workflow (needs secrets — L11).
+
+on:
+  schedule:
+    - cron: '0 3 * * 0' # wöchentlich, Sonntag 03:00 UTC (T_DATABASE/05 L9)
+  push:
+    branches: [main]
+    paths:
+      - 'src/lib/backup/**'
+      - 'scripts/backup-supabase.ts'
+      - 'scripts/restore-supabase.ts'
+      - 'scripts/restore-drill.ts'
+      - 'supabase/migrations/**'
+      - 'supabase/config.toml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/lib/backup/**'
+      - 'scripts/backup-supabase.ts'
+      - 'scripts/restore-supabase.ts'
+      - 'scripts/restore-drill.ts'
+      - 'supabase/migrations/**'
+      - 'supabase/config.toml'
+  workflow_dispatch:
+
+concurrency:
+  group: backup-drill-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  restore-drill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+      - run: npm ci
+      - name: Start ephemeral local Supabase (dump source)
+        run: npx supabase start
+      - name: Run isolated restore drill + wallet/RLS regression tests
+        run: npm run test:restore-drill
+      - name: Stop ephemeral local Supabase
+        if: always()
+        run: npx supabase stop --no-backup
