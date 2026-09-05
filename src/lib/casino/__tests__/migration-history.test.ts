@@ -18,12 +18,15 @@ const requiredMigrations = [
   '055_custom_access_token_hook.sql',
   '056_user_notifications.sql',
   '057_remove_legacy_guild_schema.sql',
+  '060_pg_cron_retry_failure_handling.sql',
 ];
 
 describe('migration history hardening', () => {
   it('uses one filename per migration version and keeps the repaired range contiguous', () => {
     const versions = migrations.map((file) => file.slice(0, 3));
-    const expectedVersions = Array.from({ length: 59 }, (_, index) =>
+    // Die Obergrenze wird pro neuer Migration bewusst hartkodiert gepflegt (wie bisher):
+    // 064_enable_pgtap.sql (T_DATABASE/10 L3) erweitert den erwarteten Kontiguitätsbereich auf 64.
+    const expectedVersions = Array.from({ length: 64 }, (_, index) =>
       String(index + 1).padStart(3, '0'),
     );
 
