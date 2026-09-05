@@ -12,10 +12,13 @@ const execFileAsync = promisify(execFile);
 const npxCommand = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 
 async function runSupabaseCli(argumentsList: string[]): Promise<void> {
+  // shell: true ist auf Windows zwingend für npx.cmd (Node ≥ 18.20 verweigert das
+  // Spawnen von .cmd/.bat ohne Shell). Argumente sind raumfreie, kontrollierte Werte.
   await execFileAsync(npxCommand, argumentsList, {
     cwd: process.cwd(),
     windowsHide: true,
     maxBuffer: 1024 * 1024,
+    shell: true,
   });
 }
 
@@ -24,6 +27,7 @@ async function getCliVersion(): Promise<string> {
     cwd: process.cwd(),
     windowsHide: true,
     maxBuffer: 1024 * 1024,
+    shell: true,
   });
   return stdout.trim();
 }
