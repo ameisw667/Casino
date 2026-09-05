@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -181,6 +176,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      background_job_runs: {
+        Row: {
+          alert_enqueued_at: string | null
+          attempt_count: number
+          completed_at: string | null
+          first_started_at: string
+          id: number
+          job_name: string
+          last_error: string | null
+          last_started_at: string
+          next_attempt_at: string | null
+          run_key: string
+          status: string
+        }
+        Insert: {
+          alert_enqueued_at?: string | null
+          attempt_count?: number
+          completed_at?: string | null
+          first_started_at?: string
+          id?: number
+          job_name: string
+          last_error?: string | null
+          last_started_at?: string
+          next_attempt_at?: string | null
+          run_key: string
+          status?: string
+        }
+        Update: {
+          alert_enqueued_at?: string | null
+          attempt_count?: number
+          completed_at?: string | null
+          first_started_at?: string
+          id?: number
+          job_name?: string
+          last_error?: string | null
+          last_started_at?: string
+          next_attempt_at?: string | null
+          run_key?: string
+          status?: string
+        }
+        Relationships: []
       }
       bet_network_fingerprints: {
         Row: {
@@ -1209,6 +1246,38 @@ export type Database = {
           },
         ]
       }
+      user_wellbeing_limits: {
+        Row: {
+          daily_loss_limit_cents: number | null
+          daily_session_minutes_limit: number | null
+          self_excluded_until: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          daily_loss_limit_cents?: number | null
+          daily_session_minutes_limit?: number | null
+          self_excluded_until?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          daily_loss_limit_cents?: number | null
+          daily_session_minutes_limit?: number | null
+          self_excluded_until?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_wellbeing_limits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
@@ -1291,6 +1360,8 @@ export type Database = {
         Row: {
           attempts: number
           created_at: string
+          dead_letter_alerted_at: string | null
+          dispatch_attempts: number
           event_payload: Json | null
           event_type: string
           id: string
@@ -1303,6 +1374,8 @@ export type Database = {
         Insert: {
           attempts?: number
           created_at?: string
+          dead_letter_alerted_at?: string | null
+          dispatch_attempts?: number
           event_payload?: Json | null
           event_type?: string
           id?: string
@@ -1315,6 +1388,8 @@ export type Database = {
         Update: {
           attempts?: number
           created_at?: string
+          dead_letter_alerted_at?: string | null
+          dispatch_attempts?: number
           event_payload?: Json | null
           event_type?: string
           id?: string
@@ -1507,6 +1582,10 @@ export type Database = {
         }
         Returns: Json
       }
+      alert_wallet_event_dead_letters: {
+        Args: { p_event_ids: string[]; p_job_name: string }
+        Returns: undefined
+      }
       apply_xp_gain: { Args: { p_event_id: string }; Returns: Json }
       casino_rank_for_level: { Args: { p_level: number }; Returns: string }
       casino_xp_level_divisor: { Args: never; Returns: number }
@@ -1571,11 +1650,20 @@ export type Database = {
         }
         Returns: Json
       }
+      enqueue_cron_alert: {
+        Args: { p_error: string; p_job_name: string }
+        Returns: boolean
+      }
+      execute_background_job: {
+        Args: { p_job_name: string; p_run_key: string }
+        Returns: undefined
+      }
       get_active_game_round: {
         Args: { p_game: string; p_user_id: string }
         Returns: Json
       }
       get_community_stats: { Args: never; Returns: Json }
+      get_daily_net_loss_cents: { Args: { p_user_id: string }; Returns: number }
       get_daily_race_standings: {
         Args: never
         Returns: {
@@ -1600,6 +1688,22 @@ export type Database = {
       }
       get_or_create_user_seed: { Args: { p_user_id: string }; Returns: Json }
       get_recent_chat_messages: { Args: { p_limit?: number }; Returns: Json }
+      get_user_history_page: {
+        Args: {
+          p_cursor_created_at: string
+          p_cursor_id: string
+          p_limit: number
+          p_user_id: string
+        }
+        Returns: {
+          amount: number
+          balance_after: number
+          created_at: string
+          game: string
+          id: string
+          type: string
+        }[]
+      }
       get_user_stats: { Args: { p_user_id: string }; Returns: Json }
       jackpot_pool_settle: {
         Args: {
@@ -1676,6 +1780,7 @@ export type Database = {
         Returns: Json
       }
       release_fraud_scan_lock: { Args: never; Returns: undefined }
+      retry_failed_background_jobs: { Args: never; Returns: undefined }
       retry_stale_big_win_events: { Args: never; Returns: undefined }
       retry_stale_wallet_events: { Args: never; Returns: undefined }
       review_risk_event: {
@@ -1711,7 +1816,9 @@ export type Database = {
           xp: number
         }[]
       }
-      settle_daily_race: { Args: never; Returns: Json }
+      settle_daily_race:
+        | { Args: never; Returns: Json }
+        | { Args: { p_race_date: string }; Returns: Json }
       settle_game_bet:
         | {
             Args: {
@@ -1929,3 +2036,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
