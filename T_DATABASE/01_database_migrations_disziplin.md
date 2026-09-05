@@ -1,6 +1,6 @@
 # 01 — Migrations-Disziplin & Versionierung
 
-> **Status:** In Execution (L1/L2/L4/L5 verifiziert, L3: Workflow steht — Restnachweis „CI-Lauf grün" benötigt einmalig das GitHub-Secret `SUPABASE_ACCESS_TOKEN` von Jan, siehe Ampel) · **Stand:** 2026-09-05 · **Owner:** LLM (kein Jan-Gate) · **Scope:** CI-Backstop für den bereits real existierenden Kollisions-Check, Audit-Trail für den Migration-Security-Guard, Doku-Aktualisierung, kompensierendes Rollback-Playbook. Keine Änderung an bestehenden Migrationen.
+> **Status:** 🟢 Ausgeführt (L0–L5 verifiziert am 2026-09-05 inkl. grünem CI-Lauf für L3) · **Stand:** 2026-09-05 · **Owner:** LLM (kein Jan-Gate) · **Scope:** CI-Backstop für den bereits real existierenden Kollisions-Check, Audit-Trail für den Migration-Security-Guard, Doku-Aktualisierung, kompensierendes Rollback-Playbook. Keine Änderung an bestehenden Migrationen.
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
 
@@ -13,14 +13,14 @@
 
 ## 1 — Übersicht für Jan
 
-| Nr. | Meilenstein | Status | Nächster Schritt | Zuständigkeit | Money-Pfad |
-| --- | --- | :---: | --- | :---: | :---: |
-| L0 | Kontext & Scope | 🟢 verifiziert (2026-09-04) | — | LLM | Nein |
-| L1 | Doku-Korrektur: 059 → aktueller Stand, dynamisch formuliert | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L2 | CI-Backstop für Kollisions-Check (Husky ist umgehbar) | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L3 | `supabase migration list` in CI (lokal/Remote-Drift früh erkennen) | 🟡 Workflow steht, CI-Lauf offener Nachweis | `.github/workflows/migration-drift-check.yml` steht; Logik lokal gegen echte Remote-Verbindung verifiziert (2026-09-05). In-CI-`workflow_dispatch`-Lauf erst nach einmaligem Anlegen des GitHub-Secrets `SUPABASE_ACCESS_TOKEN` durch Jan möglich | LLM (+ 1× Jan: Secret) | Nein |
-| L4 | Migration-Security-Guard-Audit-Trail systematisieren | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L5 | Kompensierendes Rollback-Playbook (kein natives Down-Tooling) | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
+| Nr. | Meilenstein                                                        |                            Status                            | Nächster Schritt                                                                                                              |     Zuständigkeit      | Money-Pfad |
+| --- | ------------------------------------------------------------------ | :----------------------------------------------------------: | ----------------------------------------------------------------------------------------------------------------------------- | :--------------------: | :--------: |
+| L0  | Kontext & Scope                                                    |                 🟢 verifiziert (2026-09-04)                  | —                                                                                                                             |          LLM           |    Nein    |
+| L1  | Doku-Korrektur: 059 → aktueller Stand, dynamisch formuliert        |                 🟢 verifiziert (2026-09-05)                  | —                                                                                                                             |          LLM           |    Nein    |
+| L2  | CI-Backstop für Kollisions-Check (Husky ist umgehbar)              |                 🟢 verifiziert (2026-09-05)                  | —                                                                                                                             |          LLM           |    Nein    |
+| L3  | `supabase migration list` in CI (lokal/Remote-Drift früh erkennen) | 🟢 verifiziert (2026-09-05, grüner CI-Lauf: Run 33992692301) | `.github/workflows/migration-drift-check.yml` steht; nach Jan-Secret-Hinterlegung per `workflow_dispatch` beobachtet und grün | LLM (+ 1× Jan: Secret) |    Nein    |
+| L4  | Migration-Security-Guard-Audit-Trail systematisieren               |                 🟢 verifiziert (2026-09-05)                  | —                                                                                                                             |          LLM           |    Nein    |
+| L5  | Kompensierendes Rollback-Playbook (kein natives Down-Tooling)      |                 🟢 verifiziert (2026-09-05)                  | —                                                                                                                             |          LLM           |    Nein    |
 
 **Warum kein Jan-Gate nötig ist:** Alle Meilensteine sind CI-Konfiguration, Doku-Korrektur oder ein reines Playbook/Template — kein Meilenstein ändert eine bestehende Migration, keiner braucht ein externes Secret oder Konto.
 
@@ -30,18 +30,18 @@
 
 > Skala: Top 1 % = Marktspitze, Top 100 % = praktisch nicht vorhanden. Bewertung basiert auf der Recherche in Abschnitt 3, nicht auf der bestehenden (teils veralteten) Doku.
 
-| # | Subkategorie | Niveau | Status | Kernbefund |
-| :---: | --- | :---: | :---: | --- |
-| 5 | Rollback-/Down-Migration-Tooling | **Top 90 %** | 🔴 | Kein natives Down-Migration-Tooling; Rollback läuft ausschließlich über manuell entworfene kompensierende Migrationen ohne Standardvorlage |
-| 3 | Doku-Aktualität (genannte Migrationsanzahl/-bereich) | **Top 85 %** | 🔴 | `docs/database/01` und `worldmap/04` sprechen durchgehend von "001–059" — real bereits 001–063 |
-| 7 | CI-seitige `migration list`-Verifikation | **Top 80 %** | 🔴 | `npm run supabase:migrations` läuft in keinem CI-Workflow — lokale/Remote-Drift wird erst beim manuellen Push-Versuch sichtbar |
-| 4 | CI-Backstop für Kollisions-Check | **Top 70 %** | 🟡 | Kollisions-Check ist real, aber nur als lokaler Husky-Hook — umgehbar mit `--no-verify` oder bei Pushes ohne lokalen Hook (z. B. GitHub-Web-UI-Edit) |
-| 6 | Migration-Security-Guard-Audit-Trail | **Top 60 %** | 🟡 | Realer Nutzungsnachweis existiert (Migration 063 explizit "Guard PASS" dokumentiert), aber verstreut in einzelnen Archiv-Plandateien statt zentral nachvollziehbar |
-| 8 | No-Op-/Altlast-Historie-Klarheit | **Top 20 %** | 🟢 | K6-A hat Guild-Rückbau und No-Op-Marker (053) sauber dokumentiert und abgeschlossen |
-| 9 | Historische Konsolidierungsdatei-Pflege | **Top 15 %** | 🟢 | Alte Konsolidierungsdatei korrekt nach `docs/archive/` verschoben, nicht mehr im aktiven `supabase/`-Ordner |
-| 10 | Seed-Daten-Konsistenz | **Top 15 %** | 🟢 | Seed bewusst deaktiviert (`db.seed.enabled = false`), dokumentiert, kein Widerspruch zwischen Config und Doku |
-| 2 | Kollisions-Check-Automatisierung (Existenz) | **Top 10 %** | 🟢 | Real vorhanden: `.husky/pre-commit` führt `uniq -d`-Check bei jedem Commit auf `supabase/migrations/**` aus, bricht bei Kollision ab |
-| 1 | Kollisions-Freiheit (aktueller Zustand) | **Top 5 %** | 🟢 | Verifiziert: 001–063 lückenlos, jede Nummer genau einmal vergeben, keine offene Kollision |
+|  #  | Subkategorie                                         |    Niveau    | Status | Kernbefund                                                                                                                                                         |
+| :-: | ---------------------------------------------------- | :----------: | :----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|  5  | Rollback-/Down-Migration-Tooling                     | **Top 90 %** |   🔴   | Kein natives Down-Migration-Tooling; Rollback läuft ausschließlich über manuell entworfene kompensierende Migrationen ohne Standardvorlage                         |
+|  3  | Doku-Aktualität (genannte Migrationsanzahl/-bereich) | **Top 85 %** |   🔴   | `docs/database/01` und `worldmap/04` sprechen durchgehend von "001–059" — real bereits 001–063                                                                     |
+|  7  | CI-seitige `migration list`-Verifikation             | **Top 80 %** |   🔴   | `npm run supabase:migrations` läuft in keinem CI-Workflow — lokale/Remote-Drift wird erst beim manuellen Push-Versuch sichtbar                                     |
+|  4  | CI-Backstop für Kollisions-Check                     | **Top 70 %** |   🟡   | Kollisions-Check ist real, aber nur als lokaler Husky-Hook — umgehbar mit `--no-verify` oder bei Pushes ohne lokalen Hook (z. B. GitHub-Web-UI-Edit)               |
+|  6  | Migration-Security-Guard-Audit-Trail                 | **Top 60 %** |   🟡   | Realer Nutzungsnachweis existiert (Migration 063 explizit "Guard PASS" dokumentiert), aber verstreut in einzelnen Archiv-Plandateien statt zentral nachvollziehbar |
+|  8  | No-Op-/Altlast-Historie-Klarheit                     | **Top 20 %** |   🟢   | K6-A hat Guild-Rückbau und No-Op-Marker (053) sauber dokumentiert und abgeschlossen                                                                                |
+|  9  | Historische Konsolidierungsdatei-Pflege              | **Top 15 %** |   🟢   | Alte Konsolidierungsdatei korrekt nach `docs/archive/` verschoben, nicht mehr im aktiven `supabase/`-Ordner                                                        |
+| 10  | Seed-Daten-Konsistenz                                | **Top 15 %** |   🟢   | Seed bewusst deaktiviert (`db.seed.enabled = false`), dokumentiert, kein Widerspruch zwischen Config und Doku                                                      |
+|  2  | Kollisions-Check-Automatisierung (Existenz)          | **Top 10 %** |   🟢   | Real vorhanden: `.husky/pre-commit` führt `uniq -d`-Check bei jedem Commit auf `supabase/migrations/**` aus, bricht bei Kollision ab                               |
+|  1  | Kollisions-Freiheit (aktueller Zustand)              | **Top 5 %**  |   🟢   | Verifiziert: 001–063 lückenlos, jede Nummer genau einmal vergeben, keine offene Kollision                                                                          |
 
 **Größte Bottlenecks (treiben die Action Items in Abschnitt 4):** #5 (kein Rollback-Standard) und #3 (Doku-Drift) sind die größten Lücken. #7 und #4 sind verwandt — beide fehlt ein CI-seitiger Backstop für etwas, das lokal bereits gut funktioniert (Kollisions-Check) oder manuell gut dokumentiert ist (`migration list`). #6 ist ein Nachvollziehbarkeits-, kein Sicherheitsproblem — der Guard wird nachweislich genutzt, nur nicht zentral geloggt. #1, #2, #8, #9, #10 sind bereits solide — reiner Erhalt-Modus, **diese Säule braucht keine tiefgreifende Sanierung**, anders als die meisten anderen in dieser Planungsserie.
 
@@ -86,7 +86,7 @@
 
 - **Ziel:** Lokale/Remote-Drift automatisiert früh erkennen, nicht erst beim manuellen `db push`-Versuch (Subkategorie #7).
 - **Schritte:** Neuer, geplanter (Cron, z. B. täglich oder wöchentlich) CI-Job, der `npx supabase migration list --linked` ausführt und bei unerwarteter Abweichung zwischen lokal und remote eine sichtbare Warnung erzeugt (kein harter Fail nötig, da Drift manchmal beabsichtigt zwischen Entwicklungsphasen ist — informativ wie `doc-drift-check.yml`, nicht blockierend).
-- **Verifizierung:** Workflow einmal per `workflow_dispatch` ausgelöst, Lauf grün beobachtet.
+- **Verifizierung:** Workflow einmal per `workflow_dispatch` ausgelöst, Lauf grün beobachtet. ✅ **2026-09-05: Run 33992692301 grün.** Umsetzungsnote: nicht `supabase migration list --linked`, sondern direkter Management-API-Abgleich (`GET /v1/projects/{ref}/database/migrations`) — die CLI akzeptiert granulare Access-Tokens für `link` nicht ([supabase/cli#6392](https://github.com/supabase/cli/issues/6392)); das Secret `SUPABASE_ACCESS_TOKEN` (granular, Read auf Database/Migrations) wurde von Jan im Repo hinterlegt (`e27aec1`).
 - **Freigabe-Gate:** Keines (read-only `--linked`-Abfrage, K1-Klasse laut bestehender K-Matrix). **Money-Pfad:** Nein. **Security-Review:** Nein.
 
 ### L4 — Migration-Security-Guard-Audit-Trail systematisieren
@@ -132,13 +132,13 @@
 
 ## 7 — Verwandte Artefakte
 
-| Bedarf | Datei |
-| --- | --- |
-| Kanonischer Doku-Standard (Säule 1) | [`docs/database/01_migrations_und_versionierung.md`](../docs/database/01_migrations_und_versionierung.md) — wird in L1 korrigiert |
-| Bestehender, real funktionierender Kollisions-Check | [`.husky/pre-commit`](../.husky/pre-commit) |
-| Supabase-Betriebs-SOP | [`xx_sop/05_database_supabase.md`](../xx_sop/05_database_supabase.md) |
-| Postgres-Migrations-Patterns | [`xx_sop/18_postgres_patterns_migrations.md`](../xx_sop/18_postgres_patterns_migrations.md) |
-| Referenzfall für Drift-Fix (L5) | [`supabase/migrations/059_harden_legacy_definer_search_path.sql`](../supabase/migrations/059_harden_legacy_definer_search_path.sql) |
-| Gewichtete Subkategorien-Bewertung (Kategorie 02, alle 10 Säulen) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 02) | [`worldmap/04_datenbank_migrationen.md`](../worldmap/04_datenbank_migrationen.md) |
-| Planungsdateien-Konvention | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md) |
+| Bedarf                                                            | Datei                                                                                                                               |
+| ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Kanonischer Doku-Standard (Säule 1)                               | [`docs/database/01_migrations_und_versionierung.md`](../docs/database/01_migrations_und_versionierung.md) — wird in L1 korrigiert   |
+| Bestehender, real funktionierender Kollisions-Check               | [`.husky/pre-commit`](../.husky/pre-commit)                                                                                         |
+| Supabase-Betriebs-SOP                                             | [`xx_sop/05_database_supabase.md`](../xx_sop/05_database_supabase.md)                                                               |
+| Postgres-Migrations-Patterns                                      | [`xx_sop/18_postgres_patterns_migrations.md`](../xx_sop/18_postgres_patterns_migrations.md)                                         |
+| Referenzfall für Drift-Fix (L5)                                   | [`supabase/migrations/059_harden_legacy_definer_search_path.sql`](../supabase/migrations/059_harden_legacy_definer_search_path.sql) |
+| Gewichtete Subkategorien-Bewertung (Kategorie 02, alle 10 Säulen) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md)                                                                      |
+| Übergeordnete Aufschlüsselung (Kategorie 02)                      | [`worldmap/04_datenbank_migrationen.md`](../worldmap/04_datenbank_migrationen.md)                                                   |
+| Planungsdateien-Konvention                                        | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md)                                         |

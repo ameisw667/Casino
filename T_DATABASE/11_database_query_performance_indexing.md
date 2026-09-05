@@ -1,6 +1,6 @@
 # 11 — Query-Performance & Indexing
 
-> **Status:** 🟢 Ausgeführt (L0–L6 verifiziert, L7 umgesetzt — wartet auf Jan-Secret `SUPABASE_ACCESS_TOKEN` + Push) · **Stand:** 2026-09-05 · **Owner:** LLM (kein Pflicht-Jan-Gate; L7 optional mit kleinem Jan-Touch) · **Scope:** Reproduzierbare, wiederholbare Read-Only-Audit-Methodik für Index-/Query-Performance der Casino-Datenbank. Kein Lasttest (siehe `docs/archive/05_Observability_und_Lasttest.md` für RPC-Latenz global), keine neue Index-Migration ohne konkreten, im Audit gefundenen Befund.
+> **Status:** 🟢 Ausgeführt (L0–L7 verifiziert am 2026-09-05 inkl. erstem grünen CI-Lauf) · **Stand:** 2026-09-05 · **Owner:** LLM (kein Pflicht-Jan-Gate; L7 optional mit kleinem Jan-Touch) · **Scope:** Reproduzierbare, wiederholbare Read-Only-Audit-Methodik für Index-/Query-Performance der Casino-Datenbank. Kein Lasttest (siehe `docs/archive/05_Observability_und_Lasttest.md` für RPC-Latenz global), keine neue Index-Migration ohne konkreten, im Audit gefundenen Befund.
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
 
@@ -13,16 +13,16 @@
 
 ## 1 — Übersicht für Jan
 
-| Nr. | Meilenstein | Status | Nächster Schritt | Zuständigkeit | Money-Pfad |
-| --- | --- | :---: | --- | :---: | :---: |
-| L0 | Kontext & Scope | 🟢 verifiziert (2026-09-04) | — | LLM | Nein |
-| L1 | Doku-Korrektur: Index-Zahl & widersprüchliche Audit-Behauptung | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L2 | Audit-Skript bauen (kapselt die 4 `supabase inspect`-Befehle) | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L3 | Ersten echten, datierten Auditlauf ausführen & persistieren | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L4 | Gezielte EXPLAIN-ANALYZE-Tiefenprüfung der 3 Geld-RPC-Query-Pfade | 🟢 verifiziert (2026-09-05) | — | LLM | Nein (bei korrekter Umsetzung) |
-| L5 | Befund bewerten: Index-Migration nur bei echtem Fund | 🟢 verifiziert (2026-09-05) — kein Fund, keine Migration | Nächster Quartals-Check ~2026-12-05 | LLM | Nein |
-| L6 | Wiederholbarkeit: npm-Script ergänzen | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L7 (optional) | CI-Cron-Automatisierung, quartalsweise | 🟡 umgesetzt (2026-09-05) · wartet auf Jan-Secret `SUPABASE_ACCESS_TOKEN` + Push | Secret hinterlegen, ersten Workflow-Dispatch beobachten | LLM, 1 Jan-Secret | Nein |
+| Nr.           | Meilenstein                                                       |                               Status                                | Nächster Schritt                                        |   Zuständigkeit   |           Money-Pfad           |
+| ------------- | ----------------------------------------------------------------- | :-----------------------------------------------------------------: | ------------------------------------------------------- | :---------------: | :----------------------------: |
+| L0            | Kontext & Scope                                                   |                     🟢 verifiziert (2026-09-04)                     | —                                                       |        LLM        |              Nein              |
+| L1            | Doku-Korrektur: Index-Zahl & widersprüchliche Audit-Behauptung    |                     🟢 verifiziert (2026-09-05)                     | —                                                       |        LLM        |              Nein              |
+| L2            | Audit-Skript bauen (kapselt die 4 `supabase inspect`-Befehle)     |                     🟢 verifiziert (2026-09-05)                     | —                                                       |        LLM        |              Nein              |
+| L3            | Ersten echten, datierten Auditlauf ausführen & persistieren       |                     🟢 verifiziert (2026-09-05)                     | —                                                       |        LLM        |              Nein              |
+| L4            | Gezielte EXPLAIN-ANALYZE-Tiefenprüfung der 3 Geld-RPC-Query-Pfade |                     🟢 verifiziert (2026-09-05)                     | —                                                       |        LLM        | Nein (bei korrekter Umsetzung) |
+| L5            | Befund bewerten: Index-Migration nur bei echtem Fund              |      🟢 verifiziert (2026-09-05) — kein Fund, keine Migration       | Nächster Quartals-Check ~2026-12-05                     |        LLM        |              Nein              |
+| L6            | Wiederholbarkeit: npm-Script ergänzen                             |                     🟢 verifiziert (2026-09-05)                     | —                                                       |        LLM        |              Nein              |
+| L7 (optional) | CI-Cron-Automatisierung, quartalsweise                            | 🟢 verifiziert (2026-09-05, erster grüner CI-Lauf: Run 33993162288) | Secret hinterlegen, ersten Workflow-Dispatch beobachten | LLM, 1 Jan-Secret |              Nein              |
 
 **Warum praktisch kein Jan-Gate nötig ist:** Alle Kernschritte (L1–L6) sind read-only gegen die Datenbank — dieselbe Kategorie wie die bereits im Projekt etablierten, freigabefreien K1-Befehle `npm run supabase:migrations` und `npm run supabase:diff` (beide laufen ebenfalls mit `--linked` gegen das Remote-Projekt, ohne Jan-Freigabe, siehe `CLAUDE.md` K-Matrix). L7 ist die einzige Ausnahme, weil ein GitHub-Actions-Secret (`SUPABASE_ACCESS_TOKEN`) nötig wäre, das nur Jan im Repo-Secret-Store hinterlegen kann — und selbst L7 ist optional, kein Kernbestandteil.
 
@@ -31,12 +31,14 @@
 ## 2 — Verifizierter Ist-Stand (2026-09-04, gegen echten Repo-Code geprüft)
 
 **Bereits vorhanden (nicht neu erfinden):**
+
 - `docs/database/07_indexing_query_performance.md` enthält bereits eine reife, konkrete Methodik: `npx supabase inspect db calls --linked`, `db outliers --linked`, `db seq-scans --linked`, `db unused-indexes --linked` (Zeilen 80–83, 142–153) plus ein `EXPLAIN (ANALYZE, BUFFERS, COSTS, VERBOSE)`-Studio-Snippet (Zeilen 100–106) und eine klare Schwelle für neue Indizes: **>50 ms EXPLAIN ANALYZE oder Seq-Scan auf einer Tabelle mit >5.000 Zeilen** (Zeile 118). Das ist keine Prosa-Lücke — es fehlt nur die **Automatisierung/Wiederholbarkeit**, nicht die Methode selbst.
 - 41 `CREATE (UNIQUE) INDEX`-Statements in 25 Migrationsdateien (Doku nennt 40 — kleine Differenz, wird in L1 korrigiert). Hot-Path-Indizes für die Geld-RPCs existieren bereits: `idx_game_rounds_active` (`supabase/migrations/007_server_authority.sql:32`), `idx_transactions_user`/`idx_transactions_game`/`idx_transactions_created`/`idx_sessions_user`/`idx_sessions_game` (`supabase/migrations/002_wallet.sql:42-46`).
 
 **Wichtiger Fund — widersprüchliche Behauptungen zweier Dokumente:** `docs/database/07_indexing_query_performance.md:63` behauptet einen "jüngsten Remote-Audit ... 35 FK-Relationen" als bereits durchgeführt. `worldmap/04_datenbank_migrationen.md:74` sagt dagegen explizit: "Keine dokumentierte `EXPLAIN ANALYZE`-Prüfung, kein Slow-Query-Log-Review" und nennt kein Datum für einen tatsächlichen Audit-Lauf. **Keine der beiden Dateien belegt Datum oder Rohausgabe eines echten Laufs.** Diese Planungsdatei löst den Widerspruch nicht durch Vermutung, sondern dadurch, dass L3 einen echten, frisch datierten Lauf erzeugt, der beide bisherigen Behauptungen ersetzt.
 
 **Bestätigt fehlend:**
+
 - Kein Skript im Repo automatisiert die vier `supabase inspect`-Befehle oder persistiert ihr Ergebnis (`scripts/` enthält nichts dazu).
 - Kein npm-Script kapselt sie (`package.json:21-27` hat nur `supabase:start/stop/reset/migrations/types/diff`, kein `perf`/`inspect`/`explain`).
 - `pg_stat_statements` ist in keiner Migration und keiner `config.toml`-Zeile explizit aktiviert — die Doku setzt stillschweigend auf Supabase-Hosted-Standardaktivierung. **Vor L2 verifizieren:** `SELECT extname FROM pg_extension WHERE extname = 'pg_stat_statements';` gegen `--linked` ausführen; falls leer, liefern die `inspect`-Befehle in L3 keine sinnvollen Daten und eine Aktivierungsmigration wird zur Voraussetzung (dann zusätzlicher Schritt in L2, siehe dort).
@@ -104,7 +106,8 @@
 - **Ziel:** Den quartalsweisen Check nicht auf "jemand erinnert sich" verlassen.
 - **Schritte:** `.github/workflows/query-performance-audit.yml` nach Vorlage `doc-drift-check.yml` (Abschnitt 2): `schedule: cron` quartalsweise (z. B. `0 6 1 1,4,7,10 *`), `permissions: contents: read`, ruft `npm run db:perf-audit` (L6) auf. **Braucht `SUPABASE_ACCESS_TOKEN` als GitHub-Actions-Secret** — muss von Jan im Repo-Settings hinterlegt werden (LLM kann das nicht selbst, Secret-Store-Zugriff ist Jan-exklusiv laut `xx_sop/09_security_wallet_invariants.md`). **Das ist der einzige Punkt in diesem gesamten Plan, der Jan überhaupt berührt — und er ist optional.** Ohne L7 bleibt der Audit ein manuell (aber vollständig LLM-ausführbar) wiederholter Vierteljahres-Check.
 - **Freigabe-Gate:** Nur für das Secret-Hinterlegen selbst (einmalig). **Money-Pfad:** Nein. **Security-Review:** Nein (Token ist bereits ein bestehendes, nur bisher nicht in CI verwendetes Credential, kein neues Berechtigungsmodell).
-- **Umsetzung 2026-09-05:** [`.github/workflows/query-performance-audit.yml`](../.github/workflows/query-performance-audit.yml) gebaut nach Vorlage `doc-drift-check.yml`: quartalsweiser Cron (`0 6 1 1,4,7,10 *`, 1. Jan/Apr/Jul/Okt) + `workflow_dispatch`, `permissions: contents: read`, Actions-Pinning per Commit-SHA wie `security-staging.yml`. Der Workflow linkt das Projekt (`npx supabase link --project-ref hmqwozhdckbwjqzcmire`) und ruft `npm run db:perf-audit` auf; das Ergebnis landet als Summary im Run-View. **Offen (Jan-exklusiv, K4):** Das GitHub-Secret `SUPABASE_ACCESS_TOKEN` muss von Jan im Repo-Settings hinterlegt werden — ohne ihn schlägt der Lauf beim Login fehl (im Workflow-Header dokumentiert); danach erster Dispatch-Lauf beobachten. Bis dahin bleibt der Audit ein manueller Vierteljahres-Check via `npm run db:perf-audit`.
+- **Umsetzung 2026-09-05:** [`.github/workflows/query-performance-audit.yml`](../.github/workflows/query-performance-audit.yml) gebaut nach Vorlage `doc-drift-check.yml`: quartalsweiser Cron (`0 6 1 1,4,7,10 *`, 1. Jan/Apr/Jul/Okt) + `workflow_dispatch`, `permissions: contents: read`, Actions-Pinning per Commit-SHA wie `security-staging.yml`. Der Workflow ruft `npm run db:perf-audit` auf; das Ergebnis landet als Summary im Run-View.
+- **CI-Nachweis 2026-09-05 (🟢):** Jan hat das Secret `SUPABASE_ACCESS_TOKEN` hinterlegt (granulares Token v3, Read auf Project Settings/Database/Migrations). Zwei Nachjustagen waren nötig: (1) `supabase link` akzeptiert granulare Access-Tokens nicht (offener CLI-Bug [supabase/cli#6392](https://github.com/supabase/cli/issues/6392)) — der Workflow wurde daher auf den Management-API-Endpoint `/projects/{ref}/database/query/read-only` umgestellt (`e27aec1`); (2) `pg_stat_statements` liegt im Extension-Schema und ist im `search_path` des Endpunkts nicht auflösbar — dynamische Schemalookup via `pg_extension` (`1c9dcaf`). **Erster grüner Lauf: Run 33993162288** (workflow_dispatch, 2026-09-05, ~1 Min).
 
 ---
 
@@ -132,13 +135,13 @@
 
 ## 6 — Verwandte Artefakte
 
-| Bedarf | Datei |
-| --- | --- |
-| Kanonischer Doku-Standard (Säule 7) | [`docs/database/07_indexing_query_performance.md`](../docs/database/07_indexing_query_performance.md) — wird in L1/L3 korrigiert/ergänzt |
-| Globaler Lasttest (RPC-Latenz, kein Index-Fokus) | [`docs/archive/05_Observability_und_Lasttest.md`](../docs/archive/05_Observability_und_Lasttest.md) |
-| CI-Vorlage für L7 | [`.github/workflows/doc-drift-check.yml`](../.github/workflows/doc-drift-check.yml) |
-| Postgres-Migrations-Patterns, K-Level | [`xx_sop/18_postgres_patterns_migrations.md`](../xx_sop/18_postgres_patterns_migrations.md) |
-| Supabase-Betriebs-SOP, Pre-Flight-Check | [`xx_sop/05_database_supabase.md`](../xx_sop/05_database_supabase.md) |
-| Gewichtete Subkategorien-Bewertung (Säule 7) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 02) | [`worldmap/04_datenbank_migrationen.md`](../worldmap/04_datenbank_migrationen.md) |
-| Planungsdateien-Konvention | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md) |
+| Bedarf                                           | Datei                                                                                                                                    |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Kanonischer Doku-Standard (Säule 7)              | [`docs/database/07_indexing_query_performance.md`](../docs/database/07_indexing_query_performance.md) — wird in L1/L3 korrigiert/ergänzt |
+| Globaler Lasttest (RPC-Latenz, kein Index-Fokus) | [`docs/archive/05_Observability_und_Lasttest.md`](../docs/archive/05_Observability_und_Lasttest.md)                                      |
+| CI-Vorlage für L7                                | [`.github/workflows/doc-drift-check.yml`](../.github/workflows/doc-drift-check.yml)                                                      |
+| Postgres-Migrations-Patterns, K-Level            | [`xx_sop/18_postgres_patterns_migrations.md`](../xx_sop/18_postgres_patterns_migrations.md)                                              |
+| Supabase-Betriebs-SOP, Pre-Flight-Check          | [`xx_sop/05_database_supabase.md`](../xx_sop/05_database_supabase.md)                                                                    |
+| Gewichtete Subkategorien-Bewertung (Säule 7)     | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md)                                                                           |
+| Übergeordnete Aufschlüsselung (Kategorie 02)     | [`worldmap/04_datenbank_migrationen.md`](../worldmap/04_datenbank_migrationen.md)                                                        |
+| Planungsdateien-Konvention                       | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md)                                              |
