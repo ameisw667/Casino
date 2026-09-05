@@ -33,6 +33,9 @@ jobs:
         run: npx supabase link --project-ref hmqwozhdckbwjqzcmire
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          # supabase/cli#3705-Workaround: explizite Projekt-Ref-Env-Var umgeht die
+          # CLI-interne Kontext-/Account-Auflösung (granulare Tokens: supabase/cli#6392).
+          SUPABASE_PROJECT_REF: hmqwozhdckbwjqzcmire
       - name: Run query performance audit
         run: npm run db:perf-audit
         env:
