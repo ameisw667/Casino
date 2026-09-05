@@ -1,6 +1,6 @@
 # 05 — Disaster Recovery & Backup
 
-> **Status:** In Execution (L0–L8 verifiziert; L9 gebaut, CI-Nachweis nach Push) · **Stand:** 2026-09-05 · **Owner:** LLM (Jan nur bei L10–L12) · **Scope:** Vollständiger Recovery-Zyklus (Export → Restore-Drill → Finanz-/RLS-Nachweis → Regelbetrieb) für die Supabase-Produktdaten des Casino-Projekts `hmqwozhdckbwjqzcmire`. Kein Produktiv-Restore, kein Tarifwechsel ohne Jan-Freigabe.
+> **Status:** In Execution (L0–L9 verifiziert am 2026-09-05 inkl. grünem CI-Lauf; L10–L12 Jan-Gates offen) · **Stand:** 2026-09-05 · **Owner:** LLM (Jan nur bei L10–L12) · **Scope:** Vollständiger Recovery-Zyklus (Export → Restore-Drill → Finanz-/RLS-Nachweis → Regelbetrieb) für die Supabase-Produktdaten des Casino-Projekts `hmqwozhdckbwjqzcmire`. Kein Produktiv-Restore, kein Tarifwechsel ohne Jan-Freigabe.
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
 
@@ -16,21 +16,21 @@ Diese Datei ist eigenständig ausführbar. Du brauchst keinen weiteren Chat-Verl
 
 ## 1 — Übersicht für Jan
 
-| Nr. | Meilenstein | Status | Nächster Schritt | Zuständigkeit | Money-Pfad |
-| --- | --- | :---: | --- | :---: | :---: |
-| L0 | Kontext & Scope | 🟢 verifiziert (2026-09-04) | — | LLM | Nein |
-| L1 | Recovery-Zielbild & Risiko-Baseline | 🟢 verifiziert | — | LLM | Nein |
-| L2 | Offsite-Backup-Design | 🟢 verifiziert | — | LLM | Nein |
-| L3 | Export-Code (Dump/Crypto/Upload) | 🟡 gebaut, ungetestet gegen echtes Ziel | Wartet nicht mehr blockierend — siehe L10 | LLM | Nein |
-| L4 | Doku-Korrektur (Säule-9-Doku ↔ echter Code) | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L5 | `.env.example` um `BACKUP_*` ergänzen | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L6 | Restore-Code (Download/Decrypt/Apply) | 🟢 verifiziert (2026-09-05, inkl. Security-Review) | — | LLM | Nein |
-| L7 | Isolierter Restore-Drill (Docker-Container) | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L8 | Finanz-/RLS-Regressionscheck auf Drill-Ziel | 🟢 verifiziert (2026-09-05) | — | LLM | **Ja** |
-| L9 | CI-Workflow für den Gesamtzyklus | 🟡 gebaut, CI-Nachweis nach erstem Push | Push (K4) → `workflow_dispatch` → Lauf beobachten | LLM | Nein |
-| L10 | Externes Backup-Ziel wählen & anlegen | 🔴 geplant | Provider wählen, Bucket + Lifecycle-Regel anlegen | **Jan** | Nein |
-| L11 | Erster echter Offsite-Lauf + Restore gegen echte Artefakte | 🔴 geplant | `npm run backup:run` mit echten Secrets | **Jan-Freigabe**, Ausführung LLM | **Ja** |
-| L12 | PITR-Tarif-Entscheidung (nachrangig) | 🔴 geplant, niedrige Prio | Kosten/Nutzen-Empfehlung vorlegen | **Jan** | Nein |
+| Nr. | Meilenstein                                                |                       Status                       | Nächster Schritt                                  |          Zuständigkeit           | Money-Pfad |
+| --- | ---------------------------------------------------------- | :------------------------------------------------: | ------------------------------------------------- | :------------------------------: | :--------: |
+| L0  | Kontext & Scope                                            |            🟢 verifiziert (2026-09-04)             | —                                                 |               LLM                |    Nein    |
+| L1  | Recovery-Zielbild & Risiko-Baseline                        |                   🟢 verifiziert                   | —                                                 |               LLM                |    Nein    |
+| L2  | Offsite-Backup-Design                                      |                   🟢 verifiziert                   | —                                                 |               LLM                |    Nein    |
+| L3  | Export-Code (Dump/Crypto/Upload)                           |      🟡 gebaut, ungetestet gegen echtes Ziel       | Wartet nicht mehr blockierend — siehe L10         |               LLM                |    Nein    |
+| L4  | Doku-Korrektur (Säule-9-Doku ↔ echter Code)                |            🟢 verifiziert (2026-09-05)             | —                                                 |               LLM                |    Nein    |
+| L5  | `.env.example` um `BACKUP_*` ergänzen                      |            🟢 verifiziert (2026-09-05)             | —                                                 |               LLM                |    Nein    |
+| L6  | Restore-Code (Download/Decrypt/Apply)                      | 🟢 verifiziert (2026-09-05, inkl. Security-Review) | —                                                 |               LLM                |    Nein    |
+| L7  | Isolierter Restore-Drill (Docker-Container)                |            🟢 verifiziert (2026-09-05)             | —                                                 |               LLM                |    Nein    |
+| L8  | Finanz-/RLS-Regressionscheck auf Drill-Ziel                |            🟢 verifiziert (2026-09-05)             | —                                                 |               LLM                |   **Ja**   |
+| L9  | CI-Workflow für den Gesamtzyklus                           |     🟢 verifiziert (2026-09-05, grüner CI-Run)     | —                                                 |               LLM                |    Nein    |
+| L10 | Externes Backup-Ziel wählen & anlegen                      |                     🔴 geplant                     | Provider wählen, Bucket + Lifecycle-Regel anlegen |             **Jan**              |    Nein    |
+| L11 | Erster echter Offsite-Lauf + Restore gegen echte Artefakte |                     🔴 geplant                     | `npm run backup:run` mit echten Secrets           | **Jan-Freigabe**, Ausführung LLM |   **Ja**   |
+| L12 | PITR-Tarif-Entscheidung (nachrangig)                       |             🔴 geplant, niedrige Prio              | Kosten/Nutzen-Empfehlung vorlegen                 |             **Jan**              |    Nein    |
 
 **Kernidee dieser Überarbeitung (2026-09-04):** Die vorherige Fassung sperrte L4–L7 explizit hinter L3s echtem externen Upload ("Bis dahin bleiben L4–L7 gemäß Reihenfolge gesperrt"). Das war unnötig: Restore-Code, Restore-Drill, Finanz-Check und CI-Automatisierung lassen sich vollständig gegen einen **frischen lokalen Dump der lokalen Dev-Instanz** und einen **ephemeren, isolierten Docker-Container** bauen und verifizieren — ganz ohne externes Ziel, ohne Secrets, ohne Jan. Nur der tatsächliche Produktions-Offsite-Lauf (L10–L11) braucht ein echtes externes Konto. Damit sind 9 von 12 Meilensteinen (L0–L9) vollständig LLM-autonom.
 
@@ -40,16 +40,17 @@ Diese Datei ist eigenständig ausführbar. Du brauchst keinen weiteren Chat-Verl
 
 **Bereits vollständig implementiert** (nicht neu bauen, nur wiederverwenden/erweitern):
 
-| Datei | Rolle |
-| --- | --- |
-| [`scripts/backup-supabase.ts`](../scripts/backup-supabase.ts) | Orchestrator: `npm run backup:run` → temp dir, `runBackup()`, Cleanup |
-| [`src/lib/backup/supabase-dump.ts`](../src/lib/backup/supabase-dump.ts) | `dumpSupabaseArtifacts()` — ruft `npx supabase db dump --linked` (schema/`--data-only`/optional `--role-only`) ohne Shell-Auswertung |
+| Datei                                                                       | Rolle                                                                                                                                                                |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`scripts/backup-supabase.ts`](../scripts/backup-supabase.ts)               | Orchestrator: `npm run backup:run` → temp dir, `runBackup()`, Cleanup                                                                                                |
+| [`src/lib/backup/supabase-dump.ts`](../src/lib/backup/supabase-dump.ts)     | `dumpSupabaseArtifacts()` — ruft `npx supabase db dump --linked` (schema/`--data-only`/optional `--role-only`) ohne Shell-Auswertung                                 |
 | [`src/lib/backup/recovery-crypto.ts`](../src/lib/backup/recovery-crypto.ts) | `readBackupConfig()`, `encryptArtifact()`/**`decryptArtifact()`** (Gegenstück existiert bereits!), `buildBackupManifest()`, `createSignedS3PutRequest()` (AWS SigV4) |
-| [`src/lib/backup/backup-runner.ts`](../src/lib/backup/backup-runner.ts) | `runBackup()` — validiert Artefaktset, verschlüsselt, baut Manifest, lädt hoch |
-| [`src/lib/backup/s3-client.ts`](../src/lib/backup/s3-client.ts) | `uploadS3Object()` — signierter `PUT`. **Kein `GET` vorhanden** — muss in L6 ergänzt werden. |
-| `src/lib/backup/__tests__/*.test.ts` (4 Dateien) | 9 grüne Tests: Endpoint-/Key-Validierung, GCM-Tamper-Schutz, Manifest-Hash, SigV4, Upload-Fehlerpfad, Dump-Argumente |
+| [`src/lib/backup/backup-runner.ts`](../src/lib/backup/backup-runner.ts)     | `runBackup()` — validiert Artefaktset, verschlüsselt, baut Manifest, lädt hoch                                                                                       |
+| [`src/lib/backup/s3-client.ts`](../src/lib/backup/s3-client.ts)             | `uploadS3Object()` — signierter `PUT`. **Kein `GET` vorhanden** — muss in L6 ergänzt werden.                                                                         |
+| `src/lib/backup/__tests__/*.test.ts` (4 Dateien)                            | 9 grüne Tests: Endpoint-/Key-Validierung, GCM-Tamper-Schutz, Manifest-Hash, SigV4, Upload-Fehlerpfad, Dump-Argumente                                                 |
 
 **Bestätigte Fakten für die Restore-Implementierung (L6/L7):**
+
 - Postgres-Major-Version lokal: **17** (`supabase/config.toml:42`) — ein Docker-Restore-Container muss `postgres:17` verwenden, sonst ist ein Schema-Diff gegen die echte Instanz nicht aussagekräftig.
 - Lokale Dev-DB: Port **54322**; Shadow-DB (nur `db diff`): Port **54320**; Pooler: Port **54329** (`supabase/config.toml:35,37,47`). **Kein zweiter isolierter Container existiert** — das ist exakt die Lücke, die L7 schließt.
 - Verfügbare Werkzeuge (lokal geprüft, siehe Zeile 94 der Vorversion): Node `v22.16.0`, Supabase CLI `2.116.0`. **Nicht vorhanden:** `age`, `rclone`, `restic`, `aws`-CLI, `7z`. Restore-Code darf daher ausschließlich Node-Bordmittel + `fetch` nutzen (wie der bestehende Upload-Pfad), keine externen Binaries voraussetzen.
@@ -69,26 +70,26 @@ Scope: Recovery der Supabase-Produktdaten, ihrer Konfiguration und der Nachweise
 
 **Verbindliche Startziele:** `RPO ≤ 24 h`, `RTO ≤ 4 h`. RPO ist der Abstand zwischen Schadenszeitpunkt und dem jüngsten vollständig verifizierten Export (Tagesexport inkl. Puffer max. 26 h alt). RTO misst vom festgestellten Verlust bis zum isoliert wiederhergestellten, mit L8 geprüften Ziel.
 
-| Datenklasse | Priorität | Recovery-Ziel | Explizite Grenze |
-| --- | --- | --- | --- |
-| `public`-Produktdaten: Nutzerbezug, Wallet-Ledger, Spielrunden, Seeds, Risiko-/Auditdaten | P0 | konsistenter logischer Schema- und Datenexport; Wiederherstellung vor jeder erneuten Schreibfreigabe | Kein Produktiv-Restore als Drill; unvollständiger Export sperrt Erfolgsmeldung. |
-| Datenbankcode: Funktionen, RLS, Grants, Trigger, Extensions, Migrationsstand | P0 | migrationsreproduzierbarer Stand plus Schemaexport; L8 prüft Rechte und Invarianten | Migrationen allein ersetzen keine Produktdaten. |
-| Auth-Identitäten und -Konfiguration | P1 | inventarisieren, separat wiederherstellbar machen | `supabase db dump` exportiert `auth` nicht — keine falsche Vollständigkeitsbehauptung. |
-| Realtime-/Dashboard-/Projektkonfiguration | P1 | versioniertes, secretfreies Recovery-Inventar | Keys/Passwörter werden nicht exportiert, sondern rotiert/neu gesetzt. |
-| Supabase Storage-Objekte | P2, aktuell nicht genutzt | bei erster Nutzung eigener Objekt-Export/Restore-Test | DB-Dumps sichern nur Metadaten, nicht Objekte. |
-| Externe Dienste (Vercel, Upstash, Sentry, PostHog, Trigger.dev) | P2 | getrenntes Inventar mit Eigentümer/Wiederanlaufhinweis | Kein Teil des DB-Exports; keine Secrets im Repo. |
+| Datenklasse                                                                               | Priorität                 | Recovery-Ziel                                                                                        | Explizite Grenze                                                                       |
+| ----------------------------------------------------------------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `public`-Produktdaten: Nutzerbezug, Wallet-Ledger, Spielrunden, Seeds, Risiko-/Auditdaten | P0                        | konsistenter logischer Schema- und Datenexport; Wiederherstellung vor jeder erneuten Schreibfreigabe | Kein Produktiv-Restore als Drill; unvollständiger Export sperrt Erfolgsmeldung.        |
+| Datenbankcode: Funktionen, RLS, Grants, Trigger, Extensions, Migrationsstand              | P0                        | migrationsreproduzierbarer Stand plus Schemaexport; L8 prüft Rechte und Invarianten                  | Migrationen allein ersetzen keine Produktdaten.                                        |
+| Auth-Identitäten und -Konfiguration                                                       | P1                        | inventarisieren, separat wiederherstellbar machen                                                    | `supabase db dump` exportiert `auth` nicht — keine falsche Vollständigkeitsbehauptung. |
+| Realtime-/Dashboard-/Projektkonfiguration                                                 | P1                        | versioniertes, secretfreies Recovery-Inventar                                                        | Keys/Passwörter werden nicht exportiert, sondern rotiert/neu gesetzt.                  |
+| Supabase Storage-Objekte                                                                  | P2, aktuell nicht genutzt | bei erster Nutzung eigener Objekt-Export/Restore-Test                                                | DB-Dumps sichern nur Metadaten, nicht Objekte.                                         |
+| Externe Dienste (Vercel, Upstash, Sentry, PostHog, Trigger.dev)                           | P2                        | getrenntes Inventar mit Eigentümer/Wiederanlaufhinweis                                               | Kein Teil des DB-Exports; keine Secrets im Repo.                                       |
 
 ### L2 — Offsite-Backup-Design · 🟢 verifiziert (lokal)
 
 Gewählter Zielvertrag: dedizierter, vom Supabase-Projekt getrennter S3-kompatibler Object-Storage-Bucket. Zugriff auf einen Backup-Präfix beschränkt (Upload/Download/Listing, **keine Löschberechtigung für den Runner**). **Retention wird durch eine Bucket-Lifecycle-Regel durchgesetzt, nicht durch Anwendungscode mit Delete-Rechten** — bewusste Least-Privilege-Entscheidung, in L10 als fertige Konfigurationsvorlage an Jan übergeben.
 
-| Bereich | Festlegung |
-| --- | --- |
-| Schema/Daten/Rollen | 3 getrennte SQL-Artefakte, `--role-only` nur bei nachgewiesenen Custom Roles |
-| Verschlüsselung | AES-256-GCM pro Artefakt, frischer 96-Bit-IV, Auth-Tag mitgespeichert |
-| Schlüssel | `BACKUP_ENCRYPTION_KEY_BASE64` (32 Byte), unabhängig von DB-/Storage-Credentials |
-| Manifest | JSON ohne Secrets: Artefaktname, Größe, SHA-256 des Ciphertexts, IV, Auth-Tag, Key-Version, Zeitstempel |
-| Retention (Lifecycle-Regel, nicht Code) | 14 tägliche, 8 wöchentliche, 12 monatliche Sicherungen; Upload-Präfix nach UTC-Datum |
+| Bereich                                 | Festlegung                                                                                              |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Schema/Daten/Rollen                     | 3 getrennte SQL-Artefakte, `--role-only` nur bei nachgewiesenen Custom Roles                            |
+| Verschlüsselung                         | AES-256-GCM pro Artefakt, frischer 96-Bit-IV, Auth-Tag mitgespeichert                                   |
+| Schlüssel                               | `BACKUP_ENCRYPTION_KEY_BASE64` (32 Byte), unabhängig von DB-/Storage-Credentials                        |
+| Manifest                                | JSON ohne Secrets: Artefaktname, Größe, SHA-256 des Ciphertexts, IV, Auth-Tag, Key-Version, Zeitstempel |
+| Retention (Lifecycle-Regel, nicht Code) | 14 tägliche, 8 wöchentliche, 12 monatliche Sicherungen; Upload-Präfix nach UTC-Datum                    |
 
 ### L3 — Automatisierter Export-Runner · 🟡 gebaut, lokal getestet, nie gegen echtes Ziel gelaufen
 
@@ -140,7 +141,7 @@ Siehe Abschnitt 2 — vollständig implementiert und mit 9 Tests abgesichert. Ne
 - **Wichtiger technischer Vorbehalt (vor Implementierung zu klären, nicht blind übernehmen):** `public`-Schema-Objekte referenzieren häufig `auth.uid()` in RLS-Policies (siehe `rls-defense-in-depth.test.ts`). Ein vanilla `postgres:17`-Container **hat kein `auth`-Schema und keine `auth.uid()`-Funktion** — `schema.sql` einspielen kann daher mit `schema "auth" does not exist` fehlschlagen. Zwei Optionen, erste zuerst versuchen:
   1. **Bevorzugt:** Vor dem Einspielen von `schema.sql` einen minimalen Stub anlegen: `CREATE SCHEMA IF NOT EXISTS auth; CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT NULL::uuid $$;` (plus ggf. `auth.role()`, falls Policies das nutzen — per `grep -r "auth\." supabase/migrations/*.sql` vorab prüfen, welche `auth.*`-Funktionen tatsächlich referenziert werden). Deutlich schneller als Alternative 2 und ausreichend, um Schema+RLS-Struktur zu verifizieren (nicht die Auth-Funktionalität selbst).
   2. **Fallback, falls 1 nicht ausreicht:** Statt vanilla Postgres eine zweite, isolierte lokale Supabase-Instanz nutzen (z. B. `supabase start --workdir <temp-copy-des-repos>` mit eigenem `project_id` in einer temporären `config.toml`-Kopie, andere Ports) — hat `auth`/`storage`/`extensions` bereits vorprovisioniert, kostet aber mehr Laufzeit und Komplexität.
-  Das tatsächliche Ergebnis dieser Klärung in diesem Abschnitt der Datei nachtragen, sobald L7 umgesetzt ist.
+     Das tatsächliche Ergebnis dieser Klärung in diesem Abschnitt der Datei nachtragen, sobald L7 umgesetzt ist.
 - **Schritte:**
   1. Neues Skript `scripts/restore-drill.ts`:
      a. `supabase db dump` gegen die lokale Dev-Instanz ausführen (Version 2.116.0 prüfen: ob `--linked` weglassen automatisch auf `supabase status`/lokale Instanz zielt, oder ob `--db-url postgresql://postgres:postgres@127.0.0.1:54322/postgres` explizit nötig ist — `npx supabase db dump --help` konsultieren, bevor Annahme in Code gegossen wird) → frischer, ungefährlicher Test-Dump (kein Remote-Zugriff, keine Secrets nötig).
@@ -181,7 +182,7 @@ Siehe Abschnitt 2 — vollständig implementiert und mit 9 Tests abgesichert. Ne
   - **Komplementärprüfung:** `package.json` → `test:restore-drill` = Drill (inkl. Live-Invarianten) + die 4 statischen Suiten (37 Tests, verifizieren den Migrations-Quelltext, aus dem das restored Schema entstand).
 - **Verifikation:** `npm run test:restore-drill` grün (2026-09-05): Drill-JSON mit `invariants.rlsEnabledCoreTables` (5 Tabellen), `walletAppendOnlyTriggerActive: true`, `walletRpcsPresent: 2`; danach 4 Testdateien / 37 Tests in 311 ms. Gesamtdauer ~45 s (lokal).
 
-### L9 — CI-Workflow für den Gesamtzyklus · 🟡 gebaut, CI-Nachweis nach erstem Push (2026-09-05)
+### L9 — CI-Workflow für den Gesamtzyklus · 🟢 verifiziert (2026-09-05, grüner CI-Run)
 
 - **Ziel:** L7+L8 nicht nur lokal manuell, sondern automatisiert bei jeder relevanten Änderung und auf Zeitplan.
 - **Schritte:**
@@ -199,6 +200,7 @@ Siehe Abschnitt 2 — vollständig implementiert und mit 9 Tests abgesichert. Ne
   - **Voraussetzung geschaffen:** Supabase-CLI erstmals als exakte devDependency gepinnt (`supabase@2.116.0` in `package.json` + Lockfile) — vorher kam der CLI-Aufruf nur aus dem lokalen npx-Cache; auf CI wäre `npx --no-install supabase` (im Drill-Script) sonst fehlgeschlagen und `npx supabase` wäre unpinned. Der Drill läuft unverändert.
   - **Verifikation:** YAML syntaktisch validiert (js-yaml-Parse: 4 Trigger, Job `restore-drill`, 5 Steps). Der planerisch geforderte grüne Workflow-Lauf (`workflow_dispatch` beobachtet) erfordert einen Push auf GitHub (**K4**) — bleibt wie 01-L3/02-L3 als Push-Residuum offen, nicht stillschweigend als erledigt markiert.
   - Hinweis für den ersten CI-Lauf: Der Drill löst sein Restore-Image dynamisch vom `supabase start`-Container (`supabase_db_Casino`) — im Runner identisch benannt wie lokal, kein Fallback auf vanilla postgres:17 nötig.
+  - **CI-Nachweis (2026-09-05):** Grüner Dispatch-Lauf auf `main` — **Run 33988968506, Job `restore-drill` ✅ success**. Der erste Lauf (Run 33988298709) war rot: die Drill-/Restore-Skripte und `src/lib/backup/` waren im L4-Commit-Plan vergessen worden (`ERR_MODULE_NOT_FOUND scripts/restore-drill.ts`) — nachgecommittet in `38f5b76` (Drill + Recovery-Lib) und `bab3ab1` (ER-Diagramm-Drift-Check), dann Neulauf grün.
 
 ---
 
@@ -253,13 +255,13 @@ Der Plan ist erst **Executed (archiviert)**, wenn:
 
 ## 8 — Verwandte Artefakte
 
-| Bedarf | Datei |
-| --- | --- |
-| Kanonischer Doku-Standard (Säule 9) | [`docs/database/09_backup_disaster_recovery.md`](../docs/database/09_backup_disaster_recovery.md) — wird in L4 korrigiert |
-| Verifizierter Code-/Datenpfad-Kontext (archiviert, teils veraltet) | [`docs/archive/05_backup_recovery_context.md`](../docs/archive/05_backup_recovery_context.md) — wird in L4 korrigiert |
-| Tabelleninventar, 3-Client-Architektur | [`xx_docs/01_supabase_context.md`](../xx_docs/01_supabase_context.md) |
-| Supabase-Betriebs-SOP | [`xx_sop/05_database_supabase.md`](../xx_sop/05_database_supabase.md) |
-| Finanz-/Sicherheitsnachweis-Pflichten nach Restore | [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md) |
-| Gewichtete Subkategorien-Bewertung (Säule 9 = höchstgewichtetes Risiko) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 02, alle 10 Säulen) | [`worldmap/04_datenbank_migrationen.md`](../worldmap/04_datenbank_migrationen.md) |
-| Planungsdateien-Konvention | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md) |
+| Bedarf                                                                  | Datei                                                                                                                     |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Kanonischer Doku-Standard (Säule 9)                                     | [`docs/database/09_backup_disaster_recovery.md`](../docs/database/09_backup_disaster_recovery.md) — wird in L4 korrigiert |
+| Verifizierter Code-/Datenpfad-Kontext (archiviert, teils veraltet)      | [`docs/archive/05_backup_recovery_context.md`](../docs/archive/05_backup_recovery_context.md) — wird in L4 korrigiert     |
+| Tabelleninventar, 3-Client-Architektur                                  | [`xx_docs/01_supabase_context.md`](../xx_docs/01_supabase_context.md)                                                     |
+| Supabase-Betriebs-SOP                                                   | [`xx_sop/05_database_supabase.md`](../xx_sop/05_database_supabase.md)                                                     |
+| Finanz-/Sicherheitsnachweis-Pflichten nach Restore                      | [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md)                                   |
+| Gewichtete Subkategorien-Bewertung (Säule 9 = höchstgewichtetes Risiko) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md)                                                            |
+| Übergeordnete Aufschlüsselung (Kategorie 02, alle 10 Säulen)            | [`worldmap/04_datenbank_migrationen.md`](../worldmap/04_datenbank_migrationen.md)                                         |
+| Planungsdateien-Konvention                                              | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md)                               |

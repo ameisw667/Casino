@@ -1,6 +1,6 @@
 # 10 — DB-Test-Schicht (pgTAP)
 
-> **Status:** 🟢 Ausgeführt (L0–L7 verifiziert, L8 eingebaut — CI-Nachweis nach Push) · **Stand:** 2026-09-05 · **Owner:** LLM (kein dediziertes Jan-Gate) · **Scope:** Automatisierte, gegen eine echte lokale Postgres-Instanz laufende SQL-native Tests für die Geld-RPCs und RLS-Policies der Casino-Datenbank. Kein Produktions-Rollout, keine Änderung an Geschäftslogik.
+> **Status:** 🟢 Abgeschlossen (L0–L8 verifiziert am 2026-09-05 inkl. grünem CI-Lauf) · **Stand:** 2026-09-05 · **Owner:** LLM (kein dediziertes Jan-Gate) · **Scope:** Automatisierte, gegen eine echte lokale Postgres-Instanz laufende SQL-native Tests für die Geld-RPCs und RLS-Policies der Casino-Datenbank. Kein Produktions-Rollout, keine Änderung an Geschäftslogik.
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
 
@@ -13,17 +13,17 @@
 
 ## 1 — Übersicht für Jan
 
-| Nr. | Meilenstein | Status | Nächster Schritt | Zuständigkeit | Money-Pfad |
-| --- | --- | :---: | --- | :---: | :---: |
-| L0 | Kontext & Scope | 🟢 verifiziert (2026-09-04) | — | LLM | Nein |
-| L1 | Wichtiger Fund korrigieren: RLS-Test ist Text-Verifikation, kein Laufzeit-Pentest | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L2 | Doku-Korrektur: falsche RPC-Namen in Säule-10-Doku | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L3 | pgTAP-Extension per Migration aktivieren (lokal) | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L4 | pgTAP-Testdatei: `settle_game_bet` | 🟢 verifiziert (2026-09-05) | — | LLM | **Ja** |
-| L5 | pgTAP-Testdateien: `start_game_round`, `advance_blackjack_round` | 🟢 verifiziert (2026-09-05) | — | LLM | **Ja** |
-| L6 | Echter RLS-Laufzeittest (schließt den L1-Fund) | 🟢 verifiziert (2026-09-05) | — | LLM | **Ja** |
-| L7 | Lokale Gesamtverifikation | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L8 | CI-Integration in `security-staging.yml` | 🟡 umgesetzt (2026-09-05) · CI-Nachweis nach Push (K4) | Workflow-Dispatch-Lauf nach Commit/Push beobachten | LLM | Nein |
+| Nr. | Meilenstein                                                                       |                   Status                   | Nächster Schritt | Zuständigkeit | Money-Pfad |
+| --- | --------------------------------------------------------------------------------- | :----------------------------------------: | ---------------- | :-----------: | :--------: |
+| L0  | Kontext & Scope                                                                   |        🟢 verifiziert (2026-09-04)         | —                |      LLM      |    Nein    |
+| L1  | Wichtiger Fund korrigieren: RLS-Test ist Text-Verifikation, kein Laufzeit-Pentest |        🟢 verifiziert (2026-09-05)         | —                |      LLM      |    Nein    |
+| L2  | Doku-Korrektur: falsche RPC-Namen in Säule-10-Doku                                |        🟢 verifiziert (2026-09-05)         | —                |      LLM      |    Nein    |
+| L3  | pgTAP-Extension per Migration aktivieren (lokal)                                  |        🟢 verifiziert (2026-09-05)         | —                |      LLM      |    Nein    |
+| L4  | pgTAP-Testdatei: `settle_game_bet`                                                |        🟢 verifiziert (2026-09-05)         | —                |      LLM      |   **Ja**   |
+| L5  | pgTAP-Testdateien: `start_game_round`, `advance_blackjack_round`                  |        🟢 verifiziert (2026-09-05)         | —                |      LLM      |   **Ja**   |
+| L6  | Echter RLS-Laufzeittest (schließt den L1-Fund)                                    |        🟢 verifiziert (2026-09-05)         | —                |      LLM      |   **Ja**   |
+| L7  | Lokale Gesamtverifikation                                                         |        🟢 verifiziert (2026-09-05)         | —                |      LLM      |    Nein    |
+| L8  | CI-Integration in `security-staging.yml`                                          | 🟢 verifiziert (2026-09-05, grüner CI-Run) | —                |      LLM      |    Nein    |
 
 **Kein dediziertes Jan-Gate in diesem Plan.** Die einzige potenzielle Berührung mit Jan ist der ganz normale, bereits bestehende K4-Prozess, wenn irgendwann die nächste reguläre `supabase db push --linked` ansteht (die L3-Migration reist dann automatisch mit) — das ist keine Besonderheit dieses Plans, sondern gilt für jede Migration im Projekt gleichermaßen (siehe `CLAUDE.md` K-Matrix). Bis dahin laufen L1–L8 vollständig gegen die lokale/ephemere Instanz.
 
@@ -34,19 +34,21 @@
 **Wichtigster Fund dieser Recherche:** [`src/lib/security/__tests__/rls-defense-in-depth.test.ts`](../src/lib/security/__tests__/rls-defense-in-depth.test.ts) — das in mehreren Dokumenten als "29/29 Penetrationstests … gegen echte anon-/authenticated-JWTs" beschriebene Testset (u. a. `worldmap/04_datenbank_migrationen.md` Zeile 66, `00_DATABASE_OVERVIEW.md`) **verbindet sich mit keiner Datenbank.** Der Test liest per `readFileSync` den SQL-Text der Migrationsdateien (`001_users.sql`, `002_wallet.sql`, `007_server_authority.sql`, `009_meta_features.sql`, `028_wallet_ledger_invariants.sql`, siehe Zeilen 1–15 der Testdatei) und prüft per Regex/`toContain`, ob bestimmte `ALTER TABLE … ENABLE ROW LEVEL SECURITY`- bzw. `REVOKE`-Statements **im Quelltext vorkommen**. Das ist eine reine **statische Text-Verifikation** ("Schema & Policy Verification (L1)", so auch die eigene `describe`-Beschriftung in Zeile 17 der Testdatei) — kein `SET ROLE anon`, kein echter Query, kein JWT. Das ist nicht wertlos (verhindert versehentliches Löschen der RLS-Statements aus den Migrationen), beweist aber **nicht**, dass die Policies zur Laufzeit tatsächlich greifen. Genau diese Lücke schließt L6.
 
 **Bereits vorhanden, wiederverwendbar:**
+
 - `.github/workflows/security-staging.yml` (Zeilen 46–73 laut Recherche) startet bereits eine ephemere lokale Supabase-Instanz (`npx supabase start`), wendet alle Migrationen an, führt ein SQL-Skript per `psql` aus und stoppt die Instanz wieder — **exakt das Muster, in das L8 pgTAP einhängt.**
 - `supabase/config.toml`: Postgres **17** lokal (Zeile 42), kein `[db.extensions]`-Block, der pgTAP verbieten würde.
 
 **Bestätigt fehlend:**
+
 - Kein `CREATE EXTENSION.*pgtap` in irgendeiner Migration, kein `supabase/tests/`-Verzeichnis, keine `.sql`-Testdatei — pgTAP existiert im Repo bisher nur als Doku-Erwähnung (`grep` findet 8 Treffer, alle reine Prosa).
 - Kein `.env`/Setup, das Vitest-Tests standardmäßig gegen eine echte Postgres-Instanz laufen lässt (`vitest.config.ts` hat kein DB-Setup) — alle bestehenden Casino-Vitest-Tests unter `src/lib/casino/__tests__/` sind gemockt, keine Regression, wenn eine RPC-Signatur sich ändert, ohne dass jemand den Mock aktualisiert.
 
 **Korrigierte Fakten zu den Geld-RPCs (bisherige Doku nannte teils falsche Namen):**
 
-| Funktion | Kanonische/neueste Definition | Bisheriger Doku-Fehler |
-| --- | --- | --- |
-| `settle_game_bet` | `supabase/migrations/045_fix_wallet_events_jackpot_regression.sql:99` (frühere Versionen in 014/019/033/034) | `docs/database/10_automatisierte_db_testschicht.md` nennt fälschlich `settle_standard_bet` — diese Funktion existiert nicht |
-| `start_game_round` | `supabase/migrations/058_reconcile_remote_schema_drift.sql:1138` (einzige Definition) | — |
+| Funktion                  | Kanonische/neueste Definition                                                                                                      | Bisheriger Doku-Fehler                                                                                                                                                                         |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `settle_game_bet`         | `supabase/migrations/045_fix_wallet_events_jackpot_regression.sql:99` (frühere Versionen in 014/019/033/034)                       | `docs/database/10_automatisierte_db_testschicht.md` nennt fälschlich `settle_standard_bet` — diese Funktion existiert nicht                                                                    |
+| `start_game_round`        | `supabase/migrations/058_reconcile_remote_schema_drift.sql:1138` (einzige Definition)                                              | —                                                                                                                                                                                              |
 | `advance_blackjack_round` | `supabase/migrations/014_fix_user_stats.sql:202` (einzige `CREATE OR REPLACE`-Definition, 8 weitere Dateien referenzieren sie nur) | Doku nennt zusätzlich `settle_game_round` als dritten Kandidaten — **vor Testbau per grep verifizieren, ob dieser Name real existiert oder eine Verwechslung ist; nicht ungeprüft übernehmen** |
 
 Über alle Migrationen: **47 Vorkommen von `pg_advisory_xact_lock` in 17 Dateien** — Umfang, der zeigt, warum Laufzeit-Tests (nicht nur Text-Matching) hier einen echten Sicherheitswert haben.
@@ -133,7 +135,7 @@
 - **Schritte:** Zwischen dem bestehenden "ephemere lokale Supabase starten" und "stoppen"-Schritt (Zeilen ~46–73 laut Recherche) einen neuen Schritt `npx supabase test db` einfügen. Kein neues Secret nötig — läuft im selben ephemeren, migrations-frisch-aufgebauten Kontext wie der bestehende `verify-security-phase1.sql`-Schritt.
 - **Verifizierung:** Workflow einmal per `workflow_dispatch` auslösen, Lauf grün beobachten (`gh run watch`, gleiches Muster wie in `worldmap/00_WORLDMAP_STATUS.md` Zeile 46 bereits etabliert).
 - **Freigabe-Gate:** Keines. **Money-Pfad:** Nein. **Security-Review:** Nein (reine CI-Konfiguration, kein neuer Datenzugriff über bereits bestehende Rechte hinaus).
-- **Umsetzung 2026-09-05:** Schritt `Run pgTAP database tests` (`npx supabase test db`) in [`.github/workflows/security-staging.yml`](../.github/workflows/security-staging.yml) zwischen dem Verbindungs-Export- und dem Vitest-Schritt eingefügt (die ephemere Instanz hat zu dem Punkt alle Migrationen inkl. `064_enable_pgtap.sql` bereits angewendet). Zusätzlich `supabase/tests/**` in die `paths`-Trigger aufgenommen, damit pgTAP-Änderungen den Workflow selbst auslösen. **Offen (K4):** Die Verifizierung per `workflow_dispatch`-Lauf benötigt einen Commit/Push — der Schritt ist eingebaut, der grüne CI-Lauf ist nach dem nächsten Push zu beobachten (gleiche Situation wie 05/L9 `backup-drill.yml`).
+- **Umsetzung 2026-09-05:** Schritt `Run pgTAP database tests` (`npx supabase test db`) in [`.github/workflows/security-staging.yml`](../.github/workflows/security-staging.yml) zwischen dem Verbindungs-Export- und dem Vitest-Schritt eingefügt (die ephemere Instanz hat zu dem Punkt alle Migrationen inkl. `064_enable_pgtap.sql` bereits angewendet). Zusätzlich `supabase/tests/**` in die `paths`-Trigger aufgenommen, damit pgTAP-Änderungen den Workflow selbst auslösen. **CI-Nachweis:** Grüner Workflow-Dispatch-Lauf auf `main` am 2026-09-05 (`Security staging regression`, Run 33987257048, Job `security-staging` ✅) — Migration 064 angewendet, pgTAP-Schritt `npx supabase test db` grün durchlaufen.
 
 ---
 
@@ -162,15 +164,15 @@
 
 ## 6 — Verwandte Artefakte
 
-| Bedarf | Datei |
-| --- | --- |
-| Kanonischer Doku-Standard (Säule 10) | [`docs/database/10_automatisierte_db_testschicht.md`](../docs/database/10_automatisierte_db_testschicht.md) — wird in L2 korrigiert |
-| RLS-Doku (Säule 4) | [`docs/database/04_row_level_security_rls.md`](../docs/database/04_row_level_security_rls.md) — wird in L1 präzisiert |
-| Master-Übersicht | [`docs/database/00_DATABASE_OVERVIEW.md`](../docs/database/00_DATABASE_OVERVIEW.md) — wird in L1 präzisiert |
-| Bestehender Text-Verifikationstest (bleibt bestehen) | [`src/lib/security/__tests__/rls-defense-in-depth.test.ts`](../src/lib/security/__tests__/rls-defense-in-depth.test.ts) |
-| CI-Einbaupunkt | [`.github/workflows/security-staging.yml`](../.github/workflows/security-staging.yml) |
-| Postgres-Migrations-Patterns, K-Level | [`xx_sop/18_postgres_patterns_migrations.md`](../xx_sop/18_postgres_patterns_migrations.md) |
-| Supabase-Betriebs-SOP, Pre-Flight-Check | [`xx_sop/05_database_supabase.md`](../xx_sop/05_database_supabase.md) |
-| Gewichtete Subkategorien-Bewertung (Säule 10) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 02) | [`worldmap/04_datenbank_migrationen.md`](../worldmap/04_datenbank_migrationen.md) |
-| Planungsdateien-Konvention | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md) |
+| Bedarf                                               | Datei                                                                                                                               |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Kanonischer Doku-Standard (Säule 10)                 | [`docs/database/10_automatisierte_db_testschicht.md`](../docs/database/10_automatisierte_db_testschicht.md) — wird in L2 korrigiert |
+| RLS-Doku (Säule 4)                                   | [`docs/database/04_row_level_security_rls.md`](../docs/database/04_row_level_security_rls.md) — wird in L1 präzisiert               |
+| Master-Übersicht                                     | [`docs/database/00_DATABASE_OVERVIEW.md`](../docs/database/00_DATABASE_OVERVIEW.md) — wird in L1 präzisiert                         |
+| Bestehender Text-Verifikationstest (bleibt bestehen) | [`src/lib/security/__tests__/rls-defense-in-depth.test.ts`](../src/lib/security/__tests__/rls-defense-in-depth.test.ts)             |
+| CI-Einbaupunkt                                       | [`.github/workflows/security-staging.yml`](../.github/workflows/security-staging.yml)                                               |
+| Postgres-Migrations-Patterns, K-Level                | [`xx_sop/18_postgres_patterns_migrations.md`](../xx_sop/18_postgres_patterns_migrations.md)                                         |
+| Supabase-Betriebs-SOP, Pre-Flight-Check              | [`xx_sop/05_database_supabase.md`](../xx_sop/05_database_supabase.md)                                                               |
+| Gewichtete Subkategorien-Bewertung (Säule 10)        | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md)                                                                      |
+| Übergeordnete Aufschlüsselung (Kategorie 02)         | [`worldmap/04_datenbank_migrationen.md`](../worldmap/04_datenbank_migrationen.md)                                                   |
+| Planungsdateien-Konvention                           | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md)                                         |

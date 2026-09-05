@@ -1,6 +1,6 @@
 # 12 — Restpunkte der T_DATABASE-Execution (CI-Nachweise, Doku-Residuen, Jan-Gates)
 
-> **Status:** 🟡 Ausgeführt (L0–L3 verifiziert am 2026-09-05 — L4 wartet auf Jan-Freigabe Commit+Push) · **Stand:** 2026-09-05 · **Owner:** LLM, Jan nur wo zwingend (K4/Secrets/Cloud) · **Scope:** Alle nach der T_DATABASE-Execution vom 2026-09-05 gemeldeten, dort bewusst offen gelassenen Punkte — sie sind in den Plänen 01/02/05/06/10/11 jeweils als "offen/Jan-seitig" dokumentiert, aber in **keiner** Planungsdatei selbst umsetzbar gewesen. Kein neuer Schema-/Code-/Migrations-Scope, keine Re-Rating-Entscheidung ohne Jan.
+> **Status:** 🟡 Ausgeführt (L0–L4 verifiziert am 2026-09-05 inkl. 3 grüner CI-Läufe — L5/L6/L7 Jan-Gates offen) · **Stand:** 2026-09-05 · **Owner:** LLM, Jan nur wo zwingend (K4/Secrets/Cloud) · **Scope:** Alle nach der T_DATABASE-Execution vom 2026-09-05 gemeldeten, dort bewusst offen gelassenen Punkte — sie sind in den Plänen 01/02/05/06/10/11 jeweils als "offen/Jan-seitig" dokumentiert, aber in **keiner** Planungsdatei selbst umsetzbar gewesen. Kein neuer Schema-/Code-/Migrations-Scope, keine Re-Rating-Entscheidung ohne Jan.
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
 
@@ -13,16 +13,16 @@
 
 ## 1 — Übersicht für Jan
 
-| Nr. | Meilenstein | Status | Nächster Schritt | Zuständigkeit | Money-Pfad |
-| --- | --- | :---: | --- | :---: | :---: |
-| L0 | Kontext & Scope | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L1 | npm-Script `supabase:types` auf kanonisches `--local` umstellen | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L2 | Doku-Residuen: `public.wallets` in `docs/database/10` §5 korrigieren | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L3 | 7 weitere "Penetrationstest"-Formulierungen präzisieren | 🟢 verifiziert (2026-09-05) | — | LLM | Nein |
-| L4 | Commit + Push aller T_DATABASE-Artefakte (schließt CI-Nachweise von 01/09/10) | 🔴 geplant | Jan freigeben, LLM bereitet Commit-Split vor | **Jan** (Freigabe) + LLM (Vorbereitung) | Nein |
-| L5 | GitHub-Secret `SUPABASE_ACCESS_TOKEN` hinterlegen + erste CI-Läufe beobachten | 🔴 geplant | Secret in Repo-Settings, dann 3 Workflow-Dispatches | **Jan** (Secret) + LLM (Beobachtung) | Nein |
-| L6 | Backup L10–L12: Cloud-Credentials, KMS/Bucket, erster echter Restore-Drill | 🔴 geplant | Checkliste aus `05` §L10–L12 durchgehen | **Jan** + LLM (Begleitung) | Nein |
-| L7 | (Optional) Niveau-Re-Rating in `worldmap/04_datenbank_migrationen.md` vorbereiten | 🔴 geplant | Bewertungsvorschlag als Entscheidungsvorlage | LLM (Vorschlag), **Jan** (Entscheidung) | Nein |
+| Nr. | Meilenstein                                                                       |                    Status                     | Nächster Schritt                                    |              Zuständigkeit              | Money-Pfad |
+| --- | --------------------------------------------------------------------------------- | :-------------------------------------------: | --------------------------------------------------- | :-------------------------------------: | :--------: |
+| L0  | Kontext & Scope                                                                   |          🟢 verifiziert (2026-09-05)          | —                                                   |                   LLM                   |    Nein    |
+| L1  | npm-Script `supabase:types` auf kanonisches `--local` umstellen                   |          🟢 verifiziert (2026-09-05)          | —                                                   |                   LLM                   |    Nein    |
+| L2  | Doku-Residuen: `public.wallets` in `docs/database/10` §5 korrigieren              |          🟢 verifiziert (2026-09-05)          | —                                                   |                   LLM                   |    Nein    |
+| L3  | 7 weitere "Penetrationstest"-Formulierungen präzisieren                           |          🟢 verifiziert (2026-09-05)          | —                                                   |                   LLM                   |    Nein    |
+| L4  | Commit + Push aller T_DATABASE-Artefakte (schließt CI-Nachweise von 01/09/10)     | 🟢 verifiziert (2026-09-05, 3 grüne CI-Läufe) | —                                                   | **Jan** (Freigabe) + LLM (Vorbereitung) |    Nein    |
+| L5  | GitHub-Secret `SUPABASE_ACCESS_TOKEN` hinterlegen + erste CI-Läufe beobachten     |                  🔴 geplant                   | Secret in Repo-Settings, dann 3 Workflow-Dispatches |  **Jan** (Secret) + LLM (Beobachtung)   |    Nein    |
+| L6  | Backup L10–L12: Cloud-Credentials, KMS/Bucket, erster echter Restore-Drill        |                  🔴 geplant                   | Checkliste aus `05` §L10–L12 durchgehen             |       **Jan** + LLM (Begleitung)        |    Nein    |
+| L7  | (Optional) Niveau-Re-Rating in `worldmap/04_datenbank_migrationen.md` vorbereiten |                  🔴 geplant                   | Bewertungsvorschlag als Entscheidungsvorlage        | LLM (Vorschlag), **Jan** (Entscheidung) |    Nein    |
 
 ---
 
@@ -30,15 +30,15 @@
 
 Jeder Restpunkt ist in der abgeschlossenen Execution dokumentiert — hier die Herkunft, damit eine neue Konversation nicht re-recherchieren muss:
 
-| Restpunkt | Herkunft (Quelle der Meldung) | Zustand heute |
-| --- | --- | --- |
-| `supabase:types` nutzt `--linked` | [`06_database_typsicherheit.md`](./06_database_typsicherheit.md) L2-Fußnote + `00_DATABASE_VERBESSERUNG.md` Fußnote ⁶ | npm-Script in `package.json` Zeile 25 unverändert; kanonischer Ablauf ist seit der Execution `--local` (deterministische Baseline, siehe 06/L2) |
-| `public.wallets` in `docs/database/10` §5 | [`10_database_testschicht_pgtap.md`](./10_database_testschicht_pgtap.md) L2-Umsetzung, "Zusätzlich gemeldet (außerhalb L2-Scope)" | Tabelle `wallets` existiert nicht; Wallet-Status liegt auf `users` (verifiziert per `grep` über Migrationen) |
+| Restpunkt                                   | Herkunft (Quelle der Meldung)                                                                                                                                                              | Zustand heute                                                                                                                                               |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `supabase:types` nutzt `--linked`           | [`06_database_typsicherheit.md`](./06_database_typsicherheit.md) L2-Fußnote + `00_DATABASE_VERBESSERUNG.md` Fußnote ⁶                                                                      | npm-Script in `package.json` Zeile 25 unverändert; kanonischer Ablauf ist seit der Execution `--local` (deterministische Baseline, siehe 06/L2)             |
+| `public.wallets` in `docs/database/10` §5   | [`10_database_testschicht_pgtap.md`](./10_database_testschicht_pgtap.md) L2-Umsetzung, "Zusätzlich gemeldet (außerhalb L2-Scope)"                                                          | Tabelle `wallets` existiert nicht; Wallet-Status liegt auf `users` (verifiziert per `grep` über Migrationen)                                                |
 | 7 weitere "Penetrationstest"-Formulierungen | [`10_database_testschicht_pgtap.md`](./10_database_testschicht_pgtap.md) L1-Umsetzung (die 2 kanonischen Dateien sind korrigiert, die restlichen 7 Fundstellen waren außerhalb des Scopes) | Fundstellen via `grep -rn "Penetrationstest\|echte anon" docs/database worldmap xx_sop` reproduzierbar; `11_master_summary.md` + worldmap-Dateien betroffen |
-| Commit/Push fehlt für CI-Nachweise | `00_DATABASE_VERBESSERUNG.md` Fußnoten ¹ ³ ⁵; `05`/`10` Umsetzung-Blöcke | Sämtliche Artefakte (Migrationen 063/064, pgTAP-Suite, Workflows, Audit-Datei) liegen **uncommitted** im Arbeitsverzeichnis |
-| `SUPABASE_ACCESS_TOKEN` fehlt in CI | `00_DATABASE_VERBESSERUNG.md` Fußnoten ¹ ⁴; `11` L7-Umsetzung | Workflow `query-performance-audit.yml` und `migration-drift-check.yml` sind gebaut, schlagen ohne Secret beim Login fehl (im Workflow-Header dokumentiert) |
-| Backup L10–L12 Jan-Anteil | [`05_database_backup_and_recovery.md`](./05_database_backup_and_recovery.md) (L0–L9 🟢) | L10–L12 sind bewusst nicht LLM-zuständig: reale Cloud-Credentials, KMS-/Bucket-Konfiguration, Auslösung des ersten Drills |
-| Niveau-Re-Rating | `00_DATABASE_VERBESSERUNG.md` Abschnitt 3 Fußnote "Hinweis zu den Niveau-Werten" + Abschnitt 1 `worldmap/04` offene Headline-Entscheidung | Werte beschreiben bewusst den Stand **vor** Execution; Re-Rating gehört in den kanonischen worldmap-Review (Jan-Entscheidung) |
+| Commit/Push fehlt für CI-Nachweise          | `00_DATABASE_VERBESSERUNG.md` Fußnoten ¹ ³ ⁵; `05`/`10` Umsetzung-Blöcke                                                                                                                   | Sämtliche Artefakte (Migrationen 063/064, pgTAP-Suite, Workflows, Audit-Datei) liegen **uncommitted** im Arbeitsverzeichnis                                 |
+| `SUPABASE_ACCESS_TOKEN` fehlt in CI         | `00_DATABASE_VERBESSERUNG.md` Fußnoten ¹ ⁴; `11` L7-Umsetzung                                                                                                                              | Workflow `query-performance-audit.yml` und `migration-drift-check.yml` sind gebaut, schlagen ohne Secret beim Login fehl (im Workflow-Header dokumentiert)  |
+| Backup L10–L12 Jan-Anteil                   | [`05_database_backup_and_recovery.md`](./05_database_backup_and_recovery.md) (L0–L9 🟢)                                                                                                    | L10–L12 sind bewusst nicht LLM-zuständig: reale Cloud-Credentials, KMS-/Bucket-Konfiguration, Auslösung des ersten Drills                                   |
+| Niveau-Re-Rating                            | `00_DATABASE_VERBESSERUNG.md` Abschnitt 3 Fußnote "Hinweis zu den Niveau-Werten" + Abschnitt 1 `worldmap/04` offene Headline-Entscheidung                                                  | Werte beschreiben bewusst den Stand **vor** Execution; Re-Rating gehört in den kanonischen worldmap-Review (Jan-Entscheidung)                               |
 
 ---
 
@@ -74,6 +74,13 @@ Jeder Restpunkt ist in der abgeschlossenen Execution dokumentiert — hier die H
 - **Schritte:** 1. LLM erstellt Commit-Plan (Conventional Commits, sinnvolle Gruppierung: Migrationen 063/064 + pgTAP-Suite / Typegen + Typsicherheits-Fixes / Workflows + Audit / Doku + Planungsdateien). 2. **Jan prüft Commit-Plan und gibt Commit+Push explizit frei** (`CLAUDE.md`: "Never commit unless I explicitly ask"; K4). 3. LLM führt nach Freigabe aus und beobachtet die 3 Workflow-Läufe (`gh run watch`, Muster wie in `worldmap/00_WORLDMAP_STATUS.md`).
 - **Verifizierung:** 3 grüne CI-Läufe (migration-drift-check, backup-drill, security-staging inkl. pgTAP-Schritt) — erst danach werden die Ampeln in 01/L3, 05/L9 und 10/L8 auf 🟢 umgestellt.
 - **Freigabe-Gate:** **Jan (K4, Commit+Push).** **Money-Pfad:** Nein. **Security-Review:** Nein (alle Artefakte sind einzeln bereits reviewed — 064 via migration-security-guard PASS, Code via code-reviewer + security-reviewer PASS).
+- **Umsetzung 2026-09-05 (Jan-Freigabe im Chat: „Commit push" + FF-Push auf `main` + Nachjustage):**
+  - **Commits auf `main`** (lokal = `origin/main`): `c000c42`, `9e6c1d2`, `4255244`, `28be2ac`, `6f82589` (5er-Plan: Migrationen 063/064 + pgTAP-Suite, Typegen+Typsicherheits-Fixes, Workflows+Audit, Doku+Planungsdateien) sowie Nachjustage `164cc2e` (Lock-Sync, npm-ci-Fehler), `1a8fed2` (workflow_dispatch-Trigger für schema-drift-check), `38f5b76` (Restore-Drill + `src/lib/backup/` Recovery-Lib — im ersten Commit-Plan vergessen, verursachte den ersten roten backup-drill-Lauf) und `bab3ab1` (ER-Diagramm-Drift-Check, 02-L5).
+  - **3 grüne CI-Nachweise (alle Run-IDs verifiziert):**
+    1. **Security staging regression** inkl. pgTAP-Schritt — Run `33987257048` ✅ (Migration 064 angewendet, `npx supabase test db` grün) → 10/L8 🟢.
+    2. **Schema Drift Check** — Run `33988391152` ✅ (`database.types.ts` synchron mit der Migrationskette).
+    3. **Backup Restore Drill** — Run `33988968506` ✅ (erster Lauf `33988298709` ❌ wegen fehlender Drill-Skripte, siehe oben) → 05/L9 🟢.
+  - **Korrektur am Plan selbst:** Der ursprünglich L4 zugeschriebene CI-Nachweis „migration-drift-check" (01/L3) ist **secret-abhängig** (`SUPABASE_ACCESS_TOKEN`) und gehört korrekt zu **L5** — deshalb 01/L3 in dieser Umsetzung nicht als geschlossen markiert. Dafür lieferte L4 zusätzlich den Schema-Drift-Check-Nachweis (statische Typegen-Synchronität), der im Original nicht verankert war.
 
 ### L5 — GitHub-Secret `SUPABASE_ACCESS_TOKEN` + erste CI-Läufe
 
@@ -123,12 +130,12 @@ Jeder Restpunkt ist in der abgeschlossenen Execution dokumentiert — hier die H
 
 ## 6 — Verwandte Artefakte
 
-| Bedarf | Datei |
-| --- | --- |
-| Execution-Herkunft (alle Fundstänfe) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md) Abschnitt 3 Fußnoten |
-| Backup-Jan-Anteil (L10–L12) | [`05_database_backup_and_recovery.md`](./05_database_backup_and_recovery.md) |
-| Typegen-Kanonik | [`06_database_typsicherheit.md`](./06_database_typsicherheit.md) |
-| RLS-Präzisierungsmuster (L3) | [`10_database_testschicht_pgtap.md`](./10_database_testschicht_pgtap.md) L1-Umsetzung |
-| Secret-/CI-Kontext (L5) | [`11_database_query_performance_indexing.md`](./11_database_query_performance_indexing.md) L7-Umsetzung |
-| K-Matrix & Freigaberegeln | `CLAUDE.md` (K4-Block) |
-| Security-Invarianten | [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md) |
+| Bedarf                               | Datei                                                                                                   |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| Execution-Herkunft (alle Fundstänfe) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md) Abschnitt 3 Fußnoten                     |
+| Backup-Jan-Anteil (L10–L12)          | [`05_database_backup_and_recovery.md`](./05_database_backup_and_recovery.md)                            |
+| Typegen-Kanonik                      | [`06_database_typsicherheit.md`](./06_database_typsicherheit.md)                                        |
+| RLS-Präzisierungsmuster (L3)         | [`10_database_testschicht_pgtap.md`](./10_database_testschicht_pgtap.md) L1-Umsetzung                   |
+| Secret-/CI-Kontext (L5)              | [`11_database_query_performance_indexing.md`](./11_database_query_performance_indexing.md) L7-Umsetzung |
+| K-Matrix & Freigaberegeln            | `CLAUDE.md` (K4-Block)                                                                                  |
+| Security-Invarianten                 | [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md)                 |
