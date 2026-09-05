@@ -13,16 +13,16 @@
 
 ## 1 — Übersicht für Jan
 
-| Nr. | Meilenstein                                                                       |                                  Status                                  | Nächster Schritt                                    |              Zuständigkeit              | Money-Pfad |
-| --- | --------------------------------------------------------------------------------- | :----------------------------------------------------------------------: | --------------------------------------------------- | :-------------------------------------: | :--------: |
-| L0  | Kontext & Scope                                                                   |                       🟢 verifiziert (2026-09-05)                        | —                                                   |                   LLM                   |    Nein    |
-| L1  | npm-Script `supabase:types` auf kanonisches `--local` umstellen                   |                       🟢 verifiziert (2026-09-05)                        | —                                                   |                   LLM                   |    Nein    |
-| L2  | Doku-Residuen: `public.wallets` in `docs/database/10` §5 korrigieren              |                       🟢 verifiziert (2026-09-05)                        | —                                                   |                   LLM                   |    Nein    |
-| L3  | 7 weitere "Penetrationstest"-Formulierungen präzisieren                           |                       🟢 verifiziert (2026-09-05)                        | —                                                   |                   LLM                   |    Nein    |
-| L4  | Commit + Push aller T_DATABASE-Artefakte (schließt CI-Nachweise von 01/09/10)     |              🟢 verifiziert (2026-09-05, 3 grüne CI-Läufe)               | —                                                   | **Jan** (Freigabe) + LLM (Vorbereitung) |    Nein    |
-| L5  | GitHub-Secret `SUPABASE_ACCESS_TOKEN` hinterlegen + erste CI-Läufe beobachten     | 🟢 verifiziert (2026-09-05, beide Läufe grün: 33992692301 + 33993162288) | Secret in Repo-Settings, dann 3 Workflow-Dispatches |  **Jan** (Secret) + LLM (Beobachtung)   |    Nein    |
-| L6  | Backup L10–L12: Cloud-Credentials, KMS/Bucket, erster echter Restore-Drill        |                                🔴 geplant                                | Checkliste aus `05` §L10–L12 durchgehen             |       **Jan** + LLM (Begleitung)        |    Nein    |
-| L7  | (Optional) Niveau-Re-Rating in `worldmap/04_datenbank_migrationen.md` vorbereiten |                                🔴 geplant                                | Bewertungsvorschlag als Entscheidungsvorlage        | LLM (Vorschlag), **Jan** (Entscheidung) |    Nein    |
+| Nr. | Meilenstein                                                                       |                                  Status                                  | Nächster Schritt                                           |              Zuständigkeit              | Money-Pfad |
+| --- | --------------------------------------------------------------------------------- | :----------------------------------------------------------------------: | ---------------------------------------------------------- | :-------------------------------------: | :--------: |
+| L0  | Kontext & Scope                                                                   |                       🟢 verifiziert (2026-09-05)                        | —                                                          |                   LLM                   |    Nein    |
+| L1  | npm-Script `supabase:types` auf kanonisches `--local` umstellen                   |                       🟢 verifiziert (2026-09-05)                        | —                                                          |                   LLM                   |    Nein    |
+| L2  | Doku-Residuen: `public.wallets` in `docs/database/10` §5 korrigieren              |                       🟢 verifiziert (2026-09-05)                        | —                                                          |                   LLM                   |    Nein    |
+| L3  | 7 weitere "Penetrationstest"-Formulierungen präzisieren                           |                       🟢 verifiziert (2026-09-05)                        | —                                                          |                   LLM                   |    Nein    |
+| L4  | Commit + Push aller T_DATABASE-Artefakte (schließt CI-Nachweise von 01/09/10)     |              🟢 verifiziert (2026-09-05, 3 grüne CI-Läufe)               | —                                                          | **Jan** (Freigabe) + LLM (Vorbereitung) |    Nein    |
+| L5  | GitHub-Secret `SUPABASE_ACCESS_TOKEN` hinterlegen + erste CI-Läufe beobachten     | 🟢 verifiziert (2026-09-05, beide Läufe grün: 33992692301 + 33993162288) | Secret in Repo-Settings, dann 3 Workflow-Dispatches        |  **Jan** (Secret) + LLM (Beobachtung)   |    Nein    |
+| L6  | Backup L10–L12: Cloud-Credentials, KMS/Bucket, erster echter Restore-Drill        |               🟡 Anleitung vorbereitet — Jan-Anteil offen                | Jan-Anleitung unten (L6-Abschnitt) durchgehen, dann melden |       **Jan** + LLM (Begleitung)        |    Nein    |
+| L7  | (Optional) Niveau-Re-Rating in `worldmap/04_datenbank_migrationen.md` vorbereiten |          🟡 Vorlage fertig (Anhang A) — Jan-Entscheidung offen           | Anhang A lesen und entscheiden                             | LLM (Vorschlag), **Jan** (Entscheidung) |    Nein    |
 
 ---
 
@@ -94,13 +94,21 @@ Jeder Restpunkt ist in der abgeschlossenen Execution dokumentiert — hier die H
 - **Ziel:** Die reale Cloud-Anbindung der Backup-Infrastruktur — der letzte Baustein der einzigen Säule mit irreversiblem Datenverlust-Szenario.
 - **Schritte:** 1. LLM liefert Jan eine Schritt-für-Schritt-Anleitung auf Basis der in `05` L10–L12 spezifizierten Anforderungen (welche Credentials, welche KMS-/Bucket-Konfiguration, welcher ENV-Key). 2. **Jan:** konfiguriert Credentials/Bucket in Supabase + S3-kompatiblem Ziel. 3. LLM verifiziert Konfiguration lokal (Dry-Run des Backup-Runners, ohne Prod-Rotation). 4. **Jan + LLM gemeinsam:** erster echter Restore-Drill gegen die reale Backup-Kopie, Ergebnis in `05` Ampel dokumentiert.
 - **Verifizierung:** Erster Drill abgeschlossen; `05` L10–L12 Ampel 🟢; `00_DATABASE_VERBESSERUNG.md` Fußnote ³ aktualisiert.
+- **Anleitung für Jan (vorbereitet 2026-09-05, Ausfüllen ≈ 20–30 Min):**
+  1. **Anbieter wählen** — Empfehlung (beide S3-API-kompatibel, kostenlos einsteigbar, passend zu `createSignedS3PutRequest`): Cloudflare R2 oder Backblaze B2. Konto anlegen, Zahlungsmittel hinterlegen.
+  2. **Bucket anlegen** — Name z. B. `casino-recovery`, Region beliebig (notieren), **keine öffentliche Zugänglichkeit**.
+  3. **Lifecycle-Regel einfügen** (durchsetzt die Retention serverseitig — der Runner bekommt bewusst **kein** Delete-Recht): 14 täglich / 8 wöchentlich / 12 monatlich, im Provider-Konfigurator auf den Präfix `casino-recovery/` beschränken. R2: „Object lifecycle rules" mit Filter `casino-recovery/` (z. B. Delete nach 90 Tagen für Tages-/Wochenkandidaten, nach 1 Jahr für Monatskandidaten — die exakte Ausformulierung je nach Provider-Raster; wichtig ist: nichts bleibt unbegrenzt, nichts wird vom Code gelöscht).
+  4. **API-Token/Keys erzeugen** — Rechten nur auf den Bucket/Präfix: Read+Write (Upload/Download/Listing), **kein Delete/Owner**.
+  5. **ENV in `.env.local` eintragen** (nie committen; Vorlage mit Platzhaltern steht in `.env.example:79-90`):
+     `BACKUP_ENCRYPTION_KEY_BASE64` (32-Byte-Zufallskey, base64 — selbst generieren, z. B. `openssl rand -base64 32`), `BACKUP_S3_ENDPOINT` (R2: `https://<accountid>.r2.cloudflarestorage.com`), `BACKUP_S3_BUCKET`, `BACKUP_S3_REGION`, `BACKUP_S3_ACCESS_KEY_ID`, `BACKUP_S3_SECRET_ACCESS_KEY`, optional `BACKUP_S3_PREFIX=casino-recovery`.
+  6. **Melden, wenn 1–5 stehen** → dann LLM: erster echter Offsite-Lauf (`npm run backup:run`) + Restore gegen die echten Artefakte (L11, nur nach deiner expliziten „jetzt echten Lauf"-Freigabe — echte Produktdaten verlassen erstmals das Projekt, Security-Review Pflicht).
 - **Freigabe-Gate:** **Jan (Credentials + Drill-Auslösung).** **Money-Pfad:** Nein (Backup-Infrastruktur, aber: bewusste Einordnung — berührt keine Wallet-Logik). **Security-Review:** Nein (Zugriff nur auf Backups bestehender Daten; Secret-Handling folgt `xx_sop/09_security_wallet_invariants.md`).
 
 ### L7 — (Optional) Niveau-Re-Rating als Entscheidungsvorlage
 
 - **Ziel:** Die in `00_DATABASE_VERBESSERUNG.md` offen gelassene Frage — Niveau-Werte und Headline nach der Execution neu bewerten — als **Vorschlag** vorbereiten, Entscheidung bleibt Jan.
 - **Schritte:** 1. Pro Säule eine Begründung, warum sich das Niveau gehoben hat (Fundstänfe aus den Fußnoten in `00` Abschnitt 3), mit Vorschlagswert. 2. Vorschlag als eigener Abschnitt in `worldmap/04_datenbank_migrationen.md`-Review-Form oder hier als Anhang. 3. **Jan entscheidet** über neue Werte + Headline-Frage (Top 15 % vs. gewichteter Schnitt).
-- **Verifizierung:** Entscheidung dokumentiert (oder bewusst vertagt mit Datum).
+- **Verifizierung:** Entscheidung dokumentiert (oder bewusst vertagt mit Datum). **Vorlage fertig (2026-09-05):** siehe Anhang A unten — Vorschlagswerte pro Säule, Auswirkung auf gewichteten Schnitt + Headline-Frage.
 - **Freigabe-Gate:** **Jan (Endentscheidung).** **Money-Pfad:** Nein. **Security-Review:** Nein.
 
 ---
@@ -139,3 +147,28 @@ Jeder Restpunkt ist in der abgeschlossenen Execution dokumentiert — hier die H
 | Secret-/CI-Kontext (L5)              | [`11_database_query_performance_indexing.md`](./11_database_query_performance_indexing.md) L7-Umsetzung |
 | K-Matrix & Freigaberegeln            | `CLAUDE.md` (K4-Block)                                                                                  |
 | Security-Invarianten                 | [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md)                 |
+
+---
+
+## 7 — Anhang A: Niveau-Re-Rating-Vorschlag (L7, Entscheidungsvorlage — Entscheidung bleibt Jan)
+
+> **Charakter:** Vorschlag, keine vollzogene Änderung. Die Werte sind an `worldmap/04_datenbank_migrationen.md` gekoppelt; eine Änderung gehört in den kanonischen worldmap-Review (Jan-Entscheidung). Grundlage: die verifizierten Fundstänfe der 6 executed Säulen (Fußnoten ¹–⁶ in [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md)).
+
+### 7.1 Vorschlagswerte pro executed Säule
+
+| Säule                  |   Alt    |            Vorschlag             | Begründung (verifiziert 2026-09-05)                                                                                                                                                                                                                                                  |
+| :--------------------- | :------: | :------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 Migrations-Disziplin | Top 15 % |           **Top 10 %**           | CI-Backstop für Kollisions-Check + wöchentlicher Drift-Check (Run 33992692301 grün) + Rollback-Playbook + zentraler Guard-Log; Kollisions-Freiheit 001–064 verifiziert. Nicht unter Top 10 %: Husky-Backstop bleibt umgehbar, Drift-Check nur wöchentlich                            |
+| 2 Schema-Design        | Top 20 % |           **Top 15 %**           | Committete `database.types.ts` hatten Migration 063 gefehlt (realer Fund) — Baseline jetzt deterministisch via `--local` + ER-Diagramm-Drift-Check in CI                                                                                                                             |
+| 6 Typsicherheit        | Top 20 % |           **Top 15 %**           | Typegen kanonisch `--local` (byte-identische Baseline), Dual-Signoff etabliert, 2 MEDIUM-Fixes real umgesetzt; npm-Script-Nachjustage noch offen                                                                                                                                     |
+| 7 Query-Performance    | Top 70 % |           **Top 40 %**           | Vom "ungenmessenen" Zustand zu: datierter Audit-Lauf (kein Fund), EXPLAIN-Tiefenprüfung aller 3 Geld-RPCs, CI-Cron quartalsweise aktiv (Run 33993162288). Nicht weiter: nur 1 Messpunkt, kein Lasttest                                                                               |
+| 9 Disaster Recovery    | Top 88 % | **Top 50 %** (vorläufig bis L11) | Vollständige lokale/CI-Infrastruktur real (Backup-Runner, Restore-Drill im ephemeren Container, Re-Encryption, grüner CI-Lauf 33988968506). **Aber:** Es existiert noch kein echtes Offsite-Backup — der definitive Wert (Vorschlag: Top 25 %) ist erst nach L10–L11 ehrlich setzbar |
+| 10 DB-Test-Schicht     | Top 90 % |           **Top 60 %**           | pgTAP real aktiv (Migration 064): 27 Tests grün inkl. echtem RLS-Laufzeittest mit JWT-Kontext und Negativ-Beweis, CI-gebunden (Run 33987257048). Nicht weiter: Coverage-Niveau (Säule 6, Gewicht) moderat, nur eine Testsuite                                                        |
+
+Nicht neu bewertet (keine Execution): Säulen 3, 4, 5, 8 — keine Planungsdatei-Execution, keine neuen Belege.
+
+### 7.2 Auswirkung auf die zwei offenen Kennzahlen
+
+- **Gewichteter Schnitt** (Gewichte aus `00` Abschnitt 3): Top ~35 % → **Top ~29 %** (konservativ, Säule 9 bleibt Top 88 %) bzw. **Top ~25 %** (nach L11 mit Säule 9 = Top 50 %).
+- **Headline-Frage (offen seit 2026-08-29 in `worldmap/04`):** Empfehlung bleibt, **Top 15 % als Headline zu behalten** (Bestwert der geldkritischen Teilfläche) und den gewichteten Schnitt (Top ~25–29 %) als zweite Kennzahl daneben zu führen. Ein Wechsel der Headline auf den Schnitt würde die Zahl optisch verschlechtern, obwohl die geldkritischen Säulen (RPCs Top 10 %, RLS Top 15 %) unangetastet Weltklasse sind — die Execution hat vor allem die unteren Säulen gehoben, nicht die Spitze.
+- **Jan-Entscheidung nötig zu:** (a) Vorschlagswerte annehmen/ändern, (b) Headline behalten oder auf Schnitt wechseln, (c) Eintragung in `worldmap/04_datenbank_migrationen.md` (danach Anpassung der Niveau-Spalte in `00` Abschnitt 3 im selben Zyklus).
