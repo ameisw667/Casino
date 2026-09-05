@@ -34,6 +34,14 @@ interface LiveBet {
 // Cashout success visual delay before returning to IDLE (kept in page; used by status effect).
 const CASHOUT_RESOLVE_DELAY_MS = 1200;
 
+// TO-04 C2: the server no longer reveals the crash point at round start (it
+// would make every cashout below it a sure win). The client therefore rides
+// the deterministic growth curve until this ceiling; a round with no cashout
+// resolves as a loss there either way (RESOLVE pays 0), and the true point
+// arrives with the settlement response. The ~1% of rounds that crash above it
+// are economically unaffected — a player only exits a win via CASHOUT.
+const SOLO_CRASH_FLIGHT_CEILING_MULTIPLIER = 100;
+
 export default function CrashPage() {
   const isMobile = useCasinoStore((state) => state.isMobile);
   const balance = useCasinoStore((state) => state.balance);
@@ -113,15 +121,15 @@ export default function CrashPage() {
   const autoBetSettingsRef = useRef(autoBetSettings);
   const handleCashoutRef = useRef<(m?: number) => void>(() => {});
 
-  // Initialize stars and load vector rocket asset
+  // Initialize stars and load Quantum Interceptor spacecraft asset
   useEffect(() => {
     const img = new window.Image();
-    img.src = '/images/crash/crash-rocket.svg';
+    img.src = '/images/crash/quantum-interceptor.png';
     img.onload = () => {
       rocketImgRef.current = img;
     };
     img.onerror = () => {
-      // Fallback to existing asset if SVG load fails
+      // Fallback to existing asset if load fails
       const fallback = new window.Image();
       fallback.src = '/images/crash/crash-rocket.png';
       rocketImgRef.current = fallback;
@@ -248,8 +256,10 @@ export default function CrashPage() {
             }),
           });
           if (!response.ok) throw new Error(`Cashout failed with HTTP ${response.status}`);
-          const data = await response.json();
+          const raw = await response.json();
+          const data = raw?.data ?? raw;
           applyServerWalletSnapshot(data.wallet);
+
           processGameResult({
             game: 'CRASH',
             amount: betAmount,
@@ -305,6 +315,7 @@ export default function CrashPage() {
                 }
               }
             } else {
+              crashPointRef.current = data.crashPoint;
               multiplierRef.current = crashPointRef.current;
               setMultiplier(crashPointRef.current);
               if (multiplierDisplayRef.current) {
@@ -381,15 +392,19 @@ export default function CrashPage() {
         clearTimeout(timeoutId);
       }
       if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
         if (response.status === 429) {
-          const errData = await response.json().catch(() => ({}));
           const retry = errData.retryAfter || 2;
           throw new Error(`RATE_LIMIT:${retry}`);
         }
-        throw new Error('API failed');
+        const message =
+          errData?.error?.message || errData?.message || `API error (${response.status})`;
+        throw new Error(message);
       }
-      const data = await response.json();
+      const raw = await response.json();
+      const data = raw?.data ?? raw;
       applyServerWalletSnapshot(data.wallet);
+
       // Crash's START_CRASH response, not settlement, is where isFirstBet actually appears
       // (server-side: bet/route.ts's START_CRASH branch) — no processGameResult() call happens
       // here at all (a round start isn't a win/loss result yet), so this must fire directly.
@@ -403,7 +418,11 @@ export default function CrashPage() {
       // Reset all round state BEFORE starting new flight
       setCashoutAt(null);
       cashoutAtRef.current = null;
-      crashPointRef.current = data.crashPoint;
+      // Synchronous Bust-Lock: Bind the client flight loop to the server bust point
+      // so the rocket explodes on-screen in real-time at the exact crash point.
+      const roundBustPoint =
+        data.targetMultiplier ?? data.crashPoint ?? SOLO_CRASH_FLIGHT_CEILING_MULTIPLIER;
+      crashPointRef.current = roundBustPoint;
       roundResolvedRef.current = false;
       multiplierRef.current = 1.0;
       lastUpdateRef.current = performance.now();
@@ -452,7 +471,9 @@ export default function CrashPage() {
         const retrySec = error.message.split(':')[1] || '2';
         addToast(`Rate limit reached. Please wait ${retrySec}s.`, 'error');
       } else {
-        addToast('Failed to start game. No client wallet change was applied.', 'error');
+        const msg =
+          error instanceof Error && error.message ? error.message : 'Failed to start game.';
+        addToast(`${msg} No client wallet change was applied.`, 'error');
       }
     }
   }, [
@@ -490,8 +511,20 @@ export default function CrashPage() {
           }),
         });
         if (!response.ok) throw new Error(`Crash resolution failed with HTTP ${response.status}`);
-        const data = await response.json();
+        const raw = await response.json();
+        const data = raw?.data ?? raw;
         applyServerWalletSnapshot(data.wallet);
+
+        // TO-04 C2: the true crash point only becomes known now (post-crash
+        // reveal in the settlement response) — snap the HUD/history to it.
+        const revealedCrashPoint = data.crashPoint ?? crashPoint;
+        crashPointRef.current = revealedCrashPoint;
+        multiplierRef.current = revealedCrashPoint;
+        setMultiplier(revealedCrashPoint);
+        if (multiplierDisplayRef.current) {
+          multiplierDisplayRef.current.innerText = formatMultiplier(revealedCrashPoint);
+        }
+
         processGameResult({
           game: 'CRASH',
           amount: betAmountRef.current,
@@ -499,7 +532,7 @@ export default function CrashPage() {
           payout: 0,
           win: false,
           resultId: data.id,
-          crashMultiplier: crashPoint,
+          crashMultiplier: revealedCrashPoint,
           isSettlement: true,
         });
         setSessionStats((previous) => ({
