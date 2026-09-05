@@ -204,11 +204,27 @@ async function main(): Promise<void> {
 
   if (isApiMode()) {
     modeLabel = `\`Management API /projects/${projectRef}/database/query/read-only\` (read-only, supabase/cli#6392-Workaround)`;
+    // pg_stat_statements liegt bei Supabase im Extension-Schema (Standard: `extensions`)
+    // und ist im search_path des query/read-only-Endpunkts nicht auflösbar — das
+    // tatsächliche Schema wird daher dynamisch aus pg_extension ermittelt.
+    const statsSchemaRows = await runApiQuery(
+      `SELECT n.nspname AS schema
+FROM pg_extension e
+JOIN pg_namespace n ON n.oid = e.extnamespace
+WHERE e.extname = 'pg_stat_statements';`,
+    );
+    const statsSchema = String(statsSchemaRows[0]?.schema ?? '');
+    if (statsSchema.length === 0) {
+      throw new Error(
+        'Extension pg_stat_statements ist im Remote-Projekt nicht installiert — Audit-Sicht calls/outliers nicht verfügbar.',
+      );
+    }
+    const statsTable = `${statsSchema}.pg_stat_statements`;
     const callsRaw = await runApiQuery(
-      'SELECT query, calls, mean_exec_time FROM pg_stat_statements ORDER BY total_exec_time DESC LIMIT 25;',
+      `SELECT query, calls, mean_exec_time FROM ${statsTable} ORDER BY total_exec_time DESC LIMIT 25;`,
     );
     const outliersRaw = await runApiQuery(
-      'SELECT query, calls, mean_exec_time FROM pg_stat_statements ORDER BY mean_exec_time DESC LIMIT 25;',
+      `SELECT query, calls, mean_exec_time FROM ${statsTable} ORDER BY mean_exec_time DESC LIMIT 25;`,
     );
     const indexRaw = await runApiQuery(
       `SELECT
