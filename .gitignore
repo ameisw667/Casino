@@ -89,4 +89,4 @@ web/
 /remotion-ad/
 
 # shared skills (NTFS directory junction to v:/VibeCoding/.claude/skills)
-/xx_sop/shared/
+/xx_sop/shared//output/
