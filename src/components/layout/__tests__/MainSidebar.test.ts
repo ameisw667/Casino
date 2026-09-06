@@ -10,7 +10,7 @@ function renderSidebar(pathname: string) {
     {
       label: 'Lobby',
       path: '/',
-      imageSrc: '/images/2026-09-06_sidebar-icon-lobby_v001.png',
+      imageSrc: '/images/2026-09-06_sidebar-icon-lobby-guide_v001.png',
     },
     { label: 'Games', path: '/games' },
     { label: 'My Bets', path: '/history' },
@@ -53,7 +53,12 @@ describe('MainSidebar', () => {
     const markup = renderSidebar('/');
 
     expect(markup).toContain('data-sidebar-nav-image');
-    expect(markup).toContain('2026-09-06_sidebar-icon-lobby_v001.png');
+    expect(markup).toContain('2026-09-06_sidebar-icon-lobby-guide_v001.png');
     expect(markup.match(/data-sidebar-nav-image/g) ?? []).toHaveLength(1);
+    expect(markup).toMatch(
+      /data-sidebar-nav-image="true" aria-hidden="true" style="width:28px;height:28px;position:relative;flex-shrink:0;overflow:hidden;opacity:0.72"/,
+    );
+    const lobbyImage = markup.match(/data-sidebar-nav-image="true"[\s\S]*?<\/span>/)?.[0] ?? '';
+    expect(lobbyImage).not.toContain('transform:scale');
   });
 });
