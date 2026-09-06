@@ -1,18 +1,18 @@
 # 00 — Lernreise & Erfolge: Projekt-Timeline
 
-> **Stand:** 2026-08-21 · **Zeitraum:** 2026-04-24 – 2026-08-21 (119 Tage) · **Zweck:** Evidence für Jans Fortschritt — Rückverfolgung aus `git log` (156 Commits, `--reverse`), nicht aus Erinnerung.
-> **Kein Planungsdokument** — reine Rückschau. Aktive Planung steht in [worldmap/05_ZUKUNFTSPLANUNG.md](worldmap/05_ZUKUNFTSPLANUNG.md), Live-Status in [worldmap/00_WORLDMAP_STATUS.md](worldmap/00_WORLDMAP_STATUS.md).
+> **Stand:** 2026-08-28 · **Zeitraum:** 2026-04-24 – 2026-08-28 (126 Tage) · **Zweck:** Evidence für Jans Fortschritt — Rückverfolgung aus `git log` (194 Commits, `--reverse`), nicht aus Erinnerung.
+> **Kein Planungsdokument** — reine Rückschau. Aktive Planung steht in [worldmap/05_ZUKUNFTSPLANUNG.md](./worldmap/05_zukunftsplanung.md), Live-Status in [worldmap/00_WORLDMAP_STATUS.md](./worldmap/00_worldmap_status.md).
 
 ## Kennzahlen auf einen Blick
 
 | Kennzahl                                | Wert                                    |
 | --------------------------------------- | --------------------------------------- |
 | Projektstart                            | 2026-04-24 (`b128016`, Create Next App) |
-| Commits gesamt                          | 156                                     |
+| Commits gesamt                          | 194                                     |
 | DB-Migrationen                          | 43 Nummern (`001` – `043`)              |
-| Aktive Entwicklungstage (mit ≥1 Commit) | 20 von 119 Kalendertagen                |
+| Aktive Entwicklungstage (mit ≥1 Commit) | 26 von 126 Kalendertagen                |
 | Größte Pause                            | 2026-06-19 → 2026-08-08 (50 Tage)       |
-| Tests (Stand 2026-08-17)                | 642/642 grün, 78 Dateien                |
+| Tests (Stand 2026-08-28)                | 1.147/1.147 grün, 146 Dateien           |
 | Kategorien (00_WORLDMAP_STATUS.md)      | 12/12 Top 15–40 %, Prod-Ready: Ja       |
 
 ---
@@ -190,25 +190,67 @@
 
 ---
 
+## Phase 14 — Multimodalität, Voice & Dynamic UI-Actions
+
+**2026-08-22 – 2026-08-23** (11 Commits)
+
+- `4cd4391` Stufe H: UI Action Control mit Tool Calling und interaktiven Golden Action Buttons
+- `c432d74` Stufe I: Dynamic Follow-up Suggestion Chips mit Zero-Latency Delimiter Streaming
+- `443e9fb` Stufe L: Multimodale Screenshot-Analyse mit clientseitiger Canvas-Kompression ohne Bildspeicherung
+- `ac6274e` Stufe M: Voice Interface mit OpenAI Whisper STT und TTS-1 HD Audio Streaming
+- `9d17950`/`70cf9c9`/`1b05093` Audio-Resilienz: Live Web Speech API Fallback, Silence-Halluzinationsfilter, Single-Owner MediaRecorder und Permissions-Policy-Härtung
+- `a31c7d1` Security-Review & Härtung für Daily-Race-Route und Migration 041
+
+**Skill-Sprung:** Einen reinen Text-/Tool-Chat zum vollwertigen multimodalen Assistenten (Sehen per Zero-Storage-Kompression, Sprechen & Hören per Whisper/TTS-1 mit nativem Browser-Fallback) ausgebaut — inklusive Audio-Hardware-Fehlerbehandlung und Zero-Latency-Delimiter-Streaming.
+
+---
+
+## Phase 15 — Die große Colocation- & Store-Slice-Refaktorisierung
+
+**2026-08-23 – 2026-08-24** (15 Commits)
+
+- `a18186f`–`0cf3b9b` 13 koordinierte Colocation-Refactorings: Monolithische Pages (Crash, Multiplayer Crash, Roulette, Slots, Dice, Blackjack, Vault, Layout, Guide, Admin, Home) in isolierte Subkomponenten und Custom Game-Loop-Hooks zerlegt; verwaiste Altkomponenten bereinigt
+- `1ab2fab` **`useCasinoStore`-Slice-Pattern:** Monolithischen Zustand-Store in 5 modularisierte Slices (`walletSlice`, `uiSlice`, `gameSlice`, `soundSlice`, `dialogSlice`) aufgeteilt und mit Partialize-Leak-Guards gegen unautorisierte State-Persistenz abgesichert
+
+**Skill-Sprung:** Gelernt, wachsende React/Next.js-Codebasen proaktiv zu modularisieren, bevor sie unwartbar werden: Page-Monolithen nach dem Colocation-Prinzip aufgeteilt und Zustand 5 mit dem Slice-Pattern sauber strukturiert, ohne das bestehende Laufzeitverhalten zu brechen.
+
+---
+
+## Phase 16 — Horizont 2.0: Deterministic Smart-HUD & VIP Host Personas
+
+**2026-08-25 – 2026-08-27** (12 Commits)
+
+- `69fb261`/`77febe0` Stufe N1: In-Game Live Co-Pilot & Smart-HUD mit deterministischer mathematischer EV-/Odds-Engine und Obsidian-Glass-Design
+- `a9f2741`/`7ab6a56` Smart-HUD Architektur: Standardmäßig eingeklappte Cyber-Pill mit Click-Outside; nahtlose Einbettung direkt in die Sidebar-Steuerung aller 5 Spiele (Blackjack, Dice, Slots, Roulette, Crash)
+- `7c3c679` Stufe P: Dynamic VIP Host & Personas mit Supabase-Persistenz (Migration `043`) und interaktivem Header-Avatar-Selector
+- `25d7239`–`d73ea26` Horizont 2.0 Evaluierungs- und Architekturkatalog etabliert
+
+**Skill-Sprung:** Deterministische mathematische Berechnungen (Echtzeit-Wahrscheinlichkeiten/EV) und dynamische KI-Persönlichkeiten (VIP Host Personas) direkt in die Spiel-UI integriert, statt KI nur als isolierten Seiten-Chat zu betreiben.
+
+---
+
 ## Verdichtete Skill-Progression (chronologisch)
 
-| Zeitraum      | Neue Fähigkeit, die vorher nicht da war                                            |
-| ------------- | ---------------------------------------------------------------------------------- |
-| 04-24         | Next.js-App-Router-Projekt von 0 auf Vercel-deploybar                              |
-| 05-05 – 05-10 | Produktions-Debugging auf Vercel, Selbstaudit der eigenen Architektur              |
-| 05-15 – 05-16 | Eigene State Machine + messbare Performance-Optimierung                            |
-| 05-24 – 06-19 | Git Worktrees für Parallelarbeit, Framework-Versionsmigration                      |
-| 08-08 – 08-09 | Server-autoritative Geldlogik (Advisory Locks, Idempotenz, atomare RPCs)           |
-| 08-10         | Repository-Pattern, Config-Outsourcing als wiederholbares Prinzip                  |
-| 08-12         | Kryptografische Fairness, LLM-Integration, BI-Aggregation, Bot-APIs — an einem Tag |
-| 08-15         | Overengineering aktiv erkannt und verworfen, offensive Security-Tests              |
-| 08-16         | Design-System konsistent über mehrere Seiten, eigenständige Fraud-Scoring-Schicht  |
-| 08-17 – 08-19 | Cross-User-Geldfluss mit Concurrency-Garantien (Progressive Jackpot)               |
-| 08-20         | Client-Sperre für Cashout-Rennen                                                    |
-| 08-21         | RAG, Tool-Loop, Memory, SSE, Evals, Analyseoberflächen und Passkey-Auth            |
+| Zeitraum      | Neue Fähigkeit, die vorher nicht da war                                                    |
+| ------------- | ------------------------------------------------------------------------------------------ |
+| 04-24         | Next.js-App-Router-Projekt von 0 auf Vercel-deploybar                                      |
+| 05-05 – 05-10 | Produktions-Debugging auf Vercel, Selbstaudit der eigenen Architektur                      |
+| 05-15 – 05-16 | Eigene State Machine + messbare Performance-Optimierung                                    |
+| 05-24 – 06-19 | Git Worktrees für Parallelarbeit, Framework-Versionsmigration                              |
+| 08-08 – 08-09 | Server-autoritative Geldlogik (Advisory Locks, Idempotenz, atomare RPCs)                   |
+| 08-10         | Repository-Pattern, Config-Outsourcing als wiederholbares Prinzip                          |
+| 08-12         | Kryptografische Fairness, LLM-Integration, BI-Aggregation, Bot-APIs — an einem Tag         |
+| 08-15         | Overengineering aktiv erkannt und verworfen, offensive Security-Tests                      |
+| 08-16         | Design-System konsistent über mehrere Seiten, eigenständige Fraud-Scoring-Schicht          |
+| 08-17 – 08-19 | Cross-User-Geldfluss mit Concurrency-Garantien (Progressive Jackpot)                       |
+| 08-20         | Client-Sperre für Cashout-Rennen                                                           |
+| 08-21         | RAG, Tool-Loop, Memory, SSE, Evals, Analyseoberflächen und Passkey-Auth                    |
+| 08-22 – 08-23 | Multimodale Vision (Zero-Storage), Voice STT/TTS mit Web Speech Fallbacks, UI Action Tools |
+| 08-23 – 08-24 | Großflächige Colocation-Architektur & Zustand Slice-Pattern mit Partialize-Guards          |
+| 08-25 – 08-27 | In-Game Deterministic Live Smart-HUD über alle Spiele & persistente VIP-Personas           |
 
 ---
 
 ## Hinweis zur Pflege
 
-Diese Datei ist eine **Rückschau** (Stand 2026-08-21), keine Planungsdatei. Für den Live-Status siehe [worldmap/00_WORLDMAP_STATUS.md](worldmap/00_WORLDMAP_STATUS.md), für nächste Schritte [worldmap/05_ZUKUNFTSPLANUNG.md](worldmap/05_ZUKUNFTSPLANUNG.md). Fortschreibung: `git log --reverse --pretty=format:"%ad|%h|%s" --date=short`.
+Diese Datei ist eine **Rückschau** (Stand 2026-08-28), keine Planungsdatei. Für den Live-Status siehe [worldmap/00_WORLDMAP_STATUS.md](./worldmap/00_worldmap_status.md), für nächste Schritte [worldmap/05_ZUKUNFTSPLANUNG.md](./worldmap/05_zukunftsplanung.md). Fortschreibung: `git log --reverse --pretty=format:"%ad|%h|%s" --date=short`.

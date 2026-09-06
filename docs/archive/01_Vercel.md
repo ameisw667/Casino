@@ -171,4 +171,4 @@ npx vercel env ls
 - [Vercel CLI: `logs`](https://vercel.com/docs/cli/logs)
 - [Vercel CLI Global Options](https://vercel.com/docs/cli/global-options)
 - [Vercel: Deploying a project from the CLI](https://vercel.com/docs/projects/deploy-from-cli)
-- [`01_API_MCP_CLI.markdown`](../../worldmap/01_API_MCP_CLI.markdown) — Ausgangsstatus und Priorisierung
+- [`01_API_MCP_CLI.markdown`](01_API_MCP_CLI.md) — Ausgangsstatus und Priorisierung

@@ -18,13 +18,13 @@ Beide Punkte sind **keine Meilenstein-Zuständigkeiten dieses Plans** — sie we
 
 ## 1 — Übersicht für Jan
 
-| Nummer | Meilenstein | Status | Nächster Schritt | Zuständigkeit |
-| :--- | :--- | :---: | :--- | :---: |
-| **L1** | **Lokale Reproduzierbarkeit verifizieren** (`supabase start` gegen aktuellen Arbeitsbaum) | 🟡 Teilverifiziert | — (volle Dynamik bewusst nicht ausgeführt, siehe L1) | LLM |
-| **L2** | **Test-Abdeckungs-Mapping dokumentieren** (welche Invarianten deckt das Gate wirklich ab) | 🟢 Verifiziert | — | LLM |
-| **L3** | **Fehlschlag-Sichtbarkeit verbessern** (Job-Summary-Annotation bei rotem Lauf) | 🟢 Verifiziert | — | LLM |
-| **L4** | **Trigger-/Timeout-Robustheits-Audit** | 🟡 Teilverifiziert | — (siehe L4) | LLM |
-| **L5** | **Scope-Abgrenzungs-Doku im Workflow selbst schärfen** | 🟢 Verifiziert | — | LLM |
+| Nummer | Meilenstein                                                                               |       Status       | Nächster Schritt                                     | Zuständigkeit |
+| :----- | :---------------------------------------------------------------------------------------- | :----------------: | :--------------------------------------------------- | :-----------: |
+| **L1** | **Lokale Reproduzierbarkeit verifizieren** (`supabase start` gegen aktuellen Arbeitsbaum) | 🟡 Teilverifiziert | — (volle Dynamik bewusst nicht ausgeführt, siehe L1) |      LLM      |
+| **L2** | **Test-Abdeckungs-Mapping dokumentieren** (welche Invarianten deckt das Gate wirklich ab) |   🟢 Verifiziert   | —                                                    |      LLM      |
+| **L3** | **Fehlschlag-Sichtbarkeit verbessern** (Job-Summary-Annotation bei rotem Lauf)            |   🟢 Verifiziert   | —                                                    |      LLM      |
+| **L4** | **Trigger-/Timeout-Robustheits-Audit**                                                    | 🟡 Teilverifiziert | — (siehe L4)                                         |      LLM      |
+| **L5** | **Scope-Abgrenzungs-Doku im Workflow selbst schärfen**                                    |   🟢 Verifiziert   | —                                                    |      LLM      |
 
 Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
@@ -32,18 +32,18 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
 ## 2 — Ausgangslage: Sub-Kategorie-Aufschlüsselung (max. 10, aus #2 abgeleitet)
 
-| # | Sub-Unterkategorie | Niveau | Kernbefund |
-| - | --- | --- | --- |
-| 1 | Workflow-Struktur/Design | **Top 15 %** | Ephemerer lokaler Supabase-Stack statt Cloud-Staging — kein Account, keine Secrets, nichts zu rotieren (Commit `b5b0841`) |
-| 2 | Live-Grün-Status | **Top 90 %** | Letzter Lauf (2026-08-28, `33210240496`) rot — Migrations-Kollision `049`, aber laut Arbeitsbaum bereits behoben (siehe Abschnitt 0), nur noch nicht committed |
-| 3 | Root-Cause-Dokumentation & Abgrenzung | **Top 20 %** | Sauber in `docs/status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md` und im YAML-Header-Kommentar selbst dokumentiert |
-| 4 | Lokale Reproduzierbarkeit ohne Push | **Top 80 %** | Nie lokal verifiziert, ob der Workflow (Logik, nicht nur Migrationsstand) tatsächlich fehlerfrei durchläuft |
-| 5 | Test-Abdeckung im Gate | **Top 60 %** | 4 Schritte (`staging-regression-contract.test.ts`, `phase1-target-guard.ts`, `verify-security-phase1.sql`, `phase1-concurrency.ts`) — nie gegen bekannte Risikoflächen (RLS, Wallet-Invarianten) gemappt, ob Lücken bestehen |
-| 6 | Fehler-Sichtbarkeit/Alerting bei rotem Lauf | **Top 85 %** | Kein Alerting — ein roter Lauf ist nur sichtbar, wer aktiv in die Actions-Historie schaut |
-| 7 | Secrets-Freiheit des Gates | **Top 15 %** | Verifiziert: keine GitHub-Secrets nötig, alles ephemer lokal generiert (`npx supabase status -o env`) |
-| 8 | Trigger-Konfiguration | **Top 20 %** | `workflow_dispatch` + `push` mit gezielten Pfad-Filtern (`supabase/migrations/**`, `src/lib/casino/**`, `src/lib/security/**`) — sinnvoll eng gefasst |
-| 9 | Timeout-/Flakiness-Robustheit | **Top 70 %** | 15-Minuten-Timeout nie gegen reale Docker-Pull-/Boot-Zeiten geprüft |
-| 10 | Scope-Abgrenzungs-Dokumentation im Workflow | **Top 15 %** | Bereits vorhanden (Kommentarblock im YAML verweist auf `docs/archive/05_datenbank_haertung.md`) |
+| #   | Sub-Unterkategorie                          | Niveau       | Kernbefund                                                                                                                                                                                                                   |
+| --- | ------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Workflow-Struktur/Design                    | **Top 15 %** | Ephemerer lokaler Supabase-Stack statt Cloud-Staging — kein Account, keine Secrets, nichts zu rotieren (Commit `b5b0841`)                                                                                                    |
+| 2   | Live-Grün-Status                            | **Top 90 %** | Letzter Lauf (2026-08-28, `33210240496`) rot — Migrations-Kollision `049`, aber laut Arbeitsbaum bereits behoben (siehe Abschnitt 0), nur noch nicht committed                                                               |
+| 3   | Root-Cause-Dokumentation & Abgrenzung       | **Top 20 %** | Sauber in `docs/status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md` und im YAML-Header-Kommentar selbst dokumentiert                                                                                                      |
+| 4   | Lokale Reproduzierbarkeit ohne Push         | **Top 80 %** | Nie lokal verifiziert, ob der Workflow (Logik, nicht nur Migrationsstand) tatsächlich fehlerfrei durchläuft                                                                                                                  |
+| 5   | Test-Abdeckung im Gate                      | **Top 60 %** | 4 Schritte (`staging-regression-contract.test.ts`, `phase1-target-guard.ts`, `verify-security-phase1.sql`, `phase1-concurrency.ts`) — nie gegen bekannte Risikoflächen (RLS, Wallet-Invarianten) gemappt, ob Lücken bestehen |
+| 6   | Fehler-Sichtbarkeit/Alerting bei rotem Lauf | **Top 85 %** | Kein Alerting — ein roter Lauf ist nur sichtbar, wer aktiv in die Actions-Historie schaut                                                                                                                                    |
+| 7   | Secrets-Freiheit des Gates                  | **Top 15 %** | Verifiziert: keine GitHub-Secrets nötig, alles ephemer lokal generiert (`npx supabase status -o env`)                                                                                                                        |
+| 8   | Trigger-Konfiguration                       | **Top 20 %** | `workflow_dispatch` + `push` mit gezielten Pfad-Filtern (`supabase/migrations/**`, `src/lib/casino/**`, `src/lib/security/**`) — sinnvoll eng gefasst                                                                        |
+| 9   | Timeout-/Flakiness-Robustheit               | **Top 70 %** | 15-Minuten-Timeout nie gegen reale Docker-Pull-/Boot-Zeiten geprüft                                                                                                                                                          |
+| 10  | Scope-Abgrenzungs-Dokumentation im Workflow | **Top 15 %** | Bereits vorhanden (Kommentarblock im YAML verweist auf `docs/archive/05_datenbank_haertung.md`)                                                                                                                              |
 
 **Rechnerischer Schnitt (Ist-Zustand):** (15+90+20+80+60+85+15+20+70+15)/10 = **Top 47 %** — niedriger als der bisherige pauschale Top-65-%-Wert, weil mehrere Teilflächen (Secrets-Freiheit, Struktur, Trigger-Konfiguration) bei genauer Prüfung deutlich besser sind, als der Wert „live rot" allein suggeriert. Konsistent mit dem bereits etablierten Effekt, dass eine grobe Einzelbewertung systematisch verzerrt, bis sie in Teilflächen zerlegt wird.
 
@@ -66,14 +66,15 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 - **Ziel:** Klarheit, welche Sicherheits-Invarianten das Gate tatsächlich prüft und welche nicht — schließt #5.
 - **Scope:** Mapping-Tabelle unten, alle 4 Dateien tatsächlich gelesen (2026-08-29):
 
-| Testschritt | Prüft tatsächlich | Gegen Wallet-/RLS-Risiken aus Kategorie 02 |
-| --- | --- | --- |
+| Testschritt                           | Prüft tatsächlich                                                                                                                                                                                                                                                                                                                                | Gegen Wallet-/RLS-Risiken aus Kategorie 02                                                                                                                                                    |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `staging-regression-contract.test.ts` | **Statischer Contract-Test** (kein DB-Zugriff) — liest `verify-security-phase1.sql`, `phase1-target-guard.ts`, `phase1-concurrency.ts` und `security-staging.yml` als Text und prüft per String-Assertion, dass bestimmte Sicherheitsmarker vorhanden sind (`ON_ERROR_STOP`, `phase1_target_confirmed`, `wallet_transactions_append_only_guard`) | Deckt ab: dass die anderen 3 Skripte nicht versehentlich ihre eigenen Fail-Safes verlieren. Deckt **nicht** ab: ob die SQL-Logik selbst korrekt ist — reiner Text-Contract, keine Ausführung. |
-| `phase1-target-guard.ts` | Fail-Closed-Schutz gegen versehentliches Ausführen gegen Produktion (`PHASE1_TARGET_CONFIRMED`, URL-Validierung) | Kein direkter Wallet-/RLS-Bezug — reiner Ziel-Schutz, verhindert, dass die anderen 2 Skripte je gegen echte Kundendaten laufen |
-| `verify-security-phase1.sql` | Echte SQL-Prüfung gegen die ephemer gestartete DB, mit `ON_ERROR_STOP`-Fail-Fast und Ziel-Bestätigung als Vorbedingung | Direkter Bezug zu Kategorie 02 #3/#4 (RPCs, RLS) — genauer Inhalt der SQL-Prüfungen nicht vollständig ausgewertet in diesem Plan (wäre eigene, größere Analyse) |
-| `phase1-concurrency.ts` | 20 parallele Requests gegen eine echte (ephemere) DB via Service-Role-Key, um Race-Conditions in den Wallet-RPCs zu prüfen | Direkter Bezug zu Kategorie 02 #3 (Advisory-Locks/Idempotenz bei `settle_game_bet` u. ä.) |
+| `phase1-target-guard.ts`              | Fail-Closed-Schutz gegen versehentliches Ausführen gegen Produktion (`PHASE1_TARGET_CONFIRMED`, URL-Validierung)                                                                                                                                                                                                                                 | Kein direkter Wallet-/RLS-Bezug — reiner Ziel-Schutz, verhindert, dass die anderen 2 Skripte je gegen echte Kundendaten laufen                                                                |
+| `verify-security-phase1.sql`          | Echte SQL-Prüfung gegen die ephemer gestartete DB, mit `ON_ERROR_STOP`-Fail-Fast und Ziel-Bestätigung als Vorbedingung                                                                                                                                                                                                                           | Direkter Bezug zu Kategorie 02 #3/#4 (RPCs, RLS) — genauer Inhalt der SQL-Prüfungen nicht vollständig ausgewertet in diesem Plan (wäre eigene, größere Analyse)                               |
+| `phase1-concurrency.ts`               | 20 parallele Requests gegen eine echte (ephemere) DB via Service-Role-Key, um Race-Conditions in den Wallet-RPCs zu prüfen                                                                                                                                                                                                                       | Direkter Bezug zu Kategorie 02 #3 (Advisory-Locks/Idempotenz bei `settle_game_bet` u. ä.)                                                                                                     |
 
-  **Erkannte Lücke (nicht in diesem Plan behoben, siehe Nicht-Scope):** Der reine SQL-Inhalt von `verify-security-phase1.sql` wurde nur auf Vorhandensein von Fail-Safe-Markern geprüft, nicht Zeile für Zeile gegen alle RLS-Policies aus Kategorie 02 abgeglichen — eine vollständige Abdeckungsanalyse wäre eine eigene, größere Aufgabe.
+**Erkannte Lücke (nicht in diesem Plan behoben, siehe Nicht-Scope):** Der reine SQL-Inhalt von `verify-security-phase1.sql` wurde nur auf Vorhandensein von Fail-Safe-Markern geprüft, nicht Zeile für Zeile gegen alle RLS-Policies aus Kategorie 02 abgeglichen — eine vollständige Abdeckungsanalyse wäre eine eigene, größere Aufgabe.
+
 - **Abhängigkeiten:** Keine.
 - **Freigabe-Gate:** Keine — reine Dokumentation, Lesen der bestehenden Testdateien.
 - **Verifizierung:** Alle 4 Dateien gelesen (Header/Kernlogik), Mapping-Tabelle oben als Ergebnis.
@@ -120,18 +121,18 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
 ## 5 — Tatsächliches Niveau nach Ausführung (Ziel-Check, ehrlich statt geschönt)
 
-| # | Sub-Unterkategorie | Vorher | Danach (real) |
-| - | --- | --- | --- |
-| 1 | Struktur/Design | 15 % | 15 % |
-| 2 | Live-Grün-Status | 90 % | 90 % (bewusst unverändert, siehe Abschnitt 0 — externe Abhängigkeit) |
-| 3 | Root-Cause-Doku | 20 % | 15 % (Kommentarblock im Workflow aktualisiert) |
-| 4 | Lokale Reproduzierbarkeit | 80 % | 35 % (nur statische Teilverifikation — voller Stack-Test bewusst nicht gegen Jans aktive lokale Dev-Session ausgeführt, siehe L1) |
-| 5 | Test-Abdeckungs-Mapping | 60 % | 20 % (vollständiges Mapping aller 4 Schritte, 1 Lücke bewusst offen benannt) |
-| 6 | Fehler-Sichtbarkeit | 85 % | 45 % (Job-Summary bei Fehlschlag ergänzt — löst „unlesbare Rohlogs", aber kein Push-Alerting) |
-| 7 | Secrets-Freiheit | 15 % | 15 % |
-| 8 | Trigger-Konfiguration | 20 % | 15 % |
-| 9 | Timeout-Robustheit | 70 % | 30 % (Teilmessung aus Logs, kein vollständiger grüner Lauf messbar — siehe L4) |
-| 10 | Scope-Abgrenzungs-Doku | 15 % | 15 % |
+| #   | Sub-Unterkategorie        | Vorher | Danach (real)                                                                                                                     |
+| --- | ------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Struktur/Design           | 15 %   | 15 %                                                                                                                              |
+| 2   | Live-Grün-Status          | 90 %   | 90 % (bewusst unverändert, siehe Abschnitt 0 — externe Abhängigkeit)                                                              |
+| 3   | Root-Cause-Doku           | 20 %   | 15 % (Kommentarblock im Workflow aktualisiert)                                                                                    |
+| 4   | Lokale Reproduzierbarkeit | 80 %   | 35 % (nur statische Teilverifikation — voller Stack-Test bewusst nicht gegen Jans aktive lokale Dev-Session ausgeführt, siehe L1) |
+| 5   | Test-Abdeckungs-Mapping   | 60 %   | 20 % (vollständiges Mapping aller 4 Schritte, 1 Lücke bewusst offen benannt)                                                      |
+| 6   | Fehler-Sichtbarkeit       | 85 %   | 45 % (Job-Summary bei Fehlschlag ergänzt — löst „unlesbare Rohlogs", aber kein Push-Alerting)                                     |
+| 7   | Secrets-Freiheit          | 15 %   | 15 %                                                                                                                              |
+| 8   | Trigger-Konfiguration     | 20 %   | 15 %                                                                                                                              |
+| 9   | Timeout-Robustheit        | 70 %   | 30 % (Teilmessung aus Logs, kein vollständiger grüner Lauf messbar — siehe L4)                                                    |
+| 10  | Scope-Abgrenzungs-Doku    | 15 %   | 15 %                                                                                                                              |
 
 **Realer Schnitt:** (15+90+15+35+20+45+15+15+30+15)/10 = **Top 31 %** — verfehlt das Ziel „mindestens Top 30 %" knapp um 1 Prozentpunkt. **Ehrlich benannt statt beschönigt:** Der Grund ist eine bewusste Sicherheitsentscheidung bei L1/L4 — ein vollständiger dynamischer Lauf hätte entweder Jans aktive lokale Supabase-Dev-Session zurückgesetzt/gestoppt (materielle Auswirkung auf fremden, aktiven Zustand) oder hätte eine neue, hier nicht beauftragte Freigabe gebraucht. Die ursprüngliche Plan-Projektion (Top 28 %) ging von dieser vollen Ausführung aus und war zu optimistisch — die reale Zahl nach tatsächlicher Ausführung ist niedriger als geplant, aber transparent begründet statt stillschweigend als „Top 30 % erreicht" gemeldet.
 
@@ -146,9 +147,23 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
 ## 7 — Verwandte Artefakte
 
-| Bedarf | Datei |
-| :--- | :--- |
-| Übergeordnete Kategorie-04-Aufschlüsselung (Herkunft dieses Plans) | [`04_security_hardening.md`](../../worldmap/04_security_hardening.md) |
-| Migrations-Kollision-Kontext (Kategorie 02/09, außerhalb dieses Scopes) | [`05_datenbank_haertung.md`](../../docs/archive/05_datenbank_haertung.md) |
-| CI/CD-Gesamtkontext | [`00-09-CICD.md`](../../worldmap/00-09-CICD.md) |
-| Security-Hardening-Status | [`docs/status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md`](../status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md) |
+| Bedarf                                                                  | Datei                                                                                                                    |
+| :---------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------- |
+| Übergeordnete Kategorie-04-Aufschlüsselung (Herkunft dieses Plans)      | [`04_security_hardening.md`](../../worldmap/04_security_hardening.md)                                                    |
+| Migrations-Kollision-Kontext (Kategorie 02/09, außerhalb dieses Scopes) | [`05_datenbank_haertung.md`](../../docs/archive/05_datenbank_haertung.md)                                                |
+| CI/CD-Gesamtkontext                                                     | [`00-09-CICD.md`](../../worldmap/00-09-CICD.md)                                                                          |
+| Security-Hardening-Status                                               | [`docs/status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md`](../status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md) |
+
+---
+
+## 8 — Nachtrag (2026-08-30): Migrations-Kollision behoben, Gate erstmals live grün
+
+Jan berichtete, Kategorie 02 „Datenbank & Migrationen" (`worldmap/05_datenbank_haertung.md`) sei inzwischen abgeschlossen. Frisch verifiziert, nicht aus dem Gedächtnis übernommen:
+
+- **Migrations-Kollision:** `ls supabase/migrations | sed -E 's/_.*//' | sort | uniq -d` → **leer** (59 Dateien, keine doppelten Versionsnummern mehr).
+- **`migration-history.test.ts`:** `npx vitest run src/lib/casino/__tests__/migration-history.test.ts` → **7/7 grün** (vorher 5 Tests, 2 neue dazugekommen).
+- **Commit-Status:** `git status --short .github/workflows/security-staging.yml supabase/migrations/` → **leer** — beides committed. Relevante Commits: `1c45be1 chore(db): reconcile remote schema migrations`, `9a63113 fix(ci): repair security gate baselines`, `b8e23a5 fix(ci): normalize local Supabase env export`, `05c346c fix(ci): confine staging probe to ephemeral runner`, `449c858 test(db): guard migration history`.
+- **Live-CI-Status:** Zwischenzeitlich (nach der Migrations-Fix-Landung, vor weiteren CI-Fixes) schlug der Workflow noch **dreimal** fehl (`33301806472`, `33302049061`, `33304434139`, 2026-08-30 08:31–09:35) — nicht mehr an der Migrations-Kollision (die Anwendung aller 59 Migrationen lief jedes Mal durch), sondern an einem separaten Bug in der letzten Testphase (`phase1-concurrency.ts`: „P1.3 concurrency passed" gefolgt von „P1.3 synthetic cleanup failed"). Dieser Bug existiert im aktuellen Code nicht mehr (0 Treffer für den Log-Text im Repo) — vermutlich durch einen der obigen Fix-Commits behoben. **Zwei frisch angestoßene Läufe an aktuellem `HEAD` (2026-08-30, per `gh run watch` bis zum Abschluss verfolgt) sind beide grün:** `33323199618` (workflow_dispatch, 3m9s) und `33323190063` (push, gleicher Commit). Das ist der erste bestätigte grüne Lauf dieses Gates überhaupt.
+- **Nicht in diesem Nachtrag behoben:** Der zwischenzeitliche `phase1-concurrency.ts`-Cleanup-Bug wurde nicht selbst untersucht/gefixt — er löste sich vor dieser Prüfung bereits über einen der oben gelisteten Commits eines anderen Workstreams auf. Sollte er erneut auftreten, ist `git log -- scripts/phase1-concurrency.ts` der richtige Ausgangspunkt.
+
+**Konsequenz für Unterkategorie #2:** Neubewertung auf **Top 19 %** (vorher Top 31 %) in [`worldmap/04_security_hardening.md`](../../worldmap/04_security_hardening.md) — Live-Grün-Status, lokale Reproduzierbarkeit (jetzt durch echte CI-Läufe belegt statt nur statisch geprüft) und Timeout-Robustheit (reale Laufzeit 3m5s–3m9s, weit unter dem 15-Minuten-Budget) verbessert. Diese archivierte Plandatei selbst bleibt unverändert (siehe `xx_sop/03_workflow_jan_planungsdateien.md`: „Archiv enthält ausgeführte Entscheidung, Evidenz und Historie", kein aktiver Plan) — nur dieser Nachtrag wurde ergänzt.

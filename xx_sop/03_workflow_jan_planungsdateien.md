@@ -1,57 +1,45 @@
-# Workflow-Jan Planungsdateien
+# 03 — Workflow-Jan Planungsdateien (Casino Adapter)
 
-> **Zweck:** Plantätigkeiten von Ausführungsanweisungen, Systemkontext und Statusnachweisen trennen.
+> **Zweck:** Plantätigkeiten von Ausführung trennen und Pläne konversationsunabhängig aufbereiten.
+> **Kanonischer Standard:** 🔗 [`xx_sop/shared/jan-planner/SKILL.md`](shared/jan-planner/SKILL.md)
 
-## 1 — Artefaktklassen
+---
 
-| Klasse | Ort | Inhalt | Nicht enthalten |
-| --- | --- | --- | --- |
-| Plan | `worldmap/` | Ziel, Optionen, Scope, Abhängigkeiten, Status, Freigabe-Gates | Umsetzungsschritte anderer wiederkehrender Aufgaben |
-| SOP | `xx_sop/` | Trigger, Voraussetzungen, Ablauf, Prüfschritte | volatile Systemstände und Live-Behauptungen |
-| Kontextreferenz | `xx_docs/` | Systemgrenzen, Zuständigkeiten, Einstiegsdateien, Quellhierarchie | Schritt-für-Schritt-Abläufe |
-| Statusnachweis | `worldmap/00_WORLDMAP_STATUS.md` | lokal, verifiziert oder live bestätigter Zustand | Planung oder technische Anleitung |
-| Archiv | `docs/archive/` | ausgeführte Entscheidung, Evidenz und Historie | aktiver Plan |
+## 1 — Standard-Workflow (Das 3-Ebenen-System)
 
-## 2 — Ablage und Lebenszyklus von Plänen
+Jede Planung in diesem Repository folgt verbindlich dem universellen Jan-Planer-Skill:
 
-- Aktive fachliche Pläne liegen in `worldmap/`; die Marker-Datei enthält nur Reihenfolge und Verweise.
-- Jede Plan-Datei trägt genau einen Status: `Geplant`, `Execution-Ready`, `In Execution` oder `Executed (archiviert)`.
-- Nach `Executed (archiviert)` wird ein Plan nach `docs/archive/` verschoben. Löschen ist nur für Gerüste ohne Entscheidungs- oder Nachweiswert zulässig.
-- Kopfstatus, Übersichtstabelle, Detailabschnitt und Verweise werden im selben Edit aktualisiert.
-- Ein Plan verlinkt auf benötigte SOPs und Kontextreferenzen, kopiert deren Inventare aber nicht.
+1. **Ebene 1 (Assessment & Dekomposition):** Zerlegung in maximal 10 Subkategorien, belegte Einstufung (Top 1 %–100 %) und Identifikation der 🔴 JA-Bottlenecks.
+2. **Ebene 2 (Execution-Ready Plan):** Standard-Template, **100 % LLM-Zuständigkeit** (Jan nur bei Credentials/Gate), lückenloser Self-Contained Kontext-Koffer und expliziter Nicht-Scope.
+3. **Ebene 3 (Lebenszyklus):** `Geplant` → `Execution-Ready` → `In Execution` → `Executed (archiviert)`.
 
-## 3 — Kopfbereich für neue Pläne
+---
+
+## 2 — Casino-Spezifische Parameter & Ablageorte
+
+| Parameter                    | Lokaler Wert für dieses Repository                                                                         |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Ablageort aktiver Pläne**  | `worldmap/<NN>_<thema>_plan.md`                                                                            |
+| **Zentrale Status-Tabelle**  | `worldmap/00_WORLDMAP_STATUS.md` (Abschnitt „Aktive Pläne“)                                                |
+| **Archiv-Ordner**            | `docs/archive/`                                                                                            |
+| **Geld- & Sicherheits-Gate** | Bei `src/lib/casino/`, Wallet, Auth oder DB-RPCs zwingend: `Money-Pfad: Ja` und `Security-Review: Pflicht` |
+| **Verifikations-Suite**      | `npm run typecheck`, `npm test`, `npm run lint`, `npm run build`                                           |
+
+---
+
+## 3 — Kopfbereich für neue Pläne im Casino
 
 ```markdown
 # NN — <Thema>
 
-> **Status:** Geplant · **Stand:** YYYY-MM-DD · **Owner:** Jan/LLM · **Scope:** <klare Grenze>
+> **Status:** Execution-Ready · **Stand:** YYYY-MM-DD · **Owner:** LLM (Jan nur bei Gate) · **Scope:** <Präzise 1-Satz-Grenze>
+> **Money-Pfad:** Ja/Nein · **Security-Review:** Pflicht/Nein
 
-## 1 — Übersicht für Jan
+## 1 — Übersicht für Jan & Ausführungs-LLM
 
-| Nummer | Meilenstein | Status | Nächster Schritt | Zuständigkeit |
-| --- | --- | --- | --- | --- |
-| L0 | ... | 🟢 Executed | ... | LLM |
-| L1 | ... | 🔴 Geplant | ... | Jan + LLM |
+| Nummer | Meilenstein          | Scope (Dateien) | Status     | Zuständigkeit | Verifikation       |
+| ------ | -------------------- | --------------- | ---------- | ------------- | ------------------ |
+| L0     | Baseline & Diagnose  | `...`           | 🔴 Geplant | LLM           | Tests laufen lokal |
+| L1     | Kern-Implementierung | `...`           | 🔴 Geplant | LLM           | Unit Tests grün    |
+| L2     | Abschlussprüfung     | `...`           | 🔴 Geplant | LLM           | 5-Stufen-DoD grün  |
 ```
-
-- Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt. Die Ampel ergänzt den festen Kopfstatus.
-- Jeder Meilenstein enthält Ziel, Scope, Abhängigkeiten, Freigabe-Gate, Verifizierung und Nicht-Scope.
-- Wallet-, Auth- oder DB-Schreibpfade enthalten zusätzlich `Money-Pfad: Ja/Nein` und `Security-Review: Pflicht/Nein`.
-- So viele Zuständigkeiten wie möglich sollten bei dem LLM liegen. 
-- So wenig Zuständigkeiten wie möglich sollten bei Jan liegen. Nur welche zwingend notwendig sind 
-
-## 4 — Selbstprüfung vor `Execution-Ready`
-
-- Der Scope ist gegenüber verwandten Plänen abgegrenzt.
-- Abhängigkeiten, Reihenfolge und erforderliche Jan-Entscheidungen sind benannt.
-- Jede neue Datenklasse, API-Grenze oder Schreiboperation enthält Allowlist, Negativtest und Fallback.
-- Statusbehauptungen sind als lokal, verifiziert oder live gekennzeichnet und verlinken auf ihre Quelle.
-- Keine Referenz ist doppelt als SOP, Kontextreferenz und Plan gepflegt.
-- Die erstellte Markdown-Datei oder Planungsdatei sollte von einer neuen LLM-Konversation exakt verstanden werden können. 
-- Hintergrund ist dabei, manchmal nutze ich für die Planung und für die Execution verschiedene LLM-Modelle bzw. verschiedene Konversationen. 
-
-
-## 5 — .md 100 % abgeschlossen
-- Wenn es sich um eine temporäre Datei handelt, die in Zukunft nicht mehr benötigt wird, kann diese gelöscht werden. Wir haben ja alles abgeschlossen. 
-- Wenn man diese für die Zukunft noch behalten sollte, soll die in den Ordner `/Docs` verschoben werden. 

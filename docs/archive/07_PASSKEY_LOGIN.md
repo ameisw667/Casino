@@ -1,6 +1,6 @@
 # 07 — Passkey-Login (nativ via Supabase Auth, Beta)
 
-> **Status:** 🟢 Executed · **Stand:** 2026-08-21 · **Owner:** Jan + LLM · **Scope:** Passkey als zusätzliche Sign-in-Methode via nativer Supabase-Auth-Passkey-Beta (`@supabase/supabase-js` 2.108.2, bereits installiert — kein Upgrade nötig). Passwort + Google bleiben vollständig erhalten (Fallback, kein Ersatz). Referenz: [05_ZUKUNFTSPLANUNG.md](05_ZUKUNFTSPLANUNG.md) Punkt 1.19. Kein Third-Party-Layer, keine eigene Credentials-Tabelle — GoTrue verwaltet `auth.webauthn_credentials`/`auth.webauthn_challenges` selbst.
+> **Status:** 🟢 Executed · **Stand:** 2026-08-21 · **Owner:** Jan + LLM · **Scope:** Passkey als zusätzliche Sign-in-Methode via nativer Supabase-Auth-Passkey-Beta (`@supabase/supabase-js` 2.108.2, bereits installiert — kein Upgrade nötig). Passwort + Google bleiben vollständig erhalten (Fallback, kein Ersatz). Referenz: [05_ZUKUNFTSPLANUNG.md](../../worldmap/05_zukunftsplanung.md) Punkt 1.19. Kein Third-Party-Layer, keine eigene Credentials-Tabelle — GoTrue verwaltet `auth.webauthn_credentials`/`auth.webauthn_challenges` selbst.
 
 ## 1 — Übersicht für Jan
 

@@ -2,7 +2,7 @@
 
 > Status: **Executed (archiviert)** · Stand: **2026-08-19**
 > Projekt: **Casino / Next.js 16.3 / Sentry (`@sentry/nextjs` `^10.70.0`)**
-> Bezug: [`01_API_MCP_CLI.md`](../../worldmap/01_API_MCP_CLI.md) Abschnitt 3.1 „Sentry: SDK ✅, CLI 🟢, MCP 🟢" und Abschnitt 4.2 „Sentry CLI + MCP — höchste Priorität nach Supabase"
+> Bezug: [`01_API_MCP_CLI.md`](./01_api_mcp_cli.md) Abschnitt 3.1 „Sentry: SDK ✅, CLI 🟢, MCP 🟢" und Abschnitt 4.2 „Sentry CLI + MCP — höchste Priorität nach Supabase"
 > Scope: Sentry CLI als reproduzierbarer lokaler Diagnoseweg (lesend) + Sentry-MCP-Registrierung für den aktuellen Claude-Code-Host (lesend). Explizit **ausgeschlossen**: Issue-Schreibaktionen (`resolve`, `mute`, `unresolve`), Release-/Source-Map-Verwaltung über die CLI, Alert-/Projektkonfiguration, jede Änderung am bestehenden `SENTRY_AUTH_TOKEN`-Build-Pfad. **Reaktiviert (2026-08-18):** MCP-Registrierung wurde zunächst zurückgestellt, auf Jans Wunsch dann doch umgesetzt (siehe Abschnitt 8).
 
 ## Übersicht für Jan
@@ -133,7 +133,7 @@
 
 ## 9. Quellen
 
-- [`01_API_MCP_CLI.md`](../../worldmap/01_API_MCP_CLI.md) Abschnitt 3.1, 4.2, 6, 7 — Ausgangsanalyse, Sicherheitsgrenzen, Reihenfolge
+- [`01_API_MCP_CLI.md`](./01_api_mcp_cli.md) Abschnitt 3.1, 4.2, 6, 7 — Ausgangsanalyse, Sicherheitsgrenzen, Reihenfolge
 - [`docs/archive/05_1.0_Sentry.md`](05_1.0_Sentry.md) — archivierter Sentry-CLI-/MCP-Pilot (Codex Desktop)
 - [`docs/architecture/05_1.9_ERROR_TRACKING_SENTRY.md`](../architecture/05_1.9_ERROR_TRACKING_SENTRY.md) — SDK-Implementierung, Redaction, Sicherheitsgrenzen
 - [`package.json`](../../package.json) — `@sentry/nextjs`-Dependency

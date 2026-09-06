@@ -1,7 +1,7 @@
 # 05v2 — Multiplayer-Crash als eigenständiges Spiel
 
 > **Status:** Executed (archiviert) · **Stand:** 2026-08-23 · **Owner:** Jan + LLM · **Scope:** `crash/page.tsx` + `bet/route.ts` (CRASH-Zweig) auf den Vor-Multiplayer-Solo-Stand zurückbauen; die bereits live verifizierte Multiplayer-Logik als eigenständiges, zusätzliches Spiel `crash-multiplayer` mit eigener Route, eigener API und eigener Games-Kachel weiterführen. Kein Eingriff in Dice/Slots/Roulette/Blackjack.
-> **Vorgänger:** [05_multiplayercrash.md](../docs/archive/05_multiplayercrash.md) — dort vollständig live verifiziert (49 Migrationen remote, Security-Review, Realtime Ende-zu-Ende bestätigt). Nach Jans Rückmeldung (2026-08-23) war die **In-Place-Umgestaltung des bestehenden Solo-Spiels** die falsche Umsetzung — die Backend-Infrastruktur bleibt vollständig gültig und wiederverwendbar, nur die Frontend-/Routing-Zuordnung ändert sich.
+> **Vorgänger:** [05_multiplayercrash.md](./05_multiplayercrash.md) — dort vollständig live verifiziert (49 Migrationen remote, Security-Review, Realtime Ende-zu-Ende bestätigt). Nach Jans Rückmeldung (2026-08-23) war die **In-Place-Umgestaltung des bestehenden Solo-Spiels** die falsche Umsetzung — die Backend-Infrastruktur bleibt vollständig gültig und wiederverwendbar, nur die Frontend-/Routing-Zuordnung ändert sich.
 
 ---
 
@@ -9,19 +9,19 @@
 
 **Reihenfolge ist bindend — L0/L1 MÜSSEN vor L2/L3 laufen:** Die heutige `crash/page.tsx`/`bet/route.ts` enthält die einzige Kopie der bereits live verifizierten Multiplayer-Logik. Wird zuerst zurückgebaut (L2/L3), ist diese Logik weg, bevor sie in die neuen Dateien kopiert wurde. Deshalb zuerst kopieren (L0/L1), erst danach zurückbauen (L2/L3).
 
-| Nr. | Meilenstein | Status | Nächster Schritt | Zuständigkeit |
-| --- | --- | --- | --- | --- |
-| L0 | **Zuerst kopieren:** aktuellen (Multiplayer-)Inhalt von `crash/page.tsx` 1:1 nach `src/app/games/crash-multiplayer/page.tsx` kopieren (reine Dateikopie, noch keine Anpassung) | 🟢 Executed | Abgeschlossen | LLM |
-| L1 | **Zuerst kopieren:** `START_CRASH`/`CASHOUT_CRASH`/`RESOLVE_CRASH`-Blöcke aus dem aktuellen `bet/route.ts` 1:1 in neue Datei `src/app/api/casino/bet-crash-multiplayer/route.ts` übernehmen (inkl. Auth-/Rate-Limit-Boilerplate, noch keine Anpassung) | 🟢 Executed | Abgeschlossen | LLM |
-| L2 | `crash/page.tsx` auf Solo-Verhalten zurückbauen — verifizierter Git-Restore (§3.1) | 🟢 Executed | Abgeschlossen | LLM |
-| L3 | `bet/route.ts` CRASH-Zweig auf Solo-Verhalten zurückbauen — exakte Ziel-Blöcke aus §13 einsetzen (kein `git checkout`, da fremde Otel-Änderungen erhalten bleiben müssen) | 🟢 Executed | Abgeschlossen | LLM |
-| L4 | Migration: `CRASH_MULTIPLAYER` als neuer `game_rounds.game`-Typ, `start_game_round` erneut redefiniert (Migration `050_crash_multiplayer_game_type.sql` lokal erstellt & remote von Jan ausgeführt) | 🟢 Executed | Abgeschlossen | LLM (Erstellung) + Jan (Remote-Execution) |
-| L5 | Kopierte Datei `bet-crash-multiplayer/route.ts` anpassen: Actionnamen auf `START/CASHOUT/RESOLVE_CRASH_MULTIPLAYER`, `game`-Wert auf `CRASH_MULTIPLAYER`, eigener Rate-Limit-Bucket (Fehlerfall 3) | 🟢 Executed | Abgeschlossen | LLM |
-| L6 | Kopierte Datei `crash-multiplayer/page.tsx` anpassen: API-Endpunkt/Actionnamen auf die neue Route, eigener Store-Slot `multiplayerCrashHistory` (§3.4) | 🟢 Executed | Abgeschlossen | LLM |
-| L7 | Games-Liste (`src/app/games/page.tsx`): neue Kachel „Crash Multiplayer" direkt nach „Crash" (gleiche Darstellung/Kartenformat) | 🟢 Executed | Abgeschlossen | LLM |
-| L8 | Security-Review (Pflicht — neue Migration + neuer Money-Pfad-Route) | 🟢 Executed | Abgeschlossen | LLM (security-reviewer-Agent) |
-| L9 | Verifizierung: Tests/Build/Lint, Live-Regressionstest Solo-Crash (`/games/crash` verhält sich exakt wie vor dieser gesamten Initiative), Live-Test Multiplayer unter neuer Route | 🟢 Executed | Abgeschlossen | LLM |
-| L10 | Doku-Update (Worldmap-Status), Vorgänger-Plan-Verweis final prüfen | 🟢 Executed | Abgeschlossen | LLM |
+| Nr. | Meilenstein                                                                                                                                                                                                                                            | Status      | Nächster Schritt | Zuständigkeit                             |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------- | ---------------- | ----------------------------------------- |
+| L0  | **Zuerst kopieren:** aktuellen (Multiplayer-)Inhalt von `crash/page.tsx` 1:1 nach `src/app/games/crash-multiplayer/page.tsx` kopieren (reine Dateikopie, noch keine Anpassung)                                                                         | 🟢 Executed | Abgeschlossen    | LLM                                       |
+| L1  | **Zuerst kopieren:** `START_CRASH`/`CASHOUT_CRASH`/`RESOLVE_CRASH`-Blöcke aus dem aktuellen `bet/route.ts` 1:1 in neue Datei `src/app/api/casino/bet-crash-multiplayer/route.ts` übernehmen (inkl. Auth-/Rate-Limit-Boilerplate, noch keine Anpassung) | 🟢 Executed | Abgeschlossen    | LLM                                       |
+| L2  | `crash/page.tsx` auf Solo-Verhalten zurückbauen — verifizierter Git-Restore (§3.1)                                                                                                                                                                     | 🟢 Executed | Abgeschlossen    | LLM                                       |
+| L3  | `bet/route.ts` CRASH-Zweig auf Solo-Verhalten zurückbauen — exakte Ziel-Blöcke aus §13 einsetzen (kein `git checkout`, da fremde Otel-Änderungen erhalten bleiben müssen)                                                                              | 🟢 Executed | Abgeschlossen    | LLM                                       |
+| L4  | Migration: `CRASH_MULTIPLAYER` als neuer `game_rounds.game`-Typ, `start_game_round` erneut redefiniert (Migration `050_crash_multiplayer_game_type.sql` lokal erstellt & remote von Jan ausgeführt)                                                    | 🟢 Executed | Abgeschlossen    | LLM (Erstellung) + Jan (Remote-Execution) |
+| L5  | Kopierte Datei `bet-crash-multiplayer/route.ts` anpassen: Actionnamen auf `START/CASHOUT/RESOLVE_CRASH_MULTIPLAYER`, `game`-Wert auf `CRASH_MULTIPLAYER`, eigener Rate-Limit-Bucket (Fehlerfall 3)                                                     | 🟢 Executed | Abgeschlossen    | LLM                                       |
+| L6  | Kopierte Datei `crash-multiplayer/page.tsx` anpassen: API-Endpunkt/Actionnamen auf die neue Route, eigener Store-Slot `multiplayerCrashHistory` (§3.4)                                                                                                 | 🟢 Executed | Abgeschlossen    | LLM                                       |
+| L7  | Games-Liste (`src/app/games/page.tsx`): neue Kachel „Crash Multiplayer" direkt nach „Crash" (gleiche Darstellung/Kartenformat)                                                                                                                         | 🟢 Executed | Abgeschlossen    | LLM                                       |
+| L8  | Security-Review (Pflicht — neue Migration + neuer Money-Pfad-Route)                                                                                                                                                                                    | 🟢 Executed | Abgeschlossen    | LLM (security-reviewer-Agent)             |
+| L9  | Verifizierung: Tests/Build/Lint, Live-Regressionstest Solo-Crash (`/games/crash` verhält sich exakt wie vor dieser gesamten Initiative), Live-Test Multiplayer unter neuer Route                                                                       | 🟢 Executed | Abgeschlossen    | LLM                                       |
+| L10 | Doku-Update (Worldmap-Status), Vorgänger-Plan-Verweis final prüfen                                                                                                                                                                                     | 🟢 Executed | Abgeschlossen    | LLM                                       |
 
 **Ampel:** 🔴 Geplant · 🟡 In Execution · 🟢 Executed.
 
@@ -43,10 +43,13 @@ Diese Datei ist bewusst so geschrieben, dass sie **ohne Zugriff auf die Ursprung
 
 **`crash/page.tsx` — sauberer Git-Commit gefunden und verifiziert:**
 Commit `f9e2307` ("fix(crash): implement optimistic UI freeze for instant cashout lock") ist die letzte Version dieser Datei komplett ohne Multiplayer-Spuren — verifiziert per `git diff f9e2307 HEAD -- src/app/games/crash/page.tsx`, durchsucht auf Fremdanteile anderer Sessions (`otel`/`sentry`/`daily-race`/`fraud`/`withBetPathSpan`/`resolveDevFallbackUserId` — keine Treffer). Der volle Diff besteht ausschließlich aus den Multiplayer-Ergänzungen. **Vor L2-Ausführung (Rückbau, nicht L0 — L0 ist die Kopie und braucht diesen Check nicht) erneut verifizieren** (eine parallele Session könnte diese Datei inzwischen ebenfalls angefasst haben):
+
 ```bash
 git diff f9e2307 HEAD -- src/app/games/crash/page.tsx | grep -iE "otel|sentry|daily.?race|fraud"
 ```
+
 Kommt hier **irgendein Treffer**, NICHT blind zurücksetzen — dann hat eine andere Session diese Datei seither ebenfalls geändert, und L2 braucht denselben chirurgischen Ansatz wie unten für `bet/route.ts` beschrieben (Jan-Rückfrage empfohlen, falls das eintritt). Kommt **kein Treffer**, ist der einfache Restore sicher:
+
 ```bash
 git checkout f9e2307 -- src/app/games/crash/page.tsx
 ```
@@ -105,17 +108,17 @@ Exakter CHECK-Constraint-Name (`game_rounds_game_check`) ist Postgres' Standard-
 
 ## 6 — Neue/geänderte Dateien
 
-| Datei | Änderung |
-| --- | --- |
-| `src/app/games/crash/page.tsx` (2509 Zeilen) | Rückbau auf Solo-Stand (§3.1) |
-| `src/app/api/casino/bet/route.ts` (442 Zeilen) | CRASH-Zweig-Rückbau auf Solo-Stand |
-| `supabase/migrations/0XX_crash_multiplayer_game_type.sql` | Neu — `CRASH_MULTIPLAYER`-Typ, `start_game_round`-Redefinition (§5) |
-| `src/app/api/casino/bet-crash-multiplayer/route.ts` | Neu — aktuelle Multiplayer-Logik aus `bet/route.ts`, Actions umbenannt |
-| `src/app/games/crash-multiplayer/page.tsx` | Neu — aktuelle Multiplayer-Logik aus `crash/page.tsx`, Endpunkt/Actions angepasst |
-| `src/store/useCasinoStore.ts` | `multiplayerCrashHistory`-Feld ergänzt |
-| `src/app/games/page.tsx` | `GameId`-Union + `GAMES`-Array um `crash-multiplayer`-Eintrag ergänzt (direkt nach `crash`, Zeile ~59) |
-| `src/lib/casino/wallet.ts` | `'CRASH' \| 'BLACKJACK'`-Typunion in `startRound`/`getActiveRound`/`getGameActiveRound` um `'CRASH_MULTIPLAYER'` erweitert |
-| `worldmap/00_WORLDMAP_STATUS.md` §2 | Aktive-Pläne-Zeile umgehängt |
+| Datei                                                     | Änderung                                                                                                                   |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `src/app/games/crash/page.tsx` (2509 Zeilen)              | Rückbau auf Solo-Stand (§3.1)                                                                                              |
+| `src/app/api/casino/bet/route.ts` (442 Zeilen)            | CRASH-Zweig-Rückbau auf Solo-Stand                                                                                         |
+| `supabase/migrations/0XX_crash_multiplayer_game_type.sql` | Neu — `CRASH_MULTIPLAYER`-Typ, `start_game_round`-Redefinition (§5)                                                        |
+| `src/app/api/casino/bet-crash-multiplayer/route.ts`       | Neu — aktuelle Multiplayer-Logik aus `bet/route.ts`, Actions umbenannt                                                     |
+| `src/app/games/crash-multiplayer/page.tsx`                | Neu — aktuelle Multiplayer-Logik aus `crash/page.tsx`, Endpunkt/Actions angepasst                                          |
+| `src/store/useCasinoStore.ts`                             | `multiplayerCrashHistory`-Feld ergänzt                                                                                     |
+| `src/app/games/page.tsx`                                  | `GameId`-Union + `GAMES`-Array um `crash-multiplayer`-Eintrag ergänzt (direkt nach `crash`, Zeile ~59)                     |
+| `src/lib/casino/wallet.ts`                                | `'CRASH' \| 'BLACKJACK'`-Typunion in `startRound`/`getActiveRound`/`getGameActiveRound` um `'CRASH_MULTIPLAYER'` erweitert |
+| `worldmap/00_WORLDMAP_STATUS.md` §2                       | Aktive-Pläne-Zeile umgehängt                                                                                               |
 
 `src/lib/casino/crash-round.ts`, `realtime.ts`, `realtime-types.ts` sowie alle `crash_rounds`-Migrationen (037–049) bleiben **unverändert** — vollständig wiederverwendet.
 
@@ -133,15 +136,15 @@ Exakter CHECK-Constraint-Name (`game_rounds_game_check`) ist Postgres' Standard-
 
 ## 8 — Fehler-/Problemfälle + Umgang
 
-| # | Fall | Umgang |
-| --- | --- | --- |
-| 1 | Rückbau übersieht eine Stelle, Solo-Crash bleibt in einem Hybrid-Zustand | `crash/page.tsx`: `git checkout f9e2307 --` ist ein exakter Datei-Restore, kein manuelles Diff-Raten — Restrisiko nur, falls eine andere Session die Datei zwischenzeitlich geändert hat (siehe Vorab-Check in §3.1). `bet/route.ts`: exakte Ziel-Blöcke aus §13 einsetzen, danach `tsc`/Live-Test (FR1) vor Abschluss von L2/L3 |
-| 1b | L0/L1 (Kopieren) versehentlich nach L2/L3 (Rückbau) ausgeführt — Multiplayer-Logik dann bereits überschrieben | Reihenfolge ist in §1 als bindend markiert, genau um das zu verhindern. Falls doch passiert: **vor jedem Korrekturversuch zuerst `git status`/`git stash list` prüfen** (nicht ungeprüft überschreiben) — diese Repo-Historie hat wiederholt unübliches Auto-Commit-Verhalten gezeigt (§3.1), es kann sein, dass der Vor-Rückbau-Stand doch irgendwo committet ist. Ist er es nicht: kein anderer Fallback als Neubau nach dieser Planungsdatei (§13 dokumentiert die API-Seite vollständig; die Frontend-Multiplayer-UI müsste neu gebaut werden — deshalb die bindende Reihenfolge in §1) |
-| 2 | Migration redefiniert `start_game_round` versehentlich auf Basis von 007 statt 037 | Body-Diff gegen den aktuellen `037`-Stand vor dem Schreiben der neuen Migration (gleiche Disziplin wie 019/026/034) |
-| 3 | Neue Route dupliziert Boilerplate fehlerhaft (z. B. abweichendes Rate-Limit-Bucket) | Rate-Limit-Bucket-Name explizit von `casino-bet` auf einen eigenen Namen setzen (z. B. `casino-bet-crash-mp`), sonst teilen sich Solo- und Multiplayer-Bets unbeabsichtigt dasselbe Kontingent |
-| 4 | `CHECK`-Constraint-Name weicht von der angenommenen Konvention ab | Vor Migrationserstellung gegen `information_schema.table_constraints` verifizieren (§5) |
-| 5 | Games-Liste zeigt neue Kachel an falscher Position | Array-Position exakt nach dem bestehenden `crash`-Eintrag einfügen, per Live-Screenshot verifizieren |
-| 6 | Store-Persistenz (`localStorage`) hält alte, jetzt fehlplatzierte Multiplayer-Testdaten im `crashHistory`-Feld (bekannt aus §18 der Vorgänger-Datei) | Kein automatisches Löschen fremder Nutzerdaten — Feld bleibt einfach ab jetzt wieder korrekt Solo-only befüllt, alte Einträge laufen mit der Zeit aus der 50-Einträge-Begrenzung heraus |
+| #   | Fall                                                                                                                                                 | Umgang                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Rückbau übersieht eine Stelle, Solo-Crash bleibt in einem Hybrid-Zustand                                                                             | `crash/page.tsx`: `git checkout f9e2307 --` ist ein exakter Datei-Restore, kein manuelles Diff-Raten — Restrisiko nur, falls eine andere Session die Datei zwischenzeitlich geändert hat (siehe Vorab-Check in §3.1). `bet/route.ts`: exakte Ziel-Blöcke aus §13 einsetzen, danach `tsc`/Live-Test (FR1) vor Abschluss von L2/L3                                                                                                                                                                                                                                                            |
+| 1b  | L0/L1 (Kopieren) versehentlich nach L2/L3 (Rückbau) ausgeführt — Multiplayer-Logik dann bereits überschrieben                                        | Reihenfolge ist in §1 als bindend markiert, genau um das zu verhindern. Falls doch passiert: **vor jedem Korrekturversuch zuerst `git status`/`git stash list` prüfen** (nicht ungeprüft überschreiben) — diese Repo-Historie hat wiederholt unübliches Auto-Commit-Verhalten gezeigt (§3.1), es kann sein, dass der Vor-Rückbau-Stand doch irgendwo committet ist. Ist er es nicht: kein anderer Fallback als Neubau nach dieser Planungsdatei (§13 dokumentiert die API-Seite vollständig; die Frontend-Multiplayer-UI müsste neu gebaut werden — deshalb die bindende Reihenfolge in §1) |
+| 2   | Migration redefiniert `start_game_round` versehentlich auf Basis von 007 statt 037                                                                   | Body-Diff gegen den aktuellen `037`-Stand vor dem Schreiben der neuen Migration (gleiche Disziplin wie 019/026/034)                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| 3   | Neue Route dupliziert Boilerplate fehlerhaft (z. B. abweichendes Rate-Limit-Bucket)                                                                  | Rate-Limit-Bucket-Name explizit von `casino-bet` auf einen eigenen Namen setzen (z. B. `casino-bet-crash-mp`), sonst teilen sich Solo- und Multiplayer-Bets unbeabsichtigt dasselbe Kontingent                                                                                                                                                                                                                                                                                                                                                                                              |
+| 4   | `CHECK`-Constraint-Name weicht von der angenommenen Konvention ab                                                                                    | Vor Migrationserstellung gegen `information_schema.table_constraints` verifizieren (§5)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| 5   | Games-Liste zeigt neue Kachel an falscher Position                                                                                                   | Array-Position exakt nach dem bestehenden `crash`-Eintrag einfügen, per Live-Screenshot verifizieren                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| 6   | Store-Persistenz (`localStorage`) hält alte, jetzt fehlplatzierte Multiplayer-Testdaten im `crashHistory`-Feld (bekannt aus §18 der Vorgänger-Datei) | Kein automatisches Löschen fremder Nutzerdaten — Feld bleibt einfach ab jetzt wieder korrekt Solo-only befüllt, alte Einträge laufen mit der Zeit aus der 50-Einträge-Begrenzung heraus                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 ---
 
@@ -163,12 +166,12 @@ Exakter CHECK-Constraint-Name (`game_rounds_game_check`) ist Postgres' Standard-
 
 ## 11 — Aufgabenverteilung Jan vs. LLM
 
-| Aufgabe | Zuständigkeit |
-| --- | --- |
-| Rückbau, neue Route, neue Seite, Migration, Tests, Doku | LLM |
-| Security-Review | LLM (Agent) |
-| Migration remote pushen | Jan (Bestätigung, wie bisher) |
-| Finale Freigabe nach Live-Test beider Spiele | Jan |
+| Aufgabe                                                 | Zuständigkeit                 |
+| ------------------------------------------------------- | ----------------------------- |
+| Rückbau, neue Route, neue Seite, Migration, Tests, Doku | LLM                           |
+| Security-Review                                         | LLM (Agent)                   |
+| Migration remote pushen                                 | Jan (Bestätigung, wie bisher) |
+| Finale Freigabe nach Live-Test beider Spiele            | Jan                           |
 
 ---
 
@@ -192,6 +195,7 @@ Diese Blöcke wurden per `git diff 5f3d9ed HEAD -- src/app/api/casino/bet/route.
 ### 13.1 Imports (oberer Dateibereich)
 
 Entfernen (falls noch vorhanden):
+
 ```ts
 import {
   ensureCurrentCrashRound,
@@ -201,125 +205,126 @@ import {
 } from '@/lib/casino/crash-round';
 import { publishCrashRoundState, publishCrashPlayerEvent } from '@/lib/casino/realtime';
 ```
+
 Alle anderen Imports (inkl. `resolveDevFallbackUserId`, `withBetPathSpan`, `flushBetPathTracer`) **unverändert lassen**.
 
 ### 13.2 `START_CRASH`-Block — Ziel (ersetzt den kompletten aktuellen `if (params.action === 'START_CRASH') { ... }`-Block)
 
 ```ts
-    if (params.action === 'START_CRASH') {
-      if (!params.amount) {
-        return apiErrorResponse(
-          APP_ERROR_CODES.VALIDATION_FAILED,
-          'Ein gültiger Einsatz ist erforderlich.',
-          400,
-          { requestId: params.requestId },
-        );
-      }
-      if (params.amount > gameConfig.limits.betMax)
-        return apiErrorResponse(
-          APP_ERROR_CODES.BET_LIMIT_EXCEEDED,
-          'Der Einsatz überschreitet das erlaubte Limit.',
-          400,
-          { requestId: params.requestId },
-        );
-      const seed = await WalletService.consumeActiveSeed({
-        userId,
-        requestId: params.requestId,
-      });
-      const crash = await CasinoCore.startCrashRound(
-        params.clientSeed,
-        seed.serverSeed,
-        seed.serverSeedHash,
-        seed.nonce,
-        gameConfig,
-      );
-      const round = await WalletService.startRound({
-        userId,
-        requestId: params.requestId,
-        game: 'CRASH',
-        amount: params.amount,
-        state: {
-          crashPoint: crash.crashPoint,
-          serverSeed: crash.seed,
-          serverSeedHash: crash.hash,
-          nonce: crash.nonce,
-          clientSeed: params.clientSeed,
-        },
-      });
-      const isFirstBet = await isFirstBetSignal(userId, round.replayed);
-      return NextResponse.json({
-        roundId: round.roundId,
-        crashPoint: crash.crashPoint,
-        hash: crash.hash,
-        nonce: crash.nonce,
-        wallet: walletOnly({ ...round, result: undefined }),
-        replayed: round.replayed,
-        isFirstBet,
-      });
-    }
+if (params.action === 'START_CRASH') {
+  if (!params.amount) {
+    return apiErrorResponse(
+      APP_ERROR_CODES.VALIDATION_FAILED,
+      'Ein gültiger Einsatz ist erforderlich.',
+      400,
+      { requestId: params.requestId },
+    );
+  }
+  if (params.amount > gameConfig.limits.betMax)
+    return apiErrorResponse(
+      APP_ERROR_CODES.BET_LIMIT_EXCEEDED,
+      'Der Einsatz überschreitet das erlaubte Limit.',
+      400,
+      { requestId: params.requestId },
+    );
+  const seed = await WalletService.consumeActiveSeed({
+    userId,
+    requestId: params.requestId,
+  });
+  const crash = await CasinoCore.startCrashRound(
+    params.clientSeed,
+    seed.serverSeed,
+    seed.serverSeedHash,
+    seed.nonce,
+    gameConfig,
+  );
+  const round = await WalletService.startRound({
+    userId,
+    requestId: params.requestId,
+    game: 'CRASH',
+    amount: params.amount,
+    state: {
+      crashPoint: crash.crashPoint,
+      serverSeed: crash.seed,
+      serverSeedHash: crash.hash,
+      nonce: crash.nonce,
+      clientSeed: params.clientSeed,
+    },
+  });
+  const isFirstBet = await isFirstBetSignal(userId, round.replayed);
+  return NextResponse.json({
+    roundId: round.roundId,
+    crashPoint: crash.crashPoint,
+    hash: crash.hash,
+    nonce: crash.nonce,
+    wallet: walletOnly({ ...round, result: undefined }),
+    replayed: round.replayed,
+    isFirstBet,
+  });
+}
 ```
 
 ### 13.3 `CASHOUT_CRASH`/`RESOLVE_CRASH`-Block — Ziel (ersetzt den kompletten aktuellen `if (params.action === 'CASHOUT_CRASH' || params.action === 'RESOLVE_CRASH') { ... }`-Block)
 
 ```ts
-    if (params.action === 'CASHOUT_CRASH' || params.action === 'RESOLVE_CRASH') {
-      if (!params.roundId || (params.action === 'CASHOUT_CRASH' && !params.cashoutMultiplier)) {
-        return apiErrorResponse(
-          APP_ERROR_CODES.VALIDATION_FAILED,
-          'Runde und Multiplikator sind erforderlich.',
-          400,
-          { requestId: params.requestId },
-        );
-      }
-      const round = await WalletService.getActiveRound(userId, params.roundId, 'CRASH');
-      const crashPoint = z.coerce.number().positive().parse(round.state.crashPoint);
-      // Never return the raw serverSeed here: it is the user's shared,
-      // still-active chain seed (reused across Dice/Roulette/Slots/Crash
-      // until the next rotation), not a per-round throwaway anymore. Only
-      // the hash + nonce are safe to disclose; the raw seed is revealed
-      // exclusively via rotate_user_seed()'s seed_history mechanism.
-      const serverSeedHash = z.string().min(1).parse(round.state.serverSeedHash);
-      const crashNonce = z.coerce.number().int().nonnegative().parse(round.state.nonce);
-      const requestedMultiplier = params.cashoutMultiplier ?? crashPoint;
-      const won = params.action === 'CASHOUT_CRASH' && requestedMultiplier <= crashPoint;
-      const payout = won ? Math.round(round.betAmount * requestedMultiplier * 100) / 100 : 0;
-      const resultId = crypto.randomUUID();
-      const jackpotRoll = await WalletService.computeRoundJackpotRoll(round.state, crashNonce);
-      const result = {
-        id: resultId,
-        game: 'CRASH',
-        win: won,
-        payout,
-        multiplier: won ? requestedMultiplier : 0,
-        crashPoint,
-        serverSeedHash,
-        nonce: crashNonce,
-        jackpotRoll,
-      };
-      const settlement = await WalletService.settleRound({
-        userId,
-        roundId: params.roundId,
-        requestId: params.requestId,
-        resultId,
-        payout,
-        xpGain: CasinoCore.calculateXpGain(round.betAmount, 1, gameConfig),
-        result,
-      });
-      await notifyBigWinIfEligible({
-        userId,
-        requestId: params.requestId,
-        game: 'CRASH',
-        payout: result.payout,
-        multiplier: result.multiplier,
-        win: result.win,
-        replayed: settlement.replayed,
-      });
-      return NextResponse.json({
-        ...(settlement.result as object),
-        wallet: walletOnly(settlement),
-        replayed: settlement.replayed,
-      });
-    }
+if (params.action === 'CASHOUT_CRASH' || params.action === 'RESOLVE_CRASH') {
+  if (!params.roundId || (params.action === 'CASHOUT_CRASH' && !params.cashoutMultiplier)) {
+    return apiErrorResponse(
+      APP_ERROR_CODES.VALIDATION_FAILED,
+      'Runde und Multiplikator sind erforderlich.',
+      400,
+      { requestId: params.requestId },
+    );
+  }
+  const round = await WalletService.getActiveRound(userId, params.roundId, 'CRASH');
+  const crashPoint = z.coerce.number().positive().parse(round.state.crashPoint);
+  // Never return the raw serverSeed here: it is the user's shared,
+  // still-active chain seed (reused across Dice/Roulette/Slots/Crash
+  // until the next rotation), not a per-round throwaway anymore. Only
+  // the hash + nonce are safe to disclose; the raw seed is revealed
+  // exclusively via rotate_user_seed()'s seed_history mechanism.
+  const serverSeedHash = z.string().min(1).parse(round.state.serverSeedHash);
+  const crashNonce = z.coerce.number().int().nonnegative().parse(round.state.nonce);
+  const requestedMultiplier = params.cashoutMultiplier ?? crashPoint;
+  const won = params.action === 'CASHOUT_CRASH' && requestedMultiplier <= crashPoint;
+  const payout = won ? Math.round(round.betAmount * requestedMultiplier * 100) / 100 : 0;
+  const resultId = crypto.randomUUID();
+  const jackpotRoll = await WalletService.computeRoundJackpotRoll(round.state, crashNonce);
+  const result = {
+    id: resultId,
+    game: 'CRASH',
+    win: won,
+    payout,
+    multiplier: won ? requestedMultiplier : 0,
+    crashPoint,
+    serverSeedHash,
+    nonce: crashNonce,
+    jackpotRoll,
+  };
+  const settlement = await WalletService.settleRound({
+    userId,
+    roundId: params.roundId,
+    requestId: params.requestId,
+    resultId,
+    payout,
+    xpGain: CasinoCore.calculateXpGain(round.betAmount, 1, gameConfig),
+    result,
+  });
+  await notifyBigWinIfEligible({
+    userId,
+    requestId: params.requestId,
+    game: 'CRASH',
+    payout: result.payout,
+    multiplier: result.multiplier,
+    win: result.win,
+    replayed: settlement.replayed,
+  });
+  return NextResponse.json({
+    ...(settlement.result as object),
+    wallet: walletOnly(settlement),
+    replayed: settlement.replayed,
+  });
+}
 ```
 
 **Hinweis `requestId: params.requestId` bei `notifyBigWinIfEligible`:** Das ist eine Fremdänderung einer anderen Session (Idempotenz-Tracking im Notifier, unabhängig von Multiplayer-Crash) — bewusst **beibehalten**, nicht Teil des Rückbaus.
@@ -329,4 +334,5 @@ Alle anderen Imports (inkl. `resolveDevFallbackUserId`, `withBetPathSpan`, `flus
 ```bash
 npx tsc --noEmit
 ```
+
 Falls `CasinoCore`, `ProvablyFairEngine` oder andere jetzt ungenutzte Importe eine ESLint-Warnung auslösen: nicht entfernen, ohne zu prüfen — `CasinoCore.placeBet`/`CasinoCore.calculateXpGain` werden im DICE/ROULETTE/SLOTS-Zweig weiter unten in derselben Datei benötigt.

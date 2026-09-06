@@ -1,6 +1,6 @@
 # 06 — Planungsdatei-Versionierung: von Top 90 % auf Top 40 %
 
-> **Status:** Executed (archiviert) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Vertiefung von Unterkategorie **#6 „Planungsdatei-Versionierung"** aus [`00-14-VersionControlDoku.md`](00-14-VersionControlDoku.md) (dort Top 90 %, größter Bottleneck von Kategorie 14). Ausschließlich Git-Tracking/Backup-Mechanik für `worldmap/`, `T_BUGS/`, `T_FRONTEND/`, `Z_LLM/` — keine inhaltliche Bewertung der Planungsdateien selbst, keine Branch-Hygiene (bleibt Scope von M2 in `00-14-VersionControlDoku.md`, nicht Teil dieser Datei).
+> **Status:** Executed (archiviert) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Vertiefung von Unterkategorie **#6 „Planungsdatei-Versionierung"** aus [`00-14-VersionControlDoku.md`](./00-14-VersionControlDoku.md) (dort Top 90 %, größter Bottleneck von Kategorie 14). Ausschließlich Git-Tracking/Backup-Mechanik für `worldmap/`, `T_BUGS/`, `T_FRONTEND/`, `Z_LLM/` — keine inhaltliche Bewertung der Planungsdateien selbst, keine Branch-Hygiene (bleibt Scope von M2 in `00-14-VersionControlDoku.md`, nicht Teil dieser Datei).
 > **Zuständigkeits-Prinzip:** Jeder Meilenstein ist **ausschließlich LLM-Zuständigkeit**, wie von Jan vorgegeben. Kein Freigabe-Gate innerhalb dieser Datei — die Anweisung, diesen Plan „vollumfänglich umzusetzen", ist die explizite Commit-/Push-Freigabe aus `xx_docs/12_git_commit_push_workflow.md`.
 > **Money-Pfad:** Nein · **Security-Review:** Nein (reine Markdown-/Gitignore-Änderungen; Secret-Scan als eigener Meilenstein M3 unten).
 > **Ziel:** Mindestens **Top 40 %**, im Optimalfall darüber.
@@ -27,10 +27,9 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt. Alle 10 
 Fünf getrennte Ursachen, nicht nur eine:
 
 1. **0 % Git-Tracking** — `worldmap/`, `T_BUGS/`, `T_FRONTEND/` sind zu 100 % nicht getrackt, `Z_LLM/` inkonsistent (1 von 2 Dateien). Ursache: bewusster Commit `9cc9b9f` (2026-08-2x), der planning-only docs pauschal aus dem Tracking genommen hat.
-2. **Vendored-Research-Falle** — `worldmap/.research/tonejs/` ist ein 16-MB-Klon des externen Tone.js-Repos inkl. eigenem `.git`-Ordner. Ein naives Zurückholen ins Tracking hätte einen kaputten Gitlink oder Fremdcode samt Historie erzeugt (identifiziert in `00-14-VersionControlDoku.md`, hier zum ersten Mal tatsächlich chirurgisch aufgelöst).
-3. **Selbst „getrackt" wäre nicht „gesichert"** — Git-Tracking allein läuft weiterhin nur auf Jans lokaler Festplatte. Ohne `git push` zu `origin/main` besteht bei Festplattendefekt weiterhin dasselbe Risiko wie vorher — dieser Unterschied wurde in der vorherigen Planung nicht scharf genug getrennt.
-4. **Keine Restore-Verifizierung** — selbst ein durchgeführter Push beweist nicht automatisch, dass ein frischer Klon tatsächlich alle Dateien korrekt enthält (z. B. falls eine `.gitignore`-Regel doch zu breit greift). Diese Prüfung fehlte komplett.
-5. **Keine Konvention für die Zukunft** — weder für neue Unterordner unter `worldmap/` (Gefahr: der nächste Recherche-Klon landet wieder ungeschützt im Tracking) noch für die inzwischen real beobachtete parallele Bearbeitung mehrerer Sessions in denselben Dateien (Merge-Konflikt-Risiko, sobald `worldmap/` versioniert ist — vorher konnte das gar nicht auftreten, weil nichts getrackt war).
+2. **Selbst „getrackt" wäre nicht „gesichert"** — Git-Tracking allein läuft weiterhin nur auf Jans lokaler Festplatte. Ohne `git push` zu `origin/main` besteht bei Festplattendefekt weiterhin dasselbe Risiko wie vorher — dieser Unterschied wurde in der vorherigen Planung nicht scharf genug getrennt.
+3. **Keine Restore-Verifizierung** — selbst ein durchgeführter Push beweist nicht automatisch, dass ein frischer Klon tatsächlich alle Dateien korrekt enthält (z. B. falls eine `.gitignore`-Regel doch zu breit greift). Diese Prüfung fehlte komplett.
+4. **Keine Konvention für die Zukunft** — weder für neue Unterordner unter `worldmap/` (Gefahr: der nächste Recherche-Klon landet wieder ungeschützt im Tracking) noch für die inzwischen real beobachtete parallele Bearbeitung mehrerer Sessions in denselben Dateien (Merge-Konflikt-Risiko, sobald `worldmap/` versioniert ist — vorher konnte das gar nicht auftreten, weil nichts getrackt war).
 
 ## 3 — Meilenstein-Details
 
@@ -57,7 +56,7 @@ Fünf getrennte Ursachen, nicht nur eine:
 /worldmap/.research/
 ```
 
-**Verifizierung:** `git check-ignore -v worldmap/.research/tonejs/package.json` muss die neue Zeile treffen; `git check-ignore -v worldmap/00_WORLDMAP_STATUS.md` darf **keinen** Treffer liefern.
+**Verifizierung:** `git check-ignore -v worldmap/.research/<clone>/package.json` muss die neue Zeile treffen; `git check-ignore -v worldmap/00_WORLDMAP_STATUS.md` darf **keinen** Treffer liefern.
 
 ### M2 — `Z_LLM/`-Inkonsistenz auflösen
 
@@ -112,7 +111,7 @@ rm -rf /tmp/restore-check
 
 ### M7 — `.gitignore`-Robustheit für künftige Unterordner dokumentieren
 
-**Ziel:** Verhindern, dass der nächste Recherche-Klon (wie `.research/tonejs`) erneut unbemerkt ins Tracking gerät.
+**Ziel:** Verhindern, dass ein künftiger Recherche-Klon erneut unbemerkt ins Tracking gerät.
 
 **Umsetzung:** Kurze Ergänzung in `xx_docs/12_git_commit_push_workflow.md`: _„Jeder neue Vendored-/Recherche-Klon unter `worldmap/` (externe Repos, npm-Checkouts) bekommt sofort eine eigene `.gitignore`-Zeile nach dem Muster `/worldmap/<name>/`, bevor er das erste Mal committet wird — Vorbild: `.research/`."_
 

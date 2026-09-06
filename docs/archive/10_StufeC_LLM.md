@@ -3,20 +3,20 @@
 > Stand: **2026-08-21**  
 > Status: 🟢 **Executed (Verifiziert)**  
 > Projekt: **Casino / Next.js 16.3 / Royale Guide (`gpt-4o-mini` + `text-embedding-3-small`)**  
-> Bezug: [`worldmap/10_llm_erweiterung.md`](file:///v:/VibeCoding/Casino/worldmap/10_llm_erweiterung.md) (Stufe C), [`docs/archive/10_stufe_a.md`](file:///v:/VibeCoding/Casino/docs/archive/10_stufe_a.md) & [`docs/archive/10_2_llm.md`](file:///v:/VibeCoding/Casino/docs/archive/10_2_llm.md)  
+> Bezug: [`worldmap/10_llm_erweiterung.md`](../../z_llm/10_llm_erweiterung.md) (Stufe C), [`docs/archive/10_stufe_a.md`](file:///v:/VibeCoding/Casino/docs/archive/10_stufe_a.md) & [`docs/archive/10_2_llm.md`](file:///v:/VibeCoding/Casino/docs/archive/10_2_llm.md)  
 > Scope: Zweistufige Hybrid-RAG-Kaskade mit 0 ms Schnellpfad für Keyword-Matches (Score ≥ 10) und semantischer `text-embedding-3-small` Kosinus-Ähnlichkeitssuche für komplexe/umgangssprachliche Anfragen.
 
 ---
 
 ## 1 — Übersicht für Jan
 
-| Schritt | Meilenstein | Status | Verifikation | Zuständigkeit |
-| :--- | :--- | :--- | :--- | :--- |
-| **1** | **Chunking & Vektor-Mathematik** | 🟢 Executed | [`chunker.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/guide-knowledge/chunker.ts) & [`vector-math.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/guide-knowledge/vector-math.ts) (Dot-Product, L2-Norm, Kosinus-Ähnlichkeit) | LLM |
-| **2** | **In-Memory Vektor-Store & Embedding-Client** | 🟢 Executed | [`vector-store.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/guide-knowledge/vector-store.ts) mit DJB2 256-Dim Cache & `text-embedding-3-small` Client | LLM |
-| **3** | **Hybrid-Kaskaden-Retriever** | 🟢 Executed | [`hybrid-retriever.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/guide-knowledge/hybrid-retriever.ts) (Stufe 1: Keyword ≥ 10 -> Stufe 2: Vektor -> Stufe 3: Fallback) | LLM |
-| **4** | **Core Integration (`chat-guide.ts`)** | 🟢 Executed | Async Hybrid Context Retrieval in `buildCasinoGuideRequest` produktiv verdrahtet | LLM |
-| **5** | **Unit-Tests & Verifikation** | 🟢 Executed | 84/84 Test-Dateien, 713/713 Tests grün, Typecheck, Lint, Build grün | LLM |
+| Schritt | Meilenstein                                   | Status      | Verifikation                                                                                                                                                                                                                        | Zuständigkeit |
+| :------ | :-------------------------------------------- | :---------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------ |
+| **1**   | **Chunking & Vektor-Mathematik**              | 🟢 Executed | [`chunker.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/guide-knowledge/chunker.ts) & [`vector-math.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/guide-knowledge/vector-math.ts) (Dot-Product, L2-Norm, Kosinus-Ähnlichkeit) | LLM           |
+| **2**   | **In-Memory Vektor-Store & Embedding-Client** | 🟢 Executed | [`vector-store.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/guide-knowledge/vector-store.ts) mit DJB2 256-Dim Cache & `text-embedding-3-small` Client                                                                           | LLM           |
+| **3**   | **Hybrid-Kaskaden-Retriever**                 | 🟢 Executed | [`hybrid-retriever.ts`](file:///v:/VibeCoding/Casino/src/lib/casino/guide-knowledge/hybrid-retriever.ts) (Stufe 1: Keyword ≥ 10 -> Stufe 2: Vektor -> Stufe 3: Fallback)                                                            | LLM           |
+| **4**   | **Core Integration (`chat-guide.ts`)**        | 🟢 Executed | Async Hybrid Context Retrieval in `buildCasinoGuideRequest` produktiv verdrahtet                                                                                                                                                    | LLM           |
+| **5**   | **Unit-Tests & Verifikation**                 | 🟢 Executed | 84/84 Test-Dateien, 713/713 Tests grün, Typecheck, Lint, Build grün                                                                                                                                                                 | LLM           |
 
 > **Ampel-Definition:** 🔴 Geplant · 🟡 In Execution · 🟢 Executed (Verifiziert).
 

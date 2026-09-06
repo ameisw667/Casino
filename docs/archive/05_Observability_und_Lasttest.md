@@ -4,18 +4,18 @@
 
 ## 1 — Übersicht für Jan
 
-| Nummer | Meilenstein | Status | Nächster Schritt | Zuständigkeit |
-| --- | --- | --- | --- | --- |
-| L0 | Plan-Datei (diese Datei) | 🟢 Executed | — | LLM |
-| L1 | OTel-Tracer-Modul (eigener `NodeTracerProvider`, kein globales Registry, OTLP→Jaeger) | 🟢 Executed | `src/lib/otel/tracer.ts` | LLM |
-| L2 | Lokaler Jaeger-Stack (Docker Compose, OTLP-Receiver + UI) | 🟢 Executed | Läuft unter `localhost:16686` | LLM |
-| L3 | Manuelle Spans im Bet-Pfad (`bet/route.ts`, DICE/SLOTS/ROULETTE) | 🟢 Executed | — | LLM |
-| L4 | Dev-Lasttest-Header für verschiedene Spieler-IDs (`request-security.ts` + 2 Routen) | 🟢 Executed | — | LLM |
-| L5 | Artillery-Lasttest-Skript + npm-Scripts | 🟢 Executed | — | LLM |
-| L6 | Unit-Tests für L4 (Dev-Gate-Invarianten) | 🟢 Executed | 12/12 Tests grün | LLM |
-| L7 | Security-Selbstprüfung L4 (Auth-Code-Trigger laut AGENTS.md, unabhängig vom Roadmap-Blanket-„Nein") | 🟢 Executed | 0 Befunde (security-reviewer-Agent) | LLM |
-| L8 | Verifikation (`tsc`/`eslint`/`vitest`/`build`) + Lasttest-Lauf + Trace-Nachweis | 🟢 Executed | Siehe Abschnitt 6 — konkreter Engpass benannt | LLM |
-| L9 | Doku-Update (diese Datei, `05_ZUKUNFTSPLANUNG.md`, `00_WORLDMAP_STATUS.md` §2) | 🟢 Executed | — | LLM |
+| Nummer | Meilenstein                                                                                         | Status      | Nächster Schritt                              | Zuständigkeit |
+| ------ | --------------------------------------------------------------------------------------------------- | ----------- | --------------------------------------------- | ------------- |
+| L0     | Plan-Datei (diese Datei)                                                                            | 🟢 Executed | —                                             | LLM           |
+| L1     | OTel-Tracer-Modul (eigener `NodeTracerProvider`, kein globales Registry, OTLP→Jaeger)               | 🟢 Executed | `src/lib/otel/tracer.ts`                      | LLM           |
+| L2     | Lokaler Jaeger-Stack (Docker Compose, OTLP-Receiver + UI)                                           | 🟢 Executed | Läuft unter `localhost:16686`                 | LLM           |
+| L3     | Manuelle Spans im Bet-Pfad (`bet/route.ts`, DICE/SLOTS/ROULETTE)                                    | 🟢 Executed | —                                             | LLM           |
+| L4     | Dev-Lasttest-Header für verschiedene Spieler-IDs (`request-security.ts` + 2 Routen)                 | 🟢 Executed | —                                             | LLM           |
+| L5     | Artillery-Lasttest-Skript + npm-Scripts                                                             | 🟢 Executed | —                                             | LLM           |
+| L6     | Unit-Tests für L4 (Dev-Gate-Invarianten)                                                            | 🟢 Executed | 12/12 Tests grün                              | LLM           |
+| L7     | Security-Selbstprüfung L4 (Auth-Code-Trigger laut AGENTS.md, unabhängig vom Roadmap-Blanket-„Nein") | 🟢 Executed | 0 Befunde (security-reviewer-Agent)           | LLM           |
+| L8     | Verifikation (`tsc`/`eslint`/`vitest`/`build`) + Lasttest-Lauf + Trace-Nachweis                     | 🟢 Executed | Siehe Abschnitt 6 — konkreter Engpass benannt | LLM           |
+| L9     | Doku-Update (diese Datei, `05_ZUKUNFTSPLANUNG.md`, `00_WORLDMAP_STATUS.md` §2)                      | 🟢 Executed | —                                             | LLM           |
 
 Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
@@ -23,7 +23,7 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
 Jan hat im Workflow-Jan Option-Gate **Option 2** gewählt: eigenständiges, vendor-neutrales OpenTelemetry-Tracing statt Ausbau von Sentry Performance Tracing (Option 1) oder eines reinen Lasttests ohne Tracing (Option 3, verworfen — hätte das Roadmap-Verifizierungskriterium „Trace zeigt Latenz-Aufschlüsselung je Request-Schritt" verfehlt).
 
-**Technischer Befund vor Umsetzung:** `@sentry/nextjs` registriert intern bereits einen globalen OpenTelemetry-`TracerProvider` (Sentry ≥ v8 basiert selbst auf OTel). Ein zweiter Aufruf von `NodeSDK.start()`/`registerOTel()` würde von der OTel-API stillschweigend verworfen (nur eine globale Registrierung erlaubt) — eigene Spans liefen dann unbeabsichtigt durch Sentrys Provider statt zum eigenen Jaeger-Stack. **Lösung:** eigener `NodeTracerProvider` wird **nicht global registriert**, sondern als lokale Modul-Instanz exportiert; Bet-Pfad-Code importiert den Tracer direkt statt über `trace.getTracer()` (globale Registry). Dadurch keine Interferenz mit Sentry, `tracesSampleRate: 0` (M0-Entscheidung, [sentry.server.config.ts](../sentry.server.config.ts)) bleibt unverändert bestehen.
+**Technischer Befund vor Umsetzung:** `@sentry/nextjs` registriert intern bereits einen globalen OpenTelemetry-`TracerProvider` (Sentry ≥ v8 basiert selbst auf OTel). Ein zweiter Aufruf von `NodeSDK.start()`/`registerOTel()` würde von der OTel-API stillschweigend verworfen (nur eine globale Registrierung erlaubt) — eigene Spans liefen dann unbeabsichtigt durch Sentrys Provider statt zum eigenen Jaeger-Stack. **Lösung:** eigener `NodeTracerProvider` wird **nicht global registriert**, sondern als lokale Modul-Instanz exportiert; Bet-Pfad-Code importiert den Tracer direkt statt über `trace.getTracer()` (globale Registry). Dadurch keine Interferenz mit Sentry, `tracesSampleRate: 0` (M0-Entscheidung, [sentry.server.config.ts](../../sentry.server.config.ts)) bleibt unverändert bestehen.
 
 **Zweiter, beim Verdrahten entdeckter Konflikt (live verifiziert, nicht nur theoretisch):** auch ohne globale Registrierung blieb die Nicht-Registrierung allein nicht ausreichend — Sentrys Tracer hinterlässt pro Request bereits einen aktiven, nicht-aufzeichnenden Parent-`SpanContext` im geteilten (Provider-unabhängigen) OTel-`Context`/`AsyncLocalStorage`. Der Standard-`ParentBasedSampler` des eigenen `NodeTracerProvider` übernahm diese Entscheidung vom aktiven Parent (`"Recording is off, propagating context in a non-recording span"`) und verwarf dadurch jeden eigenen Span stillschweigend, unabhängig von der fehlenden globalen Registrierung. Beobachtet erst live im laufenden Next.js-Dev-Server (nicht in einem isolierten Standalone-Node-Skript, das denselben Aufbau ohne Sentry im Prozess korrekt exportierte). **Fix:** expliziter `sampler: new AlwaysOnSampler()` auf dem eigenen `NodeTracerProvider` — entkoppelt die eigene Aufzeichnungsentscheidung vollständig von Sentrys Ambient-Context.
 
@@ -121,23 +121,23 @@ Jan hat im Workflow-Jan Option-Gate **Option 2** gewählt: eigenständiges, vend
 
 **Lasttest-Report (2 unabhängige Läufe, reproduzierbar):**
 
-| Metrik | Lauf 1 | Lauf 2 |
-| --- | --- | --- |
-| Requests gesamt | 1372 | 1380 |
+| Metrik                          | Lauf 1       | Lauf 2       |
+| ------------------------------- | ------------ | ------------ |
+| Requests gesamt                 | 1372         | 1380         |
 | Timeouts (`ERR_SOCKET_TIMEOUT`) | 625 (45,6 %) | 629 (45,6 %) |
-| p95 Antwortzeit | 7,26 s | 7,56 s |
-| p99 Antwortzeit | 7,87 s | 7,87 s |
+| p95 Antwortzeit                 | 7,26 s       | 7,56 s       |
+| p99 Antwortzeit                 | 7,87 s       | 7,87 s       |
 
 **Trace-Aufschlüsselung je Request-Schritt (300 während Lauf 2 erfasste Traces, Jaeger):**
 
-| Span | Mean | p50 | p95 | Max |
-| --- | --- | --- | --- | --- |
-| `auth-resolve` | 20 ms | 7 ms | 101 ms | 147 ms |
-| `rate-limit` | 74 ms | 39 ms | 314 ms | 440 ms |
+| Span                                           | Mean        | p50     | p95         | Max     |
+| ---------------------------------------------- | ----------- | ------- | ----------- | ------- |
+| `auth-resolve`                                 | 20 ms       | 7 ms    | 101 ms      | 147 ms  |
+| `rate-limit`                                   | 74 ms       | 39 ms   | 314 ms      | 440 ms  |
 | **`seed-consume`** (RPC `consume_active_seed`) | **1820 ms** | 1424 ms | **5385 ms** | 7647 ms |
-| `place-bet-rng` (reine CPU/HMAC) | 25 ms | 3 ms | 127 ms | 152 ms |
-| **`settle-bet-rpc`** (RPC `settle_game_bet`) | **1559 ms** | 1315 ms | **3417 ms** | 6083 ms |
-| `response-serialize` | 0 ms | 0 ms | 0 ms | 1 ms |
+| `place-bet-rng` (reine CPU/HMAC)               | 25 ms       | 3 ms    | 127 ms      | 152 ms  |
+| **`settle-bet-rpc`** (RPC `settle_game_bet`)   | **1559 ms** | 1315 ms | **3417 ms** | 6083 ms |
+| `response-serialize`                           | 0 ms        | 0 ms    | 0 ms        | 1 ms    |
 
 **Konkreter Engpass:** Die beiden Supabase-RPC-Aufrufe `consume_active_seed` und `settle_game_bet` — beide über `pg_advisory_xact_lock` serialisiert (Migration 007, siehe CLAUDE.md „Key Constraints") — dominieren die Gesamtlatenz vollständig (zusammen ~3,4 s Mean, ~8,8 s p95 in Summe) gegenüber Auth (20 ms), Rate-Limit (74 ms), reiner RNG-Berechnung (25 ms) und Serialisierung (0 ms). Unter den lokal getesteten ~15 gleichzeitigen synthetischen Spielern wächst die Latenz dieser beiden Schritte nicht-linear (p50→p95 ca. 3-4× Anstieg) — exakt das erwartbare Bild einer Advisory-Lock-Warteschlange bzw. eines erschöpften lokalen Connection-Pools, nicht eines CPU- oder Netzwerk-Engpasses im Next.js-Prozess selbst.
 

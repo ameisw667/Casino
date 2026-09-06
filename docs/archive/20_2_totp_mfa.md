@@ -1,31 +1,31 @@
 # 20.2 — TOTP Multi-Faktor-Authentifizierung (MFA / 2FA via Supabase GoTrue)
 
-> **Status:** 🟢 Executed (Live verifiziert) · **Stand:** 2026-08-21 · **Owner:** Jan + LLM · **Scope:** Nativer Supabase GoTrue TOTP Multi-Faktor-Auth-Pfad (100% Free-Tier kompatibel, keine monatlichen Zusatzkosten). Authenticator-App-Anbindung (Google Authenticator, 1Password, Authy) mit Inline-SVG-QR-Code, Secret-Copy-Option und 6-stelligem Verifikations-Challenge-Flow in den Quick-Settings. Referenz: [20_authentication.md](20_authentication.md) Level 2 / Meilenstein M2.
+> **Status:** 🟢 Executed (Live verifiziert) · **Stand:** 2026-08-21 · **Owner:** Jan + LLM · **Scope:** Nativer Supabase GoTrue TOTP Multi-Faktor-Auth-Pfad (100% Free-Tier kompatibel, keine monatlichen Zusatzkosten). Authenticator-App-Anbindung (Google Authenticator, 1Password, Authy) mit Inline-SVG-QR-Code, Secret-Copy-Option und 6-stelligem Verifikations-Challenge-Flow in den Quick-Settings. Referenz: [20_authentication.md](../auth/00_AUTH_OVERVIEW.md) Level 2 / Meilenstein M2.
 
 ---
 
 ## 0 — Vorab geklärte Architektur-Entscheidungen
 
-| Frage | Entscheidung | Begründung |
-|---|---|---|
-| **MFA-Methode** | **TOTP (RFC 6238 Time-based One-Time Password)** | Sicherer als SMS, 0 Provider-Kosten, Standard in Authenticator-Apps (Google Auth, 1Password, Apple Passwords). |
-| **QR-Code-Rendering** | **Inline SVG aus GoTrue (`totp.qr_code`)** | Supabase GoTrue liefert den QR-Code als fertige SVG-Data-URL (`data:image/svg+xml;utf-8,...`). Keine zusätzliche NPM-QR-Dependency nötig (0kB Bundle-Zuwachs). |
-| **UI-Integrationsort** | **Quick-Settings (`SettingsPopover.tsx`)** | Analog zu `PasskeyManagementSection.tsx` und `TelegramLinkSection.tsx`. Authentifizierte Nutzer verwalten 2FA direkt in ihren Account-Settings. |
-| **Tarif-Kompatibilität** | **100% Supabase Free Tier** | `supabase.auth.mfa.*` ist im Free-Tier vollständig enthalten und unbeschränkt nutzbar. |
-| **Analytics** | **2 Zod-Events in `events.ts`** | `mfa_totp_enrolled` und `mfa_totp_unenrolled` zur Nachverfolgung der 2FA-Adoption ohne PII. |
+| Frage                    | Entscheidung                                     | Begründung                                                                                                                                                     |
+| ------------------------ | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **MFA-Methode**          | **TOTP (RFC 6238 Time-based One-Time Password)** | Sicherer als SMS, 0 Provider-Kosten, Standard in Authenticator-Apps (Google Auth, 1Password, Apple Passwords).                                                 |
+| **QR-Code-Rendering**    | **Inline SVG aus GoTrue (`totp.qr_code`)**       | Supabase GoTrue liefert den QR-Code als fertige SVG-Data-URL (`data:image/svg+xml;utf-8,...`). Keine zusätzliche NPM-QR-Dependency nötig (0kB Bundle-Zuwachs). |
+| **UI-Integrationsort**   | **Quick-Settings (`SettingsPopover.tsx`)**       | Analog zu `PasskeyManagementSection.tsx` und `TelegramLinkSection.tsx`. Authentifizierte Nutzer verwalten 2FA direkt in ihren Account-Settings.                |
+| **Tarif-Kompatibilität** | **100% Supabase Free Tier**                      | `supabase.auth.mfa.*` ist im Free-Tier vollständig enthalten und unbeschränkt nutzbar.                                                                         |
+| **Analytics**            | **2 Zod-Events in `events.ts`**                  | `mfa_totp_enrolled` und `mfa_totp_unenrolled` zur Nachverfolgung der 2FA-Adoption ohne PII.                                                                    |
 
 ---
 
 ## 1 — Übersicht für Jan
 
-| Nummer | Meilenstein | Aufwand | Status | Nächster Schritt | Zuständigkeit |
-|---|---|---|---|---|---|
-| **L0** | Dashboard: MFA-Status prüfen (Standardmäßig aktiv) | 0,25h | 🟢 Executed | Erledigt (Jan, 2026-08-21) | **Jan** |
-| **L1** | Analytics & Error-Mapping (`events.ts` & `form-errors.ts`) | 0,75h | 🟢 Executed | 31/31 Tests bestanden | **LLM** |
-| **L2** | UI: `MfaManagementSection.tsx` in `SettingsPopover.tsx` | 2,0h | 🟢 Executed | Obsidian & Gold UI montiert | **LLM** |
-| **L3** | Security-Review (Pflicht laut AGENTS.md für Auth-Code) | 0,5h | 🟢 Executed | Urteil: PASS (0 Befunde) | **LLM (Agent)** |
-| **L4** | Verifizierung: Unit-Tests + Live-Test mit Authenticator-App | 1,0h | 🟢 Executed | Erfolgreich verifiziert (Google Auth) | **Jan + LLM** |
-| | **Summe** | **~4,5h** | | | |
+| Nummer | Meilenstein                                                 | Aufwand   | Status      | Nächster Schritt                      | Zuständigkeit   |
+| ------ | ----------------------------------------------------------- | --------- | ----------- | ------------------------------------- | --------------- |
+| **L0** | Dashboard: MFA-Status prüfen (Standardmäßig aktiv)          | 0,25h     | 🟢 Executed | Erledigt (Jan, 2026-08-21)            | **Jan**         |
+| **L1** | Analytics & Error-Mapping (`events.ts` & `form-errors.ts`)  | 0,75h     | 🟢 Executed | 31/31 Tests bestanden                 | **LLM**         |
+| **L2** | UI: `MfaManagementSection.tsx` in `SettingsPopover.tsx`     | 2,0h      | 🟢 Executed | Obsidian & Gold UI montiert           | **LLM**         |
+| **L3** | Security-Review (Pflicht laut AGENTS.md für Auth-Code)      | 0,5h      | 🟢 Executed | Urteil: PASS (0 Befunde)              | **LLM (Agent)** |
+| **L4** | Verifizierung: Unit-Tests + Live-Test mit Authenticator-App | 1,0h      | 🟢 Executed | Erfolgreich verifiziert (Google Auth) | **Jan + LLM**   |
+|        | **Summe**                                                   | **~4,5h** |             |                                       |                 |
 
 **Ampel:** 🔴 Geplant = nicht gestartet · 🟡 In Execution = gestartet, nicht verifiziert · 🟢 Executed = verifiziert.
 
@@ -38,7 +38,7 @@
 - **Ziel:** Bestätigung, dass MFA auf Supabase-Projektebene aktiv ist (ist im Free-Tier per Default aktiviert).
 - **Scope:** Supabase Dashboard -> Authentication -> Multi-Factor.
 - **Freigabe-Gate:** Jan (kurzer Sichtabgleich).
-- **Verifizierung:** ✅ Erledigt 2026-08-21 — Dashboard bestätigt: *TOTP (App Authenticator) = Enabled*, *Max per-user factors = 10*, *Enhanced MFA Security (AAL1 session duration) = ON*.
+- **Verifizierung:** ✅ Erledigt 2026-08-21 — Dashboard bestätigt: _TOTP (App Authenticator) = Enabled_, _Max per-user factors = 10_, _Enhanced MFA Security (AAL1 session duration) = ON_.
 
 ---
 
@@ -59,7 +59,7 @@
 - **Scope:**
   - Neue Datei `src/components/casino/MfaManagementSection.tsx`:
     - Statusanzeige (Aktiv / Nicht aktiv).
-    - Enrollment-Flow: Button *"2FA aktivieren"* -> ruft `supabase.auth.mfa.enroll({ factorType: 'totp' })` auf -> zeigt SVG-QR-Code + Klartext-Secret mit Kopier-Button.
+    - Enrollment-Flow: Button _"2FA aktivieren"_ -> ruft `supabase.auth.mfa.enroll({ factorType: 'totp' })` auf -> zeigt SVG-QR-Code + Klartext-Secret mit Kopier-Button.
     - Challenge-Flow: 6-stelliger PIN-Input -> ruft `supabase.auth.mfa.challengeAndVerify({ factorId, code })` auf -> Faktor wird aktiv.
     - Lösch-Flow: Bestätigtes Löschen via `supabase.auth.mfa.unenroll({ factorId })`.
   - Mount in `src/components/casino/SettingsPopover.tsx`.
@@ -82,7 +82,7 @@
 - **Scope:**
   1. Unit-Tests: `npm test` für alle Error- und Event-Pfade.
   2. Live-Test im Browser (Jan): QR-Code mit Google Authenticator / 1Password / Apple Passwords scannen -> 6-stelligen Code eingeben -> Faktor wird als aktiv angezeigt -> Faktor wieder entfernen.
-- **Abschluss:** Nach Freigabe Status auf 🟢 Executed setzen, Kopfstatus aktualisieren, `worldmap/20_authentication.md` Level 2 auf 🟢 nachziehen.
+- **Abschluss:** Nach Freigabe Status auf 🟢 Executed setzen, Kopfstatus aktualisieren, `docs/auth/13_master_summary.md` Level 2 auf 🟢 nachziehen.
 
 ---
 

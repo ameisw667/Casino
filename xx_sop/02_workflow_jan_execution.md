@@ -1,37 +1,41 @@
-# Workflow-Jan Execution
+# 02 — Workflow-Jan Execution (Casino Adapter)
 
-> **Zweck:** Freigegebene Arbeit vom Plan bis zur Verifikation ausführen.
+> **Zweck:** Freigegebene Arbeit autonom vom Plan bis zur Verifikation ausführen.
+> **Kanonischer Standard:** 🔗 [`xx_sop/shared/jan-execution/SKILL.md`](shared/jan-execution/SKILL.md)
 
-## 1 — Start-Gate
+---
 
-- Nutzerauftrag, Scope und zugehörigen Plan lesen. Für Plan-Dateien gilt `03_workflow_jan_planungsdateien.md`.
-- Passende SOP und Kontextreferenz über den Router bestimmen und vor der Änderung lesen.
-- Vor Terminal-, Remote- oder Schreibaktionen [Execution-Umgebungen](../xx_docs/03_execution_environment_reference.md) lesen.
-- Prüfen, ob der Plan `Execution-Ready` ist oder der Nutzer die Umsetzung ausdrücklich freigegeben hat.
-- Bei Architektur, Scope, Migrationsreihenfolge, externer Autorität oder nicht umkehrbaren Aktionen anhalten und nachfragen.
+## 1 — Start-Gate & Scope-Disziplin
 
-## 2 — Umsetzungsplan
+- **Voraussetzung:** Der Plan liegt im Status `Execution-Ready` vor (oder Jan hat eine Option A/B/C explizit freigegeben).
+- **Kontextprüfung:** Zuständige Kontextreferenz (`xx_docs/`) und SOP vor Schreibaktionen lesen.
+- **Scope-Treue:** Keine unbeteiligten Nachbardateien refaktorisieren; keine fremden uncommitteten Änderungen anfassen.
+- **Unsicherheit:** Bei unklarer Architektur, Migrationsreihenfolge oder K4/K5-Aktionen anhalten und nachfragen.
 
-- Anforderungen aus zwei passenden Perspektiven prüfen, etwa Architektur/Security oder Logik/UX.
-- Dateien, Abhängigkeiten, Fehlerfälle, Prüfschritte und Jan-Aufgaben benennen.
-- Für Auth-, Datenbank-, Wallet- oder Nutzerinput-Pfade Security-Prüfung und Negativtests einplanen.
-- Erst ausführen, wenn keine materielle Unsicherheit offen ist.
+---
 
-## 3 — Umsetzung
+## 2 — Verbindliche 5-Stufen-Abschlussprüfung (DoD für Casino)
 
-- Änderungen im freigegebenen Scope ausführen; reversible Detailentscheidungen mit Annahme dokumentieren.
-- Neue Abhängigkeit, Datenklasse, API-Grenze oder Scope-Erweiterung gegen Plan und Kontextreferenz prüfen.
-- Plattformfreigaben nur als technische Bestätigungsregel behandeln; sie ersetzen keine Nutzerfreigabe für K4/K5.
-- Bei Abweichung mit materieller Auswirkung anhalten und Entscheidung einholen.
+Vor jeder Erfolgsmeldung an Jan MÜSSEN alle 5 Stufen lokal ausgeführt und bestanden sein:
 
-## 4 — Verifikation
+| Stufe | Disziplin                | Lokaler Casino-Befehl | Akzeptanzkriterium                         |
+| ----- | ------------------------ | --------------------- | ------------------------------------------ |
+| **1** | **Typecheck**            | `npm run typecheck`   | 0 TypeScript-Fehler                        |
+| **2** | **Automatisierte Tests** | `npm test`            | Betroffene und bestehende Tests 100 % grün |
+| **3** | **Linter & Hygiene**     | `npm run lint`        | 0 ESLint-Errors                            |
+| **4** | **Production-Build**     | `npm run build`       | Next.js Build Exit 0 (erfolgreich)         |
+| **5** | **Git Diff Audit**       | `git status --short`  | Nur geplante Dateien modifiziert           |
 
-- Passende Tests, Typprüfung, Lint und Build nach Risiko ausführen.
-- Diff gegen Plan, Nicht-Scope und Sicherheitsgrenzen prüfen.
-- Nur aktuelle Befehlsausgaben als Nachweis für Test-, Build- oder Live-Behauptungen verwenden.
+---
 
-## 5 — Dokumentation und Abschluss
+## 3 — Casino-Spezifische Invarianten
 
-- Zuständige Plan-Datei, SOP oder Kontextreferenz im selben Schritt aktualisieren; Live-Status nur in der Statusquelle behaupten.
-- Planstatus: vor Start `Execution-Ready`, während Umsetzung `In Execution`, nach Verifikation `Executed (archiviert)`.
-- Abschluss erst nach Dokumentationsupdate und passender Verifikation melden.
+- **Security-Review-Pflicht:** Änderungen an `src/lib/casino/`, Supabase-RPCs, Wallet- oder Auth-Pfade erfordern zwingend ein dokumentiertes Sicherheits-Review vor Abschluss.
+- **Zero-Wallet-Autorität:** Der Browser bestimmt niemals Guthabenstände; alle Mutationen erfolgen atomar über Supabase-RPCs.
+
+---
+
+## 4 — Dokumentation & Abschluss
+
+- **Planstatus aktualisieren:** Vor Start `Execution-Ready`, während Umsetzung `In Execution`, nach Verifikation `Executed (archiviert)`.
+- **Archivierung:** Abgeschlossenen Plan nach `docs/archive/` verschieben und Eintrag in `worldmap/00_WORLDMAP_STATUS.md` synchronisieren.

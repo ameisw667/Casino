@@ -1,48 +1,31 @@
-# Workflow-Jan Option-Gate
+# 01 — Workflow-Jan Option-Gate (Casino Adapter)
 
-> **Zweck:** Vor jeder größeren Implementierung oder Architektur-Entscheidung genau 3 technisch lauffähige Optionen strukturiert aufbereiten und Jan zur Auswahl vorlegen.
-
----
-
-## 1 — Optionen-Generierung
-
-Vor jeder Umsetzung genau 3 relevanteste, distinkte, technisch lauffähige Optionen erstellen:
-
-- **Option 1 (Empfohlen)**: Höchster Nutzen bei minimaler Code- und DB-Komplexität.
-- **Option 2**: Alternative Architektur (z. B. höhere Modularität oder erweiterter Funktionsumfang).
-- **Option 3**: Minimaler Schnellpfad oder abweichender Standard-Ansatz.
+> **Zweck:** Vor größeren Architekturentscheidungen genau 3 (min. 2) echte, distinkte Alternativen vorlegen.
+> **Kanonischer Standard:** 🔗 [`xx_sop/shared/jan-option-gate/SKILL.md`](shared/jan-option-gate/SKILL.md)
 
 ---
 
-## 2 — Schematische Aufbereitung
+## 1 — Standard-Workflow & Heuristik
 
-Aufbereitung nach dem standardisierten `Jan-Optionen-Schema`:
+Dieses Projekt folgt verbindlich dem universellen Jan Option-Gate Skill:
 
-- Vergleichstabelle zur Entscheidungsfindung in unter 30 Sekunden.
-- 3-Zeilen-Detailblock je Option für technische Klarheit.
-
-### Tabellen-Standard (Pflicht für LLM-Output)
-
-| Option | Konzept & Architektur | Nutzen (Jan / System) | Aufwand & Komplexität | Overengineering-Risiko | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Option 1 (Empfohlen)** | <Kurzbeschreibung> | <Konkreter Mehrwert> | <z. B. 1 Datei, 0 Migrationen> | Niedrig | ✅ Empfohlen |
-| **Option 2** | <Kurzbeschreibung> | <Konkreter Mehrwert> | <z. B. 3 Dateien, 1 RPC> | Mittel | ⚪ Alternative |
-| **Option 3** | <Kurzbeschreibung> | <Konkreter Mehrwert> | <z. B. Refactor, 1 Tabelle> | Hoch | ❌ Nicht empfohlen |
+- **Kriterien:** `Lerneffekt 30 % · Aufwand/Komplexität 25 % · Risiko 25 % · Wartbarkeit 20 %` (aufgabenspezifisch anpassbar, 1 Zeile im Output).
+- **Echte Trade-off-Achsen:** Keine Aufwands-Leiter, keine Strohmänner. Jede Option braucht einen plausiblen Kontext.
+- **Scoring & Gegenprobe:** 1–5 Punkte mit konkreten Fakten belegt, Mindest-Bar > 3.0 / 5, Tie-Break entscheidet Risiko.
+- **Pre-Mortem:** Genau 1 Satz für die Führungsoption (_„Scheitert diese Option in 6 Monaten, woran läge es?“_).
+- **Format:** 30-Sekunden-Vergleichstabelle mit Labels **A / B / C** (niemals 1/2/3).
 
 ---
 
-## 3 — Optionen-Selbstprüfung
+## 2 — Casino-Spezifische Invarianten & Besonderheiten
 
-Prüfung vor Ausgabe:
-
-1. **Lerneffekt für Jan**: Lerneffekt für den User Jan vorhanden?
-2. **Nicht-Scope**: Sind Grenzen und Ausschlüsse für jede Option benannt?
-3. **Verifizierbarkeit**: Sind betroffene Dateien und Test-URLs angegeben?
+- **Money-Pfad-Gewichtung:** Berührt eine Option `src/lib/casino/`, Wallet, Auth, RNG oder Supabase-RPCs, erhöht sich das Kriterium **Risiko** auf 40 % (Tie-Break greift sofort).
+- **Verbotene Optionen:** Client-authoritative Berechnungen von Guthaben oder Spielausgängen sind prinzipiell ungültig (Zero-Wallet-Autorität).
+- **Design-System-Konsistenz:** UI-Optionen müssen zwingend Obsidian & Gold (`#0B0E14`, `#D4AF37`) und Monospace für dynamische Zahlen einhalten.
 
 ---
 
-## 4 — Stopp & Übergabe
+## 3 — Stopp & Übergabe
 
-- Nach Ausgabe der Optionen-Matrix sofort stoppen.
-- Keine Code-Edits oder Dateierstellungen vor Jans expliziter Auswahl (z. B. „Option 1“).
-- Nach Freigabe: Übergang in `Workflow-Jan Execution` (siehe [02_workflow_jan_execution.md](02_workflow_jan_execution.md)).
+- Nach der Matrix **sofort anhalten** — keine Code-Edits vor Jans expliziter Wahl („Option A/B/C“).
+- Nach Freigabe Übergabe an [`02_workflow_jan_execution.md`](./02_workflow_jan_execution.md).

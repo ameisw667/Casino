@@ -1,0 +1,203 @@
+{
+  "seed": "to09-baseline",
+  "players": 1000,
+  "rounds": 500,
+  "rtp": [
+    {
+      "game": "DICE",
+      "roundsPerPlayer": 100000,
+      "players": 1000,
+      "sollEdge": 0.01,
+      "edge": {
+        "rounds": 100000000,
+        "wager": 100000000,
+        "payout": 98993089.79997784,
+        "empiricalEdge": 0.010069,
+        "ci95": [0.009875, 0.010263]
+      }
+    },
+    {
+      "game": "CRASH",
+      "roundsPerPlayer": 100000,
+      "players": 1000,
+      "sollEdge": 0.01,
+      "edge": {
+        "rounds": 100000000,
+        "wager": 100000000,
+        "payout": 98996326,
+        "empiricalEdge": 0.010037,
+        "ci95": [0.009841, 0.010233]
+      }
+    },
+    {
+      "game": "ROULETTE",
+      "roundsPerPlayer": 100000,
+      "players": 1000,
+      "sollEdge": 0.02702702702702703,
+      "edge": {
+        "rounds": 100000000,
+        "wager": 100000000,
+        "payout": 97302088,
+        "empiricalEdge": 0.026979,
+        "ci95": [0.026783, 0.027175]
+      }
+    },
+    {
+      "game": "SLOTS",
+      "roundsPerPlayer": 100000,
+      "players": 1000,
+      "sollEdge": 0.4229736328125,
+      "edge": {
+        "rounds": 100000000,
+        "wager": 100000000,
+        "payout": 57703482.5,
+        "empiricalEdge": 0.422965,
+        "ci95": [0.422583, 0.423348]
+      }
+    }
+  ],
+  "progression": [
+    {
+      "classId": "casual",
+      "players": 1000,
+      "targetLevels": [
+        {
+          "level": 10,
+          "shareReached": 1,
+          "avgRoundsToReach": 809
+        },
+        {
+          "level": 25,
+          "shareReached": 0,
+          "avgRoundsToReach": null
+        },
+        {
+          "level": 50,
+          "shareReached": 0,
+          "avgRoundsToReach": null
+        }
+      ],
+      "avgTotalXp": 50000,
+      "levelAfterAllRounds": 23
+    },
+    {
+      "classId": "mid",
+      "players": 1000,
+      "targetLevels": [
+        {
+          "level": 10,
+          "shareReached": 1,
+          "avgRoundsToReach": 16
+        },
+        {
+          "level": 25,
+          "shareReached": 1,
+          "avgRoundsToReach": 115
+        },
+        {
+          "level": 50,
+          "shareReached": 1,
+          "avgRoundsToReach": 480
+        }
+      ],
+      "avgTotalXp": 4019500,
+      "levelAfterAllRounds": 100
+    },
+    {
+      "classId": "max-bet-grind",
+      "players": 1000,
+      "targetLevels": [
+        {
+          "level": 10,
+          "shareReached": 1,
+          "avgRoundsToReach": 0
+        },
+        {
+          "level": 25,
+          "shareReached": 1,
+          "avgRoundsToReach": 5
+        },
+        {
+          "level": 50,
+          "shareReached": 1,
+          "avgRoundsToReach": 24
+        }
+      ],
+      "avgTotalXp": 50000000,
+      "levelAfterAllRounds": 100
+    }
+  ],
+  "abuse": [
+    {
+      "profileId": "martingale",
+      "players": 1000,
+      "startBankroll": 500,
+      "survivalRate": 0.212,
+      "bankruptShare": 0.788,
+      "avgTroughBankroll": 72.14,
+      "avgPeakBankroll": 1183.69,
+      "maxObservedWager": 1024,
+      "xpPerCurrency": 9.9979
+    },
+    {
+      "profileId": "max-bet-grind",
+      "players": 1000,
+      "startBankroll": 1000000000,
+      "survivalRate": 1,
+      "bankruptShare": 0,
+      "avgTroughBankroll": 999792991.2,
+      "avgPeakBankroll": 1000145373.8,
+      "maxObservedWager": 10000,
+      "xpPerCurrency": 1
+    },
+    {
+      "profileId": "flat-reference",
+      "players": 1000,
+      "startBankroll": 1000,
+      "survivalRate": 1,
+      "bankruptShare": 0,
+      "avgTroughBankroll": 800.94,
+      "avgPeakBankroll": 1144.56,
+      "maxObservedWager": 10,
+      "xpPerCurrency": 10
+    }
+  ],
+  "week": [
+    {
+      "classId": "casual",
+      "players": 1000,
+      "weeks": 4,
+      "sessionsPerWeek": 3,
+      "roundsPerSession": 100,
+      "startBankroll": 1000,
+      "avgEndBankroll": 988.01,
+      "bustRate": 0,
+      "p10EndBankroll": 944.44,
+      "p90EndBankroll": 1033.54
+    },
+    {
+      "classId": "regular",
+      "players": 1000,
+      "weeks": 4,
+      "sessionsPerWeek": 3,
+      "roundsPerSession": 100,
+      "startBankroll": 1000,
+      "avgEndBankroll": 880.65,
+      "bustRate": 0.008,
+      "p10EndBankroll": 444.4,
+      "p90EndBankroll": 1335.4
+    },
+    {
+      "classId": "martingale",
+      "players": 1000,
+      "weeks": 4,
+      "sessionsPerWeek": 3,
+      "roundsPerSession": 100,
+      "startBankroll": 1000,
+      "avgEndBankroll": 914.06,
+      "bustRate": 0.793,
+      "p10EndBankroll": 0,
+      "p90EndBankroll": 4847.17
+    }
+  ]
+}

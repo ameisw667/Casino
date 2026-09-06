@@ -10,10 +10,10 @@ Referenz: Roadmap-Punkt 4.1 in [`worldmap/05_ZUKUNFTSPLANUNG.md`](../../worldmap
 
 Zwei Rückfragen vor Planbeginn beantwortet (Chat, 2026-08-21):
 
-| Frage | Antwort | Begründung |
-|---|---|---|
-| Outbox-Scope | **Nur XP-Gain.** Achievement-Check bleibt client-berechnet (`applyAchievementProgress`, [useCasinoStore.ts:514](../../src/store/useCasinoStore.ts#L514)) + Fire-and-Forget-POST an `/api/user/stats`, unverändert. | Achievement-Check ist **heute bereits** client-seitig entkoppelt (kein Server-Coupling im Money-Pfad) — nur XP-Gain ist inline in den Settlement-RPCs. Eine Server-Migration von `applyAchievementProgress` ist ein eigenständig großer Umbau, gehört nicht in diesen ersten Schritt (YAGNI). |
-| XP-Zustellung an Client | **Polling von `/api/user/balance`** nach jedem Bet. | Kein neuer Realtime-Kanal nötig, kleinste Fläche, nutzt bestehenden Endpoint. Realtime-Push kann sauberer nachgezogen werden, falls 4.3 (Event-Bus) ohnehin einen zentralen Kanal für mehrere Consumer baut. |
+| Frage                   | Antwort                                                                                                                                                                                                            | Begründung                                                                                                                                                                                                                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Outbox-Scope            | **Nur XP-Gain.** Achievement-Check bleibt client-berechnet (`applyAchievementProgress`, [useCasinoStore.ts:514](../../src/store/useCasinoStore.ts#L514)) + Fire-and-Forget-POST an `/api/user/stats`, unverändert. | Achievement-Check ist **heute bereits** client-seitig entkoppelt (kein Server-Coupling im Money-Pfad) — nur XP-Gain ist inline in den Settlement-RPCs. Eine Server-Migration von `applyAchievementProgress` ist ein eigenständig großer Umbau, gehört nicht in diesen ersten Schritt (YAGNI). |
+| XP-Zustellung an Client | **Polling von `/api/user/balance`** nach jedem Bet.                                                                                                                                                                | Kein neuer Realtime-Kanal nötig, kleinste Fläche, nutzt bestehenden Endpoint. Realtime-Push kann sauberer nachgezogen werden, falls 4.3 (Event-Bus) ohnehin einen zentralen Kanal für mehrere Consumer baut.                                                                                  |
 
 **Bekannte, akzeptierte Einschränkung:** `applyAchievementProgress` liest `state.level` synchron beim Settlement (Zeile 510). Solange der XP-Poll noch nicht gelandet ist, prüft ein level-gates Achievement (z. B. „Level 10 erreichen") gegen den **alten** Level. Erst der nächste Bet nach erfolgreichem Poll evaluiert korrekt. Kosmetischer Randfall (max. eine Bet-Verzögerung), keine Geld- oder Sicherheitsauswirkung — nicht Teil dieses Scopes, ggf. Folgepunkt bei einer künftigen Server-Migration von Achievements.
 
@@ -21,20 +21,20 @@ Zwei Rückfragen vor Planbeginn beantwortet (Chat, 2026-08-21):
 
 ## 1 — Übersicht für Jan
 
-| Nummer | Meilenstein | Status | Nächster Schritt | Zuständigkeit |
-|---|---|---|---|---|
-| L0 | Optionswahl + Architektur-Klärung | 🟢 Executed | — | Jan + LLM |
-| L1 | Migration 036: `wallet_events`-Tabelle, `apply_xp_gain`, Trigger, pg_cron-Backstop | 🟢 Executed | — | LLM |
-| L2 | Settlement-RPCs umbauen (XP-Write raus, Event-Insert rein) | 🟢 Executed | — | LLM |
-| L3 | Neue Route `POST /api/internal/wallet-events` + Proxy-Exemption | 🟢 Executed | — | LLM |
-| L4 | Client-Polling in `useCasinoStore.ts` | 🟢 Executed | — | LLM |
-| L5 | Tests (Migrations-Assertions, Route-Auth, Proxy-Exemption) | 🟢 Executed | — | LLM |
-| L6 | Security-Review (Pflicht, R12) | 🟢 Executed | — | LLM |
-| L7 | Vault-Secret `wallet_event_secret` anlegen | 🟢 Executed | — | Jan |
-| L8 | `WALLET_EVENT_SECRET` in Vercel + `.env.local` setzen | 🟢 Executed | — | Jan |
-| L9 | Migration 036 auf Remote-Projekt anwenden | 🟢 Executed | — | Jan |
-| L11 | **Korrektur:** Migration 037 (Jackpot-Regression durch 036 behoben, s. §6) | 🟢 Executed | — | LLM + Jan |
-| L10 | Live-Verifikation (Testbet, `wallet_events`-Tabelle, XP-Anstieg im UI) | 🟢 Executed | — | Jan |
+| Nummer | Meilenstein                                                                        | Status      | Nächster Schritt | Zuständigkeit |
+| ------ | ---------------------------------------------------------------------------------- | ----------- | ---------------- | ------------- |
+| L0     | Optionswahl + Architektur-Klärung                                                  | 🟢 Executed | —                | Jan + LLM     |
+| L1     | Migration 036: `wallet_events`-Tabelle, `apply_xp_gain`, Trigger, pg_cron-Backstop | 🟢 Executed | —                | LLM           |
+| L2     | Settlement-RPCs umbauen (XP-Write raus, Event-Insert rein)                         | 🟢 Executed | —                | LLM           |
+| L3     | Neue Route `POST /api/internal/wallet-events` + Proxy-Exemption                    | 🟢 Executed | —                | LLM           |
+| L4     | Client-Polling in `useCasinoStore.ts`                                              | 🟢 Executed | —                | LLM           |
+| L5     | Tests (Migrations-Assertions, Route-Auth, Proxy-Exemption)                         | 🟢 Executed | —                | LLM           |
+| L6     | Security-Review (Pflicht, R12)                                                     | 🟢 Executed | —                | LLM           |
+| L7     | Vault-Secret `wallet_event_secret` anlegen                                         | 🟢 Executed | —                | Jan           |
+| L8     | `WALLET_EVENT_SECRET` in Vercel + `.env.local` setzen                              | 🟢 Executed | —                | Jan           |
+| L9     | Migration 036 auf Remote-Projekt anwenden                                          | 🟢 Executed | —                | Jan           |
+| L11    | **Korrektur:** Migration 037 (Jackpot-Regression durch 036 behoben, s. §6)         | 🟢 Executed | —                | LLM + Jan     |
+| L10    | Live-Verifikation (Testbet, `wallet_events`-Tabelle, XP-Anstieg im UI)             | 🟢 Executed | —                | Jan           |
 
 ---
 
@@ -174,7 +174,7 @@ L1–L6 (LLM) und L7–L10 (Jan) vollständig durchgeführt und verifiziert. **Z
 
 **Fund durch:** L10-Live-Verifikation — `wallet_events` blieb nach echten Testbets leer, obwohl `wallet_transactions` korrekt befüllt wurde. Root-Cause-Diagnose per `pg_get_functiondef()` direkt gegen die Live-DB (nicht nur Code-Review der lokalen Migrationsdatei) — bestätigt den Wert von L10 als eigenständigem Verifikationsschritt, nicht nur Formsache.
 
-**Korrektur:** [037_fix_wallet_events_jackpot_regression.sql](../../supabase/migrations/037_fix_wallet_events_jackpot_regression.sql) — restauriert die Jackpot-Logik aus 034 in allen drei tatsächlich genutzten Funktionen, kombiniert korrekt mit der Outbox-Entkopplung; setzt die tote 8-Parameter-`settle_game_bet` auf ihren ursprünglichen 007-Stand zurück (Hygiene, keine Funktionsänderung). Regressionstest: [wallet-events-jackpot-regression-fix.test.ts](../../src/lib/casino/__tests__/wallet-events-jackpot-regression-fix.test.ts).
+**Korrektur:** [037_fix_wallet_events_jackpot_regression.sql](../../supabase/migrations/045_fix_wallet_events_jackpot_regression.sql) — restauriert die Jackpot-Logik aus 034 in allen drei tatsächlich genutzten Funktionen, kombiniert korrekt mit der Outbox-Entkopplung; setzt die tote 8-Parameter-`settle_game_bet` auf ihren ursprünglichen 007-Stand zurück (Hygiene, keine Funktionsänderung). Regressionstest: [wallet-events-jackpot-regression-fix.test.ts](../../src/lib/casino/__tests__/wallet-events-jackpot-regression-fix.test.ts).
 
 **Nach 037 verifiziert (L10 wiederholt):** frischer Crash-Testbet → `wallet_events`-Zeile mit `xp_gain=100`, `processed_at` ~1–2s nach `created_at` gesetzt, `attempts=1`, `last_error=null`.
 

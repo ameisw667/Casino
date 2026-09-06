@@ -7,14 +7,14 @@
 
 ## Übersicht für Jan
 
-| Nummer | Kategorie/Meilenstein                                                           | Status          | Nächster Schritt                                                                     | Zuständigkeit |
-| ------ | ------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------ | ------------- |
-| 1      | Recherche — Paketname, Config-Format, Rate-Limit ohne Key                       | 🟢 Executed     | — (verifiziert 2026-08-19, Quellen siehe Abschnitt 10)                               | LLM           |
-| 2      | Config — `.mcp.json`-Eintrag `context7` ergänzt (kein Key, kein Secret)         | 🟢 Executed     | — (2026-08-19, `command: npx`, `args: ["-y", "@upstash/context7-mcp"]`, kein Secret) | Claude        |
-| 3      | Verifikation — MCP-Tools nach Session-Neustart sichtbar/erreichbar              | 🟢 Executed     | — (2026-08-21, nach Neustart per `ToolSearch` sichtbar und aufgerufen)               | Jan+LLM       |
-| 4      | Pilot — read-only Doku-Lookup für eine im Projekt genutzte Library              | 🟢 Executed     | — (Next.js: `resolve-library-id` → `/vercel/next.js`, `query-docs` → Route-Handler-POST-Beispiele geliefert) | LLM |
-| 5      | Abgleich — tatsächliche Tool-Namen vs. `docs-lookup`-Agenten-Definition         | 🟢 Executed     | — (exakte Übereinstimmung: `mcp__context7__resolve-library-id`, `mcp__context7__query-docs`, keine Abweichung) | LLM |
-| 6      | Fehlerfall — Rate-Limit oder ungültige Library-ID real auslösen + dokumentieren | 🟢 Executed     | — (ungültige Library-ID abgefragt: `"Library ... not found. Please check the library ID or your access permissions."`) | LLM |
+| Nummer | Kategorie/Meilenstein                                                           | Status      | Nächster Schritt                                                                                                       | Zuständigkeit |
+| ------ | ------------------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------- | ------------- |
+| 1      | Recherche — Paketname, Config-Format, Rate-Limit ohne Key                       | 🟢 Executed | — (verifiziert 2026-08-19, Quellen siehe Abschnitt 10)                                                                 | LLM           |
+| 2      | Config — `.mcp.json`-Eintrag `context7` ergänzt (kein Key, kein Secret)         | 🟢 Executed | — (2026-08-19, `command: npx`, `args: ["-y", "@upstash/context7-mcp"]`, kein Secret)                                   | Claude        |
+| 3      | Verifikation — MCP-Tools nach Session-Neustart sichtbar/erreichbar              | 🟢 Executed | — (2026-08-21, nach Neustart per `ToolSearch` sichtbar und aufgerufen)                                                 | Jan+LLM       |
+| 4      | Pilot — read-only Doku-Lookup für eine im Projekt genutzte Library              | 🟢 Executed | — (Next.js: `resolve-library-id` → `/vercel/next.js`, `query-docs` → Route-Handler-POST-Beispiele geliefert)           | LLM           |
+| 5      | Abgleich — tatsächliche Tool-Namen vs. `docs-lookup`-Agenten-Definition         | 🟢 Executed | — (exakte Übereinstimmung: `mcp__context7__resolve-library-id`, `mcp__context7__query-docs`, keine Abweichung)         | LLM           |
+| 6      | Fehlerfall — Rate-Limit oder ungültige Library-ID real auslösen + dokumentieren | 🟢 Executed | — (ungültige Library-ID abgefragt: `"Library ... not found. Please check the library ID or your access permissions."`) | LLM           |
 
 > **Ampel-Definition (verbindlich):** 🔴 Geplant — noch nicht gestartet · 🟡 In Execution — gestartet, nicht verifiziert · 🟢 Executed — verifiziert, abgeschlossen.
 > **Update-Pflicht:** Diese Tabelle und Abschnitt 7 (Detail) werden immer im selben Edit aktualisiert.
@@ -44,18 +44,18 @@ Gewählt: **Option A** (drei Optionen zur Wahl gestellt — Minimal-Pilot ohne A
 
 ## 3. IST-Stand (recherchiert 2026-08-19)
 
-| Prüfpunkt | Befund |
-| --- | --- |
-| npm-Paketname | `@upstash/context7-mcp` (MIT-Lizenz, Maintainer Upstash) |
-| Lokale Registrierung ohne Key | `npx -y @upstash/context7-mcp` (stdio-Transport) |
-| Mit Key (nicht Teil dieses Scopes) | zusätzliches Flag `--api-key YOUR_API_KEY`, kostenloser Key über `context7.com/dashboard` |
-| Rate-Limit ohne Key | 60 Requests/Stunde (Basis-Kontingent, Sekundärquellen) — im Pilot nicht erreicht, da nur 2 Requests abgesetzt |
-| Mindestanforderung | Node.js ≥ 18 — Projekt nutzt `v22.16.0`, erfüllt |
-| Exponierte MCP-Tools (verifiziert 2026-08-21) | `mcp__context7__resolve-library-id` (Parameter `libraryName`, `query`) und `mcp__context7__query-docs` (Parameter `libraryId`, `query`) — exakte Übereinstimmung mit der Sekundärquellen-Angabe, keine Abweichung |
-| `.mcp.json` im Repo-Root (aktueller Stand) | Enthält `playwright`- und `context7`-Server-Eintrag (`command: npx`, `args: ["-y", "@upstash/context7-mcp"]`, kein Secret) |
-| Bestehender globaler Agent `docs-lookup` | Referenziert `mcp__context7__resolve-library-id`/`mcp__context7__query-docs` — **verifiziert 2026-08-21: exakte Übereinstimmung**, Agent ist ab sofort nutzbar |
-| Pilot-Ergebnis (verifiziert 2026-08-21) | `resolve-library-id("Next.js", …)` lieferte u. a. `/vercel/next.js` (5847 Snippets, Reputation „High", Benchmark 88.85); `query-docs("/vercel/next.js", "App Router route handler for POST request…")` lieferte mehrere aktuelle Next.js-Doku-Snippets mit funktionierenden Code-Beispielen |
-| Fehlerfall-Ergebnis (verifiziert 2026-08-21) | `query-docs` mit erfundener Library-ID `/does-not-exist/invalid-library-id-test` lieferte sauberen Fehlertext: „Library ... not found. Please check the library ID or your access permissions." — kein Crash, kein Secret-Leck |
+| Prüfpunkt                                     | Befund                                                                                                                                                                                                                                                                                      |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| npm-Paketname                                 | `@upstash/context7-mcp` (MIT-Lizenz, Maintainer Upstash)                                                                                                                                                                                                                                    |
+| Lokale Registrierung ohne Key                 | `npx -y @upstash/context7-mcp` (stdio-Transport)                                                                                                                                                                                                                                            |
+| Mit Key (nicht Teil dieses Scopes)            | zusätzliches Flag `--api-key YOUR_API_KEY`, kostenloser Key über `context7.com/dashboard`                                                                                                                                                                                                   |
+| Rate-Limit ohne Key                           | 60 Requests/Stunde (Basis-Kontingent, Sekundärquellen) — im Pilot nicht erreicht, da nur 2 Requests abgesetzt                                                                                                                                                                               |
+| Mindestanforderung                            | Node.js ≥ 18 — Projekt nutzt `v22.16.0`, erfüllt                                                                                                                                                                                                                                            |
+| Exponierte MCP-Tools (verifiziert 2026-08-21) | `mcp__context7__resolve-library-id` (Parameter `libraryName`, `query`) und `mcp__context7__query-docs` (Parameter `libraryId`, `query`) — exakte Übereinstimmung mit der Sekundärquellen-Angabe, keine Abweichung                                                                           |
+| `.mcp.json` im Repo-Root (aktueller Stand)    | Enthält `playwright`- und `context7`-Server-Eintrag (`command: npx`, `args: ["-y", "@upstash/context7-mcp"]`, kein Secret)                                                                                                                                                                  |
+| Bestehender globaler Agent `docs-lookup`      | Referenziert `mcp__context7__resolve-library-id`/`mcp__context7__query-docs` — **verifiziert 2026-08-21: exakte Übereinstimmung**, Agent ist ab sofort nutzbar                                                                                                                              |
+| Pilot-Ergebnis (verifiziert 2026-08-21)       | `resolve-library-id("Next.js", …)` lieferte u. a. `/vercel/next.js` (5847 Snippets, Reputation „High", Benchmark 88.85); `query-docs("/vercel/next.js", "App Router route handler for POST request…")` lieferte mehrere aktuelle Next.js-Doku-Snippets mit funktionierenden Code-Beispielen |
+| Fehlerfall-Ergebnis (verifiziert 2026-08-21)  | `query-docs` mit erfundener Library-ID `/does-not-exist/invalid-library-id-test` lieferte sauberen Fehlertext: „Library ... not found. Please check the library ID or your access permissions." — kein Crash, kein Secret-Leck                                                              |
 
 ## 4. Anforderungen
 
@@ -95,15 +95,15 @@ Gewählt: **Option A** (drei Optionen zur Wahl gestellt — Minimal-Pilot ohne A
 
 ### 7.2 Execution (Phase 2 — abgeschlossen)
 
-| #   | Schritt                       | Befehl/Aktion                                                                                                                          | Wer                       | Nachweis                                                           |
-| --- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------ |
-| 1   | IST-Stand-Check wiederholen   | Paketverfügbarkeit/-version erneut prüfen                                                                                              | Claude                    | ✅ erledigt — Werte stimmen mit Abschnitt 3 überein |
-| 2   | MCP-Server konfigurieren      | `.mcp.json`-Eintrag `context7` ergänzt: `command: npx`, `args: ["-y", "@upstash/context7-mcp"]`, kein Key                             | Claude, nach Freigabe | ✅ erledigt 2026-08-19/20 |
-| 3   | Session-Neustart              | Jan startete die Claude-Code-Session neu (Computer-Neustart)                                                                          | Jan                       | ✅ erledigt — Context7-MCP-Tools ab 2026-08-21 sichtbar             |
-| 4   | MCP-Tool-Verfügbarkeit prüfen | Tool-Liste nach Neustart abgefragt, exakte Tool-Namen dokumentiert                                                                     | Claude                    | ✅ erledigt 2026-08-21 — siehe Abschnitt 3                          |
-| 5   | Read-only-Pilot               | Next.js nachgeschlagen (`resolve-library-id` → `/vercel/next.js`, `query-docs` → Route-Handler-POST-Beispiele)                        | Claude                    | ✅ erledigt 2026-08-21 — siehe Abschnitt 3                          |
-| 6   | Tool-Namen-Abgleich           | Ergebnis aus Schritt 4 gegen `docs-lookup`-Agenten-Definition geprüft                                                                  | Claude                    | ✅ erledigt 2026-08-21 — exakte Übereinstimmung, keine Abweichung   |
-| 7   | Fehlerfall real auslösen      | `query-docs` mit erfundener Library-ID `/does-not-exist/invalid-library-id-test` abgefragt                                            | Claude                    | ✅ erledigt 2026-08-21 — sauberer Fehlertext, kein Crash            |
+| #   | Schritt                       | Befehl/Aktion                                                                                                  | Wer                   | Nachweis                                                          |
+| --- | ----------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------- | ----------------------------------------------------------------- |
+| 1   | IST-Stand-Check wiederholen   | Paketverfügbarkeit/-version erneut prüfen                                                                      | Claude                | ✅ erledigt — Werte stimmen mit Abschnitt 3 überein               |
+| 2   | MCP-Server konfigurieren      | `.mcp.json`-Eintrag `context7` ergänzt: `command: npx`, `args: ["-y", "@upstash/context7-mcp"]`, kein Key      | Claude, nach Freigabe | ✅ erledigt 2026-08-19/20                                         |
+| 3   | Session-Neustart              | Jan startete die Claude-Code-Session neu (Computer-Neustart)                                                   | Jan                   | ✅ erledigt — Context7-MCP-Tools ab 2026-08-21 sichtbar           |
+| 4   | MCP-Tool-Verfügbarkeit prüfen | Tool-Liste nach Neustart abgefragt, exakte Tool-Namen dokumentiert                                             | Claude                | ✅ erledigt 2026-08-21 — siehe Abschnitt 3                        |
+| 5   | Read-only-Pilot               | Next.js nachgeschlagen (`resolve-library-id` → `/vercel/next.js`, `query-docs` → Route-Handler-POST-Beispiele) | Claude                | ✅ erledigt 2026-08-21 — siehe Abschnitt 3                        |
+| 6   | Tool-Namen-Abgleich           | Ergebnis aus Schritt 4 gegen `docs-lookup`-Agenten-Definition geprüft                                          | Claude                | ✅ erledigt 2026-08-21 — exakte Übereinstimmung, keine Abweichung |
+| 7   | Fehlerfall real auslösen      | `query-docs` mit erfundener Library-ID `/does-not-exist/invalid-library-id-test` abgefragt                     | Claude                | ✅ erledigt 2026-08-21 — sauberer Fehlertext, kein Crash          |
 
 ### 7.3 Execution-Selbstprüfung (Phase 2, Abschluss)
 
@@ -144,4 +144,4 @@ Gewählt: **Option A** (drei Optionen zur Wahl gestellt — Minimal-Pilot ohne A
 
 - [`01_API_MCP_CLI.md`](01_API_MCP_CLI.md) — Ausgangsanalyse, Inspiration-Zeile 5, Optionenvergleich
 - [`01_Playwright-CLI-MCP.md`](01_Playwright-CLI-MCP.md) — Vorlage für dieses Planungsschema
-- [`.mcp.json`](../.mcp.json) — aktueller MCP-Server-Stand (nur `playwright`)
+- [`.mcp.json`](../../.mcp.json) — aktueller MCP-Server-Stand (nur `playwright`)

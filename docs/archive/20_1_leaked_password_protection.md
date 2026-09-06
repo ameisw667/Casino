@@ -1,29 +1,29 @@
 # 20.1 — Leaked Password Protection (HaveIBeenPwned via Supabase GoTrue)
 
-> **Status:** ⏸️ Pausiert (Wartet auf Supabase Pro-Upgrade) · **Stand:** 2026-08-21 · **Owner:** Jan + LLM · **Scope:** Aktivierung der nativen Supabase GoTrue Attack Protection gegen geleakte Passwörter (HaveIBeenPwned k-Anonymity) + UI-Error-Mapping in `form-errors.ts` (Option A). **Tarif-Hinweis:** Das native Dashboard-Toggle erfordert den Supabase Pro-Plan ($25/Monat). Error-Mapping (L1) und Tests (L2) sind bereits fertig implementiert und verifiziert. Aktivierung erfolgt nach künftigem Pro-Upgrade. Referenz: [20_authentication.md](20_authentication.md) Level 1 / Meilenstein M1.
+> **Status:** ⏸️ Pausiert (Wartet auf Supabase Pro-Upgrade) · **Stand:** 2026-08-21 · **Owner:** Jan + LLM · **Scope:** Aktivierung der nativen Supabase GoTrue Attack Protection gegen geleakte Passwörter (HaveIBeenPwned k-Anonymity) + UI-Error-Mapping in `form-errors.ts` (Option A). **Tarif-Hinweis:** Das native Dashboard-Toggle erfordert den Supabase Pro-Plan ($25/Monat). Error-Mapping (L1) und Tests (L2) sind bereits fertig implementiert und verifiziert. Aktivierung erfolgt nach künftigem Pro-Upgrade. Referenz: [20_authentication.md](../auth/00_AUTH_OVERVIEW.md) Level 1 / Meilenstein M1.
 
 ---
 
 ## 0 — Vorab geklärte Architektur-Entscheidungen
 
-| Frage | Entscheidung | Begründung |
-|---|---|---|
-| **Gewählte Option** | **Option A: Nativer GoTrue-Schutz + UI Error-Mapping** | GoTrue prüft Passwörter standardkonform nach NIST SP 800-63B via k-Anonymity (SHA-1 Präfix). 0 Zeilen Server-Boilerplate, 0 externe Client-Abhängigkeiten. |
-| **Tarif-Voraussetzung** | **Supabase Pro Plan ($25/Monat)** | Supabase schränkt das native HaveIBeenPwned-Toggle im Dashboard auf Pro-Plans ein (auf Free-Plan blockiert: *"Configuring leaked password protection via HaveIBeenPwned.org is available on Pro Plans and up"*). |
-| **Prüfzeitpunkt** | **Beim Submit (`signUp()` & `updateUser({ password })`)** | Standard-Auth-Flow. Verhindert unnötige API-Calls beim Tippen und schützt auch Passwort-Änderungen. |
-| **UX-Fehlerbehandlung** | **Mapping in `src/lib/security/form-errors.ts`** | GoTrue-Fehlercodes (`weak_password`, `pwned`, `leaked`) sind bereits in `form-errors.ts` auf Deutsch gemappt und getestet. |
+| Frage                   | Entscheidung                                              | Begründung                                                                                                                                                                                                       |
+| ----------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Gewählte Option**     | **Option A: Nativer GoTrue-Schutz + UI Error-Mapping**    | GoTrue prüft Passwörter standardkonform nach NIST SP 800-63B via k-Anonymity (SHA-1 Präfix). 0 Zeilen Server-Boilerplate, 0 externe Client-Abhängigkeiten.                                                       |
+| **Tarif-Voraussetzung** | **Supabase Pro Plan ($25/Monat)**                         | Supabase schränkt das native HaveIBeenPwned-Toggle im Dashboard auf Pro-Plans ein (auf Free-Plan blockiert: _"Configuring leaked password protection via HaveIBeenPwned.org is available on Pro Plans and up"_). |
+| **Prüfzeitpunkt**       | **Beim Submit (`signUp()` & `updateUser({ password })`)** | Standard-Auth-Flow. Verhindert unnötige API-Calls beim Tippen und schützt auch Passwort-Änderungen.                                                                                                              |
+| **UX-Fehlerbehandlung** | **Mapping in `src/lib/security/form-errors.ts`**          | GoTrue-Fehlercodes (`weak_password`, `pwned`, `leaked`) sind bereits in `form-errors.ts` auf Deutsch gemappt und getestet.                                                                                       |
 
 ---
 
 ## 1 — Übersicht für Jan
 
-| Nummer | Meilenstein | Aufwand | Status | Nächster Schritt | Zuständigkeit |
-|---|---|---|---|---|---|
-| **L0** | Dashboard: Attack Protection → Leaked Passwords aktivieren | 0,25h | ⏸️ Pausiert | Aktivieren nach künftigem Pro-Upgrade | **Jan** |
-| **L1** | Error-Mapping in `form-errors.ts` (`weak_password` / `pwned`) | 0,25h | 🟢 Executed | Erledigt & verifiziert | **LLM** |
-| **L2** | Unit-Tests in `auth-error-mapping.test.ts` | 0,25h | 🟢 Executed | 14/14 Tests grün (102 Testdateien) | **LLM** |
-| **L3** | Verifizierung: Test-Registrierung mit kompromittiertem Passwort | 0,25h | ⏸️ Pausiert | Bereit nach L0 | **Jan + LLM** |
-| | **Summe** | **~1,0h** | | | |
+| Nummer | Meilenstein                                                     | Aufwand   | Status      | Nächster Schritt                      | Zuständigkeit |
+| ------ | --------------------------------------------------------------- | --------- | ----------- | ------------------------------------- | ------------- |
+| **L0** | Dashboard: Attack Protection → Leaked Passwords aktivieren      | 0,25h     | ⏸️ Pausiert | Aktivieren nach künftigem Pro-Upgrade | **Jan**       |
+| **L1** | Error-Mapping in `form-errors.ts` (`weak_password` / `pwned`)   | 0,25h     | 🟢 Executed | Erledigt & verifiziert                | **LLM**       |
+| **L2** | Unit-Tests in `auth-error-mapping.test.ts`                      | 0,25h     | 🟢 Executed | 14/14 Tests grün (102 Testdateien)    | **LLM**       |
+| **L3** | Verifizierung: Test-Registrierung mit kompromittiertem Passwort | 0,25h     | ⏸️ Pausiert | Bereit nach L0                        | **Jan + LLM** |
+|        | **Summe**                                                       | **~1,0h** |             |                                       |               |
 
 **Ampel:** 🔴 Geplant = nicht gestartet · 🟡 In Execution = gestartet, nicht verifiziert · 🟢 Executed = verifiziert · ⏸️ Pausiert = wartet auf externe Bedingung (Pro-Plan).
 
@@ -35,7 +35,7 @@
 
 - **Ziel:** Aktivierung der HaveIBeenPwned-Prüfung auf Supabase-Projektebene.
 - **Nutzen:** GoTrue lehnt kompromittierte Passwörter serverseitig vor dem Erstellen des Auth-Users ab.
-- **Scope:** Supabase Dashboard → Authentication → Attack Protection → *Prevent use of leaked passwords* aktivieren (nach Pro-Upgrade).
+- **Scope:** Supabase Dashboard → Authentication → Attack Protection → _Prevent use of leaked passwords_ aktivieren (nach Pro-Upgrade).
 - **Datenklassen:** Keine neuen Tabellen/Spalten.
 - **Abhängigkeiten:** Supabase Pro Plan.
 - **Freigabe-Gate:** Nur Jan (Dashboard-Zugriff).
@@ -54,7 +54,7 @@
 - **Money-Pfad:** Nein. **Security-Review:** Nein (nur Fehlertext-Mapping).
 - **Abhängigkeiten:** Keine.
 - **Freigabe-Gate:** Keins.
-- **Verifizierung:** ✅ Erledigt 2026-08-21 — mapAuthError mappt GoTrue-Meldungen zu status 400 und: *Dieses Passwort ist in bekannten Datenlecks aufgetaucht. Bitte wähle ein sichereres Passwort.*.
+- **Verifizierung:** ✅ Erledigt 2026-08-21 — mapAuthError mappt GoTrue-Meldungen zu status 400 und: _Dieses Passwort ist in bekannten Datenlecks aufgetaucht. Bitte wähle ein sichereres Passwort._.
 - **Nicht-Scope:** Keine Änderung an AuthForm.tsx nötig (nutzt bereits mapAuthError).
 
 ---
@@ -63,7 +63,7 @@
 
 - **Ziel:** 100% Testabdeckung für die neuen Fehlerpfade.
 - **Nutzen:** Schutz vor Regressionsfehlern bei künftigen Auth-Updates.
-- **Scope (bestehend):** src/lib/security/__tests__/auth-error-mapping.test.ts.
+- **Scope (bestehend):** src/lib/security/**tests**/auth-error-mapping.test.ts.
 - **Scope (geplant):** Keine neue Datei.
 - **Datenklassen:** Keine.
 - **Abhängigkeiten:** L1.
@@ -75,11 +75,11 @@
 ### L3 — Verifizierung
 
 - **Ziel:** Nachweis der Funktionalität im Live-System.
-- **Scope:** 
+- **Scope:**
   1. Registrierung auf /sign-up mit kompromittiertem Test-Passwort (z. B. password123 oder 12345678) testen → Registrierung schlägt fehl mit deutscher Meldung.
   2. Registrierung mit sicherem Passwort (z. B. K7#m9!xQ91zP) testen → Registrierung läuft erfolgreich durch.
 - **Freigabe-Gate:** Jan (manuelle Verifizierung im Browser).
-- **Abschluss:** Nach Freigabe Status auf 🟢 Executed setzen, Kopfstatus aktualisieren, worldmap/20_authentication.md Level 1 auf 🟢 nachziehen.
+- **Abschluss:** Nach Freigabe Status auf 🟢 Executed setzen, Kopfstatus aktualisieren, docs/auth/13_master_summary.md Level 1 auf 🟢 nachziehen.
 
 ---
 

@@ -17,20 +17,20 @@
 
 ## 1. Was im Projekt bereits existiert
 
-| Nr. | Instagram-Punkt    | Status                  | Niveau 1–100 | Lerneffekt 1–10 | Input von Jan erforderlich? | Nachweis / aktueller Ort                                                                                                                                                                  |
-| --: | ------------------ | ----------------------- | -----------: | --------------: | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|   1 | Eigene 404-Seite   | ✅ Vorhanden            |           85 |               3 | Nein                        | [`src/app/not-found.tsx`](../src/app/not-found.tsx) enthält eine gebrandete „TABLE NOT FOUND“-Seite mit Rücklink zur Lobby.                                                               |
-|   6 | Favicon-Set        | 🟡 Akzeptiert           |           40 |               3 | Nein                        | [`public/favicon.ico`](../public/favicon.ico) existiert. Das vorhandene Fallback genügt aktuell; ein vollständiges PNG-/Manifest-Set wird bewusst nicht als eigene Folgeaufgabe verfolgt. |
-|  10 | Mobile Breakpoints | ✅ Weitgehend vorhanden |           85 |               7 | Ja                          | Breakpoints in [`globals.css`](../src/app/globals.css), [`v2.css`](../src/styles/v2.css), MobileNav und `useIsNarrowViewport`. Reale Geräteabdeckung muss separat geprüft werden.         |
-|  12 | Loading States     | 🟡 Akzeptiert           |           55 |               8 | Nein                        | Loader-Komponenten und Button-Loading existieren. Route-weite `loading.tsx`-Grenzen fehlen; der pragmatische Bestand wird bewusst nicht weiter aufgebläht.                                |
-|  13 | Form Error States  | ✅ Error Contract Core  |           85 |               8 | Nein                        | Kritische Auth-, Admin-, Promo-, Bet- und Blackjack-Fehlerpfade verwenden den zentralen Vertrag. Eine vollständige API-/Formularmigration bleibt bewusst separate Folgeaufgabe.           |
+| Nr. | Instagram-Punkt    | Status                  | Niveau 1–100 | Lerneffekt 1–10 | Input von Jan erforderlich? | Nachweis / aktueller Ort                                                                                                                                                                     |
+| --: | ------------------ | ----------------------- | -----------: | --------------: | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|   1 | Eigene 404-Seite   | ✅ Vorhanden            |           85 |               3 | Nein                        | [`src/app/not-found.tsx`](../../src/app/not-found.tsx) enthält eine gebrandete „TABLE NOT FOUND“-Seite mit Rücklink zur Lobby.                                                               |
+|   6 | Favicon-Set        | 🟡 Akzeptiert           |           40 |               3 | Nein                        | [`public/favicon.ico`](../../public/favicon.ico) existiert. Das vorhandene Fallback genügt aktuell; ein vollständiges PNG-/Manifest-Set wird bewusst nicht als eigene Folgeaufgabe verfolgt. |
+|  10 | Mobile Breakpoints | ✅ Weitgehend vorhanden |           85 |               7 | Ja                          | Breakpoints in [`globals.css`](../../src/app/globals.css), [`v2.css`](../../src/styles/v2.css), MobileNav und `useIsNarrowViewport`. Reale Geräteabdeckung muss separat geprüft werden.      |
+|  12 | Loading States     | 🟡 Akzeptiert           |           55 |               8 | Nein                        | Loader-Komponenten und Button-Loading existieren. Route-weite `loading.tsx`-Grenzen fehlen; der pragmatische Bestand wird bewusst nicht weiter aufgebläht.                                   |
+|  13 | Form Error States  | ✅ Error Contract Core  |           85 |               8 | Nein                        | Kritische Auth-, Admin-, Promo-, Bet- und Blackjack-Fehlerpfade verwenden den zentralen Vertrag. Eine vollständige API-/Formularmigration bleibt bewusst separate Folgeaufgabe.              |
 
 ## 2. Die ehemals offenen Punkte nach Execution
 
-| Nr. | Instagram-Punkt | Status       | Niveau 1–100 | Lerneffekt 1–10 | Input von Jan erforderlich? | Aktueller Befund                                                                                                                                                                                       |
-| --: | --------------- | ------------ | -----------: | --------------: | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-|   7 | `robots.txt`    | ✅ Vorhanden |           90 |               4 | Nein                        | [`src/app/robots.ts`](../src/app/robots.ts) erzeugt eine Next-16-Metadata-Route mit Wildcard-Allowlist, privaten Disallows und kanonischem Sitemap-Ziel; HTTP geprüft mit Status 200 und `text/plain`. |
-|   8 | `sitemap.xml`   | ✅ Vorhanden |           90 |               4 | Nein                        | [`src/app/sitemap.ts`](../src/app/sitemap.ts) erzeugt eine statische Allowlist aus acht öffentlichen Seiten mit kanonischen absoluten URLs; HTTP geprüft mit Status 200 und `application/xml`.         |
+| Nr. | Instagram-Punkt | Status       | Niveau 1–100 | Lerneffekt 1–10 | Input von Jan erforderlich? | Aktueller Befund                                                                                                                                                                                          |
+| --: | --------------- | ------------ | -----------: | --------------: | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|   7 | `robots.txt`    | ✅ Vorhanden |           90 |               4 | Nein                        | [`src/app/robots.ts`](../../src/app/robots.ts) erzeugt eine Next-16-Metadata-Route mit Wildcard-Allowlist, privaten Disallows und kanonischem Sitemap-Ziel; HTTP geprüft mit Status 200 und `text/plain`. |
+|   8 | `sitemap.xml`   | ✅ Vorhanden |           90 |               4 | Nein                        | [`src/app/sitemap.ts`](../../src/app/sitemap.ts) erzeugt eine statische Allowlist aus acht öffentlichen Seiten mit kanonischen absoluten URLs; HTTP geprüft mit Status 200 und `application/xml`.         |
 
 **Input-Spalte:** `Nein` bedeutet, dass der Punkt aus dem bestehenden Projektkontext umgesetzt werden kann. `Teilweise` bedeutet, dass eine fachliche Präferenz oder Freigabe den Umfang verbessert. `Ja` bedeutet, dass ohne deine Entscheidung, Inhalte, Zugangsdaten oder rechtliche Freigabe keine vollständige Umsetzung möglich ist.
 
@@ -52,7 +52,7 @@
 
 ## 4. Kandidaten für die spätere 05-Zukunftsplanung
 
-Diese Bündel sind **noch nicht** vollständig in [`worldmap/05_ZUKUNFTSPLANUNG.md`](../worldmap/05_ZUKUNFTSPLANUNG.md) eingetragen. `1.13 Technical Discoverability` ist mit `robots.txt` und `sitemap.xml` umgesetzt; Favicon und Loading sind als pragmatische Teilumsetzungen akzeptiert. Product Analytics ist bereits über 2.9 PostHog abgedeckt.
+Diese Bündel sind **noch nicht** vollständig in [`worldmap/05_ZUKUNFTSPLANUNG.md`](../../worldmap/05_ZUKUNFTSPLANUNG.md) eingetragen. `1.13 Technical Discoverability` ist mit `robots.txt` und `sitemap.xml` umgesetzt; Favicon und Loading sind als pragmatische Teilumsetzungen akzeptiert. Product Analytics ist bereits über 2.9 PostHog abgedeckt.
 
 | Vorschlag                      | Enthält   | Ziel                                                 | Aufwand | Risiko | Impact | Priorität | Lerneffekt | DB-Migration |
 | ------------------------------ | --------- | ---------------------------------------------------- | ------: | -----: | -----: | --------: | ---------: | ------------ |
@@ -126,7 +126,7 @@ Die Umsetzung ist erfolgt:
 - `src/lib/site-url.ts` validiert `NEXT_PUBLIC_SITE_URL` als HTTP(S)-Origin, normalisiert den Slash und fällt sicher auf `https://casino-royale.vibe` zurück.
 - `src/app/layout.tsx` nutzt dieselbe Origin für `metadataBase` und Open Graph.
 - `src/proxy.ts` lässt `/robots.txt` und `/sitemap.xml` ohne Anmeldung passieren.
-- Die Regressionstests liegen in [`src/lib/casino/__tests__/seo-routes.test.ts`](../src/lib/casino/__tests__/seo-routes.test.ts). Eine neue `src/app/__tests__`-Unterstruktur konnte wegen einer Workspace-Berechtigung nicht angelegt werden; die bestehende Vitest-Testentdeckung bleibt dadurch unverändert.
+- Die Regressionstests liegen in [`src/lib/casino/__tests__/seo-routes.test.ts`](../../src/lib/casino/__tests__/seo-routes.test.ts). Eine neue `src/app/__tests__`-Unterstruktur konnte wegen einer Workspace-Berechtigung nicht angelegt werden; die bestehende Vitest-Testentdeckung bleibt dadurch unverändert.
 
 ## 10. Abschlussprüfung und bekannte Baseline-Befunde
 

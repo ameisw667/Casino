@@ -3,7 +3,7 @@
 > Stand: **2026-08-22**  
 > Status: 🟢 **Executed (Verifiziert)**  
 > Projekt: **Casino / Next.js 16.3 App Router / OpenAI Streaming / SSE Delimiter Parsing / Obsidian & Gold UI**  
-> Verzeichnis: [`Z_LLM/`](file:///v:/VibeCoding/Casino/Z_LLM/)  
+> Verzeichnis: `Z_LLM/`  
 > Bezug: [`Z_LLM/10_llm_erweiterung.md`](file:///v:/VibeCoding/Casino/Z_LLM/10_llm_erweiterung.md) — Stufe I (Option I1)  
 > Scope: Kontextuelle Follow-up Quick-Chips nach jeder Bot-Antwort via Inline Streaming Delimiter (`<<<SUGGESTIONS: [...]>>>`), 0 ms Zusatzlatenz, 0 Extra-Kosten, interaktive Ein-Klick-Absendung in [`CasinoGuidePanel.tsx`](file:///v:/VibeCoding/Casino/src/components/social/CasinoGuidePanel.tsx).
 
@@ -45,6 +45,7 @@
 ## 2 — Schnittstellen & Delimiter Contract
 
 ### 2.1 Prompt Anweisung (chat-guide.ts)
+
 ```
 FOLLOW-UP SUGGESTIONS RULE:
 - At the very end of your response, always provide 2-3 short, highly relevant follow-up questions or actions that the user might want to ask next in German.
@@ -54,6 +55,7 @@ FOLLOW-UP SUGGESTIONS RULE:
 ```
 
 ### 2.2 SSE Event Protokoll
+
 - Text Chunks: `data: {"text":"Ein Blackjack wird mit 3:2 ausgezahlt."}\n\n`
 - Action (falls vorhanden): `data: {"action":{...}}\n\n`
 - Suggestions: `data: {"suggestions":["Wann sollte ich verdoppeln?","Wie funktioniert Split?","Zu Blackjack"]}\n\n`
@@ -63,13 +65,13 @@ FOLLOW-UP SUGGESTIONS RULE:
 
 ## 3 — Meilenstein-Plan (Jan Execution)
 
-| Schritt | Modul / Datei | Ziel & Aktion | Verifikation |
-| :--- | :--- | :--- | :--- |
-| **1** | **`src/lib/casino/chat-guide.ts`** | Prompt-Instruktion für Suggestions-Delimiter & Delimiter-Filter im SSE Stream & Regex im JSON Fallback | 🟢 Executed |
-| **2** | **`src/components/social/CasinoGuidePanel.tsx`** | Empfang von `suggestions` im SSE Reader & Rendering der interaktiven Obsidian & Gold Follow-up Chips | 🟢 Executed |
-| **3** | **Unit- & Integrationstests** | `src/lib/casino/__tests__/chat-guide-suggestions.test.ts` (899/899 Tests bestanden) | 🟢 899/899 grün |
-| **4** | **Build & Typisierung** | `npm run typecheck` & `npm run build` (0 Fehler, 43/43 Routen) | 🟢 Next Build OK |
-| **5** | **Abschluss & Dokumentation** | `Z_LLM/10_llm_erweiterung.md` aktualisieren, Plan archivieren und auf `main` pushen | 🟢 Git Push |
+| Schritt | Modul / Datei                                    | Ziel & Aktion                                                                                          | Verifikation     |
+| :------ | :----------------------------------------------- | :----------------------------------------------------------------------------------------------------- | :--------------- |
+| **1**   | **`src/lib/casino/chat-guide.ts`**               | Prompt-Instruktion für Suggestions-Delimiter & Delimiter-Filter im SSE Stream & Regex im JSON Fallback | 🟢 Executed      |
+| **2**   | **`src/components/social/CasinoGuidePanel.tsx`** | Empfang von `suggestions` im SSE Reader & Rendering der interaktiven Obsidian & Gold Follow-up Chips   | 🟢 Executed      |
+| **3**   | **Unit- & Integrationstests**                    | `src/lib/casino/__tests__/chat-guide-suggestions.test.ts` (899/899 Tests bestanden)                    | 🟢 899/899 grün  |
+| **4**   | **Build & Typisierung**                          | `npm run typecheck` & `npm run build` (0 Fehler, 43/43 Routen)                                         | 🟢 Next Build OK |
+| **5**   | **Abschluss & Dokumentation**                    | `Z_LLM/10_llm_erweiterung.md` aktualisieren, Plan archivieren und auf `main` pushen                    | 🟢 Git Push      |
 
 ---
 
@@ -81,18 +83,18 @@ Befund vor Korrektur: Der Extraktions-Regex (`/<<<SUGGESTIONS:\s*(\[.*?\])\s*>>>
 
 Ein MEDIUM-Finding wurde noch am selben Tag behoben:
 
-| Finding | Korrektur |
-| --- | --- |
+| Finding                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Korrektur                                                                                                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Zeichenlimit nur im Prompt, nicht im Code durchgesetzt:** Die Instructions verlangen vom Modell "Keep each suggestion concise and under 45 characters", aber `extractSuggestionsFromText` prüfte das nie — ein einzelner überlanger String (z. B. durch ein hallucinierendes Modell oder einen erfolgreichen Prompt-Injection-Versuch über den in R2 dokumentierten History-Spoofing-Vektor) hätte einen deformierten, übergroßen Chip im UI gerendert. Serverseitig wäre ein Klick zwar durch die 1000-Zeichen-Grenze der Nachricht abgefangen worden, aber die UI selbst hatte kein Netz — derselbe Lückentyp wie das in R5 behobene Finding bei `trigger_ui_action.label`. | `extractSuggestionsFromText` kappt jeden Vorschlag jetzt hart auf 45 Zeichen (`SUGGESTION_MAX_LENGTH`), zusätzlich zur bestehenden 3-Item-Grenze. |
 
 ## 5 — Verifizierung (R6)
 
-| Prüfung | Ergebnis |
-| --- | --- |
-| `chat-guide-suggestions.test.ts` (inkl. 1 neuer Fall: Truncation bei 500-Zeichen-Vorschlag) | 8/8 grün |
-| `chat-guide-regression.test.ts` / `chat-guide.test.ts` (unverändert, Regressionscheck) | 36/36 grün |
-| TypeScript | `npm run typecheck` grün |
-| ESLint | 0 Fehler (10 vorbestehende Warnungen in unberührten Dateien) |
-| `npm run vibe-check` | grün |
-| Vollständiger Testlauf | Weiterhin nicht als alleiniges Gate verwendet (siehe Stufe F / R3 Abschnitt 5 — parallele, unabhängige Arbeit im selben Repo); gezielte Testläufe auf den Stufe-I-Dateien oben sind grün. |
-| Security-Review | Durchgeführt, Finding behoben (Abschnitt 4) |
+| Prüfung                                                                                     | Ergebnis                                                                                                                                                                                  |
+| ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `chat-guide-suggestions.test.ts` (inkl. 1 neuer Fall: Truncation bei 500-Zeichen-Vorschlag) | 8/8 grün                                                                                                                                                                                  |
+| `chat-guide-regression.test.ts` / `chat-guide.test.ts` (unverändert, Regressionscheck)      | 36/36 grün                                                                                                                                                                                |
+| TypeScript                                                                                  | `npm run typecheck` grün                                                                                                                                                                  |
+| ESLint                                                                                      | 0 Fehler (10 vorbestehende Warnungen in unberührten Dateien)                                                                                                                              |
+| `npm run vibe-check`                                                                        | grün                                                                                                                                                                                      |
+| Vollständiger Testlauf                                                                      | Weiterhin nicht als alleiniges Gate verwendet (siehe Stufe F / R3 Abschnitt 5 — parallele, unabhängige Arbeit im selben Repo); gezielte Testläufe auf den Stufe-I-Dateien oben sind grün. |
+| Security-Review                                                                             | Durchgeführt, Finding behoben (Abschnitt 4)                                                                                                                                               |
