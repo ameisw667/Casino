@@ -1,5 +1,5 @@
 'use client';
-import React, { type Dispatch, type SetStateAction } from 'react';
+import React, { type Dispatch, type ReactNode, type SetStateAction } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,7 +10,7 @@ import { ConsentBanner } from '@/components/analytics/ConsentBanner';
 export interface MenuItem {
   label: string;
   path: string;
-  imageSrc?: string;
+  icon: ReactNode;
   onClick?: () => void;
 }
 
@@ -267,28 +267,20 @@ export function MainSidebar({
                     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
                 >
-                  {item.imageSrc && (
-                    <span
-                      data-sidebar-nav-image
-                      aria-hidden="true"
-                      style={{
-                        width: '28px',
-                        height: '28px',
-                        position: 'relative',
-                        flexShrink: 0,
-                        overflow: 'hidden',
-                        opacity: active ? 0.72 : 0.48,
-                      }}
-                    >
-                      <Image
-                        src={item.imageSrc}
-                        alt=""
-                        fill
-                        sizes="28px"
-                        style={{ objectFit: 'contain' }}
-                      />
-                    </span>
-                  )}
+                  <span
+                    data-sidebar-nav-icon
+                    aria-hidden="true"
+                    style={{
+                      width: '18px',
+                      height: '18px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {item.icon}
+                  </span>
                   <span>{item.label}</span>
                 </button>
                 {isSettings && (

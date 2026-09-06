@@ -15,6 +15,7 @@ import { NavigationShortcuts } from './NavigationShortcuts';
 import { MainSidebar, type MenuItem } from './MainSidebar';
 import { MainHeader } from './MainHeader';
 import { ToastContainer } from './ToastContainer';
+import { BarChart3, Gamepad2, History, Home, Settings, Target, Trophy } from 'lucide-react';
 
 import { MainLayoutModals } from './MainLayoutModals';
 
@@ -302,19 +303,16 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const nextLevelXp = Math.pow(level, 2) * 100;
   const progress = Math.min(100, (xp / nextLevelXp) * 100);
   const menuItems: MenuItem[] = [
-    {
-      label: 'Lobby',
-      path: '/',
-      imageSrc: '/images/2026-09-06_sidebar-icon-lobby-guide_v001.png',
-    },
-    { label: 'Games', path: '/games' },
-    { label: 'My Bets', path: '/history' },
-    { label: 'Leaderboard', path: '/leaderboard' },
-    { label: 'Vault', path: '/vault' },
-    { label: 'Stats', path: '/stats' },
+    { label: 'Lobby', path: '/', icon: <Home size={18} /> },
+    { label: 'Games', path: '/games', icon: <Gamepad2 size={18} /> },
+    { label: 'My Bets', path: '/history', icon: <History size={18} /> },
+    { label: 'Leaderboard', path: '/leaderboard', icon: <Trophy size={18} /> },
+    { label: 'Vault', path: '/vault', icon: <Target size={18} /> },
+    { label: 'Stats', path: '/stats', icon: <BarChart3 size={18} /> },
     {
       label: 'Settings',
       path: '#',
+      icon: <Settings size={18} />,
       onClick: () => {
         setShowSettings((prev) => !prev);
       },
