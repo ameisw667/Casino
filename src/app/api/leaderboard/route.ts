@@ -5,6 +5,7 @@ import {
   getClientIdentifier,
   rateLimitHeaders,
 } from '@/lib/security/request-security';
+import { CasinoLogger } from '@/lib/casino/logger';
 import { z } from 'zod';
 
 const LeaderboardRowSchema = z.object({
@@ -71,11 +72,15 @@ export async function GET(request: Request) {
       ]);
 
       if (txResult.error) {
-        console.error('Leaderboard query failed:', txResult.error);
+        CasinoLogger.error('API/Leaderboard', 'Leaderboard query failed', txResult.error);
         return apiErrorResponse('LEADERBOARD_UNAVAILABLE', 'Leaderboard unavailable', 503);
       }
       if (roundsResult.error) {
-        console.error('Leaderboard game_rounds query failed:', roundsResult.error);
+        CasinoLogger.error(
+          'API/Leaderboard',
+          'Leaderboard game_rounds query failed',
+          roundsResult.error,
+        );
       }
 
       // Aggregate client-side
@@ -197,7 +202,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (err) {
-    console.error('Leaderboard route error:', err);
+    CasinoLogger.error('API/Leaderboard', 'Leaderboard route error', err);
     return apiErrorResponse('LEADERBOARD_UNAVAILABLE', 'Leaderboard unavailable', 503);
   }
 }

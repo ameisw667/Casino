@@ -26,6 +26,13 @@ describe('request security', () => {
     expect(getClientIdentifier(request)).toBe('ip:203.0.113.5');
   });
 
+  it('uses the last XFF entry so a spoofed first entry cannot mint rate-limit buckets', () => {
+    const request = new Request('http://casino.test/api', {
+      headers: { 'x-forwarded-for': '198.51.100.66, 203.0.113.5' },
+    });
+    expect(getClientIdentifier(request)).toBe('ip:203.0.113.5');
+  });
+
   it('compares parsed origin and host exactly', () => {
     expect(
       validateMutationOrigin(

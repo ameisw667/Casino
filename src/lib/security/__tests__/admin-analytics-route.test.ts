@@ -26,6 +26,7 @@ vi.mock('@/lib/casino/logger', () => ({
 }));
 
 import { GET } from '@/app/api/admin/analytics/route';
+import { CasinoLogger } from '@/lib/casino/logger';
 
 function tableResult(data: unknown) {
   return { select: vi.fn(async () => ({ data, error: null })) };
@@ -158,6 +159,14 @@ describe('admin analytics route', () => {
     await expect(response.json()).resolves.toMatchObject({
       data: { guide: { status: 'unavailable' } },
     });
+    // Modul-09-Audit (2026-09-03): the actual RPC error must reach the logger, not just a
+    // generic message — otherwise a validation failure and an RPC failure look identical
+    // in Sentry with no way to tell them apart.
+    expect(CasinoLogger.error).toHaveBeenCalledWith(
+      'API/Admin/Analytics',
+      'Guide observability RPC failed',
+      expect.any(Error),
+    );
   });
 
   it('accepts Supabase UTC-offset timestamps instead of returning 503', async () => {
@@ -320,5 +329,12 @@ describe('admin analytics route', () => {
     await expect(response.json()).resolves.toMatchObject({
       data: { summary: { registeredUsers: 1 } },
     });
+    // Modul-09-Audit (2026-09-03): the ZodError must reach the logger for the same reason
+    // as the guide RPC case above.
+    expect(CasinoLogger.error).toHaveBeenCalledWith(
+      'API/Admin/Analytics',
+      'Snapshot payload failed validation',
+      expect.any(Error),
+    );
   });
 });

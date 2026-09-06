@@ -1,6 +1,7 @@
 import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { z } from 'zod';
 import { createClient as createSupabaseServerClient } from '@/utils/supabase/server';
+import { CasinoLogger } from '@/lib/casino/logger';
 import {
   enforceRateLimit,
   getClientIdentifier,
@@ -53,7 +54,7 @@ export async function GET(request: Request) {
       .limit(10);
 
     if (error) {
-      console.error('[LoginHistory] Select error:', error.message);
+      CasinoLogger.error('API/User/LoginHistory', 'Select error', error);
       return apiErrorResponse('LOGIN_HISTORY_FAILED', 'Failed to fetch login history', 500);
     }
 
@@ -71,7 +72,7 @@ export async function GET(request: Request) {
       { headers: { 'Cache-Control': 'private, no-store' } },
     );
   } catch (err) {
-    console.error('[LoginHistory] GET error:', err);
+    CasinoLogger.error('API/User/LoginHistory', 'GET error', err);
     return apiErrorResponse('INTERNAL_SERVER_ERROR', 'Internal Server Error', 500);
   }
 }
@@ -131,7 +132,7 @@ export async function POST(request: Request) {
 
     return apiSuccessResponse({ success: true }, { status: 201 });
   } catch (err) {
-    console.error('[LoginHistory] POST error:', err);
+    CasinoLogger.error('API/User/LoginHistory', 'POST error', err);
     return apiErrorResponse('INTERNAL_SERVER_ERROR', 'Internal Server Error', 500);
   }
 }

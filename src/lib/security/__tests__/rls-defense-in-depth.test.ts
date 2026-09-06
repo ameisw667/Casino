@@ -14,6 +14,10 @@ const serverAuthSql = readMigration('007_server_authority.sql');
 const metaFeaturesSql = readMigration('009_meta_features.sql');
 const ledgerInvariantsSql = readMigration('028_wallet_ledger_invariants.sql');
 
+// Bewusste Einordnung (T_DATABASE/10 L1/L6): Diese Suite ist statische Text-Verifikation —
+// sie stellt sicher, dass die RLS-/REVOKE-Statements in den Migrationsdateien bleiben. Der
+// zugehoerige echte Laufzeittest mit SET ROLE/JWT-Kontext laeuft als pgTAP-Suite:
+// `supabase/tests/rls_runtime_isolation.test.sql` (via `npx supabase test db`).
 describe('RLS Defense-in-Depth: Schema & Policy Verification (L1)', () => {
   describe('1. Table-Level RLS Activation', () => {
     it('enables RLS on users table', () => {

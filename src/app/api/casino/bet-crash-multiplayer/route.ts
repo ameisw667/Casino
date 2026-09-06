@@ -7,6 +7,7 @@ import { CasinoLogger } from '@/lib/casino/logger';
 import { loadGameConfig } from '@/lib/casino/game-config-server';
 import { notifyBigWinIfEligible } from '@/lib/casino/telegram-notifier';
 import { recordBetNetworkFingerprintBestEffort } from '@/lib/casino/network-fingerprint';
+import { recordBetPlacedBestEffort } from '@/lib/security/bet-velocity-guard';
 import {
   isWithinCrashCashoutFairWindow,
   ensureCurrentCrashRound,
@@ -15,6 +16,7 @@ import {
   deriveSeatLabel,
 } from '@/lib/casino/crash-round';
 import { publishCrashRoundState, publishCrashPlayerEvent } from '@/lib/casino/realtime';
+import { checkWellbeingGuard, wellbeingApiError } from '@/lib/casino/responsible-gambling';
 import {
   enforceRateLimit,
   getClientIdentifier,
@@ -102,6 +104,20 @@ export async function POST(request: Request) {
           : 'Zu viele Anfragen. Bitte versuche es später erneut.',
         rate.unavailable ? 503 : 429,
         { headers: rateLimitHeaders(rate), extra: { retryAfter: retryAfterSeconds } },
+      );
+    }
+
+    // 06_2 L1/L3: server-authoritative wellbeing guard (self-exclusion + daily loss
+    // limit) — a blocked user cannot play regardless of the client. DB failure fails
+    // closed (503), never silently allowed. Sits AFTER the rate limit (security review:
+    // the remote limiter must shed load before any DB query runs on the money path).
+    const wellbeing = await checkWellbeingGuard(userId);
+    const wellbeingError = wellbeingApiError(wellbeing);
+    if (wellbeingError) {
+      return apiErrorResponse(
+        wellbeingError.code,
+        wellbeingError.message,
+        wellbeingError.httpStatus,
       );
     }
 
@@ -202,6 +218,16 @@ export async function POST(request: Request) {
         });
       }
       const isFirstBet = await isFirstBetSignal(userId, round.replayed);
+      // 06_1 L5 realtime bet-velocity hint — deferred so it never adds latency to the
+      // wager response; skipped for replays (no money moved, no DB bet row) and guarded
+      // because after() throws outside a real request scope (test harness).
+      if (!round.replayed) {
+        try {
+          after(() => recordBetPlacedBestEffort(userId));
+        } catch {
+          // Hint is observability-only — losing it must never affect the wager response.
+        }
+      }
       return apiSuccessResponse({
         roundId: round.roundId,
         crashRoundId: sharedRound.id,

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getClientIdentifier } from '@/lib/security/request-security';
+import { CasinoLogger } from '@/lib/casino/logger';
 
 // Public liveness probe for external uptime monitoring (05_1.13). Must stay free of any
 // database, wallet, or secret access — this route is intentionally unauthenticated and
@@ -26,7 +27,14 @@ function isRateLimited(identifier: string): boolean {
       return false;
     }
     existing.count += 1;
-    return existing.count > RATE_LIMIT_MAX;
+    const limited = existing.count > RATE_LIMIT_MAX;
+    // Reported exactly once per window (on the request that first crosses the limit), not on
+    // every subsequent 429 — a sustained flood would otherwise spam Sentry. The identifier
+    // (IP/user) is deliberately not included in the message to avoid sending PII to Sentry.
+    if (limited && existing.count === RATE_LIMIT_MAX + 1) {
+      CasinoLogger.warn('HealthCheck', 'In-memory liveness rate limit exceeded');
+    }
+    return limited;
   } catch {
     return false;
   }
@@ -40,9 +48,13 @@ export async function GET(request: Request) {
     });
   }
 
-  // Deliberate chaos switch for the 05_1.13 incident-test runbook (section 5.7). Set only
-  // on the staging Vercel environment for the duration of a planned test, never in
-  // Production. Not a secret — a boolean feature flag with no DB/wallet content.
+  // Deliberate chaos switch for the 05_1.13 incident-test runbook. No separate staging
+  // deployment exists (removed alongside the Uptime-Kuma/VPS rollback, see
+  // docs/archive/05_1.13_Uptime-Kuma-Monitoring.md §0) — this flag is safe to set directly
+  // against Production for the duration of a deliberate, short-lived test: it touches no
+  // DB/wallet/game path, only this one route's own response. Verified end-to-end against
+  // Production on 2026-08-16 (docs/observability/06_health_check_uptime_monitoring.md §5).
+  // Not a secret — a boolean feature flag with no DB/wallet content.
   if (process.env.HEALTH_FORCE_FAIL === '1') {
     return NextResponse.json(
       { status: 'error', reason: 'forced-failure-for-incident-test' },

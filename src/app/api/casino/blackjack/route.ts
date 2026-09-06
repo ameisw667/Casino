@@ -9,6 +9,8 @@ import { CasinoLogger } from '@/lib/casino/logger';
 import { loadGameConfig } from '@/lib/casino/game-config-server';
 import { notifyBigWinIfEligible } from '@/lib/casino/telegram-notifier';
 import { recordBetNetworkFingerprintBestEffort } from '@/lib/casino/network-fingerprint';
+import { recordBetPlacedBestEffort } from '@/lib/security/bet-velocity-guard';
+import { checkWellbeingGuard, wellbeingApiError } from '@/lib/casino/responsible-gambling';
 import {
   enforceRateLimit,
   getClientIdentifier,
@@ -132,6 +134,20 @@ export async function POST(request: Request) {
       );
     }
 
+    // 06_2 L1/L3: server-authoritative wellbeing guard (self-exclusion + daily loss
+    // limit) — a blocked user cannot play regardless of the client. DB failure fails
+    // closed (503), never silently allowed. Sits AFTER the rate limit (security review:
+    // the remote limiter must shed load before any DB query runs on the money path).
+    const wellbeing = await checkWellbeingGuard(userId);
+    const wellbeingError = wellbeingApiError(wellbeing);
+    if (wellbeingError) {
+      return apiErrorResponse(
+        wellbeingError.code,
+        wellbeingError.message,
+        wellbeingError.httpStatus,
+      );
+    }
+
     // Fraud-signal observability only (P2.8) — deferred via after() so it never adds latency
     // to or can affect the settlement response below. Fail-open, best-effort.
     after(() => recordBetNetworkFingerprintBestEffort(userId, request));
@@ -176,6 +192,16 @@ export async function POST(request: Request) {
         },
       });
       const isFirstBet = await isFirstBetSignal(userId, round.replayed);
+      // 06_1 L5 realtime bet-velocity hint — deferred so it never adds latency to the
+      // wager response; skipped for replays (no money moved, no DB bet row) and guarded
+      // because after() throws outside a real request scope (test harness).
+      if (!round.replayed) {
+        try {
+          after(() => recordBetPlacedBestEffort(userId));
+        } catch {
+          // Hint is observability-only — losing it must never affect the wager response.
+        }
+      }
       return apiSuccessResponse({
         roundId: round.roundId,
         version: round.version,
@@ -253,6 +279,15 @@ export async function POST(request: Request) {
       xpGain: settled ? CasinoCore.calculateXpGain(totalBet, 1, config) : 0,
       result,
     });
+    if (additionalBet > 0 && !advanced.replayed) {
+      // 06_1 L5: DOUBLE/SPLIT add a new stake to the round — counted as an additional
+      // wager for the realtime bet-velocity hint (deferred, same pattern as above).
+      try {
+        after(() => recordBetPlacedBestEffort(userId));
+      } catch {
+        // Hint is observability-only — losing it must never affect the action response.
+      }
+    }
 
     if (settled) {
       await notifyBigWinIfEligible({

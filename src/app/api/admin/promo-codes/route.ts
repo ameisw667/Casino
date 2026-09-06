@@ -12,13 +12,20 @@ import {
 } from '@/lib/security/request-security';
 import { APP_ERROR_CODES, zodErrorResponse } from '@/lib/security/form-errors';
 
+// 06_1 Bot-Automation Detection (L4, V3): minimum 8 characters (~38-symbol alphabet after
+// case-folding ≈ 4.3e12 keyspace — infeasible for a single account within the per-user
+// redemption rate limit). Detection-only against distributed multi-account guessing (the
+// redeem-side guess counter records voucher_velocity); nothing here hard-blocks, and
+// dictionary codes chosen by admins stay guessable — entropy ultimately depends on the
+// admin picking non-dictionary codes. Applies only to NEW codes — existing shorter rows
+// stay functional (no retroactive change, plan question Q2 answered with option a).
 const createSchema = z.object({
   code: z
     .string()
     .trim()
-    .min(1, 'Code required')
+    .min(8, 'Code must be at least 8 characters')
     .max(32, 'Code too long')
-    .regex(/^[A-Z0-9_-]+$/, 'Code must be uppercase alphanumeric'),
+    .regex(/^[A-Za-z0-9_-]+$/, 'Code must be alphanumeric'),
   amount: z.number().finite().positive().max(10000, 'Amount exceeds 10000 cap'),
   maxUses: z.number().int().positive().max(1_000_000, 'max_uses too large'),
   expiresAt: z.string().datetime().optional().nullable(),

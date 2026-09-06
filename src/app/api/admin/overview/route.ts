@@ -64,6 +64,7 @@ export async function GET(request: Request) {
 
     if (!txsError && txs) {
       for (const t of txs) {
+        if (!t.created_at) continue; // ungetimpte Transaktion kann keinem Stunden-Bin zugeordnet werden
         const amt = Math.abs(Number(t.amount || 0));
         const hour = new Date(t.created_at).getHours();
         if (t.type === 'bet' || t.type === 'bet_settled' || Number(t.amount) < 0) {
@@ -116,15 +117,18 @@ export async function GET(request: Request) {
       },
     ];
 
-    const activity = (txs ?? []).slice(0, 5).map((t, idx) => ({
-      id: `act-${idx}`,
-      type: t.type === 'win' ? 'SUCCESS' : t.type === 'bet' ? 'INFO' : 'WARNING',
-      msg: `Transaction ${t.type}: $${Math.abs(Number(t.amount)).toFixed(2)}`,
-      time: new Date(t.created_at).toLocaleTimeString('de-DE', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-    }));
+    const activity = (txs ?? [])
+      .slice(0, 5)
+      .filter((t): t is typeof t & { created_at: string } => t.created_at !== null)
+      .map((t, idx) => ({
+        id: `act-${idx}`,
+        type: t.type === 'win' ? 'SUCCESS' : t.type === 'bet' ? 'INFO' : 'WARNING',
+        msg: `Transaction ${t.type}: $${Math.abs(Number(t.amount)).toFixed(2)}`,
+        time: new Date(t.created_at).toLocaleTimeString('de-DE', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      }));
 
     return apiSuccessResponse(
       {

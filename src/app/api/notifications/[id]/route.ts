@@ -15,7 +15,12 @@ const PRIVATE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const originFailure = validateMutationOrigin(request);
-  if (originFailure) return originFailure;
+  if (originFailure)
+    return apiErrorResponse(
+      'PERMISSION_DENIED',
+      'Keine Berechtigung.',
+      originFailure.status || 403,
+    );
   try {
     const userId = await resolveNotificationRouteUser();
     if (!userId)

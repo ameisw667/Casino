@@ -57,7 +57,11 @@ export function resolveDevFallbackUserId(request: Request, isSignedOut: boolean)
 
 export function getClientIdentifier(request: Request, userId?: string | null): string {
   if (userId) return `user:${userId}`;
-  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+  // Last XFF entry, not the first: the platform proxy (Vercel) appends the real client IP
+  // at the end, while the first entry stays client-controlled. Taking the first entry let
+  // an attacker mint unlimited rate-limit buckets by sending a spoofed XFF value
+  // (security review 2026-09-04, docs/archive/06_1_bot_automation_detection_plan.md L3).
+  const forwarded = request.headers.get('x-forwarded-for')?.split(',').at(-1)?.trim();
   const ip = forwarded || request.headers.get('x-real-ip')?.trim() || 'unknown';
   return `ip:${ip}`;
 }

@@ -7,6 +7,7 @@ import {
   validateMutationOrigin,
 } from '@/lib/security/request-security';
 import { CasinoLogger } from '@/lib/casino/logger';
+import { enforceDailyCostCap } from '@/lib/security/daily-cost-cap';
 import { apiErrorResponse } from '@/lib/api/response';
 
 const synthesizeSchema = z.object({
@@ -58,7 +59,12 @@ export function cleanMarkdownForSpeech(rawText: string): string {
 
 export async function POST(request: Request) {
   const originFailure = validateMutationOrigin(request);
-  if (originFailure) return originFailure;
+  if (originFailure)
+    return apiErrorResponse(
+      'PERMISSION_DENIED',
+      'Keine Berechtigung.',
+      originFailure.status || 403,
+    );
 
   try {
     const supabase = await createClient();
@@ -97,6 +103,20 @@ export async function POST(request: Request) {
         rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
         rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
         rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: responseHeaders },
+      );
+    }
+
+    // 06_1 L2 daily cost cap (block recorded as cost_cap_reached signal in the module).
+    const dailyCap = await enforceDailyCostCap(userId, 'voice-synthesize');
+    if (!dailyCap.allowed) {
+      return apiErrorResponse(
+        dailyCap.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'DAILY_COST_CAP_REACHED',
+        dailyCap.unavailable
+          ? 'Rate limit service unavailable'
+          : 'Tageslimit erreicht. Versuch es morgen wieder.',
+        dailyCap.unavailable ? 503 : 429,
         undefined,
         { headers: responseHeaders },
       );

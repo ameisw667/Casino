@@ -60,11 +60,19 @@ export async function GET(request: Request) {
     if (!guideResult.error) {
       try {
         guide = parseGuideObservability(guideResult.data);
-      } catch {
-        CasinoLogger.error('API/Admin/Analytics', 'Guide observability data unavailable');
+      } catch (error) {
+        CasinoLogger.error(
+          'API/Admin/Analytics',
+          'Guide observability data failed validation',
+          error,
+        );
       }
     } else {
-      CasinoLogger.error('API/Admin/Analytics', 'Guide observability data unavailable');
+      CasinoLogger.error(
+        'API/Admin/Analytics',
+        'Guide observability RPC failed',
+        guideResult.error,
+      );
     }
 
     let analytics: Omit<Awaited<ReturnType<typeof computeAdminAnalyticsFromDb>>, 'guide'> | null =
@@ -74,7 +82,12 @@ export async function GET(request: Request) {
         snapshotResult.data.payload,
       );
       if (parsedSnapshot.success) analytics = parsedSnapshot.data;
-      else CasinoLogger.error('API/Admin/Analytics', 'Snapshot payload failed validation');
+      else
+        CasinoLogger.error(
+          'API/Admin/Analytics',
+          'Snapshot payload failed validation',
+          parsedSnapshot.error,
+        );
     }
 
     if (!analytics) {

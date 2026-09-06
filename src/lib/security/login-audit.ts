@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/utils/supabase/admin';
+import { CasinoLogger } from '@/lib/casino/logger';
 import {
   type AuthMethod,
   type LoginStatus,
@@ -42,12 +43,12 @@ export async function recordLoginAuditEntry({
     });
 
     if (error) {
-      console.error('[LoginAudit] Insert error:', error.message);
+      CasinoLogger.error('LoginAudit', 'Insert error', error);
       return false;
     }
     return true;
   } catch (err) {
-    console.error('[LoginAudit] Unexpected error:', err);
+    CasinoLogger.error('LoginAudit', 'Unexpected error', err);
     return false;
   }
 }

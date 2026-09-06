@@ -8,6 +8,8 @@ import { CasinoLogger } from '@/lib/casino/logger';
 import { loadGameConfig } from '@/lib/casino/game-config-server';
 import { notifyBigWinIfEligible } from '@/lib/casino/telegram-notifier';
 import { recordBetNetworkFingerprintBestEffort } from '@/lib/casino/network-fingerprint';
+import { recordBetPlacedBestEffort } from '@/lib/security/bet-velocity-guard';
+import { checkWellbeingGuard, wellbeingApiError } from '@/lib/casino/responsible-gambling';
 import {
   enforceRateLimit,
   getClientIdentifier,
@@ -18,6 +20,7 @@ import {
 import { withBetPathSpan, flushBetPathTracer } from '@/lib/otel/tracer';
 import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
 import { apiSuccessResponse } from '@/lib/api/response';
+import { durationMsForCrashPoint } from '@/lib/casino/crash-round';
 
 const rouletteBetSchema = z.object({
   type: z.object({
@@ -111,6 +114,20 @@ export async function POST(request: Request) {
       );
     }
 
+    // 06_2 L1/L3: server-authoritative wellbeing guard (self-exclusion + daily loss
+    // limit) — a blocked user cannot play regardless of the client. DB failure fails
+    // closed (503), never silently allowed. Sits AFTER the rate limit (security review:
+    // the remote limiter must shed load before any DB query runs on the money path).
+    const wellbeing = await checkWellbeingGuard(userId);
+    const wellbeingError = wellbeingApiError(wellbeing);
+    if (wellbeingError) {
+      return apiErrorResponse(
+        wellbeingError.code,
+        wellbeingError.message,
+        wellbeingError.httpStatus,
+      );
+    }
+
     // Fraud-signal observability only (P2.8) — deferred via after() so it never adds latency
     // to or can affect the settlement response below. Fail-open, best-effort.
     after(() => recordBetNetworkFingerprintBestEffort(userId, request));
@@ -150,20 +167,64 @@ export async function POST(request: Request) {
         seed.nonce,
         gameConfig,
       );
-      const round = await WalletService.startRound({
-        userId,
-        requestId: params.requestId,
-        game: 'CRASH',
-        amount: params.amount,
-        state: {
-          crashPoint: crash.crashPoint,
-          serverSeed: crash.seed,
-          serverSeedHash: crash.hash,
-          nonce: crash.nonce,
-          clientSeed: params.clientSeed,
-        },
-      });
+      let round;
+      try {
+        round = await WalletService.startRound({
+          userId,
+          requestId: params.requestId,
+          game: 'CRASH',
+          amount: params.amount,
+          state: {
+            crashPoint: crash.crashPoint,
+            serverSeed: crash.seed,
+            serverSeedHash: crash.hash,
+            nonce: crash.nonce,
+            clientSeed: params.clientSeed,
+            startedAtMs: Date.now(),
+          },
+        });
+      } catch (err) {
+        if (err instanceof Error && err.message === 'ACTIVE_CRASH_ROUND_EXISTS') {
+          const reconciled = await WalletService.autoReconcileStaleCrashRound(userId);
+          if (reconciled) {
+            round = await WalletService.startRound({
+              userId,
+              requestId: params.requestId,
+              game: 'CRASH',
+              amount: params.amount,
+              state: {
+                crashPoint: crash.crashPoint,
+                serverSeed: crash.seed,
+                serverSeedHash: crash.hash,
+                nonce: crash.nonce,
+                clientSeed: params.clientSeed,
+                startedAtMs: Date.now(),
+              },
+            });
+          } else {
+            return apiErrorResponse(
+              APP_ERROR_CODES.CONFLICT,
+              'Eine Crash-Runde ist bereits aktiv.',
+              409,
+              { requestId: params.requestId },
+            );
+          }
+        } else {
+          throw err;
+        }
+      }
       const isFirstBet = await isFirstBetSignal(userId, round.replayed);
+      // 06_1 L5 realtime bet-velocity hint — deferred so it never adds latency to the
+      // wager response; skipped for replays (no money moved, no DB bet row) and guarded
+      // because after() throws outside a real request scope (test harness).
+      if (!round.replayed) {
+        try {
+          after(() => recordBetPlacedBestEffort(userId));
+        } catch {
+          // Hint is observability-only — losing it must never affect the wager response.
+        }
+      }
+      const targetMultiplier = crash.crashPoint;
       return apiSuccessResponse({
         roundId: round.roundId,
         hash: crash.hash,
@@ -171,6 +232,7 @@ export async function POST(request: Request) {
         wallet: walletOnly({ ...round, result: undefined }),
         replayed: round.replayed,
         isFirstBet,
+        targetMultiplier,
       });
     }
 
@@ -193,6 +255,23 @@ export async function POST(request: Request) {
       const serverSeedHash = z.string().min(1).parse(round.state.serverSeedHash);
       const crashNonce = z.coerce.number().int().nonnegative().parse(round.state.nonce);
       const requestedMultiplier = params.cashoutMultiplier ?? crashPoint;
+      if (
+        params.action === 'CASHOUT_CRASH' &&
+        round.state &&
+        typeof round.state.startedAtMs === 'number'
+      ) {
+        const expectedDurationMs = durationMsForCrashPoint(requestedMultiplier);
+        const elapsedMs = Date.now() - round.state.startedAtMs;
+        // 1500ms network latency window, prevents premature API cashout claims
+        if (elapsedMs < expectedDurationMs - 1500) {
+          return apiErrorResponse(
+            APP_ERROR_CODES.VALIDATION_FAILED,
+            'Cashout ungültig: Flugzeit noch nicht erreicht.',
+            400,
+            { requestId: params.requestId },
+          );
+        }
+      }
       const won = params.action === 'CASHOUT_CRASH' && requestedMultiplier <= crashPoint;
       const payout = won ? Math.round(round.betAmount * requestedMultiplier * 100) / 100 : 0;
       const resultId = crypto.randomUUID();
@@ -344,6 +423,16 @@ export async function POST(request: Request) {
       win: result.win,
       replayed: settlement.replayed,
     });
+    // 06_1 L5 realtime bet-velocity hint — deferred so it never adds latency to the
+    // settlement response; skipped for replays (no money moved, no DB bet row) and guarded
+    // because after() throws outside a real request scope (test harness).
+    if (!settlement.replayed) {
+      try {
+        after(() => recordBetPlacedBestEffort(userId));
+      } catch {
+        // Hint is observability-only — losing it must never affect the settlement response.
+      }
+    }
     const isFirstBet = await isFirstBetSignal(userId, settlement.replayed);
 
     return withBetPathSpan('response-serialize', async () =>

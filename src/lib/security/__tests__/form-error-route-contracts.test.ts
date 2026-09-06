@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   getClientIdentifier: vi.fn(() => 'user:test-user'),
   rateLimitHeaders: vi.fn(() => ({ 'X-RateLimit-Limit': '10' })),
   resolveDevFallbackUserId: vi.fn(() => null),
+  checkWellbeingGuard: vi.fn(),
   redeemPromoCode: vi.fn(),
   recordRiskEventBestEffort: vi.fn(),
   loggerError: vi.fn(),
@@ -22,6 +23,16 @@ vi.mock('@/lib/security/request-security', () => ({
   getClientIdentifier: mocks.getClientIdentifier,
   rateLimitHeaders: mocks.rateLimitHeaders,
   resolveDevFallbackUserId: mocks.resolveDevFallbackUserId,
+}));
+// 06_2 L1: the money routes now call the wellbeing guard after the rate-limit check —
+// pin it to 'allowed' here so these contract tests exercise the error contracts, and
+// cover the guard's own blocking/fail-closed behaviour in responsible-gambling tests.
+vi.mock('@/lib/casino/responsible-gambling', () => ({
+  checkWellbeingGuard: mocks.checkWellbeingGuard,
+  wellbeingApiError: (status: { state: string }) =>
+    status.state === 'allowed'
+      ? null
+      : { code: 'SERVICE_UNAVAILABLE', message: 'blocked', httpStatus: 503 },
 }));
 vi.mock('@/lib/casino/wallet', () => ({
   WalletService: { redeemPromoCode: mocks.redeemPromoCode },
@@ -67,6 +78,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.validateMutationOrigin.mockReturnValue(null);
   mocks.createClient.mockResolvedValue(authClient({ id: 'test-user' }));
+  mocks.checkWellbeingGuard.mockResolvedValue({ state: 'allowed' });
   mocks.enforceRateLimit.mockResolvedValue({
     success: true,
     limit: 10,

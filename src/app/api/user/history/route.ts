@@ -1,6 +1,8 @@
 import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { createClient } from '@/utils/supabase/server';
+import type { Database } from '@/types/database.types';
+import { CasinoLogger } from '@/lib/casino/logger';
 import {
   enforceRateLimit,
   getClientIdentifier,
@@ -19,8 +21,39 @@ const HistoryRowSchema = z.object({
 
 const HistoryResponseSchema = z.object({
   rows: z.array(HistoryRowSchema),
-  count: z.number(),
+  nextCursor: z.string().nullable(),
+  hasMore: z.boolean(),
 });
+
+const CursorPayloadSchema = z.object({
+  // offset: true — PostgREST serialisiert TIMESTAMPTZ als +00:00, nicht als Z-Suffix
+  createdAt: z.string().datetime({ offset: true }),
+  id: z.string().uuid(),
+});
+
+function decodeCursor(raw: string): { createdAt: string; id: string } | null {
+  try {
+    if (raw.length > 256) return null;
+    const json = Buffer.from(raw, 'base64url').toString('utf8');
+    const result = CursorPayloadSchema.safeParse(JSON.parse(json));
+    return result.success ? result.data : null;
+  } catch {
+    return null;
+  }
+}
+
+function encodeCursor(createdAt: string, id: string): string {
+  return Buffer.from(JSON.stringify({ createdAt, id })).toString('base64url');
+}
+
+type HistoryRpcRow = {
+  id: string;
+  game: string | null;
+  type: string;
+  amount: number | string;
+  balance_after: number | string;
+  created_at: string;
+};
 
 export async function GET(request: Request) {
   try {
@@ -62,22 +95,49 @@ export async function GET(request: Request) {
       );
     }
 
-    // Query via service-role (bypasses RLS; API itself enforces auth)
+    // Query-Parameter parsen (cursor/limit sind rein additive, optionale Parameter)
+    const url = new URL(request.url);
+    const rawCursor = url.searchParams.get('cursor');
+    const rawLimit = url.searchParams.get('limit');
+
+    const cursor = rawCursor ? decodeCursor(rawCursor) : null;
+    if (rawCursor && !cursor) {
+      return apiErrorResponse('INVALID_CURSOR', 'Invalid cursor', 400);
+    }
+
+    const limitSchema = z.coerce.number().int().min(1).max(100);
+    const limitParseResult = rawLimit ? limitSchema.safeParse(rawLimit) : null;
+    if (rawLimit && !limitParseResult?.success) {
+      return apiErrorResponse('INVALID_REQUEST', 'Invalid limit', 400);
+    }
+    const limit = limitParseResult?.success ? limitParseResult.data : cursor ? 20 : 100;
+
+    // Query via service-role RPC (bypasses RLS; API itself enforces auth)
     const adminSupabase = createAdminClient();
 
-    const { data, error } = await adminSupabase
-      .from('wallet_transactions')
-      .select('id, game, type, amount, balance_after, created_at')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(100);
+    // Migration 061 behandelt NULL als "erste Seite" (p_cursor_created_at IS NULL),
+    // ohne SQL-Defaults — der generierte Arg-Typ bildet das NULL-Handling daher
+    // nicht ab (string statt string | null). Der Cast dokumentiert diese bekannte
+    // Typegen-Lücke exakt an der Aufrufstelle.
+    type GetHistoryArgs = Database['public']['Functions']['get_user_history_page']['Args'];
+    const historyArgs = {
+      p_user_id: userId,
+      p_cursor_created_at: cursor?.createdAt ?? null,
+      p_cursor_id: cursor?.id ?? null,
+      p_limit: limit + 1, // +1 = Standard-Trick, um hasMore ohne zweite COUNT-Query zu bestimmen
+    } as GetHistoryArgs;
+    const { data, error } = await adminSupabase.rpc('get_user_history_page', historyArgs);
 
     if (error) {
-      console.error('History query failed:', error);
+      CasinoLogger.error('API/User/History', 'History query failed', error);
       return apiErrorResponse('HISTORY_UNAVAILABLE', 'History unavailable', 503);
     }
 
-    const rows = (data ?? []).map((row) => ({
+    const allRows = (data ?? []) as HistoryRpcRow[];
+    const hasMore = allRows.length > limit;
+    const pageRows = hasMore ? allRows.slice(0, limit) : allRows;
+
+    const rows = pageRows.map((row) => ({
       id: String(row.id),
       game: row.game ?? null,
       type: String(row.type ?? ''),
@@ -86,7 +146,10 @@ export async function GET(request: Request) {
       created_at: String(row.created_at ?? ''),
     }));
 
-    const parsed = HistoryResponseSchema.parse({ rows, count: rows.length });
+    const lastRow = pageRows[pageRows.length - 1];
+    const nextCursor = hasMore && lastRow ? encodeCursor(lastRow.created_at, lastRow.id) : null;
+
+    const parsed = HistoryResponseSchema.parse({ rows, nextCursor, hasMore });
 
     return apiSuccessResponse(parsed, {
       headers: {
@@ -95,7 +158,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (err) {
-    console.error('History route error:', err);
+    CasinoLogger.error('API/User/History', 'History route error', err);
     return apiErrorResponse('HISTORY_UNAVAILABLE', 'History unavailable', 503);
   }
 }

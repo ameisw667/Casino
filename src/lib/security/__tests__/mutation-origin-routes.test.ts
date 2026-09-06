@@ -28,6 +28,7 @@ import { POST as postChat } from '@/app/api/chat/route';
 import { POST as syncAchievement } from '@/app/api/user/stats/route';
 
 const rejectedOrigin = new Response('Cross-site mutation rejected', { status: 403 });
+const EXPECTED_ENVELOPE = { error: { code: 'PERMISSION_DENIED', message: 'Keine Berechtigung.' } };
 
 function request(path: string, body: Record<string, unknown>) {
   return new Request(`https://casino.test${path}`, {
@@ -57,7 +58,9 @@ describe('newly hardened browser mutation routes', () => {
     async (_name, handler, path, body) => {
       const response = await handler(request(path, body));
 
-      expect(response).toBe(rejectedOrigin);
+      expect(response.status).toBe(403);
+      expect(response.headers.get('content-type')).toBe('application/json');
+      await expect(response.json()).resolves.toEqual(EXPECTED_ENVELOPE);
       expect(mocks.createClient).not.toHaveBeenCalled();
       expect(mocks.WalletService.rotateUserSeed).not.toHaveBeenCalled();
       expect(mocks.WalletService.postChatMessage).not.toHaveBeenCalled();

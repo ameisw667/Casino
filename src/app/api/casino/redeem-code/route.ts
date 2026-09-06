@@ -11,9 +11,19 @@ import {
 import { createClient } from '@/utils/supabase/server';
 import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
 import { apiSuccessResponse } from '@/lib/api/response';
+import { recordPromoGuessFailure } from '@/lib/security/promo-guess-guard';
+import { checkWellbeingGuard, wellbeingApiError } from '@/lib/casino/responsible-gambling';
 
+// 06_1 L4 (security review): same charset as code creation — without this, an authenticated
+// user could mint unlimited unicode/mixed promo-guess counter keys in Redis (unbounded
+// keyspace pollution feeding the L4 guess guard).
 const redeemSchema = z.object({
-  code: z.string().trim().min(1, 'Please enter a promo code').max(32, 'Code too long'),
+  code: z
+    .string()
+    .trim()
+    .min(1, 'Please enter a promo code')
+    .max(32, 'Code too long')
+    .regex(/^[A-Za-z0-9_-]+$/, 'Code must be alphanumeric'),
 });
 
 const PROMO_ERROR_MESSAGES: Record<string, string> = {
@@ -91,6 +101,20 @@ export async function POST(request: Request) {
       );
     }
 
+    // 06_2 L1/L3: server-authoritative wellbeing guard (self-exclusion + daily loss
+    // limit) — a blocked user cannot play regardless of the client. DB failure fails
+    // closed (503), never silently allowed. Sits AFTER the rate limit (security review:
+    // the remote limiter must shed load before any DB query runs on the money path).
+    const wellbeing = await checkWellbeingGuard(userId);
+    const wellbeingError = wellbeingApiError(wellbeing);
+    if (wellbeingError) {
+      return apiErrorResponse(
+        wellbeingError.code,
+        wellbeingError.message,
+        wellbeingError.httpStatus,
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
     const parseResult = redeemSchema.safeParse(body);
     if (!parseResult.success) {
@@ -110,6 +134,9 @@ export async function POST(request: Request) {
     const outcome = await WalletService.redeemPromoCode({ userId, code: rawCode, requestId });
 
     if (!outcome.ok) {
+      // 06_1 L4 guess counter: every failed attempt feeds the per-code brute-force
+      // detector (observability only, never blocks — see promo-guess-guard.ts).
+      await recordPromoGuessFailure(userId, rawCode);
       if (outcome.code === 'PROMO_REQUEST_CONFLICT') {
         await recordRiskEventBestEffort({
           subjectUserId: userId,

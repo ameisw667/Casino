@@ -8,7 +8,7 @@ import { CasinoLogger } from '@/lib/casino/logger';
 export async function POST(request: Request) {
   const originError = validateMutationOrigin(request);
   if (originError) {
-    return originError;
+    return apiErrorResponse('PERMISSION_DENIED', 'Keine Berechtigung.', originError.status || 403);
   }
 
   const supabase = await createClient();

@@ -100,7 +100,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const originFailure = validateMutationOrigin(request);
-  if (originFailure) return originFailure;
+  if (originFailure)
+    return apiErrorResponse(
+      'PERMISSION_DENIED',
+      'Keine Berechtigung.',
+      originFailure.status || 403,
+    );
 
   try {
     const supabase = await createClient();
@@ -170,7 +175,12 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   const originFailure = validateMutationOrigin(request);
-  if (originFailure) return originFailure;
+  if (originFailure)
+    return apiErrorResponse(
+      'PERMISSION_DENIED',
+      'Keine Berechtigung.',
+      originFailure.status || 403,
+    );
 
   try {
     const supabase = await createClient();

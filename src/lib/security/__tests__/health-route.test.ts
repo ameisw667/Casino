@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+const { captureMessage } = vi.hoisted(() => ({ captureMessage: vi.fn() }));
+vi.mock('@sentry/nextjs', () => ({ captureMessage, captureException: vi.fn() }));
+
 import { GET } from '@/app/api/health/route';
 
 const root = resolve(__dirname, '../../../..');
@@ -80,5 +84,20 @@ describe('GET /api/health', () => {
     // A different identifier is unaffected by the first one's exhausted budget.
     const otherResponse = await GET(healthRequest('203.0.113.100'));
     expect(otherResponse.status).toBe(200);
+  });
+
+  it('reports a rate-limit trip to Sentry exactly once per window, not on every subsequent 429 (Modul 06 audit, 2026-09-01)', async () => {
+    captureMessage.mockClear();
+    const ip = '203.0.113.101';
+    for (let i = 0; i < 125; i += 1) {
+      await GET(healthRequest(ip));
+    }
+    expect(captureMessage).toHaveBeenCalledTimes(1);
+    expect(captureMessage).toHaveBeenCalledWith(
+      'In-memory liveness rate limit exceeded',
+      expect.objectContaining({ level: 'warning' }),
+    );
+    // No identifier (IP) in the reported message — avoid sending PII to Sentry.
+    expect(captureMessage.mock.calls[0][0]).not.toContain(ip);
   });
 });

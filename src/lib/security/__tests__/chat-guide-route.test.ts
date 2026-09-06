@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => {
     rateLimitHeaders: vi.fn(() => ({ 'X-RateLimit-Limit': '10' })),
     requestCasinoGuideAnswer: vi.fn(),
     recordGuideTelemetry: vi.fn(async () => 'recorded'),
+    enforceDailyCostCap: vi.fn(),
     casinoLoggerError: vi.fn(),
     GuideError,
   };
@@ -42,6 +43,9 @@ vi.mock('@/lib/casino/chat-guide', async (importOriginal) => {
 });
 vi.mock('@/lib/casino/guide-telemetry', () => ({
   recordGuideTelemetry: mocks.recordGuideTelemetry,
+}));
+vi.mock('@/lib/security/daily-cost-cap', () => ({
+  enforceDailyCostCap: mocks.enforceDailyCostCap,
 }));
 vi.mock('@/lib/casino/logger', () => ({ CasinoLogger: { error: mocks.casinoLoggerError } }));
 
@@ -74,6 +78,7 @@ beforeEach(() => {
     model: 'gpt-4o-mini',
     usage: null,
   });
+  mocks.enforceDailyCostCap.mockResolvedValue({ allowed: true, used: 1, cap: 400 });
 });
 
 describe('chat guide response route', () => {
@@ -184,6 +189,39 @@ describe('chat guide response route', () => {
         rateLimitWindowStartedAt: expect.any(Date),
       }),
     );
+  });
+
+  it('blocks with a clear user message after the daily cost cap is reached', async () => {
+    mocks.enforceDailyCostCap.mockResolvedValue({ allowed: false, used: 401, cap: 400 });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(429);
+    expect(await response.json()).toEqual({
+      error: {
+        code: 'DAILY_COST_CAP_REACHED',
+        message: 'Tageslimit erreicht. Versuch es morgen wieder.',
+      },
+    });
+    expect(mocks.requestCasinoGuideAnswer).not.toHaveBeenCalled();
+    expect(mocks.enforceDailyCostCap).toHaveBeenCalledWith('player-1', 'guide-chat');
+  });
+
+  it('fails closed with 503 when the daily cost counter is unavailable', async () => {
+    mocks.enforceDailyCostCap.mockResolvedValue({
+      allowed: false,
+      used: 0,
+      cap: 400,
+      unavailable: true,
+    });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      error: { code: 'RATE_LIMIT_UNAVAILABLE', message: 'Rate limit service unavailable' },
+    });
+    expect(mocks.requestCasinoGuideAnswer).not.toHaveBeenCalled();
   });
 
   it('does not expose configuration failures from the guide service', async () => {

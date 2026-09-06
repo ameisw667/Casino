@@ -95,6 +95,23 @@ const adminUpdateUserSchema = z.object({
   rank: z.string().min(1).optional(),
 });
 
+// admin_update_user (Migration 058) gibt ein freies jsonb zurück — die Struktur wird
+// hier vertraglich fixiert, damit der Route-Handler nur validierte Felder weiterreicht.
+const adminUpdateUserResultSchema = z.object({
+  user: z.object({
+    id: z.string(),
+    username: z.string(),
+    email: z.string().nullable(),
+    balance: z.number(),
+    xp: z.number(),
+    level: z.number(),
+    rank: z.string(),
+    created_at: z.string(),
+  }),
+  transactionId: z.string(),
+  replayed: z.boolean(),
+});
+
 export async function PATCH(request: Request) {
   const originFailure = validateMutationOrigin(request);
   if (originFailure) {
@@ -161,19 +178,25 @@ export async function PATCH(request: Request) {
     }
 
     const admin = createAdminClient();
+    // RPC-Parameter mit SQL-DEFAULT NULL: nicht gelieferte Felder als undefined
+    // übergeben (supabase-js lässt sie beim Serialisieren weg → Server-Default greift).
     const { data, error } = await admin.rpc('admin_update_user', {
       p_actor_id: user.id,
       p_target_user_id: targetUserId,
       p_request_id: requestId.data,
       p_reason: reason,
-      p_balance: updates.balance ?? null,
-      p_xp: updates.xp ?? null,
-      p_level: updates.level ?? null,
-      p_rank: updates.rank ?? null,
+      p_balance: updates.balance,
+      p_xp: updates.xp,
+      p_level: updates.level,
+      p_rank: updates.rank,
     });
 
-    if (error || !data) {
-      CasinoLogger.error('API/Admin/Users', `Admin user update failed for ${targetUserId}`, error);
+    const parsedResult = adminUpdateUserResultSchema.safeParse(data);
+    if (error || !parsedResult.success) {
+      CasinoLogger.error('API/Admin/Users', `Admin user update failed for ${targetUserId}`, {
+        rpcError: error,
+        malformedResult: !parsedResult.success,
+      });
       return apiErrorResponse(
         APP_ERROR_CODES.INTERNAL_ERROR,
         'Die Nutzeränderung konnte nicht verarbeitet werden.',
@@ -184,14 +207,14 @@ export async function PATCH(request: Request) {
 
     CasinoLogger.info('API/Admin/Users', `Admin ${user.email} updated user ${targetUserId}`, {
       fields: Object.keys(updates),
-      replayed: data.replayed,
+      replayed: parsedResult.data.replayed,
     });
 
     return apiSuccessResponse({
       success: true,
-      user: data.user,
-      transactionId: data.transactionId,
-      replayed: data.replayed,
+      user: parsedResult.data.user,
+      transactionId: parsedResult.data.transactionId,
+      replayed: parsedResult.data.replayed,
     });
   } catch (error) {
     CasinoLogger.error('API/Admin/Users', 'Admin user update unexpected failure', error);

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { isAdminEmail } from '@/lib/security/admin';
 import { hasValidOrigin } from '@/lib/security/origin-guard';
+import { CasinoLogger } from '@/lib/casino/logger';
 
 const PUBLIC_ROUTES = [
   '/',
@@ -19,6 +20,8 @@ const PUBLIC_ROUTES = [
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/games(.*)',
+  // Direct game alias for dice sandbox
+  '/dice(.*)',
   // Motion-Lab Testing-Route (Bare Sandbox, kein Auth; siehe xx_docs/09 §2)
   '/games-2(.*)',
   // PULS-Partikel-Lab — Bare-Sandbox wie /games-2; rein visuell, kein Wallet/DB-Pfad.
@@ -30,6 +33,14 @@ const PUBLIC_ROUTES = [
   '/affiliate(.*)',
   '/auth/callback(.*)',
   '/api/public/(.*)',
+  // 06_1 L1 login preflight — called by the sign-in form *before* any Supabase session
+  // exists, so it must stay reachable unauthenticated; the route itself only rate-limits
+  // and never returns user data.
+  '/api/auth/login-guard',
+  // 06_1 L3 signup suspicion receiver — fired fire-and-forget right after a successful
+  // signup; the freshly created session may not yet be visible to the server, so the route
+  // treats "no user" as fail-open and only rate-limits plus records an observability signal.
+  '/api/auth/signup-suspicion',
   // These handlers perform their own Supabase auth and return API-shaped 401/503 responses.
   '/api/casino/(.*)',
   '/api/chat/bot-response',
@@ -53,6 +64,37 @@ const PUBLIC_ROUTES = [
   // auth gate below would redirect every fetch of it to /sign-in instead of serving the file.
   '/.well-known/(.*)',
 ];
+
+// Static security headers that don't depend on the Supabase session, the per-request CSP
+// nonce, or the request method — reusable so every response (including the /api/health
+// liveness bypass below, which intentionally skips Supabase/CSP setup so it never depends on
+// Supabase reachability) still carries the app's baseline hardening headers. Extracted as the
+// single source of truth after the 2026-09-01 observability audit found /api/health was the
+// only route in the app shipping with none of these (worldmap/00-04-SecurityHardening.md, M2/M5).
+function applyBaselineSecurityHeaders(res: NextResponse): NextResponse {
+  res.headers.set('X-DNS-Prefetch-Control', 'on');
+  res.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  res.headers.set('X-Frame-Options', 'SAMEORIGIN');
+  res.headers.set('X-Content-Type-Options', 'nosniff');
+  res.headers.set('Referrer-Policy', 'origin-when-cross-origin');
+  // COOP isolates this site's browsing context from cross-origin popups/tabs (window.opener).
+  // Safe here — Google sign-in (AuthForm.tsx) uses a full-page redirectTo flow, not a popup, so
+  // there is no cross-origin window.opener relationship to preserve. CORP stops other origins
+  // from embedding this site's responses via no-cors requests (e.g. <img>/<script> on a foreign
+  // page reading our responses).
+  res.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+  res.headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+  // Explicit allow only for features this app actually uses (grep-verified 2026-08-28):
+  // microphone (Guide voice input, src/lib/casino/voice-audio.ts), clipboard-write (referral
+  // codes, deposit address, MFA secret, bet receipts — copy-to-clipboard across ~7 components),
+  // publickey-credentials-get/-create (WebAuthn Passkeys via Supabase's `experimental.passkey`,
+  // docs/auth/01_passkeys_webauthn.md). Everything else this app has no code path for is denied.
+  res.headers.set(
+    'Permissions-Policy',
+    'camera=(), microphone=(self), geolocation=(), payment=(), usb=(), fullscreen=(), gamepad=(), hid=(), serial=(), midi=(), magnetometer=(), gyroscope=(), accelerometer=(), display-capture=(), screen-wake-lock=(), xr-spatial-tracking=(), interest-cohort=(), browsing-topics=(), clipboard-write=(self), publickey-credentials-get=(self), publickey-credentials-create=(self)',
+  );
+  return res;
+}
 
 function isPublicRoute(pathname: string): boolean {
   return PUBLIC_ROUTES.some((pattern) => {
@@ -83,7 +125,7 @@ export default async function proxy(req: NextRequest) {
     // source of truth for the route's public/no-auth status (deliberately not also
     // listed in PUBLIC_ROUTES, to avoid the two declarations drifting apart).
     if (pathname === '/api/health') {
-      return NextResponse.next({ request: req });
+      return applyBaselineSecurityHeaders(NextResponse.next({ request: req }));
     }
 
     const isWebhook =
@@ -170,38 +212,17 @@ export default async function proxy(req: NextRequest) {
       return withRefreshedCookies(response, NextResponse.redirect(new URL('/sign-in', req.url)));
     }
 
-    response.headers.set('X-DNS-Prefetch-Control', 'on');
-    response.headers.set(
-      'Strict-Transport-Security',
-      'max-age=63072000; includeSubDomains; preload',
-    );
-    response.headers.set('X-Frame-Options', 'SAMEORIGIN');
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
-    // M5 (worldmap/00-04-SecurityHardening.md): COOP isolates this site's browsing context from
-    // cross-origin popups/tabs (window.opener). Safe here — Google sign-in
-    // (src/components/auth/AuthForm.tsx) uses a full-page `redirectTo` flow, not a popup, so there
-    // is no cross-origin window.opener relationship to preserve. CORP stops other origins from
-    // embedding this site's responses via no-cors requests (e.g. <img>/<script> tags on a foreign
-    // page reading our authenticated API responses).
-    response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
-    response.headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+    applyBaselineSecurityHeaders(response);
     // M6: pairs with the CSP's `report-to csp-endpoint` directive above — the current Reporting
     // API's way of naming an endpoint group (Report-To, the older header for this, is deprecated).
     response.headers.set('Reporting-Endpoints', 'csp-endpoint="/api/internal/csp-report"');
-    // Explicit allow only for features this app actually uses (grep-verified 2026-08-28):
-    // microphone (Guide voice input, src/lib/casino/voice-audio.ts), clipboard-write (referral
-    // codes, deposit address, MFA secret, bet receipts — copy-to-clipboard across ~7 components),
-    // publickey-credentials-get/-create (WebAuthn Passkeys via Supabase's `experimental.passkey`,
-    // docs/auth/01_passkeys_webauthn.md). Everything else this app has no code path for is denied.
-    response.headers.set(
-      'Permissions-Policy',
-      'camera=(), microphone=(self), geolocation=(), payment=(), usb=(), fullscreen=(), gamepad=(), hid=(), serial=(), midi=(), magnetometer=(), gyroscope=(), accelerometer=(), display-capture=(), screen-wake-lock=(), xr-spatial-tracking=(), interest-cohort=(), browsing-topics=(), clipboard-write=(self), publickey-credentials-get=(self), publickey-credentials-create=(self)',
-    );
     response.headers.set('Content-Security-Policy', cspHeader);
     return response;
   } catch (error) {
-    console.error('[Proxy Error]:', error);
+    // A caught, handled exception never reaches Next.js' automatic Sentry
+    // instrumentation (that only fires on unhandled exceptions) — this explicit
+    // capture is the only way a middleware failure becomes visible in Sentry.
+    CasinoLogger.error('Proxy', 'Security boundary unavailable', error);
     return new NextResponse('Security boundary unavailable', { status: 500 });
   }
 }

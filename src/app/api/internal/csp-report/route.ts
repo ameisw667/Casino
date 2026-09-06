@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/nextjs';
 import { enforceRateLimit, getClientIdentifier } from '@/lib/security/request-security';
+import { CasinoLogger } from '@/lib/casino/logger';
 
 // M6 (worldmap/00-04-SecurityHardening.md): sink for the browser's own CSP violation reports
 // (`report-uri`/`report-to` in src/proxy.ts's Content-Security-Policy). Unauthenticated by design —
@@ -36,7 +37,7 @@ export async function POST(request: Request): Promise<Response> {
     }
   } catch (error) {
     // A malformed report body or a Sentry SDK failure must never surface to the browser.
-    console.error('[CspReport] Failed to process violation report:', error);
+    CasinoLogger.error('API/Internal/CspReport', 'Failed to process violation report', error);
   }
 
   return new Response(null, { status: 204 });

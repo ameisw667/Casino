@@ -62,7 +62,11 @@ describe('POST /api/internal/cron-alert', () => {
     expect(await response.json()).toEqual({ data: { ok: true } });
     expect(mocks.captureMessage).toHaveBeenCalledWith(
       'Cron job failed: guide_telemetry_purge',
-      expect.objectContaining({ level: 'error', extra: { error: 'boom' } }),
+      expect.objectContaining({
+        level: 'error',
+        extra: { error: 'boom' },
+        tags: { job: 'guide_telemetry_purge' },
+      }),
     );
   });
 
@@ -81,5 +85,14 @@ describe('POST /api/internal/cron-alert', () => {
     const response = await POST(request);
     expect(response.status).toBe(200);
     expect(mocks.captureMessage).not.toHaveBeenCalled();
+  });
+
+  it('rate-limits a sustained flood from the same caller (fail-open, in-memory — Modul 07 audit, 2026-09-03)', async () => {
+    let lastStatus = 200;
+    for (let i = 0; i < 25; i += 1) {
+      lastStatus = (await POST(alertRequest({ job: 'guide_telemetry_purge', error: 'boom' })))
+        .status;
+    }
+    expect(lastStatus).toBe(429);
   });
 });

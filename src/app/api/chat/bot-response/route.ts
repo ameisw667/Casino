@@ -15,6 +15,7 @@ import {
   validateMutationOrigin,
 } from '@/lib/security/request-security';
 import { CasinoLogger } from '@/lib/casino/logger';
+import { enforceDailyCostCap } from '@/lib/security/daily-cost-cap';
 import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 
 const guideHistoryItemSchema = z.object({
@@ -41,7 +42,12 @@ const PRIVATE_NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
 export async function POST(request: Request) {
   const originFailure = validateMutationOrigin(request);
-  if (originFailure) return originFailure;
+  if (originFailure)
+    return apiErrorResponse(
+      'PERMISSION_DENIED',
+      'Keine Berechtigung.',
+      originFailure.status || 403,
+    );
 
   let currentUserId: string | null = null;
   let guideStartedAt: number | null = null;
@@ -95,6 +101,22 @@ export async function POST(request: Request) {
         rate.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'RATE_LIMIT_EXCEEDED',
         rate.unavailable ? 'Rate limit service unavailable' : 'Too Many Requests',
         rate.unavailable ? 503 : 429,
+        undefined,
+        { headers: responseHeaders },
+      );
+    }
+
+    // 06_1 L2 daily cost cap: the sliding window alone still permits ~43k calls/day —
+    // this is the day-scale money backstop. The block itself is recorded as a
+    // cost_cap_reached risk signal inside enforceDailyCostCap.
+    const dailyCap = await enforceDailyCostCap(userId, 'guide-chat');
+    if (!dailyCap.allowed) {
+      return apiErrorResponse(
+        dailyCap.unavailable ? 'RATE_LIMIT_UNAVAILABLE' : 'DAILY_COST_CAP_REACHED',
+        dailyCap.unavailable
+          ? 'Rate limit service unavailable'
+          : 'Tageslimit erreicht. Versuch es morgen wieder.',
+        dailyCap.unavailable ? 503 : 429,
         undefined,
         { headers: responseHeaders },
       );

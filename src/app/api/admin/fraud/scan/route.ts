@@ -16,7 +16,12 @@ const SCAN_RATE_WINDOW_SECONDS = 300;
 
 export async function POST(request: Request) {
   const originFailure = validateMutationOrigin(request);
-  if (originFailure) return originFailure;
+  if (originFailure)
+    return apiErrorResponse(
+      'PERMISSION_DENIED',
+      'Keine Berechtigung.',
+      originFailure.status || 403,
+    );
 
   try {
     const supabase = await createClient();

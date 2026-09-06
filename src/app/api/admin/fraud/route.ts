@@ -26,6 +26,12 @@ const listQuerySchema = z.object({
       'balance_correction',
       'bet_velocity',
       'win_rate_anomaly',
+      'ml_anomaly_score',
+      // 06_1 Bot-Automation Detection (L0–L5): neue Bot-/Kosten-Signal-Typen
+      'bot_signal_honeypot',
+      'bot_signal_timing',
+      'bot_signal_login_flood',
+      'cost_cap_reached',
     ])
     .optional(),
 });
@@ -101,7 +107,12 @@ export async function GET(request: Request) {
 
 export async function PATCH(request: Request) {
   const originFailure = validateMutationOrigin(request);
-  if (originFailure) return originFailure;
+  if (originFailure)
+    return apiErrorResponse(
+      'PERMISSION_DENIED',
+      'Keine Berechtigung.',
+      originFailure.status || 403,
+    );
 
   try {
     const supabase = await createClient();
