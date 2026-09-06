@@ -2,25 +2,25 @@
 
 > **Status:** Vergleichskandidat · **Nicht aktiv:** Diese Datei liegt absichtlich außerhalb von `.claude/agents/`. Sie darf nicht delegiert werden, bevor Jan den Vergleich geprüft und die Beförderung ausdrücklich freigegeben hat.
 >
-> **Vergleichsbasis:** [`06_migration_security_guard.md`](../agents/06_migration_security_guard.md) · **Pilotplan:** [`12_1_migration_security_guard_pilot.md`](../../worldmap/13_claude_code/agents/12_1_migration_security_guard_pilot.md)
+> **Vergleichsbasis:** [`06_migration_security_guard.md`](../agents/06_migration_security_guard.md) · **Pilotplan:** [`12_1_migration_security_guard_pilot.md`](../../t_claude_code/agents/12_1_migration_security_guard_pilot.md)
 
 ## 1 — Status-Quo-Audit der Baseline v0.1.0
 
 Die Baseline ist ein sicherer, gut abgegrenzter Pilotentwurf: minimale Lesetools, Fail-Closed-Eingabeprüfung, kanonischer Kontext und ein eindeutiges Ausgabeformat sind bereits vorhanden. Sie ist aber noch **nicht** als Weltklasseagent nachgewiesen, weil die fünf Fälle wegen einer abgelaufenen lokalen Claude-Anmeldung nie live ausgeführt wurden und drei Shadow-Mode-Reviews fehlen.
 
-| Qualitätskriterium aus dem Agentenworkflow | Baseline v0.1.0 | Befund |
-| --- | ---: | --- |
-| Trigger-Präzision | 3/3 | Pfad und Zweck sind eindeutig. |
-| Scope-Isolation | 3/3 | Read-only; keine Reparatur, keine Freigabe. |
-| Fachkontext | 3/3 | Drei kanonische Quellen, Finanzkontext bedingt. |
-| Sicherheitsgrenzen | 3/3 | Nur `Read`, `Grep`, `Glob`; Fail-Closed. |
-| Evidenzqualität | 3/3 | Datei-/Zeilenbeleg ist vorgeschrieben. |
-| Ausgabe-Entscheidbarkeit | 3/3 | Genau ein Status ist vorgegeben. |
-| Evaluierungsabdeckung | 2/3 | Fünf Sollfälle beschrieben, aber kein echter historischer Fehler und keine Live-Ergebnisse. |
-| Fehlalarmkontrolle | 1/3 | Finanzklassifikation, RLS-Ausnahme und unvollständige Funktionskörper sind noch nicht eindeutig genug. |
-| Referenzkonsistenz | 1/3 | Nummerierung fehlte; der zentrale Trigger muss weiterhin von Jan in `CLAUDE.md` gespeichert werden. |
-| Lerneffekt für Jan | 3/3 | Risiko und kleinster nächster Schritt sind verständlich. |
-| **Strukturscore** | **25/30** | Solider Pilotentwurf, aber kein belegter Active-/Weltklasse-Status. |
+| Qualitätskriterium aus dem Agentenworkflow | Baseline v0.1.0 | Befund                                                                                                 |
+| ------------------------------------------ | --------------: | ------------------------------------------------------------------------------------------------------ |
+| Trigger-Präzision                          |             3/3 | Pfad und Zweck sind eindeutig.                                                                         |
+| Scope-Isolation                            |             3/3 | Read-only; keine Reparatur, keine Freigabe.                                                            |
+| Fachkontext                                |             3/3 | Drei kanonische Quellen, Finanzkontext bedingt.                                                        |
+| Sicherheitsgrenzen                         |             3/3 | Nur `Read`, `Grep`, `Glob`; Fail-Closed.                                                               |
+| Evidenzqualität                            |             3/3 | Datei-/Zeilenbeleg ist vorgeschrieben.                                                                 |
+| Ausgabe-Entscheidbarkeit                   |             3/3 | Genau ein Status ist vorgegeben.                                                                       |
+| Evaluierungsabdeckung                      |             2/3 | Fünf Sollfälle beschrieben, aber kein echter historischer Fehler und keine Live-Ergebnisse.            |
+| Fehlalarmkontrolle                         |             1/3 | Finanzklassifikation, RLS-Ausnahme und unvollständige Funktionskörper sind noch nicht eindeutig genug. |
+| Referenzkonsistenz                         |             1/3 | Nummerierung fehlte; der zentrale Trigger muss weiterhin von Jan in `CLAUDE.md` gespeichert werden.    |
+| Lerneffekt für Jan                         |             3/3 | Risiko und kleinster nächster Schritt sind verständlich.                                               |
+| **Strukturscore**                          |       **25/30** | Solider Pilotentwurf, aber kein belegter Active-/Weltklasse-Status.                                    |
 
 **Was Weltklasse hier bedeutet:** 29–30/30 nach dem Workflow, zwei reproduzierbare frische Eval-Läufe, drei reale Shadow-Mode-Reviews, keine übersehenen Kernfehler, nachvollziehbare Fehlalarmquote und keine Rechteausweitung. Das ist ein Nachweisstandard, kein Etikett.
 
@@ -111,6 +111,7 @@ Do not reclassify a pre-existing issue outside the supplied files as a new findi
 **Status:** PASS | FINDING | BLOCKED
 
 ### Review manifest
+
 - Agent file: `.claude/agents/06_migration_security_guard.md` (v0.2.1 after promotion)
 - Review mode: production | evaluation
 - Changed migrations: <exact paths and new/full-file mode>
@@ -118,20 +119,23 @@ Do not reclassify a pre-existing issue outside the supplied files as a new findi
 - Limits: <files>/10, <lines>/1500
 
 ### Rule coverage
-| Rule | Applicable | Result | Evidence |
-| --- | --- | --- | --- |
-| SEC-DB-001 | yes/no | PASS/FINDING/BLOCKED | `<file>:<line>` |
-| SEC-DB-002 | yes/no | PASS/FINDING/BLOCKED | `<file>:<line>` |
-| SEC-DB-003 | yes/no | PASS/FINDING/BLOCKED | `<file>:<line>` |
-| SEC-DB-004 | yes/no | PASS/FINDING/BLOCKED | `<file>:<line>` |
+
+| Rule       | Applicable | Result               | Evidence        |
+| ---------- | ---------- | -------------------- | --------------- |
+| SEC-DB-001 | yes/no     | PASS/FINDING/BLOCKED | `<file>:<line>` |
+| SEC-DB-002 | yes/no     | PASS/FINDING/BLOCKED | `<file>:<line>` |
+| SEC-DB-003 | yes/no     | PASS/FINDING/BLOCKED | `<file>:<line>` |
+| SEC-DB-004 | yes/no     | PASS/FINDING/BLOCKED | `<file>:<line>` |
 
 ### Findings
+
 - `<RULE-ID>` · `CRITICAL|HIGH|MEDIUM|LOW` · `<file>:<line>`
   - Evidence: <what the SQL does>
   - Risk: <one plain-language sentence>
   - Minimal next step: <smallest safe correction or review>
 
 ### Scope boundary
+
 - Not checked: <tests, execution, remote state, or out-of-scope source>
 - Conclusion: <what this review proves and does not prove>
 ```

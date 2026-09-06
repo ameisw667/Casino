@@ -16,6 +16,18 @@ const nextConfig: NextConfig = {
     position: 'bottom-right',
   },
   allowedDevOrigins: ['localhost', '127.0.0.1', '192.168.178.34'],
+  async rewrites() {
+    return [
+      {
+        source: '/dice',
+        destination: '/games/dice',
+      },
+      {
+        source: '/dice/v2',
+        destination: '/games/dice',
+      },
+    ];
+  },
 };
 
 // org/project/authToken are read from SENTRY_ORG/SENTRY_PROJECT/SENTRY_AUTH_TOKEN

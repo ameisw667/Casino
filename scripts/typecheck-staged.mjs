@@ -19,7 +19,13 @@ import path from 'node:path';
 
 const require = createRequire(import.meta.url);
 
-const files = process.argv.slice(2).filter((f) => /\.(ts|tsx)$/.test(f));
+const files = process.argv
+  .slice(2)
+  .filter((f) => /\.(ts|tsx)$/.test(f))
+  // Agent-eval fixtures under .claude/agent-evals are intentionally broken
+  // (residue-scout evals import deliberately removed code) — they must never
+  // block a commit; see .claude/agent-evals/11_residue_scout/fixtures/.
+  .filter((f) => !f.replace(/\\/g, '/').replace(/^\.\//, '').includes('agent-evals/'));
 if (files.length === 0) {
   process.exit(0);
 }

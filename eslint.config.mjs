@@ -41,6 +41,33 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    // Scoped to src/ only — tests/**, scripts/**, and other Node/Playwright tooling outside
+    // the shipped app are legitimately console-based and are not covered by this rule.
+    // CasinoLogger (src/lib/casino/logger.ts) is the single sanctioned bridge to Sentry —
+    // a raw console.error/warn/log/info silently bypasses redaction and vanishes entirely
+    // in production (verified gap, fixed across 12 files in the 2026-09 Logger observability
+    // audit: docs/observability/03_logger_error_capture.md). console.debug stays allowed for
+    // lightweight, intentionally-ignorable dev-only instrumentation (e.g. perf-monitor.ts).
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      'no-console': ['error', { allow: ['debug'] }],
+    },
+  },
+  {
+    // The one file allowed to touch console directly — it IS the CasinoLogger/Sentry bridge.
+    files: ['src/lib/casino/logger.ts'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
+  {
+    // Internal QA/testing sandbox routes, not shipped production code paths.
+    files: ['src/app/testing/**/*.{ts,tsx}'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
+  {
     // WebGL (three/@react-three) ist auf die PULS-Sandbox beschränkt, damit die
     // 3D-Bundle-Größe niemals in App-Chunks landet (T_FRONTEND/02-4 §4.2).
     files: ['src/**/*.{ts,tsx}'],

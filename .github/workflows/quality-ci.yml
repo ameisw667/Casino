@@ -28,6 +28,16 @@ jobs:
       # tag (e.g. @v4) could be repointed to different code without this file changing; this is a
       # mechanical supply-chain hardening only, it does not reopen the frozen Q1-Q8 gate decisions.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      # Migration number collision backstop (T_DATABASE/01_migrations_disziplin L2, 2026-09-05):
+      # mirrors .husky/pre-commit, which is bypassable via --no-verify or GitHub web edits.
+      # Same command as the hook; fails the PR on a duplicate migration prefix. No secret needed.
+      - name: Migration number collision check
+        run: |
+          collisions=$(ls supabase/migrations | sed -E 's/_.*//' | sort | uniq -d)
+          if [ -n "$collisions" ]; then
+            echo "Migrations-Nummernkollision gefunden: $collisions" >&2
+            exit 1
+          fi
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: '.nvmrc'

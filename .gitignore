@@ -87,3 +87,6 @@ web/
 
 # remotion-ad: local Remotion experiment by Jan (own npm package, testing only)
 /remotion-ad/
+
+# shared skills (NTFS directory junction to v:/VibeCoding/.claude/skills)
+/xx_sop/shared/
