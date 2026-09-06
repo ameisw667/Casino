@@ -89,4 +89,7 @@ web/
 /remotion-ad/
 
 # shared skills (NTFS directory junction to v:/VibeCoding/.claude/skills)
-/xx_sop/shared//output/
+/xx_sop/shared/
+
+# image-generation scratch output (regenerable; committed generated assets live in public/generated/)
+/output/
