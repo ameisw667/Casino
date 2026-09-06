@@ -17,5 +17,5 @@
 ## 2 — Verzeichnis-Aufbau des Projekts
 
 - **[`worldmap/`](../worldmap/):** Feature-Roadmaps, APIs, MCPs und Integrationen.
-- **[`Z_FRONTEND/`](../Z_FRONTEND/):** Frontend-Elevation, UI/UX, Design-System und Animationen.
+- **`Z_FRONTEND/`:** Frontend-Elevation, UI/UX, Design-System und Animationen.
 - **[`Z_BUGS/`](./):** Bug-Testing, QA-Hierarchie, E2E-Browser-Verifikation und Production-Readiness.
