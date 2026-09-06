@@ -2,7 +2,7 @@
 
 > **Säule:** 9 von 9 · **Status:** 🟢 Produktionsreif · **Niveau:** 🟢 Top 8 % (siehe [Bewertungsmethode](00_OBSERVABILITY_OVERVIEW.md#1--executive-summary-für-jan-high-level--verständlich)) — **hochgestuft von Top 15 % am 2026-09-03 nach 10-Subkategorien-Audit** · **Stand:** 2026-09-03 (Code 1:1 verifiziert)
 > **Kern-Dateien:** `src/app/api/admin/analytics/route.ts`, `src/lib/admin/guide-observability.ts`, `src/app/admin/analytics/AnalyticsPageClient.tsx` · **Back:** [`00_OBSERVABILITY_OVERVIEW.md`](00_OBSERVABILITY_OVERVIEW.md)
-> **Verwandt, aber bewusst separater Scope:** Ein neues Job-Health-Panel (`GET /api/admin/job-health` + `AdminOverviewClient.tsx`) existiert seit 2026-09-02 auf `/admin` (nicht `/admin/analytics`) — Ergebnis der Nachbararbeit in [`worldmap/07_background_jobs_scheduling.md`](../../worldmap/07_background_jobs_scheduling.md). Dieses Modul bleibt bei seinem ursprünglichen `/admin/analytics`-Scope, verweist hier nur darauf.
+> **Verwandt, aber bewusst separater Scope:** Ein neues Job-Health-Panel (`GET /api/admin/job-health` + `AdminOverviewClient.tsx`) existiert seit 2026-09-02 auf `/admin` (nicht `/admin/analytics`) — Ergebnis der Nachbararbeit in [`T_BACKGROUND_JOBS_SCHEDULING/00_BACKGROUND_JOBS_SCHEDULING_UEBERSICHT.md`](../../T_BACKGROUND_JOBS_SCHEDULING/00_BACKGROUND_JOBS_SCHEDULING_UEBERSICHT.md). Dieses Modul bleibt bei seinem ursprünglichen `/admin/analytics`-Scope, verweist hier nur darauf.
 
 ---
 

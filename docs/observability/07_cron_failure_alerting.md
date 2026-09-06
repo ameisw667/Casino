@@ -2,7 +2,7 @@
 
 > **Säule:** 7 von 9 · **Status:** 🟢 Produktionsreif, 5 Alarmquellen über 1 gemeinsame SQL-Funktion abgedeckt · **Niveau:** 🟢 Top 10 % (siehe [Bewertungsmethode](00_OBSERVABILITY_OVERVIEW.md#1--executive-summary-für-jan-high-level--verständlich)) — **hochgestuft von Top 20 % am 2026-09-03 nach 10-Subkategorien-Audit** · **Stand:** 2026-09-03 (Code + alle Migrationen bis inkl. `060` 1:1 verifiziert)
 > **Kern-Datei:** `src/app/api/internal/cron-alert/route.ts` · **Back:** [`00_OBSERVABILITY_OVERVIEW.md`](00_OBSERVABILITY_OVERVIEW.md)
-> **Verwandt, aber bewusst separater Scope:** [`worldmap/07_background_jobs_scheduling.md`](../../worldmap/07_background_jobs_scheduling.md) — eine deutlich breitere, bereits abgeschlossene 10-Unterkategorien-Aufschlüsselung der **gesamten** Background-Jobs-Domäne (Trigger.dev-Architektur, Idempotenz, Retry-Ledger, Backfill, Testabdeckung). Dieses Modul hier bleibt bewusst auf den schmalen Next.js-Alarm-Callback selbst beschränkt — siehe Abschnitt 9 für die genaue Abgrenzung.
+> **Verwandt, aber bewusst separater Scope:** [`T_BACKGROUND_JOBS_SCHEDULING/00_BACKGROUND_JOBS_SCHEDULING_UEBERSICHT.md`](../../T_BACKGROUND_JOBS_SCHEDULING/00_BACKGROUND_JOBS_SCHEDULING_UEBERSICHT.md) — eine deutlich breitere, bereits abgeschlossene 10-Unterkategorien-Aufschlüsselung der **gesamten** Background-Jobs-Domäne (Trigger.dev-Architektur, Idempotenz, Retry-Ledger, Backfill, Testabdeckung). Dieses Modul hier bleibt bewusst auf den schmalen Next.js-Alarm-Callback selbst beschränkt — siehe Abschnitt 9 für die genaue Abgrenzung.
 
 ---
 
