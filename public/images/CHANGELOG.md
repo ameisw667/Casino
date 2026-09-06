@@ -1,0 +1,34 @@
+# Design-Assets Changelog
+
+- 2026-09-02 — `icon-dice-quantum-gold` v001 (1024x1024, medium, 1396726 B, sha256:f345c0f2, 41.9s, ~0.08 USD) → `2026-09-02_icon-dice-quantum-gold_v001.png`
+- 2026-09-03 — `hero-dice-quantum-gold` v001 (1536x1024, medium, 2028744 B, sha256:65b696a9, 36.3s, ~0.12 USD) → `2026-09-03_hero-dice-quantum-gold_v001.png`
+- 2026-09-03 — `hero-crash-quantum-gold` v001 (1536x1024, medium, 2478236 B, sha256:20eb7ab8, 32.7s, ~0.12 USD) → `2026-09-03_hero-crash-quantum-gold_v001.png`
+- 2026-09-03 — `hero-roulette-quantum-gold` v001 (1536x1024, medium, 2210887 B, sha256:617acf7e, 34.6s, ~0.12 USD) → `2026-09-03_hero-roulette-quantum-gold_v001.png`
+- 2026-09-04 — `hero-slots-quantum-gold` v001 (1536x1024, medium, 2342017 B, sha256:49af5e02, 40.1s, ~0.12 USD) → `2026-09-04_hero-slots-quantum-gold_v001.png`
+- 2026-09-04 — `hero-blackjack-quantum-gold` v001 (1536x1024, medium, 2263006 B, sha256:605f7dee, 38.5s, ~0.12 USD) → `2026-09-04_hero-blackjack-quantum-gold_v001.png`
+- 2026-09-04 — `hero-crash-multiplayer-quantum-gold` v001 (1536x1024, medium, 2443830 B, sha256:be9c4b53, 37.5s, ~0.12 USD) → `2026-09-04_hero-crash-multiplayer-quantum-gold_v001.png`
+- 2026-09-04 — `backdrop-dice-quantum-felt` v001 (1536x1024, medium, 1967942 B, sha256:cefda66f, 39.0s, ~0.12 USD) → `2026-09-04_backdrop-dice-quantum-felt_v001.png`
+- 2026-09-04 — `brand-ace-quantum-gold` v001 (1024x1024, medium, 1529256 B, sha256:4f347c60, 52.7s, ~0.08 USD) → `2026-09-04_brand-ace-quantum-gold_v001.png`
+- 2026-09-05 — `backdrop-crash-quantum-nebula` v001 (1536x1024, medium, 2307430 B, sha256:e3db8d92, 36.7s, ~0.12 USD) → `2026-09-05_backdrop-crash-quantum-nebula_v001.png`
+- 2026-09-05 — `crash-jet-quantum-gold` v001 (1024x1024, medium, 1594286 B, sha256:4c851351, 52.2s, ~0.08 USD) → `2026-09-05_crash-jet-quantum-gold_v001.png`
+- 2026-09-05 — `card-face-jack-quantum-gold` v001 (1024x1024, medium, 2193671 B, sha256:56cf65a1, 54.3s, ~0.08 USD) → `2026-09-05_card-face-jack-quantum-gold_v001.png`
+- 2026-09-05 — `card-face-queen-quantum-gold` v001 (1024x1024, medium, 2203664 B, sha256:19f2c015, 53.5s, ~0.08 USD) → `2026-09-05_card-face-queen-quantum-gold_v001.png`
+- 2026-09-05 — `card-face-king-quantum-gold` v001 (1024x1024, medium, 2376572 B, sha256:9ae54834, 53.5s, ~0.08 USD) → `2026-09-05_card-face-king-quantum-gold_v001.png`
+- 2026-09-05 — `felt-table-weave` v001 (1024x1024, medium, 1655605 B, sha256:9c48f0fd, 40.0s, ~0.08 USD) → `2026-09-05_felt-table-weave_v001.png`
+- 2026-09-05 — `seal-casino-royale-quantum-gold` v001 (1024x1024, medium, 1981626 B, sha256:89ca330e, 51.8s, ~0.08 USD) → `2026-09-05_seal-casino-royale-quantum-gold_v001.png`
+- 2026-09-05 — `avatar-obsidian-01` v001 (1024x1024, medium, 1888650 B, sha256:002552e3, 50.1s, ~0.08 USD) → `2026-09-05_avatar-obsidian-01_v001.png`
+- 2026-09-05 — `avatar-obsidian-03` v001 (1024x1024, medium, 1899716 B, sha256:7b1d8e46, 51.7s, ~0.08 USD) → `2026-09-05_avatar-obsidian-03_v001.png`
+- 2026-09-05 — `avatar-obsidian-04` v001 (1024x1024, medium, 1961440 B, sha256:df18a963, 51.7s, ~0.08 USD) → `2026-09-05_avatar-obsidian-04_v001.png`
+- 2026-09-05 — `ach-target-3d` v001 (1024x1024, medium, 1697973 B, sha256:85746c39, 46.9s, ~0.08 USD) → `2026-09-05_ach-target-3d_v001.png`
+- 2026-09-05 — `ach-jackpot-chest-3d` v001 (1024x1024, medium, 1979090 B, sha256:11fb51c2, 51.0s, ~0.08 USD) → `2026-09-05_ach-jackpot-chest-3d_v001.png`
+- 2026-09-05 — `ach-star-3d` v001 (1024x1024, medium, 1371960 B, sha256:5564d624, 47.6s, ~0.08 USD) → `2026-09-05_ach-star-3d_v001.png`
+- 2026-09-05 — `ach-crown-3d` v001 (1024x1024, medium, 1805608 B, sha256:1917a79e, 48.6s, ~0.08 USD) → `2026-09-05_ach-crown-3d_v001.png`
+- 2026-09-05 — `ach-flame-3d` v001 (1024x1024, medium, 1178056 B, sha256:f1d21f0d, 47.2s, ~0.08 USD) → `2026-09-05_ach-flame-3d_v001.png`
+- 2026-09-05 — `ach-dice-seven-3d` v001 (1024x1024, medium, 1713377 B, sha256:6bb1c80d, 46.6s, ~0.08 USD) → `2026-09-05_ach-dice-seven-3d_v001.png`
+- 2026-09-05 — `badge-level-up-gold` v001 (1024x1024, medium, 1837280 B, sha256:f3405d5e, 50.9s, ~0.08 USD) → `2026-09-05_badge-level-up-gold_v001.png`
+- 2026-09-05 — `trophy-tournament-gold` v001 (1024x1024, medium, 1468195 B, sha256:8c8ddc1c, 47.4s, ~0.08 USD) → `2026-09-05_trophy-tournament-gold_v001.png`
+- 2026-09-05 — `royale-guide-thinking` v001 (1024x1024, medium, 1392245 B, sha256:7ae2b6c0, 52.5s, ~0.08 USD) → `2026-09-05_royale-guide-thinking_v001.png`
+- 2026-09-05 — `avatar-obsidian-02` v001 (1024x1024, medium, 1812558 B, sha256:c8c7105c, 53.8s, ~0.08 USD) → `2026-09-05_avatar-obsidian-02_v001.png`
+- 2026-09-05 — `avatar-obsidian-06` v001 (1024x1024, medium, 1960744 B, sha256:b3e596fa, 48.5s, ~0.08 USD) → `2026-09-05_avatar-obsidian-06_v001.png`
+- 2026-09-05 — `avatar-obsidian-05` v001 (1024x1024, medium, 1890188 B, sha256:3bb619e9, 51.2s, ~0.08 USD) → `2026-09-05_avatar-obsidian-05_v001.png`
+- 2026-09-06 — `sidebar-icon-lobby` v001 (1024x1024, medium, 927442 B, sha256:2400a551, 35.7s, ~0.08 USD) → `2026-09-06_sidebar-icon-lobby_v001.png`

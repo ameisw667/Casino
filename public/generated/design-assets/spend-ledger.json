@@ -1,0 +1,31 @@
+{
+  "totalSpentUsd": 0.32,
+  "monthlySpentUsd": {
+    "2026-09": 0.32
+  },
+  "lifetimeCalls": 3,
+  "lastUpdated": "2026-09-03T20:30:49.621Z",
+  "history": [
+    {
+      "timestamp": "2026-09-02T19:59:33.374Z",
+      "name": "icon-dice-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-03T20:16:11.121Z",
+      "name": "hero-dice-quantum-gold",
+      "size": "1536x1024",
+      "quality": "medium",
+      "costUsd": 0.12
+    },
+    {
+      "timestamp": "2026-09-03T20:30:49.621Z",
+      "name": "hero-crash-quantum-gold",
+      "size": "1536x1024",
+      "quality": "medium",
+      "costUsd": 0.12
+    }
+  ]
+}

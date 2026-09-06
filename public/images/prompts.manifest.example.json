@@ -1,0 +1,29 @@
+[
+  {
+    "name": "hero-bg-crash",
+    "category": "hero",
+    "tags": ["game", "crash", "motion"],
+    "prompt": "abstract golden rocket trail streaking upward through dark smoke, motion blur",
+    "size": "1792x1024",
+    "quality": "high"
+  },
+  {
+    "name": "icon-dice-glow",
+    "category": "icon",
+    "tags": ["dice", "glowing", "3d"],
+    "prompt": "a pair of glowing {{accentColor}} dice mid-roll, isolated, dramatic rim light",
+    "variables": {
+      "accentColor": "golden"
+    },
+    "size": "1024x1024",
+    "quality": "medium"
+  },
+  {
+    "name": "vip-badge-diamond",
+    "category": "badge",
+    "tags": ["vip", "loyalty", "diamond"],
+    "prompt": "luxury diamond-shaped VIP badge icon, faceted gemstone, isolated on transparent-feeling dark background",
+    "size": "1024x1024",
+    "quality": "high"
+  }
+]

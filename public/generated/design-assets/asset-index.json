@@ -1,0 +1,44 @@
+{
+  "icon-dice-quantum-gold": {
+    "name": "icon-dice-quantum-gold",
+    "path": "/generated/design-assets/2026-09-02_icon-dice-quantum-gold_v001.png",
+    "version": "v001",
+    "updatedAt": "2026-09-02T19:59:33.374Z",
+    "size": "1024x1024",
+    "width": 1024,
+    "height": 1024,
+    "aspectRatio": "1/1",
+    "alt": "icon dice quantum gold asset",
+    "sha256": "f345c0f2b0ddf406b996486a4455824b3b33eb4e274d21f36dd8026527668f4f",
+    "bytes": 1396726,
+    "category": "icon"
+  },
+  "hero-dice-quantum-gold": {
+    "name": "hero-dice-quantum-gold",
+    "path": "/generated/design-assets/2026-09-03_hero-dice-quantum-gold_v001.png",
+    "version": "v001",
+    "updatedAt": "2026-09-03T20:16:11.121Z",
+    "size": "1536x1024",
+    "width": 1536,
+    "height": 1024,
+    "aspectRatio": "3/2",
+    "alt": "hero dice quantum gold asset",
+    "sha256": "65b696a9af5242e20d4eb6c15f3a83d87486693f2268b04119a5eecaee7a2d4f",
+    "bytes": 2028744,
+    "category": "hero"
+  },
+  "hero-crash-quantum-gold": {
+    "name": "hero-crash-quantum-gold",
+    "path": "/generated/design-assets/2026-09-03_hero-crash-quantum-gold_v001.png",
+    "version": "v001",
+    "updatedAt": "2026-09-03T20:30:49.621Z",
+    "size": "1536x1024",
+    "width": 1536,
+    "height": 1024,
+    "aspectRatio": "3/2",
+    "alt": "hero crash quantum gold asset",
+    "sha256": "20eb7ab87e173a85c7739f42b16520dce3e48205004472a860f82bf691aeea15",
+    "bytes": 2478236,
+    "category": "hero"
+  }
+}

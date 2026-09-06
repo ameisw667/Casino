@@ -1,0 +1,241 @@
+{
+  "totalSpentUsd": 3,
+  "monthlySpentUsd": {
+    "2026-09": 3
+  },
+  "lifetimeCalls": 33,
+  "lastUpdated": "2026-09-06T08:42:07.203Z",
+  "history": [
+    {
+      "timestamp": "2026-09-02T19:59:33.374Z",
+      "name": "icon-dice-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-03T20:16:11.121Z",
+      "name": "hero-dice-quantum-gold",
+      "size": "1536x1024",
+      "quality": "medium",
+      "costUsd": 0.12
+    },
+    {
+      "timestamp": "2026-09-03T20:30:49.621Z",
+      "name": "hero-crash-quantum-gold",
+      "size": "1536x1024",
+      "quality": "medium",
+      "costUsd": 0.12
+    },
+    {
+      "timestamp": "2026-09-03T20:38:55.502Z",
+      "name": "hero-roulette-quantum-gold",
+      "size": "1536x1024",
+      "quality": "medium",
+      "costUsd": 0.12
+    },
+    {
+      "timestamp": "2026-09-04T18:54:07.358Z",
+      "name": "hero-slots-quantum-gold",
+      "size": "1536x1024",
+      "quality": "medium",
+      "costUsd": 0.12
+    },
+    {
+      "timestamp": "2026-09-04T18:55:10.952Z",
+      "name": "hero-blackjack-quantum-gold",
+      "size": "1536x1024",
+      "quality": "medium",
+      "costUsd": 0.12
+    },
+    {
+      "timestamp": "2026-09-04T18:56:15.673Z",
+      "name": "hero-crash-multiplayer-quantum-gold",
+      "size": "1536x1024",
+      "quality": "medium",
+      "costUsd": 0.12
+    },
+    {
+      "timestamp": "2026-09-04T18:59:20.266Z",
+      "name": "backdrop-dice-quantum-felt",
+      "size": "1536x1024",
+      "quality": "medium",
+      "costUsd": 0.12
+    },
+    {
+      "timestamp": "2026-09-04T20:25:36.200Z",
+      "name": "brand-ace-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T15:16:10.716Z",
+      "name": "backdrop-crash-quantum-nebula",
+      "size": "1536x1024",
+      "quality": "medium",
+      "costUsd": 0.12
+    },
+    {
+      "timestamp": "2026-09-05T16:08:51.453Z",
+      "name": "backdrop-royale-guide-obsidian-velvet",
+      "size": "1536x1024",
+      "quality": "medium",
+      "costUsd": 0.12
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "crash-jet-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "card-face-jack-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "card-face-queen-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "card-face-king-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "felt-table-weave",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "seal-casino-royale-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "avatar-obsidian-01",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "avatar-obsidian-03",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "avatar-obsidian-04",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "ach-target-3d",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "ach-jackpot-chest-3d",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "ach-star-3d",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "ach-crown-3d",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "ach-flame-3d",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "ach-dice-seven-3d",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "badge-level-up-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "trophy-tournament-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:34:35.645Z",
+      "name": "royale-guide-thinking",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T19:51:36.976Z",
+      "name": "avatar-obsidian-02",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T21:59:19.774Z",
+      "name": "avatar-obsidian-06",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-05T22:01:20.745Z",
+      "name": "avatar-obsidian-05",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-06T08:42:07.203Z",
+      "name": "sidebar-icon-lobby",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    }
+  ]
+}
