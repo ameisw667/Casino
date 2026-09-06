@@ -7,7 +7,11 @@ const setBoolean = (() => undefined) as React.Dispatch<React.SetStateAction<bool
 
 function renderSidebar(pathname: string) {
   const menuItems = [
-    { label: 'Lobby', path: '/' },
+    {
+      label: 'Lobby',
+      path: '/',
+      imageSrc: '/images/2026-09-06_sidebar-icon-lobby_v001.png',
+    },
     { label: 'Games', path: '/games' },
     { label: 'My Bets', path: '/history' },
     { label: 'Leaderboard', path: '/leaderboard' },
@@ -43,5 +47,13 @@ describe('MainSidebar', () => {
     expect(markup).toContain('width:240px');
     expect(markup).not.toContain('Collapse sidebar');
     expect(markup).not.toContain('Expand sidebar');
+  });
+
+  it('renders only the approved lobby pilot image alongside its text label', () => {
+    const markup = renderSidebar('/');
+
+    expect(markup).toContain('data-sidebar-nav-image');
+    expect(markup).toContain('2026-09-06_sidebar-icon-lobby_v001.png');
+    expect(markup.match(/data-sidebar-nav-image/g) ?? []).toHaveLength(1);
   });
 });

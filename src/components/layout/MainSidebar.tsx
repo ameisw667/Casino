@@ -10,6 +10,7 @@ import { ConsentBanner } from '@/components/analytics/ConsentBanner';
 export interface MenuItem {
   label: string;
   path: string;
+  imageSrc?: string;
   onClick?: () => void;
 }
 
@@ -266,6 +267,27 @@ export function MainSidebar({
                     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
                 >
+                  {item.imageSrc && (
+                    <span
+                      data-sidebar-nav-image
+                      aria-hidden="true"
+                      style={{
+                        width: '22px',
+                        height: '22px',
+                        position: 'relative',
+                        flexShrink: 0,
+                        opacity: active ? 0.78 : 0.46,
+                      }}
+                    >
+                      <Image
+                        src={item.imageSrc}
+                        alt=""
+                        fill
+                        sizes="22px"
+                        style={{ objectFit: 'contain' }}
+                      />
+                    </span>
+                  )}
                   <span>{item.label}</span>
                 </button>
                 {isSettings && (

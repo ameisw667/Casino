@@ -302,7 +302,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const nextLevelXp = Math.pow(level, 2) * 100;
   const progress = Math.min(100, (xp / nextLevelXp) * 100);
   const menuItems: MenuItem[] = [
-    { label: 'Lobby', path: '/' },
+    {
+      label: 'Lobby',
+      path: '/',
+      imageSrc: '/images/2026-09-06_sidebar-icon-lobby_v001.png',
+    },
     { label: 'Games', path: '/games' },
     { label: 'My Bets', path: '/history' },
     { label: 'Leaderboard', path: '/leaderboard' },
