@@ -7,8 +7,10 @@ import type { RiskEventInput, RiskSeverity } from './risk-signals';
 
 // All thresholds are first-pass defaults pending calibration against historical bet data
 // (matches R11 in worldmap/05_ZUKUNFTSPLANUNG.md's risk register) — not derived from a formal model.
-const BET_VELOCITY_WINDOW_MINUTES = 10;
-const BET_VELOCITY_MIN_BETS = 30;
+// Exported so the realtime in-request counter (src/lib/security/bet-velocity-guard.ts,
+// 06_1 L5) can share the exact same threshold/window instead of a drifting copy.
+export const BET_VELOCITY_WINDOW_MINUTES = 10;
+export const BET_VELOCITY_MIN_BETS = 30;
 const MULTI_ACCOUNT_WINDOW_HOURS = 24;
 const MULTI_ACCOUNT_MIN_CLUSTER = 3;
 const MULTI_ACCOUNT_CLUSTER_MEDIUM = 5;

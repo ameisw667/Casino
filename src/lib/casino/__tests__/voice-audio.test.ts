@@ -1,4 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+// The route module now transitively imports 'server-only' (06_1 L2 daily cost cap) and
+// cannot be imported from a client-context test without this established repo mock.
+vi.mock('server-only', () => ({}));
+
 import { cleanMarkdownForSpeech } from '@/app/api/chat/voice-synthesize/route';
 import { isAudioRecordingSupported } from '../voice-audio';
 

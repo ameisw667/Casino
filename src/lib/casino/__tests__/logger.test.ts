@@ -80,3 +80,39 @@ describe('CasinoLogger.error Sentry integration', () => {
     spy.mockRestore();
   });
 });
+
+describe('CasinoLogger.warn Sentry integration', () => {
+  beforeEach(() => {
+    captureException.mockReset();
+    captureMessage.mockReset();
+  });
+
+  it('always forwards to Sentry as a warning-level message, even outside development (test env is non-dev)', () => {
+    CasinoLogger.warn('GAME_CONFIG', 'Redis L2 read failed, falling back to Supabase');
+
+    expect(captureMessage).toHaveBeenCalledWith('Redis L2 read failed, falling back to Supabase', {
+      level: 'warning',
+      tags: { module: 'GAME_CONFIG' },
+    });
+  });
+
+  it('never throws when the Sentry SDK itself throws during a warning', () => {
+    captureMessage.mockImplementation(() => {
+      throw new Error('SDK exploded');
+    });
+
+    expect(() => CasinoLogger.warn('GAME_CONFIG', 'Redis L2 read failed')).not.toThrow();
+  });
+
+  it('never calls captureException for a warning, regardless of a data payload', () => {
+    CasinoLogger.warn('GAME_CONFIG', 'Redis L2 read failed', new Error('underlying cause'));
+    expect(captureException).not.toHaveBeenCalled();
+  });
+
+  it('does not log to console outside development (test env is non-dev)', () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    CasinoLogger.warn('GAME_CONFIG', 'Redis L2 read failed');
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+});

@@ -148,8 +148,9 @@ describe('WalletService.settleBet', () => {
       p_payout: 19,
       p_xp_gain: 5,
       p_result: { roll: 42 },
-      p_server_seed_hash: null,
-      p_nonce: null,
+      // undefined (statt null) → postgrest-js lässt das Feld weg → SQL-DEFAULT NULL.
+      p_server_seed_hash: undefined,
+      p_nonce: undefined,
     });
   });
 

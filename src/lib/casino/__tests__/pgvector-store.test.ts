@@ -85,6 +85,34 @@ describe('pgvector Guide Knowledge Store', () => {
     expect(docs[0]?.title).toBe('Crash Game');
   });
 
+  it('parses a real pgvector literal back to the full number array (regression: bracket-strip regex must not truncate first/last component)', async () => {
+    mockFrom.mockReturnValueOnce({
+      select: vi.fn().mockReturnValueOnce({
+        order: vi.fn().mockResolvedValueOnce({
+          data: [
+            {
+              id: 'doc-vec',
+              slug: 'doc-vec-slug',
+              topic: 'blackjack',
+              title: 'Vec Doc',
+              content: 'content',
+              tags: ['blackjack'],
+              version: '2026-09-05',
+              embedding: '[0.1,0.23,-0.456]',
+              is_active: true,
+              created_at: '2026-09-05T00:00:00Z',
+              updated_at: '2026-09-05T00:00:00Z',
+            },
+          ],
+          error: null,
+        }),
+      }),
+    });
+
+    const docs = await listAdminGuideDocuments();
+    expect(docs[0]?.embedding).toEqual([0.1, 0.23, -0.456]);
+  });
+
   it('upserts admin guide document into Supabase', async () => {
     const mockUpsert = vi.fn().mockResolvedValueOnce({ error: null });
     mockFrom.mockReturnValueOnce({

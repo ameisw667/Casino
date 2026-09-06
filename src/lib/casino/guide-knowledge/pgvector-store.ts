@@ -31,6 +31,25 @@ export type MatchedDbDocument = {
 };
 
 /**
+ * pgvector wird von PostgREST als String-Literal ("[0.1,0.2,…]") transportiert —
+ * der generierte Datenbank-Typ mappt die Spalte daher auf string, während der
+ * App-Typ number[] nutzt. Diese beiden Helfer koppeln die Welten deterministisch.
+ */
+function toPgVectorLiteral(embedding: number[]): string {
+  return `[${embedding.join(',')}]`;
+}
+
+function fromPgVectorLiteral(raw: string | null): number[] | null {
+  if (!raw) return null;
+  const parsed = raw
+    .replace(/[\[\]]/g, '')
+    .split(',')
+    .map((value) => Number(value.trim()))
+    .filter((value) => Number.isFinite(value));
+  return parsed.length > 0 ? parsed : null;
+}
+
+/**
  * Generates an OpenAI 1536-dimensional embedding vector for pgvector storage.
  */
 export async function generateOpenAiEmbedding1536(text: string): Promise<number[] | null> {
@@ -78,7 +97,7 @@ export async function searchDatabaseDocuments(
   try {
     const supabase = createAdminClient();
     const { data, error } = await supabase.rpc('match_guide_documents', {
-      query_embedding: queryEmbedding,
+      query_embedding: toPgVectorLiteral(queryEmbedding),
       match_threshold: matchThreshold,
       match_count: matchCount,
     });
@@ -126,10 +145,14 @@ export async function listAdminGuideDocuments(): Promise<DbGuideDocument[]> {
       .order('updated_at', { ascending: false });
 
     if (!error && Array.isArray(data) && data.length > 0) {
+      const dbDocuments = data.map((row) => ({
+        ...row,
+        embedding: fromPgVectorLiteral(row.embedding),
+      }));
       // Merge with memory store if any exists
-      const dbIds = new Set(data.map((d: DbGuideDocument) => d.id));
+      const dbIds = new Set(dbDocuments.map((d) => d.id));
       const memoryExtras = Array.from(memoryStoreCache.values()).filter((d) => !dbIds.has(d.id));
-      return [...data, ...memoryExtras] as DbGuideDocument[];
+      return [...dbDocuments, ...memoryExtras] as DbGuideDocument[];
     }
 
     if (memoryStoreCache.size > 0) {
@@ -180,7 +203,10 @@ export async function upsertAdminGuideDocument(input: {
 
   try {
     const supabase = createAdminClient();
-    const { error } = await supabase.from('guide_documents').upsert(payload);
+    const { error } = await supabase.from('guide_documents').upsert({
+      ...payload,
+      embedding: payload.embedding ? toPgVectorLiteral(payload.embedding) : null,
+    });
     if (error) {
       CasinoLogger.error(
         'PgVectorStore',

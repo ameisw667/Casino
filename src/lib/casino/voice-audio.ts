@@ -299,6 +299,14 @@ export async function playSynthesizedAudio(
     });
 
     if (!res.ok) {
+      if (res.status === 429) {
+        const errData = (await res.json().catch(() => null)) as {
+          error?: { code?: string };
+        } | null;
+        if (errData?.error?.code === 'DAILY_COST_CAP_REACHED') {
+          throw new Error('Tageslimit der Sprachausgabe erreicht. Versuch es morgen wieder.');
+        }
+      }
       throw new Error(`Sprachausgabe fehlgeschlagen (HTTP ${res.status})`);
     }
 
@@ -326,6 +334,71 @@ export async function playSynthesizedAudio(
     stopActiveAudioPlayback();
     onError?.(error instanceof Error ? error : new Error('Sprachsynthese fehlgeschlagen'));
     return () => {};
+  }
+}
+
+/**
+ * Returns the currently active microphone MediaStream, if any.
+ */
+export function getActiveAudioStream(): MediaStream | null {
+  return activeAudioStream;
+}
+
+export interface AudioStreamAnalyserHandle {
+  analyser: AnalyserNode;
+  audioContext: AudioContext;
+  getFrequencyData: (dataArray: Uint8Array) => void;
+  cleanup: () => void;
+}
+
+/**
+ * Attaches a Web Audio API AnalyserNode to a MediaStream for real-time FFT frequency analysis.
+ */
+export function createAudioStreamAnalyser(
+  stream: MediaStream,
+  fftSize = 64,
+): AudioStreamAnalyserHandle | null {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+
+    if (!AudioContextClass) return null;
+
+    const audioContext = new AudioContextClass();
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = fftSize;
+    analyser.smoothingTimeConstant = 0.8;
+
+    const source = audioContext.createMediaStreamSource(stream);
+    source.connect(analyser);
+
+    if (audioContext.state === 'suspended') {
+      void audioContext.resume();
+    }
+
+    return {
+      analyser,
+      audioContext,
+      getFrequencyData: (dataArray: Uint8Array) => {
+        analyser.getByteFrequencyData(dataArray as unknown as Uint8Array<ArrayBuffer>);
+      },
+      cleanup: () => {
+        try {
+          source.disconnect();
+          analyser.disconnect();
+          if (audioContext.state !== 'closed') {
+            void audioContext.close();
+          }
+        } catch {
+          // Ignore
+        }
+      },
+    };
+  } catch {
+    return null;
   }
 }
 

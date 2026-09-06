@@ -112,9 +112,18 @@ class SoundManager {
     this.updateVolumes();
   }
 
+  /**
+   * Logarithmic perception curve: human ear perceives volume logarithmically.
+   * Squaring provides a smooth and natural acoustic decay curve.
+   */
+  public getLogarithmicGain(): number {
+    return Math.pow(this.volume, 2);
+  }
+
   private updateVolumes() {
+    const effectiveVol = this.getLogarithmicGain();
     Object.values(this.sounds).forEach((s) => {
-      s.volume = this.volume;
+      s.volume = effectiveVol;
     });
   }
 
@@ -160,12 +169,13 @@ class SoundManager {
       const startTime = ctx.currentTime;
       const duration = 0.012; // 12ms soft micro-chirp
 
-      // Gentle pitch slide for a clean, non-intrusive UI tick
-      osc.frequency.setValueAtTime(1200, startTime);
-      osc.frequency.exponentialRampToValueAtTime(500, startTime + duration);
+      // Gentle pitch variation (+/- 4%) for acoustic naturalness without fatigue
+      const pitchVariance = 1 + (Math.random() * 0.08 - 0.04);
+      osc.frequency.setValueAtTime(1200 * pitchVariance, startTime);
+      osc.frequency.exponentialRampToValueAtTime(500 * pitchVariance, startTime + duration);
 
-      // Very soft peak volume (proportional to sound settings)
-      const peakVol = Math.max(0.001, Math.min(0.04, 0.04 * this.volume));
+      // Very soft peak volume (logarithmically proportional to sound settings)
+      const peakVol = Math.max(0.001, Math.min(0.04, 0.04 * this.getLogarithmicGain()));
       gain.gain.setValueAtTime(peakVol, startTime);
       gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
 

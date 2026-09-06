@@ -43,9 +43,24 @@ describe('DEFAULT_ACHIEVEMENT_CONFIGS', () => {
   it('every achievement has at least one condition and a positive total', () => {
     for (const config of DEFAULT_ACHIEVEMENT_CONFIGS) {
       expect(config.conditions.length).toBeGreaterThan(0);
+
       expect(config.total).toBeGreaterThan(0);
     }
   });
+});
+it('uses the six locally generated 3D motifs instead of emoji fallbacks', () => {
+  const iconById = Object.fromEntries(
+    DEFAULT_ACHIEVEMENT_CONFIGS.map((config) => [config.id, config.icon]),
+  );
+  expect(iconById).toMatchObject({
+    first_bet: '/images/ach-target-3d.png',
+    big_win: '/images/ach-jackpot-chest-3d.png',
+    level_10: '/images/ach-star-3d.png',
+    level_50: '/images/ach-crown-3d.png',
+    daily_grinder: '/images/ach-flame-3d.png',
+    lucky_seven: '/images/ach-dice-seven-3d.png',
+  });
+  expect(Object.values(iconById).every((icon) => icon.startsWith('/images/'))).toBe(true);
 });
 
 describe('normalizeAchievementVisibility', () => {
@@ -135,7 +150,7 @@ describe('mergeAchievementsWithConfig', () => {
     expect(grinder.unlocked).toBe(true);
     expect(grinder.progress).toBe(50);
     expect(grinder.title).toBe('The Grinder');
-    expect(grinder.icon).toBe('🔥');
+    expect(grinder.icon).toBe('/images/ach-flame-3d.png');
   });
 
   it('drops inactive configs and sorts by sortOrder', () => {
@@ -171,7 +186,7 @@ describe('getAchievementPresentation', () => {
 
     expect(getAchievementPresentation({ ...secret, unlocked: true, progress: 7 })).toEqual({
       isMystery: false,
-      icon: '🎰',
+      icon: '/images/ach-dice-seven-3d.png',
       title: 'Lucky Seven',
       description: 'Hit a 7x multiplier in Dice',
       showProgress: false,

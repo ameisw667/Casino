@@ -1,6 +1,7 @@
 import { logger, schedules } from '@trigger.dev/sdk';
 import { computeAdminAnalyticsFromDb } from '../lib/admin/analytics-source';
 import { createAdminClient } from '../utils/supabase/admin';
+import { toJsonValue } from '../lib/casino/json-value';
 
 export const adminAnalyticsSnapshot = schedules.task({
   id: 'admin-analytics-snapshot',
@@ -17,7 +18,7 @@ export const adminAnalyticsSnapshot = schedules.task({
     const { error } = await admin.from('admin_analytics_snapshots').upsert(
       {
         id: 1,
-        payload: analytics,
+        payload: toJsonValue(analytics),
         generated_at: analytics.generatedAt,
       },
       { onConflict: 'id' },

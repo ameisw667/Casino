@@ -2,6 +2,7 @@ import 'server-only';
 
 import { createAdminClient } from '@/utils/supabase/admin';
 import { CasinoLogger } from './logger';
+import { toJsonValue } from './json-value';
 import { buildRiskEvent, type RiskEventInput } from './risk-signals';
 
 /**
@@ -18,7 +19,7 @@ export async function recordRiskEventBestEffort(input: RiskEventInput): Promise<
       p_severity: event.severity,
       p_fingerprint: event.fingerprint,
       p_window_start: event.windowStart,
-      p_evidence: event.evidence,
+      p_evidence: toJsonValue(event.evidence),
     });
     if (error) {
       CasinoLogger.error('RiskEvents', 'Risk event could not be recorded', error);

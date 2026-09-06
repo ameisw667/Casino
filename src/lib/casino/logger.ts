@@ -18,8 +18,15 @@ export class CasinoLogger {
   }
 
   static warn(module: string, message: string, data?: unknown) {
-    if (!this.isDev) return;
-    console.warn(`[${module}] ⚠️ ${message}`, data || '');
+    if (this.isDev) {
+      console.warn(`[${module}] ⚠️ ${message}`, data || '');
+    }
+
+    try {
+      Sentry.captureMessage(message, { level: 'warning', tags: { module } });
+    } catch {
+      // A Sentry SDK failure must never break the caller's warning path.
+    }
   }
 
   static error(module: string, message: string, error?: unknown, requestId?: string) {

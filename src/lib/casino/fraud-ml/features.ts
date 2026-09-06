@@ -4,6 +4,10 @@
 // (see worldmap/09_ML_FRAUD_ANOMALY.md), so the caller constructs and injects the Supabase
 // client instead — same convention as scripts/economy-audit.ts.
 import type { SupabaseClient } from '@supabase/supabase-js';
+// CasinoLogger only imports '@sentry/nextjs' (no 'server-only' sentinel), verified safe to
+// import from this CLI-only module (empirically confirmed via `npx tsx` outside the Next.js
+// build context — see the console.error-migration in the Logger observability audit).
+import { CasinoLogger } from '../logger';
 
 const FEATURE_WINDOW_DAYS = 7;
 const MIN_BETS_FOR_FEATURES = 20;
@@ -78,7 +82,7 @@ export async function fetchFraudMlFeatures(client: SupabaseClient): Promise<Frau
     p_min_bets: MIN_BETS_FOR_FEATURES,
   });
   if (error) {
-    console.error('[FraudMl] Feature query failed', error);
+    CasinoLogger.error('FraudMl', 'Feature query failed', error);
     return [];
   }
 

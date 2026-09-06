@@ -3,6 +3,7 @@ import { createAdminClient } from '@/utils/supabase/admin';
 import { type WalletSnapshot, walletSnapshotSchema } from './wallet-contract';
 import { CasinoLogger } from './logger';
 import { ProvablyFairEngine } from './provably-fair';
+import { toJsonValue } from './json-value';
 import {
   dailyRaceStandingSchema,
   secondsUntilNextUtcMidnight,
@@ -11,6 +12,11 @@ import {
 
 const ZERO_TRANSACTION_ID = '00000000-0000-0000-0000-000000000000';
 
+// Vertragsquelle für die Geld-RPC-Rückgaben (Säule 6 L5): settle_game_bet / start_game_round /
+// advance_blackjack_round haben alle `RETURNS jsonb` — der generierte Typ ist daher nur `Json`
+// (Typegen kann die innere jsonb-Struktur nicht introspektieren). Die Zod-Schemas unten sind die
+// engere, verbindliche Wahrheit; `data` ist seit der Database-Bindung nicht-any (`Json`) und wird
+// hier strukturell verengt, fail-closed bei jeder Abweichung.
 const rpcWalletSchema = z.object({
   balance: z.coerce.number().finite().nonnegative(),
   xp: z.coerce.number().int().nonnegative(),
@@ -124,9 +130,10 @@ export class WalletService {
       p_amount: params.amount,
       p_payout: params.payout,
       p_xp_gain: params.xpGain,
-      p_result: params.result,
-      p_server_seed_hash: params.serverSeedHash ?? null,
-      p_nonce: params.nonce ?? null,
+      p_result: toJsonValue(params.result),
+      // undefined → supabase-js lässt das Feld weg → SQL-DEFAULT NULL greift.
+      p_server_seed_hash: params.serverSeedHash,
+      p_nonce: params.nonce,
     });
     if (error) {
       if (error.message.includes('Insufficient')) throw new Error('Insufficient balance');
@@ -174,7 +181,7 @@ export class WalletService {
       p_request_id: params.requestId,
       p_game: params.game,
       p_amount: params.amount,
-      p_state: params.state,
+      p_state: toJsonValue(params.state),
     });
     if (error) {
       if (error.message.includes('Insufficient')) throw new Error('Insufficient balance');
@@ -221,6 +228,65 @@ export class WalletService {
       version: Number(data.version),
     };
   }
+
+  static async autoReconcileStaleCrashRound(userId: string): Promise<boolean> {
+    const supabase = createAdminClient();
+    const { data: round } = await supabase
+      .from('game_rounds')
+      .select('id, created_at')
+      .eq('user_id', userId)
+      .eq('game', 'CRASH')
+      .eq('status', 'ACTIVE')
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (!round) return false;
+
+    const ageMs = Date.now() - Date.parse(round.created_at);
+    // Solo crash flight ceiling is < 30s. Any active round older than 30s is abandoned.
+    if (ageMs > 30_000) {
+      try {
+        const resultId = crypto.randomUUID();
+        const { error: settleError } = await supabase.rpc('settle_game_round', {
+          p_user_id: userId,
+          p_round_id: round.id,
+          p_request_id: crypto.randomUUID(),
+          p_result_id: resultId,
+          p_payout: 0,
+          p_xp_gain: 0,
+          p_result: {
+            id: resultId,
+            game: 'CRASH',
+            win: false,
+            payout: 0,
+            multiplier: 0,
+            crashPoint: 1.0,
+          },
+        });
+        // supabase-js wirft bei RPC-Fehlern nicht — ein racing Settlement (z. B. concurrent
+        // RESOLVE_CRASH) kommt hier als error an. Fail-closed: als Misserfolg melden statt
+        // einen falschen "Auto-reconciled"-Erfolg zu loggen.
+        if (settleError) {
+          CasinoLogger.warn(
+            'WalletService',
+            `Auto-reconcile settlement for crash round ${round.id} failed`,
+            settleError,
+          );
+          return false;
+        }
+        CasinoLogger.info(
+          'WalletService',
+          `Auto-reconciled stale crash round ${round.id} for user ${userId}`,
+        );
+        return true;
+      } catch (err) {
+        CasinoLogger.error('WalletService', 'Failed to auto-reconcile stale crash round', err);
+        return false;
+      }
+    }
+    return false;
+  }
   /**
    * Progressive-jackpot trigger roll for a persisted CRASH/BLACKJACK round
    * (worldmap/01_LiveProgressiveJackpot.md, L3). Reads the round's raw
@@ -258,7 +324,7 @@ export class WalletService {
       p_result_id: params.resultId,
       p_payout: params.payout,
       p_xp_gain: params.xpGain,
-      p_result: params.result,
+      p_result: toJsonValue(params.result),
     });
     if (error) {
       if (error.message.includes('Insufficient')) throw new Error('Insufficient balance');
@@ -286,12 +352,12 @@ export class WalletService {
       p_request_id: params.requestId,
       p_result_id: params.resultId,
       p_expected_version: params.expectedVersion,
-      p_new_state: params.state,
+      p_new_state: toJsonValue(params.state),
       p_additional_bet: params.additionalBet,
       p_settled: params.settled,
       p_payout: params.payout,
       p_xp_gain: params.xpGain,
-      p_result: params.result,
+      p_result: toJsonValue(params.result),
     });
     if (error) {
       if (error.message.includes('Insufficient')) throw new Error('Insufficient balance');

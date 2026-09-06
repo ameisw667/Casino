@@ -84,7 +84,8 @@ async function callSync(config: GameConfig, crashedAtIso?: string) {
   const { data, error } = await supabase.rpc('sync_crash_round', {
     p_betting_window_ms: config.crash.bettingWindowMs,
     p_post_crash_pause_ms: config.crash.postCrashPauseMs,
-    p_crashed_at: crashedAtIso ?? null,
+    // undefined → supabase-js lässt das Feld weg → SQL-DEFAULT NULL greift.
+    p_crashed_at: crashedAtIso,
   });
   if (error || !data) throw new Error('Failed to sync crash round');
   return fromRow(crashRoundRowSchema.parse(data));

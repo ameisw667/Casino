@@ -39,6 +39,7 @@ export async function requestCasinoGuideAnswerStream(
   // Turn 1: Check if structured live player tools are needed
   let toolContextExtra = '';
   let uiAction: { type: string; target?: string; label: string } | null = null;
+  const executedToolNames: string[] = [];
   try {
     const toolCheckRequest = await buildCasinoGuideRequest(message, history, image, persona);
     const turn1Res = await fetch(toolCheckRequest.url, toolCheckRequest.init);
@@ -47,6 +48,7 @@ export async function requestCasinoGuideAnswerStream(
       const toolCalls = getGuideFunctionCalls(turn1Payload);
       if (toolCalls.length > 0) {
         for (const call of toolCalls) {
+          executedToolNames.push(call.name);
           if (call.name === 'trigger_ui_action') {
             uiAction = {
               type:
@@ -115,6 +117,13 @@ export async function requestCasinoGuideAnswerStream(
     const encoder = new TextEncoder();
     const fallbackStream = new ReadableStream<Uint8Array>({
       start(controller) {
+        if (executedToolNames.length > 0) {
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ toolCall: executedToolNames[0], tools: executedToolNames })}\n\n`,
+            ),
+          );
+        }
         if (uiAction) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ action: uiAction })}\n\n`));
         }
@@ -151,6 +160,13 @@ export async function requestCasinoGuideAnswerStream(
     const encoder = new TextEncoder();
     const fallbackStream = new ReadableStream<Uint8Array>({
       start(controller) {
+        if (executedToolNames.length > 0) {
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ toolCall: executedToolNames[0], tools: executedToolNames })}\n\n`,
+            ),
+          );
+        }
         if (uiAction) {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ action: uiAction })}\n\n`));
         }
@@ -183,6 +199,13 @@ export async function requestCasinoGuideAnswerStream(
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
+      if (executedToolNames.length > 0) {
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({ toolCall: executedToolNames[0], tools: executedToolNames })}\n\n`,
+          ),
+        );
+      }
       if (uiAction) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ action: uiAction })}\n\n`));
       }

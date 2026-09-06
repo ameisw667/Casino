@@ -8,6 +8,10 @@ import { buildRiskEvent } from '../risk-signals';
 import { fetchFraudMlFeatures, toFeatureVector } from './features';
 import { buildIsolationForest, scoreSample } from './isolation-forest';
 import type { RiskSeverity } from '../risk-signals';
+// CasinoLogger only imports '@sentry/nextjs' (no 'server-only' sentinel), verified safe to
+// import from this CLI-only module (empirically confirmed via `npx tsx` outside the Next.js
+// build context — see the console.error-migration in the Logger observability audit).
+import { CasinoLogger } from '../logger';
 
 // Below this, an isolation forest has too few points per split to produce a meaningful score —
 // the scan skips cleanly instead of emitting noise from a handful of samples.
@@ -95,12 +99,12 @@ async function recordMlAnomalyEvent(
     });
 
     if (error) {
-      console.error('[FraudMl] Risk event could not be recorded', error);
+      CasinoLogger.error('FraudMl', 'Risk event could not be recorded', error);
       return false;
     }
     return true;
   } catch (error) {
-    console.error('[FraudMl] Risk event recording failed open', error);
+    CasinoLogger.error('FraudMl', 'Risk event recording failed open', error);
     return false;
   }
 }
@@ -110,7 +114,7 @@ export async function runFraudMlScan(client: SupabaseClient): Promise<FraudMlSca
 
   if (rows.length < MIN_USERS_FOR_SCAN) {
     const skippedReason = `Only ${rows.length} user(s) met the feature window threshold, need at least ${MIN_USERS_FOR_SCAN}`;
-    console.log(`[FraudMl] ${skippedReason}`);
+    CasinoLogger.info('FraudMl', skippedReason);
     return { usersScored: 0, eventsRecorded: 0, skippedReason };
   }
 
