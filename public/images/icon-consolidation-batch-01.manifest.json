@@ -1,0 +1,50 @@
+[
+  {
+    "name": "icon-ai-guide-quantum-gold",
+    "category": "icon",
+    "background": "transparent",
+    "size": "1024x1024",
+    "quality": "medium",
+    "prompt": "a single stylized compass rose fused with a faceted diamond core at its center, four sharp radiant light beams extending outward from the diamond, symbolizing an intelligent guiding assistant, precise geometric facets"
+  },
+  {
+    "name": "icon-promo-bonus-quantum-gold",
+    "category": "icon",
+    "background": "transparent",
+    "size": "1024x1024",
+    "quality": "medium",
+    "prompt": "a bursting cluster of stacked gold coins with radiant spark bursts exploding outward from the center, symbolizing a jackpot bonus reward, dynamic upward motion"
+  },
+  {
+    "name": "icon-hud-sidebar-badge-quantum-gold",
+    "category": "icon",
+    "background": "transparent",
+    "size": "1024x1024",
+    "quality": "medium",
+    "prompt": "a stylized angular lightning bolt fused into a hexagonal control-panel emblem frame, sharp geometric facets, symbolizing an active game-control hub badge"
+  },
+  {
+    "name": "icon-trophy-win-quantum-gold",
+    "category": "icon",
+    "background": "transparent",
+    "size": "1024x1024",
+    "quality": "medium",
+    "prompt": "a single classic winners trophy cup with a rounded bowl and two curved handles, radiant victory glow emanating from the rim, symbolizing an immediate win moment"
+  },
+  {
+    "name": "icon-trophy-tournament-quantum-gold",
+    "category": "icon",
+    "background": "transparent",
+    "size": "1024x1024",
+    "quality": "medium",
+    "prompt": "a tall narrow championship cup trophy wrapped with a laurel wreath crown around its neck, standing on a stepped pedestal base, symbolizing tournament competition"
+  },
+  {
+    "name": "icon-trophy-record-quantum-gold",
+    "category": "icon",
+    "background": "transparent",
+    "size": "1024x1024",
+    "quality": "medium",
+    "prompt": "a compact trophy cup topped with a single five-pointed star medallion insert set into its bowl, symbolizing a personal best record achievement"
+  }
+]
