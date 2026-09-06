@@ -44,9 +44,12 @@ describe('06_2 L1: self-exclusion guard on all four money routes', () => {
     (routePath) => {
       const route = read(routePath);
       const guardBlock = route.slice(route.indexOf('checkWellbeingGuard(userId)'));
+      // Prettier may wrap the call across lines — strip all whitespace so the
+      // assertion pins the call shape, not the formatting.
+      const normalizedGuardBlock = guardBlock.replace(/\s+/g, '');
 
-      expect(guardBlock).toContain('wellbeingApiError');
-      expect(guardBlock).toContain('apiErrorResponse(wellbeingError.code');
+      expect(normalizedGuardBlock).toContain('wellbeingApiError');
+      expect(normalizedGuardBlock).toContain('apiErrorResponse(wellbeingError.code');
     },
   );
 });
