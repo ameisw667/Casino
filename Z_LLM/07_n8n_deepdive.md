@@ -176,7 +176,7 @@ Der Übergang zu einem echten B2C-Produkt mit echten Kunden ist **nicht Teil die
 
 ## 6 — Bezug
 
-- Vergleich n8n vs. Trigger.dev und ursprüngliche Diskussion: [`worldmap/Tooling/02_cli.md`](../worldmap/Tooling/02_cli.md) Nr. 21.
+- Vergleich n8n vs. Trigger.dev und ursprüngliche Diskussion: [`T_CLI/00_CLI_UEBERSICHT.md`](../T_CLI/00_CLI_UEBERSICHT.md) Nr. 21.
 - Planungsdatei-Konventionen: [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md).
 - Stufen-Roadmap-Vorbild: [`Z_LLM/10_llm_erweiterung.md`](../Z_LLM/10_llm_erweiterung.md).
 - Vertiefende technische/rechtliche Referenzdateien je Stufe: [`docs/n8n/00_INDEX.md`](../docs/n8n/00_INDEX.md).
