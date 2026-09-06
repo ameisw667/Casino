@@ -66,6 +66,14 @@ Jede Datei einer Kohorte zuordnen (Security / Feature / Refactor / Assets / Docs
 
 Der Pre-Commit-Hook (`.husky/pre-commit` → `lint-staged`: `eslint --fix` + `typecheck-staged` + `prettier --write`) fängt Staging-Fehler automatisch ab — **er ersetzt aber nicht die Vollprüfung** über alle Kohorten eines Mehrfach-Commits, da er nur staged Files sieht.
 
+**Hook-Fallstricke (aus dem Vorfall 2026-09-06, ~300 Dateien Rollback):**
+
+- **Rollback-Mechanik:** Bei Hook-Fehlschlag stellt lint-staged seinen Backup-Stash wieder her und setzt **unstaged Änderungen auf HEAD zurück**. Vor jedem größeren Commit-Batch daher `git stash push -u -m "pre-...-backup"` + sofort `git stash apply` als Vollkopie (inkl. untracked) anlegen.
+- **MM-Anzeige ist oft stale:** `MM` heißt nicht zwingend Index ≠ Worktree mit neuem Inhalt — nach Pathspec-Commits, die Hook-Autofixes einschließen, ist der Worktree bereits `HEAD`; `git add <pfad>` frischt den Index auf, **ohne** dass ein weiterer Commit nötig wäre. Erst `git diff HEAD -- <pfad>` prüfen, bevor „Rest-Commits" erzwungen werden.
+- **`lint-staged prevented an empty git commit`** ist meist kein Fehler, sondern das Signal, dass der Hook den staged Stand auf HEAD normalisiert hat.
+- **Formatierungsfragile statische Tests:** Tests, die Route-Quelltext per `toContain` auf exakte Aufrufsyntax prüfen (z. B. `responsible-gambling-routes.test.ts`), brechen an Prettier-Zeilenumbrüchen — Assertion whitespace-insensitiv formulieren statt Code umzustylen.
+- **lint-staged hat keine `ignore`-Option** (nur globale Dateifilter in `package.json`); Ausnahmen gehören in die jeweilige Task-Definition (siehe `scripts/typecheck-staged.mjs` für eval-Fixtures).
+
 ### Phase 3 — Commit-Sequenz & Format
 
 **Sequenz-Logik (Reihenfolge = Revertierbarkeit):**
