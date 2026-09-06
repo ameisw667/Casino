@@ -1,0 +1,22 @@
+/* PULS-/lab — interaktive Zustände (kein Tailwind im Projekt: bewusstes
+   Minimal-CSS nur für Hover/Focus-Maschinen der Typo-Liste). */
+
+.lab-catalog-link:hover,
+.lab-catalog-link:focus-visible {
+  color: #e0b34d;
+}
+
+.lab-catalog-link:focus-visible {
+  outline: 2px solid #e0b34d;
+  outline-offset: 8px;
+}
+
+.lab-catalog-cta {
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.lab-catalog-link:hover .lab-catalog-cta,
+.lab-catalog-link:focus-visible .lab-catalog-cta {
+  opacity: 1;
+}

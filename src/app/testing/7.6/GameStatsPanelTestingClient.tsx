@@ -2,12 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import {
-  Sparkles,
-  ArrowLeft,
-  Volume2,
-  VolumeX,
-} from 'lucide-react';
+import { Sparkles, ArrowLeft, Volume2, VolumeX } from 'lucide-react';
 import { GameStatsPanel } from '@/components/casino/controls/GameStatsPanel';
 import { soundManager } from '@/lib/casino/sound-manager';
 

@@ -4,7 +4,10 @@ import React, { useState } from 'react';
 import BlackjackTable from '@/components/casino/games/blackjack/BlackjackTable';
 import { BlackjackShoe } from '@/components/casino/games/blackjack/BlackjackShoe';
 import { BlackjackSplitHandBox } from '@/components/casino/games/blackjack/BlackjackSplitHandBox';
-import { ClassicCasinoTableFelt, type FeltTheme } from '@/components/casino/games/blackjack/ClassicCasinoTableFelt';
+import {
+  ClassicCasinoTableFelt,
+  type FeltTheme,
+} from '@/components/casino/games/blackjack/ClassicCasinoTableFelt';
 import type { BlackjackHand } from '@/components/casino/games/blackjack/CardHand';
 import type { Card } from '@/components/casino/games/blackjack/PlayingCard';
 
@@ -18,7 +21,9 @@ export default function FE03BlackjackTestingSandbox() {
 
   // Table Felt & Card Back Customization (Emotional & Nostalgic)
   const [feltTheme, setFeltTheme] = useState<FeltTheme>('emerald');
-  const [cardBackVariant, setCardBackVariant] = useState<'burgundy' | 'navy' | 'obsidian'>('burgundy');
+  const [cardBackVariant, setCardBackVariant] = useState<'burgundy' | 'navy' | 'obsidian'>(
+    'burgundy',
+  );
 
   // Deck state
   const [cardsRemaining, setCardsRemaining] = useState(244);
@@ -271,7 +276,15 @@ export default function FE03BlackjackTestingSandbox() {
         }}
       >
         {/* Row A: Interaction Triggers */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '10px',
+          }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.78rem', color: '#8A8A8A', fontWeight: 700 }}>
               Spielfluss testen:
@@ -383,7 +396,13 @@ export default function FE03BlackjackTestingSandbox() {
             )}
           </div>
 
-          <div style={{ fontSize: '0.75rem', color: '#737373', fontFamily: 'var(--font-mono, monospace)' }}>
+          <div
+            style={{
+              fontSize: '0.75rem',
+              color: '#737373',
+              fontFamily: 'var(--font-mono, monospace)',
+            }}
+          >
             {viewMode === 'AFTER'
               ? '✓ 100% Original-Spielerkarten • Vintage-Hole-Card • Grand Felt'
               : 'Standard 2D'}
@@ -470,7 +489,8 @@ export default function FE03BlackjackTestingSandbox() {
                   padding: '5px 12px',
                   borderRadius: '6px',
                   background: cardBackVariant === 'burgundy' ? '#3D0606' : '#1A1A1A',
-                  border: cardBackVariant === 'burgundy' ? '1.5px solid #E5C158' : '1px solid #2E2E2E',
+                  border:
+                    cardBackVariant === 'burgundy' ? '1.5px solid #E5C158' : '1px solid #2E2E2E',
                   color: cardBackVariant === 'burgundy' ? '#E5C158' : '#8A8A8A',
                   fontSize: '0.75rem',
                   fontWeight: 700,
@@ -502,7 +522,8 @@ export default function FE03BlackjackTestingSandbox() {
                   padding: '5px 12px',
                   borderRadius: '6px',
                   background: cardBackVariant === 'obsidian' ? '#262626' : '#1A1A1A',
-                  border: cardBackVariant === 'obsidian' ? '1.5px solid #D4AF37' : '1px solid #2E2E2E',
+                  border:
+                    cardBackVariant === 'obsidian' ? '1.5px solid #D4AF37' : '1px solid #2E2E2E',
                   color: cardBackVariant === 'obsidian' ? '#D4AF37' : '#8A8A8A',
                   fontSize: '0.75rem',
                   fontWeight: 700,
@@ -533,7 +554,9 @@ export default function FE03BlackjackTestingSandbox() {
                 color: '#A3A3A3',
               }}
             >
-              <strong>Status Quo (Vorher):</strong> Karten erscheinen abrupt ohne Kartenschlitten, die Hole-Card hat keine Spannungsaufdeckung, und der Tischhintergrund nutzt die alte elliptische Vektor-Linie.
+              <strong>Status Quo (Vorher):</strong> Karten erscheinen abrupt ohne Kartenschlitten,
+              die Hole-Card hat keine Spannungsaufdeckung, und der Tischhintergrund nutzt die alte
+              elliptische Vektor-Linie.
             </div>
             <BlackjackTable
               dealerHand={dealerHand}
