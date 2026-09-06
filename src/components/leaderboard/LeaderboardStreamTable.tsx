@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
+import { resolvePlayerAvatar } from '@/lib/casino/player-avatar';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface LeaderRow {
@@ -14,15 +16,6 @@ export interface LeaderRow {
 interface LeaderboardStreamTableProps {
   loading: boolean;
   rows: LeaderRow[];
-}
-
-function getInitials(name: string): string {
-  if (!name) return '??';
-  const parts = name.split(/[._\s-]+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return name.slice(0, 2).toUpperCase();
 }
 
 export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTableProps) {
@@ -163,7 +156,7 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
               const isSecond = i === 1;
               const isThird = i === 2;
               const isLast = i === rows.length - 1;
-              const initials = getInitials(r.username);
+              const avatar = resolvePlayerAvatar(r.username);
 
               return (
                 <motion.tr
@@ -256,8 +249,10 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div
                         style={{
-                          width: '34px',
-                          height: '34px',
+                          position: 'relative',
+                          overflow: 'hidden',
+                          width: '44px',
+                          height: '44px',
                           borderRadius: '50%',
                           background: '#1F1F1F',
                           border: '1px solid #2E2E2E',
@@ -270,7 +265,13 @@ export function LeaderboardStreamTable({ loading, rows }: LeaderboardStreamTable
                           flexShrink: 0,
                         }}
                       >
-                        {initials}
+                        <Image
+                          src={avatar.src}
+                          alt={r.username}
+                          fill
+                          sizes="44px"
+                          style={{ objectFit: 'cover' }}
+                        />
                       </div>
                       <span
                         style={{

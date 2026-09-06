@@ -10,15 +10,19 @@ interface SectorEntry {
 
 interface RouletteHistoryBarProps {
   history: RouletteNumber[];
-  sectorStats: { hot: SectorEntry[]; cold: SectorEntry[] };
+  sectorStats?: { hot: SectorEntry[]; cold: SectorEntry[] };
+  hideHotCold?: boolean;
 }
 
 /**
- * Top bar of the roulette stage: Hot & Cold sector pills (or accumulating
- * badge while < 5 spins) on the left, last 18 winning-number badges on the
- * right. Pure presentational — extracted verbatim from RouletteClient.tsx.
+ * Top bar of the roulette stage: Optional stats badge on the left,
+ * last winning-number badges on the right.
  */
-export function RouletteHistoryBar({ history, sectorStats }: RouletteHistoryBarProps) {
+export function RouletteHistoryBar({
+  history,
+  sectorStats,
+  hideHotCold = false,
+}: RouletteHistoryBarProps) {
   return (
     <div
       style={{
@@ -31,8 +35,8 @@ export function RouletteHistoryBar({ history, sectorStats }: RouletteHistoryBarP
         gap: '10px',
       }}
     >
-      {/* Hot & Cold Pills or Accumulating Badge */}
-      {history.length < 5 ? (
+      {/* Left indicator: None if hideHotCold, else Hot/Cold or Accumulating */}
+      {hideHotCold ? null : history.length < 5 ? (
         <div
           style={{
             display: 'flex',
@@ -70,7 +74,7 @@ export function RouletteHistoryBar({ history, sectorStats }: RouletteHistoryBarP
             <Flame size={14} color="#f97316" />
             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#f97316' }}>HOT:</span>
             <div style={{ display: 'flex', gap: '4px' }}>
-              {sectorStats.hot.map((h) => (
+              {(sectorStats?.hot ?? []).map((h) => (
                 <span
                   key={h.n}
                   style={{
@@ -89,7 +93,7 @@ export function RouletteHistoryBar({ history, sectorStats }: RouletteHistoryBarP
             <Snowflake size={14} color="#38bdf8" />
             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#38bdf8' }}>COLD:</span>
             <div style={{ display: 'flex', gap: '4px' }}>
-              {sectorStats.cold.map((c) => (
+              {(sectorStats?.cold ?? []).map((c) => (
                 <span
                   key={c.n}
                   style={{

@@ -63,9 +63,9 @@ export default function GamesPage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '16px',
+          gap: '12px',
           flexWrap: 'wrap',
-          padding: isMobile ? '14px 16px' : '18px 24px',
+          padding: isMobile ? '12px 14px' : '18px 24px',
           borderRadius: '16px',
           border: '1px solid rgba(212, 175, 55, 0.15)',
           background:
@@ -75,30 +75,30 @@ export default function GamesPage() {
           boxShadow: '0 12px 32px rgba(0, 0, 0, 0.45)',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <div>
             <span
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '5px',
+                gap: '4px',
                 background: 'rgba(212, 175, 55, 0.12)',
                 border: '1px solid rgba(212, 175, 55, 0.25)',
                 color: '#D4AF37',
-                fontSize: '0.58rem',
+                fontSize: isMobile ? '0.52rem' : '0.58rem',
                 fontWeight: 800,
-                padding: '2px 8px',
+                padding: '2px 6px',
                 borderRadius: '4px',
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
               }}
             >
-              <Flame size={12} /> PROVABLY FAIR · 5 ORIGINALS
+              <Flame size={11} /> PROVABLY FAIR · 5 ORIGINALS
             </span>
           </div>
           <h1
             style={{
-              fontSize: isMobile ? '1.4rem' : '1.75rem',
+              fontSize: isMobile ? '1.25rem' : '1.75rem',
               fontWeight: 900,
               lineHeight: 1.1,
               letterSpacing: '-0.02em',
@@ -110,7 +110,7 @@ export default function GamesPage() {
           </h1>
         </div>
 
-        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: isMobile ? '14px' : '24px', alignItems: 'center' }}>
           <Stat label="MIN STAKE" value={MIN_STAKE} highlight />
           <Stat label="YOUR ROUNDS" value={String(totalBets)} />
           {!isMobile && (

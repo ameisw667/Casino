@@ -1,5 +1,5 @@
 'use client';
-import { Menu, Star, Users, Wallet, Eye, EyeOff, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { Menu, Star, Wallet, Eye, EyeOff, LogIn, UserPlus, LogOut } from 'lucide-react';
 import { IconBadge } from '@/components/layout/IconBadge';
 import { AuthHeaderBtn } from '@/components/layout/AuthHeaderBtn';
 import { NotificationCenter } from '@/components/layout/NotificationCenter';
@@ -9,8 +9,6 @@ interface MainHeaderProps {
   rank: string;
   level: number;
   progress: number;
-  communityWagered: number;
-  communityGoal: number;
   balance: number;
   hideBalance: boolean;
   displayName: string;
@@ -27,8 +25,6 @@ export function MainHeader({
   rank,
   level,
   progress,
-  communityWagered,
-  communityGoal,
   balance,
   hideBalance,
   displayName,
@@ -132,56 +128,6 @@ export function MainHeader({
             </div>
           )}
         </button>
-        {!isMobile && (
-          <div
-            className="header-chip"
-            style={{
-              padding: '6px 12px 6px 6px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              width: '150px',
-            }}
-          >
-            <IconBadge tone="green">
-              <Users size={12} color="#000" />
-            </IconBadge>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontSize: '0.6rem',
-                  fontWeight: 900,
-                  color: 'hsl(var(--text-muted))',
-                }}
-              >
-                <span>COMMUNITY</span>
-                <span>{Math.round((communityWagered / communityGoal) * 100)}%</span>
-              </div>
-              <div
-                style={{
-                  width: '100%',
-                  height: '4px',
-                  background: 'hsla(0, 0%, 100%, 0.05)',
-                  borderRadius: '2px',
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    width: `${Math.min(100, (communityWagered / communityGoal) * 100)}%`,
-                    height: '100%',
-                    background: '#00e701',
-                    boxShadow: '0 0 10px #00e701',
-                    borderRadius: '2px',
-                    transition: 'width 1s ease',
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       <div

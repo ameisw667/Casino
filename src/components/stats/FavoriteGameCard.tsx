@@ -250,7 +250,8 @@ export function FavoriteGameCard({ loading, perGame, isMobile }: FavoriteGameCar
                 style={{
                   fontSize: viewMode === 'ROUNDS' ? '0.85rem' : '0.78rem',
                   fontWeight: 950,
-                  color: viewMode === 'ROUNDS' ? '#ffffff' : totalProfit >= 0 ? '#10b981' : '#ef4444',
+                  color:
+                    viewMode === 'ROUNDS' ? '#ffffff' : totalProfit >= 0 ? '#10b981' : '#ef4444',
                   fontFamily: 'var(--font-mono, monospace)',
                   lineHeight: 1,
                 }}
@@ -316,7 +317,8 @@ export function FavoriteGameCard({ loading, perGame, isMobile }: FavoriteGameCar
                   <span
                     style={{
                       fontWeight: 900,
-                      color: viewMode === 'ROUNDS' ? g.color : g.profit >= 0 ? '#10b981' : '#ef4444',
+                      color:
+                        viewMode === 'ROUNDS' ? g.color : g.profit >= 0 ? '#10b981' : '#ef4444',
                       fontFamily: 'var(--font-mono, monospace)',
                       minWidth: '46px',
                       textAlign: 'right',

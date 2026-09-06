@@ -199,7 +199,8 @@ export default function BlackjackPage() {
         throw new Error(getApiErrorMessage(errData, 'Deal failed'));
       }
 
-      const data = await response.json();
+      const raw = await response.json();
+      const data = raw?.data ?? raw;
       applyBlackjackResponse(data, betAmount);
     } catch (error) {
       CasinoLogger.error('Blackjack', 'Deal error', error);
@@ -250,8 +251,10 @@ export default function BlackjackPage() {
           throw new Error(getApiErrorMessage(errData, `${action} failed`));
         }
 
-        const data = await response.json();
+        const raw = await response.json();
+        const data = raw?.data ?? raw;
         const effectiveBet = action === 'DOUBLE' ? betAmount * 2 : betAmount;
+
         applyBlackjackResponse(data, effectiveBet);
       } catch (error) {
         CasinoLogger.error('Blackjack', `${action} error`, error);

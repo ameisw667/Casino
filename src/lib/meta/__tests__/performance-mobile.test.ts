@@ -114,15 +114,15 @@ describe('performance & mobile optimization', () => {
 
   it('keeps exposed QA navigation and showcase presets responsive', () => {
     for (const file of [
-      'src/app/testing/7.3/GameActionButtonTestingClient.tsx',
-      'src/app/testing/7.4/VibeSliderTestingClient.tsx',
-      'src/app/testing/brand-showcase/BrandShowcaseClient.tsx',
+      'src/app/testing/7.3/parts/SandboxNavbar.tsx',
+      'src/app/testing/7.4/parts/SandboxNavbar.tsx',
+      'src/app/testing/brand-showcase/parts/SandboxNavbar.tsx',
     ]) {
       expect(readFileSync(resolve(root, file), 'utf8')).toContain('className="qa-route-nav"');
     }
 
     const showcase = readFileSync(
-      resolve(root, 'src/app/testing/brand-showcase/BrandShowcaseClient.tsx'),
+      resolve(root, 'src/app/testing/brand-showcase/parts/BetInputGroupShowcaseSection.tsx'),
       'utf8',
     );
     const css = readFileSync(resolve(root, 'src/app/globals.css'), 'utf8');
@@ -177,7 +177,9 @@ describe('performance & mobile optimization', () => {
       'utf8',
     );
 
-    expect(gridContent).toContain("isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(5, minmax(0, 1fr))'");
+    expect(gridContent).toContain(
+      "isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(5, minmax(0, 1fr))'",
+    );
   });
 
   it('provides compact mobile stream list and maintains desktop table in LiveActivityFeedV2', () => {

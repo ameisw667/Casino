@@ -41,7 +41,13 @@ export function getTimeUntilNextReset(now: Date = new Date()): ResetTimeRemainin
   return { days, hours, minutes, seconds, totalSeconds };
 }
 
-let cachedSnapshot: ResetTimeRemaining = { days: 0, hours: 0, minutes: 0, seconds: 0, totalSeconds: 0 };
+let cachedSnapshot: ResetTimeRemaining = {
+  days: 0,
+  hours: 0,
+  minutes: 0,
+  seconds: 0,
+  totalSeconds: 0,
+};
 let cachedTotalSeconds = -1;
 
 function getSnapshot(): ResetTimeRemaining {
@@ -53,7 +59,13 @@ function getSnapshot(): ResetTimeRemaining {
   return cachedSnapshot;
 }
 
-const serverSnapshot: ResetTimeRemaining = { days: 0, hours: 0, minutes: 0, seconds: 0, totalSeconds: 0 };
+const serverSnapshot: ResetTimeRemaining = {
+  days: 0,
+  hours: 0,
+  minutes: 0,
+  seconds: 0,
+  totalSeconds: 0,
+};
 function getServerSnapshot(): ResetTimeRemaining {
   return serverSnapshot;
 }
@@ -87,7 +99,9 @@ export function LeaderboardWeeklyBanner({
     >
       {/* 1. Progressive Jackpot */}
       <div>
-        <div style={{ fontSize: '0.72rem', color: '#737373', fontWeight: 500, marginBottom: '4px' }}>
+        <div
+          style={{ fontSize: '0.72rem', color: '#737373', fontWeight: 500, marginBottom: '4px' }}
+        >
           Progressiver Jackpot
         </div>
         <div
@@ -106,7 +120,9 @@ export function LeaderboardWeeklyBanner({
 
       {/* 2. Wochen-Reset */}
       <div>
-        <div style={{ fontSize: '0.72rem', color: '#737373', fontWeight: 500, marginBottom: '4px' }}>
+        <div
+          style={{ fontSize: '0.72rem', color: '#737373', fontWeight: 500, marginBottom: '4px' }}
+        >
           Wöchentlicher Reset
         </div>
         <div
@@ -125,7 +141,9 @@ export function LeaderboardWeeklyBanner({
 
       {/* 3. Gesamt-Einsatz */}
       <div>
-        <div style={{ fontSize: '0.72rem', color: '#737373', fontWeight: 500, marginBottom: '4px' }}>
+        <div
+          style={{ fontSize: '0.72rem', color: '#737373', fontWeight: 500, marginBottom: '4px' }}
+        >
           Gesamter Einsatz
         </div>
         <div
@@ -144,7 +162,9 @@ export function LeaderboardWeeklyBanner({
 
       {/* 4. Platzierte Spieler */}
       <div>
-        <div style={{ fontSize: '0.72rem', color: '#737373', fontWeight: 500, marginBottom: '4px' }}>
+        <div
+          style={{ fontSize: '0.72rem', color: '#737373', fontWeight: 500, marginBottom: '4px' }}
+        >
           Qualifizierte Spieler
         </div>
         <div

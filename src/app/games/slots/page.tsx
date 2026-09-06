@@ -123,13 +123,10 @@ export default function SlotsPage() {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        if (res.status === 429 || errData.error?.code === 'RATE_LIMITED') {
-          const retry = errData.retryAfter || 2;
-          throw new Error(`RATE_LIMIT:${retry}`);
-        }
         throw new Error(getApiErrorMessage(errData, 'Der Spin konnte nicht verarbeitet werden.'));
       }
-      const data = await res.json();
+      const raw = await res.json();
+      const data = raw?.data ?? raw;
 
       setPF({ serverSeedHash: data.serverSeedHash, nonce: data.nonce });
 
@@ -163,7 +160,6 @@ export default function SlotsPage() {
 
       if (data.payout > 0) {
         setLastResult({ type: 'win', amount: data.payout, multiplier: mult });
-        soundManager.play('slots-win');
       } else {
         setLastResult({ type: 'loss', amount: betAmount, multiplier: 0 });
       }

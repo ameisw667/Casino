@@ -126,15 +126,15 @@ export default function CrashPage() {
   const ROCKET_X_FRACTION = 0.62;
   const CASHOUT_RESOLVE_DELAY_MS = 1200;
 
-  // Initialize stars and load vector rocket asset
+  // Initialize stars and load Quantum Interceptor spacecraft asset
   useEffect(() => {
     const img = new window.Image();
-    img.src = '/images/crash/crash-rocket.svg';
+    img.src = '/images/crash/quantum-interceptor.png';
     img.onload = () => {
       rocketImgRef.current = img;
     };
     img.onerror = () => {
-      // Fallback to existing asset if SVG load fails
+      // Fallback to existing asset if load fails
       const fallback = new window.Image();
       fallback.src = '/images/crash/crash-rocket.png';
       rocketImgRef.current = fallback;
@@ -285,8 +285,10 @@ export default function CrashPage() {
             }),
           });
           if (!response.ok) throw new Error(`Cashout failed with HTTP ${response.status}`);
-          const data = await response.json();
+          const raw = await response.json();
+          const data = raw?.data ?? raw;
           applyServerWalletSnapshot(data.wallet);
+
           processGameResult({
             game: 'CRASH_MULTIPLAYER',
             amount: betAmount,
@@ -434,8 +436,10 @@ export default function CrashPage() {
         }
         throw new Error('API failed');
       }
-      const data = await response.json();
+      const raw = await response.json();
+      const data = raw?.data ?? raw;
       applyServerWalletSnapshot(data.wallet);
+
       // Crash's START_CRASH response, not settlement, is where isFirstBet actually appears
       // (server-side: bet/route.ts's START_CRASH branch) — no processGameResult() call happens
       // here at all (a round start isn't a win/loss result yet), so this must fire directly.
@@ -514,8 +518,10 @@ export default function CrashPage() {
           }),
         });
         if (!response.ok) throw new Error(`Crash resolution failed with HTTP ${response.status}`);
-        const data = await response.json();
+        const raw = await response.json();
+        const data = raw?.data ?? raw;
         applyServerWalletSnapshot(data.wallet);
+
         processGameResult({
           game: 'CRASH_MULTIPLAYER',
           amount: betAmountRef.current,

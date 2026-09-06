@@ -42,7 +42,8 @@ export default function AdminKnowledgeClient() {
     try {
       const res = await fetch('/api/admin/knowledge', { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = (await res.json()) as { documents: GuideDoc[] };
+      const raw = await res.json();
+      const json = (raw?.data ?? raw) as { documents: GuideDoc[] };
       setDocs(json.documents ?? []);
       setError(null);
     } catch {
@@ -58,7 +59,8 @@ export default function AdminKnowledgeClient() {
       try {
         const res = await fetch('/api/admin/knowledge', { cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = (await res.json()) as { documents: GuideDoc[] };
+        const raw = await res.json();
+        const json = (raw?.data ?? raw) as { documents: GuideDoc[] };
         if (!ignore) {
           setDocs(json.documents ?? []);
           setError(null);

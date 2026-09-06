@@ -46,6 +46,21 @@ export function hasAnalyticsConsent(): boolean {
   return readConsent() === 'granted';
 }
 
+export interface ConsentPreferences {
+  analytics: boolean;
+  functional: boolean;
+  performance: boolean;
+}
+
+export function getConsentPreferences(): ConsentPreferences {
+  const granted = hasAnalyticsConsent();
+  return {
+    analytics: granted,
+    functional: true, // Essentiell für Session- & Wallet-Sicherheit
+    performance: granted,
+  };
+}
+
 /**
  * Notifies `onChange` (no payload — call readConsent() yourself) whenever consent changes,
  * whether from this tab (writeConsent) or another tab (native `storage` event). Closes the

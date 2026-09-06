@@ -56,7 +56,8 @@ export default function UsersPageClient() {
     try {
       const res = await fetch('/api/admin/users', { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = (await res.json()) as AdminUsersResponse;
+      const raw = await res.json();
+      const json = (raw?.data ?? raw) as AdminUsersResponse;
       setData(json);
     } catch {
       setError('Nutzerliste konnte nicht geladen werden.');
@@ -71,7 +72,8 @@ export default function UsersPageClient() {
       try {
         const res = await fetch('/api/admin/users', { cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = (await res.json()) as AdminUsersResponse;
+        const raw = await res.json();
+        const json = (raw?.data ?? raw) as AdminUsersResponse;
         if (!cancelled) setData(json);
       } catch {
         if (!cancelled) setError('Nutzerliste konnte nicht geladen werden.');
@@ -79,6 +81,7 @@ export default function UsersPageClient() {
         if (!cancelled) setLoading(false);
       }
     }
+
     load();
     return () => {
       cancelled = true;

@@ -4,7 +4,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useEffect } from 'react';
-import * as Sentry from '@sentry/nextjs';
+import { CasinoLogger } from '@/lib/casino/logger';
 
 export default function Error({
   error,
@@ -14,14 +14,10 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    if (typeof console !== 'undefined') {
-      console.error('CasinoError: Unhandled route error', error);
-    }
-    try {
-      Sentry.captureException(error);
-    } catch {
-      // A Sentry SDK failure must never break this error boundary itself.
-    }
+    // Routed through CasinoLogger (not a direct Sentry.captureException call) so this
+    // boundary carries a module tag like every other captured error in the app —
+    // console logging and Sentry try/catch-isolation are handled inside CasinoLogger.error().
+    CasinoLogger.error('RouteErrorBoundary', 'Unhandled route error', error);
   }, [error]);
 
   return (

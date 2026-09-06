@@ -10,7 +10,7 @@ const RankBenefitsModal = dynamic(() => import('@/components/casino/RankBenefits
   ssr: false,
 });
 
-interface VipTier {
+export interface VipTier {
   name: string;
   wager: string;
   rakeback: string;
@@ -19,7 +19,7 @@ interface VipTier {
   isCurrent?: boolean;
 }
 
-const VIP_TIERS: VipTier[] = [
+export const VIP_TIERS: VipTier[] = [
   {
     name: 'BRONZE',
     wager: '$0',
@@ -172,147 +172,86 @@ export const VipProgressTeaser: React.FC<{ isMobile?: boolean }> = ({ isMobile =
           </div>
         )}
 
-        {/* 5 Interconnected Timeline Nodes */}
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 2,
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : 'repeat(5, 1fr)',
-            gap: isMobile ? '20px' : '16px',
-          }}
-        >
-          {VIP_TIERS.map((tier, idx) => {
-            const isHovered = hoveredTier === tier.name;
-            return (
-              <motion.div
+        {/* VIP Timeline Nodes: 2 Rows on Mobile, 5 Columns on Desktop */}
+        {isMobile ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+            {/* Row 1: 3 Badges (Bronze, Silver, Gold) */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                gap: '8px',
+                width: '100%',
+              }}
+            >
+              {VIP_TIERS.slice(0, 3).map((tier, idx) => (
+                <VipTierNode
+                  key={tier.name}
+                  tier={tier}
+                  idx={idx}
+                  isMobile={true}
+                  isHovered={hoveredTier === tier.name}
+                  onHover={() => {
+                    soundManager.playHover();
+                    setHoveredTier(tier.name);
+                  }}
+                  onLeave={() => setHoveredTier(null)}
+                />
+              ))}
+            </div>
+
+            {/* Row 2: 2 Badges (Platinum, Diamond) Centered */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '12px',
+                width: '100%',
+              }}
+            >
+              {VIP_TIERS.slice(3, 5).map((tier, idx) => (
+                <div key={tier.name} style={{ width: 'calc(33.33% - 6px)', maxWidth: '120px' }}>
+                  <VipTierNode
+                    tier={tier}
+                    idx={idx + 3}
+                    isMobile={true}
+                    isHovered={hoveredTier === tier.name}
+                    onHover={() => {
+                      soundManager.playHover();
+                      setHoveredTier(tier.name);
+                    }}
+                    onLeave={() => setHoveredTier(null)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 2,
+              display: 'grid',
+              gridTemplateColumns: 'repeat(5, 1fr)',
+              gap: '16px',
+            }}
+          >
+            {VIP_TIERS.map((tier, idx) => (
+              <VipTierNode
                 key={tier.name}
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.08 }}
-                onMouseEnter={() => {
+                tier={tier}
+                idx={idx}
+                isMobile={false}
+                isHovered={hoveredTier === tier.name}
+                onHover={() => {
                   soundManager.playHover();
                   setHoveredTier(tier.name);
                 }}
-                onMouseLeave={() => setHoveredTier(null)}
-                whileHover={{ y: -6 }}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                }}
-              >
-                {/* Node Ring with 3D Icon */}
-                <div
-                  style={{
-                    position: 'relative',
-                    width: '76px',
-                    height: '76px',
-                    borderRadius: '50%',
-                    padding: '4px',
-                    background: tier.isCurrent
-                      ? `radial-gradient(circle, ${tier.accent} 0%, rgba(10, 10, 15, 0.9) 100%)`
-                      : 'rgba(20, 20, 28, 0.85)',
-                    border: `2px solid ${tier.isCurrent ? tier.accent : isHovered ? tier.accent : 'rgba(255, 255, 255, 0.12)'}`,
-                    boxShadow:
-                      tier.isCurrent || isHovered
-                        ? `0 0 25px ${tier.accent}50, 0 8px 24px rgba(0, 0, 0, 0.7)`
-                        : '0 8px 20px rgba(0, 0, 0, 0.5)',
-                    backdropFilter: 'blur(16px)',
-                    marginBottom: '14px',
-                    transition: 'all 0.3s ease',
-                  }}
-                >
-                  <div
-                    style={{
-                      position: 'relative',
-                      width: '100%',
-                      height: '100%',
-                      borderRadius: '50%',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <Image
-                      src={tier.image}
-                      alt={tier.name}
-                      fill
-                      sizes="80px"
-                      style={{ objectFit: 'contain' }}
-                    />
-                  </div>
-
-                  {/* Current Status Pin */}
-                  {tier.isCurrent && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        bottom: '-8px',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        padding: '2px 8px',
-                        borderRadius: '10px',
-                        background: tier.accent,
-                        color: '#000',
-                        fontSize: '0.58rem',
-                        fontWeight: 1000,
-                        letterSpacing: '0.04em',
-                        whiteSpace: 'nowrap',
-                        boxShadow: `0 2px 8px ${tier.accent}60`,
-                      }}
-                    >
-                      AKTIV
-                    </div>
-                  )}
-                </div>
-
-                {/* Tier Title */}
-                <div
-                  style={{
-                    fontSize: '1rem',
-                    fontWeight: 1000,
-                    color: tier.isCurrent ? '#fff' : tier.accent,
-                    letterSpacing: '0.04em',
-                    marginBottom: '2px',
-                  }}
-                >
-                  {tier.name}
-                </div>
-
-                {/* Wager Milestone */}
-                <div
-                  style={{
-                    fontSize: '0.72rem',
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    fontWeight: 600,
-                    fontFamily: 'monospace',
-                    marginBottom: '6px',
-                  }}
-                >
-                  Wager: {tier.wager}
-                </div>
-
-                {/* Rakeback Tag */}
-                <div
-                  style={{
-                    fontSize: '0.72rem',
-                    fontWeight: 800,
-                    color: tier.accent,
-                    background: 'rgba(255, 255, 255, 0.04)',
-                    border: `1px solid ${tier.accent}30`,
-                    padding: '4px 10px',
-                    borderRadius: '8px',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {tier.rakeback}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+                onLeave={() => setHoveredTier(null)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {showRankModal && (
@@ -321,3 +260,149 @@ export const VipProgressTeaser: React.FC<{ isMobile?: boolean }> = ({ isMobile =
     </section>
   );
 };
+
+function VipTierNode({
+  tier,
+  idx,
+  isMobile,
+  isHovered,
+  onHover,
+  onLeave,
+}: {
+  tier: VipTier;
+  idx: number;
+  isMobile: boolean;
+  isHovered: boolean;
+  onHover: () => void;
+  onLeave: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: idx * 0.08 }}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+      whileHover={isMobile ? undefined : { y: -6 }}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        cursor: 'pointer',
+        width: '100%',
+      }}
+    >
+      {/* Node Ring with 3D Icon */}
+      <div
+        style={{
+          position: 'relative',
+          width: isMobile ? '52px' : '76px',
+          height: isMobile ? '52px' : '76px',
+          borderRadius: '50%',
+          padding: '3px',
+          background: tier.isCurrent
+            ? `radial-gradient(circle, ${tier.accent} 0%, rgba(10, 10, 15, 0.9) 100%)`
+            : 'rgba(20, 20, 28, 0.85)',
+          border: `2px solid ${tier.isCurrent ? tier.accent : isHovered ? tier.accent : 'rgba(255, 255, 255, 0.12)'}`,
+          boxShadow:
+            tier.isCurrent || isHovered
+              ? `0 0 20px ${tier.accent}50, 0 8px 24px rgba(0, 0, 0, 0.7)`
+              : '0 8px 20px rgba(0, 0, 0, 0.5)',
+          backdropFilter: 'blur(16px)',
+          marginBottom: isMobile ? '8px' : '14px',
+          transition: 'all 0.3s ease',
+        }}
+      >
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+            borderRadius: '50%',
+            overflow: 'hidden',
+          }}
+        >
+          <Image
+            src={tier.image}
+            alt={tier.name}
+            fill
+            unoptimized
+            priority
+            sizes={isMobile ? '60px' : '80px'}
+            style={{ objectFit: 'contain' }}
+          />
+        </div>
+
+        {/* Current Status Pin */}
+        {tier.isCurrent && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: isMobile ? '-6px' : '-8px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              padding: isMobile ? '1px 5px' : '2px 8px',
+              borderRadius: '8px',
+              background: tier.accent,
+              color: '#000',
+              fontSize: isMobile ? '0.50rem' : '0.58rem',
+              fontWeight: 1000,
+              letterSpacing: '0.04em',
+              whiteSpace: 'nowrap',
+              boxShadow: `0 2px 8px ${tier.accent}60`,
+            }}
+          >
+            AKTIV
+          </div>
+        )}
+      </div>
+
+      {/* Tier Title */}
+      <div
+        style={{
+          fontSize: isMobile ? '0.74rem' : '1rem',
+          fontWeight: 1000,
+          color: tier.isCurrent ? '#fff' : tier.accent,
+          letterSpacing: '0.03em',
+          marginBottom: '1px',
+        }}
+      >
+        {tier.name}
+      </div>
+
+      {/* Wager Milestone */}
+      <div
+        style={{
+          fontSize: isMobile ? '0.58rem' : '0.72rem',
+          color: 'rgba(255, 255, 255, 0.5)',
+          fontWeight: 600,
+          fontFamily: 'monospace',
+          marginBottom: isMobile ? '4px' : '6px',
+        }}
+      >
+        {isMobile ? tier.wager : `Wager: ${tier.wager}`}
+      </div>
+
+      {/* Rakeback Tag */}
+      <div
+        style={{
+          fontSize: isMobile ? '0.54rem' : '0.72rem',
+          fontWeight: 800,
+          color: tier.accent,
+          background: 'rgba(255, 255, 255, 0.04)',
+          border: `1px solid ${tier.accent}30`,
+          padding: isMobile ? '2px 4px' : '4px 10px',
+          borderRadius: '6px',
+          whiteSpace: 'nowrap',
+          maxWidth: '100%',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        {isMobile ? tier.rakeback.split(' + ')[0] : tier.rakeback}
+      </div>
+    </motion.div>
+  );
+}

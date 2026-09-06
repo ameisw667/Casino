@@ -1,16 +1,3 @@
-import {
-  CircleDot,
-  Compass,
-  Crown,
-  Dices,
-  Layers,
-  ShieldCheck,
-  Sliders,
-  Sparkles,
-  Terminal,
-  TrendingUp,
-} from 'lucide-react';
-
 export type GuideTurn = {
   id: string;
   role: 'guide' | 'player';
@@ -44,20 +31,23 @@ export const QUICK_CHIPS = [
   {
     label: 'Blackjack',
     query: 'Wie funktioniert Split und Double Down bei Blackjack?',
-    icon: Layers,
   },
   {
     label: 'Crash',
     query: 'Wie berechnet sich der Crash Multiplikator und Cashout?',
-    icon: TrendingUp,
   },
-  { label: 'VIP Ränge', query: 'Welche VIP-Stufen und Rakeback-Vorteile gibt es?', icon: Crown },
+  {
+    label: 'VIP Ränge',
+    query: 'Welche VIP-Stufen und Rakeback-Vorteile gibt es?',
+  },
   {
     label: 'Provably Fair',
     query: 'Wie funktioniert das Provably Fair Seed-System?',
-    icon: ShieldCheck,
   },
-  { label: 'Navigation', query: 'Wo finde ich meine Wetthistorie und den Tresor?', icon: Compass },
+  {
+    label: 'Navigation',
+    query: 'Wo finde ich meine Wetthistorie und den Tresor?',
+  },
 ] as const;
 
 export const SIDEBAR_TOPICS = [
@@ -66,28 +56,33 @@ export const SIDEBAR_TOPICS = [
     items: [
       {
         label: 'Blackjack Regeln',
+        sub: 'Split, Double Down & Dealer-Regeln',
         query: 'Wie funktioniert Split und Double Down bei Blackjack?',
-        icon: Layers,
+        tag: 'BJ',
       },
       {
         label: 'Crash Multiplikator',
+        sub: 'Multiplikator-Kurve & Auto-Cashout',
         query: 'Wie berechnet sich der Crash Multiplikator und Cashout?',
-        icon: TrendingUp,
+        tag: 'CR',
       },
       {
         label: 'Roulette Quoten',
+        sub: 'Auszahlungsquoten & Einsatzfelder',
         query: 'Welche Auszahlungsquoten haben Straight und Farben bei Roulette?',
-        icon: CircleDot,
+        tag: 'RL',
       },
       {
         label: 'Dice Wahrscheinlichkeit',
+        sub: 'Roll Under, EV & Multiplikatoren',
         query: 'Wie funktioniert Roll Under und der Multiplikator bei Dice?',
-        icon: Dices,
+        tag: 'DC',
       },
       {
         label: 'Slots Walzen & 7s',
+        sub: 'Symbol-Hierarchie & Gewinnlinien',
         query: 'Welche Symbol-Hierarchie und Auszahlungslinien gibt es bei Slots?',
-        icon: Sparkles,
+        tag: 'SL',
       },
     ],
   },
@@ -96,18 +91,21 @@ export const SIDEBAR_TOPICS = [
     items: [
       {
         label: 'VIP Ränge & Level',
+        sub: 'Stufen-Aufstieg & Rakeback-Vorteile',
         query: 'Welche VIP-Stufen und Rakeback-Vorteile gibt es?',
-        icon: Crown,
+        tag: 'VIP',
       },
       {
         label: 'Provably Fair Seed',
+        sub: 'Kryptografischer Seed-Nachweis',
         query: 'Wie funktioniert das Provably Fair Seed-System?',
-        icon: ShieldCheck,
+        tag: 'PF',
       },
       {
         label: 'Einsatz-Limits',
+        sub: 'Mindest- & Maximaleinsätze je Spiel',
         query: 'Wie hoch sind die Mindest- und Maximaleinsätze?',
-        icon: Sliders,
+        tag: 'LIM',
       },
     ],
   },
@@ -116,13 +114,15 @@ export const SIDEBAR_TOPICS = [
     items: [
       {
         label: 'Navigation & Menü',
+        sub: 'Tresor, Wetthistorie & Einstellungen',
         query: 'Wo finde ich meine Wetthistorie und den Tresor?',
-        icon: Compass,
+        tag: 'NAV',
       },
       {
         label: 'Chat-Befehle',
+        sub: '/help, /stats & VIP-Shortcuts',
         query: 'Welche Chat-Befehle wie /help oder /stats gibt es?',
-        icon: Terminal,
+        tag: 'CMD',
       },
     ],
   },

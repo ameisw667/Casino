@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Sparkles } from 'lucide-react';
+
 import type { RefObject } from 'react';
 import type { LiveBet } from '@/components/casino/games/crash/crash-helpers';
 import type { CrashRoundBroadcastPayload } from '@/lib/casino/realtime-types';
@@ -124,7 +124,6 @@ export function CrashMultiplayerStage({
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
               padding: '8px 20px',
               borderRadius: '20px',
               background: 'rgba(212, 175, 55, 0.12)',
@@ -136,7 +135,6 @@ export function CrashMultiplayerStage({
               marginBottom: '12px',
             }}
           >
-            <Sparkles size={16} color="#FFD700" />
             <span>WAITING FOR NEXT LAUNCH</span>
           </div>
         )}
@@ -148,7 +146,6 @@ export function CrashMultiplayerStage({
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
               padding: '8px 20px',
               borderRadius: '20px',
               background: 'rgba(212, 175, 55, 0.12)',
@@ -160,7 +157,6 @@ export function CrashMultiplayerStage({
               marginBottom: '12px',
             }}
           >
-            <Sparkles size={16} color="#FFD700" />
             <span>
               LAUNCH IN {bettingWindowSecondsLeft ?? '…'}s
               {liveBets.length > 0

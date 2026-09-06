@@ -115,8 +115,7 @@ export function BetReceiptModal({ row, onClose }: BetReceiptModalProps) {
             style={{
               height: '3px',
               width: '100%',
-              background:
-                'linear-gradient(90deg, transparent 0%, #D4AF37 50%, transparent 100%)',
+              background: 'linear-gradient(90deg, transparent 0%, #D4AF37 50%, transparent 100%)',
             }}
           />
 
@@ -322,7 +321,9 @@ export function BetReceiptModal({ row, onClose }: BetReceiptModalProps) {
                     gap: '4px',
                   }}
                 >
-                  <span>{row.id.slice(0, 8)}...{row.id.slice(-6)}</span>
+                  <span>
+                    {row.id.slice(0, 8)}...{row.id.slice(-6)}
+                  </span>
                   {copiedId ? <Check size={12} /> : <Copy size={12} />}
                 </button>
               </div>
@@ -363,12 +364,8 @@ export function BetReceiptModal({ row, onClose }: BetReceiptModalProps) {
                 style={{
                   padding: '6px 12px',
                   borderRadius: '8px',
-                  background: copiedSeed
-                    ? 'rgba(16, 185, 129, 0.25)'
-                    : 'rgba(212, 175, 55, 0.15)',
-                  border: copiedSeed
-                    ? '1px solid #10b981'
-                    : '1px solid rgba(212, 175, 55, 0.35)',
+                  background: copiedSeed ? 'rgba(16, 185, 129, 0.25)' : 'rgba(212, 175, 55, 0.15)',
+                  border: copiedSeed ? '1px solid #10b981' : '1px solid rgba(212, 175, 55, 0.35)',
                   color: copiedSeed ? '#10b981' : '#D4AF37',
                   fontSize: '0.68rem',
                   fontWeight: 800,

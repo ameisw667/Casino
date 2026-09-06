@@ -24,10 +24,11 @@ export function BlackjackShoe({
     variant === 'burgundy'
       ? 'radial-gradient(ellipse at 50% 50%, #8A1515 0%, #630D0D 60%, #3D0606 100%)'
       : variant === 'navy'
-      ? 'radial-gradient(ellipse at 50% 50%, #132A52 0%, #0C1A33 60%, #060D1A 100%)'
-      : 'radial-gradient(ellipse at 50% 50%, #1E1E24 0%, #121216 60%, #08080A 100%)';
+        ? 'radial-gradient(ellipse at 50% 50%, #132A52 0%, #0C1A33 60%, #060D1A 100%)'
+        : 'radial-gradient(ellipse at 50% 50%, #1E1E24 0%, #121216 60%, #08080A 100%)';
 
-  const accentColor = variant === 'burgundy' ? '#E5C158' : variant === 'navy' ? '#D4AF37' : '#C5A059';
+  const accentColor =
+    variant === 'burgundy' ? '#E5C158' : variant === 'navy' ? '#D4AF37' : '#C5A059';
 
   return (
     <div
@@ -133,7 +134,8 @@ export function BlackjackShoe({
               width: '74px',
               height: `${deckThickness}px`,
               borderRadius: '6px',
-              background: 'repeating-linear-gradient(0deg, #1C1C22 0px, #1C1C22 2px, #0F0F14 2px, #0F0F14 4px)',
+              background:
+                'repeating-linear-gradient(0deg, #1C1C22 0px, #1C1C22 2px, #0F0F14 2px, #0F0F14 4px)',
               border: '1px solid rgba(212, 175, 55, 0.3)',
               boxShadow: 'inset 0 0 10px rgba(0, 0, 0, 0.8), 0 4px 8px rgba(0,0,0,0.5)',
               position: 'relative',

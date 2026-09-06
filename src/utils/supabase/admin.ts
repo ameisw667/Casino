@@ -2,6 +2,7 @@ import 'server-only';
 
 import { createClient } from '@supabase/supabase-js';
 import WebSocket from 'ws';
+import type { Database } from '@/types/database.types';
 
 /**
  * Creates a Supabase client with administrative privileges.
@@ -16,7 +17,7 @@ export function createAdminClient() {
     throw new Error('Missing Supabase Admin Environment Variables');
   }
 
-  return createClient(supabaseUrl, supabaseServiceKey, {
+  return createClient<Database>(supabaseUrl, supabaseServiceKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,

@@ -39,9 +39,13 @@ export function useDailyRaceStandings() {
         credentials: 'omit',
       });
       if (!response.ok) return;
-      const data: DailyRaceResponse = await response.json();
+      const raw = await response.json();
+      const data = (raw?.data ?? raw) as DailyRaceResponse;
       if (!Array.isArray(data.standings)) return;
-      if (typeof data.secondsUntilResetUtc !== 'number' || !Number.isFinite(data.secondsUntilResetUtc)) {
+      if (
+        typeof data.secondsUntilResetUtc !== 'number' ||
+        !Number.isFinite(data.secondsUntilResetUtc)
+      ) {
         return;
       }
       setStandings(data.standings);

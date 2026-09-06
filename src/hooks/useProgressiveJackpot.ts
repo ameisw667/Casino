@@ -38,7 +38,10 @@ export function useProgressiveJackpot() {
         credentials: 'omit',
       });
       if (!response.ok) return;
-      const data: JackpotPoolResponse = await response.json();
+      const raw = (await response.json()) as { data?: JackpotPoolResponse } | JackpotPoolResponse;
+      const data: JackpotPoolResponse = (
+        raw && 'data' in raw && raw.data ? raw.data : raw
+      ) as JackpotPoolResponse;
       if (typeof data.currentAmount !== 'number' || !Number.isFinite(data.currentAmount)) return;
       setJackpot(data.currentAmount);
     } catch (error) {

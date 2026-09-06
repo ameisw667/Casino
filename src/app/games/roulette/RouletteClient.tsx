@@ -6,7 +6,6 @@ import { useCasinoStore } from '@/store/useCasinoStore';
 import { CasinoCore } from '@/lib/casino/casino-core';
 import { GameErrorBoundary } from '@/components/casino/GameErrorBoundary';
 import { soundManager } from '@/lib/casino/sound-manager';
-import { validateBet } from '@/lib/casino/bet-validator';
 import { sanitizeClientSeed } from '@/lib/casino/provably-fair';
 import { CasinoLogger } from '@/lib/casino/logger';
 import { getApiErrorMessage } from '@/lib/security/form-errors';
@@ -20,9 +19,13 @@ import { betTypeKey } from '@/components/casino/games/roulette/roulette-config';
 import { roulettePageStyles } from '@/components/casino/games/roulette/roulette-page-styles';
 import { RouletteControlSidebar } from '@/components/casino/games/roulette/RouletteControlSidebar';
 import { RouletteHistoryBar } from '@/components/casino/games/roulette/RouletteHistoryBar';
-import { LuxuryRouletteWheel } from '@/components/casino/games/roulette/LuxuryRouletteWheel';
-import { RouletteWinnerReveal } from '@/components/casino/games/roulette/RouletteWinnerReveal';
 import { RouletteFeltBoard } from '@/components/casino/games/roulette/RouletteFeltBoard';
+import { getAutoBetStopReason } from '@/components/casino/games/roulette/roulette-auto-bet';
+import { RouletteCroupierRibbon } from '@/components/casino/games/roulette/RouletteCroupierRibbon';
+import { RouletteFeltStage } from '@/components/casino/games/roulette/RouletteFeltStage';
+import { RouletteWheelShowcase } from '@/components/casino/games/roulette/RouletteWheelShowcase';
+import { RouletteStrategyBar } from '@/components/casino/games/roulette/RouletteStrategyBar';
+import type { RouletteStrategyPreset } from '@/components/casino/games/roulette/RouletteStrategyBar';
 
 export function RouletteClient() {
   const isMobile = useCasinoStore((state) => state.isMobile);
@@ -46,8 +49,19 @@ export function RouletteClient() {
   const [currentBets, setCurrentBets] = useState<BetPlacement[]>([]);
   const [betHistory, setBetHistory] = useState<BetPlacement[][]>([]);
   const [spinning, setSpinning] = useState(false);
-  const [winningNumber, setWinningNumber] = useState<RouletteNumber | null>(null);
-  const [history, setHistory] = useState<RouletteNumber[]>([]);
+  const [spinPhase, setSpinPhase] = useState<
+    'idle' | 'ball_launched' | 'no_more_bets' | 'drop' | 'resolved'
+  >('idle');
+  const [wheelTargetNumber, setWheelTargetNumber] = useState<RouletteNumber | null>(null);
+  const [displayWinningNumber, setDisplayWinningNumber] = useState<RouletteNumber | null>(null);
+  const [history, setHistory] = useState<RouletteNumber[]>([
+    { n: 17, c: 'BLACK' },
+    { n: 32, c: 'RED' },
+    { n: 0, c: 'GREEN' },
+    { n: 19, c: 'RED' },
+    { n: 4, c: 'BLACK' },
+    { n: 21, c: 'RED' },
+  ]);
   const [showRacetrack, setShowRacetrack] = useState(false);
   const [hoveredArea, setHoveredArea] = useState<BetType | null>(null);
   const [lastWinAmount, setLastWinAmount] = useState<number | null>(null);
@@ -92,43 +106,9 @@ export function RouletteClient() {
     return maxWin;
   }, [currentBets, gameConfig]);
 
-  // Sector Stats (Only evaluated with >= 5 history rounds)
-  const sectorStats = useMemo(() => {
-    if (history.length < 5) {
-      return { hot: [], cold: [] };
-    }
-    const counts: Record<number, number> = {};
-    history.forEach((h) => {
-      counts[h.n] = (counts[h.n] || 0) + 1;
-    });
-
-    // Sort by count descending
-    const sorted = Object.entries(counts)
-      .map(([n, count]) => ({
-        n: Number(n),
-        count,
-        c: ROULETTE_NUMBERS.find((r) => r.n === Number(n))?.c ?? 'GREEN',
-      }))
-      .sort((a, b) => b.count - a.count);
-
-    const hot = sorted.slice(0, 3);
-    const hitSet = new Set(sorted.map((s) => s.n));
-    const unhit = ROULETTE_NUMBERS.filter((rn) => !hitSet.has(rn.n)).slice(0, 3);
-    const cold = unhit.length >= 3 ? unhit : [...unhit, ...sorted.slice(-3)].slice(0, 3);
-
-    return {
-      hot,
-      cold,
-    };
-  }, [history]);
-
-  // Betting handlers (Left-Click to Add, Right-Click to Subtract)
-  const handlePlaceBet = (type: BetType, amountToAdd = selectedChip) => {
+  // Handle Bet Placement
+  const handlePlaceBet = (type: BetType, amount = selectedChip) => {
     if (spinning || isProcessing) return;
-    if (totalBetAmount + amountToAdd > balance) {
-      addToast('Insufficient balance!', 'error');
-      return;
-    }
     soundManager.play('chip');
     setBetHistory((prev) => [...prev, currentBets]);
 
@@ -137,66 +117,66 @@ export function RouletteClient() {
       const idx = prev.findIndex((b) => betTypeKey(b.type) === key);
       if (idx !== -1) {
         const next = [...prev];
-        next[idx] = { ...next[idx], amount: next[idx].amount + amountToAdd };
+        next[idx] = { ...next[idx], amount: next[idx].amount + amount };
         return next;
       }
-      return [...prev, { id: crypto.randomUUID(), type, amount: amountToAdd }];
+      return [...prev, { id: crypto.randomUUID(), type, amount }];
     });
   };
 
-  const handleRemoveBet = (type: BetType, amountToSub = selectedChip) => {
+  // Handle Bet Removal (Right Click)
+  const handleRemoveBet = (type: BetType, amount = selectedChip) => {
     if (spinning || isProcessing) return;
     const key = betTypeKey(type);
-    const existing = currentBets.find((b) => betTypeKey(b.type) === key);
-    if (!existing) return;
-
-    soundManager.play('chip');
-    setBetHistory((prev) => [...prev, currentBets]);
-
     setCurrentBets((prev) => {
       const idx = prev.findIndex((b) => betTypeKey(b.type) === key);
       if (idx === -1) return prev;
+      soundManager.play('chip');
+      setBetHistory((h) => [...h, prev]);
       const next = [...prev];
-      if (next[idx].amount <= amountToSub) {
+      if (next[idx].amount <= amount) {
         next.splice(idx, 1);
       } else {
-        next[idx] = { ...next[idx], amount: next[idx].amount - amountToSub };
+        next[idx] = { ...next[idx], amount: next[idx].amount - amount };
       }
       return next;
     });
   };
 
-  const handleClearBets = () => {
-    if (spinning || isProcessing || currentBets.length === 0) return;
-    soundManager.play('click');
-    setBetHistory((prev) => [...prev, currentBets]);
-    setCurrentBets([]);
-  };
-
+  // Undo Last Action
   const handleUndo = () => {
     if (spinning || isProcessing || betHistory.length === 0) return;
-    soundManager.play('click');
-    const last = betHistory[betHistory.length - 1];
-    setBetHistory((prev) => prev.slice(0, -1));
-    setCurrentBets(last || []);
+    soundManager.play('chip');
+    const prev = betHistory[betHistory.length - 1];
+    setCurrentBets(prev);
+    setBetHistory((h) => h.slice(0, -1));
   };
 
+  // Double All Bets
   const handleDoubleBets = () => {
     if (spinning || isProcessing || currentBets.length === 0) return;
-    if (totalBetAmount * 2 > balance) {
-      addToast('Insufficient balance to double bets!', 'error');
-      return;
-    }
     soundManager.play('chip');
     setBetHistory((prev) => [...prev, currentBets]);
     setCurrentBets((prev) => prev.map((b) => ({ ...b, amount: b.amount * 2 })));
   };
 
+  // Clear All Bets
+  const handleClearBets = () => {
+    if (spinning || isProcessing) return;
+    if (currentBets.length > 0) {
+      soundManager.play('chip');
+      setBetHistory((prev) => [...prev, currentBets]);
+      setCurrentBets([]);
+    }
+  };
+
+  // Quick Sector Bets
   const handleFrenchBet = (numbers: number[]) => {
     if (spinning || isProcessing) return;
     const unitAmount = selectedChip;
-    if (totalBetAmount + unitAmount * numbers.length > balance) {
-      addToast('Insufficient balance for sector bet!', 'error');
+    const totalCost = unitAmount * numbers.length;
+    if (totalCost > balance) {
+      addToast('Not enough balance for full sector bet', 'error');
       return;
     }
     soundManager.play('chip');
@@ -218,32 +198,129 @@ export function RouletteClient() {
     });
   };
 
-  const lastSpinTimeRef = useRef(0);
+  // Strategy Presets
+  const handleApplyPreset = (preset: RouletteStrategyPreset) => {
+    if (spinning || isProcessing) return;
+    soundManager.play('chip');
+    setBetHistory((prev) => [...prev, currentBets]);
 
-  // Spin Logic
+    if (preset === 'VOISINS') {
+      handleFrenchBet([22, 18, 29, 7, 28, 12, 35, 3, 26, 0, 32, 15, 19, 4, 21, 2, 25]);
+    } else if (preset === 'TIERS') {
+      handleFrenchBet([27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33]);
+    } else if (preset === 'ORPHELINS') {
+      handleFrenchBet([1, 20, 14, 31, 9, 17, 34, 6]);
+    } else if (preset === 'RED_BLACK_HEDGE') {
+      setCurrentBets([
+        {
+          id: crypto.randomUUID(),
+          type: { type: 'COLOR', value: 'RED' },
+          amount: selectedChip * 2,
+        },
+        { id: crypto.randomUUID(), type: { type: 'STRAIGHT', value: 0 }, amount: selectedChip },
+      ]);
+    } else if (preset === 'ZERO_HEDGE') {
+      setCurrentBets([
+        {
+          id: crypto.randomUUID(),
+          type: { type: 'COLOR', value: 'BLACK' },
+          amount: selectedChip * 2,
+        },
+        { id: crypto.randomUUID(), type: { type: 'STRAIGHT', value: 0 }, amount: selectedChip },
+      ]);
+    }
+  };
+
+  const lastSpinTimeRef = useRef(0);
+  const pendingResultRef = useRef<{
+    winningNumObj: RouletteNumber;
+    result: {
+      roll: number;
+      win: boolean;
+      payout: number;
+      serverSeedHash: string;
+      nonce: number;
+      wallet?: Parameters<typeof applyServerWalletSnapshot>[0];
+      id?: string;
+      isFirstBet?: boolean;
+    };
+    totalBetAmount: number;
+  } | null>(null);
+
+  // Handler: Wird EXAKT bei Kugel-Stillstand im Zielfach nach 6.25s aufgerufen
+  const handleWheelSettled = useCallback(() => {
+    const pending = pendingResultRef.current;
+    if (!pending) return;
+
+    const { winningNumObj, result, totalBetAmount: betAmt } = pending;
+    setSpinning(false);
+    setIsProcessing(false);
+    setSpinPhase('resolved');
+    setDisplayWinningNumber(winningNumObj);
+    setHistory((prev) => [winningNumObj, ...prev].slice(0, 18));
+    setLastWinAmount(result.payout);
+    setLastMultiplier(result.payout > 0 ? parseFloat((result.payout / betAmt).toFixed(2)) : 0);
+
+    setProvablyFairSettings({
+      serverSeedHash: result.serverSeedHash,
+      nonce: result.nonce,
+    });
+    if (result.wallet) {
+      applyServerWalletSnapshot(result.wallet);
+    }
+    processGameResult({
+      game: 'ROULETTE',
+      amount: betAmt,
+      multiplier: result.payout > 0 ? result.payout / betAmt : 0,
+      payout: result.payout,
+      win: result.win,
+      resultId: result.id || crypto.randomUUID(),
+      isFirstBet: result.isFirstBet,
+    });
+
+    setSessionStats((prev) => ({
+      rounds: prev.rounds + 1,
+      wins: prev.wins + (result.win ? 1 : 0),
+      profit: prev.profit + (result.win ? result.payout - betAmt : -betAmt),
+    }));
+
+    if (result.win) {
+      soundManager.play('win');
+    }
+
+    pendingResultRef.current = null;
+  }, [applyServerWalletSnapshot, processGameResult, setIsProcessing, setProvablyFairSettings]);
+
+  // Spin Logic with strict 6.25s sync (Winning number revealed ONLY after ball lands)
   const handleSpin = useCallback(async () => {
     if (spinning || isProcessing) return;
     if (currentBets.length === 0) {
-      // Trigger visual guide flash on table
       setFeltFlash(true);
       setTimeout(() => setFeltFlash(false), 600);
-      addToast('Please place at least one chip on the table!', 'info');
+      addToast('Bitte platziere mindestens einen Jeton auf dem Tisch!', 'info');
       return;
     }
     const now = Date.now();
     if (now - lastSpinTimeRef.current < 200) return;
     lastSpinTimeRef.current = now;
 
-    const betError = validateBet(totalBetAmount, balance);
-    if (betError) {
-      setAutoRunning(false);
-      addToast(betError, 'error');
-      return;
-    }
-
-    setSpinning(true);
     setIsProcessing(true);
+    setSpinning(true);
+    setSpinPhase('ball_launched');
+    setDisplayWinningNumber(null);
+    setLastWinAmount(null);
+    setLastMultiplier(null);
     soundManager.play('roulette-spin');
+
+    // Phase: Rien ne va plus (2.2s)
+    setTimeout(() => {
+      setSpinPhase('no_more_bets');
+    }, 2200);
+
+    // Phase: Ball Deceleration (4.4s)
+    setTimeout(() => {
+      setSpinPhase('drop');
+    }, 4400);
 
     try {
       const sanitizedClientSeed = sanitizeClientSeed(provablyFairSettings.clientSeed);
@@ -282,51 +359,26 @@ export function RouletteClient() {
         );
       }
 
-      const result = await response.json();
+      const raw = await response.json();
+      const result = raw?.data ?? raw;
       const winningNumObj = ROULETTE_NUMBERS.find((n) => n.n === result.roll) ?? {
         n: result.roll,
         c: 'GREEN',
       };
-      setWinningNumber(winningNumObj);
 
-      // Wait for cinematic wheel animation (6.25s)
-      setTimeout(() => {
-        setSpinning(false);
-        setIsProcessing(false);
-        setHistory((prev) => [winningNumObj, ...prev].slice(0, 18));
-        setLastWinAmount(result.payout);
-        setLastMultiplier(
-          result.payout > 0 ? parseFloat((result.payout / totalBetAmount).toFixed(2)) : 0,
-        );
+      // Set target on wheel so rotation aligns with target pocket
+      setWheelTargetNumber(winningNumObj);
 
-        setProvablyFairSettings({
-          serverSeedHash: result.serverSeedHash,
-          nonce: result.nonce,
-        });
-        applyServerWalletSnapshot(result.wallet);
-        processGameResult({
-          game: 'ROULETTE',
-          amount: totalBetAmount,
-          multiplier: result.payout > 0 ? result.payout / totalBetAmount : 0,
-          payout: result.payout,
-          win: result.win,
-          resultId: result.id,
-          isFirstBet: result.isFirstBet,
-        });
-
-        setSessionStats((prev) => ({
-          rounds: prev.rounds + 1,
-          wins: prev.wins + (result.win ? 1 : 0),
-          profit: prev.profit + (result.win ? result.payout - totalBetAmount : -totalBetAmount),
-        }));
-
-        if (result.win) {
-          soundManager.play('win');
-        }
-      }, 6250);
+      // Store pending outcome until ball lands in pocket at 6.25s
+      pendingResultRef.current = {
+        winningNumObj,
+        result,
+        totalBetAmount,
+      };
     } catch (error) {
       setSpinning(false);
       setIsProcessing(false);
+      setSpinPhase('idle');
       setAutoRunning(false);
       CasinoLogger.error('Roulette', 'Spin error', error);
       if (error instanceof Error && error.message.startsWith('RATE_LIMIT:')) {
@@ -341,47 +393,44 @@ export function RouletteClient() {
     isProcessing,
     currentBets,
     totalBetAmount,
-    balance,
     provablyFairSettings,
-    applyServerWalletSnapshot,
-    processGameResult,
-    setProvablyFairSettings,
     setIsProcessing,
     addToast,
   ]);
 
   // Auto-Bet Logic
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (autoRunning && !spinning && !isProcessing && currentBets.length > 0) {
-      const maxAllowed = autoBetSettings.numberOfBets > 0 ? autoBetSettings.numberOfBets : 500;
-      if (autoCount >= maxAllowed) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setAutoRunning(false);
-        addToast(`Auto-bet stopped: Reached limit of ${maxAllowed} spins`, 'info');
-        return;
-      }
-      if (autoBetSettings.stopOnProfit > 0 && sessionStats.profit >= autoBetSettings.stopOnProfit) {
-        setAutoRunning(false);
-        addToast('Auto-bet stopped: Profit goal reached!', 'success');
-        return;
-      }
-      if (
-        autoBetSettings.stopOnLoss > 0 &&
-        Math.abs(sessionStats.profit) >= autoBetSettings.stopOnLoss &&
-        sessionStats.profit < 0
-      ) {
-        setAutoRunning(false);
-        addToast('Auto-bet stopped: Loss limit reached', 'info');
-        return;
-      }
+    if (!autoRunning || spinning || isProcessing || currentBets.length === 0) return;
 
-      timer = setTimeout(() => {
-        handleSpin();
-        setAutoCount((prev) => prev + 1);
-      }, 1000);
+    const stopReason = getAutoBetStopReason({
+      autoCount,
+      numberOfBets: autoBetSettings.numberOfBets,
+      profit: sessionStats.profit,
+      stopOnProfit: autoBetSettings.stopOnProfit,
+      stopOnLoss: autoBetSettings.stopOnLoss,
+    });
+
+    if (stopReason) {
+      const stopTimer = setTimeout(() => {
+        setAutoRunning(false);
+        if (stopReason.type === 'limit') {
+          addToast(`Auto-bet stopped: Reached limit of ${stopReason.maxAllowed} spins`, 'info');
+        } else if (stopReason.type === 'profit') {
+          addToast('Auto-bet stopped: Profit goal reached!', 'success');
+        } else {
+          addToast('Auto-bet stopped: Loss limit reached', 'info');
+        }
+      }, 0);
+
+      return () => clearTimeout(stopTimer);
     }
-    return () => clearTimeout(timer);
+
+    const spinTimer = setTimeout(() => {
+      handleSpin();
+      setAutoCount((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearTimeout(spinTimer);
   }, [
     autoRunning,
     spinning,
@@ -394,7 +443,7 @@ export function RouletteClient() {
     handleSpin,
   ]);
 
-  // Spacebar & Enter Keydown Hotkeys + Bet Actions
+  // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -426,9 +475,6 @@ export function RouletteClient() {
     currentBets,
     handleSpin,
     betHistory,
-    handleClearBets,
-    handleUndo,
-    handleDoubleBets,
     isAutoMode,
     autoRunning,
     setAutoRunning,
@@ -456,7 +502,7 @@ export function RouletteClient() {
       >
         <style>{roulettePageStyles}</style>
 
-        {/* 0. SIDEBAR: OBSIDIAN & GOLD FLIGHT CONTROLS */}
+        {/* 0. SIDEBAR: FLIGHT CONTROLS */}
         <RouletteControlSidebar
           isMobile={isMobile}
           balance={balance}
@@ -481,60 +527,55 @@ export function RouletteClient() {
           onSpin={handleSpin}
         />
 
-        {/* 2 & 3. MAIN GAME STAGE & MASTER BETTING FELT */}
-        <div
-          className="roulette-center game-area obsidian-glass"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '20px',
-            padding: isMobile ? '16px' : '24px',
-            borderRadius: '28px',
-            order: isMobile ? 1 : 2,
-            minWidth: 0,
-            width: '100%',
-            position: 'relative',
-            overflow: 'hidden',
-            background: 'radial-gradient(circle at 50% 30%, #12121c 0%, #06060a 100%)',
-          }}
+        {/* 1. MAIN GAME STAGE) */}
+        <RouletteFeltStage
+          isMobile={isMobile}
+          displayWinningNumber={displayWinningNumber}
+          spinning={spinning}
         >
-          {/* Subtle Isometric Background Lines */}
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              pointerEvents: 'none',
-              opacity: 0.04,
-              backgroundImage: `linear-gradient(rgba(212, 175, 55, 0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(212, 175, 55, 0.4) 1px, transparent 1px)`,
-              backgroundSize: '40px 40px',
-            }}
-          />
-
-          {/* Top Bar: Hot & Cold + Last 18 History Badges */}
-          <RouletteHistoryBar history={history} sectorStats={sectorStats} />
-
-          {/* 2. 420px MASTER-KESSEL SHOWCASE & WINNER REVEAL */}
+          {/* ── TOP HEADER ROW: [CROUPIER VOICE RIBBON LINKS] + [PERMANENZEN RECHTS] ── */}
           <div
             style={{
               display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '12px',
               position: 'relative',
-              zIndex: 5,
+              zIndex: 10,
+              width: '100%',
             }}
           >
-            <LuxuryRouletteWheel spinning={spinning} winningNumber={winningNumber} />
-
-            {/* Winner Number Reveal HUD */}
-            <RouletteWinnerReveal
+            <RouletteCroupierRibbon
               spinning={spinning}
-              winningNumber={winningNumber}
-              lastWinAmount={lastWinAmount}
-              lastMultiplier={lastMultiplier}
+              spinPhase={spinPhase}
+              displayWinningNumber={displayWinningNumber}
             />
+
+            {/* History Stream (Sauber rechtsbündig) */}
+            <RouletteHistoryBar history={history} hideHotCold={true} />
           </div>
 
+          {/* 2. 420px MASTER-KESSEL SHOWCASE & WINNER REVEAL */}
+          <RouletteWheelShowcase
+            spinning={spinning}
+            wheelTargetNumber={wheelTargetNumber}
+            onSettled={handleWheelSettled}
+            displayWinningNumber={displayWinningNumber}
+            lastWinAmount={lastWinAmount}
+            lastMultiplier={lastMultiplier}
+          />
+
+          {/* ── EINHEITLICHE ZEILE: KESSEL-RENNBAHN + STRATEGY PILLS + POTENZIAL ── */}
+          <RouletteStrategyBar
+            showRacetrack={showRacetrack}
+            onToggleRacetrack={() => setShowRacetrack(!showRacetrack)}
+            onApplyPreset={handleApplyPreset}
+            lastWinAmount={lastWinAmount}
+            maxPotentialWin={maxPotentialWin}
+          />
+
+          {/* 3. SALON PRIVÉ 3D-BEVEL MASTER TABLEAU */}
           <RouletteFeltBoard
             isMobile={isMobile}
             showRacetrack={showRacetrack}
@@ -546,10 +587,11 @@ export function RouletteClient() {
             onHoverChange={setHoveredArea}
             onPlaceBet={handlePlaceBet}
             onRemoveBet={handleRemoveBet}
-            winningNumber={winningNumber}
+            winningNumber={displayWinningNumber}
             spinning={spinning}
+            hideBuiltInRacetrackToggle={true}
           />
-        </div>
+        </RouletteFeltStage>
       </div>
     </GameErrorBoundary>
   );

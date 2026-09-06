@@ -55,7 +55,9 @@ export default function MfaManagementSection() {
         friendlyName: 'Authenticator App',
       });
       if (enrollErr || !data) {
-        setError(mapAuthError(enrollErr?.message ?? 'Fehler beim Erstellen des 2FA-Faktors').message);
+        setError(
+          mapAuthError(enrollErr?.message ?? 'Fehler beim Erstellen des 2FA-Faktors').message,
+        );
         return;
       }
       setEnrollData({
@@ -159,7 +161,10 @@ export default function MfaManagementSection() {
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <ShieldCheck size={14} color={hasActiveMfa ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))'} />
+          <ShieldCheck
+            size={14}
+            color={hasActiveMfa ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))'}
+          />
           <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'hsl(var(--text-main))' }}>
             Zwei-Faktor (2FA)
           </span>
@@ -219,7 +224,9 @@ export default function MfaManagementSection() {
       {loading ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 0' }}>
           <Loader2 size={12} className="animate-spin" color="hsl(var(--text-muted))" />
-          <span style={{ fontSize: '0.68rem', color: 'hsl(var(--text-muted))' }}>Lade 2FA-Status...</span>
+          <span style={{ fontSize: '0.68rem', color: 'hsl(var(--text-muted))' }}>
+            Lade 2FA-Status...
+          </span>
         </div>
       ) : hasActiveMfa && !isEnrolling ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -238,7 +245,9 @@ export default function MfaManagementSection() {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <ShieldCheck size={12} color="#10B981" />
-                <span style={{ fontSize: '0.7rem', fontWeight: 600, color: 'hsl(var(--text-main))' }}>
+                <span
+                  style={{ fontSize: '0.7rem', fontWeight: 600, color: 'hsl(var(--text-main))' }}
+                >
                   {factor.friendly_name || 'Authenticator App'}
                 </span>
                 <span
@@ -331,7 +340,9 @@ export default function MfaManagementSection() {
                 color: 'hsl(var(--text-main))',
               }}
             >
-              <span style={{ letterSpacing: '0.05em', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <span
+                style={{ letterSpacing: '0.05em', overflow: 'hidden', textOverflow: 'ellipsis' }}
+              >
                 {enrollData.secret}
               </span>
               <button
@@ -353,7 +364,10 @@ export default function MfaManagementSection() {
             </div>
           </div>
 
-          <form onSubmit={handleVerifyEnroll} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <form
+            onSubmit={handleVerifyEnroll}
+            style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+          >
             <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'hsl(var(--primary))' }}>
               2. 6-stelligen Code eingeben:
             </div>

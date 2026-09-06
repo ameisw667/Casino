@@ -20,7 +20,8 @@ export function ClassicCasinoTableFelt({
     emerald: {
       // Klassisches Monte-Carlo Smaragdgrün
       bg: 'radial-gradient(ellipse at 50% 25%, #0F3826 0%, #0A291B 50%, #05180F 100%)',
-      lightCone: 'radial-gradient(circle at 50% 20%, rgba(255, 240, 180, 0.14) 0%, rgba(15, 56, 38, 0.05) 55%, transparent 80%)',
+      lightCone:
+        'radial-gradient(circle at 50% 20%, rgba(255, 240, 180, 0.14) 0%, rgba(15, 56, 38, 0.05) 55%, transparent 80%)',
       feltBorder: '2px solid rgba(212, 175, 55, 0.55)',
       leatherRail: '#14120E',
       railBorder: '#2E2214',
@@ -44,7 +45,8 @@ export function ClassicCasinoTableFelt({
     burgundy: {
       // Baden-Baden / Historisches Karminrot
       bg: 'radial-gradient(ellipse at 50% 25%, #3D0D14 0%, #29080D 50%, #170407 100%)',
-      lightCone: 'radial-gradient(circle at 50% 20%, rgba(255, 235, 190, 0.13) 0%, transparent 70%)',
+      lightCone:
+        'radial-gradient(circle at 50% 20%, rgba(255, 235, 190, 0.13) 0%, transparent 70%)',
       feltBorder: '2px solid rgba(212, 175, 55, 0.5)',
       leatherRail: '#170E0F',
       railBorder: '#30181A',
@@ -198,9 +200,7 @@ export function ClassicCasinoTableFelt({
           </div>
 
           {/* Rechter Bereich: 3D-Kartenschlitten (Shoe) */}
-          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
-            {shoeNode}
-          </div>
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>{shoeNode}</div>
         </div>
 
         {/* 5. Tisch-Inhalt (Dealer-Hand & Spieler-Hände) */}

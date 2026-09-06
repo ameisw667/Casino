@@ -33,7 +33,8 @@ export default function PromoCodesClient() {
     try {
       const res = await fetch('/api/admin/promo-codes', { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = (await res.json()) as { codes: PromoCode[] };
+      const raw = await res.json();
+      const json = (raw?.data ?? raw) as { codes: PromoCode[] };
       setCodes(json.codes ?? []);
       setError(null);
     } catch {
@@ -69,11 +70,12 @@ export default function PromoCodesClient() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const json = (await res.json()) as { error?: unknown; message?: string; code?: PromoCode };
+      const raw = await res.json();
       if (!res.ok) {
-        setSubmitMsg({ kind: 'err', text: getApiErrorMessage(json, 'Anlegen fehlgeschlagen') });
+        setSubmitMsg({ kind: 'err', text: getApiErrorMessage(raw, 'Anlegen fehlgeschlagen') });
         return;
       }
+      const json = (raw?.data ?? raw) as { success: boolean; code?: PromoCode };
       setSubmitMsg({ kind: 'ok', text: `Code ${json.code?.code} angelegt` });
       setForm({ code: '', amount: '', maxUses: '', expiresAt: '', active: true });
       await load();

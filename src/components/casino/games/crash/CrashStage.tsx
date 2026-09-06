@@ -1,7 +1,8 @@
 'use client';
 
 import type { RefObject } from 'react';
-import { Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
+
 import type { CrashStatus } from './crash-helpers';
 
 interface CrashMilestoneFlash {
@@ -50,19 +51,61 @@ export function CrashStage({
 
   return (
     <div
-      className="obsidian-glass"
+      className="obsidian-glass crash-stage-container"
       style={{
         position: 'relative',
         flex: 1,
-        height: isMobile ? '360px' : '520px',
-        minHeight: isMobile ? '360px' : '520px',
+        height: isMobile ? '380px' : '540px',
+        minHeight: isMobile ? '380px' : '540px',
         padding: 0,
         overflow: 'hidden',
-        borderRadius: '28px',
-        border: '1px solid rgba(212, 175, 55, 0.2)',
+        borderRadius: '24px',
+        backgroundColor: '#07090E',
+        border: '1.5px solid rgba(212, 175, 55, 0.35)',
+        boxShadow: '0 25px 60px rgba(0, 0, 0, 0.95), inset 0 0 60px rgba(0, 0, 0, 0.8)',
       }}
     >
-      {/* Camera Zoom & Canvas Layer */}
+      {/* 1. Bespoke Orbital Launchpad Backdrop Artwork (Option A) */}
+      <motion.div
+        animate={
+          status === 'RUNNING'
+            ? { scale: 1.05, y: 10, opacity: 0.95 }
+            : status === 'CRASHED'
+              ? { scale: 1.02, y: 0, x: [-5, 5, -3, 3, 0], opacity: 0.78 }
+              : status === 'CASHED_OUT'
+                ? { scale: 1.04, y: 6, opacity: 0.96 }
+                : { scale: [1, 1.018, 1], y: [0, -3, 0], opacity: 0.88 }
+        }
+        transition={
+          status === 'IDLE'
+            ? { duration: 9, repeat: Infinity, ease: 'easeInOut' }
+            : { duration: 0.7, ease: 'easeOut' }
+        }
+        style={{
+          position: 'absolute',
+          inset: -14,
+          backgroundImage: "url('/images/2026-09-05_backdrop-crash-quantum-nebula_v001.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center bottom',
+          backgroundRepeat: 'no-repeat',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
+      {/* 2. Atmospheric Vignette & Contrast Tuning */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'radial-gradient(circle at 50% 40%, rgba(7, 9, 14, 0.15) 0%, rgba(7, 9, 14, 0.52) 68%, rgba(5, 7, 10, 0.88) 100%)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}
+      />
+
+      {/* 3. Camera Zoom & Canvas Layer */}
       <div
         ref={cameraZoomRef}
         style={{
@@ -118,19 +161,20 @@ export function CrashStage({
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
               padding: '8px 20px',
               borderRadius: '20px',
-              background: 'rgba(212, 175, 55, 0.12)',
-              border: '1px solid rgba(212, 175, 55, 0.3)',
+              background: 'rgba(11, 14, 20, 0.78)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid rgba(212, 175, 55, 0.45)',
+              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.65), inset 0 1px 2px rgba(212, 175, 55, 0.25)',
               color: '#FFD700',
-              fontSize: isMobile ? '0.85rem' : '1.1rem',
+              fontSize: isMobile ? '0.85rem' : '1.05rem',
               fontWeight: 800,
               letterSpacing: '3px',
               marginBottom: '12px',
             }}
           >
-            <Sparkles size={16} color="#FFD700" />
             <span>WAITING FOR NEXT LAUNCH</span>
           </div>
         )}
@@ -144,10 +188,13 @@ export function CrashStage({
               gap: '8px',
               padding: '8px 20px',
               borderRadius: '20px',
-              background: 'rgba(212, 175, 55, 0.2)',
-              border: '1px solid rgba(212, 175, 55, 0.5)',
+              background: 'rgba(11, 14, 20, 0.85)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid rgba(212, 175, 55, 0.6)',
+              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.7), inset 0 1px 2px rgba(212, 175, 55, 0.3)',
               color: '#FFD700',
-              fontSize: isMobile ? '0.85rem' : '1.1rem',
+              fontSize: isMobile ? '0.85rem' : '1.05rem',
               fontWeight: 800,
               letterSpacing: '3px',
               marginBottom: '12px',
@@ -169,7 +216,7 @@ export function CrashStage({
             lineHeight: 1,
             color:
               status === 'IDLE'
-                ? 'rgba(255, 255, 255, 0.35)'
+                ? 'rgba(255, 255, 255, 0.45)'
                 : status === 'CRASHED'
                   ? '#ef4444'
                   : status === 'CASHED_OUT'
@@ -177,12 +224,12 @@ export function CrashStage({
                     : '#FFFDF0',
             textShadow:
               status === 'IDLE'
-                ? 'none'
+                ? '0 4px 25px rgba(0, 0, 0, 0.95)'
                 : status === 'CRASHED'
-                  ? '0 0 60px rgba(239, 68, 68, 0.8)'
+                  ? '0 0 60px rgba(239, 68, 68, 0.85), 0 4px 20px rgba(0, 0, 0, 0.95)'
                   : status === 'CASHED_OUT'
-                    ? '0 0 50px rgba(74, 222, 128, 0.7)'
-                    : '0 0 40px rgba(212, 175, 55, 0.65)',
+                    ? '0 0 50px rgba(74, 222, 128, 0.8), 0 4px 20px rgba(0, 0, 0, 0.95)'
+                    : '0 0 40px rgba(212, 175, 55, 0.75), 0 4px 20px rgba(0, 0, 0, 0.95)',
           }}
         >
           {status === 'IDLE' ? '1.00x' : ''}

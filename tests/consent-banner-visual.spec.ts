@@ -5,7 +5,9 @@ test('consent banner is visible and operates on http://localhost:3015', async ({
   await page.waitForLoadState('networkidle');
 
   // Check if dialog is present in DOM
-  const banner = page.locator('div[role="dialog"][aria-label="Datennutzung für Produktverbesserung"]');
+  const banner = page.locator(
+    'div[role="dialog"][aria-label="Datennutzung für Produktverbesserung"]',
+  );
   const count = await banner.count();
   console.log('Banner count in DOM:', count);
 

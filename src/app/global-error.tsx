@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import * as Sentry from '@sentry/nextjs';
+import { CasinoLogger } from '@/lib/casino/logger';
 
 export default function GlobalError({
   error,
@@ -11,11 +11,10 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    try {
-      Sentry.captureException(error);
-    } catch {
-      // A Sentry SDK failure must never break the last-resort error boundary itself.
-    }
+    // Routed through CasinoLogger (not a direct Sentry.captureException call) so this
+    // last-resort boundary carries a module tag like every other captured error in the
+    // app — console logging and Sentry try/catch-isolation live inside CasinoLogger.error().
+    CasinoLogger.error('GlobalErrorBoundary', 'Unhandled root error', error);
   }, [error]);
 
   return (

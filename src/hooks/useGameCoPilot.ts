@@ -57,10 +57,7 @@ export interface UseGameCoPilotOptions {
   defaultExpanded?: boolean;
 }
 
-export function useGameCoPilot(
-  context: GameCoPilotContext,
-  options?: UseGameCoPilotOptions,
-) {
+export function useGameCoPilot(context: GameCoPilotContext, options?: UseGameCoPilotOptions) {
   const initialExpanded = options?.defaultExpanded ?? false;
   const storageKey = `${STORAGE_KEY_HUD_EXPANDED}_${context.gameType.toLowerCase()}`;
 
@@ -124,7 +121,8 @@ export function useGameCoPilot(
           action: 'RUNDE BEREIT',
           winProbability: 49.5,
           expectedValue: -0.005,
-          reasoning: 'Setze deinen Wetteinsatz. Basic Strategy empfiehlt max. 1-2% Bankroll pro Runde.',
+          reasoning:
+            'Setze deinen Wetteinsatz. Basic Strategy empfiehlt max. 1-2% Bankroll pro Runde.',
           riskLevel: 'low',
           badgeText: 'Pre-Round Guide',
           suggestedPrompt: 'Was ist das optimale Bankroll-Management beim Blackjack?',
@@ -197,7 +195,8 @@ export function useGameCoPilot(
       action: 'VOLATILITÄTS-RADAR',
       winProbability: 35.0,
       expectedValue: -0.035,
-      reasoning: 'Slots haben eine mittlere bis hohe Volatilität. Größere Gewinne entstehen in Freispiel- und Multiplikator-Phasen.',
+      reasoning:
+        'Slots haben eine mittlere bis hohe Volatilität. Größere Gewinne entstehen in Freispiel- und Multiplikator-Phasen.',
       riskLevel: 'medium',
       badgeText: 'RTP ~96.5%',
       suggestedPrompt: 'Wie hoch ist die Trefferquote bei den Slots?',

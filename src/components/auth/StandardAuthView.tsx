@@ -14,6 +14,8 @@ interface StandardAuthViewProps {
   onEmailChange: (value: string) => void;
   password: string;
   onPasswordChange: (value: string) => void;
+  honeypotValue: string;
+  onHoneypotChange: (value: string) => void;
   validationErrors: AuthValidationErrors;
   isFormReady: boolean;
   isSignUp: boolean;
@@ -32,6 +34,8 @@ export function StandardAuthView({
   onEmailChange,
   password,
   onPasswordChange,
+  honeypotValue,
+  onHoneypotChange,
   validationErrors,
   isFormReady,
   isSignUp,
@@ -47,6 +51,28 @@ export function StandardAuthView({
   return (
     <div>
       <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+        {/* 06_1 L3 signup honeypot (V1): off-screen, not display:none — naive bots that fill
+            every visible input also fill this one, humans and screen readers never see it.
+            Rendered only in sign-up mode; the report is fire-and-forget after a successful
+            signup (AuthForm), never blocks the submission itself. */}
+        {isSignUp && (
+          <input
+            type="text"
+            name="company_website"
+            value={honeypotValue}
+            onChange={(event) => onHoneypotChange(event.target.value)}
+            tabIndex={-1}
+            aria-hidden="true"
+            autoComplete="off"
+            style={{
+              position: 'absolute',
+              left: '-9999px',
+              width: '1px',
+              height: '1px',
+              opacity: 0,
+            }}
+          />
+        )}
         <AuthField
           id="auth-email"
           label="E-Mail-Adresse"

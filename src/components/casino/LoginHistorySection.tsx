@@ -85,7 +85,8 @@ export default function LoginHistorySection() {
       if (!res.ok) {
         throw new Error('Fehler beim Laden der Login-Historie');
       }
-      const data = await res.json();
+      const raw = await res.json();
+      const data = raw?.data ?? raw;
       setHistory(data.history || []);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Konnte nicht geladen werden';
@@ -106,7 +107,8 @@ export default function LoginHistorySection() {
         if (!res.ok) {
           throw new Error('Fehler beim Laden der Login-Historie');
         }
-        const data = await res.json();
+        const raw = await res.json();
+        const data = raw?.data ?? raw;
         if (!cancelled) {
           setHistory(data.history || []);
           setError(null);
@@ -292,7 +294,14 @@ export default function LoginHistorySection() {
                 </div>
 
                 {/* Right: Date & Status Badge */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    gap: '4px',
+                  }}
+                >
                   <div style={{ fontSize: '0.65rem', color: 'hsl(var(--text-muted))' }}>
                     {formatRecordDate(item.createdAt)}
                   </div>

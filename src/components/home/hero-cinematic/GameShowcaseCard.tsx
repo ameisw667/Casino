@@ -170,7 +170,7 @@ export function GameShowcaseCard({
                 alt={activeTab.name}
                 fill
                 sizes="400px"
-                style={{ objectFit: 'cover' }}
+                style={{ objectFit: 'cover', objectPosition: 'center 25%' }}
               />
 
               {/* Live Simulation Overlay Badge */}

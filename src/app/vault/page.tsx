@@ -9,7 +9,12 @@ import { VaultLifetimeStats } from '@/components/casino/vault/VaultLifetimeStats
 import { VaultTierShowcase } from '@/components/casino/vault/VaultTierShowcase';
 import { VaultRedeemCard } from '@/components/casino/vault/VaultRedeemCard';
 import { VaultQuickPlayCta } from '@/components/casino/vault/VaultQuickPlayCta';
+import { resolvePlayerAvatar } from '@/lib/casino/player-avatar';
 import { VaultAchievements } from '@/components/casino/vault/VaultAchievements';
+import {
+  DEFAULT_ACHIEVEMENT_CONFIGS,
+  mergeAchievementsWithConfig,
+} from '@/lib/casino/achievements-config';
 
 function VaultContent() {
   const { balance, xp, level, vipTiers, achievements, isMobile, redeemCode, gameStats, analytics } =
@@ -51,14 +56,20 @@ function VaultContent() {
     let cancelled = false;
     fetch('/api/user/stats', { cache: 'no-store' })
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
+      .then((raw) => {
+        const data =
+          raw && typeof raw === 'object' && 'data' in raw && (raw as { data: unknown }).data
+            ? (raw as { data: unknown }).data
+            : raw;
         if (data && !cancelled) {
-          setServerStats(data);
-          if (data.achievements) {
-            useCasinoStore.getState().mergeServerAchievements(data.achievements);
+          const stats = data as typeof serverStats & { achievements?: never };
+          setServerStats(stats);
+          if (stats.achievements) {
+            useCasinoStore.getState().mergeServerAchievements(stats.achievements);
           }
         }
       })
+
       .catch(() => {});
     return () => {
       cancelled = true;
@@ -71,12 +82,15 @@ function VaultContent() {
     return meta.username || meta.full_name || user.email?.split('@')[0] || 'VibeCoder_Royale';
   }, [user]);
 
-  const avatarUrl = useMemo(() => {
-    if (user?.user_metadata?.avatar_url) return user.user_metadata.avatar_url;
-    const seed = encodeURIComponent(user?.email || displayName || 'Vibe');
-    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
-  }, [user, displayName]);
+  const avatarUrl = useMemo(
+    () => resolvePlayerAvatar(displayName, user?.user_metadata?.avatar_url).src,
+    [displayName, user?.user_metadata?.avatar_url],
+  );
 
+  const displayAchievements = useMemo(
+    () => mergeAchievementsWithConfig(achievements, DEFAULT_ACHIEVEMENT_CONFIGS),
+    [achievements],
+  );
   const currentTier = useMemo(
     () => [...vipTiers].reverse().find((t) => xp >= t.minXp) || vipTiers[0],
     [xp, vipTiers],
@@ -185,7 +199,7 @@ function VaultContent() {
           gap: '16px',
         }}
       >
-        <VaultAchievements achievements={achievements} isMobile={isMobile} />
+        <VaultAchievements achievements={displayAchievements} isMobile={isMobile} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <VaultRedeemCard
             redeemInputRef={redeemInputRef}

@@ -131,7 +131,14 @@ export function LiveHighrollerTickerBar() {
           }}
         >
           {/* Left Badge: Live Highroller Label */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '5px' : '8px', flexShrink: 0 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: isMobile ? '5px' : '8px',
+              flexShrink: 0,
+            }}
+          >
             <span
               style={{
                 width: isMobile ? '6px' : '8px',

@@ -1,12 +1,22 @@
 'use client';
 import React, { useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
+import {
+  useLobbyReactionFx,
+  type LobbyComet,
+  type LobbyWave,
+} from '@/components/home/useLobbyReactionFx';
 
 const WebGlWaterRefractionCanvas = dynamic(
   () =>
     import('@/components/home/WebGlWaterRefractionCanvas').then(
       (m) => m.WebGlWaterRefractionCanvas,
     ),
+  { ssr: false },
+);
+
+const ParallaxImageBackground = dynamic(
+  () => import('@/components/home/ParallaxImageBackground').then((m) => m.ParallaxImageBackground),
   { ssr: false },
 );
 
@@ -34,13 +44,20 @@ interface TrailSpark {
 interface LobbyAmbientBackgroundProps {
   /** Mouse-following radial-gradient "spotlight" layer + cursor particle repulsion. Default true (homepage behavior unchanged). */
   showSpotlight?: boolean;
+  /** Backdrop layer 1: 'webgl' (homepage default) or 'parallax' (2.5D still image, Plan 26). */
+  backgroundVariant?: 'webgl' | 'parallax';
 }
 
-export function LobbyAmbientBackground({ showSpotlight = true }: LobbyAmbientBackgroundProps) {
+export function LobbyAmbientBackground({
+  showSpotlight = true,
+  backgroundVariant = 'webgl',
+}: LobbyAmbientBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const webGlWrapperRef = useRef<HTMLDivElement>(null);
   const canvasWrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const accentRgbRef = useRef<[number, number, number]>([212, 175, 55]);
+  const { wavesRef, cometsRef } = useLobbyReactionFx(accentRgbRef);
 
   useEffect(() => {
     // Mobile/strong-reduction gate: the ambient gold-dust canvas + global
@@ -161,7 +178,7 @@ export function LobbyAmbientBackground({ showSpotlight = true }: LobbyAmbientBac
       if (!prefersReducedMotion) {
         smoothScrollY += (targetScrollY - smoothScrollY) * 0.08;
         if (webGlWrapperRef.current) {
-          webGlWrapperRef.current.style.transform = `translateY(${-smoothScrollY * 0.06}px) scale(1.03)`;
+          webGlWrapperRef.current.style.transform = `translateY(${-smoothScrollY * 0.11}px) scale(1.03)`;
         }
         if (canvasWrapperRef.current) {
           canvasWrapperRef.current.style.transform = `translateY(${-smoothScrollY * 0.18}px)`;
@@ -201,6 +218,7 @@ export function LobbyAmbientBackground({ showSpotlight = true }: LobbyAmbientBac
       currentR += (targetR - currentR) * 0.06;
       currentG += (targetG - currentG) * 0.06;
       currentB += (targetB - currentB) * 0.06;
+      accentRgbRef.current = [Math.round(currentR), Math.round(currentG), Math.round(currentB)];
 
       container.style.setProperty(
         '--spotlight-color',
@@ -271,6 +289,68 @@ export function LobbyAmbientBackground({ showSpotlight = true }: LobbyAmbientBac
         }
       }
 
+      // Draw reactive hover waves (Plan 28): soft translucent glow rings, ~1.0s life.
+      // Radial-gradient annulus + additive blending reads as a light wave, not a line.
+      const nowMs = performance.now();
+      ctx.globalCompositeOperation = 'lighter';
+      const waves = wavesRef.current;
+      for (let i = waves.length - 1; i >= 0; i--) {
+        const w: LobbyWave = waves[i];
+        const t = (nowMs - w.startMs) / 1000;
+        if (t >= 1) {
+          waves.splice(i, 1);
+          continue;
+        }
+        const eased = 1 - Math.pow(1 - t, 3);
+        const radius = eased * 260;
+        const bandInner = Math.max(0, radius - 90);
+        const alpha = Math.pow(1 - t, 1.6) * 0.2;
+        const ring = ctx.createRadialGradient(w.x, w.y, bandInner, w.x, w.y, radius);
+        ring.addColorStop(0, `rgba(${w.rgb[0]}, ${w.rgb[1]}, ${w.rgb[2]}, 0)`);
+        ring.addColorStop(0.72, `rgba(${w.rgb[0]}, ${w.rgb[1]}, ${w.rgb[2]}, ${alpha})`);
+        ring.addColorStop(1, `rgba(${w.rgb[0]}, ${w.rgb[1]}, ${w.rgb[2]}, 0)`);
+        ctx.fillStyle = ring;
+        ctx.beginPath();
+        ctx.arc(w.x, w.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Faint glassy "dome" at the wave core for the 3D-light impression
+        if (t < 0.5) {
+          const dome = ctx.createRadialGradient(w.x, w.y, 0, w.x, w.y, radius * 0.5);
+          dome.addColorStop(0, `rgba(${w.rgb[0]}, ${w.rgb[1]}, ${w.rgb[2]}, ${alpha * 0.22})`);
+          dome.addColorStop(1, `rgba(${w.rgb[0]}, ${w.rgb[1]}, ${w.rgb[2]}, 0)`);
+          ctx.fillStyle = dome;
+          ctx.beginPath();
+          ctx.arc(w.x, w.y, radius * 0.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Draw big-win comets (Plan 28): glowing diagonal streak with soft trail, ~1.4s
+      const comets = cometsRef.current;
+      for (let i = comets.length - 1; i >= 0; i--) {
+        const c: LobbyComet = comets[i];
+        const t = (nowMs - c.startMs) / 1400;
+        if (t >= 1) {
+          comets.splice(i, 1);
+          continue;
+        }
+        const p = 1 - Math.pow(1 - t, 2);
+        const headX = -120 + p * (width + 240);
+        const headY = height * 0.18 + p * height * 0.34;
+        for (let dot = 0; dot < 14; dot++) {
+          const fade = 1 - dot / 14;
+          ctx.beginPath();
+          ctx.arc(headX - dot * 16, headY - dot * 4.5, 3.6 * fade + 1, 0, Math.PI * 2);
+          ctx.shadowBlur = 10 * fade;
+          ctx.shadowColor = `rgba(212, 175, 55, ${0.38 * fade})`;
+          ctx.fillStyle = `rgba(212, 175, 55, ${0.2 * fade * (1 - t * 0.4)})`;
+          ctx.fill();
+        }
+        ctx.shadowBlur = 0;
+      }
+      ctx.globalCompositeOperation = 'source-over';
+
       // Reset shadow blur for next frame
       ctx.shadowBlur = 0;
 
@@ -286,7 +366,7 @@ export function LobbyAmbientBackground({ showSpotlight = true }: LobbyAmbientBac
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [showSpotlight]);
+  }, [showSpotlight, wavesRef, cometsRef]);
 
   return (
     <div
@@ -302,7 +382,7 @@ export function LobbyAmbientBackground({ showSpotlight = true }: LobbyAmbientBac
         zIndex: 0,
       }}
     >
-      {/* 1. Global WebGL Organic Fluid Water Refraction Canvas (with Parallax Layer 0) */}
+      {/* 1. Backdrop layer (with Parallax Layer 0) */}
       <div
         ref={webGlWrapperRef}
         style={{
@@ -314,7 +394,14 @@ export function LobbyAmbientBackground({ showSpotlight = true }: LobbyAmbientBac
           willChange: 'transform',
         }}
       >
-        <WebGlWaterRefractionCanvas isMobile={false} />
+        {backgroundVariant === 'parallax' ? (
+          <ParallaxImageBackground
+            imageSrc="/images/2026-09-05_backdrop-crash-quantum-nebula_v001.png"
+            alt=""
+          />
+        ) : (
+          <WebGlWaterRefractionCanvas isMobile={false} />
+        )}
       </div>
 
       {/* 2. Scrolly Depth Dimm Scrim (Full-Width Symmetrical Vignette & Vertical Scrolly Depth) */}

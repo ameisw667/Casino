@@ -90,13 +90,12 @@ export default function SlotsV2Page() {
   }, []);
 
   const playSound = useCallback((name: string) => {
-    const a = audioRefs.current[name];
-    if (a) {
-      a.currentTime = 0;
-      a.play().catch(() => {});
+    const audio = audioRefs.current[name];
+    if (audio) {
+      audio.currentTime = 0;
+      void audio.play().catch(() => {});
     }
   }, []);
-
   const lastSpinTimeRef = useRef(0);
   const handleSpin = useCallback(async () => {
     if (isSpinning) return;
@@ -148,7 +147,8 @@ export default function SlotsV2Page() {
         }
         throw new Error(getApiErrorMessage(errData, 'Der Spin konnte nicht verarbeitet werden.'));
       }
-      const data = await res.json();
+      const raw = await res.json();
+      const data = raw?.data ?? raw;
 
       setPF({ serverSeedHash: data.serverSeedHash, nonce: data.nonce });
 
@@ -160,10 +160,8 @@ export default function SlotsV2Page() {
 
       if (data.payout > 0) {
         setLastResult({ type: 'win', amount: data.payout });
-        playSound('win');
       } else {
         setLastResult({ type: 'loss', amount: betAmount });
-        playSound('loss');
       }
 
       if (data.win && engineSymbols.length > 0) {
@@ -221,7 +219,7 @@ export default function SlotsV2Page() {
     setPF,
     processResult,
     applyServerWalletSnapshot,
-    playSound,
+
     setProcessing,
   ]);
 

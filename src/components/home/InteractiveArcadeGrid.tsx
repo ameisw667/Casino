@@ -3,78 +3,24 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Sparkles, ChevronRight, Layers, Flame, Gamepad2, Rocket, RotateCcw } from 'lucide-react';
+import {
+  Play,
+  Sparkles,
+  ChevronRight,
+  Layers,
+  Flame,
+  Gamepad2,
+  Rocket,
+  RotateCcw,
+} from 'lucide-react';
 import { soundManager } from '@/lib/casino/sound-manager';
+import { CASINO_GAMES_REGISTRY, type CasinoGameDefinition } from '@/lib/casino/games-registry';
 
-interface GameItem {
-  id: string;
-  name: string;
-  category: 'originals' | 'table' | 'top_games';
-  path: string;
-  image: string;
-  maxPayout: string;
-  badge: string;
-  description: string;
-  accentColor: string;
-}
+export type GameItem = CasinoGameDefinition;
 
-const GAMES: GameItem[] = [
-  {
-    id: 'crash',
-    name: 'CRASH ROCKET',
-    category: 'originals',
-    path: '/games/crash',
-    image: '/images/game-crash-new.png',
-    maxPayout: '10,000x',
-    badge: 'HOT ORIGINALS',
-    description: 'Multiplikator steigt in Echtzeit. Cashout vor dem Crash!',
-    accentColor: '#FF4500',
-  },
-  {
-    id: 'blackjack',
-    name: 'VIP BLACKJACK',
-    category: 'table',
-    path: '/games/blackjack',
-    image: '/images/game-blackjack-new.png',
-    maxPayout: '2.5x',
-    badge: 'HIGH STAKES',
-    description: 'Klassisches 21 mit Dealer. Double Down & Split Strategien.',
-    accentColor: '#D4AF37',
-  },
-  {
-    id: 'dice',
-    name: 'ULTIMATE DICE',
-    category: 'top_games',
-    path: '/games/dice',
-    image: '/images/game-dice-new.png',
-    maxPayout: '990x',
-    badge: 'PROVABLY FAIR',
-    description: 'Wähle dein Gewinn-Ziel von 1-98%. Instant Roll Engine.',
-    accentColor: '#00E701',
-  },
-  {
-    id: 'roulette',
-    name: 'ROYALE ROULETTE',
-    category: 'table',
-    path: '/games/roulette',
-    image: '/images/game-roulette-new.png',
-    maxPayout: '36x',
-    badge: 'CLASSIC',
-    description: 'Europäisches Kesselspiel mit Red/Black & Straight-Betting.',
-    accentColor: '#9370DB',
-  },
-  {
-    id: 'slots',
-    name: 'NEON 777 SLOTS',
-    category: 'top_games',
-    path: '/games/slots',
-    image: '/images/lucky-777-neon-3d.png',
-    maxPayout: '5,000x',
-    badge: 'JACKPOT',
-    description: '5-Reel Cyber Slot mit Scatter, Free Spins & Hold-Win Bonus.',
-    accentColor: '#FF007F',
-  },
-];
+export const GAMES: readonly GameItem[] = CASINO_GAMES_REGISTRY.filter(
+  (g) => g.id !== 'crash-multiplayer',
+);
 
 const CATEGORIES = [
   { id: 'all', label: 'ALLE SPIELE', icon: Layers },
@@ -102,78 +48,97 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
         padding: isMobile ? '0 12px 28px' : '0 24px 36px',
       }}
     >
-      {/* Quick-Launch "Zuletzt Gespielt" Bar */}
-      <motion.div
-        initial={{ opacity: 0, y: -6 }}
-        animate={{ opacity: 1, y: 0 }}
-        style={{
-          marginBottom: isMobile ? '12px' : '16px',
-          padding: isMobile ? '8px 12px' : '10px 16px',
-          borderRadius: '14px',
-          background: 'linear-gradient(90deg, rgba(212, 175, 55, 0.12) 0%, rgba(20, 22, 30, 0.8) 50%, rgba(12, 14, 20, 0.9) 100%)',
-          border: '1px solid rgba(212, 175, 55, 0.25)',
-          backdropFilter: 'blur(16px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: isMobile ? '8px' : '10px',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '10px' }}>
-          <div
-            style={{
-              width: isMobile ? '24px' : '28px',
-              height: isMobile ? '24px' : '28px',
-              borderRadius: '8px',
-              background: 'rgba(212, 175, 55, 0.15)',
-              border: '1px solid rgba(212, 175, 55, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#D4AF37',
-              flexShrink: 0,
-            }}
-          >
-            <RotateCcw size={isMobile ? 12 : 14} />
-          </div>
-          <div>
-            <div style={{ fontSize: isMobile ? '0.58rem' : '0.62rem', fontWeight: 800, color: 'rgba(255, 255, 255, 0.45)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              ZULETZT GESPIELT
+      {/* Zuletzt gespielt Floating Bar — Desktop only */}
+      {!isMobile && (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '14px',
+            padding: '8px 14px',
+            borderRadius: '14px',
+            background: 'rgba(18, 18, 26, 0.75)',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(212, 175, 55, 0.25)',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+            marginBottom: '20px',
+            width: 'auto',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '8px',
+                background: 'rgba(212, 175, 55, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#D4AF37',
+              }}
+            >
+              <RotateCcw size={13} />
             </div>
-            <div style={{ fontSize: isMobile ? '0.74rem' : '0.82rem', fontWeight: 900, color: '#ffffff', letterSpacing: '-0.01em' }}>
-              CRASH ROCKET <span style={{ color: '#D4AF37', fontSize: isMobile ? '0.66rem' : '0.72rem', fontWeight: 800 }}>• 2.50x</span>
+            <div>
+              <div
+                style={{
+                  fontSize: '0.62rem',
+                  fontWeight: 800,
+                  color: 'rgba(255, 255, 255, 0.45)',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                ZULETZT GESPIELT
+              </div>
+              <div
+                style={{
+                  fontSize: '0.82rem',
+                  fontWeight: 900,
+                  color: '#ffffff',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                CRASH ROCKET{' '}
+                <span style={{ color: '#D4AF37', fontSize: '0.72rem', fontWeight: 800 }}>
+                  • 2.50x
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <Link href="/games/crash" style={{ textDecoration: 'none' }}>
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: isMobile ? '5px 10px' : '6px 14px',
-              borderRadius: '8px',
-              background: 'linear-gradient(135deg, #FFD700 0%, #D4AF37 100%)',
-              border: 'none',
-              color: '#000',
-              fontWeight: 950,
-              fontSize: isMobile ? '0.66rem' : '0.72rem',
-              letterSpacing: '0.04em',
-              cursor: 'pointer',
-              boxShadow: '0 0 16px rgba(212, 175, 55, 0.35)',
-            }}
-          >
-            <Play size={10} fill="#000" />
-            <span>FORTSETZEN</span>
-            <ChevronRight size={11} />
-          </motion.button>
-        </Link>
-      </motion.div>
+          <Link href="/games/crash" style={{ textDecoration: 'none' }}>
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #FFD700 0%, #D4AF37 100%)',
+                border: 'none',
+                color: '#000',
+                fontWeight: 950,
+                fontSize: '0.72rem',
+                letterSpacing: '0.04em',
+                cursor: 'pointer',
+                boxShadow: '0 0 16px rgba(212, 175, 55, 0.35)',
+              }}
+            >
+              <Play size={10} fill="#000" />
+              <span>FORTSETZEN</span>
+              <ChevronRight size={11} />
+            </motion.button>
+          </Link>
+        </motion.div>
+      )}
 
       {/* Grid Header with Category Filters */}
       <div
@@ -244,9 +209,7 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
                   gap: '5px',
                   padding: isMobile ? '5px 10px' : '7px 14px',
                   borderRadius: '10px',
-                  border: isActive
-                    ? '1px solid #D4AF37'
-                    : '1px solid rgba(255, 255, 255, 0.08)',
+                  border: isActive ? '1px solid #D4AF37' : '1px solid rgba(255, 255, 255, 0.08)',
                   background: isActive
                     ? 'linear-gradient(135deg, #FFD700 0%, #D4AF37 100%)'
                     : 'rgba(255, 255, 255, 0.04)',
@@ -278,7 +241,8 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
       >
         <AnimatePresence mode="popLayout">
           {filteredGames.map((game, idx) => {
-            const isSpan2 = isMobile && filteredGames.length % 2 === 1 && idx === filteredGames.length - 1;
+            const isSpan2 =
+              isMobile && filteredGames.length % 2 === 1 && idx === filteredGames.length - 1;
             return (
               <ArcadeGameCard
                 key={game.id}
@@ -383,7 +347,10 @@ function ArcadeGameCard({
         />
       )}
 
-      <Link href={game.path} style={{ textDecoration: 'none', outline: 'none', display: 'block', height: '100%' }}>
+      <Link
+        href={game.path}
+        style={{ textDecoration: 'none', outline: 'none', display: 'block', height: '100%' }}
+      >
         <motion.div
           whileTap={{ scale: 0.96 }}
           animate={{
@@ -546,8 +513,10 @@ function ArcadeGameCard({
                 src={game.image}
                 alt={game.name}
                 fill
-                sizes={isMobile ? '160px' : '280px'}
-                style={{ objectFit: 'cover' }}
+                unoptimized
+                priority
+                sizes={isMobile ? '200px' : '280px'}
+                style={{ objectFit: 'cover', objectPosition: 'center 25%' }}
               />
             </motion.div>
           </div>

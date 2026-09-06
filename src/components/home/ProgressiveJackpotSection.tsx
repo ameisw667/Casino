@@ -10,10 +10,38 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
   const { formatted: jackpotFormatted } = useProgressiveJackpot();
 
   const stats = [
-    { label: 'GESAMT AUSGEZAHLT', mobileLabel: 'AUSGEZAHLT', value: '$14,280,450+', icon: Coins, color: '#D4AF37' },
-    { label: 'DURCHSCHN. AUSZAHLUNG', mobileLabel: 'AUSZAHLUNGSSPEED', value: '1.8 SEKUNDEN', mobileValue: '1.8 SEKUNDEN', icon: Zap, color: '#00E701' },
-    { label: 'PLATZIERTE WETTEN', mobileLabel: 'WETTEN GESAMT', value: '4,892,100+', icon: Activity, color: '#00B67A' },
-    { label: 'PROVABLY FAIR', mobileLabel: 'PROVABLY FAIR', value: '100% TRANSPARENT', icon: ShieldCheck, color: '#D4AF37' },
+    {
+      label: 'GESAMT AUSGEZAHLT',
+      mobileLabel: 'AUSZAHLUNGEN',
+      value: '$14,280,450+',
+      mobileValue: '$14.28M+',
+      icon: Coins,
+      color: '#D4AF37',
+    },
+    {
+      label: 'DURCHSCHN. AUSZAHLUNG',
+      mobileLabel: 'SPEED',
+      value: '1.8 SEKUNDEN',
+      mobileValue: '1.8 SEK.',
+      icon: Zap,
+      color: '#00E701',
+    },
+    {
+      label: 'PLATZIERTE WETTEN',
+      mobileLabel: 'WETTEN',
+      value: '4,892,100+',
+      mobileValue: '4.89M+',
+      icon: Activity,
+      color: '#00B67A',
+    },
+    {
+      label: 'PROVABLY FAIR',
+      mobileLabel: 'FAIRNESS',
+      value: '100% TRANSPARENT',
+      mobileValue: '100% FAIR',
+      icon: ShieldCheck,
+      color: '#D4AF37',
+    },
   ];
 
   return (
@@ -21,8 +49,8 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
       style={{
         position: 'relative',
         width: '100%',
-        margin: isMobile ? '0 auto 32px' : '0 auto 64px',
-        padding: isMobile ? '24px 16px' : '40px 24px',
+        margin: isMobile ? '0 auto 24px' : '0 auto 64px',
+        padding: isMobile ? '16px 8px' : '40px 24px',
       }}
     >
       {/* Floating Horizon Ambient Light Beam */}
@@ -50,7 +78,7 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
           height: '1px',
           background:
             'linear-gradient(90deg, transparent 0%, rgba(212, 175, 55, 0.35) 50%, transparent 100%)',
-          marginBottom: '32px',
+          marginBottom: isMobile ? '20px' : '32px',
         }}
       />
 
@@ -64,7 +92,7 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
           position: 'relative',
           zIndex: 2,
           textAlign: 'center',
-          marginBottom: '36px',
+          marginBottom: isMobile ? '24px' : '36px',
         }}
       >
         {/* Badge */}
@@ -94,7 +122,7 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
         <div
           style={{
             position: 'relative',
-            fontSize: isMobile ? 'clamp(2.4rem, 8.5vw, 3.4rem)' : 'clamp(3.8rem, 5.5vw, 5.2rem)',
+            fontSize: isMobile ? 'clamp(2.2rem, 8vw, 3.2rem)' : 'clamp(3.8rem, 5.5vw, 5.2rem)',
             fontWeight: 1000,
             fontFamily: 'var(--font-mono, monospace)',
             letterSpacing: '-0.02em',
@@ -115,11 +143,12 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
 
         <p
           style={{
-            fontSize: isMobile ? '0.82rem' : '0.92rem',
+            fontSize: isMobile ? '0.78rem' : '0.92rem',
             color: 'rgba(255, 255, 255, 0.65)',
             margin: 0,
             fontWeight: 500,
             letterSpacing: '0.02em',
+            padding: isMobile ? '0 10px' : '0',
           }}
         >
           Auszahlung erfolgt automatisch bei Treffer aller VIP Jackpot-Kombinationen.
@@ -133,8 +162,8 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
           zIndex: 2,
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)',
-          gap: isMobile ? '16px' : '0',
-          padding: isMobile ? '16px 0' : '20px 0',
+          gap: isMobile ? '12px 8px' : '0',
+          padding: isMobile ? '12px 6px' : '20px 0',
           borderRadius: '16px',
           background: 'rgba(12, 12, 18, 0.45)',
           backdropFilter: 'blur(16px)',
@@ -158,7 +187,7 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 textAlign: 'center',
-                padding: isMobile ? '8px 12px' : '6px 24px',
+                padding: isMobile ? '6px 4px' : '6px 24px',
                 borderRight: !isMobile && !isLast ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
               }}
             >
@@ -166,14 +195,14 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  gap: '5px',
                   marginBottom: '4px',
                 }}
               >
                 <Icon size={isMobile ? 12 : 14} color={stat.color} />
                 <span
                   style={{
-                    fontSize: isMobile ? '0.58rem' : '0.68rem',
+                    fontSize: isMobile ? '0.62rem' : '0.68rem',
                     fontWeight: 900,
                     color: 'rgba(255, 255, 255, 0.55)',
                     letterSpacing: '0.06em',
@@ -185,7 +214,7 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
               </div>
               <div
                 style={{
-                  fontSize: isMobile ? '0.85rem' : '1.35rem',
+                  fontSize: isMobile ? '0.88rem' : '1.35rem',
                   fontWeight: 1000,
                   color: '#ffffff',
                   fontFamily: 'monospace',
@@ -196,7 +225,7 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
                   whiteSpace: 'nowrap',
                 }}
               >
-                {isMobile ? (stat.mobileValue || stat.value) : stat.value}
+                {isMobile ? stat.mobileValue || stat.value : stat.value}
               </div>
             </motion.div>
           );
@@ -249,7 +278,7 @@ function RollingDigit({ char }: { char: string }) {
   );
 }
 
-function RollingJackpotDisplay({ formatted }: { formatted: string }) {
+export function RollingJackpotDisplay({ formatted }: { formatted: string }) {
   return (
     <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
       {formatted.split('').map((ch, idx) => (

@@ -1,14 +1,13 @@
 'use client';
-import React, { type Dispatch, type ReactNode, type SetStateAction } from 'react';
+import React, { type Dispatch, type SetStateAction } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X } from 'lucide-react';
 import SettingsPopover from '@/components/casino/SettingsPopover';
 import { ConsentBanner } from '@/components/analytics/ConsentBanner';
 
 export interface MenuItem {
-  icon: ReactNode;
   label: string;
   path: string;
   onClick?: () => void;
@@ -16,15 +15,12 @@ export interface MenuItem {
 
 interface MainSidebarProps {
   isMobile: boolean;
-  sidebarOpen: boolean;
   mobileSidebarOpen: boolean;
-  showExpandedSidebar: boolean;
   menuItems: MenuItem[];
   pathname: string;
   showSettings: boolean;
   navigate: (path: string) => void;
   setMobileSidebarOpen: Dispatch<SetStateAction<boolean>>;
-  setSidebarOpen: Dispatch<SetStateAction<boolean>>;
   setShowSettings: Dispatch<SetStateAction<boolean>>;
   setShowProvablyFair: Dispatch<SetStateAction<boolean>>;
   setShowSettingsModal: Dispatch<SetStateAction<boolean>>;
@@ -32,15 +28,12 @@ interface MainSidebarProps {
 
 export function MainSidebar({
   isMobile,
-  sidebarOpen,
   mobileSidebarOpen,
-  showExpandedSidebar,
   menuItems,
   pathname,
   showSettings,
   navigate,
   setMobileSidebarOpen,
-  setSidebarOpen,
   setShowSettings,
   setShowProvablyFair,
   setShowSettingsModal,
@@ -72,18 +65,14 @@ export function MainSidebar({
       <motion.aside
         className="glass-sidebar"
         initial={false}
-        animate={
-          isMobile
-            ? { x: mobileSidebarOpen ? 0 : '-100%' }
-            : { x: 0, width: sidebarOpen ? 240 : 80 }
-        }
+        animate={isMobile ? { x: mobileSidebarOpen ? 0 : '-100%' } : { x: 0 }}
         transition={{
           type: 'spring',
           damping: isMobile ? 24 : 28,
           stiffness: isMobile ? 300 : 320,
         }}
         style={{
-          width: isMobile ? '280px' : undefined,
+          width: isMobile ? '280px' : '240px',
           flexShrink: 0,
           display: 'flex',
           flexDirection: 'column',
@@ -122,54 +111,52 @@ export function MainSidebar({
           >
             <div style={{ width: '40px', height: '40px', position: 'relative', flexShrink: 0 }}>
               <Image
-                src="/images/brand-medallion-3d.png"
+                src="/images/brand-ace-icon.png"
                 alt="Casino Royale"
                 fill
                 sizes="100px"
                 style={{ objectFit: 'contain' }}
-                className="animate-pulse"
+                className="brand-logo-tilt"
               />
             </div>
-            {showExpandedSidebar && (
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span
-                    style={{
-                      fontWeight: 900,
-                      fontSize: '1.2rem',
-                      letterSpacing: '-1px',
-                      lineHeight: 1,
-                    }}
-                  >
-                    CASINO
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '0.6rem',
-                      fontWeight: 900,
-                      background: 'hsl(var(--primary))',
-                      color: 'black',
-                      padding: '1px 4px',
-                      borderRadius: '3px',
-                      transform: 'translateY(-2px)',
-                    }}
-                  >
-                    PRO
-                  </span>
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span
                   style={{
                     fontWeight: 900,
-                    fontSize: '0.65rem',
-                    color: 'hsl(var(--primary))',
-                    letterSpacing: '0.2em',
-                    marginTop: '2px',
+                    fontSize: '1.2rem',
+                    letterSpacing: '-1px',
+                    lineHeight: 1,
                   }}
                 >
-                  ROYALE
+                  CASINO
+                </span>
+                <span
+                  style={{
+                    fontSize: '0.6rem',
+                    fontWeight: 900,
+                    background: 'hsl(var(--primary))',
+                    color: 'black',
+                    padding: '1px 4px',
+                    borderRadius: '3px',
+                    transform: 'translateY(-2px)',
+                  }}
+                >
+                  PRO
                 </span>
               </div>
-            )}
+              <span
+                style={{
+                  fontWeight: 900,
+                  fontSize: '0.65rem',
+                  color: 'hsl(var(--primary))',
+                  letterSpacing: '0.2em',
+                  marginTop: '2px',
+                }}
+              >
+                ROYALE
+              </span>
+            </div>
           </Link>
           {isMobile && (
             <button
@@ -203,24 +190,59 @@ export function MainSidebar({
             scrollbarColor: 'rgba(212, 175, 55, 0.2) transparent',
           }}
         >
+          {/* Royale Guide Trigger (Über "Lobby", Option B Event-Trigger) — Option-Gate 2026-09-04: Option A "Row-Wash" (optimiert), zentriert statt linksbündig */}
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('royale-guide-open-with-prompt'));
+              }
+              if (isMobile) setMobileSidebarOpen(false);
+            }}
+            className="btn btn-ghost rg-highlight"
+            title="Royale Guide öffnen"
+            aria-label="Royale Guide öffnen"
+            style={{
+              justifyContent: 'center',
+              width: '100%',
+              marginBottom: '4px',
+              padding: '10px 14px',
+              borderRadius: '8px',
+              background: 'transparent',
+              color: 'rgba(255, 255, 255, 0.72)',
+              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+          >
+            <div
+              className="rg-highlight-icon"
+              style={{ width: '28px', height: '28px', position: 'relative', flexShrink: 0 }}
+            >
+              <Image
+                src="/images/royale-guide-mascot-icon.png"
+                alt=""
+                fill
+                sizes="28px"
+                style={{ objectFit: 'contain' }}
+              />
+            </div>
+            <span>Royale Guide</span>
+          </button>
+
           {menuItems.map((item) => {
             const active = item.path === '/' ? pathname === '/' : pathname.startsWith(item.path);
             const isSettings = item.label === 'Settings';
-            const content = (
-              <>
-                {item.icon}
-                {showExpandedSidebar && <span>{item.label}</span>}
-              </>
-            );
             return (
               <React.Fragment key={item.label}>
                 <button
                   onClick={item.onClick || (() => navigate(item.path))}
                   className="btn btn-ghost"
+                  data-sidebar-nav-item
                   aria-label={item.label}
+                  aria-current={active ? 'page' : undefined}
                   style={{
-                    justifyContent: showExpandedSidebar ? 'flex-start' : 'center',
+                    justifyContent: 'flex-start',
                     width: '100%',
+                    minHeight: '44px',
                     marginBottom: '4px',
                     color:
                       active || (isSettings && showSettings)
@@ -238,12 +260,13 @@ export function MainSidebar({
                       active || (isSettings && showSettings)
                         ? '0 0 16px rgba(212, 175, 55, 0.12)'
                         : 'none',
-                    padding: showExpandedSidebar ? '10px 14px' : '10px',
+                    padding: '10px 14px',
                     borderRadius: '8px',
+                    fontWeight: active || (isSettings && showSettings) ? 700 : 600,
                     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   }}
                 >
-                  {content}
+                  <span>{item.label}</span>
                 </button>
                 {isSettings && (
                   <SettingsPopover
@@ -267,61 +290,38 @@ export function MainSidebar({
           })}
         </nav>
 
-        {showExpandedSidebar && (
-          <div
-            style={{
-              flexShrink: 0,
-              margin: '20px',
-              padding: '16px',
-              background: 'hsla(0,0%,100%,0.02)',
-              borderRadius: '16px',
-              border: '1px solid hsla(0,0%,100%,0.05)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-            }}
-          >
-            <div style={{ width: '32px', height: '32px', position: 'relative', flexShrink: 0 }}>
-              <Image
-                src="/images/trust-shield-3d.png"
-                alt="Secure"
-                fill
-                sizes="20px"
-                style={{ objectFit: 'contain' }}
-              />
+        <div
+          style={{
+            flexShrink: 0,
+            margin: '20px',
+            padding: '16px',
+            background: 'hsla(0,0%,100%,0.02)',
+            borderRadius: '16px',
+            border: '1px solid hsla(0,0%,100%,0.05)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <div style={{ width: '32px', height: '32px', position: 'relative', flexShrink: 0 }}>
+            <Image
+              src="/images/trust-shield-3d.png"
+              alt="Secure"
+              fill
+              sizes="20px"
+              style={{ objectFit: 'contain' }}
+            />
+          </div>
+          <div>
+            <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'white' }}>
+              SECURE & FAIR
             </div>
-            <div>
-              <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'white' }}>
-                SECURE & FAIR
-              </div>
-              <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'hsl(var(--success))' }}>
-                CERTIFIED
-              </div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'hsl(var(--success))' }}>
+              CERTIFIED
             </div>
           </div>
-        )}
-        {showExpandedSidebar && <ConsentBanner />}
-        {!isMobile && (
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="btn btn-ghost"
-            aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-            style={{
-              flexShrink: 0,
-              margin: '12px',
-              padding: '12px',
-              background: 'rgba(255,255,255,0.02)',
-              border: '1px solid rgba(255,255,255,0.05)',
-              borderRadius: '12px',
-              color: 'rgba(255,255,255,0.4)',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            {sidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-          </button>
-        )}
+        </div>
+        <ConsentBanner />
       </motion.aside>
     </>
   );

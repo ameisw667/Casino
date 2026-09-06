@@ -1,21 +1,14 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
+import { resolvePlayerAvatar } from '@/lib/casino/player-avatar';
 import { motion } from 'framer-motion';
 import type { LeaderRow } from './LeaderboardStreamTable';
 
 interface LeaderboardPodiumProps {
   topThree: LeaderRow[];
   isMobile: boolean;
-}
-
-function getInitials(name: string): string {
-  if (!name) return '??';
-  const parts = name.split(/[._\s-]+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return name.slice(0, 2).toUpperCase();
 }
 
 export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps) {
@@ -74,7 +67,7 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
       {cards.map((card) => {
         if (!card.player) return null;
         const isFirst = card.rank === 1;
-        const initials = getInitials(card.player.username);
+        const avatar = resolvePlayerAvatar(card.player.username);
 
         return (
           <motion.div
@@ -87,7 +80,9 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
               borderRadius: '14px',
               background: card.cardBg,
               border: `1px solid ${card.borderColor}`,
-              boxShadow: isFirst ? '0 10px 30px rgba(0, 0, 0, 0.6)' : '0 4px 20px rgba(0, 0, 0, 0.3)',
+              boxShadow: isFirst
+                ? '0 10px 30px rgba(0, 0, 0, 0.6)'
+                : '0 4px 20px rgba(0, 0, 0, 0.3)',
               padding: isMobile ? '16px' : isFirst ? '22px 24px' : '20px 22px',
               display: 'flex',
               flexDirection: 'column',
@@ -121,8 +116,10 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
               <div
                 style={{
-                  width: isFirst ? '48px' : '42px',
-                  height: isFirst ? '48px' : '42px',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  width: isFirst ? '72px' : '60px',
+                  height: isFirst ? '72px' : '60px',
                   borderRadius: '50%',
                   background: isFirst ? 'rgba(212, 175, 55, 0.2)' : '#1F1F1F',
                   border: isFirst ? '1px solid rgba(212, 175, 55, 0.45)' : '1px solid #2E2E2E',
@@ -136,7 +133,13 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
                   flexShrink: 0,
                 }}
               >
-                {initials}
+                <Image
+                  src={avatar.src}
+                  alt={card.player.username}
+                  fill
+                  sizes={isFirst ? '72px' : '60px'}
+                  style={{ objectFit: 'cover' }}
+                />
               </div>
 
               <div style={{ minWidth: 0, flex: 1 }}>
@@ -154,7 +157,11 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
                   {card.player.username}
                 </div>
                 <div style={{ fontSize: '0.78rem', color: '#8A8A8A', marginTop: '2px' }}>
-                  Höchster Gewinn: +${card.player.biggest_win.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                  Höchster Gewinn: +$
+                  {card.player.biggest_win.toLocaleString('en-US', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}
                 </div>
               </div>
             </div>
@@ -182,7 +189,11 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
                   letterSpacing: '-0.02em',
                 }}
               >
-                ${card.player.total_wagered.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                $
+                {card.player.total_wagered.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </div>
             </div>
           </motion.div>

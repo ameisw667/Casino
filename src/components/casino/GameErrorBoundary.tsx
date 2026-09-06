@@ -1,5 +1,5 @@
 'use client';
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { CasinoLogger } from '@/lib/casino/logger';
 interface Props {
@@ -16,8 +16,13 @@ export class GameErrorBoundary extends Component<Props, State> {
   public static getDerivedStateFromError(_: Error): State {
     return { hasError: true };
   }
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    CasinoLogger.error(this.props.gameName, 'Uncaught error', { error, errorInfo });
+  public componentDidCatch(error: Error) {
+    // Pass the raw Error instance (not a wrapper object) so CasinoLogger.error()
+    // dispatches via Sentry.captureException — preserving the native stack trace.
+    // errorInfo.componentStack is intentionally dropped: CasinoLogger.error() has no
+    // extra-context parameter, and inventing one for this single call site would be
+    // a wider API change than this fix warrants.
+    CasinoLogger.error(this.props.gameName, 'Uncaught error', error);
   }
   private handleReset = () => {
     this.setState({ hasError: false });

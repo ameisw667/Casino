@@ -35,7 +35,7 @@ export const GAMES: readonly GameMeta[] = [
     tags: ['ORIGINALS', 'HIGH ROLLER'],
     studio: 'ROYALE ORIGINALS',
     difficulty: 'Medium',
-    preview: '/images/games/crash-preview.png',
+    preview: '/images/games/hero-crash-quantum-gold.png',
   },
   {
     id: 'dice',
@@ -51,7 +51,7 @@ export const GAMES: readonly GameMeta[] = [
     tags: ['ORIGINALS'],
     studio: 'VIBE PRIME',
     difficulty: 'Easy',
-    preview: '/images/games/dice-preview.png',
+    preview: '/images/games/hero-dice-quantum-gold.png',
   },
   {
     id: 'roulette',
@@ -67,7 +67,7 @@ export const GAMES: readonly GameMeta[] = [
     tags: ['ORIGINALS', 'TABLE', 'HIGH ROLLER'],
     studio: 'ROYALE ORIGINALS',
     difficulty: 'Hard',
-    preview: '/images/games/roulette-preview.png',
+    preview: '/images/games/hero-roulette-quantum-gold.png',
   },
   {
     id: 'slots',
@@ -83,7 +83,7 @@ export const GAMES: readonly GameMeta[] = [
     tags: ['ORIGINALS', 'SLOTS'],
     studio: 'VIBE PRIME',
     difficulty: 'Easy',
-    preview: '/images/games/slots-preview.png',
+    preview: '/images/games/hero-slots-quantum-gold.png',
   },
   {
     id: 'blackjack',
@@ -99,7 +99,7 @@ export const GAMES: readonly GameMeta[] = [
     tags: ['ORIGINALS', 'TABLE', 'HIGH ROLLER'],
     studio: 'ROYALE ORIGINALS',
     difficulty: 'Medium',
-    preview: '/images/blackjack/blackjack-bg.png',
+    preview: '/images/games/hero-blackjack-quantum-gold.png',
   },
   {
     id: 'crash-multiplayer',
@@ -115,7 +115,7 @@ export const GAMES: readonly GameMeta[] = [
     tags: ['ORIGINALS', 'HIGH ROLLER'],
     studio: 'ROYALE ORIGINALS',
     difficulty: 'Medium',
-    preview: '/images/games/crash-preview.png',
+    preview: '/images/games/hero-crash-multiplayer-quantum-gold.png',
   },
 ] as const;
 

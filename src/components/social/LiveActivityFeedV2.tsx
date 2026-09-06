@@ -17,7 +17,7 @@ interface ThrottledBet {
   isWin: boolean;
 }
 
-export function LiveActivityFeedV2() {
+export function LiveActivityFeedV2({ isMobile = false }: { isMobile?: boolean }) {
   const allBets = useCasinoStore((state) => state.allBets);
   const [activeTab, setActiveTab] = useState<'ALL' | 'BIG' | 'MINE'>('ALL');
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -47,18 +47,19 @@ export function LiveActivityFeedV2() {
       initial={{ opacity: 0, y: 30 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.6 }}
-      style={{ margin: '40px 0' }}
+      style={{ margin: isMobile ? '20px 0 0' : '40px 0', width: '100%' }}
     >
       <div
         className="glass-card"
         style={{
-          borderRadius: '24px',
+          borderRadius: isMobile ? '18px' : '24px',
           overflow: 'hidden',
           border: '1px solid rgba(212, 175, 55, 0.15)',
           background:
             'linear-gradient(180deg, rgba(16, 18, 24, 0.85) 0%, rgba(10, 12, 16, 0.95) 100%)',
           backdropFilter: 'blur(20px)',
           boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(212, 175, 55, 0.05)',
+          width: '100%',
         }}
       >
         {/* Integrated Top Toolbar: Filter Tabs & Live Status */}
@@ -67,14 +68,22 @@ export function LiveActivityFeedV2() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '16px 20px',
+            padding: isMobile ? '12px 14px' : '16px 20px',
             borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
             background: 'rgba(0, 0, 0, 0.25)',
-            gap: '12px',
+            gap: isMobile ? '8px' : '12px',
             flexWrap: 'wrap',
           }}
         >
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: isMobile ? '6px' : '8px',
+              alignItems: 'center',
+              width: isMobile ? '100%' : 'auto',
+              justifyContent: isMobile ? 'space-between' : 'flex-start',
+            }}
+          >
             {[
               { key: 'ALL', label: 'All Bets' },
               { key: 'BIG', label: 'High Rollers' },
@@ -88,9 +97,11 @@ export function LiveActivityFeedV2() {
                   whileTap={{ scale: 0.97 }}
                   onClick={() => setActiveTab(tab.key as 'ALL' | 'BIG' | 'MINE')}
                   style={{
-                    padding: '7px 16px',
+                    flex: isMobile ? 1 : 'none',
+                    textAlign: 'center',
+                    padding: isMobile ? '8px 4px' : '7px 16px',
                     borderRadius: '10px',
-                    fontSize: '0.82rem',
+                    fontSize: isMobile ? '0.74rem' : '0.82rem',
                     fontWeight: 900,
                     letterSpacing: '0.02em',
                     cursor: 'pointer',
@@ -113,23 +124,24 @@ export function LiveActivityFeedV2() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '6px 12px',
+              gap: '6px',
+              padding: '4px 10px',
               borderRadius: '20px',
               background: 'rgba(0, 231, 1, 0.06)',
               border: '1px solid rgba(0, 231, 1, 0.2)',
               color: '#00e701',
-              fontSize: '0.74rem',
+              fontSize: isMobile ? '0.66rem' : '0.74rem',
               fontWeight: 900,
               letterSpacing: '0.06em',
+              margin: isMobile ? '0 auto' : '0',
             }}
           >
             <motion.div
               animate={{ opacity: [1, 0.4, 1] }}
               transition={{ repeat: Infinity, duration: 1.8 }}
               style={{
-                width: '7px',
-                height: '7px',
+                width: '6px',
+                height: '6px',
                 borderRadius: '50%',
                 background: '#00e701',
                 boxShadow: '0 0 8px #00e701',
@@ -315,7 +327,15 @@ export function LiveActivityFeedV2() {
                   }}
                 >
                   {/* Left: Game & Player */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0, flex: 1 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '2px',
+                      minWidth: 0,
+                      flex: 1,
+                    }}
+                  >
                     <div
                       style={{
                         display: 'flex',
@@ -327,7 +347,13 @@ export function LiveActivityFeedV2() {
                       }}
                     >
                       <Gamepad2 size={13} style={{ flexShrink: 0 }} />
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span
+                        style={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
                         {bet.game}
                       </span>
                     </div>
@@ -344,7 +370,13 @@ export function LiveActivityFeedV2() {
                       }}
                     >
                       <User size={10} style={{ flexShrink: 0 }} />
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span
+                        style={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
                         {bet.user}
                       </span>
                     </div>
@@ -389,7 +421,9 @@ export function LiveActivityFeedV2() {
                         style={{
                           padding: '1px 5px',
                           borderRadius: '4px',
-                          background: bet.isWin ? 'rgba(0, 231, 1, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                          background: bet.isWin
+                            ? 'rgba(0, 231, 1, 0.12)'
+                            : 'rgba(255, 255, 255, 0.05)',
                           border: bet.isWin
                             ? '1px solid rgba(0, 231, 1, 0.3)'
                             : '1px solid rgba(255, 255, 255, 0.08)',
@@ -407,13 +441,18 @@ export function LiveActivityFeedV2() {
             ) : (
               <div
                 style={{
-                  padding: '24px',
+                  padding: isMobile ? '36px 16px' : '48px 24px',
                   textAlign: 'center',
-                  color: '#b1bad3',
-                  fontSize: '0.8rem',
+                  color: 'rgba(255, 255, 255, 0.45)',
+                  fontSize: isMobile ? '0.78rem' : '0.86rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
                 }}
               >
-                No recent activity to show
+                Keine aktuellen Live-Wetten vorhanden
               </div>
             )}
           </AnimatePresence>

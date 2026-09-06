@@ -13,14 +13,14 @@ interface PodiumSlot {
   badge: string;
 }
 
-const RANK_STYLE: Record<number, { accent: string; badge: string }> = {
+export const RANK_STYLE: Record<number, { accent: string; badge: string }> = {
   1: { accent: '#D4AF37', badge: 'CHAMPION' },
   2: { accent: '#C0C0C0', badge: 'SILBER' },
   3: { accent: '#CD7F32', badge: 'BRONZE' },
 };
 
 // Fixed prize per rank (worldmap/05_DAILY_TOURNAMENT.md — direkte Gutschrift, kein Pool).
-const PRIZE_BY_RANK: Record<number, number> = { 1: 5000, 2: 3000, 3: 2000 };
+export const PRIZE_BY_RANK: Record<number, number> = { 1: 5000, 2: 3000, 3: 2000 };
 
 // Display order 2-1-3 for the podium layout (rank 1 in the taller center column).
 const PODIUM_ORDER = [2, 1, 3];

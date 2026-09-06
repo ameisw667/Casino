@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { validateAuthCredentials } from './auth-validation';
 import { mapAuthError } from '@/lib/security/form-errors';
+import { detectSignupSuspicion, reportSignupSuspicion } from '@/lib/security/signup-guard';
 import { trackAllowedEvent } from '@/lib/analytics/events';
 import {
   getStoredCooldownState,
@@ -40,12 +41,36 @@ function notifyLoginAudit(
   }).catch(() => {});
 }
 
+// Server-side login guard (06_1 L1): any non-OK preflight answer blocks the attempt
+// fail-closed, because 429/503 both mean the IP budget is exhausted or unenforceable.
+// A network error cannot confirm a denial, so it never blocks — the auth call itself
+// would fail on a broken connection anyway.
+async function checkLoginGuard(): Promise<{ allowed: boolean; retryAfterSeconds: number }> {
+  try {
+    const response = await fetch('/api/auth/login-guard', { method: 'POST' });
+    if (!response.ok) {
+      const retryAfter = Number(response.headers.get('Retry-After'));
+      return {
+        allowed: false,
+        retryAfterSeconds: Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : 60,
+      };
+    }
+    return { allowed: true, retryAfterSeconds: 0 };
+  } catch {
+    return { allowed: true, retryAfterSeconds: 0 };
+  }
+}
+
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const [supabase] = useState(() => createClient());
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // 06_1 L3 signup honeypot + timing trap (V1): the hidden field value and the form mount
+  // timestamp feed the fail-open suspicion detection after a successful signup.
+  const [honeypotValue, setHoneypotValue] = useState('');
+  const formRenderedAtRef = useRef(0);
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasPasskeySupport] = useState(
@@ -62,6 +87,12 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [isMagicLink, setIsMagicLink] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [otpCode, setOtpCode] = useState('');
+
+  // Timing-trap baseline: captured after mount (not during render — Date.now() is
+  // render-impure and flagged by the react-compiler lint rule).
+  useEffect(() => {
+    if (formRenderedAtRef.current === 0) formRenderedAtRef.current = Date.now();
+  }, []);
 
   useEffect(() => {
     if (cooldown > 0) {
@@ -98,6 +129,14 @@ export function AuthForm({ mode }: AuthFormProps) {
     setStatus(null);
     const normalizedEmail = email.trim();
     try {
+      if (!isSignUp) {
+        const guard = await checkLoginGuard();
+        if (!guard.allowed) {
+          setStatus(formatCooldownMessage(guard.retryAfterSeconds));
+          setLoading(false);
+          return;
+        }
+      }
       const { error } =
         mode === 'sign-up'
           ? await supabase.auth.signUp({ email: normalizedEmail, password })
@@ -120,6 +159,10 @@ export function AuthForm({ mode }: AuthFormProps) {
         return;
       }
       if (mode === 'sign-up') {
+        // 06_1 L3: suspicion is reported only after a successful signup (fire-and-forget,
+        // never blocks) — the risk-events FK requires the just-created user to exist.
+        const suspicion = detectSignupSuspicion(honeypotValue, formRenderedAtRef.current);
+        if (suspicion) reportSignupSuspicion(suspicion);
         void trackAllowedEvent({ name: 'sign_up_completed' });
       } else {
         resetCooldownState();
@@ -356,6 +399,8 @@ export function AuthForm({ mode }: AuthFormProps) {
             onEmailChange={setEmail}
             password={password}
             onPasswordChange={setPassword}
+            honeypotValue={honeypotValue}
+            onHoneypotChange={setHoneypotValue}
             validationErrors={validationErrors}
             isFormReady={isFormReady}
             isSignUp={isSignUp}

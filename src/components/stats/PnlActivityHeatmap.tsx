@@ -1,7 +1,11 @@
 'use client';
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { buildDailyPnlHeatmap, type HistoryRow, type DailyPnlCell } from '@/lib/casino/stats-derivation';
+import {
+  buildDailyPnlHeatmap,
+  type HistoryRow,
+  type DailyPnlCell,
+} from '@/lib/casino/stats-derivation';
 import { Flame, CalendarDays } from 'lucide-react';
 
 interface PnlActivityHeatmapProps {
@@ -29,7 +33,8 @@ export function PnlActivityHeatmap({ loading, rows, isMobile }: PnlActivityHeatm
       style={{
         padding: isMobile ? '12px 14px' : '16px 20px',
         borderRadius: '16px',
-        background: 'linear-gradient(145deg, rgba(22, 24, 32, 0.85) 0%, rgba(12, 14, 20, 0.95) 100%)',
+        background:
+          'linear-gradient(145deg, rgba(22, 24, 32, 0.85) 0%, rgba(12, 14, 20, 0.95) 100%)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
         border: '1px solid rgba(212, 175, 55, 0.18)',
@@ -68,7 +73,9 @@ export function PnlActivityHeatmap({ loading, rows, isMobile }: PnlActivityHeatm
           }}
         >
           <Flame size={10} color={isOverallProfit ? '#10b981' : '#ef4444'} />
-          <span>28T: {isOverallProfit ? '+' : '-'}${Math.abs(totalHeatmapProfit).toFixed(2)}</span>
+          <span>
+            28T: {isOverallProfit ? '+' : '-'}${Math.abs(totalHeatmapProfit).toFixed(2)}
+          </span>
         </span>
       </div>
 
@@ -190,11 +197,27 @@ export function PnlActivityHeatmap({ loading, rows, isMobile }: PnlActivityHeatm
           >
             {hoveredCell ? (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#D4AF37', fontWeight: 800 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    color: '#D4AF37',
+                    fontWeight: 800,
+                  }}
+                >
                   <CalendarDays size={11} />
-                  <span>{hoveredCell.date} ({hoveredCell.count} Runden)</span>
+                  <span>
+                    {hoveredCell.date} ({hoveredCell.count} Runden)
+                  </span>
                 </div>
-                <div style={{ fontFamily: 'var(--font-mono, monospace)', fontWeight: 900, color: hoveredCell.profit >= 0 ? '#10b981' : '#ef4444' }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono, monospace)',
+                    fontWeight: 900,
+                    color: hoveredCell.profit >= 0 ? '#10b981' : '#ef4444',
+                  }}
+                >
                   {hoveredCell.profit >= 0 ? '+' : '-'}${Math.abs(hoveredCell.profit).toFixed(2)}
                 </div>
               </>

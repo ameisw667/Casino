@@ -52,8 +52,55 @@ export function getRiskFactor(multiplier: number): number {
 
 export const MILESTONE_VALUES = [2, 5, 10, 25, 50, 100, 250, 500, 1000];
 
-// Render constants shared by the RAF loop (useCrashGameLoop) and the page (cashout coin spawn).
 export const GROWTH_FACTOR = 0.003;
 export const MAX_POINTS = 500;
 export const WINDOW_POINTS = 180;
-export const ROCKET_X_FRACTION = 0.62;
+export const ROCKET_X_FRACTION = 0.68;
+
+export interface CrashTrajectoryState {
+  padX: number;
+  padY: number;
+  rocketX: number;
+  rocketY: number;
+  flightAngle: number;
+  maxClimb: number;
+}
+
+export function getCrashTrajectoryState(
+  width: number,
+  height: number,
+  m: number,
+): CrashTrajectoryState {
+  const padX = Math.max(52, width * 0.085);
+  const padY = height * 0.86;
+  const targetRocketX = width * ROCKET_X_FRACTION;
+  const maxClimb = padY - height * 0.22;
+
+  // Multiplier-based launch transition (smooth liftoff from pad)
+  const launchT = Math.min(1, Math.max(0, (m - 1) / 0.35));
+  const smoothTakeoff = 0.5 - 0.5 * Math.cos(launchT * Math.PI);
+  const rocketX = padX + (targetRocketX - padX) * smoothTakeoff;
+
+  // Asymptotic smooth altitude curve matching the horizon grid
+  const altitudeRatio = 1 - 1 / Math.pow(Math.max(1, m), 0.48);
+  const rocketY = padY - altitudeRatio * maxClimb;
+
+  // Tangent flight angle (pointing up-right)
+  const dx = Math.max(1, (rocketX - padX) * 1.15);
+  const dy = -(padY - rocketY) * 2.15;
+  const flightAngle = Math.atan2(dy, dx);
+
+  return {
+    padX,
+    padY,
+    rocketX,
+    rocketY,
+    flightAngle,
+    maxClimb,
+  };
+}
+
+export function getCrashMilestoneY(milestoneValue: number, padY: number, maxClimb: number): number {
+  const ratio = 1 - 1 / Math.pow(Math.max(1, milestoneValue), 0.48);
+  return padY - ratio * maxClimb;
+}

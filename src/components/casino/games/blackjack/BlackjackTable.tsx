@@ -3,7 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap } from 'lucide-react';
-import CardHand, { type BlackjackHand } from './CardHand';
+import { type BlackjackHand } from './CardHand';
+import { BlackjackShoe } from './BlackjackShoe';
+import { BlackjackSplitHandBox } from './BlackjackSplitHandBox';
+import { ClassicCasinoTableFelt } from './ClassicCasinoTableFelt';
 
 interface BlackjackTableProps {
   dealerHand: BlackjackHand | null;
@@ -25,6 +28,7 @@ export default function BlackjackTable({
   betAmount,
   result,
   payout,
+  isProcessing = false,
 }: BlackjackTableProps) {
   const hasResult = Boolean(result);
   const isWin = result === 'WIN' || result === 'BLACKJACK';
@@ -40,94 +44,33 @@ export default function BlackjackTable({
   }, []);
 
   return (
-    <div
-      style={{
-        width: '100%',
-        position: 'relative',
-        borderRadius: '24px',
-        background:
-          'radial-gradient(ellipse at 50% 35%, #181b24 0%, #0f1118 55%, #06070a 100%)',
-        border: '2px solid rgba(212, 175, 55, 0.55)',
-        boxShadow:
-          '0 25px 60px rgba(0, 0, 0, 0.95), inset 0 0 50px rgba(0, 0, 0, 0.95), 0 0 35px rgba(212, 175, 55, 0.14)',
-        padding: '24px 20px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        minHeight: '440px',
-        boxSizing: 'border-box',
-        overflow: 'hidden',
-      }}
+    <ClassicCasinoTableFelt
+      theme="emerald"
+      shoeNode={
+        <BlackjackShoe
+          isDealing={isProcessing}
+          deckCount={6}
+          cardsRemaining={240}
+          variant="obsidian"
+        />
+      }
     >
-      {/* Decorative Felt Texture Overlay */}
+      {/* 1. DEALER HAND AREA (High-End Vintage Obsidian Gold Hole-Card) */}
       <div
         style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage:
-            'radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.03) 0%, transparent 80%), repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.005) 0px, rgba(255, 255, 255, 0.005) 2px, transparent 2px, transparent 4px)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Decorative Felt Background Arch */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '40px',
-          left: '5%',
-          right: '5%',
-          height: '240px',
-          borderRadius: '50%',
-          border: '1.5px solid rgba(212, 175, 55, 0.22)',
-          boxShadow: '0 0 20px rgba(212, 175, 55, 0.08)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Table Slogan Text */}
-      <div
-        style={{
-          textAlign: 'center',
-          userSelect: 'none',
-          pointerEvents: 'none',
-          marginBottom: '8px',
-          position: 'relative',
-          zIndex: 5,
+          zIndex: 10,
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          marginTop: '12px',
         }}
       >
-        <div
-          style={{
-            fontSize: '0.84rem',
-            fontWeight: 900,
-            letterSpacing: '2.5px',
-            color: '#D4AF37',
-            textShadow: '0 0 12px rgba(212, 175, 55, 0.55)',
-          }}
-        >
-          BLACKJACK PAYS 3 TO 2
-        </div>
-        <div
-          style={{
-            fontSize: '0.64rem',
-            fontWeight: 800,
-            letterSpacing: '1.5px',
-            color: 'rgba(212, 175, 55, 0.75)',
-            marginTop: '3px',
-          }}
-        >
-          DEALER MUST STAND ON 17 • INSURANCE PAYS 2 TO 1
-        </div>
-      </div>
-
-      {/* 1. DEALER AREA */}
-      <div style={{ zIndex: 10, width: '100%', display: 'flex', justifyContent: 'center' }}>
-        <CardHand
+        <BlackjackSplitHandBox
           hand={dealerHand}
           label="Dealer"
-          isActive={false}
-          hideScore={dealerHand?.cards.some((c) => c.faceDown) ?? false}
+          isDealer={true}
+          cardBackVariant="obsidian"
+          isMobile={isMobile}
         />
       </div>
 
@@ -135,7 +78,7 @@ export default function BlackjackTable({
       <div
         style={{
           position: 'relative',
-          margin: '12px 0',
+          margin: '14px 0',
           zIndex: 20,
           display: 'flex',
           flexDirection: 'column',
@@ -153,7 +96,7 @@ export default function BlackjackTable({
               transition={{ type: 'spring', bounce: 0.5, duration: 0.4 }}
               style={{
                 position: 'absolute',
-                top: '-45px',
+                top: '-46px',
                 zIndex: 30,
                 display: 'flex',
                 alignItems: 'center',
@@ -214,9 +157,8 @@ export default function BlackjackTable({
             borderRadius: '50%',
             border: '2px dashed rgba(212, 175, 55, 0.55)',
             background:
-              'radial-gradient(circle at 35% 35%, rgba(30, 34, 45, 0.9) 0%, rgba(10, 12, 16, 0.95) 100%)',
-            boxShadow:
-              'inset 0 0 14px rgba(0, 0, 0, 0.9), 0 0 16px rgba(212, 175, 55, 0.15)',
+              'radial-gradient(circle at 35% 35%, rgba(20, 24, 30, 0.9) 0%, rgba(10, 12, 16, 0.95) 100%)',
+            boxShadow: 'inset 0 0 14px rgba(0, 0, 0, 0.9), 0 0 16px rgba(212, 175, 55, 0.2)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -246,32 +188,37 @@ export default function BlackjackTable({
         </motion.div>
       </div>
 
-      {/* 3. PLAYER HANDS AREA */}
+      {/* 3. PLAYER HANDS AREA (100% Unveränderte Original-Spielerkarten mit Split-Unterstützung) */}
       <div
         style={{
           zIndex: 10,
           width: '100%',
           display: 'flex',
           justifyContent: 'center',
-          gap: isMobile ? '12px' : '24px',
+          gap: isMobile ? '14px' : '28px',
           flexWrap: 'wrap',
+          marginTop: '12px',
         }}
       >
-        <CardHand
+        <BlackjackSplitHandBox
           hand={playerHand}
-          label={playerHand2 ? 'Hand 1' : 'Player'}
+          label={playerHand2 ? 'Hand 1' : 'Deine Hand'}
           isActive={activeHandIndex === 0}
+          isSplit={Boolean(playerHand2)}
+          cardBackVariant="obsidian"
           isMobile={isMobile}
         />
         {playerHand2 && (
-          <CardHand
+          <BlackjackSplitHandBox
             hand={playerHand2}
-            label="Hand 2 (Split)"
+            label="Hand 2"
             isActive={activeHandIndex === 1}
+            isSplit={true}
+            cardBackVariant="obsidian"
             isMobile={isMobile}
           />
         )}
       </div>
-    </div>
+    </ClassicCasinoTableFelt>
   );
 }

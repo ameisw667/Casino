@@ -2,98 +2,72 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AnimatePresence, motion } from 'framer-motion';
-import { compressImageFile, isAllowedImageFile } from '@/lib/casino/image-compression';
-import {
-  playSynthesizedAudio,
-  startAudioRecording,
-  startLiveSpeechRecognition,
-  stopActiveAudioPlayback,
-  stopAudioRecording,
-  stopAudioRecordingSafe,
-  type LiveSpeechRecognizer,
-} from '@/lib/casino/voice-audio';
-import {
-  type CasinoGuidePanelProps,
-  type GuideTurn,
-  getCurrentTime,
-  INITIAL_TURN,
-  nextTurnId,
-} from '@/components/social/casino-guide/guide-config';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import type { CasinoGuidePanelProps } from '@/components/social/casino-guide/guide-config';
 import { GuideTriggerButton } from '@/components/social/casino-guide/GuideTriggerButton';
 import { GuideBackdrop } from '@/components/social/casino-guide/GuideBackdrop';
 import { GuideHeader } from '@/components/social/casino-guide/GuideHeader';
 import { GuideSidebar } from '@/components/social/casino-guide/GuideSidebar';
 import { GuideMessageList } from '@/components/social/casino-guide/GuideMessageList';
-import { GuideQuickChips } from '@/components/social/casino-guide/GuideQuickChips';
 import { GuideImagePreview } from '@/components/social/casino-guide/GuideImagePreview';
 import { GuideVoiceBanner } from '@/components/social/casino-guide/GuideVoiceBanner';
 import { GuideVoiceErrorBanner } from '@/components/social/casino-guide/GuideVoiceErrorBanner';
 import { GuideInputForm } from '@/components/social/casino-guide/GuideInputForm';
-import {
-  DEFAULT_PERSONA,
-  type GuidePersona,
-  guidePersonaSchema,
-} from '@/lib/casino/chat-guide/personas';
+import { useGuideVoiceRecorder } from '@/components/social/casino-guide/hooks/useGuideVoiceRecorder';
+import { useGuideAttachment } from '@/components/social/casino-guide/hooks/useGuideAttachment';
+import { useGuideChatStream } from '@/components/social/casino-guide/hooks/useGuideChatStream';
 
 export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [draft, setDraft] = useState('');
   const router = useRouter();
-  const [turns, setTurns] = useState<GuideTurn[]>([INITIAL_TURN]);
-  const [isSending, setIsSending] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [feedbackMap, setFeedbackMap] = useState<Record<string, 1 | -1>>({});
-  const [activePersona, setActivePersona] = useState<GuidePersona>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('royale_guide_persona');
-        const parsed = guidePersonaSchema.safeParse(saved);
-        if (parsed.success) return parsed.data;
-      } catch {
-        // Fallback
-      }
-    }
-    return DEFAULT_PERSONA;
-  });
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const liveRecognizerRef = useRef<LiveSpeechRecognizer | null>(null);
-  const [attachedImage, setAttachedImage] = useState<string | null>(null);
-  const [isCompressing, setIsCompressing] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
+  const panelRef = useRef<HTMLElement>(null);
 
-  const [isRecording, setIsRecording] = useState(false);
-  const [isTranscribing, setIsTranscribing] = useState(false);
-  const [voiceStatusMessage, setVoiceStatusMessage] = useState<string | null>(null);
-  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
+  // Hook 1: Image & Screenshot Attachment Management
+  const {
+    attachedImage,
+    isCompressing,
+    fileInputRef,
+    handleFileSelect,
+    handlePaste,
+    clearAttachedImage,
+  } = useGuideAttachment();
 
-  useEffect(() => {
-    let isMounted = true;
-    fetch('/api/casino/guide-persona')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: { persona?: GuidePersona } | null) => {
-        if (isMounted && data?.persona) {
-          setActivePersona(data.persona);
-          try {
-            localStorage.setItem('royale_guide_persona', data.persona);
-          } catch {
-            // Ignore
-          }
-        }
-      })
-      .catch(() => {
-        // Offline / fallback to localStorage
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  // Hook 2: Voice Recording, Live Speech-Recognition & Whisper Upload
+  const { isRecording, isTranscribing, voiceStatusMessage, toggleRecording } =
+    useGuideVoiceRecorder({
+      onTranscript: (transcript) => {
+        setDraft(transcript);
+      },
+    });
 
+  // Hook 3: Chat Turns, SSE Streaming, TTS, Persona & Feedback
+  const {
+    turns,
+    isSending,
+    copiedId,
+    feedbackMap,
+    activePersona,
+    playingMessageId,
+    activeToolName,
+    sendQuestion,
+    handleSelectPersona,
+    handlePlayVoice,
+    copyToClipboard,
+    handleFeedback,
+  } = useGuideChatStream();
+
+  // Custom Event trigger for opening guide with predefined prompt
   useEffect(() => {
     const handleCustomOpen = (e: Event) => {
       const customEvent = e as CustomEvent<{ prompt?: string }>;
       setIsOpen(true);
+      if (!isMobile) {
+        setIsExpanded(true);
+      }
       if (customEvent.detail?.prompt) {
         setDraft(customEvent.detail.prompt);
       }
@@ -102,155 +76,70 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
     return () => window.removeEventListener('royale-guide-open-with-prompt', handleCustomOpen);
   }, []);
 
-  const handleFileSelect = async (file: File) => {
-    if (!isAllowedImageFile(file)) return;
-    try {
-      setIsCompressing(true);
-      const compressed = await compressImageFile(file);
-      setAttachedImage(compressed);
-    } catch {
-      // Ignore invalid files silently
-    } finally {
-      setIsCompressing(false);
-    }
-  };
+  // Escape-Key-Handling & Focus-Trap for WCAG 2.2 AAA Dialog Compliance
+  useEffect(() => {
+    if (!isOpen) return;
 
-  const handlePaste = async (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    const items = event.clipboardData?.items;
-    if (!items) return;
+    const previousFocusedElement = document.activeElement as HTMLElement | null;
 
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      if (item.type.startsWith('image/')) {
-        const file = item.getAsFile();
-        if (file) {
-          event.preventDefault();
-          await handleFileSelect(file);
-          break;
-        }
-      }
-    }
-  };
-
-  const toggleRecording = async () => {
-    if (isRecording) {
-      setIsRecording(false);
-      if (liveRecognizerRef.current) {
-        liveRecognizerRef.current.stop();
-        liveRecognizerRef.current = null;
-      }
-      setIsTranscribing(true);
-      try {
-        const audioBlob = await stopAudioRecording();
-        if (audioBlob.size > 0) {
-          const formData = new FormData();
-          formData.append('file', audioBlob, 'voice-message.webm');
-
-          const res = await fetch('/api/chat/voice-transcribe', {
-            method: 'POST',
-            body: formData,
-          });
-
-          if (res.ok) {
-            const data = (await res.json()) as { text?: string };
-            if (data.text?.trim()) {
-              setDraft(data.text.trim());
-              setVoiceStatusMessage(null);
-            }
-          }
-        }
-      } catch {
-        // Fallback: If Whisper upload fails, any text already transcribed via live recognizer remains
-      } finally {
-        setIsTranscribing(false);
-      }
-    } else {
-      setVoiceStatusMessage(null);
-      try {
-        // Start Live Speech Recognition immediately for live text feedback as the user speaks
-        const recognizer = startLiveSpeechRecognition(
-          (transcript) => {
-            if (transcript.trim()) {
-              setDraft(transcript.trim());
-            }
-          },
-          () => {
-            // SpeechRecognition error fallback quietly
-          },
-        );
-        liveRecognizerRef.current = recognizer;
-
-        await startAudioRecording();
-        setIsRecording(true);
-      } catch (err: unknown) {
-        setIsRecording(false);
-        if (liveRecognizerRef.current) {
-          liveRecognizerRef.current.stop();
-          liveRecognizerRef.current = null;
-        }
-        stopAudioRecordingSafe();
-        console.error('[RoyaleVoice] Microphone activation error:', err);
-
-        let isBrowserGranted = false;
-        if (typeof navigator !== 'undefined' && navigator.permissions) {
-          try {
-            const perm = await navigator.permissions.query({
-              name: 'microphone' as PermissionName,
-            });
-            if (perm.state === 'granted') {
-              isBrowserGranted = true;
-            }
-          } catch {
-            // Ignore
-          }
-        }
-
-        const errName =
-          err instanceof Error
-            ? err.name
-            : typeof err === 'object' && err !== null && 'name' in err
-              ? String((err as { name?: unknown }).name)
-              : 'Error';
-        const errMsg = (err instanceof Error ? err.message : String(err)) || '';
-
-        let msg = '';
-        if (
-          isBrowserGranted &&
-          (errName === 'NotAllowedError' || errName === 'PermissionDeniedError')
-        ) {
-          msg =
-            'Chrome hat Zugriff, aber Windows blockiert das Mikrofon (Windows-Einstellungen > Datenschutz > Mikrofon > "Apps den Zugriff erlauben").';
-        } else if (errName === 'NotAllowedError' || errName === 'PermissionDeniedError') {
-          msg =
-            'Mikrofon-Berechtigung im Browser verweigert. Bitte im Schloss/Icon links neben der URL erlauben.';
-        } else if (errName === 'NotFoundError' || errName === 'DevicesNotFoundError') {
-          msg = 'Kein Mikrofon gefunden. Bitte Audiogerät anschließen oder auswählen.';
-        } else if (errName === 'NotReadableError' || errName === 'TrackStartError') {
-          msg = 'Mikrofon wird von einer anderen App blockiert (z. B. Discord/Teams).';
+    const focusTimer = setTimeout(() => {
+      if (panelRef.current) {
+        const textarea = panelRef.current.querySelector<HTMLTextAreaElement>('textarea');
+        if (textarea) {
+          textarea.focus();
         } else {
-          msg = `Mikrofon konnte nicht aktiviert werden: ${errMsg || errName}`;
+          const firstFocusable = panelRef.current.querySelector<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          );
+          firstFocusable?.focus();
         }
-
-        setVoiceStatusMessage(msg);
-        setTimeout(() => setVoiceStatusMessage(null), 8000);
       }
-    }
-  };
+    }, 40);
 
-  const handlePlayVoice = async (messageId: string, text: string) => {
-    if (playingMessageId === messageId) {
-      stopActiveAudioPlayback();
-      setPlayingMessageId(null);
-      return;
-    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setIsOpen(false);
+        setIsExpanded(false);
+        return;
+      }
 
-    setPlayingMessageId(messageId);
-    await playSynthesizedAudio(
-      text,
-      () => setPlayingMessageId(null),
-      () => setPlayingMessageId(null),
-    );
-  };
+      if (event.key === 'Tab' && panelRef.current) {
+        const focusables = Array.from(
+          panelRef.current.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter((el) => el.offsetParent !== null);
+
+        if (focusables.length === 0) return;
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (event.shiftKey) {
+          if (document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      clearTimeout(focusTimer);
+      window.removeEventListener('keydown', handleKeyDown);
+      if (previousFocusedElement && typeof previousFocusedElement.focus === 'function') {
+        previousFocusedElement.focus();
+      }
+    };
+  }, [isOpen]);
 
   const handleActionClick = (action: { type: string; target?: string; label: string }) => {
     if (action.type === 'open_vault') {
@@ -269,333 +158,252 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
     }
   };
 
-  const handleFeedback = async (messageId: string, rating: 1 | -1) => {
-    if (feedbackMap[messageId] === rating) return;
-    setFeedbackMap((prev) => ({ ...prev, [messageId]: rating }));
-    try {
-      await fetch('/api/chat/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rating, messageId }),
-      });
-    } catch {
-      // Ignore network error silently
-    }
-  };
-
   const openPanel = () => {
     onOpen();
     setIsOpen(true);
+    if (!isMobile) {
+      setIsExpanded(true);
+    }
   };
 
-  const handleSelectPersona = (persona: GuidePersona) => {
-    setActivePersona(persona);
-    try {
-      localStorage.setItem('royale_guide_persona', persona);
-    } catch {
-      // Ignore localStorage errors
-    }
-    fetch('/api/casino/guide-persona', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ persona }),
-    }).catch(() => {
-      // Ignore network errors silently
+  const handleSend = (customPrompt?: string) => {
+    const textToSend = customPrompt ?? draft;
+    sendQuestion(textToSend, attachedImage, () => {
+      if (!customPrompt) setDraft('');
+      clearAttachedImage();
     });
-  };
-
-  const copyToClipboard = async (id: string, text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2000);
-    } catch {
-      // Ignore clipboard write failures
-    }
-  };
-
-  const sendQuestion = async (customMessage?: string) => {
-    const message = (customMessage ?? draft).trim();
-    if ((!message && !attachedImage) || isSending) return;
-
-    const activeMessage = message || 'Analysiere diesen Spielrunden-Screenshot.';
-    const time = getCurrentTime();
-    const currentImage = attachedImage;
-    setAttachedImage(null);
-
-    setTurns((current) => [
-      ...current,
-      {
-        id: nextTurnId('player'),
-        role: 'player',
-        text: activeMessage,
-        time,
-        image: currentImage ?? undefined,
-      },
-    ]);
-    if (!customMessage) setDraft('');
-    setIsSending(true);
-
-    const history = turns
-      .filter((t) => t.id !== 'royale-guide-intro')
-      .slice(-6)
-      .map((t) => ({
-        role: t.role === 'player' ? ('user' as const) : ('assistant' as const),
-        content: t.text,
-      }));
-
-    const guideTurnId = nextTurnId('guide');
-    const replyTime = getCurrentTime();
-
-    try {
-      const response = await fetch('/api/chat/bot-response', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'text/event-stream, application/json',
-        },
-        body: JSON.stringify({
-          message: activeMessage,
-          history,
-          stream: true,
-          image: currentImage ?? undefined,
-          persona: activePersona,
-        }),
-      });
-
-      if (!response.ok) {
-        let text =
-          'Royale Guide ist vorübergehend nicht erreichbar. Bitte versuche es gleich erneut.';
-        if (response.status === 401) {
-          text = 'Bitte melde dich an, um Royale Guide zu nutzen.';
-        } else if (response.status === 429) {
-          text = 'Zu viele Anfragen. Bitte warte einen kurzen Moment.';
-        }
-        setTurns((current) => [
-          ...current,
-          { id: guideTurnId, role: 'guide', text, time: replyTime },
-        ]);
-        return;
-      }
-
-      const contentType = response.headers.get('content-type') || '';
-      if (contentType.includes('text/event-stream') && response.body) {
-        // Mount guide turn for streaming
-        setTurns((current) => [
-          ...current,
-          { id: guideTurnId, role: 'guide', text: '', time: replyTime },
-        ]);
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder('utf-8');
-        let accumulated = '';
-        let buffer = '';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() ?? '';
-
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed || trimmed === 'data: [DONE]') continue;
-            if (trimmed.startsWith('data: ')) {
-              try {
-                const parsed = JSON.parse(trimmed.slice(6));
-                if (parsed.action) {
-                  const receivedAction = parsed.action;
-                  setTurns((current) =>
-                    current.map((t) =>
-                      t.id === guideTurnId ? { ...t, action: receivedAction } : t,
-                    ),
-                  );
-                }
-                if (parsed.suggestions && Array.isArray(parsed.suggestions)) {
-                  const receivedSuggestions = parsed.suggestions;
-                  setTurns((current) =>
-                    current.map((t) =>
-                      t.id === guideTurnId ? { ...t, suggestions: receivedSuggestions } : t,
-                    ),
-                  );
-                }
-                if (parsed.text) {
-                  const chunkText: string = parsed.text;
-                  accumulated += chunkText;
-                  setTurns((current) =>
-                    current.map((t) =>
-                      t.id === guideTurnId ? { ...t, text: t.text + chunkText } : t,
-                    ),
-                  );
-                }
-              } catch {
-                // Ignore partial JSON chunks
-              }
-            }
-          }
-        }
-
-        if (!accumulated.trim()) {
-          setTurns((current) =>
-            current.map((t) =>
-              t.id === guideTurnId
-                ? {
-                    ...t,
-                    text: 'Royale Guide konnte keine Antwort generieren. Bitte versuche es erneut.',
-                  }
-                : t,
-            ),
-          );
-        }
-      } else {
-        // Classic JSON fallback
-        const payload: unknown = await response.json().catch(() => null);
-        const answer =
-          typeof payload === 'object' && payload !== null && 'answer' in payload
-            ? payload.answer
-            : undefined;
-        const action =
-          typeof payload === 'object' && payload !== null && 'action' in payload
-            ? ((payload as Record<string, unknown>).action as {
-                type: string;
-                target?: string;
-                label: string;
-              })
-            : undefined;
-        const suggestions =
-          typeof payload === 'object' &&
-          payload !== null &&
-          'suggestions' in payload &&
-          Array.isArray((payload as Record<string, unknown>).suggestions)
-            ? ((payload as Record<string, unknown>).suggestions as string[])
-            : undefined;
-
-        if (typeof answer !== 'string' || !answer.trim()) {
-          setTurns((current) => [
-            ...current,
-            {
-              id: guideTurnId,
-              role: 'guide',
-              text: 'Royale Guide ist vorübergehend nicht erreichbar. Bitte versuche es gleich erneut.',
-              time: replyTime,
-            },
-          ]);
-          return;
-        }
-
-        setTurns((current) => [
-          ...current,
-          {
-            id: guideTurnId,
-            role: 'guide',
-            text: answer.trim(),
-            time: replyTime,
-            action,
-            suggestions,
-          },
-        ]);
-      }
-    } catch {
-      setTurns((current) => [
-        ...current,
-        {
-          id: guideTurnId,
-          role: 'guide',
-          text: 'Royale Guide ist vorübergehend nicht erreichbar. Bitte versuche es gleich erneut.',
-          time: getCurrentTime(),
-        },
-      ]);
-    } finally {
-      setIsSending(false);
-    }
   };
 
   const panelBottom = isMobile ? 'calc(84px + env(safe-area-inset-bottom))' : '24px';
 
   return (
     <>
-      {/* Floating Trigger Button (Option 1A — Subtiler Obsidian & Gold Glow) */}
-      <GuideTriggerButton isOpen={isOpen} isMobile={isMobile} panelBottom={panelBottom} onOpen={openPanel} />
+      {/* Floating Trigger Button */}
+      <GuideTriggerButton
+        isOpen={isOpen}
+        isMobile={isMobile}
+        panelBottom={panelBottom}
+        onOpen={openPanel}
+      />
 
-      {/* Backdrop for Expanded Center-Modal */}
+      {/* Backdrop for Expanded Center-Modal & Mobile Dimming */}
       <GuideBackdrop
         isOpen={isOpen}
         isExpanded={isExpanded}
         isMobile={isMobile}
-        onClose={() => setIsExpanded(false)}
+        onClose={() => {
+          if (isMobile) {
+            setIsOpen(false);
+            setIsExpanded(false);
+          } else {
+            setIsExpanded(false);
+          }
+        }}
       />
 
       {/* Chat Panel / Modal */}
       <AnimatePresence>
         {isOpen && (
           <motion.section
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="royale-guide-title"
             aria-label="Royale Guide"
-            initial={{ opacity: 0, scale: 0.96, y: isExpanded ? 0 : 16 }}
+            drag={isMobile ? 'x' : false}
+            dragConstraints={{ left: 0, right: 300 }}
+            dragElastic={{ left: 0.04, right: 0.5 }}
+            onDragEnd={(_, info) => {
+              if (isMobile && (info.offset.x > 80 || info.velocity.x > 350)) {
+                setIsOpen(false);
+                setIsExpanded(false);
+              }
+            }}
+            initial={
+              shouldReduceMotion
+                ? { opacity: 0 }
+                : {
+                    opacity: 0,
+                    scale: 0.96,
+                  }
+            }
             animate={{
               opacity: 1,
               scale: 1,
-              y: 0,
-              ...(isExpanded && !isMobile
-                ? {
-                    left: '50%',
-                    top: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: 'min(880px, calc(100vw - 32px))',
-                    height: 'min(680px, calc(100dvh - 48px))',
-                  }
-                : {
-                    right: isMobile ? '12px' : '24px',
-                    bottom: panelBottom,
-                    width: isMobile ? 'calc(100% - 24px)' : '380px',
-                    height: isMobile ? 'calc(100dvh - 112px)' : 'min(640px, calc(100dvh - 48px))',
-                  }),
             }}
-            exit={{ opacity: 0, scale: 0.96, y: 16 }}
-            transition={{ type: 'spring', bounce: 0.2, duration: 0.35 }}
+            exit={
+              shouldReduceMotion
+                ? { opacity: 0 }
+                : {
+                    opacity: 0,
+                    scale: 0.96,
+                  }
+            }
+            transition={
+              shouldReduceMotion
+                ? { duration: 0.15 }
+                : { type: 'spring', bounce: 0.15, duration: 0.3 }
+            }
             style={{
               position: 'fixed',
               zIndex: 46,
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
-              border: '1px solid hsla(var(--primary), 0.32)',
+              border: 'none',
               borderRadius: '20px',
-              background: 'hsla(var(--bg-color), 0.94)',
-              backdropFilter: 'blur(20px)',
-              boxShadow: '0 24px 60px hsla(0, 0%, 0%, 0.65), 0 0 1px hsla(var(--primary), 0.45)',
-              color: 'hsl(var(--text-main))',
+              background: '#0B0E14',
+              boxShadow:
+                '0 30px 80px rgba(0, 0, 0, 0.95), 0 0 50px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
+              touchAction: isMobile ? 'pan-y' : 'auto',
+              ...(isExpanded && !isMobile
+                ? {
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 'min(880px, calc(100vw - 32px))',
+                    height: 'min(680px, calc(100dvh - 64px))',
+                    maxHeight: 'calc(100dvh - 48px)',
+                    right: 'auto',
+                    bottom: 'auto',
+                  }
+                : {
+                    top: 'auto',
+                    left: 'auto',
+                    transform: 'none',
+                    right: isMobile ? '12px' : '24px',
+                    bottom: panelBottom,
+                    width: isMobile ? 'calc(100% - 24px)' : '380px',
+                    height: isMobile ? 'calc(100dvh - 112px)' : 'min(580px, calc(100dvh - 48px))',
+                    maxHeight: 'calc(100dvh - 48px)',
+                  }),
             }}
           >
-            {/* Header */}
-            <GuideHeader
-              isExpanded={isExpanded}
-              isMobile={isMobile}
-              activePersona={activePersona}
-              onSelectPersona={handleSelectPersona}
-              onToggleExpand={() => setIsExpanded(!isExpanded)}
-              onClose={() => {
-                setIsOpen(false);
-                setIsExpanded(false);
+            {/* AI-Generated Obsidian-Velvet Backdrop with Parallax Breathing Drift */}
+            <motion.div
+              aria-hidden="true"
+              animate={
+                shouldReduceMotion
+                  ? { opacity: 1 }
+                  : {
+                      scale: [1, 1.025, 1],
+                      opacity: [0.95, 1, 0.95],
+                    }
+              }
+              transition={
+                shouldReduceMotion
+                  ? undefined
+                  : {
+                      duration: 18,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }
+              }
+              style={{
+                position: 'absolute',
+                inset: '-10px',
+                backgroundImage:
+                  'url(/images/2026-09-05_backdrop-royale-guide-obsidian-velvet_v001.png)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                pointerEvents: 'none',
+                zIndex: 0,
               }}
             />
 
-            {/* Main Content Area (2-Columns in Expanded Mode) */}
-            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-              {/* Left Sidebar (Only in Expanded Mode) */}
+            {/* Internal Ambient Light Orbs */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                top: '-40px',
+                right: '-40px',
+                width: '240px',
+                height: '240px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 70%)',
+                filter: 'blur(50px)',
+                pointerEvents: 'none',
+                zIndex: 0,
+              }}
+            />
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                bottom: '-30px',
+                left: '-30px',
+                width: '200px',
+                height: '200px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(180, 140, 30, 0.08) 0%, transparent 70%)',
+                filter: 'blur(45px)',
+                pointerEvents: 'none',
+                zIndex: 0,
+              }}
+            />
+            {/* Visual Drag Handle for Mobile Swipe-to-Dismiss */}
+            {isMobile && (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  paddingTop: '8px',
+                  paddingBottom: '2px',
+                  width: '100%',
+                }}
+                aria-hidden
+              >
+                <div
+                  style={{
+                    width: '36px',
+                    height: '4px',
+                    borderRadius: '2px',
+                    background: 'rgba(212, 175, 55, 0.4)',
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Header */}
+            <div style={{ position: 'relative', zIndex: 2, flexShrink: 0 }}>
+              <GuideHeader
+                activePersona={activePersona}
+                isExpanded={isExpanded}
+                isMobile={isMobile}
+                onToggleExpand={() => setIsExpanded((prev) => !prev)}
+                onClose={() => {
+                  setIsOpen(false);
+                  setIsExpanded(false);
+                }}
+                onSelectPersona={handleSelectPersona}
+              />
+            </div>
+
+            {/* Main Content Area */}
+            <div
+              style={{ display: 'flex', flex: 1, minHeight: 0, position: 'relative', zIndex: 1 }}
+            >
+              {/* Desktop 2-Column Sidebar */}
               {isExpanded && !isMobile && (
                 <GuideSidebar
                   isSending={isSending}
-                  onTopicClick={(query) => void sendQuestion(query)}
+                  onTopicClick={(prompt: string) => handleSend(prompt)}
                 />
               )}
 
-              {/* Right Chat Column */}
+              {/* Chat Conversation Column */}
               <div
-                style={{ display: 'flex', flex: 1, flexDirection: 'column', overflow: 'hidden' }}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  flex: 1,
+                  minWidth: 0,
+                  position: 'relative',
+                }}
               >
-                {/* Messages Container */}
+                {/* Scrollable Message Feed */}
                 <GuideMessageList
                   turns={turns}
                   isSending={isSending}
@@ -603,36 +411,26 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                   copiedId={copiedId}
                   feedbackMap={feedbackMap}
                   playingMessageId={playingMessageId}
-                  onActionClick={handleActionClick}
-                  onSuggestionClick={(query) => void sendQuestion(query)}
-                  onPlayVoice={handlePlayVoice}
+                  activeToolName={activeToolName}
                   onCopy={copyToClipboard}
                   onFeedback={handleFeedback}
+                  onActionClick={handleActionClick}
+                  onSuggestionClick={(query: string) => handleSend(query)}
+                  onPlayVoice={handlePlayVoice}
                 />
 
-                {/* Quick-Chips bar (in standard mode) */}
-                {!isExpanded && (
-                  <GuideQuickChips
-                    isSending={isSending}
-                    onChipClick={(query) => void sendQuestion(query)}
-                  />
-                )}
-
-                {/* Attached Image Preview */}
+                {/* Screenshot / Image Preview Chip */}
                 {attachedImage && (
-                  <GuideImagePreview
-                    attachedImage={attachedImage}
-                    onRemove={() => setAttachedImage(null)}
-                  />
+                  <GuideImagePreview attachedImage={attachedImage} onRemove={clearAttachedImage} />
                 )}
 
-                {/* Voice Recording Active Banner */}
+                {/* Voice Recording Active Banner with Real-time FFT Waveform */}
                 {isRecording && <GuideVoiceBanner onStop={toggleRecording} />}
 
                 {/* Voice Status / Error Banner */}
                 {voiceStatusMessage && <GuideVoiceErrorBanner message={voiceStatusMessage} />}
 
-                {/* Input Form */}
+                {/* Accessible Input Form */}
                 <GuideInputForm
                   draft={draft}
                   isSending={isSending}
@@ -641,10 +439,10 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                   isTranscribing={isTranscribing}
                   attachedImage={attachedImage}
                   fileInputRef={fileInputRef}
-                  onDraftChange={(value) => setDraft(value)}
+                  onDraftChange={setDraft}
                   onPaste={handlePaste}
-                  onSend={() => void sendQuestion()}
-                  onFileSelect={(file) => void handleFileSelect(file)}
+                  onSend={() => handleSend()}
+                  onFileSelect={handleFileSelect}
                   onToggleRecording={toggleRecording}
                 />
               </div>

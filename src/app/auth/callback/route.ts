@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import { recordLoginAuditEntry, type AuthMethod } from '@/lib/security/login-audit';
+import { CasinoLogger } from '@/lib/casino/logger';
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -64,7 +65,7 @@ export async function GET(request: Request) {
         });
       }
     } catch (err) {
-      console.error('[Auth Callback Error]:', err);
+      CasinoLogger.error('API/Auth/Callback', 'Code exchange failed', err);
     }
   }
 

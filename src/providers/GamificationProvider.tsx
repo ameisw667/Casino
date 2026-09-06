@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import { soundManager } from '@/lib/casino/sound-manager';
 import { useCasinoStore } from '@/store/useCasinoStore';
 
 interface GamificationContextType {
@@ -24,7 +25,13 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
     if (level > 1) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setLastLevelUp(level);
-      addToast(`LEVEL UP! You are now Level ${level} 🚀`, 'success', 5000);
+      addToast(`You reached Level ${level}. Keep the streak alive.`, 'success', 5500, {
+        key: 'level-up',
+        title: 'LEVEL UP',
+        level,
+        badgeSrc: '/images/badge-level-up-gold.png',
+      });
+      soundManager.play('win');
 
       // Trigger confetti or special effect event
       if (typeof window !== 'undefined') {

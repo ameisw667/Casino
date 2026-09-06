@@ -127,8 +127,12 @@ export function useCrashMultiplayerRoomClock(params: RoomClockParams) {
           cache: 'no-store',
         });
         if (!response.ok || cancelled) return;
-        const data = await response.json();
-        if (data.sharedRound) applyRoundUpdate(data.sharedRound as CrashRoundBroadcastPayload);
+        const resJson = (await response.json()) as {
+          data?: { sharedRound?: CrashRoundBroadcastPayload };
+          sharedRound?: CrashRoundBroadcastPayload;
+        };
+        const data = resJson?.data ?? resJson;
+        if (data?.sharedRound) applyRoundUpdate(data.sharedRound as CrashRoundBroadcastPayload);
       } catch {
         // Best-effort fallback only — Realtime broadcast remains primary.
       }

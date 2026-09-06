@@ -40,7 +40,10 @@ export default function LinkedAccountsSection() {
 
   const loadIdentities = useCallback(async () => {
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
       if (userError || !user) return;
       if (user.identities) {
         setIdentities(user.identities);
@@ -211,7 +214,9 @@ export default function LinkedAccountsSection() {
       {loading ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 0' }}>
           <Loader2 size={12} className="animate-spin" color="hsl(var(--text-muted))" />
-          <span style={{ fontSize: '0.68rem', color: 'hsl(var(--text-muted))' }}>Lade Identitäten...</span>
+          <span style={{ fontSize: '0.68rem', color: 'hsl(var(--text-muted))' }}>
+            Lade Identitäten...
+          </span>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -230,7 +235,9 @@ export default function LinkedAccountsSection() {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 {getProviderIcon(identity.provider)}
-                <span style={{ fontSize: '0.7rem', fontWeight: 600, color: 'hsl(var(--text-main))' }}>
+                <span
+                  style={{ fontSize: '0.7rem', fontWeight: 600, color: 'hsl(var(--text-main))' }}
+                >
                   {getProviderLabel(identity.provider)}
                 </span>
                 <span

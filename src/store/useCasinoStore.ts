@@ -11,7 +11,7 @@ import {
 } from '@/lib/casino/achievements-config';
 
 import type { WalletSnapshot } from '@/lib/casino/wallet-contract';
-import type { CasinoState, Bet, ProcessGameResultParams } from './slices/types';
+import type { CasinoState, Bet, ProcessGameResultParams, OnboardingStep } from './slices/types';
 import { createUISlice } from './slices/uiSlice';
 import { createSettingsSlice } from './slices/settingsSlice';
 import { createHistorySlice } from './slices/historySlice';
@@ -52,8 +52,13 @@ function scheduleXpSync(): void {
     xpPollAttemptsLeft -= 1;
     fetch('/api/user/balance', { cache: 'no-store' })
       .then((res) => (res.ok ? res.json() : null))
-      .then((snapshot) => {
-        if (snapshot) useCasinoStore.getState().applyServerWalletSnapshot(snapshot);
+      .then((raw) => {
+        const snapshot =
+          raw && typeof raw === 'object' && 'data' in raw && (raw as { data: unknown }).data
+            ? (raw as { data: unknown }).data
+            : raw;
+        if (snapshot)
+          useCasinoStore.getState().applyServerWalletSnapshot(snapshot as WalletSnapshot);
       })
       .catch(() => {});
 
@@ -96,8 +101,12 @@ export const useCasinoStore = create<CasinoState>()(
       ...createAchievementsSlice(set, get, api),
       ...createWalletSnapshotSlice(set, get, api),
 
-      applyServerWalletSnapshot: (snapshot: WalletSnapshot) => {
-        const verified = walletSnapshotSchema.parse(snapshot);
+      applyServerWalletSnapshot: (snapshot: WalletSnapshot | { data: WalletSnapshot }) => {
+        const raw =
+          snapshot && typeof snapshot === 'object' && 'data' in snapshot && snapshot.data
+            ? (snapshot as { data: WalletSnapshot }).data
+            : snapshot;
+        const verified = walletSnapshotSchema.parse(raw);
         set({
           balance: verified.balance,
           xp: verified.xp,
@@ -314,12 +323,17 @@ export const useCasinoStore = create<CasinoState>()(
 
           const isWalletHtml = walletRes.headers?.get?.('content-type')?.includes('text/html');
           if (walletRes.ok && !isWalletHtml) {
-            get().applyServerWalletSnapshot(await walletRes.json());
+            const rawWallet = await walletRes.json();
+            const walletData = rawWallet?.data ?? rawWallet;
+            get().applyServerWalletSnapshot(walletData);
           }
 
           const isStatsHtml = statsRes?.headers?.get?.('content-type')?.includes('text/html');
           if (statsRes && statsRes.ok && !isStatsHtml) {
-            const statsData = await statsRes.json();
+            const rawStats = await statsRes.json();
+            const statsData = (rawStats?.data ?? rawStats) as {
+              achievements?: Parameters<CasinoState['mergeServerAchievements']>[0];
+            };
             if (statsData?.achievements) {
               get().mergeServerAchievements(statsData.achievements);
             }
@@ -327,7 +341,8 @@ export const useCasinoStore = create<CasinoState>()(
 
           const isSeedsHtml = seedsRes?.headers?.get?.('content-type')?.includes('text/html');
           if (seedsRes && seedsRes.ok && !isSeedsHtml) {
-            const seedsData = await seedsRes.json();
+            const rawSeeds = await seedsRes.json();
+            const seedsData = rawSeeds?.data ?? rawSeeds;
             if (seedsData?.clientSeed && seedsData?.serverSeedHash !== undefined) {
               set({
                 provablyFairSettings: {
@@ -343,7 +358,8 @@ export const useCasinoStore = create<CasinoState>()(
             ?.get?.('content-type')
             ?.includes('text/html');
           if (communityRes && communityRes.ok && !isCommunityHtml) {
-            const commData = await communityRes.json();
+            const rawComm = await communityRes.json();
+            const commData = rawComm?.data ?? rawComm;
             if (commData?.communityWagered !== undefined) {
               set({
                 communityWagered: Number(commData.communityWagered) || 0,
@@ -355,7 +371,8 @@ export const useCasinoStore = create<CasinoState>()(
 
           const isChatHtml = chatRes?.headers?.get?.('content-type')?.includes('text/html');
           if (chatRes && chatRes.ok && !isChatHtml) {
-            const chatData = await chatRes.json();
+            const rawChat = await chatRes.json();
+            const chatData = rawChat?.data ?? rawChat;
             if (Array.isArray(chatData?.messages) && chatData.messages.length > 0) {
               set({ chatMessages: chatData.messages });
             }
@@ -384,7 +401,8 @@ export const useCasinoStore = create<CasinoState>()(
             return { success: false, message: msg };
           }
 
-          const data = await response.json();
+          const raw = await response.json();
+          const data = raw?.data ?? raw;
           if (!response.ok || !data.success) {
             const errMsg = getApiErrorMessage(data, 'Invalid promo code');
             get().addToast(errMsg, 'error');
@@ -394,6 +412,7 @@ export const useCasinoStore = create<CasinoState>()(
           if (data.snapshot) {
             get().applyServerWalletSnapshot(data.snapshot);
           }
+
           get().addToast(data.message || 'Voucher code redeemed successfully!', 'success');
           return { success: true, message: data.message };
         } catch (error) {
@@ -408,11 +427,21 @@ export const useCasinoStore = create<CasinoState>()(
     {
       name: 'casino-storage',
       skipHydration: true,
-      version: 3,
+      version: 4,
       migrate: (persistedState) => {
         const migrated = {
-          ...(persistedState as Partial<CasinoState> & { processedResultIds?: string[] }),
+          ...(persistedState as Partial<CasinoState> & {
+            processedResultIds?: string[];
+            onboardingStep?: OnboardingStep;
+          }),
         };
+        // v4: Der tote Zwischenschritt OPEN_CASE wurde entfernt. Persistierte
+        // Alt-Stände werden auf COMPLETED normalisiert, sonst würde kein
+        // Onboarding-Rendering mehr greifen und der Flow bliebe unsichtbar hängen.
+        // Vergleich über string, da der neue Union-Typ OPEN_CASE nicht mehr kennt.
+        if ((migrated.onboardingStep as string | undefined) === 'OPEN_CASE') {
+          migrated.onboardingStep = 'COMPLETED';
+        }
         delete migrated.balance;
         delete migrated.xp;
         delete migrated.level;
@@ -453,3 +482,26 @@ export const useCasinoStore = create<CasinoState>()(
     },
   ),
 );
+
+// --- Memoized Selectors (Zustand 5 useShallow) to eliminate component re-renders ---
+export const useWalletBalance = () =>
+  useCasinoStore((s) => ({
+    balance: s.balance,
+    hideBalance: s.hideBalance,
+  }));
+
+export const useVipRankInfo = () =>
+  useCasinoStore((s) => ({
+    level: s.level,
+    xp: s.xp,
+    rank: s.rank,
+    vipTiers: s.vipTiers,
+  }));
+
+export const useSoundSettings = () =>
+  useCasinoStore((s) => ({
+    soundEnabled: s.soundEnabled,
+    soundVolume: s.soundVolume,
+    toggleSound: s.toggleSound,
+    updateSettings: s.updateSettings,
+  }));

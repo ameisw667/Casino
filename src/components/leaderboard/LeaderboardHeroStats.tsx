@@ -28,7 +28,9 @@ export function LeaderboardHeroStats({
     {
       title: 'TOP HIGH ROLLER',
       value: topWinnerName ? topWinnerName : '—',
-      subtitle: topWinnerName ? `$${topWinnerWager.toLocaleString('en-US', { maximumFractionDigits: 0 })} Wagered` : 'Kein Einsatz',
+      subtitle: topWinnerName
+        ? `$${topWinnerWager.toLocaleString('en-US', { maximumFractionDigits: 0 })} Wagered`
+        : 'Kein Einsatz',
       color: '#FFFFFF',
     },
     {

@@ -56,30 +56,32 @@ export function HistoryFilterBar({
       transition={{ delay: 0.1 }}
       style={{
         display: 'flex',
-        alignItems: 'center',
+        flexDirection: isMobile ? 'column' : 'row',
+        alignItems: isMobile ? 'stretch' : 'center',
         justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '12px',
+        gap: isMobile ? '8px' : '12px',
         background:
           'linear-gradient(135deg, rgba(20, 22, 30, 0.85) 0%, rgba(12, 14, 20, 0.95) 100%)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         border: '1px solid rgba(212, 175, 55, 0.18)',
-        borderRadius: '16px',
-        padding: isMobile ? '12px 14px' : '10px 16px',
+        borderRadius: isMobile ? '12px' : '16px',
+        padding: isMobile ? '8px 10px' : '10px 16px',
         boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05)',
+        width: '100%',
+        boxSizing: 'border-box',
       }}
     >
-      {/* Left Segment: Game Selection Filter */}
+      {/* Segment 1: Game Selection Filter */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
+          gap: isMobile ? '4px' : '6px',
           overflowX: 'auto',
           scrollbarWidth: 'none',
           padding: '2px 0',
-          maxWidth: isMobile ? '100%' : 'auto',
+          width: '100%',
         }}
       >
         {games.map((g) => {
@@ -91,20 +93,21 @@ export function HistoryFilterBar({
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                padding: '6px 12px',
-                borderRadius: '10px',
+                padding: isMobile ? '4px 8px' : '6px 12px',
+                borderRadius: isMobile ? '8px' : '10px',
                 border: isActive ? '1px solid #D4AF37' : '1px solid rgba(255, 255, 255, 0.06)',
                 background: isActive
                   ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.22) 0%, rgba(212, 175, 55, 0.05) 100%)'
                   : 'rgba(255, 255, 255, 0.02)',
                 color: isActive ? '#FFD700' : 'rgba(255, 255, 255, 0.65)',
-                fontSize: '0.72rem',
+                fontSize: isMobile ? '0.62rem' : '0.72rem',
                 fontWeight: isActive ? 900 : 700,
                 letterSpacing: '0.02em',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease',
                 boxShadow: isActive ? '0 0 14px rgba(212, 175, 55, 0.2)' : 'none',
+                flexShrink: 0,
               }}
             >
               <span>{g.label}</span>
@@ -113,13 +116,16 @@ export function HistoryFilterBar({
         })}
       </div>
 
-      {/* Right Segment: Time & Outcome & Result Counter */}
+      {/* Segment 2: Time & Outcome & Result Counter */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '10px',
-          flexWrap: 'wrap',
+          gap: isMobile ? '6px' : '10px',
+          overflowX: isMobile ? 'auto' : undefined,
+          scrollbarWidth: 'none',
+          width: isMobile ? '100%' : 'auto',
+          justifyContent: isMobile ? 'flex-start' : 'flex-end',
         }}
       >
         {/* Time Segmented Control */}
@@ -128,9 +134,10 @@ export function HistoryFilterBar({
             display: 'inline-flex',
             alignItems: 'center',
             background: 'rgba(0, 0, 0, 0.4)',
-            borderRadius: '10px',
+            borderRadius: isMobile ? '8px' : '10px',
             padding: '2px',
             border: '1px solid rgba(255, 255, 255, 0.06)',
+            flexShrink: 0,
           }}
         >
           {times.map((t) => {
@@ -140,16 +147,17 @@ export function HistoryFilterBar({
                 key={t.key}
                 onClick={() => setTimeFilter(t.key)}
                 style={{
-                  padding: '4px 10px',
-                  borderRadius: '8px',
+                  padding: isMobile ? '3px 6px' : '4px 10px',
+                  borderRadius: isMobile ? '6px' : '8px',
                   border: 'none',
                   background: isActive ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
                   color: isActive ? '#FFD700' : 'rgba(255, 255, 255, 0.5)',
-                  fontSize: '0.68rem',
+                  fontSize: isMobile ? '0.58rem' : '0.68rem',
                   fontWeight: isActive ? 900 : 600,
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
                   boxShadow: isActive ? 'inset 0 0 8px rgba(212, 175, 55, 0.2)' : 'none',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {t.label}
@@ -164,9 +172,10 @@ export function HistoryFilterBar({
             display: 'inline-flex',
             alignItems: 'center',
             background: 'rgba(0, 0, 0, 0.4)',
-            borderRadius: '10px',
+            borderRadius: isMobile ? '8px' : '10px',
             padding: '2px',
             border: '1px solid rgba(255, 255, 255, 0.06)',
+            flexShrink: 0,
           }}
         >
           {outcomes.map((o) => {
@@ -176,27 +185,17 @@ export function HistoryFilterBar({
                 key={o.key}
                 onClick={() => setOutcomeFilter(o.key)}
                 style={{
-                  padding: '4px 10px',
-                  borderRadius: '8px',
+                  padding: isMobile ? '3px 6px' : '4px 10px',
+                  borderRadius: isMobile ? '6px' : '8px',
                   border: 'none',
-                  background: isActive
-                    ? o.key === 'WINS'
-                      ? 'rgba(16, 185, 129, 0.25)'
-                      : o.key === 'LOSSES'
-                        ? 'rgba(239, 68, 68, 0.25)'
-                        : 'rgba(255, 255, 255, 0.12)'
-                    : 'transparent',
-                  color: isActive
-                    ? o.key === 'WINS'
-                      ? '#10b981'
-                      : o.key === 'LOSSES'
-                        ? '#ef4444'
-                        : '#ffffff'
-                    : 'rgba(255, 255, 255, 0.5)',
-                  fontSize: '0.68rem',
+                  background: isActive ? 'rgba(212, 175, 55, 0.2)' : 'transparent',
+                  color: isActive ? '#FFD700' : 'rgba(255, 255, 255, 0.5)',
+                  fontSize: isMobile ? '0.58rem' : '0.68rem',
                   fontWeight: isActive ? 900 : 600,
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
+                  boxShadow: isActive ? 'inset 0 0 8px rgba(212, 175, 55, 0.2)' : 'none',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {o.label}
@@ -205,17 +204,22 @@ export function HistoryFilterBar({
           })}
         </div>
 
-        {/* Counter Badge */}
+        {/* Active Filter Counter Pill */}
         <div
           style={{
-            padding: '4px 10px',
-            borderRadius: '10px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            padding: isMobile ? '3px 6px' : '4px 10px',
+            borderRadius: isMobile ? '8px' : '10px',
             background: 'rgba(212, 175, 55, 0.08)',
-            border: '1px solid rgba(212, 175, 55, 0.25)',
-            fontSize: '0.66rem',
-            fontWeight: 900,
+            border: '1px solid rgba(212, 175, 55, 0.2)',
             color: '#D4AF37',
+            fontSize: isMobile ? '0.58rem' : '0.68rem',
+            fontWeight: 900,
             letterSpacing: '0.04em',
+            fontFamily: 'var(--font-mono, monospace)',
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
           }}
         >
           {filteredCount} WETTEN

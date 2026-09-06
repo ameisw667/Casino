@@ -14,16 +14,19 @@ export const createUISlice: StateCreator<CasinoState, [], [], UISlice> = (set, g
   setIsChatOpen: (open) => set({ isChatOpen: open }),
   setIsLoading: (loading) => set({ isLoading: loading }),
 
-  addToast: (message, type = 'info', duration = 4000) =>
+  addToast: (message, type = 'info', duration = 4000, details = {}) =>
     set((state) => {
       const id = Math.random().toString(36).slice(2, 11);
-      const newToast = { id, message, type, duration };
+      const newToast = { id, message, type, duration, ...details };
 
       setTimeout(() => {
         get().removeToast(id);
       }, duration);
 
-      return { toasts: [...state.toasts, newToast] };
+      const toasts = details.key
+        ? state.toasts.filter((toast) => toast.key !== details.key)
+        : state.toasts;
+      return { toasts: [...toasts, newToast] };
     }),
 
   removeToast: (id) =>

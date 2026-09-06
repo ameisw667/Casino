@@ -9,16 +9,47 @@ import { useSupabaseSession } from '@/components/auth/SupabaseSessionProvider';
 
 import Image from 'next/image';
 
+/** Einheitlicher, beschrifteter Schließen-Knopf (Option A): identisch in jeder Phase, ein Klick reicht. */
+function OnboardingCloseButton({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <button
+      onClick={onDismiss}
+      style={{
+        position: 'absolute',
+        top: '20px',
+        right: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        background: 'transparent',
+        border: 'none',
+        color: 'hsl(var(--text-dim))',
+        cursor: 'pointer',
+        zIndex: 10,
+        fontSize: '0.75rem',
+        fontWeight: 800,
+      }}
+      className="transition-colors hover:text-white"
+      aria-label="Onboarding schließen"
+    >
+      <span>Schließen</span>
+      <X size={22} />
+    </button>
+  );
+}
+
 export default function OnboardingFlow() {
   const onboardingStep = useCasinoStore((s) => s.onboardingStep);
   const setOnboardingStep = useCasinoStore((s) => s.setOnboardingStep);
+  const dismissOnboarding = useCasinoStore((s) => s.dismissOnboarding);
+  const onboardingDismissed = useCasinoStore((s) => s.onboardingDismissed);
   const isMobile = useCasinoStore((s) => s.isMobile);
   const { user, isLoaded } = useSupabaseSession();
   const isSignedIn = !!user;
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const isBlockingStep =
-    onboardingStep !== 'NONE' && onboardingStep !== 'COMPLETED' && onboardingStep !== 'OPEN_CASE';
+    onboardingStep === 'WELCOME' || onboardingStep === 'LOGIN' || onboardingStep === 'TOUR_VAULT';
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -43,6 +74,14 @@ export default function OnboardingFlow() {
       setOnboardingStep('COMPLETED');
     }
   }, [isLoaded, isSignedIn, onboardingStep, setOnboardingStep]);
+
+  // Wer das Intro einmal geschlossen hat, wird beim erneuten „Play Now" nicht zur Willkommens-
+  // Karte zurückgeblendet, sondern landet direkt im Anmelde-Schritt (Option B, S1).
+  useEffect(() => {
+    if (onboardingStep === 'WELCOME' && onboardingDismissed) {
+      setOnboardingStep('LOGIN');
+    }
+  }, [onboardingStep, onboardingDismissed, setOnboardingStep]);
 
   if (!mounted || !isLoaded || !isBlockingStep) return null;
 
@@ -86,22 +125,7 @@ export default function OnboardingFlow() {
               position: 'relative',
             }}
           >
-            <button
-              onClick={() => setOnboardingStep('NONE')}
-              style={{
-                position: 'absolute',
-                top: '20px',
-                right: '20px',
-                background: 'transparent',
-                border: 'none',
-                color: 'hsl(var(--text-dim))',
-                cursor: 'pointer',
-                zIndex: 10,
-              }}
-              className="transition-colors hover:text-white"
-            >
-              <X size={24} />
-            </button>
+            <OnboardingCloseButton onDismiss={dismissOnboarding} />
             <div className="case-bounce" style={{ marginBottom: '32px' }}>
               <div style={{ position: 'relative', display: 'inline-block' }}>
                 <Gift size={120} color="hsl(var(--primary))" />
@@ -155,7 +179,7 @@ export default function OnboardingFlow() {
                 CLAIM MY CASE NOW <ArrowRight size={24} />
               </button>
               <button
-                onClick={() => setOnboardingStep('NONE')}
+                onClick={dismissOnboarding}
                 style={{
                   background: 'transparent',
                   border: 'none',
@@ -197,22 +221,7 @@ export default function OnboardingFlow() {
               position: 'relative',
             }}
           >
-            <button
-              onClick={() => setOnboardingStep('NONE')}
-              style={{
-                position: 'absolute',
-                top: '20px',
-                right: '20px',
-                background: 'transparent',
-                border: 'none',
-                color: 'hsl(var(--text-dim))',
-                cursor: 'pointer',
-                zIndex: 10,
-              }}
-              className="transition-colors hover:text-white"
-            >
-              <X size={24} />
-            </button>
+            <OnboardingCloseButton onDismiss={dismissOnboarding} />
             <h3 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '32px' }}>
               ONE-CLICK CLAIM
             </h3>
@@ -305,31 +314,24 @@ export default function OnboardingFlow() {
       {/* Phase 3: TOUR_VAULT (Spotlight) */}
       {onboardingStep === 'TOUR_VAULT' && (
         <>
-          <button
-            onClick={() => setOnboardingStep('NONE')}
+          <div
             style={{
               position: 'absolute',
               top: '20px',
               right: '20px',
-              background: 'transparent',
-              border: 'none',
-              color: 'hsl(var(--text-dim))',
-              cursor: 'pointer',
               pointerEvents: 'auto',
               zIndex: 2,
             }}
-            className="transition-colors hover:text-white"
-            aria-label="Skip onboarding"
           >
-            <X size={24} />
-          </button>
+            <OnboardingCloseButton onDismiss={dismissOnboarding} />
+          </div>
 
           {/* Custom Spotlight SVG Mask */}
           <div
             style={{ position: 'absolute', inset: 0, pointerEvents: 'auto' }}
             onClick={() => {
               router.push('/vault');
-              setOnboardingStep('OPEN_CASE');
+              setOnboardingStep('COMPLETED');
             }}
           >
             <svg width="100%" height="100%">
@@ -394,7 +396,7 @@ export default function OnboardingFlow() {
               <button
                 onClick={() => {
                   router.push('/vault');
-                  setOnboardingStep('OPEN_CASE');
+                  setOnboardingStep('COMPLETED');
                 }}
                 className="btn btn-primary"
                 style={{ width: '100%', marginTop: '16px', height: '40px', fontSize: '0.8rem' }}

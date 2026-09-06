@@ -34,7 +34,8 @@ export default function LeaderboardPage() {
         setLoading(true);
         const res = await fetch('/api/leaderboard', { cache: 'no-store' });
         if (res.ok) {
-          const json = (await res.json()) as LeaderboardResponse;
+          const raw = await res.json();
+          const json = (raw?.data ?? raw) as LeaderboardResponse;
           if (!cancelled) setRows(json.rows ?? []);
         }
       } catch {

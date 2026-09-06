@@ -1,3 +1,4 @@
+@import '../styles/tokens.generated.css';
 @import '../styles/game-effects.css';
 @import '../styles/v2.css';
 
@@ -5,16 +6,6 @@
   /* Font families — IBM Plex loaded via next/font in layout.tsx.
      Do NOT redeclare --font-inter / --font-mono here (would shadow next/font vars). */
   --font-outfit: var(--font-inter); /* display alias → Plex Sans (single-family terminal system) */
-
-  /* Cyber-Stealth FinTech Tokens — Platinum/Silver accent (was Electric Cyan) */
-  --stealth-bg: #0b0e14;
-  --stealth-surface: #141923;
-  --stealth-border: #1e2638;
-  --stealth-accent: #cbd5e1;
-  --stealth-accent-rgb: 203, 213, 225;
-  --stealth-accent-glow: rgba(203, 213, 225, 0.15);
-  --stealth-emerald: #00e676;
-  --stealth-crimson: #ff3366;
 
   /* ... previous tokens ... */
   --bg-color: 220 28% 6%;
@@ -44,13 +35,6 @@
   --glass-blur-md: blur(12px);
   --glass-blur-lg: blur(24px);
   --glass-blur: var(--glass-blur-md);
-
-  /* Radii */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 20px;
-  --radius-full: 9999px;
 
   /* Shadows & Glows Refined */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.5);
@@ -84,12 +68,6 @@
   --font-xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.75rem);
   --font-2xl: clamp(1.75rem, 1.5rem + 1.25vw, 2.5rem);
   --font-3xl: clamp(2.5rem, 2rem + 2.5vw, 4rem);
-
-  --space-xs: clamp(0.25rem, 0.2rem + 0.25vw, 0.5rem);
-  --space-sm: clamp(0.5rem, 0.4rem + 0.5vw, 1rem);
-  --space-md: clamp(1rem, 0.8rem + 1vw, 2rem);
-  --space-lg: clamp(2rem, 1.5rem + 2vw, 4rem);
-  --space-xl: clamp(4rem, 3rem + 4vw, 8rem);
 }
 
 /* Smooth theme toggle transitions */
@@ -440,16 +418,31 @@ p {
   border-collapse: collapse;
   text-align: left;
 }
+/* .desktop-only erzwingt display:block !important und hebt damit den
+   Tabellen-Fluss auf (Zelle schrumpft auf Content-Breite, rechte
+   Kartenhälfte bleibt leer) — specificity-Wiederherstellung nötig.
+   Auf >=1024px begrenzt: im 769–1023-Range blendet .desktop-only
+   den Tisch aus, damit dort nur die Mobile-Liste rendert. */
+@media (min-width: 1024px) {
+  .live-activity-desktop-table.desktop-only {
+    display: table !important;
+  }
+}
 .live-activity-mobile-list {
   display: none;
 }
 
 @media (max-width: 768px) {
-  .live-activity-desktop-table {
+  .live-activity-desktop-table,
+  .live-activity-desktop-table.desktop-only {
     display: none !important;
   }
   .live-activity-mobile-list {
     display: flex !important;
+    /* Column: Zeilen müssen gestapelt volle Kartenbreite einnehmen — im
+       Row-Default schrumpfen sie auf Content-Breite und reihen sich
+       nebeneinander. */
+    flex-direction: column !important;
   }
 }
 
@@ -576,7 +569,12 @@ p {
 }
 
 .glass-header {
-  background: linear-gradient(180deg, rgba(11, 14, 20, 0.82) 0%, rgba(11, 14, 20, 0.68) 80%, rgba(11, 14, 20, 0.52) 100%) !important;
+  background: linear-gradient(
+    180deg,
+    rgba(11, 14, 20, 0.82) 0%,
+    rgba(11, 14, 20, 0.68) 80%,
+    rgba(11, 14, 20, 0.52) 100%
+  ) !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid hsla(45, 100%, 50%, 0.1) !important;
@@ -700,6 +698,91 @@ p {
 .btn-ghost:hover {
   color: #fff;
   background: hsla(0, 0%, 100%, 0.05);
+}
+
+.rg-highlight {
+  position: relative;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rg-highlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse 90% 140% at 50% 50%,
+    rgba(212, 175, 55, 0.07),
+    rgba(212, 175, 55, 0.012) 75%
+  );
+  animation: rgHighlightPulse 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.rg-highlight > * {
+  position: relative;
+  z-index: 1;
+}
+
+.rg-highlight:hover {
+  transform: scale(1.015);
+}
+
+.rg-highlight-icon {
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35)) drop-shadow(0 0 6px rgba(212, 175, 55, 0.3));
+  transition: filter 0.25s ease;
+}
+
+.rg-highlight:hover .rg-highlight-icon {
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 9px rgba(212, 175, 55, 0.45));
+}
+
+@keyframes rgHighlightPulse {
+  0%,
+  100% {
+    opacity: 0.65;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rg-highlight::before {
+    animation: none;
+    opacity: 1;
+  }
+  .rg-highlight,
+  .rg-highlight-icon {
+    transition: none;
+  }
+}
+
+/* Brand-Logo (Ass-Pik): eigenständige Animation, bewusst getrennt von .animate-pulse
+   (das wird von 6 weiteren Komponenten geteilt und darf nicht mitverlangsamt werden). */
+.brand-logo-tilt {
+  animation: brandLogoTilt 3.6s ease-in-out infinite;
+  transform-style: preserve-3d;
+}
+
+@keyframes brandLogoTilt {
+  0%,
+  100% {
+    transform: perspective(500px) rotateY(0deg) scale(1);
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4)) drop-shadow(0 0 5px hsla(45, 100%, 60%, 0.25));
+  }
+  50% {
+    transform: perspective(500px) rotateY(14deg) scale(1.12);
+    filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.5))
+      drop-shadow(0 0 10px hsla(45, 100%, 65%, 0.5));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-logo-tilt {
+    animation: none;
+  }
 }
 
 .header-chip {

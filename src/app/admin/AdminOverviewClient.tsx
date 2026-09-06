@@ -9,8 +9,11 @@ import {
   Zap,
   CheckCircle2,
   AlertCircle,
+  Clock,
+  AlertTriangle,
 } from 'lucide-react';
 import { AreaChart, Area, Tooltip, ResponsiveContainer } from 'recharts';
+import { apiClient } from '@/lib/api/client';
 
 interface OverviewStat {
   label: string;
@@ -40,7 +43,12 @@ interface AdminOverviewResponse {
   meta: { totalUsers: number; totalBalances: number; totalWagered: number; netProfit: number };
 }
 
-const ICON_MAP: Record<string, React.ElementType> = {
+interface JobHealthResponse {
+  snapshot: { generatedAt: string | null; ageHours: number | null; isStale: boolean };
+  deadLetters: { xpGain: number; bigWinNotify: number };
+}
+
+const ICON_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
   Wallet,
   TrendingUp,
   Users,
@@ -57,6 +65,8 @@ export default function AdminOverviewClient() {
   const [data, setData] = useState<AdminOverviewResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [jobHealth, setJobHealth] = useState<JobHealthResponse | null>(null);
+  const [jobHealthError, setJobHealthError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,7 +74,8 @@ export default function AdminOverviewClient() {
       try {
         const res = await fetch('/api/admin/overview', { cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = (await res.json()) as AdminOverviewResponse;
+        const raw = await res.json();
+        const json = (raw?.data ?? raw) as AdminOverviewResponse;
         if (!cancelled) setData(json);
       } catch {
         if (!cancelled) setError('Übersichtsdaten konnten nicht geladen werden.');
@@ -73,6 +84,22 @@ export default function AdminOverviewClient() {
       }
     }
     load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadJobHealth() {
+      try {
+        const json = await apiClient.admin.jobHealth<JobHealthResponse>();
+        if (!cancelled) setJobHealth(json);
+      } catch {
+        if (!cancelled) setJobHealthError(true);
+      }
+    }
+    loadJobHealth();
     return () => {
       cancelled = true;
     };
@@ -109,6 +136,96 @@ export default function AdminOverviewClient() {
         >
           Live DB-Anbindung — Echte System-Metriken & Transaktions-Analytics aktiv.
         </span>
+      </div>
+
+      {/* Job Health Panel — Background Jobs & Scheduling Beobachtbarkeit */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: '12px',
+        }}
+      >
+        {(() => {
+          const snapshot = jobHealth?.snapshot;
+          const isStale = jobHealthError || !snapshot || snapshot.isStale;
+          const snapshotColor = jobHealthError ? '#ef4444' : isStale ? '#D4AF37' : '#10b981';
+          const snapshotLabel = jobHealthError
+            ? 'Job-Health-Daten nicht verfügbar'
+            : !jobHealth
+              ? 'Lädt…'
+              : !snapshot?.generatedAt
+                ? 'Kein Snapshot vorhanden'
+                : `Zuletzt vor ${snapshot.ageHours!.toFixed(1)} h generiert${snapshot.isStale ? ' (überfällig)' : ''}`;
+          return (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '12px 18px',
+                borderRadius: '14px',
+                background: `${snapshotColor}14`,
+                border: `1px solid ${snapshotColor}40`,
+                backdropFilter: 'blur(12px)',
+              }}
+            >
+              {isStale ? (
+                <AlertTriangle size={16} color={snapshotColor} />
+              ) : (
+                <Clock size={16} color={snapshotColor} />
+              )}
+              <span
+                style={{
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  color: snapshotColor,
+                  letterSpacing: '0.02em',
+                }}
+              >
+                Analytics-Snapshot: {snapshotLabel}
+              </span>
+            </div>
+          );
+        })()}
+        {(() => {
+          const deadLetters = jobHealth?.deadLetters;
+          const total = (deadLetters?.xpGain ?? 0) + (deadLetters?.bigWinNotify ?? 0);
+          const hasIssue = jobHealthError || total > 0;
+          const color = jobHealthError ? '#ef4444' : total > 0 ? '#D4AF37' : '#10b981';
+          const label = jobHealthError
+            ? 'Dead-Letter-Daten nicht verfügbar'
+            : !jobHealth
+              ? 'Lädt…'
+              : total === 0
+                ? 'Keine Outbox-Dead-Letters'
+                : `${total} Outbox-Dead-Letter(s) — xp_gain: ${deadLetters!.xpGain}, big_win: ${deadLetters!.bigWinNotify}`;
+          return (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '12px 18px',
+                borderRadius: '14px',
+                background: `${color}14`,
+                border: `1px solid ${color}40`,
+                backdropFilter: 'blur(12px)',
+              }}
+            >
+              {hasIssue ? (
+                <AlertTriangle size={16} color={color} />
+              ) : (
+                <CheckCircle2 size={16} color={color} />
+              )}
+              <span
+                style={{ fontSize: '0.78rem', fontWeight: 800, color, letterSpacing: '0.02em' }}
+              >
+                {label}
+              </span>
+            </div>
+          );
+        })()}
       </div>
 
       <div>

@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { Star, Trophy } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { motion, AnimatePresence, useSpring } from 'framer-motion';
+import { Z_INDEX } from '@/lib/design/tokens.generated';
+import { soundManager } from '@/lib/casino/sound-manager';
 
 interface BigWinOverlayProps {
   amount: number;
@@ -61,6 +63,7 @@ export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: B
 
   useEffect(() => {
     if (!isOpen) return;
+    soundManager.play('win');
     const timer = setTimeout(() => {
       onClose();
     }, 5500);
@@ -79,7 +82,7 @@ export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: B
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 9999,
+            zIndex: Z_INDEX.overlay.bigWin,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

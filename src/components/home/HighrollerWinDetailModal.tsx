@@ -110,8 +110,7 @@ export function HighrollerWinDetailModal({ win, onClose }: HighrollerWinDetailMo
             style={{
               height: '3px',
               width: '100%',
-              background:
-                'linear-gradient(90deg, transparent 0%, #D4AF37 50%, transparent 100%)',
+              background: 'linear-gradient(90deg, transparent 0%, #D4AF37 50%, transparent 100%)',
             }}
           />
 
@@ -229,7 +228,13 @@ export function HighrollerWinDetailModal({ win, onClose }: HighrollerWinDetailMo
               }}
             >
               <div>
-                <div style={{ fontSize: '0.65rem', color: 'rgba(255, 255, 255, 0.45)', textTransform: 'uppercase' }}>
+                <div
+                  style={{
+                    fontSize: '0.65rem',
+                    color: 'rgba(255, 255, 255, 0.45)',
+                    textTransform: 'uppercase',
+                  }}
+                >
                   Gespieltes Spiel
                 </div>
                 <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#ffffff' }}>
@@ -237,10 +242,22 @@ export function HighrollerWinDetailModal({ win, onClose }: HighrollerWinDetailMo
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '0.65rem', color: 'rgba(255, 255, 255, 0.45)', textTransform: 'uppercase' }}>
+                <div
+                  style={{
+                    fontSize: '0.65rem',
+                    color: 'rgba(255, 255, 255, 0.45)',
+                    textTransform: 'uppercase',
+                  }}
+                >
                   Zeitpunkt
                 </div>
-                <div style={{ fontSize: '0.82rem', fontFamily: 'var(--font-mono, monospace)', color: 'rgba(255, 255, 255, 0.75)' }}>
+                <div
+                  style={{
+                    fontSize: '0.82rem',
+                    fontFamily: 'var(--font-mono, monospace)',
+                    color: 'rgba(255, 255, 255, 0.75)',
+                  }}
+                >
                   {win.time}
                 </div>
               </div>

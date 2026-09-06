@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { GameErrorBoundary } from '@/components/casino/GameErrorBoundary';
@@ -6,11 +7,9 @@ import { validateBet } from '@/lib/casino/bet-validator';
 import { sanitizeClientSeed } from '@/lib/casino/provably-fair';
 import { CasinoLogger } from '@/lib/casino/logger';
 import { getApiErrorMessage } from '@/lib/security/form-errors';
-import { soundManager } from '@/lib/casino/sound-manager';
 import { dicePageStyles } from '@/components/casino/games/dice/dice-page-styles';
-import { useDiceOdometer } from '@/components/casino/games/dice/useDiceOdometer';
 import { DiceControlSidebar } from '@/components/casino/games/dice/DiceControlSidebar';
-import { DiceCenterStage } from '@/components/casino/games/dice/DiceCenterStage';
+import { DiceCenterStageV2 } from '@/components/casino/games/dice/v2/DiceCenterStageV2';
 import type { DiceHistoryItem, SessionStats } from '@/components/casino/games/dice/dice-config';
 
 export default function DicePage() {
@@ -29,6 +28,7 @@ export default function DicePage() {
   const addToast = useCasinoStore((state) => state.addToast);
   const isProcessing = useCasinoStore((state) => state.isProcessing);
   const setIsProcessing = useCasinoStore((state) => state.setIsProcessing);
+  const soundEnabled = useCasinoStore((state) => state.soundEnabled);
   const { betMin, betMax } = useCasinoStore((state) => state.gameConfig.limits);
 
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -41,7 +41,6 @@ export default function DicePage() {
   const [isRollOver, setIsRollOver] = useState(true);
   const [winChance, setWinChance] = useState(49.5);
   const [targetPoint, setTargetPoint] = useState(50.5);
-  const [visualResult, setVisualResult] = useState<number | null>(null);
   const [isDraggingThumb, setIsDraggingThumb] = useState(false);
   const [winStreak, setWinStreak] = useState(0);
 
@@ -106,11 +105,11 @@ export default function DicePage() {
     [isRollOver],
   );
 
-  const toggleRollMode = () => {
+  const toggleRollMode = useCallback(() => {
     const newMode = !isRollOver;
     setIsRollOver(newMode);
     setTargetPoint(parseFloat((100 - targetPoint).toFixed(2)));
-  };
+  }, [isRollOver, targetPoint]);
 
   // Slider Drag Handling
   const handleSliderDrag = (clientX: number) => {
@@ -151,10 +150,6 @@ export default function DicePage() {
 
   const lastBetTimeRef = useRef(0);
 
-  // Digital Odometer Roll Animation (extracted into a hook so the ticker state
-  // travels with the animation callback it belongs to).
-  const { displayTicker, runOdometerAnimation } = useDiceOdometer(autoRunning);
-
   const handleRoll = useCallback(async () => {
     if (isRunningRef.current) return;
     const now = Date.now();
@@ -168,10 +163,10 @@ export default function DicePage() {
       return;
     }
 
+    const rollStartTime = Date.now();
     isRunningRef.current = true;
     setIsProcessing(true);
     setLoading(true);
-    soundManager.play('dice-roll');
 
     try {
       const sanitizedClientSeed = sanitizeClientSeed(provablyFairSettings.clientSeed);
@@ -207,8 +202,30 @@ export default function DicePage() {
           getApiErrorMessage(errData, 'Der Einsatz konnte nicht verarbeitet werden.'),
         );
       }
-      const result = await response.json();
+      const raw = await response.json();
+      const result = raw?.data ?? raw;
 
+      const outcome = {
+        roll: result.roll,
+        win: result.win,
+        multiplier,
+        id: result.id || String(Date.now()),
+      };
+
+      // Feste, knackige Roll-Dramaturgie (600ms):
+      // Warten bis der 3D-Würfel den Filz berührt, BEVOR History, Slider-Dot und Payout aktualisiert werden!
+      const targetRollDuration = 600;
+      const elapsed = Date.now() - rollStartTime;
+      const remainingTime = Math.max(0, targetRollDuration - elapsed);
+      if (remainingTime > 0) {
+        await new Promise((resolve) => setTimeout(resolve, remainingTime));
+      }
+
+      // EXAKTE SYNCHRONISATION BEI LANDUNG:
+      setLastResult(outcome);
+      setHistory((prev) => [outcome, ...prev].slice(0, 16));
+
+      // Synchronized Provably Fair & Wallet Snapshot
       setProvablyFairSettings({
         serverSeedHash: result.serverSeedHash,
         nonce: result.nonce,
@@ -237,38 +254,21 @@ export default function DicePage() {
       // Update win streak
       setWinStreak((prev) => (result.win ? prev + 1 : 0));
 
-      // Run digital odometer animation
-      runOdometerAnimation(result.roll, () => {
-        setVisualResult(result.roll);
-        const outcome = {
-          roll: result.roll,
-          win: result.win,
-          multiplier,
-          id: result.id || String(Date.now()),
-        };
-        setLastResult(outcome);
-        setHistory((prev) => [outcome, ...prev].slice(0, 16));
-
+      if (isAutoMode) {
         if (result.win) {
-          soundManager.play('win');
-        }
-
-        if (isAutoMode) {
-          if (result.win) {
-            if (autoBetSettings.onWin > 0) {
-              setBetAmount((prev) => prev + prev * (autoBetSettings.onWin / 100));
-            } else {
-              setBetAmount(baseBetAmount);
-            }
+          if (autoBetSettings.onWin > 0) {
+            setBetAmount((prev) => prev + prev * (autoBetSettings.onWin / 100));
           } else {
-            if (autoBetSettings.onLoss > 0) {
-              setBetAmount((prev) => prev + prev * (autoBetSettings.onLoss / 100));
-            } else {
-              setBetAmount(baseBetAmount);
-            }
+            setBetAmount(baseBetAmount);
+          }
+        } else {
+          if (autoBetSettings.onLoss > 0) {
+            setBetAmount((prev) => prev + prev * (autoBetSettings.onLoss / 100));
+          } else {
+            setBetAmount(baseBetAmount);
           }
         }
-      });
+      }
     } catch (error) {
       setAutoRunning(false);
       CasinoLogger.error('Dice', 'Bet error', error);
@@ -298,7 +298,6 @@ export default function DicePage() {
     isAutoMode,
     autoBetSettings,
     baseBetAmount,
-    runOdometerAnimation,
   ]);
 
   // Auto-Bet Logic
@@ -338,7 +337,7 @@ export default function DicePage() {
       timer = setTimeout(() => {
         handleRoll();
         setCurrentAutoCount((prev) => prev + 1);
-      }, 500);
+      }, 750); // 750ms gibt der 600ms 3D-Roll-Dramaturgie Zeit
     }
     return () => clearTimeout(timer);
   }, [
@@ -430,7 +429,7 @@ export default function DicePage() {
   };
 
   return (
-    <GameErrorBoundary gameName="Dice">
+    <GameErrorBoundary gameName="Dice 3D Arcade">
       <div
         className="dice-container"
         style={{
@@ -446,7 +445,7 @@ export default function DicePage() {
       >
         <style>{dicePageStyles}</style>
 
-        {/* 0. BASE: OBSIDIAN & GOLD FLIGHT-CONTROLS SIDEBAR */}
+        {/* 1. KONTROLL-SIDEBAR */}
         <DiceControlSidebar
           isMobile={isMobile}
           balance={balance}
@@ -471,28 +470,27 @@ export default function DicePage() {
           onPrimaryAction={handlePrimaryAction}
         />
 
-        {/* 4. LEVER 4: MAIN STAGE WITH GEOMETRIC OBSIDIAN BACKDROP */}
-        <DiceCenterStage
+        {/* 2. ZENTRALE 3D-BÜHNE (3D ARCADE) */}
+        <DiceCenterStageV2
           isMobile={isMobile}
-            loading={loading}
-            lastResult={lastResult}
-            displayTicker={displayTicker}
-            history={history}
-            winStreak={winStreak}
-            visualResult={visualResult}
-            targetPoint={targetPoint}
-            isRollOver={isRollOver}
-            winChance={winChance}
-            multiplier={multiplier}
-            isDraggingThumb={isDraggingThumb}
-            sliderRef={sliderRef}
-            onMouseDown={onMouseDown}
-            onTouchStart={onTouchStart}
-            onUpdateFromWinChance={updateFromWinChance}
-            onUpdateFromMultiplier={updateFromMultiplier}
-            onUpdateFromTarget={updateFromTarget}
-            onToggleRollMode={toggleRollMode}
-          />
+          loading={loading}
+          lastResult={lastResult}
+          history={history}
+          winStreak={winStreak}
+          targetPoint={targetPoint}
+          isRollOver={isRollOver}
+          winChance={winChance}
+          multiplier={multiplier}
+          isDraggingThumb={isDraggingThumb}
+          sliderRef={sliderRef}
+          onMouseDown={onMouseDown}
+          onTouchStart={onTouchStart}
+          onUpdateFromWinChance={updateFromWinChance}
+          onUpdateFromMultiplier={updateFromMultiplier}
+          onUpdateFromTarget={updateFromTarget}
+          onToggleRollMode={toggleRollMode}
+          soundEnabled={soundEnabled}
+        />
       </div>
     </GameErrorBoundary>
   );

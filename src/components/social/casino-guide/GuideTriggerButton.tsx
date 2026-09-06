@@ -10,7 +10,12 @@ interface GuideTriggerButtonProps {
   onOpen: () => void;
 }
 
-export function GuideTriggerButton({ isOpen, isMobile = false, panelBottom, onOpen }: GuideTriggerButtonProps) {
+export function GuideTriggerButton({
+  isOpen,
+  isMobile = false,
+  panelBottom,
+  onOpen,
+}: GuideTriggerButtonProps) {
   return (
     <motion.button
       type="button"

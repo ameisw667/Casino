@@ -100,13 +100,13 @@ export function ElevatedGameCard({
             padding: isMobile ? '10px' : '14px',
             borderRadius: '16px',
             background:
-              'linear-gradient(145deg, rgba(24, 24, 32, 0.8) 0%, rgba(12, 12, 18, 0.9) 100%)',
+              'linear-gradient(145deg, rgba(20, 22, 28, 0.88) 0%, rgba(10, 12, 16, 0.96) 100%)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
-            border: `1px solid ${isHovered ? 'rgba(212, 175, 55, 0.45)' : 'rgba(212, 175, 55, 0.12)'}`,
+            border: `1px solid ${isHovered ? 'rgba(212, 175, 55, 0.55)' : 'rgba(212, 175, 55, 0.22)'}`,
             boxShadow: isHovered
-              ? 'inset 0 1px 1px rgba(255, 255, 255, 0.2), 0 12px 28px rgba(0, 0, 0, 0.55), 0 0 12px rgba(212, 175, 55, 0.2)'
-              : 'inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 12px 28px rgba(0, 0, 0, 0.55)',
+              ? 'inset 0 1px 2px rgba(255, 255, 255, 0.22), 0 18px 42px rgba(0, 0, 0, 0.75), 0 0 20px rgba(212, 175, 55, 0.25)'
+              : 'inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 14px 34px rgba(0, 0, 0, 0.65)',
             height: '100%',
             cursor: 'pointer',
             position: 'relative',
@@ -126,7 +126,7 @@ export function ElevatedGameCard({
             }}
           />
 
-          {/* Preview image & Option-1 Transluzente Glas-Pille */}
+          {/* Preview image & Passepartout-Rahmen */}
           <div
             style={{
               position: 'relative',
@@ -136,6 +136,10 @@ export function ElevatedGameCard({
               overflow: 'hidden',
               flexShrink: 0,
               background: '#09090b',
+              border: `1px solid ${isHovered ? 'rgba(212, 175, 55, 0.38)' : 'rgba(212, 175, 55, 0.20)'}`,
+              boxShadow:
+                'inset 0 1px 2px rgba(255, 255, 255, 0.12), inset 0 -1px 2px rgba(0, 0, 0, 0.7), 0 6px 20px rgba(0, 0, 0, 0.6)',
+              transition: 'border-color 0.3s ease',
             }}
           >
             {imgError ? (
@@ -274,33 +278,11 @@ export function ElevatedGameCard({
               style={{
                 position: 'absolute',
                 inset: 0,
-                background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 45%)',
+                background: 'linear-gradient(to top, rgba(0,0,0,0.18) 0%, transparent 28%)',
                 zIndex: 2,
+                pointerEvents: 'none',
               }}
             />
-
-            {/* Floating Top-Left Icon Badge */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '8px',
-                left: '8px',
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                background: 'rgba(0,0,0,0.55)',
-                backdropFilter: 'blur(8px)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: game.accentColor,
-                border: `1px solid ${game.accentColor}60`,
-                boxShadow: `0 0 12px ${game.accentColor}35`,
-                zIndex: 3,
-              }}
-            >
-              <Icon size={16} color={game.accentColor} />
-            </div>
           </div>
 
           {/* Badges */}
@@ -314,10 +296,11 @@ export function ElevatedGameCard({
           >
             <span
               style={{
-                fontSize: '0.58rem',
+                fontSize: '0.60rem',
                 fontWeight: 900,
-                letterSpacing: '0.08em',
-                color: 'hsl(var(--text-dim))',
+                letterSpacing: '0.1em',
+                color: 'rgba(212, 175, 55, 0.78)',
+                textTransform: 'uppercase',
               }}
             >
               {game.studio}
@@ -363,18 +346,22 @@ export function ElevatedGameCard({
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'baseline',
-              gap: '6px',
+              gap: '4px',
+              minWidth: 0,
             }}
           >
             <h3
               style={{
-                fontSize: '1.15rem',
+                fontSize: isMobile ? '0.88rem' : '1.15rem',
                 fontWeight: 950,
                 margin: 0,
                 fontFamily: 'var(--font-inter), sans-serif',
-                lineHeight: 1,
+                lineHeight: 1.1,
                 color: isHovered ? game.accentColor : '#ffffff',
                 transition: 'color 0.2s ease',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
               }}
             >
               {game.name}
@@ -383,14 +370,15 @@ export function ElevatedGameCard({
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
-                fontSize: '0.7rem',
+                gap: '3px',
+                fontSize: isMobile ? '0.62rem' : '0.7rem',
                 fontWeight: 800,
                 color: '#D4AF37',
                 fontFamily: 'var(--font-mono), monospace',
+                flexShrink: 0,
               }}
             >
-              <Star size={12} fill="#D4AF37" color="#D4AF37" />
+              <Star size={isMobile ? 10 : 12} fill="#D4AF37" color="#D4AF37" />
               {game.rating}
             </span>
           </div>
@@ -398,8 +386,8 @@ export function ElevatedGameCard({
           <p
             style={{
               fontSize: '0.74rem',
-              lineHeight: 1.4,
-              color: 'hsl(var(--text-muted))',
+              lineHeight: 1.45,
+              color: 'rgba(255, 255, 255, 0.72)',
               margin: 0,
               minHeight: isMobile ? '0' : '2em',
               display: isMobile ? 'none' : 'block',
@@ -413,18 +401,25 @@ export function ElevatedGameCard({
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              padding: isMobile ? '4px 8px' : '8px 10px',
-              borderRadius: '10px',
-              background: 'hsla(0,0%,100%,0.02)',
-              border: '1px solid hsla(0,0%,100%,0.05)',
+              padding: isMobile ? '3px 6px' : '8px 10px',
+              borderRadius: '8px',
+              background: 'rgba(212, 175, 55, 0.04)',
+              border: '1px solid rgba(212, 175, 55, 0.15)',
             }}
           >
-            <span style={{ fontSize: isMobile ? '0.50rem' : '0.55rem', fontWeight: 800, color: 'hsl(var(--text-dim))' }}>
+            <span
+              style={{
+                fontSize: isMobile ? '0.48rem' : '0.55rem',
+                fontWeight: 800,
+                color: 'rgba(255, 255, 255, 0.65)',
+                letterSpacing: '0.06em',
+              }}
+            >
               TOP PAYOUT
             </span>
             <span
               style={{
-                fontSize: isMobile ? '0.75rem' : '0.85rem',
+                fontSize: isMobile ? '0.70rem' : '0.85rem',
                 fontWeight: 950,
                 color: '#D4AF37',
                 fontFamily: 'var(--font-mono), monospace',
@@ -438,25 +433,34 @@ export function ElevatedGameCard({
             type="button"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.96 }}
-            className="btn btn-primary"
             style={{
               width: '100%',
-              height: isMobile ? '32px' : '40px',
-              borderRadius: '10px',
+              height: isMobile ? '30px' : '40px',
+              borderRadius: '8px',
               fontWeight: 950,
-              fontSize: isMobile ? '0.70rem' : '0.8rem',
+              fontSize: isMobile ? '0.68rem' : '0.8rem',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '6px',
-              boxShadow: `0 8px 20px ${game.accentColor}33`,
-              border: 'none',
+              background: isHovered
+                ? 'linear-gradient(135deg, #FFD700 0%, #D4AF37 100%)'
+                : 'linear-gradient(180deg, rgba(212, 175, 55, 0.16) 0%, rgba(212, 175, 55, 0.06) 100%)',
+              color: isHovered ? '#0B0E14' : '#F5E6A3',
+              border: `1px solid ${isHovered ? 'rgba(212, 175, 55, 0.85)' : 'rgba(212, 175, 55, 0.35)'}`,
+              boxShadow: isHovered
+                ? '0 6px 20px rgba(212, 175, 55, 0.45)'
+                : 'inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 2px 8px rgba(0, 0, 0, 0.4)',
               cursor: 'pointer',
               marginTop: 'auto',
+              whiteSpace: 'nowrap',
+              letterSpacing: '0.04em',
+              transition:
+                'background 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease',
             }}
           >
-            <Play size={isMobile ? 12 : 14} fill="currentColor" />
-            PLAY {game.name.toUpperCase()}
+            <Play size={isMobile ? 10 : 13} fill="currentColor" />
+            <span>{isMobile ? 'SPIELEN' : `PLAY ${game.name.toUpperCase()}`}</span>
           </motion.button>
 
           {!isMobile && (

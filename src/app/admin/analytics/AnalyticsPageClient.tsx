@@ -172,7 +172,8 @@ export default function AnalyticsPageClient() {
   const fetchAnalytics = useCallback(async () => {
     const response = await fetch('/api/admin/analytics', { cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return (await response.json()) as AnalyticsResponse;
+    const raw = await response.json();
+    return (raw?.data ?? raw) as AnalyticsResponse;
   }, []);
 
   useEffect(() => {

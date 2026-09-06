@@ -187,119 +187,121 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
           </Magnetic>
         </div>
 
-        {/* Direct Games Sub-Link */}
-        <div style={{ marginTop: '8px', paddingLeft: '4px' }}>
-          <Link
-            href="/games"
-            style={{
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              color: 'rgba(255, 255, 255, 0.6)',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              transition: 'color 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              soundManager.playHover();
-              e.currentTarget.style.color = '#D4AF37';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
-            }}
-          >
-            <span>Direkt zur Spielhalle (5 Casino Originals)</span>
-            <ArrowRight size={12} />
-          </Link>
-        </div>
+        {/* Direct Games Sub-Link — Desktop only */}
+        {!isMobile && (
+          <div style={{ marginTop: '8px', paddingLeft: '4px' }}>
+            <Link
+              href="/games"
+              style={{
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                color: 'rgba(255, 255, 255, 0.6)',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                transition: 'color 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                soundManager.playHover();
+                e.currentTarget.style.color = '#D4AF37';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
+              }}
+            >
+              <span>Direkt zur Spielhalle (5 Casino Originals)</span>
+              <ArrowRight size={12} />
+            </Link>
+          </div>
+        )}
       </motion.div>
 
-      {/* Dynamic Trust & Social Proof Bar: Pure Trust Pill (Option 1) */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: isMobile ? '4px' : '6px',
-          padding: isMobile ? '4px 6px' : '4px 8px',
-          borderRadius: '24px',
-          background: 'rgba(14, 17, 24, 0.85)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          border: '1px solid rgba(212, 175, 55, 0.25)',
-          boxShadow: '0 6px 20px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
-          fontSize: '0.68rem',
-          fontWeight: 700,
-          maxWidth: '100%',
-          flexWrap: 'nowrap',
-          overflowX: 'auto',
-          justifyContent: isMobile ? 'flex-start' : 'center',
-        }}
-      >
-        {/* Micro-Chip 1: 100% Provably Fair */}
-        <div
+      {/* Dynamic Trust & Social Proof Bar — Desktop only */}
+      {!isMobile && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
           style={{
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
-            gap: '4px',
-            padding: isMobile ? '2px 5px' : '2px 7px',
-            borderRadius: '12px',
-            background: 'rgba(212, 175, 55, 0.08)',
-            border: '1px solid rgba(212, 175, 55, 0.22)',
-            color: '#D4AF37',
-            fontSize: isMobile ? '0.60rem' : '0.64rem',
-            fontWeight: 900,
-            letterSpacing: '0.03em',
-            flexShrink: 0,
+            gap: '6px',
+            padding: '4px 8px',
+            borderRadius: '24px',
+            background: 'rgba(14, 17, 24, 0.85)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid rgba(212, 175, 55, 0.25)',
+            boxShadow: '0 6px 20px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+            fontSize: '0.68rem',
+            fontWeight: 700,
+            maxWidth: '100%',
+            flexWrap: 'nowrap',
+            overflowX: 'auto',
+            justifyContent: 'center',
           }}
         >
-          <ShieldCheck size={11} color="#D4AF37" />
-          <span>{isMobile ? 'PROVABLY FAIR' : '100% PROVABLY FAIR'}</span>
-        </div>
-
-        {/* Micro-Divider */}
-        <div
-          style={{
-            width: '1px',
-            height: '12px',
-            background: 'rgba(255, 255, 255, 0.12)',
-            flexShrink: 0,
-          }}
-        />
-
-        {/* Micro-Chip 2: Rating */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            padding: isMobile ? '2px 5px' : '2px 7px',
-            borderRadius: '12px',
-            background: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            color: 'rgba(255, 255, 255, 0.9)',
-            flexShrink: 0,
-          }}
-        >
-          <div style={{ display: 'flex', gap: '1px' }}>
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} size={isMobile ? 8 : 9} fill="#D4AF37" color="#D4AF37" />
-            ))}
-          </div>
-          <span
+          {/* Micro-Chip 1: 100% Provably Fair */}
+          <div
             style={{
-              fontFamily: 'var(--font-mono, monospace)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '2px 7px',
+              borderRadius: '12px',
+              background: 'rgba(212, 175, 55, 0.08)',
+              border: '1px solid rgba(212, 175, 55, 0.22)',
+              color: '#D4AF37',
+              fontSize: '0.64rem',
               fontWeight: 900,
-              color: '#fff',
-              fontSize: isMobile ? '0.63rem' : '0.67rem',
+              letterSpacing: '0.03em',
+              flexShrink: 0,
             }}
           >
-            4.9/5
-          </span>
-          {!isMobile && (
+            <ShieldCheck size={11} color="#D4AF37" />
+            <span>100% PROVABLY FAIR</span>
+          </div>
+
+          {/* Micro-Divider */}
+          <div
+            style={{
+              width: '1px',
+              height: '12px',
+              background: 'rgba(255, 255, 255, 0.12)',
+              flexShrink: 0,
+            }}
+          />
+
+          {/* Micro-Chip 2: Rating */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '2px 7px',
+              borderRadius: '12px',
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              color: 'rgba(255, 255, 255, 0.9)',
+              flexShrink: 0,
+            }}
+          >
+            <div style={{ display: 'flex', gap: '1px' }}>
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} size={9} fill="#D4AF37" color="#D4AF37" />
+              ))}
+            </div>
+            <span
+              style={{
+                fontFamily: 'var(--font-mono, monospace)',
+                fontWeight: 900,
+                color: '#fff',
+                fontSize: '0.67rem',
+              }}
+            >
+              4.9/5
+            </span>
             <span
               style={{
                 fontSize: '0.60rem',
@@ -309,40 +311,40 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
             >
               RATING
             </span>
-          )}
-        </div>
+          </div>
 
-        {/* Micro-Divider */}
-        <div
-          style={{
-            width: '1px',
-            height: '12px',
-            background: 'rgba(255, 255, 255, 0.12)',
-            flexShrink: 0,
-          }}
-        />
+          {/* Micro-Divider */}
+          <div
+            style={{
+              width: '1px',
+              height: '12px',
+              background: 'rgba(255, 255, 255, 0.12)',
+              flexShrink: 0,
+            }}
+          />
 
-        {/* Micro-Chip 3: Instant Payouts */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            padding: isMobile ? '2px 5px' : '2px 7px',
-            borderRadius: '12px',
-            background: 'rgba(0, 231, 1, 0.08)',
-            border: '1px solid rgba(0, 231, 1, 0.2)',
-            color: '#00E701',
-            fontSize: isMobile ? '0.60rem' : '0.64rem',
-            fontWeight: 900,
-            letterSpacing: '0.03em',
-            flexShrink: 0,
-          }}
-        >
-          <Zap size={11} color="#00E701" />
-          <span>{isMobile ? 'INSTANT PAY' : 'INSTANT AUSZAHLUNG'}</span>
-        </div>
-      </motion.div>
+          {/* Micro-Chip 3: Instant Payouts */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '2px 7px',
+              borderRadius: '12px',
+              background: 'rgba(0, 231, 1, 0.08)',
+              border: '1px solid rgba(0, 231, 1, 0.2)',
+              color: '#00E701',
+              fontSize: '0.64rem',
+              fontWeight: 900,
+              letterSpacing: '0.03em',
+              flexShrink: 0,
+            }}
+          >
+            <Zap size={11} color="#00E701" />
+            <span>INSTANT AUSZAHLUNG</span>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }

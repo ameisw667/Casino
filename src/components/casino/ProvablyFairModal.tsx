@@ -53,7 +53,14 @@ export function ProvablyFairModal({
     fetch('/api/casino/seeds/history', { cache: 'no-store', signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) throw new Error('Seed-Historie konnte nicht geladen werden.');
-        const payload: unknown = await response.json();
+        const resJson = (await response.json()) as { data?: unknown } | unknown;
+        const payload =
+          resJson &&
+          typeof resJson === 'object' &&
+          'data' in resJson &&
+          Array.isArray((resJson as { data: unknown }).data)
+            ? (resJson as { data: unknown }).data
+            : resJson;
         if (!Array.isArray(payload)) throw new Error('Ungültige Seed-Historie.');
         setHistory(payload as SeedHistoryEntry[]);
         setHistoryError(null);

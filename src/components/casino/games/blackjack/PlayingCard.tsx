@@ -62,8 +62,7 @@ export default function PlayingCard({ card, faceDown = false, size = 'md' }: Pla
             borderRadius: '12px',
             background: 'linear-gradient(145deg, #FFFFFF 0%, #F8F8FA 60%, #EEEEF2 100%)',
             border: '1.5px solid rgba(212, 175, 55, 0.55)',
-            boxShadow:
-              'inset 0 1px 3px rgba(255,255,255,1), inset 0 -1px 2px rgba(0,0,0,0.12)',
+            boxShadow: 'inset 0 1px 3px rgba(255,255,255,1), inset 0 -1px 2px rgba(0,0,0,0.12)',
             padding: '8px',
             display: 'flex',
             flexDirection: 'column',

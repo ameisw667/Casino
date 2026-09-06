@@ -61,7 +61,10 @@ export default function StatsPage() {
         }
 
         if (histRes.ok) {
-          const histJson = (await histRes.json()) as HistoryResponse;
+          const rawHist = (await histRes.json()) as { data?: HistoryResponse } | HistoryResponse;
+          const histJson = (
+            rawHist && 'data' in rawHist && rawHist.data ? rawHist.data : rawHist
+          ) as HistoryResponse;
           if (!cancelled) {
             setRows(histJson.rows ?? []);
             setDataLoadedAt(Date.now());
@@ -69,7 +72,10 @@ export default function StatsPage() {
         }
 
         if (statsRes.ok) {
-          const statsJson = (await statsRes.json()) as ServerStats;
+          const rawStats = (await statsRes.json()) as { data?: ServerStats } | ServerStats;
+          const statsJson = (
+            rawStats && 'data' in rawStats && rawStats.data ? rawStats.data : rawStats
+          ) as ServerStats;
           if (!cancelled) setServerStats(statsJson);
         }
       } catch {

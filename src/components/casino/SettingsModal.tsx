@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Bell,
   X,
+  HeartPulse,
 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import TelegramLinkSection from './TelegramLinkSection';
@@ -18,14 +19,15 @@ import PasskeyManagementSection from './PasskeyManagementSection';
 import MfaManagementSection from './MfaManagementSection';
 import LinkedAccountsSection from './LinkedAccountsSection';
 import LoginHistorySection from './LoginHistorySection';
+import ResponsibleGamblingSection from './ResponsibleGamblingSection';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  defaultTab?: 'audio' | 'security' | 'notifications';
+  defaultTab?: 'audio' | 'security' | 'notifications' | 'wellbeing';
 }
 
-type TabKey = 'audio' | 'security' | 'notifications';
+type TabKey = 'audio' | 'security' | 'notifications' | 'wellbeing';
 
 export default function SettingsModal({
   isOpen,
@@ -98,7 +100,8 @@ export default function SettingsModal({
                 justifyContent: 'space-between',
                 padding: '16px 20px',
                 borderBottom: '1px solid hsla(var(--primary), 0.15)',
-                background: 'linear-gradient(90deg, hsla(var(--primary), 0.08) 0%, transparent 100%)',
+                background:
+                  'linear-gradient(90deg, hsla(var(--primary), 0.08) 0%, transparent 100%)',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -129,7 +132,7 @@ export default function SettingsModal({
                     EINSTELLUNGEN
                   </h2>
                   <p style={{ fontSize: '0.7rem', color: 'hsl(var(--text-muted))', margin: 0 }}>
-                    Verwalte Audio, Sicherheit & Login-Methoden
+                    Verwalte Audio, Sicherheit, Benachrichtigungen & Spielerschutz
                   </p>
                 </div>
               </div>
@@ -189,7 +192,8 @@ export default function SettingsModal({
                         ? 'linear-gradient(90deg, rgba(212, 175, 55, 0.18) 0%, rgba(212, 175, 55, 0.04) 100%)'
                         : 'transparent',
                     color: activeTab === 'audio' ? '#D4AF37' : 'hsl(var(--text-muted))',
-                    borderLeft: activeTab === 'audio' ? '3px solid #D4AF37' : '3px solid transparent',
+                    borderLeft:
+                      activeTab === 'audio' ? '3px solid #D4AF37' : '3px solid transparent',
                     transition: 'all 0.2s ease',
                     textAlign: 'left',
                   }}
@@ -216,7 +220,8 @@ export default function SettingsModal({
                         ? 'linear-gradient(90deg, rgba(212, 175, 55, 0.18) 0%, rgba(212, 175, 55, 0.04) 100%)'
                         : 'transparent',
                     color: activeTab === 'security' ? '#D4AF37' : 'hsl(var(--text-muted))',
-                    borderLeft: activeTab === 'security' ? '3px solid #D4AF37' : '3px solid transparent',
+                    borderLeft:
+                      activeTab === 'security' ? '3px solid #D4AF37' : '3px solid transparent',
                     transition: 'all 0.2s ease',
                     textAlign: 'left',
                   }}
@@ -243,13 +248,42 @@ export default function SettingsModal({
                         ? 'linear-gradient(90deg, rgba(212, 175, 55, 0.18) 0%, rgba(212, 175, 55, 0.04) 100%)'
                         : 'transparent',
                     color: activeTab === 'notifications' ? '#D4AF37' : 'hsl(var(--text-muted))',
-                    borderLeft: activeTab === 'notifications' ? '3px solid #D4AF37' : '3px solid transparent',
+                    borderLeft:
+                      activeTab === 'notifications' ? '3px solid #D4AF37' : '3px solid transparent',
                     transition: 'all 0.2s ease',
                     textAlign: 'left',
                   }}
                 >
                   <Bell size={15} />
                   Benachrichtigungen
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('wellbeing')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    border: 'none',
+                    cursor: 'pointer',
+                    background:
+                      activeTab === 'wellbeing'
+                        ? 'linear-gradient(90deg, rgba(212, 175, 55, 0.18) 0%, rgba(212, 175, 55, 0.04) 100%)'
+                        : 'transparent',
+                    color: activeTab === 'wellbeing' ? '#D4AF37' : 'hsl(var(--text-muted))',
+                    borderLeft:
+                      activeTab === 'wellbeing' ? '3px solid #D4AF37' : '3px solid transparent',
+                    transition: 'all 0.2s ease',
+                    textAlign: 'left',
+                  }}
+                >
+                  <HeartPulse size={15} />
+                  Verantwortungsvolles Spielen
                 </button>
               </div>
 
@@ -278,7 +312,6 @@ export default function SettingsModal({
                     >
                       Sound & Lautstärke
                     </h3>
-
                     {/* Sound Mute Row */}
                     <div
                       style={{
@@ -298,7 +331,13 @@ export default function SettingsModal({
                           <VolumeX size={16} color="hsl(var(--text-muted))" />
                         )}
                         <div>
-                          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'hsl(var(--text-main))' }}>
+                          <div
+                            style={{
+                              fontSize: '0.78rem',
+                              fontWeight: 700,
+                              color: 'hsl(var(--text-main))',
+                            }}
+                          >
                             Sound-Effekte
                           </div>
                           <div style={{ fontSize: '0.65rem', color: 'hsl(var(--text-muted))' }}>
@@ -314,7 +353,9 @@ export default function SettingsModal({
                           width: '40px',
                           height: '22px',
                           borderRadius: '11px',
-                          background: soundEnabled ? 'hsl(var(--primary))' : 'hsla(0, 0%, 100%, 0.12)',
+                          background: soundEnabled
+                            ? 'hsl(var(--primary))'
+                            : 'hsla(0, 0%, 100%, 0.12)',
                           border: 'none',
                           position: 'relative',
                           cursor: 'pointer',
@@ -349,8 +390,20 @@ export default function SettingsModal({
                         border: '1px solid hsla(0, 0%, 100%, 0.06)',
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'hsl(var(--text-main))' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '0.78rem',
+                            fontWeight: 700,
+                            color: 'hsl(var(--text-main))',
+                          }}
+                        >
                           Lautstärke
                         </span>
                         <span
@@ -370,7 +423,9 @@ export default function SettingsModal({
                         max="1"
                         step="0.05"
                         value={soundVolume}
-                        onChange={(e) => updateSettings({ soundVolume: parseFloat(e.target.value) })}
+                        onChange={(e) =>
+                          updateSettings({ soundVolume: parseFloat(e.target.value) })
+                        }
                         style={{
                           width: '100%',
                           accentColor: 'hsl(var(--primary))',
@@ -398,7 +453,13 @@ export default function SettingsModal({
                           <Eye size={16} color="hsl(var(--text-muted))" />
                         )}
                         <div>
-                          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'hsl(var(--text-main))' }}>
+                          <div
+                            style={{
+                              fontSize: '0.78rem',
+                              fontWeight: 700,
+                              color: 'hsl(var(--text-main))',
+                            }}
+                          >
                             Guthaben verbergen
                           </div>
                           <div style={{ fontSize: '0.65rem', color: 'hsl(var(--text-muted))' }}>
@@ -414,7 +475,9 @@ export default function SettingsModal({
                           width: '40px',
                           height: '22px',
                           borderRadius: '11px',
-                          background: hideBalance ? 'hsl(var(--primary))' : 'hsla(0, 0%, 100%, 0.12)',
+                          background: hideBalance
+                            ? 'hsl(var(--primary))'
+                            : 'hsla(0, 0%, 100%, 0.12)',
                           border: 'none',
                           position: 'relative',
                           cursor: 'pointer',
@@ -528,6 +591,34 @@ export default function SettingsModal({
                       }}
                     >
                       <TelegramLinkSection />
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'wellbeing' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <h3
+                      style={{
+                        fontSize: '0.82rem',
+                        fontWeight: 800,
+                        color: 'hsl(var(--primary))',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        margin: 0,
+                      }}
+                    >
+                      Verantwortungsvolles Spielen
+                    </h3>
+
+                    <div
+                      style={{
+                        background: 'hsla(0, 0%, 100%, 0.02)',
+                        padding: '12px 14px',
+                        borderRadius: '12px',
+                        border: '1px solid hsla(0, 0%, 100%, 0.05)',
+                      }}
+                    >
+                      <ResponsibleGamblingSection />
                     </div>
                   </div>
                 )}

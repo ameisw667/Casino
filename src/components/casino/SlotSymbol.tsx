@@ -4,13 +4,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 const SlotImage: React.FC<{ src: string; alt: string; size: number }> = ({ src, alt, size }) => (
-  <Image
-    src={src}
-    alt={alt}
-    fill
-    sizes={`${size}px`}
-    style={{ objectFit: 'contain' }}
-  />
+  <Image src={src} alt={alt} fill sizes={`${size}px`} style={{ objectFit: 'contain' }} />
 );
 
 export type SymbolType =
@@ -41,7 +35,12 @@ interface SlotSymbolProps {
 
 const SYMBOL_DATA: Record<
   SymbolType,
-  { color: string; glowColor: string; label: string; icon: (id: string, size: number) => React.ReactNode }
+  {
+    color: string;
+    glowColor: string;
+    label: string;
+    icon: (id: string, size: number) => React.ReactNode;
+  }
 > = {
   zeus: {
     color: '#FFD700',
@@ -59,7 +58,9 @@ const SYMBOL_DATA: Record<
     color: '#FF8C00',
     glowColor: '#FF8C00',
     label: 'CHALICE',
-    icon: (_id, size) => <SlotImage src="/images/slots/sym-chalice.png" alt="Chalice" size={size} />,
+    icon: (_id, size) => (
+      <SlotImage src="/images/slots/sym-chalice.png" alt="Chalice" size={size} />
+    ),
   },
   ring: {
     color: '#00D4FF',
@@ -393,7 +394,9 @@ export const SlotSymbol: React.FC<SlotSymbolProps> = ({
       )}
 
       {/* Symbol SVG */}
-      <div style={{ width: '85%', height: '85%', position: 'relative' }}>{data.icon(uniqueId, size)}</div>
+      <div style={{ width: '85%', height: '85%', position: 'relative' }}>
+        {data.icon(uniqueId, size)}
+      </div>
 
       {/* Multiplier value overlay */}
       {type === 'multiplier' && multiplierValue && (

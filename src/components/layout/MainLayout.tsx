@@ -11,24 +11,15 @@ import { getOrCreateSessionId } from '@/lib/casino/session';
 import { isBigWin } from '@/lib/casino/big-win';
 import { useMounted } from '@/hooks/useMounted';
 import { KeyboardShortcutProvider } from '@/hooks/useKeyboardShortcuts';
-import { Home, Gamepad2, History, Trophy, Target, BarChart3, Settings } from 'lucide-react';
 import { NavigationShortcuts } from './NavigationShortcuts';
 import { MainSidebar, type MenuItem } from './MainSidebar';
 import { MainHeader } from './MainHeader';
 import { ToastContainer } from './ToastContainer';
 
-const BigWinOverlay = dynamic(() => import('../casino/BigWinOverlay'), { ssr: false });
+import { MainLayoutModals } from './MainLayoutModals';
+
 const ProvablyFairModal = dynamic(
   () => import('../casino/ProvablyFairModal').then((mod) => mod.ProvablyFairModal),
-  { ssr: false },
-);
-const SettingsModal = dynamic(() => import('../casino/SettingsModal'), { ssr: false });
-const RankBenefitsModal = dynamic(() => import('../casino/RankBenefitsModal'), { ssr: false });
-const PlayerProfileModal = dynamic(() => import('@/components/casino/PlayerProfileModal'), {
-  ssr: false,
-});
-const GlobalChat = dynamic(
-  () => import('@/components/social/GlobalChat').then((mod) => mod.GlobalChat),
   { ssr: false },
 );
 const CommandPalette = dynamic(
@@ -51,7 +42,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   };
 
   // 1. All State Hooks (Always called first, same order)
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [bigWin, setBigWin] = useState<{ amount: number; multiplier: number } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -80,8 +70,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const setIsMobile = useCasinoStore((s) => s.setIsMobile);
   const onboardingStep = useCasinoStore((s) => s.onboardingStep);
   const setOnboardingStep = useCasinoStore((s) => s.setOnboardingStep);
-  const communityWagered = useCasinoStore((s) => s.communityWagered);
-  const communityGoal = useCasinoStore((s) => s.communityGoal);
   const hideBalance = useCasinoStore((s) => s.hideBalance);
   const updateSettings = useCasinoStore((s) => s.updateSettings);
   const loadVipConfig = useCasinoStore((s) => s.loadVipConfig);
@@ -152,11 +140,16 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         if (!cancelled) setServerAuthUser(false);
         return null;
       })
-      .then((snapshot) => {
+      .then((raw) => {
+        const snapshot =
+          raw && typeof raw === 'object' && 'data' in raw && (raw as { data: unknown }).data
+            ? (raw as { data: unknown }).data
+            : raw;
         if (snapshot && !cancelled) {
-          useCasinoStore.getState().applyServerWalletSnapshot(snapshot);
+          useCasinoStore.getState().applyServerWalletSnapshot(snapshot as never);
         }
       })
+
       .catch(() => {
         if (!cancelled) setServerAuthUser(false);
       });
@@ -182,8 +175,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     const checkMobile = () => {
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
-      if (mobile) setSidebarOpen(false);
-      else setSidebarOpen(true);
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -238,6 +229,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           if (lastNotified !== latestBet.id) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setBigWin({ amount, multiplier });
+            // Plan 28: let the ambient lobby background fire a comet for this win
+            window.dispatchEvent(
+              new CustomEvent('casino:lobby-big-win', { detail: { amount, multiplier } }),
+            );
 
             // Add shoutout to chat
             import('@/lib/casino/chat-bot').then(({ ChatBotService }) => {
@@ -304,22 +299,19 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     };
   }, [initialize, startActivitySimulator]);
 
-  const showExpandedSidebar = isMobile ? true : sidebarOpen;
   const nextLevelXp = Math.pow(level, 2) * 100;
   const progress = Math.min(100, (xp / nextLevelXp) * 100);
   const menuItems: MenuItem[] = [
-    { icon: <Home size={20} />, label: 'Lobby', path: '/' },
-    { icon: <Gamepad2 size={20} />, label: 'Games', path: '/games' },
-    { icon: <History size={20} />, label: 'My Bets', path: '/history' },
-    { icon: <Trophy size={20} />, label: 'Leaderboard', path: '/leaderboard' },
-    { icon: <Target size={20} />, label: 'Vault', path: '/vault' },
-    { icon: <BarChart3 size={20} />, label: 'Stats', path: '/stats' },
+    { label: 'Lobby', path: '/' },
+    { label: 'Games', path: '/games' },
+    { label: 'My Bets', path: '/history' },
+    { label: 'Leaderboard', path: '/leaderboard' },
+    { label: 'Vault', path: '/vault' },
+    { label: 'Stats', path: '/stats' },
     {
-      icon: <Settings size={20} />,
       label: 'Settings',
       path: '#',
       onClick: () => {
-        if (!sidebarOpen && !isMobile) setSidebarOpen(true);
         setShowSettings((prev) => !prev);
       },
     },
@@ -364,15 +356,12 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
         <MainSidebar
           isMobile={isMobile}
-          sidebarOpen={sidebarOpen}
           mobileSidebarOpen={mobileSidebarOpen}
-          showExpandedSidebar={showExpandedSidebar}
           menuItems={menuItems}
           pathname={pathname}
           showSettings={showSettings}
           navigate={navigate}
           setMobileSidebarOpen={setMobileSidebarOpen}
-          setSidebarOpen={setSidebarOpen}
           setShowSettings={setShowSettings}
           setShowProvablyFair={setShowProvablyFair}
           setShowSettingsModal={setShowSettingsModal}
@@ -397,8 +386,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             rank={rank}
             level={level}
             progress={progress}
-            communityWagered={communityWagered}
-            communityGoal={communityGoal}
             balance={balance}
             hideBalance={hideBalance}
             displayName={displayName}
@@ -429,28 +416,19 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
         {/* Persistent Overlay Components */}
         <MobileNav />
-        {bigWin && (
-          <BigWinOverlay
-            amount={bigWin.amount}
-            multiplier={bigWin.multiplier}
-            isOpen={!!bigWin}
-            onClose={() => setBigWin(null)}
-          />
-        )}
-        {showRankInfo && (
-          <RankBenefitsModal isOpen={showRankInfo} onClose={() => setShowRankInfo(false)} />
-        )}
-        {showProfile && (
-          <PlayerProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} />
-        )}
         {showProvablyFair && (
-          <ProvablyFairModal isOpen onClose={() => setShowProvablyFair(false)} />
+          <ProvablyFairModal isOpen={showProvablyFair} onClose={() => setShowProvablyFair(false)} />
         )}
-        {showSettingsModal && (
-          <SettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
-        )}
-
-        <GlobalChat />
+        <MainLayoutModals
+          bigWin={bigWin}
+          setBigWin={setBigWin}
+          showRankInfo={showRankInfo}
+          setShowRankInfo={setShowRankInfo}
+          showProfile={showProfile}
+          setShowProfile={setShowProfile}
+          showSettingsModal={showSettingsModal}
+          setShowSettingsModal={setShowSettingsModal}
+        />
 
         <ToastContainer isMobile={isMobile} toasts={toasts} onRemove={removeToast} />
       </div>

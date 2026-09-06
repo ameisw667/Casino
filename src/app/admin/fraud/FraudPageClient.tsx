@@ -37,6 +37,11 @@ const SIGNAL_LABELS: Record<string, string> = {
   bet_velocity: 'Bet-Velocity',
   win_rate_anomaly: 'Win-Rate-Anomalie',
   ml_anomaly_score: 'ML-Anomalie-Score',
+  // 06_1 Bot-Automation Detection (L0–L5): neue Bot-/Kosten-Signal-Typen
+  bot_signal_honeypot: 'Signup-Honeypot',
+  bot_signal_timing: 'Signup-Timing',
+  bot_signal_login_flood: 'Login-Flood',
+  cost_cap_reached: 'Tageslimit erreicht',
 };
 
 const SEVERITY_COLORS: Record<RiskSeverity, { color: string; bg: string }> = {
@@ -72,7 +77,8 @@ export default function FraudPageClient() {
       if (statusFilter) params.set('status', statusFilter);
       if (severityFilter) params.set('severity', severityFilter);
       const res = await fetch(`/api/admin/fraud?${params.toString()}`, { cache: 'no-store' });
-      const json = (await res.json()) as { events?: RiskEvent[]; error?: unknown };
+      const raw = await res.json();
+      const json = (raw?.data ?? raw) as { events?: RiskEvent[]; error?: unknown };
       if (!res.ok) throw new Error(getApiErrorMessage(json, `HTTP ${res.status}`));
       setEvents(json.events ?? []);
       setError(null);
@@ -94,7 +100,8 @@ export default function FraudPageClient() {
     setScanMsg(null);
     try {
       const res = await fetch('/api/admin/fraud/scan', { method: 'POST' });
-      const json = (await res.json()) as ScanSummary & { error?: unknown };
+      const raw = await res.json();
+      const json = (raw?.data ?? raw) as ScanSummary & { error?: unknown };
       if (!res.ok) throw new Error(getApiErrorMessage(json, `HTTP ${res.status}`));
       setScanMsg({
         kind: 'ok',

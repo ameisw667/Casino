@@ -86,8 +86,6 @@ export function HistoryStatsCard({
   rows = [],
 }: HistoryStatsCardProps) {
   const isProfit = netProfit >= 0;
-  const winCount = rows.filter((r) => r.amount > 0).length;
-  const lossCount = rows.filter((r) => r.amount < 0).length;
   const winPercentNum = parseFloat(winRate) || 0;
 
   return (
@@ -97,15 +95,17 @@ export function HistoryStatsCard({
       transition={{ delay: 0.05 }}
       style={{
         display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-        gap: isMobile ? '10px' : '14px',
+        gridTemplateColumns: isMobile ? 'repeat(3, minmax(0, 1fr))' : 'repeat(3, 1fr)',
+        gap: isMobile ? '6px' : '14px',
+        width: '100%',
+        boxSizing: 'border-box',
       }}
     >
       {/* Card 1: Wagered & Volume */}
       <div
         style={{
-          padding: '16px 20px',
-          borderRadius: '16px',
+          padding: isMobile ? '8px 6px' : '16px 20px',
+          borderRadius: isMobile ? '10px' : '16px',
           background:
             'linear-gradient(135deg, rgba(22, 24, 34, 0.85) 0%, rgba(14, 16, 22, 0.95) 100%)',
           border: '1px solid rgba(212, 175, 55, 0.18)',
@@ -115,7 +115,10 @@ export function HistoryStatsCard({
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          minHeight: '100px',
+          minHeight: isMobile ? 'auto' : '100px',
+          minWidth: 0,
+          boxSizing: 'border-box',
+          overflow: 'hidden',
         }}
       >
         <div
@@ -123,157 +126,190 @@ export function HistoryStatsCard({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: '8px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Coins size={14} color="#D4AF37" />
-            <span
-              style={{
-                fontSize: '0.64rem',
-                fontWeight: 800,
-                color: 'rgba(255, 255, 255, 0.5)',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-              }}
-            >
-              GESAMTER EINSATZ
-            </span>
-          </div>
-          <span
-            style={{
-              fontSize: '0.62rem',
-              fontWeight: 800,
-              color: '#D4AF37',
-              background: 'rgba(212, 175, 55, 0.1)',
-              padding: '2px 8px',
-              borderRadius: '12px',
-              border: '1px solid rgba(212, 175, 55, 0.25)',
-            }}
-          >
-            {loading ? '…' : `${totalBets} RUNDEN`}
-          </span>
-        </div>
-        <div
-          style={{
-            fontFamily: 'var(--font-mono, monospace)',
-            fontSize: isMobile ? '1.4rem' : '1.6rem',
-            fontWeight: 950,
-            color: '#D4AF37',
-            letterSpacing: '-0.02em',
-            lineHeight: 1.1,
-          }}
-        >
-          {loading
-            ? '…'
-            : `$${totalWagered.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-        </div>
-        <div
-          style={{
-            fontSize: '0.62rem',
-            color: 'rgba(255, 255, 255, 0.4)',
-            marginTop: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-          }}
-        >
-          <Activity size={10} color="#D4AF37" />
-          <span>Kumulatives Wettvolumen im Zeitraum</span>
-        </div>
-      </div>
-
-      {/* Card 2: Net Profit & Trend Sparkline */}
-      <div
-        style={{
-          padding: '16px 20px',
-          borderRadius: '16px',
-          background:
-            'linear-gradient(135deg, rgba(22, 24, 34, 0.85) 0%, rgba(14, 16, 22, 0.95) 100%)',
-          border: `1px solid ${isProfit ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          boxShadow: '0 8px 25px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.05)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          minHeight: '100px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '8px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            {isProfit ? (
-              <TrendingUp size={14} color="#10b981" />
-            ) : (
-              <TrendingDown size={14} color="#ef4444" />
-            )}
-            <span
-              style={{
-                fontSize: '0.64rem',
-                fontWeight: 800,
-                color: 'rgba(255, 255, 255, 0.5)',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-              }}
-            >
-              NETTO PROFIT
-            </span>
-          </div>
-          <span
-            style={{
-              fontSize: '0.62rem',
-              fontWeight: 800,
-              color: isProfit ? '#10b981' : '#ef4444',
-              background: isProfit ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-              padding: '2px 8px',
-              borderRadius: '12px',
-              border: `1px solid ${isProfit ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
-            }}
-          >
-            {isProfit ? 'PROFITABEL' : 'DRAWDOWN'}
-          </span>
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '10px',
+            marginBottom: isMobile ? '3px' : '8px',
           }}
         >
           <div
             style={{
-              fontFamily: 'var(--font-mono, monospace)',
-              fontSize: isMobile ? '1.4rem' : '1.6rem',
-              fontWeight: 950,
-              color: isProfit ? '#10b981' : '#ef4444',
-              letterSpacing: '-0.02em',
-              lineHeight: 1.1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: isMobile ? '3px' : '6px',
+              minWidth: 0,
             }}
           >
-            {loading
-              ? '…'
-              : `${isProfit ? '+' : '-'}$${Math.abs(netProfit).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+            <Coins size={isMobile ? 11 : 14} color="#D4AF37" />
+            <span
+              style={{
+                fontSize: isMobile ? '0.48rem' : '0.64rem',
+                fontWeight: 800,
+                color: 'rgba(255, 255, 255, 0.5)',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {isMobile ? 'EINSATZ' : 'GESAMTER EINSATZ'}
+            </span>
           </div>
-          {!loading && <MiniProfitSparkline rows={rows} isProfit={isProfit} />}
+          {!isMobile && (
+            <span
+              style={{
+                fontSize: '0.62rem',
+                fontWeight: 800,
+                color: '#D4AF37',
+                background: 'rgba(212, 175, 55, 0.1)',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                border: '1px solid rgba(212, 175, 55, 0.25)',
+                fontFamily: 'monospace',
+              }}
+            >
+              {totalBets} {totalBets === 1 ? 'BET' : 'BETS'}
+            </span>
+          )}
         </div>
-        <div style={{ fontSize: '0.62rem', color: 'rgba(255, 255, 255, 0.4)', marginTop: '4px' }}>
-          Echtzeit-Gewinnentwicklung der letzten Runden
+        <div
+          style={{
+            fontSize: isMobile ? '0.74rem' : '1.35rem',
+            fontWeight: 900,
+            color: '#FFD700',
+            fontFamily: 'var(--font-mono, monospace)',
+            letterSpacing: '-0.02em',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          ${totalWagered.toFixed(2)}
         </div>
+        {!isMobile && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              marginTop: '6px',
+              fontSize: '0.66rem',
+              color: 'rgba(255, 255, 255, 0.4)',
+              fontWeight: 600,
+            }}
+          >
+            <Activity size={11} color="#D4AF37" />
+            <span>Kumulatives Wettvolumen im Zeitraum</span>
+          </div>
+        )}
       </div>
 
-      {/* Card 3: Win Rate & Ratio Bar */}
+      {/* Card 2: Net Profit with Realtime Sparkline */}
       <div
         style={{
-          padding: '16px 20px',
-          borderRadius: '16px',
+          padding: isMobile ? '8px 6px' : '16px 20px',
+          borderRadius: isMobile ? '10px' : '16px',
+          background: isProfit
+            ? 'linear-gradient(135deg, rgba(16, 40, 28, 0.85) 0%, rgba(10, 24, 18, 0.95) 100%)'
+            : 'linear-gradient(135deg, rgba(40, 16, 18, 0.85) 0%, rgba(24, 10, 12, 0.95) 100%)',
+          border: isProfit
+            ? '1px solid rgba(16, 185, 129, 0.3)'
+            : '1px solid rgba(239, 68, 68, 0.3)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          boxShadow: isProfit
+            ? '0 8px 25px rgba(16, 185, 129, 0.15)'
+            : '0 8px 25px rgba(239, 68, 68, 0.15)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          minHeight: isMobile ? 'auto' : '100px',
+          minWidth: 0,
+          boxSizing: 'border-box',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: isMobile ? '3px' : '8px',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: isMobile ? '3px' : '6px',
+              minWidth: 0,
+            }}
+          >
+            {isProfit ? (
+              <TrendingUp size={isMobile ? 11 : 14} color="#10b981" />
+            ) : (
+              <TrendingDown size={isMobile ? 11 : 14} color="#ef4444" />
+            )}
+            <span
+              style={{
+                fontSize: isMobile ? '0.48rem' : '0.64rem',
+                fontWeight: 800,
+                color: isProfit ? '#10b981' : '#ef4444',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {isMobile ? 'PROFIT' : 'NETTO PROFIT'}
+            </span>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            gap: '4px',
+            minWidth: 0,
+          }}
+        >
+          <div
+            style={{
+              fontSize: isMobile ? '0.74rem' : '1.35rem',
+              fontWeight: 900,
+              color: isProfit ? '#10b981' : '#ef4444',
+              fontFamily: 'var(--font-mono, monospace)',
+              letterSpacing: '-0.02em',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {loading ? '…' : `${isProfit ? '+' : '-'}$${Math.abs(netProfit).toFixed(2)}`}
+          </div>
+          {!isMobile && !loading && <MiniProfitSparkline rows={rows} isProfit={isProfit} />}
+        </div>
+
+        {!isMobile && (
+          <div
+            style={{
+              marginTop: '6px',
+              fontSize: '0.66rem',
+              color: 'rgba(255, 255, 255, 0.4)',
+              fontWeight: 600,
+            }}
+          >
+            Echtzeit-Gewinnentwicklung der letzten Runden
+          </div>
+        )}
+      </div>
+
+      {/* Card 3: Win Rate */}
+      <div
+        style={{
+          padding: isMobile ? '8px 6px' : '16px 20px',
+          borderRadius: isMobile ? '10px' : '16px',
           background:
             'linear-gradient(135deg, rgba(22, 24, 34, 0.85) 0%, rgba(14, 16, 22, 0.95) 100%)',
           border: '1px solid rgba(212, 175, 55, 0.18)',
@@ -283,7 +319,10 @@ export function HistoryStatsCard({
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          minHeight: '100px',
+          minHeight: isMobile ? 'auto' : '100px',
+          minWidth: 0,
+          boxSizing: 'border-box',
+          overflow: 'hidden',
         }}
       >
         <div
@@ -291,69 +330,69 @@ export function HistoryStatsCard({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: '8px',
+            marginBottom: isMobile ? '3px' : '8px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Award size={14} color="#D4AF37" />
-            <span
-              style={{
-                fontSize: '0.64rem',
-                fontWeight: 800,
-                color: 'rgba(255, 255, 255, 0.5)',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-              }}
-            >
-              GEWINNQUOTE
-            </span>
-          </div>
-          <span
+          <div
             style={{
-              fontSize: '0.62rem',
-              fontWeight: 800,
-              color: '#fff',
-              background: 'rgba(255, 255, 255, 0.06)',
-              padding: '2px 8px',
-              borderRadius: '12px',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: isMobile ? '3px' : '6px',
+              minWidth: 0,
             }}
           >
-            {winCount}W / {lossCount}L
-          </span>
+            <Award size={isMobile ? 11 : 14} color="#D4AF37" />
+            <span
+              style={{
+                fontSize: isMobile ? '0.48rem' : '0.64rem',
+                fontWeight: 800,
+                color: 'rgba(255, 255, 255, 0.5)',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {isMobile ? 'QUOTE' : 'GEWINNQUOTE'}
+            </span>
+          </div>
         </div>
+
         <div
           style={{
+            fontSize: isMobile ? '0.74rem' : '1.35rem',
+            fontWeight: 900,
+            color: winPercentNum >= 50 ? '#10b981' : '#ffffff',
             fontFamily: 'var(--font-mono, monospace)',
-            fontSize: isMobile ? '1.4rem' : '1.6rem',
-            fontWeight: 950,
-            color: '#ffffff',
             letterSpacing: '-0.02em',
-            lineHeight: 1.1,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
           }}
         >
           {loading ? '…' : `${winRate}%`}
         </div>
-        {/* Win/Loss Segment Bar */}
-        <div
-          style={{
-            width: '100%',
-            height: '6px',
-            borderRadius: '3px',
-            background: 'rgba(239, 68, 68, 0.4)',
-            marginTop: '8px',
-            overflow: 'hidden',
-            display: 'flex',
-          }}
-        >
+
+        <div style={{ marginTop: isMobile ? '3px' : '8px' }}>
           <div
             style={{
-              width: `${Math.min(100, Math.max(0, winPercentNum))}%`,
-              height: '100%',
-              background: 'linear-gradient(90deg, #10b981 0%, #34d399 100%)',
-              transition: 'width 0.4s ease',
+              height: isMobile ? '3px' : '4px',
+              borderRadius: '2px',
+              background: 'rgba(239, 68, 68, 0.4)',
+              overflow: 'hidden',
             }}
-          />
+          >
+            <div
+              style={{
+                width: `${Math.min(Math.max(winPercentNum, 0), 100)}%`,
+                height: '100%',
+                background: '#10b981',
+                borderRadius: '2px',
+                transition: 'width 0.5s ease',
+              }}
+            />
+          </div>
         </div>
       </div>
     </motion.div>

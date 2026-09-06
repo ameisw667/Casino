@@ -1,13 +1,13 @@
 'use client';
 
-import { BookOpen, Sparkles, Shield, Gauge, Copy, Layers, Info } from 'lucide-react';
+import { BookOpen, Shield, Gauge, Copy, Layers, Info } from 'lucide-react';
 import type { BlackjackGameState } from '@/lib/games/blackjack';
 import StrategyMatrix from '@/components/casino/games/blackjack/StrategyMatrix';
 import CardCountingPanel from '@/components/casino/games/blackjack/CardCountingPanel';
 import { GameCoPilotHud } from '@/components/casino/hud/GameCoPilotHud';
 
 interface BlackjackRightRulesProps {
-  strategyAdvice: string;
+  strategyAdvice?: string;
   gameState: BlackjackGameState | null;
   isInGame: boolean;
   runningCount: number;
@@ -16,7 +16,7 @@ interface BlackjackRightRulesProps {
 }
 
 export function BlackjackRightRules({
-  strategyAdvice,
+  strategyAdvice: _strategyAdvice,
   gameState,
   isInGame,
   runningCount,

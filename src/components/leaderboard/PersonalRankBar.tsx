@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
+import { resolvePlayerAvatar } from '@/lib/casino/player-avatar';
 import { motion } from 'framer-motion';
 
 interface PersonalRankBarProps {
@@ -10,17 +12,8 @@ interface PersonalRankBarProps {
   wagered: number;
 }
 
-function getInitials(name: string): string {
-  if (!name) return 'VIP';
-  const parts = name.split(/[._\s-]+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return name.slice(0, 2).toUpperCase();
-}
-
 export function PersonalRankBar({ username, rank, level, wagered }: PersonalRankBarProps) {
-  const initials = getInitials(username);
+  const avatar = resolvePlayerAvatar(username);
 
   return (
     <motion.div
@@ -47,13 +40,15 @@ export function PersonalRankBar({ username, rank, level, wagered }: PersonalRank
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <div
           style={{
-            width: '32px',
-            height: '32px',
+            width: '40px',
+            height: '40px',
             borderRadius: '50%',
             background: '#222222',
             border: '1px solid #333333',
             color: '#D4AF37',
             display: 'flex',
+            position: 'relative',
+            overflow: 'hidden',
             alignItems: 'center',
             justifyContent: 'center',
             fontSize: '0.75rem',
@@ -61,7 +56,13 @@ export function PersonalRankBar({ username, rank, level, wagered }: PersonalRank
             flexShrink: 0,
           }}
         >
-          {initials}
+          <Image
+            src={avatar.src}
+            alt={username || avatar.initials}
+            fill
+            sizes="40px"
+            style={{ objectFit: 'cover' }}
+          />
         </div>
 
         <div>
@@ -84,9 +85,7 @@ export function PersonalRankBar({ username, rank, level, wagered }: PersonalRank
 
       {/* Right: Personal Wagered */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span style={{ fontSize: '0.75rem', color: '#737373', fontWeight: 500 }}>
-          Dein Einsatz
-        </span>
+        <span style={{ fontSize: '0.75rem', color: '#737373', fontWeight: 500 }}>Dein Einsatz</span>
         <div
           style={{
             fontFamily: 'var(--font-mono, monospace)',

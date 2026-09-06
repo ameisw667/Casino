@@ -7,10 +7,7 @@ interface VintageCardBackProps {
   variant?: 'burgundy' | 'navy' | 'obsidian';
 }
 
-export function VintageCardBack({
-  size = 'md',
-  variant = 'burgundy',
-}: VintageCardBackProps) {
+export function VintageCardBack({ size = 'md', variant = 'burgundy' }: VintageCardBackProps) {
   const width = size === 'sm' ? 68 : size === 'lg' ? 104 : 88;
   const height = size === 'sm' ? 96 : size === 'lg' ? 148 : 124;
 
@@ -18,10 +15,11 @@ export function VintageCardBack({
     variant === 'burgundy'
       ? 'radial-gradient(ellipse at 50% 50%, #8A1515 0%, #630D0D 60%, #3D0606 100%)'
       : variant === 'navy'
-      ? 'radial-gradient(ellipse at 50% 50%, #132A52 0%, #0C1A33 60%, #060D1A 100%)'
-      : 'radial-gradient(ellipse at 50% 50%, #1E1E24 0%, #121216 60%, #08080A 100%)';
+        ? 'radial-gradient(ellipse at 50% 50%, #132A52 0%, #0C1A33 60%, #060D1A 100%)'
+        : 'radial-gradient(ellipse at 50% 50%, #1E1E24 0%, #121216 60%, #08080A 100%)';
 
-  const accentColor = variant === 'burgundy' ? '#E5C158' : variant === 'navy' ? '#D4AF37' : '#C5A059';
+  const accentColor =
+    variant === 'burgundy' ? '#E5C158' : variant === 'navy' ? '#D4AF37' : '#C5A059';
 
   return (
     <div
@@ -101,8 +99,24 @@ export function VintageCardBack({
               patternTransform="rotate(45)"
             >
               <rect width="6" height="6" fill="none" />
-              <line x1="0" y1="0" x2="6" y2="0" stroke={accentColor} strokeWidth="0.3" strokeOpacity="0.22" />
-              <line x1="0" y1="0" x2="0" y2="6" stroke={accentColor} strokeWidth="0.3" strokeOpacity="0.22" />
+              <line
+                x1="0"
+                y1="0"
+                x2="6"
+                y2="0"
+                stroke={accentColor}
+                strokeWidth="0.3"
+                strokeOpacity="0.22"
+              />
+              <line
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="6"
+                stroke={accentColor}
+                strokeWidth="0.3"
+                strokeOpacity="0.22"
+              />
               <circle cx="3" cy="3" r="0.5" fill={accentColor} fillOpacity="0.3" />
             </pattern>
           </defs>
@@ -117,7 +131,13 @@ export function VintageCardBack({
           </g>
 
           {/* Oberes klassisches Medaillon (Königliche Lilie / Fleur-de-lis) */}
-          <g transform="translate(40, 24)" stroke={accentColor} strokeWidth="0.5" fill={accentColor} fillOpacity="0.15">
+          <g
+            transform="translate(40, 24)"
+            stroke={accentColor}
+            strokeWidth="0.5"
+            fill={accentColor}
+            fillOpacity="0.15"
+          >
             <circle cx="0" cy="0" r="8" strokeOpacity="0.8" />
             <circle cx="0" cy="0" r="6.5" strokeOpacity="0.4" strokeDasharray="1 1" />
             <path
@@ -130,8 +150,27 @@ export function VintageCardBack({
           {/* Zentrales klassisches Barock-Wappen mit filigranen Schnörkeln */}
           <g transform="translate(40, 57)">
             {/* Äußerer Ornament-Ring */}
-            <ellipse cx="0" cy="0" rx="14" ry="17" stroke={accentColor} strokeWidth="0.8" strokeOpacity="0.8" fill="none" />
-            <ellipse cx="0" cy="0" rx="12" ry="15" stroke={accentColor} strokeWidth="0.4" strokeDasharray="1.5 1" strokeOpacity="0.5" fill="none" />
+            <ellipse
+              cx="0"
+              cy="0"
+              rx="14"
+              ry="17"
+              stroke={accentColor}
+              strokeWidth="0.8"
+              strokeOpacity="0.8"
+              fill="none"
+            />
+            <ellipse
+              cx="0"
+              cy="0"
+              rx="12"
+              ry="15"
+              stroke={accentColor}
+              strokeWidth="0.4"
+              strokeDasharray="1.5 1"
+              strokeOpacity="0.5"
+              fill="none"
+            />
 
             {/* Symmetrische Akanthusblatt-Schwünge */}
             <path
@@ -157,11 +196,22 @@ export function VintageCardBack({
               fill={accentColor}
               fillOpacity="0.85"
             />
-            <path d="M 0 3.5 L 0 7 M -1.8 7 L 1.8 7" stroke={accentColor} strokeWidth="0.7" strokeLinecap="round" />
+            <path
+              d="M 0 3.5 L 0 7 M -1.8 7 L 1.8 7"
+              stroke={accentColor}
+              strokeWidth="0.7"
+              strokeLinecap="round"
+            />
           </g>
 
           {/* Unteres symmetrisches Medaillon (Gespiegelt für echte Kartensymmetrie) */}
-          <g transform="translate(40, 90) rotate(180)" stroke={accentColor} strokeWidth="0.5" fill={accentColor} fillOpacity="0.15">
+          <g
+            transform="translate(40, 90) rotate(180)"
+            stroke={accentColor}
+            strokeWidth="0.5"
+            fill={accentColor}
+            fillOpacity="0.15"
+          >
             <circle cx="0" cy="0" r="8" strokeOpacity="0.8" />
             <circle cx="0" cy="0" r="6.5" strokeOpacity="0.4" strokeDasharray="1 1" />
             <path

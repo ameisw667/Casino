@@ -109,6 +109,32 @@ describe('startOnboarding', () => {
   });
 });
 
+describe('dismissOnboarding — Intro-Skip merken', () => {
+  it('closes the flow and remembers the dismissal', () => {
+    useCasinoStore.getState().startOnboarding();
+    useCasinoStore.getState().dismissOnboarding();
+
+    expect(useCasinoStore.getState().onboardingStep).toBe('NONE');
+    expect(useCasinoStore.getState().onboardingDismissed).toBe(true);
+  });
+
+  it('keeps the dismissal when Play Now restarts the flow', () => {
+    useCasinoStore.getState().dismissOnboarding();
+    useCasinoStore.getState().startOnboarding();
+
+    expect(useCasinoStore.getState().onboardingStep).toBe('WELCOME');
+    expect(useCasinoStore.getState().onboardingDismissed).toBe(true);
+  });
+
+  it('clears the dismissal when the tour is re-opened on purpose', () => {
+    useCasinoStore.getState().dismissOnboarding();
+    useCasinoStore.getState().startOnboarding(true);
+
+    expect(useCasinoStore.getState().onboardingStep).toBe('WELCOME');
+    expect(useCasinoStore.getState().onboardingDismissed).toBe(false);
+  });
+});
+
 describe('processGameResult — Validierung', () => {
   it('ignores a negative bet amount and never mutates history', () => {
     const before = useCasinoStore.getState().bets;
@@ -847,6 +873,30 @@ describe('addToast', () => {
   });
 });
 
+it('supersedes a pending level-up toast with the latest rich level data', () => {
+  const store = useCasinoStore.getState();
+
+  store.addToast('Level 2 reached', 'success', 5500, {
+    key: 'level-up',
+    title: 'LEVEL UP',
+    level: 2,
+    badgeSrc: '/images/badge-level-up-gold.png',
+  });
+  store.addToast('Level 4 reached', 'success', 5500, {
+    key: 'level-up',
+    title: 'LEVEL UP',
+    level: 4,
+    badgeSrc: '/images/badge-level-up-gold.png',
+  });
+
+  expect(useCasinoStore.getState().toasts).toHaveLength(1);
+  expect(useCasinoStore.getState().toasts[0]).toMatchObject({
+    key: 'level-up',
+    title: 'LEVEL UP',
+    level: 4,
+    badgeSrc: '/images/badge-level-up-gold.png',
+  });
+});
 describe('einfache UI-/Settings-Aktionen', () => {
   it('setIsMobile/setIsProcessing/setIsChatOpen/setIsLoading/setHasHydrated toggle their own flag only', () => {
     useCasinoStore.getState().setIsMobile(true);
@@ -977,11 +1027,13 @@ describe('einfache UI-/Settings-Aktionen', () => {
 
   it('mergeServerAchievements keeps locally confirmed progress and accepts higher server progress', () => {
     useCasinoStore.setState({
-      achievements: useCasinoStore.getState().achievements.map((achievement) =>
-        achievement.id === 'first_bet'
-          ? { ...achievement, unlocked: true, progress: 1 }
-          : achievement,
-      ),
+      achievements: useCasinoStore
+        .getState()
+        .achievements.map((achievement) =>
+          achievement.id === 'first_bet'
+            ? { ...achievement, unlocked: true, progress: 1 }
+            : achievement,
+        ),
     });
 
     useCasinoStore.getState().mergeServerAchievements([
@@ -989,12 +1041,12 @@ describe('einfache UI-/Settings-Aktionen', () => {
       { id: 'daily_grinder', unlocked: true, progress: 3 },
     ]);
 
-    const firstBet = useCasinoStore.getState().achievements.find(
-      (achievement) => achievement.id === 'first_bet',
-    );
-    const dailyGrinder = useCasinoStore.getState().achievements.find(
-      (achievement) => achievement.id === 'daily_grinder',
-    );
+    const firstBet = useCasinoStore
+      .getState()
+      .achievements.find((achievement) => achievement.id === 'first_bet');
+    const dailyGrinder = useCasinoStore
+      .getState()
+      .achievements.find((achievement) => achievement.id === 'daily_grinder');
     expect(firstBet).toMatchObject({ unlocked: true, progress: 1 });
     expect(dailyGrinder).toMatchObject({ unlocked: true, progress: 3 });
   });

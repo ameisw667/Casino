@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useCasinoStore } from '@/store/useCasinoStore';
+import { apiClient, ApiFetchError } from '@/lib/api/client';
 import { HistoryStatsCard } from '@/components/history/HistoryStatsCard';
 import {
   HistoryFilterBar,
@@ -12,9 +13,10 @@ import {
 import { HistoryTableStream, HistoryRow } from '@/components/history/HistoryTableStream';
 import { BetReceiptModal } from '@/components/history/BetReceiptModal';
 
-interface HistoryResponse {
+interface HistoryPageResponse {
   rows: HistoryRow[];
-  count: number;
+  nextCursor: string | null;
+  hasMore: boolean;
 }
 
 interface ServerStats {
@@ -38,36 +40,47 @@ export default function HistoryPage() {
   const [outcomeFilter, setOutcomeFilter] = useState<OutcomeFilterType>('ALL');
   const [dataLoadedAt, setDataLoadedAt] = useState<number>(0);
   const [selectedRow, setSelectedRow] = useState<HistoryRow | null>(null);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
         setLoading(true);
-        const [histRes, statsRes] = await Promise.all([
-          fetch('/api/user/history', { cache: 'no-store' }),
+        const [histJson, statsRes] = await Promise.all([
+          apiClient.user.history<HistoryPageResponse>(),
           fetch('/api/user/stats', { cache: 'no-store' }),
         ]);
 
-        if (histRes.status === 401 || statsRes.status === 401) {
+        if (!cancelled) {
+          setRows(histJson.rows ?? []);
+          setNextCursor(histJson.nextCursor ?? null);
+          setHasMore(histJson.hasMore ?? false);
+          setDataLoadedAt(Date.now());
+        }
+
+        if (statsRes.status === 401) {
           if (!cancelled) setError('Bitte einloggen um deine History zu sehen.');
           return;
         }
 
-        if (histRes.ok) {
-          const histJson = (await histRes.json()) as HistoryResponse;
-          if (!cancelled) {
-            setRows(histJson.rows ?? []);
-            setDataLoadedAt(Date.now());
-          }
-        }
-
         if (statsRes.ok) {
-          const statsJson = (await statsRes.json()) as ServerStats;
+          const rawStats = (await statsRes.json()) as { data?: ServerStats } | ServerStats;
+          const statsJson = (
+            rawStats && 'data' in rawStats && rawStats.data ? rawStats.data : rawStats
+          ) as ServerStats;
           if (!cancelled) setServerStats(statsJson);
         }
-      } catch {
-        if (!cancelled) setError('History konnte nicht geladen werden.');
+      } catch (err) {
+        if (!cancelled) {
+          if (err instanceof ApiFetchError && err.status === 401) {
+            setError('Bitte einloggen um deine History zu sehen.');
+          } else {
+            setError('History konnte nicht geladen werden.');
+          }
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -77,6 +90,21 @@ export default function HistoryPage() {
       cancelled = true;
     };
   }, []);
+
+  async function loadMore() {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const next = await apiClient.user.history<HistoryPageResponse>(nextCursor);
+      setRows((prev) => [...prev, ...(next.rows ?? [])]);
+      setNextCursor(next.nextCursor ?? null);
+      setHasMore(next.hasMore ?? false);
+    } catch {
+      setError('Weitere Einträge konnten nicht geladen werden.');
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   // Multi-Filter criteria
   const filteredRows = rows.filter((r) => {
@@ -128,12 +156,15 @@ export default function HistoryPage() {
     <div
       style={{
         maxWidth: '1400px',
+        width: '100%',
+        boxSizing: 'border-box',
         margin: '0 auto',
         display: 'flex',
         flexDirection: 'column',
-        gap: isMobile ? '14px' : '18px',
-        padding: isMobile ? '0 16px 40px' : '0 24px 40px',
+        gap: isMobile ? '10px' : '18px',
+        padding: isMobile ? '0 10px 40px' : '0 24px 40px',
         minHeight: 'calc(100vh - 80px)',
+        overflowX: 'hidden',
       }}
     >
       <motion.div
@@ -215,6 +246,9 @@ export default function HistoryPage() {
           rows={filteredRows}
           isMobile={isMobile}
           onSelectRow={(row) => setSelectedRow(row)}
+          hasMore={hasMore}
+          loadingMore={loadingMore}
+          onLoadMore={loadMore}
         />
       </div>
 

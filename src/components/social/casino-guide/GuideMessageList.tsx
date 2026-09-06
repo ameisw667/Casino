@@ -1,7 +1,10 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
+  ArrowDown,
   ArrowRight,
   Bot,
   Check,
@@ -22,6 +25,7 @@ import {
 
 import type { GuideTurn } from '@/components/social/casino-guide/guide-config';
 import { MarkdownMessage } from '@/components/social/casino-guide/GuideMarkdown';
+import { GuideThinkingSkeleton } from '@/components/social/casino-guide/GuideThinkingSkeleton';
 
 interface GuideMessageListProps {
   turns: GuideTurn[];
@@ -30,6 +34,7 @@ interface GuideMessageListProps {
   copiedId: string | null;
   feedbackMap: Record<string, 1 | -1>;
   playingMessageId: string | null;
+  activeToolName?: string | null;
   onActionClick: (action: { type: string; target?: string; label: string }) => void;
   onSuggestionClick: (query: string) => void;
   onPlayVoice: (messageId: string, text: string) => void;
@@ -44,14 +49,63 @@ export function GuideMessageList({
   copiedId,
   feedbackMap,
   playingMessageId,
+  activeToolName,
   onActionClick,
   onSuggestionClick,
   onPlayVoice,
   onCopy,
   onFeedback,
 }: GuideMessageListProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
+  const isNearBottomRef = useRef(true);
+
+  // Check whether the user is near the bottom
+  const handleScroll = () => {
+    if (!containerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    const nearBottom = distanceFromBottom < 100;
+    isNearBottomRef.current = nearBottom;
+    setShowScrollBottom(distanceFromBottom > 150);
+  };
+
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    if (!containerRef.current) return;
+    containerRef.current.scrollTo({
+      top: containerRef.current.scrollHeight,
+      behavior,
+    });
+  };
+
+  // Scroll to bottom on every turn change, streamed chunk, or thinking skeleton appearance
+  const lastTurn = turns[turns.length - 1];
+  const lastTurnText = lastTurn?.text ?? '';
+  const lastTurnRole = lastTurn?.role;
+
+  useEffect(() => {
+    // When a player sends a message or while LLM is generating/streaming, always follow down
+    if (lastTurnRole === 'player' || isSending) {
+      if (containerRef.current) {
+        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      }
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      isNearBottomRef.current = true;
+      return;
+    }
+
+    // When new message arrives or finished, follow if user was near bottom
+    if (isNearBottomRef.current && containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [turns.length, lastTurnText, isSending, lastTurnRole, activeToolName]);
+
   return (
     <div
+      ref={containerRef}
+      onScroll={handleScroll}
       aria-live="polite"
       style={{
         display: 'flex',
@@ -60,8 +114,41 @@ export function GuideMessageList({
         gap: '14px',
         overflowY: 'auto',
         padding: '16px',
+        position: 'relative',
       }}
     >
+      <AnimatePresence initial={false}>
+        {turns.length === 1 && turns[0]?.role === 'guide' && !isSending && (
+          <motion.div
+            key="guide-welcome-hero"
+            initial={{ opacity: 0, height: 0, y: -8 }}
+            animate={{ opacity: 1, height: 'auto', y: 0 }}
+            exit={{ opacity: 0, height: 0, y: -8 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 22, bounce: 0.2 }}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '2px 0 0',
+            }}
+          >
+            <motion.div
+              animate={{ y: [-3, 3, -3] }}
+              transition={{ duration: 3.6, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <Image
+                src="/images/royale-guide-mascot-white.png"
+                alt="Royale Guide begruesst dich"
+                width={64}
+                height={64}
+                sizes="64px"
+                style={{ filter: 'drop-shadow(0 0 14px rgba(212, 175, 55, 0.45))' }}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {turns.map((turn, index) => (
         <div
           key={turn.id}
@@ -80,13 +167,22 @@ export function GuideMessageList({
               background:
                 turn.role === 'guide' ? 'hsla(var(--primary), 0.16)' : 'hsla(0, 0%, 100%, 0.1)',
               border: `1px solid ${
-                turn.role === 'guide' ? 'hsla(var(--primary), 0.45)' : 'var(--glass-border)'
+                playingMessageId === turn.id
+                  ? 'hsl(var(--primary))'
+                  : turn.role === 'guide'
+                    ? 'hsla(var(--primary), 0.45)'
+                    : 'var(--glass-border)'
               }`,
               color: turn.role === 'guide' ? 'hsl(var(--primary))' : 'hsl(var(--text-main))',
               display: 'grid',
               placeItems: 'center',
               flexShrink: 0,
               marginTop: '2px',
+              boxShadow:
+                playingMessageId === turn.id
+                  ? '0 0 14px hsla(var(--primary), 0.75), 0 0 24px hsla(var(--primary), 0.35)'
+                  : 'none',
+              transition: 'box-shadow 0.25s ease, border-color 0.25s ease',
             }}
           >
             {turn.role === 'guide' ? <Bot size={14} /> : <User size={13} />}
@@ -104,18 +200,21 @@ export function GuideMessageList({
             <div
               style={{
                 border: `1px solid ${
-                  turn.role === 'player' ? 'hsla(var(--primary), 0.35)' : 'hsla(0, 0%, 100%, 0.1)'
+                  turn.role === 'player' ? 'hsla(var(--primary), 0.5)' : 'rgba(255, 255, 255, 0.12)'
                 }`,
-                borderRadius: '14px',
+                borderRadius: '12px',
                 background:
                   turn.role === 'player'
-                    ? 'hsla(var(--primary), 0.15)'
-                    : 'hsla(var(--bg-color), 0.65)',
-                padding: '10px 14px',
-                color: turn.role === 'player' ? 'hsl(var(--text-main))' : 'hsl(var(--text-muted))',
+                    ? 'linear-gradient(135deg, hsla(var(--primary), 0.25), hsla(var(--primary), 0.12))'
+                    : 'rgba(14, 18, 26, 0.75)',
+                padding: '12px 16px',
+                color: turn.role === 'player' ? '#ffffff' : '#f8fafc',
                 fontSize: '0.80rem',
-                lineHeight: 1.55,
-                boxShadow: '0 4px 12px hsla(0, 0%, 0%, 0.18)',
+                lineHeight: 1.6,
+                boxShadow:
+                  turn.role === 'player'
+                    ? '0 4px 16px rgba(0, 0, 0, 0.35)'
+                    : '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.14)',
                 whiteSpace: turn.role === 'guide' ? 'normal' : 'pre-wrap',
               }}
             >
@@ -123,16 +222,19 @@ export function GuideMessageList({
                 <>
                   <MarkdownMessage content={turn.text} />
                   {isSending && index === turns.length - 1 && (
-                    <span
+                    <motion.span
+                      aria-hidden="true"
+                      animate={{ opacity: [1, 0.2, 1] }}
+                      transition={{ repeat: Infinity, duration: 0.85, ease: 'easeInOut' }}
                       style={{
                         display: 'inline-block',
                         width: '6px',
-                        height: '13px',
-                        background: '#ffd700',
-                        marginLeft: '4px',
-                        verticalAlign: '-1px',
-                        borderRadius: '1px',
-                        opacity: 0.85,
+                        height: '14px',
+                        background: 'hsl(var(--primary))',
+                        boxShadow: '0 0 8px hsla(var(--primary), 0.65)',
+                        marginLeft: '5px',
+                        verticalAlign: '-2px',
+                        borderRadius: '2px',
                       }}
                     />
                   )}
@@ -150,7 +252,7 @@ export function GuideMessageList({
                           border: '1px solid rgba(212,175,55,0.5)',
                           borderRadius: '8px',
                           padding: '6px 12px',
-                          color: '#ffd700',
+                          color: '#D4AF37',
                           fontSize: '0.78rem',
                           fontWeight: 700,
                           cursor: 'pointer',
@@ -224,7 +326,7 @@ export function GuideMessageList({
                               e.currentTarget.style.transform = 'none';
                             }}
                           >
-                            <Sparkles size={11} style={{ color: '#ffd700', flexShrink: 0 }} />
+                            <Sparkles size={11} style={{ color: '#D4AF37', flexShrink: 0 }} />
                             <span>{suggestion}</span>
                           </button>
                         ))}
@@ -271,13 +373,21 @@ export function GuideMessageList({
                   padding: '0 4px',
                 }}
               >
-                <span style={{ fontSize: '0.62rem', color: 'hsl(var(--text-muted))' }}>
+                <span
+                  style={{
+                    fontSize: '0.62rem',
+                    color: 'hsl(var(--text-muted))',
+                    fontFamily: 'var(--font-mono), monospace',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
                   {turn.time}
                 </span>
                 {turn.role === 'guide' && (
                   <>
                     <button
                       type="button"
+                      className="relative before:absolute before:inset-[-6px] before:content-[''] focus-visible:ring-1 focus-visible:ring-[#D4AF37] focus-visible:outline-none"
                       aria-label={
                         playingMessageId === turn.id ? 'Sprachausgabe stoppen' : 'Antwort vorlesen'
                       }
@@ -289,10 +399,10 @@ export function GuideMessageList({
                         background: 'transparent',
                         border: 'none',
                         cursor: 'pointer',
-                        color: playingMessageId === turn.id ? '#ffd700' : 'hsl(var(--text-muted))',
+                        color: playingMessageId === turn.id ? '#D4AF37' : 'hsl(var(--text-muted))',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '3px',
+                        gap: '4px',
                         fontSize: '0.62rem',
                         padding: '2px 4px',
                         borderRadius: '4px',
@@ -301,7 +411,36 @@ export function GuideMessageList({
                     >
                       {playingMessageId === turn.id ? (
                         <>
-                          <Square size={11} style={{ color: '#ffd700' }} /> Stopp
+                          <Square size={11} style={{ color: '#D4AF37' }} /> Stopp
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '2px',
+                              marginLeft: '2px',
+                              height: '11px',
+                            }}
+                            aria-hidden
+                          >
+                            {[0.2, 0.6, 0.3, 0.8].map((delay, idx) => (
+                              <motion.span
+                                key={idx}
+                                animate={{ height: ['3px', '11px', '3px'] }}
+                                transition={{
+                                  repeat: Infinity,
+                                  duration: 0.65,
+                                  delay: delay * 0.35,
+                                  ease: 'easeInOut',
+                                }}
+                                style={{
+                                  width: '2px',
+                                  background: '#D4AF37',
+                                  borderRadius: '1px',
+                                  boxShadow: '0 0 4px rgba(212, 175, 55, 0.65)',
+                                }}
+                              />
+                            ))}
+                          </span>
                         </>
                       ) : (
                         <>
@@ -312,6 +451,7 @@ export function GuideMessageList({
 
                     <button
                       type="button"
+                      className="relative before:absolute before:inset-[-6px] before:content-[''] focus-visible:ring-1 focus-visible:ring-[#D4AF37] focus-visible:outline-none"
                       aria-label="Copy answer to clipboard"
                       onClick={() => onCopy(turn.id, turn.text)}
                       style={{
@@ -340,6 +480,7 @@ export function GuideMessageList({
 
                     <button
                       type="button"
+                      className="relative before:absolute before:inset-[-6px] before:content-[''] focus-visible:ring-1 focus-visible:ring-[#D4AF37] focus-visible:outline-none"
                       aria-label="Hilfreiche Antwort"
                       title="Hilfreich"
                       onClick={() => onFeedback(turn.id, 1)}
@@ -362,6 +503,7 @@ export function GuideMessageList({
 
                     <button
                       type="button"
+                      className="relative before:absolute before:inset-[-6px] before:content-[''] focus-visible:ring-1 focus-visible:ring-[#D4AF37] focus-visible:outline-none"
                       aria-label="Nicht hilfreiche Antwort"
                       title="Nicht hilfreich"
                       onClick={() => onFeedback(turn.id, -1)}
@@ -389,43 +531,53 @@ export function GuideMessageList({
         </div>
       ))}
 
-      {isSending &&
-        (!turns.length ||
-          turns[turns.length - 1]?.role === 'player' ||
-          !turns[turns.length - 1]?.text) && (
-          <div
+      <AnimatePresence>
+        {isSending &&
+          (!turns.length ||
+            turns[turns.length - 1]?.role === 'player' ||
+            !turns[turns.length - 1]?.text) && (
+            <GuideThinkingSkeleton activeToolName={activeToolName} />
+          )}
+      </AnimatePresence>
+
+      {/* Anchor for auto-scrolling */}
+      <div ref={messagesEndRef} style={{ height: '1px', flexShrink: 0 }} />
+
+      {/* Floating Scroll-To-Bottom Button */}
+      <AnimatePresence>
+        {showScrollBottom && (
+          <motion.button
+            type="button"
+            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.9 }}
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.94 }}
+            onClick={() => scrollToBottom('smooth')}
             style={{
-              display: 'flex',
+              position: 'sticky',
+              bottom: '8px',
+              alignSelf: 'center',
+              zIndex: 10,
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: '9px',
-              alignSelf: 'flex-start',
-              padding: '8px 12px',
-              borderRadius: '12px',
-              background: 'hsla(var(--bg-color), 0.65)',
-              border: '1px solid hsla(var(--primary), 0.2)',
+              gap: '5px',
+              padding: '5px 12px',
+              borderRadius: '20px',
+              background: 'rgba(11, 14, 20, 0.92)',
+              border: '1px solid hsla(var(--primary), 0.6)',
+              color: 'hsl(var(--primary))',
+              fontSize: '0.68rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.6), 0 0 12px hsla(var(--primary), 0.25)',
             }}
           >
-            <Bot size={14} color="hsl(var(--primary))" />
-            <span style={{ fontSize: '0.74rem', color: 'hsl(var(--text-muted))' }}>
-              Royale Guide analysiert Spielregeln
-            </span>
-            <div style={{ display: 'flex', gap: '3px' }}>
-              {[0, 1, 2].map((i) => (
-                <motion.span
-                  key={i}
-                  animate={{ y: [0, -4, 0] }}
-                  transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.18 }}
-                  style={{
-                    width: '4px',
-                    height: '4px',
-                    borderRadius: '50%',
-                    background: 'hsl(var(--primary))',
-                  }}
-                />
-              ))}
-            </div>
-          </div>
+            <ArrowDown size={12} />
+            <span>Neueste Nachrichten</span>
+          </motion.button>
         )}
+      </AnimatePresence>
     </div>
   );
 }

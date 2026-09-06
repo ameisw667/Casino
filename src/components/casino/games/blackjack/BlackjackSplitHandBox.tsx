@@ -116,13 +116,13 @@ export function BlackjackSplitHandBox({
         background: isHighlighted
           ? 'linear-gradient(180deg, rgba(212, 175, 55, 0.08) 0%, rgba(15, 17, 24, 0.6) 100%)'
           : isSplit
-          ? 'rgba(15, 17, 24, 0.4)'
-          : 'transparent',
+            ? 'rgba(15, 17, 24, 0.4)'
+            : 'transparent',
         border: isHighlighted
           ? '1.5px solid rgba(212, 175, 55, 0.55)'
           : isSplit
-          ? '1px solid rgba(255, 255, 255, 0.08)'
-          : 'none',
+            ? '1px solid rgba(255, 255, 255, 0.08)'
+            : 'none',
         boxShadow: isHighlighted
           ? '0 0 25px rgba(212, 175, 55, 0.25), inset 0 0 12px rgba(212, 175, 55, 0.1)'
           : 'none',
@@ -224,11 +224,7 @@ export function BlackjackSplitHandBox({
                 />
               ) : (
                 /* Spielerkarten: 100% klassisches, unverändertes Original-Design (von Jan als optimal bestätigt) */
-                <PlayingCard
-                  card={card}
-                  faceDown={false}
-                  size={isMobile ? 'sm' : 'md'}
-                />
+                <PlayingCard card={card} faceDown={false} size={isMobile ? 'sm' : 'md'} />
               )}
             </div>
           );

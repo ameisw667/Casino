@@ -7,7 +7,9 @@ describe('LoginHistorySection helpers & data mapping', () => {
       id: '123e4567-e89b-12d3-a456-426614174000',
       userId: 'test-user',
       authMethod: 'passkey' as const,
-      deviceInfo: parseDeviceInfo('Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X) AppleWebKit/605.1.15'),
+      deviceInfo: parseDeviceInfo(
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X) AppleWebKit/605.1.15',
+      ),
       ipMasked: maskIpAddress('85.214.132.19'),
       status: 'success' as const,
       createdAt: new Date().toISOString(),

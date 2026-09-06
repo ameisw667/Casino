@@ -118,7 +118,6 @@ export default function SettingsPopover({
                 <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>Seed-Verifikation</span>
               </button>
             )}
-
             {/* Sound Toggle Row */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

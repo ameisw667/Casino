@@ -19,15 +19,25 @@ export interface Bet {
   win: boolean;
 }
 
+export interface ToastDetails {
+  key?: string;
+  title?: string;
+  level?: number;
+  badgeSrc?: string;
+}
+
 export interface Toast {
   id: string;
   type: 'info' | 'success' | 'error' | 'win';
   message: string;
   duration?: number;
+  key?: ToastDetails['key'];
+  title?: ToastDetails['title'];
+  level?: ToastDetails['level'];
+  badgeSrc?: ToastDetails['badgeSrc'];
 }
 
-export type OnboardingStep =
-  'NONE' | 'WELCOME' | 'LOGIN' | 'TOUR_VAULT' | 'OPEN_CASE' | 'COMPLETED';
+export type OnboardingStep = 'NONE' | 'WELCOME' | 'LOGIN' | 'TOUR_VAULT' | 'COMPLETED';
 
 export interface UISlice {
   toasts: Toast[];
@@ -41,7 +51,7 @@ export interface UISlice {
   setIsChatOpen: (open: boolean) => void;
   setIsLoading: (loading: boolean) => void;
   setHasHydrated: (val: boolean) => void;
-  addToast: (msg: string, type?: Toast['type'], duration?: number) => void;
+  addToast: (msg: string, type?: Toast['type'], duration?: number, details?: ToastDetails) => void;
   removeToast: (id: string) => void;
   clearToasts: () => void;
 }
@@ -75,6 +85,7 @@ export interface SettingsSlice {
   };
   affiliateRef: string | null;
   onboardingStep: OnboardingStep;
+  onboardingDismissed: boolean;
   updateSettings: (
     settings: Partial<
       Pick<
@@ -97,7 +108,8 @@ export interface SettingsSlice {
   ) => void;
   setProvablyFairSettings: (settings: Partial<SettingsSlice['provablyFairSettings']>) => void;
   setAffiliateRef: (ref: string | null) => void;
-  startOnboarding: () => void;
+  startOnboarding: (force?: boolean) => void;
+  dismissOnboarding: () => void;
   setOnboardingStep: (step: OnboardingStep) => void;
 }
 

@@ -2,6 +2,7 @@
 import React from 'react';
 import { User, Zap, TrendingUp, Star, X } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
+import { Z_INDEX } from '@/lib/design/tokens.generated';
 interface PlayerProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -37,7 +38,7 @@ export default function PlayerProfileModal({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 5000,
+        zIndex: Z_INDEX.modal.priority,
         display: 'flex',
         alignItems: isMobile ? 'flex-end' : 'center',
         justifyContent: 'center',

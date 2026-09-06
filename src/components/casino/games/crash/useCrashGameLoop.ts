@@ -20,8 +20,8 @@ import {
   MILESTONE_VALUES,
   GROWTH_FACTOR,
   MAX_POINTS,
-  WINDOW_POINTS,
-  ROCKET_X_FRACTION,
+  getCrashTrajectoryState,
+  getCrashMilestoneY,
 } from './crash-helpers';
 
 export type { CrashStatus } from './crash-helpers';
@@ -159,8 +159,19 @@ export function useCrashGameLoop(params: CrashGameLoopParams) {
 
     // Direction opposite to rocket heading
     const backAngle = angle + Math.PI;
-    const exhaustSpread = 0.45;
+    const exhaustSpread = 0.35;
     const count = isMobileRef.current ? 1 : 2;
+
+    const cosA = Math.cos(angle);
+    const sinA = Math.sin(angle);
+    const perpX = -sinA;
+    const perpY = cosA;
+
+    // Dual nozzles at offset -46 along ship axis, ±11 perpendicular
+    const nozzle1X = x - 46 * cosA + 11 * perpX;
+    const nozzle1Y = y - 46 * sinA + 11 * perpY;
+    const nozzle2X = x - 46 * cosA - 11 * perpX;
+    const nozzle2Y = y - 46 * sinA - 11 * perpY;
 
     for (let k = 0; k < count; k++) {
       const spreadAngle = backAngle + (pseudoRandom(prngSeedRef) - 0.5) * exhaustSpread;
@@ -176,9 +187,12 @@ export function useCrashGameLoop(params: CrashGameLoopParams) {
           ? '#FF8C00'
           : 'rgba(120, 110, 100, 0.4)';
 
+      const originX = (k % 2 === 0 ? nozzle1X : nozzle2X) + (pseudoRandom(prngSeedRef) - 0.5) * 3;
+      const originY = (k % 2 === 0 ? nozzle1Y : nozzle2Y) + (pseudoRandom(prngSeedRef) - 0.5) * 3;
+
       particlesRef.current.push({
-        x: x + (pseudoRandom(prngSeedRef) - 0.5) * 4,
-        y: y + (pseudoRandom(prngSeedRef) - 0.5) * 4,
+        x: originX,
+        y: originY,
         vx: Math.cos(spreadAngle) * speed,
         vy: Math.sin(spreadAngle) * speed + (pseudoRandom(prngSeedRef) - 0.5) * 0.6,
         life: 1,
@@ -230,6 +244,190 @@ export function useCrashGameLoop(params: CrashGameLoopParams) {
     ctx.globalAlpha = 1.0;
   };
 
+  /**
+   * Renders the Orbital Magnetic Docking Pad Base Station at (padX, padY).
+   */
+  const drawDockingPad = (
+    ctx: CanvasRenderingContext2D,
+    padX: number,
+    padY: number,
+    isActive: boolean,
+    isCrashed: boolean,
+    isCashedOut: boolean,
+  ) => {
+    ctx.save();
+
+    // Outer magnetic deck ring
+    ctx.fillStyle = 'rgba(11, 14, 20, 0.75)';
+    ctx.strokeStyle = isCrashed
+      ? 'rgba(239, 68, 68, 0.5)'
+      : isCashedOut
+        ? 'rgba(16, 185, 129, 0.5)'
+        : isActive
+          ? 'rgba(212, 175, 55, 0.7)'
+          : 'rgba(212, 175, 55, 0.45)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(padX, padY + 16, 38, 9.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Inner magnetic coil ring
+    ctx.strokeStyle = isActive
+      ? isCrashed
+        ? 'rgba(239, 68, 68, 0.7)'
+        : isCashedOut
+          ? 'rgba(16, 185, 129, 0.7)'
+          : 'rgba(255, 215, 0, 0.6)'
+      : 'rgba(212, 175, 55, 0.25)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.ellipse(padX, padY + 16, 24, 6, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Mag-Lev Stabilizer Anchors
+    ctx.strokeStyle = isActive ? 'rgba(255, 215, 0, 0.4)' : 'rgba(212, 175, 55, 0.3)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(padX - 38, padY + 16);
+    ctx.lineTo(padX - 44, padY + 16);
+    ctx.moveTo(padX + 38, padY + 16);
+    ctx.lineTo(padX + 44, padY + 16);
+    ctx.stroke();
+
+    // Active Ion Projector Emitter Glow at center
+    if (isActive) {
+      const pulse = Math.sin(performance.now() * 0.008) * 0.2 + 0.8;
+      const emitterGlow = ctx.createRadialGradient(padX, padY, 1, padX, padY, 16);
+      if (isCrashed) {
+        emitterGlow.addColorStop(0, `rgba(255, 100, 100, ${0.9 * pulse})`);
+        emitterGlow.addColorStop(0.6, `rgba(239, 68, 68, ${0.35 * pulse})`);
+      } else if (isCashedOut) {
+        emitterGlow.addColorStop(0, `rgba(110, 231, 183, ${0.9 * pulse})`);
+        emitterGlow.addColorStop(0.6, `rgba(16, 185, 129, ${0.35 * pulse})`);
+      } else {
+        emitterGlow.addColorStop(0, `rgba(255, 245, 192, ${0.95 * pulse})`);
+        emitterGlow.addColorStop(0.6, `rgba(212, 175, 55, ${0.4 * pulse})`);
+      }
+      emitterGlow.addColorStop(1, 'transparent');
+      ctx.fillStyle = emitterGlow;
+      ctx.beginPath();
+      ctx.arc(padX, padY, 16, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  };
+
+  /**
+   * Renders the Standby Quantum Interceptor Spacecraft on pad.
+   */
+  const drawStandbyRocket = (
+    ctx: CanvasRenderingContext2D,
+    padX: number,
+    padY: number,
+    rocketImg: HTMLImageElement | null,
+  ) => {
+    ctx.save();
+    ctx.translate(padX, padY);
+    ctx.rotate(-Math.PI * 0.16); // Tilted ~29° pointing up-right ready for launch
+
+    // Warm dual thruster standby idle glow
+    const idlePulse = Math.sin(performance.now() * 0.005) * 0.2 + 0.5;
+    const thrusterIdleGlow = ctx.createRadialGradient(-45, 0, 2, -45, 0, 36);
+    thrusterIdleGlow.addColorStop(0, `rgba(255, 180, 50, ${0.55 * idlePulse})`);
+    thrusterIdleGlow.addColorStop(0.5, `rgba(212, 175, 55, ${0.22 * idlePulse})`);
+    thrusterIdleGlow.addColorStop(1, 'transparent');
+    ctx.fillStyle = thrusterIdleGlow;
+    ctx.beginPath();
+    ctx.arc(-45, 0, 36, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Render Spacecraft Sprite
+    if (rocketImg && rocketImg.complete) {
+      ctx.drawImage(rocketImg, -48, -20, 96, 40);
+    } else {
+      ctx.fillStyle = '#14141a';
+      ctx.strokeStyle = '#D4AF37';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 28, 11, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore();
+  };
+
+  /**
+   * Renders the Airborne Quantum Interceptor Spacecraft with dual oscillating plasma thrusters.
+   */
+  const drawFlyingRocket = (
+    ctx: CanvasRenderingContext2D,
+    rocketX: number,
+    rocketY: number,
+    flightAngle: number,
+    riskFactor: number,
+    isCashedOut: boolean,
+    rocketImg: HTMLImageElement | null,
+  ) => {
+    ctx.save();
+    ctx.translate(rocketX, rocketY);
+    ctx.rotate(flightAngle);
+
+    // Radial thruster glow behind nozzle
+    const thrusterGlow = ctx.createRadialGradient(-46, 0, 2, -46, 0, 50);
+    thrusterGlow.addColorStop(
+      0,
+      isCashedOut ? 'rgba(74, 222, 128, 0.85)' : 'rgba(255, 215, 0, 0.9)',
+    );
+    thrusterGlow.addColorStop(0.5, 'rgba(255, 120, 0, 0.45)');
+    thrusterGlow.addColorStop(1, 'transparent');
+    ctx.fillStyle = thrusterGlow;
+    ctx.beginPath();
+    ctx.arc(-46, 0, 50, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Dual Dynamic Oscillating Plasma Jet Flames
+    const flamePulse = Math.sin(performance.now() * 0.04) * 5;
+    const flameLength = 26 + riskFactor * 28 + flamePulse;
+
+    const nozzlesY = [-11, 11];
+    for (const nY of nozzlesY) {
+      // Outer Jet Plume (Orange / Gold / Emerald)
+      ctx.fillStyle = isCashedOut ? '#10B981' : '#FF6B00';
+      ctx.beginPath();
+      ctx.moveTo(-46, nY - 4);
+      ctx.lineTo(-46 - flameLength, nY);
+      ctx.lineTo(-46, nY + 4);
+      ctx.closePath();
+      ctx.fill();
+
+      // Inner Core Flame (Ultra-bright White / Yellow / Emerald Plasma)
+      ctx.fillStyle = isCashedOut ? '#ECFDF5' : '#FFF5C0';
+      ctx.beginPath();
+      ctx.moveTo(-46, nY - 2);
+      ctx.lineTo(-46 - flameLength * 0.65, nY);
+      ctx.lineTo(-46, nY + 2);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Draw Spacecraft Sprite
+    if (rocketImg && rocketImg.complete) {
+      ctx.drawImage(rocketImg, -50, -21, 100, 42);
+    } else {
+      ctx.fillStyle = '#14141a';
+      ctx.strokeStyle = '#D4AF37';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 28, 11, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  };
+
   // Main Canvas Draw Method
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -265,56 +463,20 @@ export function useCrashGameLoop(params: CrashGameLoopParams) {
     const isRunning = status === 'RUNNING';
     const riskFactor = isRunning ? getRiskFactor(m) : 0;
 
-    // 1. LEVER 2: DYNAMIC BACKGROUND & ALTITUDE PROGRESSION
-    // Altitude 1: 1.00x - 2.00x (Launchpad / Surface Troposphere)
-    // Altitude 2: 2.00x - 10.00x (Stratosphere / Mesosphere)
-    // Altitude 3: > 10.00x (Deep Space & Golden Nebula)
-    const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
+    // 1. DYNAMIC ALTITUDE & ATMOSPHERIC TINT (Translucent so backdrop shines through)
     if (isCrashed) {
-      bgGradient.addColorStop(0, '#100305');
-      bgGradient.addColorStop(1, '#050102');
+      // Atmospheric red flash
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.22)';
+      ctx.fillRect(0, 0, width, height);
     } else if (isCashedOut) {
-      bgGradient.addColorStop(0, '#020f08');
-      bgGradient.addColorStop(1, '#010503');
-    } else if (m < 2.0) {
-      // Warm launchpad horizon glow
-      bgGradient.addColorStop(0, '#060a12');
-      bgGradient.addColorStop(0.7, '#070f1a');
-      bgGradient.addColorStop(1, '#0a1424');
-    } else if (m < 10.0) {
-      // Stratosphere transition
-      const stratT = (m - 2.0) / 8.0;
-      bgGradient.addColorStop(0, '#03050c');
-      bgGradient.addColorStop(0.6, `hsla(225, 45%, ${Math.round(8 - stratT * 4)}%, 1)`);
-      bgGradient.addColorStop(1, '#020409');
-    } else {
-      // Deep Space Obsidian with subtle gold cosmic dust
-      bgGradient.addColorStop(0, '#020306');
-      bgGradient.addColorStop(0.5, '#04060c');
-      bgGradient.addColorStop(1, '#010204');
-    }
-    ctx.fillStyle = bgGradient;
-    ctx.fillRect(0, 0, width, height);
-
-    // Launchpad floor perspective grid (only during launch 1.0x - 2.5x or IDLE)
-    if (m < 2.5 || status === 'IDLE') {
-      const gridAlpha = status === 'IDLE' ? 0.08 : Math.max(0, 0.12 - (m - 1.0) * 0.08);
-      ctx.strokeStyle = `rgba(212, 175, 55, ${gridAlpha})`;
-      ctx.lineWidth = 1;
-
-      const floorY = height * 0.95;
-      for (let x = -width; x < width * 2; x += 60) {
-        ctx.beginPath();
-        ctx.moveTo(x, height);
-        ctx.lineTo(width * 0.5 + (x - width * 0.5) * 0.2, floorY - 50);
-        ctx.stroke();
-      }
-      for (let hOff = 0; hOff < 50; hOff += 12) {
-        ctx.beginPath();
-        ctx.moveTo(0, height - hOff);
-        ctx.lineTo(width, height - hOff);
-        ctx.stroke();
-      }
+      // Atmospheric emerald flash
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.18)';
+      ctx.fillRect(0, 0, width, height);
+    } else if (isRunning && m > 8.0) {
+      // Deep Space / High Altitude: subtle darkening to make golden flight curve and stars pop
+      const darkAlpha = Math.min(0.4, (m - 8.0) * 0.015);
+      ctx.fillStyle = `rgba(2, 4, 8, ${darkAlpha})`;
+      ctx.fillRect(0, 0, width, height);
     }
 
     // Parallax Starfield & Cosmic Hyper-Space Trails
@@ -350,13 +512,18 @@ export function useCrashGameLoop(params: CrashGameLoopParams) {
       }
     });
 
-    const scaleY = height / Math.max(5, (m || 1) + 1);
+    // 2. Trajectory State & Anchored Launchpad Coordinates
+    const { padX, padY, rocketX, rocketY, flightAngle, maxClimb } = getCrashTrajectoryState(
+      width,
+      height,
+      m,
+    );
 
-    // 2. MILESTONE HORIZON LINES (Obsidian & Gold standard)
+    // 3. MILESTONE HORIZON LINES (Obsidian & Gold standard, stable altitude grid)
     ctx.font = '700 11px monospace';
     ctx.textAlign = 'left';
     MILESTONE_VALUES.forEach((milestoneValue, index) => {
-      const y = height - (milestoneValue - 1) * scaleY;
+      const y = getCrashMilestoneY(milestoneValue, padY, maxClimb);
       if (y < 0 || y > height) return;
       const isReached = index < lastMilestoneIndexRef.current;
 
@@ -376,225 +543,276 @@ export function useCrashGameLoop(params: CrashGameLoopParams) {
       ctx.fillText(`${milestoneValue}x`, 12, y + 2);
     });
 
-    if (pointsRef.current.length < 2) {
-      if (status === 'IDLE') {
-        const padX = width * 0.16;
-        const padY = height * 0.84;
-
-        // Launchpad Standby Base Structure
-        ctx.save();
-        ctx.fillStyle = 'rgba(20, 20, 30, 0.9)';
-        ctx.strokeStyle = 'rgba(212, 175, 55, 0.4)';
-        ctx.lineWidth = 1.5;
-
-        // Platform base
-        ctx.beginPath();
-        ctx.moveTo(padX - 45, padY + 18);
-        ctx.lineTo(padX + 45, padY + 18);
-        ctx.lineTo(padX + 35, padY + 32);
-        ctx.lineTo(padX - 35, padY + 32);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        // Support clamp arm
-        ctx.strokeStyle = 'rgba(212, 175, 55, 0.3)';
-        ctx.beginPath();
-        ctx.moveTo(padX - 25, padY + 18);
-        ctx.lineTo(padX - 25, padY - 8);
-        ctx.lineTo(padX - 15, padY - 8);
-        ctx.stroke();
-
-        // Standby Rocket on pad
-        ctx.save();
-        ctx.translate(padX, padY);
-        ctx.rotate(-Math.PI * 0.16); // Tilted ~29° pointing up-right ready for launch
-
-        // Warm thruster standby idle glow
-        const idlePulse = Math.sin(performance.now() * 0.005) * 0.2 + 0.5;
-        const thrusterIdleGlow = ctx.createRadialGradient(-20, 0, 1, -20, 0, 26);
-        thrusterIdleGlow.addColorStop(0, `rgba(255, 180, 50, ${0.45 * idlePulse})`);
-        thrusterIdleGlow.addColorStop(0.6, `rgba(212, 175, 55, ${0.18 * idlePulse})`);
-        thrusterIdleGlow.addColorStop(1, 'transparent');
-        ctx.fillStyle = thrusterIdleGlow;
-        ctx.beginPath();
-        ctx.arc(-20, 0, 26, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Render Rocket Vector
-        if (rocketImgRef.current && rocketImgRef.current.complete) {
-          ctx.drawImage(rocketImgRef.current, -32, -16, 64, 32);
-        } else {
-          ctx.fillStyle = '#14141a';
-          ctx.strokeStyle = '#D4AF37';
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.ellipse(0, 0, 20, 8, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-        }
-        ctx.restore();
-        ctx.restore();
-      }
-
+    // 4. STANDBY / PRE-LAUNCH STATE (Ship docked on pad)
+    if (status === 'IDLE') {
+      drawDockingPad(ctx, padX, padY, false, false, false);
+      drawStandbyRocket(ctx, padX, padY, rocketImgRef.current);
       updateAndDrawParticles(ctx);
       ctx.restore();
       return;
     }
 
-    const rocketPixelX = width * ROCKET_X_FRACTION;
-    const windowScaleX = rocketPixelX / WINDOW_POINTS;
-    const windowStart = Math.max(0, pointsRef.current.length - WINDOW_POINTS);
-    const visiblePoints = pointsRef.current.slice(windowStart);
-    const xForIndex = (index: number) => index * windowScaleX;
+    // 5. ACTIVE ORBITAL DOCKING PAD BASE STATION
+    drawDockingPad(ctx, padX, padY, true, isCrashed, isCashedOut);
 
-    // 3. FLIGHT CURVE RENDERING (Luxury Gold / Emerald / Ruby)
-    const curveGradient = ctx.createLinearGradient(0, height, rocketPixelX, 0);
-    if (isCrashed) {
-      curveGradient.addColorStop(0, '#7f1d1d');
-      curveGradient.addColorStop(1, '#ef4444');
-    } else if (isCashedOut) {
-      curveGradient.addColorStop(0, '#065f46');
-      curveGradient.addColorStop(1, '#10b981');
-    } else {
-      // Obsidian & Gold 24k Palette
-      curveGradient.addColorStop(0, 'rgba(212, 175, 55, 0.6)');
-      curveGradient.addColorStop(0.7, '#D4AF37');
-      curveGradient.addColorStop(1, '#FFF5C0');
+    // Exponential flight path geometry helpers
+    const CURVE_SAMPLES = 50;
+    const getBeamPoint = (t: number) => {
+      const px = padX + (rocketX - padX) * Math.pow(t, 1.15);
+      const py = padY - (padY - rocketY) * Math.pow(t, 2.15);
+      return { x: px, y: py };
+    };
+
+    // 6. HOLOGRAPHIC ALTITUDE DROPLINES & 3D GROUND RADAR BEACONS (Milestone L3)
+    if (rocketX - padX > 25) {
+      const waypoints = [0.28, 0.58, 0.82];
+      waypoints.forEach((tWp) => {
+        const wp = getBeamPoint(tWp);
+        if (padY - wp.y < 10) return;
+
+        ctx.save();
+        // Fine dashed vertical dropline
+        ctx.strokeStyle = isCrashed
+          ? 'rgba(239, 68, 68, 0.22)'
+          : isCashedOut
+            ? 'rgba(16, 185, 129, 0.22)'
+            : 'rgba(212, 175, 55, 0.22)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 4]);
+        ctx.beginPath();
+        ctx.moveTo(wp.x, wp.y);
+        ctx.lineTo(wp.x, padY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 3D perspective ground beacon ellipse
+        ctx.strokeStyle = isCrashed
+          ? 'rgba(239, 68, 68, 0.4)'
+          : isCashedOut
+            ? 'rgba(16, 185, 129, 0.4)'
+            : 'rgba(212, 175, 55, 0.4)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.ellipse(wp.x, padY, 12, 4, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Center beacon radar ping
+        ctx.fillStyle = isCrashed ? '#EF4444' : isCashedOut ? '#10B981' : '#FFD700';
+        ctx.beginPath();
+        ctx.arc(wp.x, padY, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Curve anchor tick
+        ctx.fillStyle = isCrashed ? '#FCA5A5' : isCashedOut ? '#6EE7B7' : '#FFE082';
+        ctx.beginPath();
+        ctx.arc(wp.x, wp.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // Dynamic live dropline directly below rocket
+      if (padY - rocketY > 12) {
+        ctx.save();
+        ctx.strokeStyle = isCrashed
+          ? 'rgba(239, 68, 68, 0.35)'
+          : isCashedOut
+            ? 'rgba(16, 185, 129, 0.35)'
+            : 'rgba(212, 175, 55, 0.35)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 3]);
+        ctx.beginPath();
+        ctx.moveTo(rocketX, rocketY + 8);
+        ctx.lineTo(rocketX, padY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Dynamic radar sweep circle on ground
+        const radarPulse = Math.sin(performance.now() * 0.006) * 2 + 12;
+        ctx.strokeStyle = isCrashed
+          ? 'rgba(239, 68, 68, 0.65)'
+          : isCashedOut
+            ? 'rgba(16, 185, 129, 0.65)'
+            : 'rgba(255, 215, 0, 0.65)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(rocketX, padY, radarPulse, radarPulse * 0.3, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Telemetry Altitude Tag
+        ctx.font = '600 9px monospace';
+        ctx.fillStyle = isCrashed ? '#EF4444' : isCashedOut ? '#10B981' : 'rgba(212, 175, 55, 0.8)';
+        ctx.textAlign = 'center';
+        ctx.fillText(`ALT ${Math.round((padY - rocketY) * 1.5)}M`, rocketX, padY + 14);
+        ctx.restore();
+      }
     }
 
-    // Curve area fill
-    ctx.beginPath();
-    ctx.moveTo(0, height);
-    visiblePoints.forEach((p, i) => ctx.lineTo(xForIndex(i), height - (p.y - 1) * scaleY));
-    ctx.lineTo(xForIndex(visiblePoints.length - 1), height);
-    const areaGrad = ctx.createLinearGradient(0, 0, 0, height);
-    if (isCrashed) {
-      areaGrad.addColorStop(0, 'rgba(239, 68, 68, 0.25)');
-      areaGrad.addColorStop(1, 'transparent');
-    } else if (isCashedOut) {
-      areaGrad.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
-      areaGrad.addColorStop(1, 'transparent');
-    } else {
-      areaGrad.addColorStop(0, 'rgba(212, 175, 55, 0.22)');
-      areaGrad.addColorStop(0.6, 'rgba(212, 175, 55, 0.05)');
-      areaGrad.addColorStop(1, 'transparent');
+    // 7. QUANTUM ION BEAM MULTI-PASS RENDERING (Milestone L1)
+    if (rocketX - padX > 4) {
+      const curveGradient = ctx.createLinearGradient(padX, padY, rocketX, rocketY);
+      const coreBeamGradient = ctx.createLinearGradient(padX, padY, rocketX, rocketY);
+      if (isCrashed) {
+        curveGradient.addColorStop(0, 'rgba(127, 29, 29, 0.4)');
+        curveGradient.addColorStop(0.6, '#EF4444');
+        curveGradient.addColorStop(1, '#FCA5A5');
+
+        coreBeamGradient.addColorStop(0, '#7F1D1D');
+        coreBeamGradient.addColorStop(1, '#FFFFFF');
+      } else if (isCashedOut) {
+        curveGradient.addColorStop(0, 'rgba(6, 95, 70, 0.4)');
+        curveGradient.addColorStop(0.6, '#10B981');
+        curveGradient.addColorStop(1, '#6EE7B7');
+
+        coreBeamGradient.addColorStop(0, '#065F46');
+        coreBeamGradient.addColorStop(1, '#ECFDF5');
+      } else {
+        curveGradient.addColorStop(0, 'rgba(212, 175, 55, 0.25)');
+        curveGradient.addColorStop(0.5, '#D4AF37');
+        curveGradient.addColorStop(1, '#FFE082');
+
+        coreBeamGradient.addColorStop(0, '#B8860B');
+        coreBeamGradient.addColorStop(0.7, '#FFF5C0');
+        coreBeamGradient.addColorStop(1, '#FFFFFF');
+      }
+
+      const traceBeamPath = () => {
+        ctx.moveTo(padX, padY);
+        for (let i = 1; i <= CURVE_SAMPLES; i++) {
+          const pt = getBeamPoint(i / CURVE_SAMPLES);
+          if (isCrashed) {
+            const jitter = (pseudoRandom(prngSeedRef) - 0.5) * 2;
+            ctx.lineTo(pt.x, pt.y + jitter);
+          } else {
+            ctx.lineTo(pt.x, pt.y);
+          }
+        }
+      };
+
+      // Pass 1: Curved Atmospheric Mist Area Fill
+      ctx.beginPath();
+      ctx.moveTo(padX, padY);
+      for (let i = 1; i <= CURVE_SAMPLES; i++) {
+        const pt = getBeamPoint(i / CURVE_SAMPLES);
+        ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.lineTo(rocketX, padY);
+      ctx.closePath();
+      const areaGrad = ctx.createLinearGradient(0, rocketY, 0, padY);
+      if (isCrashed) {
+        areaGrad.addColorStop(0, 'rgba(239, 68, 68, 0.2)');
+        areaGrad.addColorStop(1, 'transparent');
+      } else if (isCashedOut) {
+        areaGrad.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
+        areaGrad.addColorStop(1, 'transparent');
+      } else {
+        areaGrad.addColorStop(0, 'rgba(212, 175, 55, 0.18)');
+        areaGrad.addColorStop(0.6, 'rgba(212, 175, 55, 0.03)');
+        areaGrad.addColorStop(1, 'transparent');
+      }
+      ctx.fillStyle = areaGrad;
+      ctx.fill();
+
+      // Pass 2: Outer Plasma Aura Glow Layer
+      ctx.save();
+      ctx.lineWidth = 12;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.shadowBlur = 24;
+      ctx.shadowColor = isCrashed
+        ? 'rgba(239, 68, 68, 0.85)'
+        : isCashedOut
+          ? 'rgba(16, 185, 129, 0.85)'
+          : 'rgba(212, 175, 55, 0.85)';
+      ctx.strokeStyle = curveGradient;
+      ctx.beginPath();
+      traceBeamPath();
+      ctx.stroke();
+      ctx.restore();
+
+      // Pass 3: Middle Luminous Ribbon Layer
+      ctx.save();
+      ctx.lineWidth = 4.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = isCrashed ? '#EF4444' : isCashedOut ? '#10B981' : '#FFD700';
+      ctx.strokeStyle = curveGradient;
+      ctx.beginPath();
+      traceBeamPath();
+      ctx.stroke();
+      ctx.restore();
+
+      // Pass 4: Ultra-Sharp Core Filament
+      ctx.save();
+      ctx.lineWidth = 1.8;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.shadowBlur = 4;
+      ctx.shadowColor = isCrashed ? '#FFFFFF' : isCashedOut ? '#ECFDF5' : '#FFFDF0';
+      ctx.strokeStyle = coreBeamGradient;
+      ctx.beginPath();
+      traceBeamPath();
+      ctx.stroke();
+      ctx.restore();
+
+      // 8. KINETIC PHOTONIC PULSES (Traveling Laser Packets) (Milestone L2)
+      if (isRunning && rocketX - padX > 25) {
+        const pulseCount = 5;
+        const pulseSpeed = 0.0006 + riskFactor * 0.0006;
+        const now = performance.now();
+
+        for (let k = 0; k < pulseCount; k++) {
+          const tPulse = (now * pulseSpeed + k / pulseCount) % 1.0;
+          const pos = getBeamPoint(tPulse);
+          const prevPos = getBeamPoint(Math.max(0, tPulse - 0.04));
+
+          // Trailing energy tail
+          const tailGrad = ctx.createLinearGradient(prevPos.x, prevPos.y, pos.x, pos.y);
+          tailGrad.addColorStop(0, 'transparent');
+          tailGrad.addColorStop(1, 'rgba(255, 235, 150, 0.7)');
+
+          ctx.save();
+          ctx.strokeStyle = tailGrad;
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(prevPos.x, prevPos.y);
+          ctx.lineTo(pos.x, pos.y);
+          ctx.stroke();
+
+          // Luminous pulse core
+          ctx.fillStyle = '#FFFFFF';
+          ctx.shadowColor = '#FFD700';
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Outer ion ring
+          ctx.strokeStyle = 'rgba(212, 175, 55, 0.6)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, 4.5, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
     }
-    ctx.fillStyle = areaGrad;
-    ctx.fill();
 
-    // Outer Glow Layer
-    ctx.save();
-    ctx.lineWidth = 10;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = isCrashed
-      ? 'rgba(239, 68, 68, 0.8)'
-      : isCashedOut
-        ? 'rgba(16, 185, 129, 0.8)'
-        : 'rgba(212, 175, 55, 0.8)';
-    ctx.strokeStyle = curveGradient;
-    ctx.beginPath();
-    visiblePoints.forEach((p, i) => {
-      const x = xForIndex(i);
-      const y = height - (p.y - 1) * scaleY;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
-    ctx.restore();
-
-    // Sharp Core Flight Line
-    ctx.save();
-    ctx.lineWidth = 3.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = curveGradient;
-    ctx.beginPath();
-    visiblePoints.forEach((p, i) => {
-      const x = xForIndex(i);
-      const y = height - (p.y - 1) * scaleY;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
-    ctx.restore();
-
-    // 4. LEVER 1: ROCKET SPRITE & DYNAMIC PLASMA JET ENGINE
+    // 9. QUANTUM INTERCEPTOR SPACECRAFT & DUAL ION EXHAUST
     if (isRunning || isCashedOut) {
-      const last = visiblePoints[visiblePoints.length - 1];
-      const prev = visiblePoints[Math.max(0, visiblePoints.length - 3)] || last;
-      const rocketX = xForIndex(visiblePoints.length - 1);
-      const rocketY = height - (last.y - 1) * scaleY;
-      const prevX = xForIndex(Math.max(0, visiblePoints.length - 3));
-      const prevY = height - (prev.y - 1) * scaleY;
-
-      // Smooth flight tangent angle
-      const flightAngle = Math.atan2(rocketY - prevY, rocketX - prevX);
-
-      // Spawn dynamic particle exhaust trail
-      if (isRunning) {
+      if (isRunning && rocketX - padX > 10) {
         createTail(rocketX, rocketY, flightAngle, riskFactor);
       }
 
-      ctx.save();
-      ctx.translate(rocketX, rocketY);
-      ctx.rotate(flightAngle);
-
-      // Radial thruster glow behind nozzle
-      const thrusterGlow = ctx.createRadialGradient(-24, 0, 2, -24, 0, 45);
-      thrusterGlow.addColorStop(
-        0,
-        isCashedOut ? 'rgba(74, 222, 128, 0.8)' : 'rgba(255, 215, 0, 0.85)',
+      drawFlyingRocket(
+        ctx,
+        rocketX,
+        rocketY,
+        flightAngle,
+        riskFactor,
+        isCashedOut,
+        rocketImgRef.current,
       );
-      thrusterGlow.addColorStop(0.5, 'rgba(255, 120, 0, 0.4)');
-      thrusterGlow.addColorStop(1, 'transparent');
-      ctx.fillStyle = thrusterGlow;
-      ctx.beginPath();
-      ctx.arc(-24, 0, 45, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Dynamic Oscillating Plasma Jet Flame
-      if (isRunning) {
-        const flamePulse = Math.sin(performance.now() * 0.04) * 6;
-        const flameLength = 32 + riskFactor * 25 + flamePulse;
-
-        // Outer Flame (Orange)
-        ctx.fillStyle = '#FF6B00';
-        ctx.beginPath();
-        ctx.moveTo(-18, -6);
-        ctx.lineTo(-18 - flameLength, 0);
-        ctx.lineTo(-18, 6);
-        ctx.closePath();
-        ctx.fill();
-
-        // Inner Core Flame (White/Yellow Plasma)
-        ctx.fillStyle = '#FFF5C0';
-        ctx.beginPath();
-        ctx.moveTo(-18, -3);
-        ctx.lineTo(-18 - flameLength * 0.65, 0);
-        ctx.lineTo(-18, 3);
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      // Render Clean Vector Rocket
-      if (rocketImgRef.current && rocketImgRef.current.complete) {
-        // Draw centered rocket SVG
-        ctx.drawImage(rocketImgRef.current, -32, -16, 64, 32);
-      } else {
-        // Procedural crisp vector fallback
-        ctx.fillStyle = '#14141a';
-        ctx.strokeStyle = '#D4AF37';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 20, 8, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-      }
-
-      ctx.restore();
     }
 
     updateAndDrawParticles(ctx);
@@ -719,12 +937,8 @@ export function useCrashGameLoop(params: CrashGameLoopParams) {
               if (canvas) {
                 const width = canvas.clientWidth;
                 const height = canvas.clientHeight;
-                const rocketPixelX = width * ROCKET_X_FRACTION;
-                const windowScaleX = rocketPixelX / WINDOW_POINTS;
-                const explosionX =
-                  Math.min(pointsRef.current.length - 1, WINDOW_POINTS - 1) * windowScaleX;
-                const scaleY = height / Math.max(5, next + 1);
-                createExplosion(explosionX, height - (next - 1) * scaleY);
+                const { rocketX, rocketY } = getCrashTrajectoryState(width, height, next);
+                createExplosion(rocketX, rocketY);
               }
             } else {
               const finalPoint = parseFloat(next.toFixed(2));

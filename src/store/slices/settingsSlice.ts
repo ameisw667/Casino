@@ -32,6 +32,7 @@ export const createSettingsSlice: StateCreator<CasinoState, [], [], SettingsSlic
   },
   affiliateRef: null,
   onboardingStep: 'NONE',
+  onboardingDismissed: false,
 
   updateSettings: (settings) => {
     if (settings.soundEnabled !== undefined) soundManager.toggle(settings.soundEnabled);
@@ -62,10 +63,19 @@ export const createSettingsSlice: StateCreator<CasinoState, [], [], SettingsSlic
 
   setAffiliateRef: (ref) => set({ affiliateRef: ref }),
 
-  startOnboarding: () => {
+  startOnboarding: (force = false) => {
     void trackAllowedEvent({ name: 'cta_play_now_clicked' });
+    // force = expliziter Wiedereinstieg („So funktioniert es"): volle Tour inkl. WELCOME,
+    // deshalb wird ein gemerktes Dismiss aufgehoben. Der Play-Now-Default respektiert es
+    // — OnboardingFlow springt bei dismissed direkt zu LOGIN.
+    if (force) {
+      set({ onboardingStep: 'WELCOME', onboardingDismissed: false });
+      return;
+    }
     set({ onboardingStep: 'WELCOME' });
   },
+
+  dismissOnboarding: () => set({ onboardingStep: 'NONE', onboardingDismissed: true }),
 
   setOnboardingStep: (step) => set({ onboardingStep: step }),
 });

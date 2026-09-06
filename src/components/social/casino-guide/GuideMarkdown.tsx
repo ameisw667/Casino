@@ -203,6 +203,7 @@ function MarkdownMessage({ content }: { content: string }) {
             color: 'hsl(var(--primary))',
             margin: '10px 0 4px 0',
             letterSpacing: '0.02em',
+            textWrap: 'balance',
           }}
         >
           {parseInlineMarkdown(headingText)}
@@ -240,7 +241,15 @@ function MarkdownMessage({ content }: { content: string }) {
 
     // Regular paragraph
     elements.push(
-      <p key={`p-${i}`} style={{ margin: '4px 0', fontSize: '0.80rem', lineHeight: 1.55 }}>
+      <p
+        key={`p-${i}`}
+        style={{
+          margin: '4px 0',
+          fontSize: '0.80rem',
+          lineHeight: 1.55,
+          textWrap: 'pretty',
+        }}
+      >
         {parseInlineMarkdown(trimmed)}
       </p>,
     );

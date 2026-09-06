@@ -112,8 +112,18 @@ export const apiClient = {
 
   user: {
     balance: <T = Record<string, unknown>>() => apiFetch<T>('/api/user/balance'),
-    history: <T = { rows: Array<Record<string, unknown>> }>(limit = 20, offset = 0) =>
-      apiFetch<T>(`/api/user/history?limit=${limit}&offset=${offset}`),
+    history: <
+      T = { rows: Array<Record<string, unknown>>; nextCursor: string | null; hasMore: boolean },
+    >(
+      cursor?: string,
+      limit?: number,
+    ) => {
+      const params = new URLSearchParams();
+      if (cursor) params.set('cursor', cursor);
+      if (limit) params.set('limit', String(limit));
+      const qs = params.toString();
+      return apiFetch<T>(`/api/user/history${qs ? `?${qs}` : ''}`);
+    },
     stats: <T = Record<string, unknown>>() => apiFetch<T>('/api/user/stats'),
     loginHistory: <T = { history: Array<Record<string, unknown>> }>() =>
       apiFetch<T>('/api/user/login-history'),
@@ -141,6 +151,7 @@ export const apiClient = {
     games: <T = Record<string, unknown>>() => apiFetch<T>('/api/admin/games'),
     analytics: <T = Record<string, unknown>>() => apiFetch<T>('/api/admin/analytics'),
     fraud: <T = Array<Record<string, unknown>>>() => apiFetch<T>('/api/admin/fraud'),
+    jobHealth: <T = Record<string, unknown>>() => apiFetch<T>('/api/admin/job-health'),
     promoCodes: <T = Array<Record<string, unknown>>>() => apiFetch<T>('/api/admin/promo-codes'),
   },
 };

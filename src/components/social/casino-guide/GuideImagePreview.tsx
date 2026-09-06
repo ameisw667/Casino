@@ -62,7 +62,7 @@ export function GuideImagePreview({ attachedImage, onRemove }: GuideImagePreview
         <span
           style={{
             fontSize: '0.72rem',
-            color: '#ffd700',
+            color: '#D4AF37',
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
