@@ -272,18 +272,19 @@ export function MainSidebar({
                       data-sidebar-nav-image
                       aria-hidden="true"
                       style={{
-                        width: '22px',
-                        height: '22px',
+                        width: '28px',
+                        height: '28px',
                         position: 'relative',
                         flexShrink: 0,
-                        opacity: active ? 0.78 : 0.46,
+                        overflow: 'hidden',
+                        opacity: active ? 0.72 : 0.48,
                       }}
                     >
                       <Image
                         src={item.imageSrc}
                         alt=""
                         fill
-                        sizes="22px"
+                        sizes="28px"
                         style={{ objectFit: 'contain' }}
                       />
                     </span>

@@ -305,7 +305,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     {
       label: 'Lobby',
       path: '/',
-      imageSrc: '/images/2026-09-06_sidebar-icon-lobby_v001.png',
+      imageSrc: '/images/2026-09-06_sidebar-icon-lobby-guide_v001.png',
     },
     { label: 'Games', path: '/games' },
     { label: 'My Bets', path: '/history' },

@@ -74,7 +74,7 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
     };
     window.addEventListener('royale-guide-open-with-prompt', handleCustomOpen);
     return () => window.removeEventListener('royale-guide-open-with-prompt', handleCustomOpen);
-  }, []);
+  }, [isMobile]);
 
   // Escape-Key-Handling & Focus-Trap for WCAG 2.2 AAA Dialog Compliance
   useEffect(() => {
@@ -204,250 +204,268 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
       {/* Chat Panel / Modal */}
       <AnimatePresence>
         {isOpen && (
-          <motion.section
-            ref={panelRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="royale-guide-title"
-            aria-label="Royale Guide"
-            drag={isMobile ? 'x' : false}
-            dragConstraints={{ left: 0, right: 300 }}
-            dragElastic={{ left: 0.04, right: 0.5 }}
-            onDragEnd={(_, info) => {
-              if (isMobile && (info.offset.x > 80 || info.velocity.x > 350)) {
-                setIsOpen(false);
-                setIsExpanded(false);
-              }
-            }}
-            initial={
-              shouldReduceMotion
-                ? { opacity: 0 }
-                : {
-                    opacity: 0,
-                    scale: 0.96,
-                  }
-            }
-            animate={{
-              opacity: 1,
-              scale: 1,
-            }}
-            exit={
-              shouldReduceMotion
-                ? { opacity: 0 }
-                : {
-                    opacity: 0,
-                    scale: 0.96,
-                  }
-            }
-            transition={
-              shouldReduceMotion
-                ? { duration: 0.15 }
-                : { type: 'spring', bounce: 0.15, duration: 0.3 }
-            }
+          <motion.div
+            key="royale-guide-container"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
             style={{
               position: 'fixed',
+              inset: 0,
               zIndex: 46,
+              pointerEvents: 'none',
               display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-              border: 'none',
-              borderRadius: '20px',
-              background: '#0B0E14',
-              boxShadow:
-                '0 30px 80px rgba(0, 0, 0, 0.95), 0 0 50px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
-              touchAction: isMobile ? 'pan-y' : 'auto',
-              ...(isExpanded && !isMobile
-                ? {
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: 'min(880px, calc(100vw - 32px))',
-                    height: 'min(680px, calc(100dvh - 64px))',
-                    maxHeight: 'calc(100dvh - 48px)',
-                    right: 'auto',
-                    bottom: 'auto',
-                  }
-                : {
-                    top: 'auto',
-                    left: 'auto',
-                    transform: 'none',
-                    right: isMobile ? '12px' : '24px',
-                    bottom: panelBottom,
-                    width: isMobile ? 'calc(100% - 24px)' : '380px',
-                    height: isMobile ? 'calc(100dvh - 112px)' : 'min(580px, calc(100dvh - 48px))',
-                    maxHeight: 'calc(100dvh - 48px)',
-                  }),
+              alignItems: isExpanded && !isMobile ? 'center' : 'flex-end',
+              justifyContent: isExpanded && !isMobile ? 'center' : 'flex-end',
+              paddingTop: '24px',
+              paddingBottom: panelBottom,
+              paddingRight: isMobile ? '12px' : '24px',
+              paddingLeft: isMobile ? '12px' : '24px',
             }}
           >
-            {/* AI-Generated Obsidian-Velvet Backdrop with Parallax Breathing Drift */}
-            <motion.div
-              aria-hidden="true"
-              animate={
+            <motion.section
+              ref={panelRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="royale-guide-title"
+              aria-label="Royale Guide"
+              drag={isMobile ? 'x' : false}
+              dragConstraints={{ left: 0, right: 300 }}
+              dragElastic={{ left: 0.04, right: 0.5 }}
+              onDragEnd={(_, info) => {
+                if (isMobile && (info.offset.x > 80 || info.velocity.x > 350)) {
+                  setIsOpen(false);
+                  setIsExpanded(false);
+                }
+              }}
+              initial={
                 shouldReduceMotion
-                  ? { opacity: 1 }
+                  ? { opacity: 0 }
                   : {
-                      scale: [1, 1.025, 1],
-                      opacity: [0.95, 1, 0.95],
+                      opacity: 0,
+                      scale: 0.96,
+                    }
+              }
+              animate={{
+                opacity: 1,
+                scale: 1,
+              }}
+              exit={
+                shouldReduceMotion
+                  ? { opacity: 0 }
+                  : {
+                      opacity: 0,
+                      scale: 0.96,
                     }
               }
               transition={
                 shouldReduceMotion
-                  ? undefined
-                  : {
-                      duration: 18,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    }
+                  ? { duration: 0.15 }
+                  : { type: 'spring', bounce: 0.15, duration: 0.3 }
               }
               style={{
-                position: 'absolute',
-                inset: '-10px',
-                backgroundImage:
-                  'url(/images/2026-09-05_backdrop-royale-guide-obsidian-velvet_v001.png)',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                pointerEvents: 'none',
-                zIndex: 0,
+                position: 'relative',
+                pointerEvents: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+                border: 'none',
+                borderRadius: '20px',
+                background: '#0B0E14',
+                boxShadow:
+                  '0 30px 80px rgba(0, 0, 0, 0.95), 0 0 50px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
+                touchAction: isMobile ? 'pan-y' : 'auto',
+                width:
+                  isExpanded && !isMobile
+                    ? 'min(880px, calc(100vw - 48px))'
+                    : isMobile
+                      ? 'calc(100% - 24px)'
+                      : '380px',
+                height:
+                  isExpanded && !isMobile
+                    ? 'min(680px, calc(100dvh - 64px))'
+                    : isMobile
+                      ? 'calc(100dvh - 112px)'
+                      : 'min(580px, calc(100dvh - 48px))',
+                maxHeight: 'calc(100dvh - 48px)',
               }}
-            />
-
-            {/* Internal Ambient Light Orbs */}
-            <div
-              aria-hidden="true"
-              style={{
-                position: 'absolute',
-                top: '-40px',
-                right: '-40px',
-                width: '240px',
-                height: '240px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 70%)',
-                filter: 'blur(50px)',
-                pointerEvents: 'none',
-                zIndex: 0,
-              }}
-            />
-            <div
-              aria-hidden="true"
-              style={{
-                position: 'absolute',
-                bottom: '-30px',
-                left: '-30px',
-                width: '200px',
-                height: '200px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(180, 140, 30, 0.08) 0%, transparent 70%)',
-                filter: 'blur(45px)',
-                pointerEvents: 'none',
-                zIndex: 0,
-              }}
-            />
-            {/* Visual Drag Handle for Mobile Swipe-to-Dismiss */}
-            {isMobile && (
-              <div
+            >
+              {/* AI-Generated Obsidian-Velvet Backdrop with Parallax Breathing Drift */}
+              <motion.div
+                aria-hidden="true"
+                animate={
+                  shouldReduceMotion
+                    ? { opacity: 1 }
+                    : {
+                        scale: [1, 1.025, 1],
+                        opacity: [0.95, 1, 0.95],
+                      }
+                }
+                transition={
+                  shouldReduceMotion
+                    ? undefined
+                    : {
+                        duration: 18,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }
+                }
                 style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  paddingTop: '8px',
-                  paddingBottom: '2px',
-                  width: '100%',
+                  position: 'absolute',
+                  inset: '-10px',
+                  backgroundImage:
+                    'url(/images/2026-09-05_backdrop-royale-guide-obsidian-velvet_v001.png)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  pointerEvents: 'none',
+                  zIndex: 0,
                 }}
-                aria-hidden
-              >
+              />
+
+              {/* Internal Ambient Light Orbs */}
+              <div
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  top: '-40px',
+                  right: '-40px',
+                  width: '240px',
+                  height: '240px',
+                  borderRadius: '50%',
+                  background:
+                    'radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 70%)',
+                  filter: 'blur(50px)',
+                  pointerEvents: 'none',
+                  zIndex: 0,
+                }}
+              />
+              <div
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  bottom: '-30px',
+                  left: '-30px',
+                  width: '200px',
+                  height: '200px',
+                  borderRadius: '50%',
+                  background:
+                    'radial-gradient(circle, rgba(180, 140, 30, 0.08) 0%, transparent 70%)',
+                  filter: 'blur(45px)',
+                  pointerEvents: 'none',
+                  zIndex: 0,
+                }}
+              />
+              {/* Visual Drag Handle for Mobile Swipe-to-Dismiss */}
+              {isMobile && (
                 <div
                   style={{
-                    width: '36px',
-                    height: '4px',
-                    borderRadius: '2px',
-                    background: 'rgba(212, 175, 55, 0.4)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    paddingTop: '8px',
+                    paddingBottom: '2px',
+                    width: '100%',
                   }}
-                />
-              </div>
-            )}
-
-            {/* Header */}
-            <div style={{ position: 'relative', zIndex: 2, flexShrink: 0 }}>
-              <GuideHeader
-                activePersona={activePersona}
-                isExpanded={isExpanded}
-                isMobile={isMobile}
-                onToggleExpand={() => setIsExpanded((prev) => !prev)}
-                onClose={() => {
-                  setIsOpen(false);
-                  setIsExpanded(false);
-                }}
-                onSelectPersona={handleSelectPersona}
-              />
-            </div>
-
-            {/* Main Content Area */}
-            <div
-              style={{ display: 'flex', flex: 1, minHeight: 0, position: 'relative', zIndex: 1 }}
-            >
-              {/* Desktop 2-Column Sidebar */}
-              {isExpanded && !isMobile && (
-                <GuideSidebar
-                  isSending={isSending}
-                  onTopicClick={(prompt: string) => handleSend(prompt)}
-                />
+                  aria-hidden
+                >
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '4px',
+                      borderRadius: '2px',
+                      background: 'rgba(212, 175, 55, 0.4)',
+                    }}
+                  />
+                </div>
               )}
 
-              {/* Chat Conversation Column */}
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  flex: 1,
-                  minWidth: 0,
-                  position: 'relative',
-                }}
-              >
-                {/* Scrollable Message Feed */}
-                <GuideMessageList
-                  turns={turns}
-                  isSending={isSending}
+              {/* Header */}
+              <div style={{ position: 'relative', zIndex: 2, flexShrink: 0 }}>
+                <GuideHeader
+                  activePersona={activePersona}
                   isExpanded={isExpanded}
-                  copiedId={copiedId}
-                  feedbackMap={feedbackMap}
-                  playingMessageId={playingMessageId}
-                  activeToolName={activeToolName}
-                  onCopy={copyToClipboard}
-                  onFeedback={handleFeedback}
-                  onActionClick={handleActionClick}
-                  onSuggestionClick={(query: string) => handleSend(query)}
-                  onPlayVoice={handlePlayVoice}
-                />
-
-                {/* Screenshot / Image Preview Chip */}
-                {attachedImage && (
-                  <GuideImagePreview attachedImage={attachedImage} onRemove={clearAttachedImage} />
-                )}
-
-                {/* Voice Recording Active Banner with Real-time FFT Waveform */}
-                {isRecording && <GuideVoiceBanner onStop={toggleRecording} />}
-
-                {/* Voice Status / Error Banner */}
-                {voiceStatusMessage && <GuideVoiceErrorBanner message={voiceStatusMessage} />}
-
-                {/* Accessible Input Form */}
-                <GuideInputForm
-                  draft={draft}
-                  isSending={isSending}
-                  isCompressing={isCompressing}
-                  isRecording={isRecording}
-                  isTranscribing={isTranscribing}
-                  attachedImage={attachedImage}
-                  fileInputRef={fileInputRef}
-                  onDraftChange={setDraft}
-                  onPaste={handlePaste}
-                  onSend={() => handleSend()}
-                  onFileSelect={handleFileSelect}
-                  onToggleRecording={toggleRecording}
+                  isMobile={isMobile}
+                  onToggleExpand={() => setIsExpanded((prev) => !prev)}
+                  onClose={() => {
+                    setIsOpen(false);
+                    setIsExpanded(false);
+                  }}
+                  onSelectPersona={handleSelectPersona}
                 />
               </div>
-            </div>
-          </motion.section>
+
+              {/* Main Content Area */}
+              <div
+                style={{ display: 'flex', flex: 1, minHeight: 0, position: 'relative', zIndex: 1 }}
+              >
+                {/* Desktop 2-Column Sidebar */}
+                {isExpanded && !isMobile && (
+                  <GuideSidebar
+                    isSending={isSending}
+                    onTopicClick={(prompt: string) => handleSend(prompt)}
+                  />
+                )}
+
+                {/* Chat Conversation Column */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flex: 1,
+                    minWidth: 0,
+                    position: 'relative',
+                  }}
+                >
+                  {/* Scrollable Message Feed */}
+                  <GuideMessageList
+                    turns={turns}
+                    isSending={isSending}
+                    isExpanded={isExpanded}
+                    copiedId={copiedId}
+                    feedbackMap={feedbackMap}
+                    playingMessageId={playingMessageId}
+                    activeToolName={activeToolName}
+                    onCopy={copyToClipboard}
+                    onFeedback={handleFeedback}
+                    onActionClick={handleActionClick}
+                    onSuggestionClick={(query: string) => handleSend(query)}
+                    onPlayVoice={handlePlayVoice}
+                  />
+
+                  {/* Screenshot / Image Preview Chip */}
+                  {attachedImage && (
+                    <GuideImagePreview
+                      attachedImage={attachedImage}
+                      onRemove={clearAttachedImage}
+                    />
+                  )}
+
+                  {/* Voice Recording Active Banner with Real-time FFT Waveform */}
+                  {isRecording && <GuideVoiceBanner onStop={toggleRecording} />}
+
+                  {/* Voice Status / Error Banner */}
+                  {voiceStatusMessage && <GuideVoiceErrorBanner message={voiceStatusMessage} />}
+
+                  {/* Accessible Input Form */}
+                  <GuideInputForm
+                    draft={draft}
+                    isSending={isSending}
+                    isCompressing={isCompressing}
+                    isRecording={isRecording}
+                    isTranscribing={isTranscribing}
+                    attachedImage={attachedImage}
+                    fileInputRef={fileInputRef}
+                    onDraftChange={setDraft}
+                    onPaste={handlePaste}
+                    onSend={() => handleSend()}
+                    onFileSelect={handleFileSelect}
+                    onToggleRecording={toggleRecording}
+                  />
+                </div>
+              </div>
+            </motion.section>
+          </motion.div>
         )}
       </AnimatePresence>
     </>
