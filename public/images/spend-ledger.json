@@ -1,10 +1,10 @@
 {
-  "totalSpentUsd": 3,
+  "totalSpentUsd": 3.48,
   "monthlySpentUsd": {
-    "2026-09": 3
+    "2026-09": 3.48
   },
-  "lifetimeCalls": 33,
-  "lastUpdated": "2026-09-06T08:42:07.203Z",
+  "lifetimeCalls": 39,
+  "lastUpdated": "2026-09-06T09:51:22.219Z",
   "history": [
     {
       "timestamp": "2026-09-02T19:59:33.374Z",
@@ -233,6 +233,48 @@
     {
       "timestamp": "2026-09-06T08:42:07.203Z",
       "name": "sidebar-icon-lobby",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-06T09:51:22.219Z",
+      "name": "icon-ai-guide-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-06T09:51:22.219Z",
+      "name": "icon-promo-bonus-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-06T09:51:22.219Z",
+      "name": "icon-hud-sidebar-badge-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-06T09:51:22.219Z",
+      "name": "icon-trophy-win-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-06T09:51:22.219Z",
+      "name": "icon-trophy-tournament-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-06T09:51:22.219Z",
+      "name": "icon-trophy-record-quantum-gold",
       "size": "1024x1024",
       "quality": "medium",
       "costUsd": 0.08

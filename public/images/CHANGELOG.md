@@ -32,3 +32,9 @@
 - 2026-09-05 — `avatar-obsidian-06` v001 (1024x1024, medium, 1960744 B, sha256:b3e596fa, 48.5s, ~0.08 USD) → `2026-09-05_avatar-obsidian-06_v001.png`
 - 2026-09-05 — `avatar-obsidian-05` v001 (1024x1024, medium, 1890188 B, sha256:3bb619e9, 51.2s, ~0.08 USD) → `2026-09-05_avatar-obsidian-05_v001.png`
 - 2026-09-06 — `sidebar-icon-lobby` v001 (1024x1024, medium, 927442 B, sha256:2400a551, 35.7s, ~0.08 USD) → `2026-09-06_sidebar-icon-lobby_v001.png`
+- 2026-09-06 — `icon-ai-guide-quantum-gold` v001 (1024x1024, medium, 1390630 B, sha256:25febcad, 49.3s, ~0.08 USD) → `2026-09-06_icon-ai-guide-quantum-gold_v001.png`
+- 2026-09-06 — `icon-promo-bonus-quantum-gold` v001 (1024x1024, medium, 1804815 B, sha256:21b2f2c3, 54.6s, ~0.08 USD) → `2026-09-06_icon-promo-bonus-quantum-gold_v001.png`
+- 2026-09-06 — `icon-hud-sidebar-badge-quantum-gold` v001 (1024x1024, medium, 1622585 B, sha256:3b3b2c64, 49.1s, ~0.08 USD) → `2026-09-06_icon-hud-sidebar-badge-quantum-gold_v001.png`
+- 2026-09-06 — `icon-trophy-win-quantum-gold` v001 (1024x1024, medium, 1512486 B, sha256:be890def, 50.3s, ~0.08 USD) → `2026-09-06_icon-trophy-win-quantum-gold_v001.png`
+- 2026-09-06 — `icon-trophy-tournament-quantum-gold` v001 (1024x1024, medium, 1419043 B, sha256:2e49d97c, 52.6s, ~0.08 USD) → `2026-09-06_icon-trophy-tournament-quantum-gold_v001.png`
+- 2026-09-06 — `icon-trophy-record-quantum-gold` v001 (1024x1024, medium, 1475241 B, sha256:dcb1f9dc, 50.6s, ~0.08 USD) → `2026-09-06_icon-trophy-record-quantum-gold_v001.png`

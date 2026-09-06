@@ -1,68 +1,118 @@
-# 27 — Icon-Konsolidierung `Sparkles`: Kontext + Option-Gate (Start-Cluster aus §18.3)
+# 27 — Icon-Konsolidierung `Sparkles` (AI/Guide + Bonus)
 
-> **Status:** Optionen offen — Jan-Entscheidung ausstehend (kein Code-Change, keine Bildgenerierung) · **Stand:** 2026-09-06 · **Owner:** LLM (Jan am Gate) · **Scope:** Nur `Sparkles` (35 Render-Stellen, siehe [`worldmap/ALLE_ICONS_BUTTONS_ANALYSE.md#183-befund-b`](../../worldmap/ALLE_ICONS_BUTTONS_ANALYSE.md)). `Zap`, `Trophy`, `Crown`, `Star`, `ShieldCheck` (18.3, weitere Zeilen) und alle 18.2/18.4-Cluster folgen erst nach diesem Muster.
-> **Money-Pfad:** Nein · **Security-Review:** Nein (reine UI-/Asset-Präsentation)
-
----
-
-## 1 — Ausgangslage (Ist-Zustand, aus der Inventur übernommen)
-
-`Sparkles` ist mit 35 Render-Stellen das am zweithäufigsten überladene Icon der Seite (nach `ShieldCheck`, 37) und trägt laut Analyse (§1) mit am stärksten zum „kinderhaft"-Eindruck bei. Fünf unterschiedliche Bedeutungen laufen aktuell durch dasselbe Glyph:
-
-| Bedeutung                                             | Beispiel-Stellen                                                                                                                                                                                                                                      |
-| :---------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| AI / Royale Guide                                     | `GuideTriggerButton.tsx:54` (Floating-Button, auf **jeder** MainLayout-Seite sichtbar), `DiceCenterStage.tsx:223`, `CrashStage.tsx:133`, `CrashTutorial.tsx:52`, `SlotsCenterStage.tsx:351`, `BlackjackLeftSidebar.tsx:108` (Idle-/Co-Pilot-Hinweise) |
-| Bonus / Jackpot-CTA                                   | `JackpotPulseCard.tsx:138` („JACKPOT KNACKEN")                                                                                                                                                                                                        |
-| Dekorativer Sektions-Header                           | `InteractiveArcadeGrid.tsx:203` („INTERAKTIVE SPIELHALLE")                                                                                                                                                                                            |
-| Spiel-Icon (Slots)                                    | `HistoryTableStream.tsx:69`                                                                                                                                                                                                                           |
-| Sonstige (Glücks-Index, Prüfcode-Copy, Ticker-Zeilen) | `VipPersonalRecords.tsx:42`, `BetReceiptModal.tsx:386`, `LiveHighrollerTickerBar.tsx:97-103`                                                                                                                                                          |
-| Sandbox-Masse (out of scope)                          | `/testing`-Heroes (§16)                                                                                                                                                                                                                               |
-
-**Kernproblem:** „KI" ist von „Bonus" visuell nicht mehr unterscheidbar — genau die Meaning-Creep-Diagnose aus §18.3. Der sichtbarste Einzelfall ist `GuideTriggerButton.tsx:54`, weil er global auf jeder Seite gerendert wird.
+> **Status:** In Execution (L0 erledigt, L1–L4 offen) · **Stand:** 2026-09-06 · **Owner:** LLM (Jan nur bei Gate) · **Scope:** Ausschließlich `Sparkles` (35 Render-Stellen, §18.3 Zeile 1). Keine anderen 18.3-Icons, keine Wallet-/Settlement-Logik.
+> **Kontext:** `Sparkles` überlagert aktuell 5 Bedeutungen im selben Glyph (AI/Guide, Bonus, Sektions-Deko, Slots-Spielicon, Sonstiges) — Kernbefund §1/§18.3 der Icon-Inventur. Gewählt: **Option C** (Icon-Familie, 2 Assets) aus dem Option-Gate vom 2026-09-06 (§6).
+> **Money-Pfad:** Nein · **Security-Review:** Nein (reine UI-/Asset-Präsentation, keine `src/lib/casino/`-, Wallet- oder Auth-Berührung)
+> **Freigabe-Basis:** Option C im Workflow-Jan Option-Gate vom 2026-09-06 (Score 4.28/5, §6).
 
 ---
 
-## 2 — Eingeholter Kontext (Marke, Pipeline, Anti-Pattern)
+## 1 — Übersicht für Jan & Ausführungs-LLM
 
-- **Design-Tokens (verbindlich, `references/design-laws.md` bzw. `xx_sop/04_design_system_ui.md`):** Obsidian `#0B0E14`, Gold `#D4AF37` (Akzent/Flächen) bzw. `#FFD700 → #D4AF37`-Gradient (Vollgold-CTAs), Win-Smaragd `#10b981`, Radien 8–20 px (Buttons/Pills), Glow `0 0 16–20px rgba(212,175,55,0.22–0.45)` bei aktiv.
-- **Bestätigtes Anti-Pattern (`casino-design-system-craft/references/anti-patterns.md`, A2):** „Unmodifizierte Standard-Icons ❌ — kinderhaft aussehende Default-Icons (Lucide ungestylt übernommen)". Regel: „Icons nur mit bewusst gesetzter Größe, Strichstärke und Farbe — oder gar kein Icon." Diese Datei hier ist explizit die „parallele Konversation", auf die A2 verweist.
-- **Bild-Pipeline (bereits produktiv, 5× genutzt für IMG-01–05):** Standardmodell `gpt-image-2` (aktuell Elo-Rang 1 aller Bildmodelle, siehe `09_model_pricing_reference.md`), Sweet-Spot-Qualität `medium`. Ein 1024×1024-Icon-Asset kostet bei `medium` ≈ **$0,032**, bei `high` ≈ **$0,125** — Kosten sind für ein Einzel-Icon vernachlässigbar, kein Entscheidungskriterium.
-- **Vorlage für den Ablauf, falls ein neues Asset entsteht:** `23_big_win_siegel_plan.md` (Meilenstein-Struktur L0–L4, Freigabe-Vermerk „Option X im Workflow-Jan Option-Gate vom …").
-
----
-
-## 3 — Option-Gate (nach `xx_sop/01_workflow_jan_option_gate.md`)
-
-**Kriterien-Gewichtung:** Lerneffekt 30 % · Aufwand/Komplexität 25 % · Risiko 25 % · Wartbarkeit 20 % (Standard-Gewichtung, kein Money-Pfad betroffen → keine Anhebung auf 40 % Risiko).
-
-| Option | Konzept & Architektur                                                                                                                                                                                                                                                                        | Trade-off-Kontext (wann beste Wahl?)                                                                                                                                                  | Aufwand                                                                                       | Score (gewichtet) |
-| :----- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------------------- | :---------------- |
-| **A**  | Reine Semantik-Neuzuordnung: `Sparkles` bleibt exklusiv für AI/Guide (6 Stellen unverändert im Look), die übrigen 29 Stellen wandern auf bereits im Projekt vorhandene Lucide-Icons (Bonus → `Gift`, Slots-Icon → `Cherry`/`Disc3`, Grid-Header → entfernt gem. A2). **0 neue Bild-Assets.** | Bester Griff, wenn dieser Sprint reine Aufräum-Disziplin ist und die Bild-Pipeline für andere Assets (IMG-01–05) Vorrang behalten soll.                                               | ~15 Dateien, ~29 Prop-/Import-Swaps, 0 Assets                                                 | **3.73 / 5**      |
-| **B**  | Ein neues, markentreues Custom-Icon (via `gpt-image-2`, Obsidian & Gold) ersetzt exklusiv die 6 AI/Guide-Stellen (v. a. `GuideTriggerButton.tsx:54`); die 29 Nicht-AI-Stellen wandern wie in A auf bestehende Lucide-Icons.                                                                  | Bester Griff, wenn das Ziel dieser Runde explizit ist, ein selbst erstelltes, nicht-generisches Bild an der sichtbarsten Sparkles-Stelle zu erproben — bevor der Rest des Sets folgt. | Wie A + 1 neues PNG-Asset (~$0,03–0,05, 1–2 Prompt-Iterationen)                               | **3.90 / 5**      |
-| **C**  | Zentrales Icon-Primitive (§18.5, `src/components/ui/icon.tsx`) zuerst bauen; alle 35 Sparkles-Stellen sofort auf benannte Tokens (`ai.guide`, `promo.bonus`, `badge.new`, `game.slots-icon`, …) migrieren, Glyph/Bild wird zentral pro Token gepflegt.                                       | Bester Griff, wenn jetzt schon in Architektur investiert werden soll, um P2–P5 (§18.6) danach mechanisch statt manuell abzuarbeiten.                                                  | Neue Komponente + Migration aller 35 Stellen in einem Zug, vor jedem sichtbaren Bild-Ergebnis | **3.20 / 5**      |
-
-### 3.1 Scoring-Details (1–5, mit Beleg)
-
-| Kriterium (Gewicht)        |                                        A                                         |                                                                      B                                                                       |                                                                    C                                                                    |
-| :------------------------- | :------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: |
-| Lerneffekt (30 %)          |             2.5 — reine Umverteilung, keine neue Pipeline-Anwendung              | 4.5 — durchläuft den vollen Bild-Workflow (Prompt → `gpt-image-2` → Freistellung → Einbindung) an einem konkreten, global sichtbaren Element |         4.0 — sauberes Architektur-Pattern (Token-Registry), aber ohne sofort sichtbares Ergebnis für das „kinderhaft"-Problem          |
-| Aufwand/Komplexität (25 %) |                       5.0 — 0 neue Assets, kleinster Diff                        |                                              3.0 — 1 Asset + dieselben 29 Umverteilungen wie A                                               |                                    1.5 — größter Aufwand: neue Komponente + 35 Stellen in einem Zug                                     |
-| Risiko (25 %)              |                4.5 — keine neue Abhängigkeit, reine Anzeige-Swaps                |          4.0 — Pipeline bereits 5× produktiv genutzt (IMG-01–05), Kosten <$0,05; einziges Risiko ist Bildqualität/Iterationsbedarf           | 2.5 — größter Blast-Radius (alle 35 Stellen gleichzeitig angefasst), Overengineering-Risiko, ohne dass 18.2–18.4 schon entschieden sind |
-| Wartbarkeit (20 %)         | 3.0 — löst Überladung, AI-Icon bleibt aber optisch unverändertes Standard-Lucide |         4.0 — AI-Marke wird eindeutig (1 Bild statt 1 Icon), deckt sich exakt mit dem §18.3-Vorschlag „Sparkles = AI/Guide exklusiv"         |                   5.0 — genau das in §18.5 beschriebene Ziel; jede künftige Cluster-Migration wird danach mechanisch                    |
-
-### 3.2 Tie-Break & Gegenprobe
-
-- **Top-2-Abstand:** B (3.90) − A (3.73) = 0.17 ≤ 0.3 → **Tie-Break-Regel greift**, entscheidet zwingend Risiko. A hat den besseren Risiko-Wert (4.5 vs. 4.0) → **mechanisch führt A.**
-- **Aber — Pre-Mortem für A (Führungsoption laut Tie-Break):** _Scheitert Option A in 6 Monaten, woran läge es am wahrscheinlichsten?_ Daran, dass das AI/Guide-Icon am sichtbarsten Punkt der ganzen App (`GuideTriggerButton.tsx:54`, auf jeder Seite gerendert) ein generisches Lucide-Sternchen bleibt — Jans ursprüngliches „kinderhaft"-Problem bleibt an der auffälligsten Stelle ungelöst, und ein Nachfolge-Auftrag für genau das Custom-Icon aus Option B wird ohnehin fällig, dann aber mit doppeltem Umbauaufwand am selben Button.
-- **Gegenprobe B:** B führt, wenn Jans Priorität für diese Runde tatsächlich „erstes sichtbares Ergebnis gegen den kinderhaften Eindruck" ist — was seiner Aufgabenstellung („Icons selber erstellen… damit es nicht so kinderhaft ausschaut wie aktuell") entspricht.
-- **Gegenprobe C:** C führt, wenn die Priorität stattdessen „Infrastruktur für alle 5 verbleibenden §18.3-Cluster (Zap, Trophy, Crown, Star, ShieldCheck) gleichzeitig vorbereiten" ist, nicht Sparkles isoliert zu lösen.
-
-### 3.3 Einschätzung
-
-Mechanisch (Score + Tie-Break-Regel) führt **A**. Da Jans expliziter Auftrag für diese Runde aber genau das ist, was A an der wichtigsten Stelle nicht liefert — ein selbst erstelltes, nicht-generisches Bild statt eines Standard-Lucide-Icons für den AI/Guide-Kontext —, ist die Einschätzung: **B ist trotz Tie-Break die inhaltlich passendere Wahl**; das Pre-Mortem von A beschreibt effektiv, warum A nur ein Zwischenschritt vor B wäre. C bleibt für später vorgemerkt (§18.6 P4/P5), sobald mehrere Cluster gleichzeitig migriert werden sollen.
+| Nummer | Meilenstein                                       | Scope (Dateien)                                                                                                                                                 |          Status          | Zuständigkeit | Verifikation                                                                                                                                                                                                                                                                       |
+| :----- | :------------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------: | :-----------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L0     | Asset-Generierung (Batch, 2 Motive)               | `public/images/2026-09-06_icon-ai-guide-quantum-gold_v001.png`, `public/images/2026-09-06_icon-promo-bonus-quantum-gold_v001.png`, `public/images/CHANGELOG.md` | 🟢 Erledigt (2026-09-06) |      LLM      | Beide PNGs vorhanden (1,4 MB / 1,8 MB — Größe entspricht dem Pipeline-Standard, die ursprüngliche „< 100 KB"-Annahme war falsch, siehe alle Bestandsassets in `public/images/CHANGELOG.md`), Alphakanal per `sharp`-Check verifiziert transparent (Eck-Alpha 0, Zentrum-Alpha 253) |
+| L1     | AI/Guide-Integration (6 Stellen)                  | `GuideTriggerButton.tsx`, `DiceCenterStage.tsx`, `CrashStage.tsx`, `CrashTutorial.tsx`, `SlotsCenterStage.tsx`, `BlackjackLeftSidebar.tsx`                      |        🔴 Geplant        |      LLM      | `npm run typecheck` grün, kein `Sparkles`-Import mehr in diesen 6 Dateien                                                                                                                                                                                                          |
+| L2     | Bonus/Promo-Integration (3 Stellen)               | `JackpotPulseCard.tsx`, `InteractiveArcadeGrid.tsx`, `VipPersonalRecords.tsx`, `LiveHighrollerTickerBar.tsx` (Jackpot-Zeile)                                    |        🔴 Geplant        |      LLM      | `npm run typecheck` grün, neues Asset an allen 4 Stellen sichtbar eingebunden                                                                                                                                                                                                      |
+| L3     | Reassignment Rest-Stellen (nicht AI, nicht Bonus) | `HistoryTableStream.tsx:69`, `BetReceiptModal.tsx:386`                                                                                                          |        🔴 Geplant        |      LLM      | Kein verbliebener `Sparkles`-Import außerhalb `/testing`                                                                                                                                                                                                                           |
+| L4     | Verifikation & Doku-Update                        | `worldmap/ALLE_ICONS_BUTTONS_ANALYSE.md`, `public/images/CHANGELOG.md`                                                                                          |        🔴 Geplant        |      LLM      | 5-Stufen-DoD grün (§4), §18.3-Zeile aktualisiert                                                                                                                                                                                                                                   |
 
 ---
 
-## 4 — Stopp (verbindlich nach Option-Gate-SOP)
+## 2 — Kontext-Koffer
 
-Keine Bildgenerierung, kein Code-Edit vor Jans expliziter Wahl **„Option A"**, **„Option B"** oder **„Option C"**. Nach Freigabe wird dieser Plan auf `Execution-Ready` gehoben (Meilenstein-Struktur analog `23_big_win_siegel_plan.md`, L0 Asset/Umverteilung → L1 Integration → L2 Verifikation) und die Zeile `Sparkles` in [`worldmap/ALLE_ICONS_BUTTONS_ANALYSE.md` §18.3](../../worldmap/ALLE_ICONS_BUTTONS_ANALYSE.md) entsprechend aktualisiert.
+### 2.1 Betroffene Stellen (aus §18.3-Inventur, `worldmap/ALLE_ICONS_BUTTONS_ANALYSE.md`)
+
+| Ziel-Asset                          | Bedeutung                          | Stellen                                                                                                                                                                                                                                      |
+| :---------------------------------- | :--------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `icon-ai-guide-quantum-gold.png`    | AI / Royale Guide                  | `GuideTriggerButton.tsx:54` (globaler Floating-Button, jede MainLayout-Seite), `DiceCenterStage.tsx:223`, `CrashStage.tsx:133`, `CrashTutorial.tsx:52`, `SlotsCenterStage.tsx:351`, `BlackjackLeftSidebar.tsx:108` (Idle-/Co-Pilot-Hinweise) |
+| `icon-promo-bonus-quantum-gold.png` | Bonus / Jackpot / Glücks-Highlight | `JackpotPulseCard.tsx:138` („JACKPOT KNACKEN"), `InteractiveArcadeGrid.tsx:203` (Grid-Header „INTERAKTIVE SPIELHALLE"), `VipPersonalRecords.tsx:42` (Glücks-Index), `LiveHighrollerTickerBar.tsx:97-103` (Ticker-Zeilentyp „jackpot")        |
+| Reassignment (kein neues Asset)     | Spiel-Icon Slots                   | `HistoryTableStream.tsx:69` → `Cherry` (Lucide) — konsistent zu den 4 Schwester-Icons derselben Datei (`Rocket`=Crash, `Dices`=Dice, `RotateCcw`=Roulette, `Gamepad2`=Blackjack)                                                             |
+| Reassignment (kein neues Asset)     | Prüfcode-Copy                      | `BetReceiptModal.tsx:386` → `Copy` (bereits Standard-Icon für Copy-Aktionen im selben Modal, `:327,381`)                                                                                                                                     |
+| Out of Scope                        | Sandbox-Masse                      | `/testing`-Heroes (§16 der Inventur — bewusst nicht auditiert, siehe Nicht-Scope)                                                                                                                                                            |
+
+### 2.2 Systemregeln & Invarianten
+
+- **Design-Tokens** (`.claude/skills/casino-design-system-craft/references/design-laws.md`): Obsidian `#0B0E14`, Gold `#D4AF37`/`#FFD700`-Gradient, Radien 8–20 px, Glow `0 0 16–20px rgba(212,175,55,0.22–0.45)` bei aktiv.
+- **Anti-Pattern A2** (`.claude/skills/casino-design-system-craft/references/anti-patterns.md`): „Icons nur mit bewusst gesetzter Größe, Strichstärke und Farbe — oder gar kein Icon."
+- **Master-Prompt-Template („Obsidian & Gold Icon Kit"):** Beide Assets teilen Material-/Licht-/Kamera-Rezeptur analog `23_big_win_siegel_plan.md` (poliertes Obsidian + Champagner-Gold-Kanten), Format 1024×1024, Qualität `medium` (Sweet Spot lt. `09_model_pricing_reference.md`), transparenter Hintergrund. Nur der Subjekt-Slot unterscheidet sich: `icon-ai-guide` = stilisierter Kompass-/Diamant-Kern (kein generisches Stern-Funkeln), `icon-promo-bonus` = Funken-/Münzregen-Motiv.
+- **Batch-Generierung:** Beide Assets in einem Batch-Call (50 % Rabatt, `09_model_pricing_reference.md` §1.1), gemeinsam mit den übrigen Assets aus [28](28_zap_icon_konsolidierung_plan.md)–[32](32_shieldcheck_icon_konsolidierung_plan.md), sofern zeitgleich in Ausführung.
+- **Bild-Integration:** `next/image` mit festen `width`/`height` (Format des Lucide-Icons an der jeweiligen Stelle 1:1 in px übernehmen, z. B. `GuideTriggerButton.tsx:54` aktuell 16px → `<Image width={16} height={16} />`), `alt`-Text sprechend setzen.
+- **CHANGELOG-Pflicht:** Jedes neue Asset erhält einen Eintrag in `public/images/CHANGELOG.md` (Muster der bestehenden Einträge übernehmen).
+
+### 2.3 Nicht-Scope (ausdrücklich verboten)
+
+- Keine Änderung an `/testing`-Sandbox-Icons (Sparkles-Masse dort bleibt unangetastet, siehe §16 der Inventur).
+- Keine Änderung an Wallet-, Bet- oder Settlement-Logik in den betroffenen Dateien — ausschließlich der Icon-Import/-Render wird ersetzt.
+- Keine Änderung an `GuideTriggerButton.tsx`-Positionierung, Klick-Handler oder Animation außer dem Austausch des Icon-Elements selbst.
+- Kein Anfassen der übrigen 5 §18.3-Cluster (Zap, Trophy, Crown, Star, ShieldCheck) — eigene Pläne [28](28_zap_icon_konsolidierung_plan.md)–[32](32_shieldcheck_icon_konsolidierung_plan.md).
+- Keine Änderung an `public/images/CHANGELOG.md`-Einträgen anderer Assets.
+
+---
+
+## 3 — Detaillierte Meilensteine
+
+### L0 — Asset-Generierung
+
+- **Ziel:** 2 freigestellte PNG-Assets gemäß Master-Template (§2.2) in `public/images/` ablegen.
+- **Schritte:** 1. Prompt-Paar aus dem Master-Template ableiten (Subjekt-Slots wie in §2.2 beschrieben). 2. Batch-Generierung über `gpt-image-2`, `quality: medium`, `1024×1024`. 3. Freistellung/Kompression (< 100 KB je Datei, Alphakanal). 4. Ablage unter den in §1 genannten Dateinamen + Eintrag in `public/images/CHANGELOG.md`.
+- **Erwartetes Verhalten:** Beide Motive sind stilistisch identisch zueinander (gleiches Material/Licht) und zu `23_big_win_siegel_plan.md`, aber inhaltlich klar unterscheidbar (AI-Kern vs. Bonus-Funken).
+- **Abbruchkriterium:** Nach 2 Prompt-Iterationen pro Asset kein zufriedenstellendes Ergebnis → Stopp, Rückfrage an Jan mit den generierten Zwischenständen statt endlos weiter zu iterieren.
+
+### L1 — AI/Guide-Integration
+
+- **Ziel:** Alle 6 AI/Guide-Stellen (§2.1) rendern `icon-ai-guide-quantum-gold.png` statt `<Sparkles />`.
+- **Schritte:** Je Datei den `Sparkles`-Import aus `lucide-react` entfernen (falls dort sonst ungenutzt), `next/image`-Import ergänzen, Render-Stelle 1:1 in bisheriger Größe/Position ersetzen.
+- **Erwartetes Verhalten:** Visuell identische Platzierung/Größe wie zuvor, nur neues Bildmotiv statt Lucide-Linie.
+- **Abbruchkriterium:** Falls eine der 6 Stellen das Icon animiert (`whileHover`, Spring), Animation auf das `<Image>`-Element migrieren statt zu entfernen — bei Unsicherheit über die Animationssemantik Stopp + Rückfrage statt Animation stillschweigend zu verwerfen.
+
+### L2 — Bonus/Promo-Integration
+
+- **Ziel:** Alle 4 Bonus/Promo-Stellen (§2.1) rendern `icon-promo-bonus-quantum-gold.png`.
+- **Schritte:** Wie L1, zusätzlich in `LiveHighrollerTickerBar.tsx:97-103` nur den `jackpot`-Zeilentyp umstellen (die anderen Zeilentypen `whale`/`vip`/`hot` bleiben unverändert, da sie zu anderen §18.3-Clustern gehören).
+- **Erwartetes Verhalten:** Bonus-Kontexte visuell konsistent, AI-Kontexte bleiben klar unterscheidbar.
+- **Abbruchkriterium:** Falls `LiveHighrollerTickerBar.tsx` den Zeilentyp nicht eindeutig als Prop/Diskriminator führt, Stopp + Rückfrage statt eine Heuristik zu raten.
+
+### L3 — Reassignment Rest-Stellen
+
+- **Ziel:** `HistoryTableStream.tsx:69` → `Cherry`, `BetReceiptModal.tsx:386` → `Copy`, kein `Sparkles`-Import mehr außerhalb `/testing`.
+- **Schritte:** Lucide-Import austauschen, Größe/Farbe der Nachbar-Icons in derselben Datei 1:1 übernehmen (kein neuer Stil erfinden).
+- **Erwartetes Verhalten:** Slots-Zeile in der History sieht wie die anderen 4 Spiel-Icon-Zeilen aus (gleiche Größe/Farbe); Prüfcode-Copy-Button sieht wie die anderen Copy-Buttons im selben Modal aus.
+- **Abbruchkriterium:** Keins vorgesehen — reiner 1:1-Icon-Tausch ohne Ambiguität.
+
+### L4 — Verifikation & Abschluss
+
+- **Ziel:** Alle 5 DoD-Stufen grün, Doku aktuell.
+- **Schritte:** 1. `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`. 2. `git diff` auf unbeabsichtigte Dateien prüfen. 3. `worldmap/ALLE_ICONS_BUTTONS_ANALYSE.md` §18.3-Zeile `Sparkles` von „Ja"-Referenz auf „umgesetzt, siehe CHANGELOG" ergänzen (Format wie bestehende Zeilen).
+- **Erwartetes Verhalten:** Grüner Build, keine Regressionen in bestehenden Tests (insb. `MainSidebar.test.ts`, das auf Icon-Abwesenheit in der Sidebar prüft — hier nicht betroffen, aber als Referenzmuster für Icon-bezogene Tests relevant).
+- **Abbruchkriterium:** Jeder rote DoD-Punkt stoppt den Abschluss; Root Cause beheben, nicht Test/Lint umgehen.
+
+---
+
+## 4 — 5-Stufen-Abschlussprüfung (DoD)
+
+1. **Typecheck:** `npm run typecheck` — 0 Fehler.
+2. **Tests:** `npm test` — grün, insbesondere keine neuen Snapshot-/Render-Fehler in den 9 betroffenen Komponenten.
+3. **Lint:** `npm run lint` — 0 Errors.
+4. **Build:** `npm run build` — erfolgreich.
+5. **Git Diff:** Nur die in §1 gelisteten Dateien + die 2 neuen PNGs + `CHANGELOG.md` + die §18.3-Zeile geändert; keine Fremdänderungen.
+
+---
+
+## 5 — Visuelle Endabnahme (Jan-Gate)
+
+Nach grünem DoD (§4) zeigt das LLM Jan die 2 generierten Assets sowie mindestens 2 Screenshots (Guide-Button global, JackpotPulseCard) zur visuellen Freigabe — **kein LLM-Selbsturteil über „sieht gut aus"**, ausschließlich Jans Endabnahme entscheidet über den Übergang zu `Executed`.
+
+---
+
+## 6 — Entscheidungsgrundlage (Option-Gate-Archiv, 2026-09-06)
+
+**Kriterien:** Lerneffekt 30 % · Aufwand 25 % · Risiko 25 % · Wartbarkeit 20 %.
+
+| Option          | Konzept                                                                  |  Score   |
+| :-------------- | :----------------------------------------------------------------------- | :------: |
+| A               | 1 Reskin für alle 35 Stellen, Bedeutung unverändert                      |   3.55   |
+| B               | 1 Leit-Icon AI/Guide + 29 Stellen auf bestehende Lucide-Icons reassigned |   4.03   |
+| **C (gewählt)** | 2 Assets im Batch: `ai.guide` (6 Stellen) + `promo.bonus` (4 Stellen)    | **4.28** |
+
+1. Durchlauf ergab C = 4.18 (< 4.2-Gate); nach Schärfung der Batch-Aufwandsbegründung (2. Asset = reines Subjekt-Slot-Delta im selben Call) → 4.28. Tie-Break ggü. B (Risiko 4.0 = 4.0) unentschieden → Score entscheidet. Jan-Freigabe: **Option C**, 2026-09-06.
