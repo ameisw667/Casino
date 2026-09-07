@@ -22,15 +22,13 @@ jobs:
           node-version: 20
           cache: npm
 
-      # worldmap/04_07_dependency_audit_gate.md L5 (not fixed, deliberately): `npm ci` runs
-      # arbitrary install-time scripts from third-party packages by default (currently 4 in this
-      # tree: core-js, esbuild, libxmljs2, protobufjs — verified 2026-08-29, all legitimate native
-      # binary/build needs). `--ignore-scripts` would close that supply-chain surface but risks
-      # silently breaking the build (Playwright's own browser-binary download and Husky's own
-      # `prepare` script both rely on install-time scripts elsewhere in this repo) — a change with
-      # exactly the kind of untested material impact the execution SOP says to stop and verify
-      # before making, not to flip blind. Documented as an accepted, known risk rather than fixed.
+      # docs/security-hardening/07_dependency_supply_chain_audit.md L1 (Runde 2, supersedes the old
+      # L5-round-1 "not fixed, deliberately" note below): install-time scripts are now denied by
+      # default (.npmrc ignore-scripts=true) and selectively re-allowed via @lavamoat/allow-scripts'
+      # allowlist (package.json > lavamoat.allowScripts) instead of running arbitrary third-party
+      # postinstall scripts unchecked.
       - run: npm ci
+      - run: npm run allow-scripts
 
       # worldmap/04_07_dependency_audit_gate.md L1: hard gate via audit-ci with a tracked,
       # commented allowlist (.audit-ci.jsonc) instead of npm's own continue-on-error escape hatch —
@@ -40,6 +38,13 @@ jobs:
       # newer deepmerge-ts/@opentelemetry findings (not yet triaged/allowlisted) while passing the
       # two known/tracked ws findings.
       - run: npx audit-ci --config .audit-ci.jsonc
+
+      # docs/security-hardening/07_dependency_supply_chain_audit.md L4 (Runde 2): verifies every
+      # installed package's registry signature/attestation against npm's public keys — a genuine
+      # supply-chain compromise (a tampered/unsigned package) fails this, unlike audit-ci above
+      # which only covers *known, disclosed* vulnerabilities. Verified clean locally 2026-09-07
+      # (1758/1758 packages signed) before making this a hard gate rather than informational.
+      - run: npm audit signatures
 
       # worldmap/04_07_dependency_audit_gate.md L3: moderate/low findings were previously entirely
       # invisible (the gate above only covers --audit-level=high equivalent). This is informational
@@ -68,6 +73,15 @@ jobs:
             fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\\n') + '\\n');
           "
 
+      # docs/security-hardening/07_dependency_supply_chain_audit.md L2 (Runde 2): the moderate step
+      # above only ever shows a raw count. This adds aging — an advisory silently sitting untouched
+      # for months looks identical to one that appeared yesterday without it. Compares against the
+      # manually curated .audit-moderate-baseline.json; still purely informational (if: always(),
+      # no exit-code propagation).
+      - name: Moderate/low aging baseline (advisory only)
+        if: always()
+        run: node scripts/check-moderate-aging.mjs audit-moderate.json .audit-moderate-baseline.json
+
       # worldmap/04_07_dependency_audit_gate.md L2: CycloneDX SBOM as a build artifact — full
       # dependency + license inventory, previously 0 visibility into this.
       - run: npx @cyclonedx/cyclonedx-npm --output-file sbom.json
@@ -76,3 +90,11 @@ jobs:
           name: sbom
           path: sbom.json
           retention-days: 90
+
+      # docs/security-hardening/07_dependency_supply_chain_audit.md L3 (Runde 2): first real *use*
+      # of the SBOM beyond archiving it — scans component license declarations for copyleft/
+      # network-copyleft licenses that would be a compliance risk in this closed-source product.
+      # Informational only, same as the aging check above.
+      - name: SBOM license scan (advisory only)
+        if: always()
+        run: node scripts/check-sbom-licenses.mjs sbom.json
