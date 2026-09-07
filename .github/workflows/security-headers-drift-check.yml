@@ -1,0 +1,100 @@
+name: Security Headers Drift Check
+
+# Wöchentlicher, rein informativer Check (kein PR-Blocker — Analog migration-drift-check.yml):
+# prüft per curl -sI gegen die echte Produktions-URL, ob die in src/proxy.ts
+# (applyBaselineSecurityHeaders()) definierten Baseline-Security-Header dort tatsächlich
+# ankommen. Deployment-Konfiguration (z. B. ein CDN/Edge-Layer, der Header umschreibt) kann
+# vom committeten Code abweichen — das schließt diese Lücke, ohne den Merge zu blockieren
+# (T_SECURITY_HARDENING/05_header_vollstaendigkeit.md L5).
+#
+# Benötigt die Repository-Variable PRODUCTION_URL (z. B. https://casino.example.app, ohne
+# trailing slash); ohne sie läuft der Job mit sichtbarem Skip-Hinweis durch statt zu failen —
+# bewusst keine geratene Domain hartkodiert.
+
+on:
+  schedule:
+    - cron: '23 6 * * 1' # montags 06:23 UTC (versetzt zu migration-drift-check.yml)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  headers-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+    steps:
+      - name: Skip-Hinweis, wenn PRODUCTION_URL nicht konfiguriert
+        if: ${{ env.PRODUCTION_URL == '' }}
+        run: |
+          {
+            echo "## Security-Headers-Drift-Check übersprungen"
+            echo ""
+            echo "Die Repository-Variable \`PRODUCTION_URL\` ist nicht hinterlegt (Settings →"
+            echo "Secrets and variables → Actions → Variables, z. B. \`https://casino.example.app\`)."
+            echo "Einmalig anlegen, danach läuft dieser Check wöchentlich automatisch."
+            echo "Siehe \`T_SECURITY_HARDENING/05_header_vollstaendigkeit.md\` L5."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Baseline-Security-Header gegen Produktion abgleichen
+        if: ${{ env.PRODUCTION_URL != '' }}
+        run: |
+          node -e '
+          const fs = require("fs");
+          (async () => {
+            const target = process.env.PRODUCTION_URL + "/";
+            const response = await fetch(target, { method: "HEAD", redirect: "manual" });
+
+            // Erwartete Werte spiegeln applyBaselineSecurityHeaders() in src/proxy.ts — bei
+            // Änderung dort auch hier nachziehen (keine automatische Quelle-der-Wahrheit-Kopplung,
+            // um den CI-Job nicht vom Source-Checkout dieses Repos abhängig zu machen).
+            const expected = {
+              "x-frame-options": "SAMEORIGIN",
+              "x-content-type-options": "nosniff",
+              "referrer-policy": "origin-when-cross-origin",
+              "cross-origin-opener-policy": "same-origin",
+              "cross-origin-resource-policy": "same-origin",
+              "x-permitted-cross-domain-policies": "none",
+            };
+            // Nur auf Praefix pruefen: HSTS/CSP tragen dynamische Teile (max-age-Zaehler bleibt
+            // stabil, aber ein zukuenftiger Wertwechsel soll hier nicht faelschlich als "fehlt" gelten).
+            const expectedPrefix = {
+              "strict-transport-security": "max-age=",
+              "permissions-policy": "camera=()",
+              "content-security-policy": "default-src '\''self'\''",
+            };
+
+            const lines = [
+              "## Security-Headers-Drift-Check (informativ, nicht blockierend)",
+              "",
+              "Ziel: " + target,
+              "HTTP-Status: " + response.status,
+              "",
+            ];
+
+            let allOk = true;
+            for (const [name, value] of Object.entries(expected)) {
+              const actual = response.headers.get(name);
+              const ok = actual === value;
+              if (!ok) allOk = false;
+              lines.push((ok ? "✅" : "⚠️") + " `" + name + "`: erwartet `" + value + "`, erhalten `" + (actual ?? "(fehlt)") + "`");
+            }
+            for (const [name, prefix] of Object.entries(expectedPrefix)) {
+              const actual = response.headers.get(name);
+              const ok = Boolean(actual && actual.startsWith(prefix));
+              if (!ok) allOk = false;
+              lines.push((ok ? "✅" : "⚠️") + " `" + name + "`: erwartet Praefix `" + prefix + "`, erhalten `" + (actual ?? "(fehlt)") + "`");
+            }
+
+            lines.push("", allOk ? "Alle Baseline-Header vorhanden." : "Mindestens ein Baseline-Header weicht ab — gegen src/proxy.ts pruefen, bevor Handlungsbedarf abgeleitet wird (Deployment-Cache/CDN-Verzoegerung moeglich).");
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
+          })().catch((error) => {
+            fs.appendFileSync(
+              process.env.GITHUB_STEP_SUMMARY,
+              "## Security-Headers-Drift-Check fehlgeschlagen\n\n" + String(error) + "\n",
+            );
+            console.error(error);
+            // Bewusst kein process.exit(1): informativer Check, siehe Kopfkommentar.
+          });
+          '

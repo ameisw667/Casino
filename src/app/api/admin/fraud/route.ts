@@ -98,7 +98,10 @@ export async function GET(request: Request) {
       return apiErrorResponse('LOAD_FAILED', 'Failed to load fraud signals', 503);
     }
 
-    return apiSuccessResponse({ events: data ?? [] }, { headers: rateLimitHeaders(rate) });
+    return apiSuccessResponse(
+      { events: data ?? [] },
+      { headers: { ...rateLimitHeaders(rate), 'Cache-Control': 'private, no-store' } },
+    );
   } catch (error) {
     CasinoLogger.error('API/Admin/Fraud', 'List unexpected failure', error);
     return apiErrorResponse('FRAUD_UNAVAILABLE', 'Fraud signals unavailable', 503);

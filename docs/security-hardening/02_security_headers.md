@@ -71,7 +71,35 @@ response.headers.set(
 
 ## 5 — Tests & Verifikation
 
-Kein dediziertes Test-File für die Header-Werte selbst (statische String-Zuweisungen in `src/proxy.ts`). Verifikation erfolgt über:
+Regressionsschutz besteht heute auf zwei Ebenen (`src/lib/security/__tests__/proxy-security-headers.test.ts`):
 
-1. Grep gegen `src/` für jede Permissions-Policy-Direktive (siehe Tabelle oben, Stand 2026-08-28).
-2. Manuelle `curl -I`-Prüfung nach Deploy (siehe [`00_SECURITY_OVERVIEW.md`](00_SECURITY_OVERVIEW.md) „Definition of Done“).
+1. Source-String-Match gegen `src/proxy.ts` für jede `res.headers.set(...)`-Zeile.
+2. Runtime-Test, der `applyBaselineSecurityHeaders()` gegen ein echtes `NextResponse`-Objekt aufruft und jeden Header-Wert per `response.headers.get(...)` prüft — deckt auch COOP, CORP und `X-Permitted-Cross-Domain-Policies` ab, nicht nur die ursprünglichen sieben.
+3. Grep gegen `src/` für jede Permissions-Policy-Direktive (siehe Tabelle oben, Stand 2026-08-28).
+4. Manuelle `curl -I`-Prüfung nach Deploy (siehe [`00_SECURITY_OVERVIEW.md`](00_SECURITY_OVERVIEW.md) „Definition of Done“) sowie der wöchentliche, nicht-blockierende `security-headers-drift-check.yml`-Workflow (`.github/workflows/`) gegen `PRODUCTION_URL`.
+
+---
+
+## 6 — COEP-`credentialless`-Entscheidungsgrundlage (für Jans künftige K5-Entscheidung)
+
+> **Status:** COEP ist aktuell **nicht gesetzt** (weder `require-corp` noch `credentialless`). Dieser Abschnitt aktiviert nichts — er bereitet Jans Entscheidung vor, wenn er `Cross-Origin-Embedder-Policy` einführen will (typischerweise, um `crossOriginIsolated` für `SharedArrayBuffer`/hochauflösende Timer freizuschalten).
+
+**Der historische Blocker war `require-corp`:** Mit `Cross-Origin-Embedder-Policy: require-corp` muss jede eingebettete Cross-Origin-Ressource (Bilder, Scripts, Fonts) selbst einen `Cross-Origin-Resource-Policy`-Header mitbringen, sonst blockiert der Browser das Laden. Drittanbieter, die dieses Projekt nicht kontrolliert, könnten diesen Header nicht liefern.
+
+**Codebase-Verifikation (grep-verifiziert, aktueller Stand):** Alle Cross-Origin-Bildquellen in der App laufen über einfache `<img>`-Tags ohne `crossorigin`-Attribut und ohne Credentials (keine Cookies/Auth-Header an die Drittanbieter-Domain):
+
+| Quelle                                      | Fundstelle(n)                                                                                                                                                           |
+| :------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `api.dicebear.com` (Avatare)                | `src/components/home/HeroSection.tsx:30,37,44,51,386`, `src/components/home/HeroSectionV2.tsx:111,145,152,159,166`, `src/components/home/DailyTournamentTeaser.tsx:136` |
+| `cryptologos.cc` (Krypto-Icons)             | `src/components/home/HeroSection.tsx:291,299,307`                                                                                                                       |
+| `www.gstatic.com` (Google-Logo, Onboarding) | `src/components/layout/OnboardingFlow.tsx:245`                                                                                                                          |
+
+**Warum `credentialless` den Blocker wahrscheinlich entkräftet:** `Cross-Origin-Embedder-Policy: credentialless` verlangt für `no-cors`-Requests (wie ein einfaches `<img src="...">` ohne `crossorigin`-Attribut) **keinen** `Cross-Origin-Resource-Policy`-Header vom Drittanbieter — der Browser lädt die Ressource, entfernt dabei aber automatisch Credentials (Cookies) aus dem Request. Da keine der drei oben verifizierten Quellen Credentials benötigt (öffentliche, unauthentifizierte Asset-Endpunkte), verliert die App durch das Credential-Stripping keine Funktionalität.
+
+**Browser-Support (Stand dieser Recherche):** Chrome/Edge seit 2021 (Chromium 96), Firefox seit 2023 (Version 117), Safari seit März 2024 (Safari 17.4) — für dieses Projekt praktisch flächendeckend nutzbar.
+
+**Was diese Recherche nicht beantwortet (bleibt bei Jan):**
+
+- Ob `crossOriginIsolated` (der eigentliche Nutzen von COEP) für ein konkretes Feature gebraucht wird — aktuell kein bekannter `SharedArrayBuffer`- oder High-Resolution-Timer-Bedarf im Repo.
+- Ob künftige, noch nicht existierende Cross-Origin-Einbettungen (z. B. ein neues Drittanbieter-Widget) `credentialless`-kompatibel bleiben — bei jeder neuen Cross-Origin-Ressource erneut prüfen, ob sie Credentials braucht.
+- Die COEP-Aktivierung selbst (`res.headers.set('Cross-Origin-Embedder-Policy', 'credentialless')` in `applyBaselineSecurityHeaders()`, `src/proxy.ts`) — bewusst nicht Teil dieser Doku-Runde, siehe `T_SECURITY_HARDENING/05_header_vollstaendigkeit.md` §0.

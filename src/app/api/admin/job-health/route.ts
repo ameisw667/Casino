@@ -100,7 +100,9 @@ export async function GET(request: Request) {
       deadLetters: countDeadLetters((deadLetterResult.data ?? []) as Array<{ event_type: string }>),
     };
 
-    return apiSuccessResponse(payload, { headers: rateLimitHeaders(rate) });
+    return apiSuccessResponse(payload, {
+      headers: { ...rateLimitHeaders(rate), 'Cache-Control': 'private, no-store' },
+    });
   } catch (error) {
     CasinoLogger.error('API/Admin/JobHealth', 'Unexpected failure', error);
     return apiErrorResponse('JOB_HEALTH_UNAVAILABLE', 'Job health data unavailable', 503);
