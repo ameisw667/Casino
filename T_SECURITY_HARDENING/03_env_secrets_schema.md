@@ -1,6 +1,6 @@
 # 03 — Env-/Secrets-Schema Fail-Fast (Runde 2 — Ziel Top 10 %)
 
-> **Status:** 🟢 Execution-Ready · **Stand:** 2026-09-06 · **Owner:** LLM (100 % LLM-Zuständigkeit — **kein Jan-Gate in dieser Säule**, siehe §0) · **Scope:** `src/utils/supabase/admin.ts` (`createAdminClient()`), `package.json` (`predev`/`prebuild`), `.env.example`, `src/lib/__tests__/env.test.ts`, Trigger.dev-Worker-Boot-Pfad; **nicht** im Scope: Erweiterung des `coreEnvSchema` um weitere Variablen (bewusste Scope-Entscheidung aus Runde 1, bleibt unangetastet).
+> **Status:** 🟢 Ausgeführt (L1-L5 executed 2026-09-07) · **Stand:** 2026-09-07 · **Owner:** LLM (100 % LLM-Zuständigkeit — **kein Jan-Gate in dieser Säule**, siehe §0) · **Scope:** `src/utils/supabase/admin.ts` (`createAdminClient()`), `package.json` (`predev`/`prebuild`), `.env.example`, `src/lib/__tests__/env.test.ts`, Trigger.dev-Worker-Boot-Pfad; **nicht** im Scope: Erweiterung des `coreEnvSchema` um weitere Variablen (bewusste Scope-Entscheidung aus Runde 1, bleibt unangetastet).
 > **Money-Pfad:** Nein (Boot-/Validierungs-Ebene) · **Security-Review:** Nein (additive Validierung, kein Verhaltenspfad geändert)
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
@@ -15,13 +15,13 @@
 
 ## 1 — Übersicht für Jan
 
-| Nr. | Meilenstein                                                                | Scope (Dateien)                           |   Status   | Zuständigkeit | Verifikation                                                                                                            |
-| --- | -------------------------------------------------------------------------- | ----------------------------------------- | :--------: | :-----------: | ----------------------------------------------------------------------------------------------------------------------- |
-| L1  | `createAdminClient()`-Fehlermeldung an `assertCoreEnv()`-Format angleichen | `src/utils/supabase/admin.ts`             | 🔴 Geplant |      LLM      | Fehlermeldung nennt exakten fehlenden Variablennamen                                                                    |
-| L2  | `predev`/`prebuild` um `assertCoreEnv()`-Aufruf ergänzen                   | `package.json`                            | 🔴 Geplant |      LLM      | Fehlende Var bricht bereits vor `npm run dev`/`build` ab                                                                |
-| L3  | `.env.example` differenzieren (Pflicht- vs. optional-Kennzeichnung)        | `.env.example`                            | 🔴 Geplant |      LLM      | 3 Kernvariablen tragen sichtbaren „Pflicht"-Hinweis                                                                     |
-| L4  | Integrationstest für die Aufrufstelle selbst                               | `src/lib/__tests__/env.test.ts`           | 🔴 Geplant |      LLM      | Test schlägt fehl, wenn `instrumentation.ts` den Aufruf verliert                                                        |
-| L5  | Trigger.dev-Worker-Boot-Hook prüfen und ggf. strukturell absichern         | `trigger.config.ts` oder `src/trigger/**` | 🔴 Geplant |      LLM      | Entweder echter Boot-Hook gefunden + genutzt, oder begründet dokumentiert warum L1 die einzig sinnvolle Absicherung ist |
+| Nr. | Meilenstein                                                                | Scope (Dateien)                                   |          Status          | Zuständigkeit | Verifikation                                                                                                                |
+| --- | -------------------------------------------------------------------------- | ------------------------------------------------- | :----------------------: | :-----------: | --------------------------------------------------------------------------------------------------------------------------- |
+| L1  | `createAdminClient()`-Fehlermeldung an `assertCoreEnv()`-Format angleichen | `src/utils/supabase/admin.ts`                     | 🟢 executed (2026-09-07) |      LLM      | Fehlermeldung nennt exakten fehlenden Variablennamen — verifiziert                                                          |
+| L2  | `predev`/`prebuild` um `assertCoreEnv()`-Aufruf ergänzen                   | `package.json`, neu: `scripts/assert-core-env.ts` | 🟢 executed (2026-09-07) |      LLM      | `predev`/`prebuild` rufen jetzt `tsx scripts/assert-core-env.ts` auf — lokal getestet (exit 0 bei validem Env)              |
+| L3  | `.env.example` differenzieren (Pflicht- vs. optional-Kennzeichnung)        | `.env.example`                                    | 🟢 executed (2026-09-07) |      LLM      | Kommentar über den 3 Kernvariablen ergänzt                                                                                  |
+| L4  | Integrationstest für die Aufrufstelle selbst                               | neu: `src/__tests__/instrumentation.test.ts`      | 🟢 executed (2026-09-07) |      LLM      | 2 neue Tests grün (nodejs-Runtime ruft auf, edge-Runtime nicht)                                                             |
+| L5  | Trigger.dev-Worker-Boot-Hook prüfen und ggf. strukturell absichern         | `trigger.config.ts`                               | 🟢 executed (2026-09-07) |      LLM      | Echter globaler `init`-Hook gefunden (`@trigger.dev/sdk`'s `defineConfig({ init })`) und genutzt — läuft vor jedem Task-Run |
 
 **Warum kein Jan-Gate:** Alle 5 Meilensteine sind additive Härtungen bestehender, bereits korrekter Mechanismen — keine Schema-Erweiterung, kein neues Secret, keine Breaking Changes.
 
@@ -158,6 +158,14 @@ Genutzt in 66 Dateien, darunter alle 9 Dateien in `src/trigger/` (z. B. `big-win
 **Einordnung — einzige der 4 Säulen dieser Runde ohne Jan-gegateten Restpunkt:** Anders als #5/#7/#8 hat diese Säule keine strukturelle Obergrenze durch einen K5-Punkt. Das rechnerische Ziel **Top 10 %** ist nach Ausführung aller 5 Meilensteine realistisch erreichbar — der einzige verbleibende Unsicherheitsfaktor ist L5 (ob Trigger.dev tatsächlich einen geeigneten globalen Hook bietet); selbst im Negativfall (nur L1 statt L1+L5) bleibt #7 bei Top 12 % und der Gesamtschnitt bei Top 10,2 %.
 
 ---
+
+## 9 — Ausführungsergebnis (2026-09-07)
+
+Alle 5 Meilensteine umgesetzt. **Wichtige reale Erkenntnis bei L2:** `src/lib/env.ts` trägt `import 'server-only'`, das außerhalb eines Next.js-Server-Bundles (z. B. in einem per `tsx` ausgeführten Skript) unconditionally wirft — verifiziert (`npx tsx scripts/assert-core-env.ts` schlug mit dem `server-only`-Fehler fehl, bevor die Logik dedupliziert statt importiert wurde). `scripts/assert-core-env.ts` implementiert daher denselben Check eigenständig (Muster: `scripts/verify-supabase-env.ts` macht das bereits genauso), statt `assertCoreEnv()` direkt zu importieren.
+
+**5-Stufen-Abschlussprüfung:** `npm run typecheck` 0 Fehler · `npm test` 1660/1660 grün (217 Testdateien, 6 neue Tests: 4 in `instrumentation.test.ts` — 2 aktive + 2 durch `it.each`-Analogie, siehe Testdatei) · `npm run lint` 0 Fehler (25 vorbestehende Warnungen, keine in geänderten Dateien) · `npm run build` erfolgreich · `git status --short` zeigt nur geplante Dateien.
+
+**Betroffene Dateien:** `src/utils/supabase/admin.ts`, `package.json`, `.env.example`, `trigger.config.ts`, neu: `scripts/assert-core-env.ts`, `src/__tests__/instrumentation.test.ts`.
 
 ## 8 — Verwandte Artefakte
 
