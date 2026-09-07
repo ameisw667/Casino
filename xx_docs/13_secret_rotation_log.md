@@ -3,9 +3,27 @@
 > **Zweck:** Nachweis, wann ein Secret zuletzt rotiert wurde — **niemals ein Wert**, ausschließlich Datum + Grund. Grundlage für `npm run check-secret-rotation` (`scripts/check-secret-rotation-due.ts`), das dieses Log gegen die Turnus-Tabelle in [`xx_sop/14_secret_rotation.md`](../xx_sop/14_secret_rotation.md) Abschnitt 1 prüft.
 > **Pflege:** Nach jeder tatsächlichen Rotation (Schritt 7 in `xx_sop/14_secret_rotation.md` Abschnitt 2) oder nach einem Incident (Schritt 6 in Abschnitt 5) einen Eintrag ergänzen. Ein fehlender Eintrag für ein bekanntes Secret wird vom Skript als „nie rotiert, sofort prüfen" gewertet — absichtlich konservativ.
 
-| Secret | Letztes Rotationsdatum | Grund | Klasse (siehe SOP) |
-| :--- | :---: | :--- | :--- |
-| _(noch keine Rotation dokumentiert seit Einführung dieses Logs, 2026-08-29)_ | — | — | — |
+| Secret                          | Letztes Rotationsdatum | Grund                                                                  | Klasse (siehe SOP) |
+| :------------------------------ | :--------------------: | :--------------------------------------------------------------------- | :----------------- |
+| SUPABASE_SERVICE_ROLE_KEY       |       2026-05-16       | Ersteinrichtung                                                        | Kritisch           |
+| BACKUP_ENCRYPTION_KEY_BASE64    |       2026-09-05       | Ersteinrichtung                                                        | Kritisch           |
+| UPSTASH_REDIS_REST_TOKEN        |       2026-05-16       | Ersteinrichtung                                                        | Hoch               |
+| SENTRY_AUTH_TOKEN               |       2026-08-12       | Ersteinrichtung                                                        | Hoch               |
+| TRIGGER_SECRET_KEY              |       2026-08-21       | Ersteinrichtung                                                        | Hoch               |
+| OPENAI_API_KEY                  |       2026-08-12       | Ersteinrichtung                                                        | Hoch               |
+| BACKUP_S3_ACCESS_KEY_ID         |       2026-09-05       | Ersteinrichtung                                                        | Hoch               |
+| BACKUP_S3_SECRET_ACCESS_KEY     |       2026-09-05       | Ersteinrichtung                                                        | Hoch               |
+| SUPABASE_ACCESS_TOKEN           |       2026-09-05       | Ersteinrichtung                                                        | Hoch               |
+| CRON_ALERT_SECRET               |       2026-08-15       | Ersteinrichtung                                                        | Mittel             |
+| WALLET_EVENT_SECRET             |       2026-08-21       | Ersteinrichtung                                                        | Mittel             |
+| BIG_WIN_EVENT_SECRET            |       2026-08-23       | Ersteinrichtung                                                        | Mittel             |
+| FRAUD_FINGERPRINT_SECRET        |       2026-08-16       | Ersteinrichtung                                                        | Mittel             |
+| GUIDE_TELEMETRY_HMAC_SECRET     |       2026-08-12       | Ersteinrichtung                                                        | Mittel             |
+| TELEGRAM_WEBHOOK_SECRET         |       2026-08-12       | Ersteinrichtung                                                        | Mittel             |
+| POSTHOG_DISTINCT_ID_HMAC_SECRET |       2026-08-16       | Ersteinrichtung                                                        | Mittel             |
+| POSTHOG_PERSONAL_API_KEY        |           —            | _(noch nicht angelegt — siehe `src/lib/analytics/posthog-erasure.ts`)_ | Hoch               |
+
+**Herkunft der Ersteinrichtungs-Daten:** Jeweils das früheste Datum, an dem der Secret-Name selbst im Git-Verlauf dieses Repos auftaucht (`git log --all --reverse -S"NAME"`, ermittelt 2026-09-07, `T_SECURITY_HARDENING/08_secret_rotation_prozess.md` L5) — **kein** tatsächliches Anlegedatum im Anbieter-Dashboard (das ist dem LLM nicht bekannt), sondern ein belegbarer, konservativer Proxy dafür, ab wann das Secret spätestens real existiert haben muss. Grund bewusst „Ersteinrichtung", nicht „Turnus" — täuscht keine tatsächlich erfolgte Rotation vor.
 
 ## Format für neue Einträge
 
