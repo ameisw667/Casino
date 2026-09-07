@@ -1,9 +1,9 @@
 # 07 — Dependency-/Supply-Chain-Audit-Gate
 
-> **Säule:** 7 von 10 · **Status:** 🔴 **Live rot** — mehrere aufeinanderfolgende CI-Läufe scheitern an neuen, nicht allowlisteten High-Funden · **Stand:** 2026-08-30, ca. 17:20 UTC
+> **Säule:** 7 von 10 · **Status:** 🟡 **Live grün** — nur noch der bekannte, allowlistete `ws`-Fund offen (K5, bei Jan) · **Stand:** 2026-09-06 (siehe Update unten; vorheriger Stand 2026-08-30 war 🔴)
 > **Dateien:** `.github/workflows/dependency-audit.yml`, `.audit-ci.jsonc` · **Back:** [`00_SECURITY_OVERVIEW.md`](00_SECURITY_OVERVIEW.md)
 
-> **Diese Datei enthält bewusst keine beschönigte Zahl.** Der vorherige Stand ([`docs/status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md`](../status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md), Stand 2026-08-29) nannte „1 verbleibender High-Fund“, dann „3 High-Funde“. Die frische Messung für diese Dokumentation (2026-08-30) zeigt **5 High-Funde in CI**, 3 davon lokal reproduzierbar — die Zahl ist in Bewegung, nicht stabil. Vor jeder erneuten Aussage `npm audit --audit-level=high` frisch ausführen, nicht diese Datei zitieren.
+> **Update 2026-09-06:** Der unten dokumentierte 🔴-Stand (5 High-Funde, `brace-expansion`/`js-yaml` ungetriaged) ist überholt. Frisch verifiziert: `gh run list --workflow=dependency-audit.yml` — letzte 3 Läufe grün; `npm audit --audit-level=high` findet nur noch den bereits allowlisteten `ws`-Fund (2 Advisories). `brace-expansion`/`js-yaml` sind nicht mehr im Abhängigkeitsbaum. Diese Datei bestätigt damit erneut ihre eigene Warnung: **vor jeder Aussage `npm audit --audit-level=high` frisch ausführen, nicht eine Doku-Zahl zitieren** — auch nicht diese hier. Volle Neubewertung: [`T_SECURITY_HARDENING/07_dependency_supply_chain_audit.md`](../../T_SECURITY_HARDENING/07_dependency_supply_chain_audit.md). Der folgende Abschnitt (Stand 2026-08-30) bleibt als historischer Beleg unverändert stehen.
 
 ---
 

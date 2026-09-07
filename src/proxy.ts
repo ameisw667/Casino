@@ -84,6 +84,9 @@ function applyBaselineSecurityHeaders(res: NextResponse): NextResponse {
   // page reading our responses).
   res.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
   res.headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+  // Legacy Flash/Adobe Reader cross-domain policy files (crossdomain.xml, etc.) — this app never
+  // ships one, so explicitly deny any client that still honors it (T_SECURITY_HARDENING/05, #5).
+  res.headers.set('X-Permitted-Cross-Domain-Policies', 'none');
   // Explicit allow only for features this app actually uses (grep-verified 2026-08-28):
   // microphone (Guide voice input, src/lib/casino/voice-audio.ts), clipboard-write (referral
   // codes, deposit address, MFA secret, bet receipts — copy-to-clipboard across ~7 components),
@@ -179,25 +182,37 @@ export default async function proxy(req: NextRequest) {
     requestHeaders.set('x-nonce', nonce);
     requestHeaders.set('Content-Security-Policy', cspHeader);
 
+    // T_SECURITY_HARDENING/03_env_secrets_schema.md L1 — proxy.ts runs on the Edge runtime, before
+    // any Node route (and thus src/lib/env.ts's assertCoreEnv(), which also validates
+    // SUPABASE_SERVICE_ROLE_KEY — a var this file never touches) gets a chance to run. Without
+    // this check a missing var would still fail closed via the outer try/catch (createServerClient
+    // throws on an invalid URL), but with an opaque downstream error instead of a clear one.
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) {
+      CasinoLogger.error(
+        'Proxy',
+        'Missing core Supabase env vars',
+        new Error('NEXT_PUBLIC_SUPABASE_URL and/or NEXT_PUBLIC_SUPABASE_ANON_KEY not set'),
+      );
+      return new NextResponse('Security boundary unavailable', { status: 500 });
+    }
+
     let response = NextResponse.next({ request: { headers: requestHeaders } });
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return req.cookies.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
-            response = NextResponse.next({ request: { headers: requestHeaders } });
-            cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options),
-            );
-          },
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
+          response = NextResponse.next({ request: { headers: requestHeaders } });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options),
+          );
         },
       },
-    );
+    });
 
     const {
       data: { user },
