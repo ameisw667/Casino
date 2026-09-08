@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { NextResponse } from 'next/server';
+import { applyBaselineSecurityHeaders } from '@/proxy';
 
 const root = resolve(__dirname, '../../../..');
 
@@ -23,6 +25,15 @@ describe('proxy security headers & CSP', () => {
       norm("res.headers.set('Referrer-Policy', 'origin-when-cross-origin')"),
     );
     expect(norm(proxyContent)).toContain(norm("res.headers.set('Permissions-Policy'"));
+    expect(norm(proxyContent)).toContain(
+      norm("res.headers.set('Cross-Origin-Opener-Policy', 'same-origin')"),
+    );
+    expect(norm(proxyContent)).toContain(
+      norm("res.headers.set('Cross-Origin-Resource-Policy', 'same-origin')"),
+    );
+    expect(norm(proxyContent)).toContain(
+      norm("res.headers.set('X-Permitted-Cross-Domain-Policies', 'none')"),
+    );
     expect(proxyContent).toContain('Content-Security-Policy');
   });
 
@@ -51,5 +62,38 @@ describe('proxy security headers & CSP', () => {
     expect(proxyContent).toContain('https://us.i.posthog.com');
     expect(proxyContent).not.toContain('*.posthog.com');
     expect(proxyContent).not.toContain('*.i.posthog.com');
+  });
+});
+
+// Runtime coverage complementing the source-string checks above: those only prove the
+// call sites exist in proxy.ts, not that applyBaselineSecurityHeaders() actually mutates a
+// real response's headers as intended. Exported from src/proxy.ts specifically so this test
+// can invoke it directly against a genuine NextResponse instead of re-parsing source text.
+describe('applyBaselineSecurityHeaders() — runtime behavior', () => {
+  it('sets every baseline security header on a real NextResponse to its exact expected value', () => {
+    const response = applyBaselineSecurityHeaders(NextResponse.next());
+
+    expect(response.headers.get('X-DNS-Prefetch-Control')).toBe('on');
+    expect(response.headers.get('Strict-Transport-Security')).toBe(
+      'max-age=63072000; includeSubDomains; preload',
+    );
+    expect(response.headers.get('X-Frame-Options')).toBe('SAMEORIGIN');
+    expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
+    expect(response.headers.get('Referrer-Policy')).toBe('origin-when-cross-origin');
+    expect(response.headers.get('Cross-Origin-Opener-Policy')).toBe('same-origin');
+    expect(response.headers.get('Cross-Origin-Resource-Policy')).toBe('same-origin');
+    expect(response.headers.get('X-Permitted-Cross-Domain-Policies')).toBe('none');
+
+    const permissionsPolicy = response.headers.get('Permissions-Policy');
+    expect(permissionsPolicy).toContain('camera=()');
+    expect(permissionsPolicy).toContain('microphone=(self)');
+    expect(permissionsPolicy).toContain('clipboard-write=(self)');
+  });
+
+  it('returns the same response instance it was given (mutates in place)', () => {
+    const input = NextResponse.next();
+    const output = applyBaselineSecurityHeaders(input);
+
+    expect(output).toBe(input);
   });
 });

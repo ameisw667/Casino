@@ -69,7 +69,10 @@ export async function GET(request: Request) {
       return apiErrorResponse('LOAD_FAILED', 'Failed to load promo codes', 503);
     }
 
-    return apiSuccessResponse({ codes: data ?? [] }, { headers: rateLimitHeaders(rate) });
+    return apiSuccessResponse(
+      { codes: data ?? [] },
+      { headers: { ...rateLimitHeaders(rate), 'Cache-Control': 'private, no-store' } },
+    );
   } catch (error) {
     CasinoLogger.error('API/Admin/PromoCodes', 'List unexpected failure', error);
     return apiErrorResponse('PROMO_UNAVAILABLE', 'Promo codes unavailable', 503);

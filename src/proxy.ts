@@ -71,7 +71,7 @@ const PUBLIC_ROUTES = [
 // Supabase reachability) still carries the app's baseline hardening headers. Extracted as the
 // single source of truth after the 2026-09-01 observability audit found /api/health was the
 // only route in the app shipping with none of these (worldmap/00-04-SecurityHardening.md, M2/M5).
-function applyBaselineSecurityHeaders(res: NextResponse): NextResponse {
+export function applyBaselineSecurityHeaders(res: NextResponse): NextResponse {
   res.headers.set('X-DNS-Prefetch-Control', 'on');
   res.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   res.headers.set('X-Frame-Options', 'SAMEORIGIN');
@@ -84,8 +84,10 @@ function applyBaselineSecurityHeaders(res: NextResponse): NextResponse {
   // page reading our responses).
   res.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
   res.headers.set('Cross-Origin-Resource-Policy', 'same-origin');
-  // Legacy Flash/Adobe Reader cross-domain policy files (crossdomain.xml, etc.) — this app never
-  // ships one, so explicitly deny any client that still honors it (T_SECURITY_HARDENING/05, #5).
+  // Legacy Adobe Flash/PDF cross-domain policy files (crossdomain.xml, clientaccesspolicy.xml)
+  // are obsolete for this app (no Flash/Silverlight surface) but some browsers/PDF viewers still
+  // honor them by default — 'none' explicitly refuses cross-domain data loading via that channel
+  // instead of relying on the header's mere absence (T_SECURITY_HARDENING header-completeness pass).
   res.headers.set('X-Permitted-Cross-Domain-Policies', 'none');
   // Explicit allow only for features this app actually uses (grep-verified 2026-08-28):
   // microphone (Guide voice input, src/lib/casino/voice-audio.ts), clipboard-write (referral
