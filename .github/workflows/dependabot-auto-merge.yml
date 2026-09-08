@@ -1,0 +1,37 @@
+name: Dependabot auto-merge
+
+# docs/security-hardening/07_dependency_supply_chain_audit.md L5 (Runde 2). Dependabot
+# (.github/dependabot.yml) already opens weekly PRs but every one of them needed a manual
+# merge — patch/minor bumps piled up unreviewed for weeks. This enables GitHub's native
+# auto-merge (waits for ALL required status checks, incl. quality-ci and dependency-audit, to
+# pass — it does not bypass them) only for patch/minor semver bumps opened by Dependabot
+# itself. A MAJOR bump (breaking-change risk, exactly the ws/@trigger.dev situation already
+# tracked in .audit-ci.jsonc) is deliberately left for Jan to review and merge by hand.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: '${{ secrets.GITHUB_TOKEN }}'
+
+      # Only patch/minor — a major bump keeps requiring Jan's explicit merge.
+      - name: Enable auto-merge for patch/minor updates
+        if: steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
