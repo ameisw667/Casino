@@ -153,6 +153,17 @@
 
 ---
 
+## 9 — Nachbesserung nach Merge (2026-09-09, Commit `9899450`)
+
+Beim Gegenprüfen des bereits gemergten Runde-2-Stands (`security-hardening-round2-merge`) wurden 2 Lücken gefunden, die L1 (globales `ignore-scripts=true`) indirekt verursacht bzw. nicht abgedeckt hatte:
+
+1. **Cross-Säulen-Regression:** `ignore-scripts=true` unterdrückt nicht nur Dependency-Postinstall-Skripte, sondern auch die projekteigenen `predev`/`prebuild`-Hooks — dadurch lief Säule 3s Env-Fail-Fast-Check (`assert-core-env.ts`) nicht mehr automatisch vor `next dev`/`next build`. Live verifiziert: `npm run build` ohne Supabase-Env-Vars kam klaglos bis in `next build`, statt mit `[env] Missing or invalid...` abzubrechen. Fix: Check direkt in `dev`/`build` inline verankert (`"build": "tsx scripts/assert-core-env.ts && next build"`) statt über die jetzt unzuverlässige separate `prebuild`/`predev`-Hook-Konvention — diese beiden Skriptnamen sind aus `package.json` entfernt, da sie unter `ignore-scripts=true` sonst als irreführender toter Code stehen blieben.
+2. **Unabhängig vom Runde-2-Scope, aber live blockierend:** `dependency-audit.yml` schlug zum Nachprüfzeitpunkt real fehl (GitHub Actions Run #86) — 3 neue kritische/hohe CVEs seit der Recherche (2026-09-06): Next.js Unauthenticated RCE (kritisch), `js-yaml` (hoch), `sharp` (hoch). Nicht-breaking über `npm audit fix` behoben (kein `--force`, keines der drei betraf `@trigger.dev/sdk`/den `ws`-Fund).
+
+Erneut voll verifiziert (5-Stufen-DoD auf dem gemergten+nachgebesserten Stand): Typecheck 0 Fehler, 1548/1548 Tests grün, Lint 0 Fehler, `npm run build` erfolgreich mit Env-Vars/korrekt fail-fast ohne, `npx audit-ci --config .audit-ci.jsonc` wieder grün.
+
+---
+
 ## 8 — Verwandte Artefakte
 
 | Bedarf                                          | Datei                                                                                                                                               |

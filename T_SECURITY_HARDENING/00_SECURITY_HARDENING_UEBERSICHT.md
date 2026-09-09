@@ -1,6 +1,6 @@
 # 00 — Security Hardening: Verbesserungsplan
 
-> **Status:** 🟢 Runde 2 vollständig ausgeführt und lokal gemergt+verifiziert (Säulen 3, 5, 7, 8) · **Stand:** 2026-09-08 · **Owner:** LLM  
+> **Status:** 🟢 Runde 2 vollständig ausgeführt und lokal gemergt+verifiziert (Säulen 3, 5, 7, 8); 2 Nachbesserungen am Merge-Stand (siehe §1a) · **Stand:** 2026-09-09 · **Owner:** LLM  
 > **Worldmap-Kategorie:** 04 Security Hardening (Headers, CSP & Secrets)
 
 ## 1 — Executive Summary für Jan
@@ -23,6 +23,15 @@ Der gewichtete Reifegrad liegt jetzt bei **Top 14 %** (vorher Top 17 %). Runde 2
 **Offener technischer Punkt:** Der Merge-Stand liegt auf einem eigenen Branch (`security-hardening-round2-merge`), da Git das direkte Vorziehen von `codex/uncommitted-cohort-review` verweigert, solange dieser Branch im Haupt-Arbeitsverzeichnis ausgecheckt ist (Sicherheitsmechanismus, kein Bug — dort liegen aktuell 316 fremde uncommittete Änderungen anderer paralleler Sessions). Zusammenführen erfordert eine Jan-Aktion im Hauptverzeichnis.
 
 Bewusst bei Jan bleibende K5-Punkte, unverändert durch diese Runde: `ws`-Dependency-Fix (Säule 7), HMAC-Versionierung (Säule 8), COEP-Header-Entscheidung (Säule 5).
+
+## 1a — Nachbesserungen am Merge-Stand (2026-09-09, Commit `9899450` auf `security-hardening-round2-merge`)
+
+Beim Gegenprüfen des bereits fertigen Merge-Stands wurden 2 reale Lücken gefunden und behoben, bevor Jan den Branch übernimmt:
+
+1. **Regression bei Säule 3 durch Säule 7 aufgedeckt und geschlossen:** Säule 7s globales `ignore-scripts=true` (`.npmrc`) unterdrückt nicht nur Dependency-Postinstall-Skripte, sondern auch die **eigenen** `predev`/`prebuild`-Hooks des Projekts — also genau Säule 3s Env-Fail-Fast-Schutz. Verifiziert: `npm run build` lief im Merge-Worktree ohne jede Supabase-Env-Variable klaglos bis in `next build`, ohne den erwarteten `[env] Missing or invalid...`-Fehler. Fix: Check direkt in `dev`/`build` inline verankert statt über die jetzt unzuverlässigen separaten `pre*`-Skriptnamen. Nach dem Fix erneut verifiziert: bricht ohne Env-Vars korrekt ab, baut mit Env-Vars erfolgreich.
+2. **Unabhängiger, aktuell live gefundener Punkt:** `dependency-audit.yml` schlug zum Zeitpunkt der Nachprüfung real fehl (GitHub Actions Run #86, `conclusion: failure`) — 3 neue kritische/hohe CVEs seit der Runde-2-Recherche: Next.js Unauthenticated RCE (kritisch, `GHSA-p293-qw3h-jr36` + `GHSA-2xp9-vwfh-vxw4`), `js-yaml` (hoch), `sharp` (hoch). Alle drei nicht-breaking behebbar (`npm audit fix`, kein `--force`) — angewendet und verifiziert (`npx audit-ci` läuft jetzt wieder grün).
+
+Beide Fixes liegen als eigener Commit `9899450` auf `security-hardening-round2-merge`, erneut mit vollem 5-Stufen-DoD verifiziert: Typecheck 0 Fehler, 1548/1548 Tests grün, Lint 0 Fehler, Build erfolgreich (mit Env-Vars) bzw. korrekt fail-fast (ohne Env-Vars).
 
 ## 2 — Bewertungsmethode
 
