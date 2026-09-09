@@ -5,7 +5,7 @@
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
 
-1. **Wichtigster Hinweis für diese Konversation:** Die bisherige Doku (`worldmap/04_security_hardening.md`, `00_SECURITY_HARDENING_UEBERSICHT.md`, beide Stand 2026-08-30/2026-09-05) führt diese Säule als 🔴 **Top 48 %** mit 5 ungetriagten High-Funden (`brace-expansion`, `js-yaml`). **Das ist überholt.** Die frische Verifikation in dieser Konversation (2026-09-06) zeigt: Die letzten 3 CI-Läufe sind **grün**, `npm audit --audit-level=high` zeigt nur noch den bereits bekannten, dokumentiert allowlisteten `ws`-Fund (2 Advisories) als High — `brace-expansion`/`js-yaml` sind aus dem Abhängigkeitsbaum verschwunden (vermutlich durch reguläre `package-lock.json`-Updates zwischen den Sessions).
+1. **Wichtigster Hinweis für diese Konversation:** Die bisherige Doku (`T_SECURITY_HARDENING/04_security_hardening.md`, `00_SECURITY_HARDENING_UEBERSICHT.md`, beide Stand 2026-08-30/2026-09-05) führt diese Säule als 🔴 **Top 48 %** mit 5 ungetriagten High-Funden (`brace-expansion`, `js-yaml`). **Das ist überholt.** Die frische Verifikation in dieser Konversation (2026-09-06) zeigt: Die letzten 3 CI-Läufe sind **grün**, `npm audit --audit-level=high` zeigt nur noch den bereits bekannten, dokumentiert allowlisteten `ws`-Fund (2 Advisories) als High — `brace-expansion`/`js-yaml` sind aus dem Abhängigkeitsbaum verschwunden (vermutlich durch reguläre `package-lock.json`-Updates zwischen den Sessions).
 2. Lies §3 für die vollständige, frisch belegte Evidenz, bevor du diese Säule erneut bewertest.
 3. Der einzige verbleibende offene Punkt ist der `ws`-Fund selbst — bewusst bei Jan (K5, Breaking-Change-Risiko für `@trigger.dev/sdk`), nicht LLM-Zuständigkeit.
 
@@ -13,15 +13,15 @@
 
 ## 1 — Übersicht für Jan
 
-| Nr. | Meilenstein                                                      |                                  Status                                   | Nächster Schritt                                                                                                   | Zuständigkeit | Money-Pfad |
-| --- | ---------------------------------------------------------------- | :-----------------------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------ | :-----------: | :--------: |
-| L0  | Kontext & Ist-Stand-Verifikation                                 |                        🟢 verifiziert (2026-09-06)                        | —                                                                                                                  |      LLM      |    Nein    |
-| L1  | Hard-Gate ohne `continue-on-error`                               |                        🟢 ausgeführt (archiviert)                         | —                                                                                                                  |      LLM      |    Nein    |
-| L2  | Dokumentierte Allowlist (kein stiller Freifahrtschein)           |                        🟢 ausgeführt (archiviert)                         | —                                                                                                                  |      LLM      |    Nein    |
-| L3  | SBOM-Export (CycloneDX)                                          |                        🟢 ausgeführt (archiviert)                         | —                                                                                                                  |      LLM      |    Nein    |
-| L4  | `brace-expansion`/`js-yaml`-High-Funde triagieren                | 🟢 **erledigt** (nicht mehr im Abhängigkeitsbaum, 2026-09-06 verifiziert) | Doku-Drift in `worldmap/04_security_hardening.md` §7 und `00_SECURITY_HARDENING_UEBERSICHT.md` Zeile 7 korrigieren |      LLM      |    Nein    |
-| L5  | `ws`-Fund (`GHSA-58qx-3vcg-4xpx`, `GHSA-96hv-2xvq-fx4p`) beheben |                             🟡 wartet auf Jan                             | `npm audit fix --force` würde `@trigger.dev/sdk` breaking bumpen — Jan-Entscheidung nötig                          | **Jan** (K5)  |    Nein    |
-| L6  | Doku-Synchronisation (Niveau-Wert in übergeordneten Dateien)     |                         🟢 executed (2026-09-06)                          | `worldmap/04_security_hardening.md`, `docs/security-hardening/07_...md`, `00_SECURITY_OVERVIEW.md` aktualisiert    |      LLM      |    Nein    |
+| Nr. | Meilenstein                                                      |                                  Status                                   | Nächster Schritt                                                                                                               | Zuständigkeit | Money-Pfad |
+| --- | ---------------------------------------------------------------- | :-----------------------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------ | :-----------: | :--------: |
+| L0  | Kontext & Ist-Stand-Verifikation                                 |                        🟢 verifiziert (2026-09-06)                        | —                                                                                                                              |      LLM      |    Nein    |
+| L1  | Hard-Gate ohne `continue-on-error`                               |                        🟢 ausgeführt (archiviert)                         | —                                                                                                                              |      LLM      |    Nein    |
+| L2  | Dokumentierte Allowlist (kein stiller Freifahrtschein)           |                        🟢 ausgeführt (archiviert)                         | —                                                                                                                              |      LLM      |    Nein    |
+| L3  | SBOM-Export (CycloneDX)                                          |                        🟢 ausgeführt (archiviert)                         | —                                                                                                                              |      LLM      |    Nein    |
+| L4  | `brace-expansion`/`js-yaml`-High-Funde triagieren                | 🟢 **erledigt** (nicht mehr im Abhängigkeitsbaum, 2026-09-06 verifiziert) | Doku-Drift in `T_SECURITY_HARDENING/04_security_hardening.md` §7 und `00_SECURITY_HARDENING_UEBERSICHT.md` Zeile 7 korrigieren |      LLM      |    Nein    |
+| L5  | `ws`-Fund (`GHSA-58qx-3vcg-4xpx`, `GHSA-96hv-2xvq-fx4p`) beheben |                             🟡 wartet auf Jan                             | `npm audit fix --force` würde `@trigger.dev/sdk` breaking bumpen — Jan-Entscheidung nötig                                      | **Jan** (K5)  |    Nein    |
+| L6  | Doku-Synchronisation (Niveau-Wert in übergeordneten Dateien)     |                         🟢 executed (2026-09-06)                          | `T_SECURITY_HARDENING/04_security_hardening.md`, `docs/security-hardening/07_...md`, `00_SECURITY_OVERVIEW.md` aktualisiert    |      LLM      |    Nein    |
 
 ---
 
@@ -61,7 +61,7 @@
 ### L1 — Doku-Synchronisation ✅ ausgeführt (2026-09-06)
 
 - **Ziel:** Den in §2 #10 benannten Doku-Drift schließen — drei Dateien führten noch den veralteten 🔴-Top-48-%-Stand.
-- **Umsetzung:** `worldmap/04_security_hardening.md` (Kompaktübersicht-Zeile, Detailabschnitt §7, rechnerischer Schnitt, Prioritäten-Tabelle), `docs/security-hardening/07_dependency_supply_chain_audit.md` (Statuszeile + Update-Hinweis), `docs/security-hardening/00_SECURITY_OVERVIEW.md` (Matrix-Zeile 7) — alle auf 🟡/Top 20 %, `ws`-K5-Fund als einzig verbleibender Punkt.
+- **Umsetzung:** `T_SECURITY_HARDENING/04_security_hardening.md` (Kompaktübersicht-Zeile, Detailabschnitt §7, rechnerischer Schnitt, Prioritäten-Tabelle), `docs/security-hardening/07_dependency_supply_chain_audit.md` (Statuszeile + Update-Hinweis), `docs/security-hardening/00_SECURITY_OVERVIEW.md` (Matrix-Zeile 7) — alle auf 🟡/Top 20 %, `ws`-K5-Fund als einzig verbleibender Punkt.
 - **Verifizierung:** Alle vier Dateien (inkl. dieser) nennen jetzt denselben, frisch belegten Stand; historische 🔴-Abschnitte bleiben als datierter Beleg stehen statt gelöscht zu werden.
 
 ### L5 — `ws`-Fund beheben (Jan-Gate, nicht LLM-ausführbar ohne Freigabe)
@@ -95,7 +95,7 @@
 | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | Vollständiger, ausgeführter Härtungsplan (Gate-Konstruktion)                                       | [`docs/archive/06_5_dependency_audit_gate_hardening_plan.md`](../docs/archive/06_5_dependency_audit_gate_hardening_plan.md)     |
 | Technischer Deep-Dive (Säule 7 in der Docs-Nummerierung)                                           | [`docs/security-hardening/07_dependency_supply_chain_audit.md`](../docs/security-hardening/07_dependency_supply_chain_audit.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 04, enthält den zu korrigierenden veralteten Wert)        | [`worldmap/04_security_hardening.md`](../worldmap/04_security_hardening.md)                                                     |
+| Übergeordnete Aufschlüsselung (Kategorie 04, enthält den zu korrigierenden veralteten Wert)        | [`T_SECURITY_HARDENING/04_security_hardening.md`](../T_SECURITY_HARDENING/04_security_hardening.md)                             |
 | Allowlist-Konfiguration                                                                            | [`.audit-ci.jsonc`](../.audit-ci.jsonc)                                                                                         |
 | Gewichtete Subkategorien-Übersicht (alle 10 Säulen, enthält den zu korrigierenden veralteten Wert) | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                                  |
 

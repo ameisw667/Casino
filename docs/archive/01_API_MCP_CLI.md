@@ -1,6 +1,6 @@
 # API, MCP und CLI — Integrations- und Lernlandkarte (archiviert)
 
-> **Archiviert 2026-08-27.** Diese gemeinsame Datei wurde auf Jans Wunsch nach Interface-Typ in drei eigenständige Dateien aufgeteilt: [`worldmap/01_api.md`](../../t_api/01_api.md) (externe APIs/SDKs, die die App aufruft), [`worldmap/02_mcp.md`](../../worldmap/Tooling/01_mcp.md) (MCP-Server-Tooling) und [`worldmap/03_cli.md`](../../worldmap/Tooling/02_cli.md) (CLI-Tooling). Grund: API misst Code-Qualität dieses Repos, MCP/CLI messen Jans projektübergreifende Tooling-Kompetenz — zwei unterschiedliche Achsen, die vorher in einer Datei/einem Niveau-Wert vermischt waren.
+> **Archiviert 2026-08-27.** Diese gemeinsame Datei wurde auf Jans Wunsch nach Interface-Typ in drei eigenständige Dateien aufgeteilt: [`worldmap/01_api.md`](../../t_api/01_api.md) (externe APIs/SDKs, die die App aufruft), [`worldmap/02_mcp.md`](../../T_MCP/01_mcp.md) (MCP-Server-Tooling) und [`worldmap/03_cli.md`](../../T_CLI/02_cli.md) (CLI-Tooling). Grund: API misst Code-Qualität dieses Repos, MCP/CLI messen Jans projektübergreifende Tooling-Kompetenz — zwei unterschiedliche Achsen, die vorher in einer Datei/einem Niveau-Wert vermischt waren.
 > Für den aktuellen Stand gelten ausschließlich die drei neuen Dateien. Der folgende Inhalt ist der eingefrorene Stand vom 2026-08-23.
 
 ---

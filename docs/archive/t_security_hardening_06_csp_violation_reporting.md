@@ -43,7 +43,7 @@
 
 ## 3 — Verifizierter Ist-Stand (2026-09-06)
 
-**Korrektur (2026-09-06):** Die erste Suche in dieser Planungsserie suchte nur direkt unter `src/app/api/internal/csp-report/` und fand nichts. Eine zweite, gezielte Suche (`grep -rl "csp-report" src --include="*.test.ts"`) fand die Datei an der im Repo üblichen zentralen Stelle: `src/lib/security/__tests__/csp-report-route.test.ts` — **6 Tests, alle grün** (`describe('POST /api/internal/csp-report')`): „responds 204 with no body", „forwards each report in a Reporting API batch to Sentry", „unwraps the legacy single-object shape", „does not throw on invalid JSON", „caps how many reports from a single batch are forwarded", „silently drops reports once the per-IP rate limit is exceeded". Das bestätigt exakt den in `worldmap/04_security_hardening.md` (2026-08-30) genannten „6/6 Tests grün"-Stand — kein Doku-Drift, nur ein Rechercheversehen (falscher Pfad) in der ersten Runde dieser Datei.
+**Korrektur (2026-09-06):** Die erste Suche in dieser Planungsserie suchte nur direkt unter `src/app/api/internal/csp-report/` und fand nichts. Eine zweite, gezielte Suche (`grep -rl "csp-report" src --include="*.test.ts"`) fand die Datei an der im Repo üblichen zentralen Stelle: `src/lib/security/__tests__/csp-report-route.test.ts` — **6 Tests, alle grün** (`describe('POST /api/internal/csp-report')`): „responds 204 with no body", „forwards each report in a Reporting API batch to Sentry", „unwraps the legacy single-object shape", „does not throw on invalid JSON", „caps how many reports from a single batch are forwarded", „silently drops reports once the per-IP rate limit is exceeded". Das bestätigt exakt den in `T_SECURITY_HARDENING/04_security_hardening.md` (2026-08-30) genannten „6/6 Tests grün"-Stand — kein Doku-Drift, nur ein Rechercheversehen (falscher Pfad) in der ersten Runde dieser Datei.
 
 Übrige Aussagen (Dual-Format, Sentry-Weiterleitung, Rate-Limit, Kappung) sind aus `docs/security-hardening/03_csp_violation_reporting.md` (Stand 2026-08-30) übernommen und in dieser Runde nicht erneut gegen den Quellcode gegengelesen — als solche gekennzeichnet, nicht als frisch verifiziert.
 
@@ -80,7 +80,7 @@
 | Bedarf                                                   | Datei                                                                                                               |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | Technischer Deep-Dive (Säule 3 in der Docs-Nummerierung) | [`docs/security-hardening/03_csp_violation_reporting.md`](../docs/security-hardening/03_csp_violation_reporting.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 04)             | [`worldmap/04_security_hardening.md`](../worldmap/04_security_hardening.md)                                         |
+| Übergeordnete Aufschlüsselung (Kategorie 04)             | [`T_SECURITY_HARDENING/04_security_hardening.md`](../T_SECURITY_HARDENING/04_security_hardening.md)                 |
 | Report-Sink-Route                                        | [`src/app/api/internal/csp-report/route.ts`](../src/app/api/internal/csp-report/route.ts)                           |
 | Gewichtete Subkategorien-Übersicht (alle 10 Säulen)      | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                      |
 

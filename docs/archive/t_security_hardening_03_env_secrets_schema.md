@@ -52,7 +52,7 @@
 
 ### L1 — Edge-Runtime-Aufruf-Lücke verifizieren und schließen ✅ ausgeführt (2026-09-06)
 
-- **Ziel:** Die in `worldmap/04_security_hardening.md` benannte, aber nicht abschließend verifizierte Edge-Runtime-Lücke klären (§2 #6).
+- **Ziel:** Die in `T_SECURITY_HARDENING/04_security_hardening.md` benannte, aber nicht abschließend verifizierte Edge-Runtime-Lücke klären (§2 #6).
 - **Umsetzung:** `src/proxy.ts` prüft jetzt explizit `NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` vor der `createServerClient()`-Erzeugung und antwortet bei fehlenden Werten mit einem klar geloggten `500 Security boundary unavailable` — bewusst **kein** Aufruf von `assertCoreEnv()` selbst (das würde zusätzlich `SUPABASE_SERVICE_ROLE_KEY` verlangen, das die Edge-Middleware nicht nutzt; Scope-Mismatch).
 - **Verifizierung (2026-09-06):** `npm run typecheck` 0 Fehler · `npm test` 1614/1614 grün · `npm run lint` 0 Fehler · `npm run build` erfolgreich · `git status --short` zeigt nur die geplanten Dateien.
 
@@ -79,7 +79,7 @@
 | Bedarf                                                          | Datei                                                                                                     |
 | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | Technischer Deep-Dive (Säule 5 in der Docs-Nummerierung)        | [`docs/security-hardening/05_env_secrets_schema.md`](../docs/security-hardening/05_env_secrets_schema.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 04)                    | [`worldmap/04_security_hardening.md`](../worldmap/04_security_hardening.md)                               |
+| Übergeordnete Aufschlüsselung (Kategorie 04)                    | [`T_SECURITY_HARDENING/04_security_hardening.md`](../T_SECURITY_HARDENING/04_security_hardening.md)       |
 | Admin-Gate-Fallback-Design (Referenz für bewusste Scope-Grenze) | [`src/lib/security/admin.ts`](../src/lib/security/admin.ts)                                               |
 | Rate-Limit-Fallback-Design (Referenz für bewusste Scope-Grenze) | [`src/lib/security/request-security.ts`](../src/lib/security/request-security.ts)                         |
 | Gewichtete Subkategorien-Übersicht (alle 10 Säulen)             | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                            |

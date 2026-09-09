@@ -1,31 +1,31 @@
 # 05 — Datenbank-Härtung: Migrations-Disziplin, Indexing & Connection-Handling
 
-> **Status:** Executed (archiviert) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Unterkategorien 1, 6, 10 aus [04_datenbank_migrationen.md](../../worldmap/04_datenbank_migrationen.md). Kein Wallet-Business-Logic-Umbau und keine RLS-Policy-Änderung.
+> **Status:** Executed (archiviert) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Unterkategorien 1, 6, 10 aus [04_datenbank_migrationen.md](../../T_DATABASE/04_datenbank_migrationen.md). Kein Wallet-Business-Logic-Umbau und keine RLS-Policy-Änderung.
 
 ## 1 — Übersicht für Jan
 
 Die K4-, K5- und K6-A-Freigaben wurden ausgeführt. Die Migrationen 001–059 sind lokal und remote synchron; der frühere Remote-Drift ist reproduzierbar in 058 erfasst. Migration 059 härtet zwei ungenutzte Legacy-RPCs mit festem Suchpfad und ohne externe EXECUTE-Rechte. Der verbleibende pg-delta-Output besteht ausschließlich aus 28 bytegleichen Funktions-Reemissionen und ist als CLI-Idempotenzartefakt nachgewiesen.
 
-| Teil | Nr  | Meilenstein                                              | Status                                                                  | Nächster Schritt                                                                                                   | Zuständigkeit |
-| ---- | --- | -------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------ |
-| A    | L0  | Remote-Status-Vollaudit aller Migrationen ab 049         | 🟢 Erledigt, erneut verifiziert (2026-08-29)                            | —                                                                                                                  | LLM          |
-| A    | L1  | Klären: „nicht getrackt“ vs. „nicht angewendet“          | 🟢 Erledigt                                                             | —                                                                                                                  | LLM          |
-| A    | L2  | Kollisionsauflösung                                      | 🟢 Erledigt (K4)                                                        | Umbenannt/repariert/angewendet; Historie ist 001–059 synchron                                                      | LLM          |
-| A    | L3  | Fehlende `053`-Datei / Guild-Altbestand klären          | 🟢 Erledigt (K5)                                                        | Historischer No-op-Marker 053; verbliebene Guild-Objekte gezielt in 057 entfernt                                   | LLM          |
-| A    | L4  | Seed-Referenz bereinigen                                 | 🟢 Erledigt                                                             | `[db.seed] enabled = false`; keine Referenz auf eine fehlende Datei                                                 | LLM          |
-| A    | L5  | `consolidated-setup.sql` archivieren                     | 🟢 Erledigt                                                             | —                                                                                                                  | LLM          |
-| A    | L6  | Pre-Flight-Kollisions-Check als Pre-Commit-Hook          | 🟢 Erledigt                                                             | —                                                                                                                  | LLM          |
-| A    | L7  | Verifizierung Gesamt-Teil A                              | 🟢 Erledigt (K6-A)                                                      | Historie 001–059, Remote-Dump, Security Guard und vollständige Qualitätsgates verifiziert                          | LLM          |
-| B    | L0  | FK-Index-Gap-Analyse                                     | 🟢 Erledigt                                                             | —                                                                                                                  | LLM          |
-| B    | L1  | `pg_stat_statements`-Aktivierungsstatus prüfen           | 🟢 Erledigt                                                             | —                                                                                                                  | LLM          |
-| B    | L2  | Reale Remote-Stats / strukturelle Baseline               | 🟢 Erledigt                                                             | Kein Hot-Path-Befund; einziger Kandidat hat 0 Live-Zeilen und keine Produktabfragen                                | LLM          |
-| B    | L3  | Fehlende Indizes ergänzen                                | 🟢 Abgeschlossen: keine Migration erforderlich                          | Re-Check bei Wachstum oder auffälligen Outliers                                                                    | LLM          |
-| B    | L4  | Baseline + Re-Check-Rhythmus dokumentieren               | 🟢 Erledigt                                                             | —                                                                                                                  | LLM          |
-| C    | L0  | Ist-Zustand-Audit (App-seitiges Connection-Handling)     | 🟢 Erledigt                                                             | —                                                                                                                  | LLM          |
-| C    | L1  | Remote-Pooler-Modus und Grenzwerte                       | 🟢 Erledigt                                                             | Shared Supavisor; Pool Size 15, Max Client Connections 200                                                         | LLM          |
-| C    | L2  | Lokale Pooler-Parität testen                             | 🟢 Erledigt                                                             | Container healthy, TCP 54329 und SQL-Test erfolgreich; volle Testsuite grün                                        | LLM          |
-| C    | L3  | Verbindungsgrenzen + Eskalationsschwelle                 | 🟢 Erledigt                                                             | Schwelle in `xx_docs/01_supabase_context.md` dokumentiert                                                         | LLM          |
-| C    | L4  | Doku-Ergänzung                                           | 🟢 Erledigt                                                             | —                                                                                                                  | LLM          |
+| Teil | Nr  | Meilenstein                                          | Status                                         | Nächster Schritt                                                                          | Zuständigkeit |
+| ---- | --- | ---------------------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------- |
+| A    | L0  | Remote-Status-Vollaudit aller Migrationen ab 049     | 🟢 Erledigt, erneut verifiziert (2026-08-29)   | —                                                                                         | LLM           |
+| A    | L1  | Klären: „nicht getrackt“ vs. „nicht angewendet“      | 🟢 Erledigt                                    | —                                                                                         | LLM           |
+| A    | L2  | Kollisionsauflösung                                  | 🟢 Erledigt (K4)                               | Umbenannt/repariert/angewendet; Historie ist 001–059 synchron                             | LLM           |
+| A    | L3  | Fehlende `053`-Datei / Guild-Altbestand klären       | 🟢 Erledigt (K5)                               | Historischer No-op-Marker 053; verbliebene Guild-Objekte gezielt in 057 entfernt          | LLM           |
+| A    | L4  | Seed-Referenz bereinigen                             | 🟢 Erledigt                                    | `[db.seed] enabled = false`; keine Referenz auf eine fehlende Datei                       | LLM           |
+| A    | L5  | `consolidated-setup.sql` archivieren                 | 🟢 Erledigt                                    | —                                                                                         | LLM           |
+| A    | L6  | Pre-Flight-Kollisions-Check als Pre-Commit-Hook      | 🟢 Erledigt                                    | —                                                                                         | LLM           |
+| A    | L7  | Verifizierung Gesamt-Teil A                          | 🟢 Erledigt (K6-A)                             | Historie 001–059, Remote-Dump, Security Guard und vollständige Qualitätsgates verifiziert | LLM           |
+| B    | L0  | FK-Index-Gap-Analyse                                 | 🟢 Erledigt                                    | —                                                                                         | LLM           |
+| B    | L1  | `pg_stat_statements`-Aktivierungsstatus prüfen       | 🟢 Erledigt                                    | —                                                                                         | LLM           |
+| B    | L2  | Reale Remote-Stats / strukturelle Baseline           | 🟢 Erledigt                                    | Kein Hot-Path-Befund; einziger Kandidat hat 0 Live-Zeilen und keine Produktabfragen       | LLM           |
+| B    | L3  | Fehlende Indizes ergänzen                            | 🟢 Abgeschlossen: keine Migration erforderlich | Re-Check bei Wachstum oder auffälligen Outliers                                           | LLM           |
+| B    | L4  | Baseline + Re-Check-Rhythmus dokumentieren           | 🟢 Erledigt                                    | —                                                                                         | LLM           |
+| C    | L0  | Ist-Zustand-Audit (App-seitiges Connection-Handling) | 🟢 Erledigt                                    | —                                                                                         | LLM           |
+| C    | L1  | Remote-Pooler-Modus und Grenzwerte                   | 🟢 Erledigt                                    | Shared Supavisor; Pool Size 15, Max Client Connections 200                                | LLM           |
+| C    | L2  | Lokale Pooler-Parität testen                         | 🟢 Erledigt                                    | Container healthy, TCP 54329 und SQL-Test erfolgreich; volle Testsuite grün               | LLM           |
+| C    | L3  | Verbindungsgrenzen + Eskalationsschwelle             | 🟢 Erledigt                                    | Schwelle in `xx_docs/01_supabase_context.md` dokumentiert                                 | LLM           |
+| C    | L4  | Doku-Ergänzung                                       | 🟢 Erledigt                                    | —                                                                                         | LLM           |
 
 **Reihenfolge:** Teil A, Teil B und Teil C sind abgeschlossen. L7 ist nach K6-A mit reproduzierbarer Migration, Remote-Historie, Security Guard und Qualitätsgates verifiziert.
 ---
@@ -210,6 +210,7 @@ Die Baseline und die Re-Check-Trigger sind in `xx_docs/01_supabase_context.md` d
 - **Teil A:** Abgeschlossen; Historie 001–059 synchron, Kollisionsschutz aktiv, Seed-Referenz bereinigt, Remote-Drift in 058 reproduzierbar dokumentiert und Legacy-RPCs in 059 zusätzlich gehärtet. Qualitätsgates grün.
 - **Teil B:** Abgeschlossen. Kein evidenzbasierter Indexbedarf; Baseline und Re-Check-Rhythmus dokumentiert.
 - **Teil C:** Abgeschlossen. Remote-Grenzwerte, lokaler Pooler-Nachweis und Eskalationsschwelle dokumentiert.
+
 ## Live-Abschluss (2026-08-29)
 
 - Die Migrationshistorie ist lokal und remote durchgehend synchron (`001` bis `059`).

@@ -49,7 +49,7 @@
 
 `gh run list --workflow=security-staging.yml --limit 3`: letzter Push-Lauf `34024839664` (2026-09-06, 09:30 UTC) **success**, davor `33987257048` (2026-09-05, `workflow_dispatch`) **success**. Ein einzelner roter Lauf (`33986785853`, 2026-09-05, 21s, scope-fremder Doku-Commit) liegt dazwischen, ist aber isoliert und nicht Teil einer anhaltenden Regression — der unmittelbar nachfolgende Lauf ist bereits wieder grün.
 
-Migrations-Kollisions-Check (`ls supabase/migrations | sed -E 's/_.*//' | sort | uniq -d`, 2026-09-06): **leer** — 66 Migrationsdateien, keine doppelte Präfix-Nummer. Der in `worldmap/04_security_hardening.md` §„Stash-Vorfall" beschriebene Regressions-Fall vom 2026-08-29 ist seit dem 2026-08-30-Fix nicht wieder aufgetreten.
+Migrations-Kollisions-Check (`ls supabase/migrations | sed -E 's/_.*//' | sort | uniq -d`, 2026-09-06): **leer** — 66 Migrationsdateien, keine doppelte Präfix-Nummer. Der in `T_SECURITY_HARDENING/04_security_hardening.md` §„Stash-Vorfall" beschriebene Regressions-Fall vom 2026-08-29 ist seit dem 2026-08-30-Fix nicht wieder aufgetreten.
 
 **Korrektur (2026-09-06, beim Volltext-Lesen der Datei für die Execution-Runde entdeckt):** `.github/workflows/security-staging.yml:34-39` hat bereits einen `concurrency`-Block. Die vorherige Aussage in dieser Datei („kein Block gefunden") war ein Rechercheversehen, kein realer Fund — hiermit korrigiert, kein Code-Änderungsbedarf.
 
@@ -86,7 +86,7 @@ Kein Umsetzungsbedarf — der Block existiert bereits (`security-staging.yml:34-
 | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | Vollständiger, ausgeführter Härtungsplan                 | [`docs/archive/06_4_security_ci_gate_hardening_plan.md`](../docs/archive/06_4_security_ci_gate_hardening_plan.md)                 |
 | Technischer Deep-Dive (Säule 8 in der Docs-Nummerierung) | [`docs/security-hardening/08_security_ci_gates.md`](../docs/security-hardening/08_security_ci_gates.md)                           |
-| Übergeordnete Aufschlüsselung (Kategorie 04)             | [`worldmap/04_security_hardening.md`](../worldmap/04_security_hardening.md)                                                       |
+| Übergeordnete Aufschlüsselung (Kategorie 04)             | [`T_SECURITY_HARDENING/04_security_hardening.md`](../T_SECURITY_HARDENING/04_security_hardening.md)                               |
 | Red-Team-CI-Gate (separates, offensives Gate)            | [`T_RATE_LIMITING_ABUSE_PREVENTION/../docs/archive/06_7_red_team_ci_gate_plan.md`](../docs/archive/06_7_red_team_ci_gate_plan.md) |
 | Gewichtete Subkategorien-Übersicht (alle 10 Säulen)      | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                                    |
 

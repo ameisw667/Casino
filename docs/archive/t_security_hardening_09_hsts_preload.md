@@ -43,7 +43,7 @@
 
 `src/proxy.ts:76`: `res.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')` — bestätigt per Grep, 2026-09-06.
 
-`.app`-TLD-HSTS-Zwang und tatsächliche Preload-Listung zuletzt am 2026-08-30 per `hstspreload.org`-API bestätigt (`worldmap/04_security_hardening.md`) — in dieser Runde nicht erneut per Live-API-Call nachgeprüft, aber ohne jeden Anlass für eine Regression (Domain-Registrar-Eigenschaft, ändert sich nicht durch Code-Änderungen).
+`.app`-TLD-HSTS-Zwang und tatsächliche Preload-Listung zuletzt am 2026-08-30 per `hstspreload.org`-API bestätigt (`T_SECURITY_HARDENING/04_security_hardening.md`) — in dieser Runde nicht erneut per Live-API-Call nachgeprüft, aber ohne jeden Anlass für eine Regression (Domain-Registrar-Eigenschaft, ändert sich nicht durch Code-Änderungen).
 
 ---
 
@@ -73,7 +73,7 @@ Bereits erfüllt — keine offenen Punkte.
 | Bedarf                                                                  | Datei                                                                                                                   |
 | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | Technischer Deep-Dive (gemeinsam mit Säule 10 in der Docs-Nummerierung) | [`docs/security-hardening/10_security_txt_hsts_preload.md`](../docs/security-hardening/10_security_txt_hsts_preload.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 04)                            | [`worldmap/04_security_hardening.md`](../worldmap/04_security_hardening.md)                                             |
+| Übergeordnete Aufschlüsselung (Kategorie 04)                            | [`T_SECURITY_HARDENING/04_security_hardening.md`](../T_SECURITY_HARDENING/04_security_hardening.md)                     |
 | Gewichtete Subkategorien-Übersicht (alle 10 Säulen)                     | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                          |
 
 ---

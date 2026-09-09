@@ -3,7 +3,7 @@
 > Stand: **2026-08-27** — abgespalten aus der bisherigen gemeinsamen Datei `01_API_MCP_CLI.md` (Aufteilung nach Interface-Typ auf Jans Wunsch). Die alte Datei ist archiviert.
 > Projekt: **Casino / Next.js 16.3 / Supabase / Sentry**
 > Zweck: Lern- und Entscheidungsgrundlage für externe APIs/SDKs, die die App selbst aufruft — nicht die App-eigenen `src/app/api/**`-Routen (die sind Kategorie 01 „API" in `00_WORLDMAP_STATUS.md`, siehe dort für Contract-/Idempotenz-Messung). Diese Datei ist zunächst eine Analyse und Roadmap; sie führt keine neue Integration automatisch aus.
-> Abgrenzung: MCP-Server-Nutzung → [02_mcp.md](../worldmap/Tooling/01_mcp.md). CLI-Tool-Nutzung → [03_cli.md](../worldmap/Tooling/02_cli.md).
+> Abgrenzung: MCP-Server-Nutzung → [02_mcp.md](../T_MCP/01_mcp.md). CLI-Tool-Nutzung → [03_cli.md](../T_CLI/02_cli.md).
 
 ## Übersicht für Jan
 
@@ -35,7 +35,7 @@
 | --- | ----------------------------------------------------------- | ------------ | ------- | ---------------------------------------------- |
 | 5   | Sentry Next.js SDK inklusive Redaction und Error Boundaries | ✅ Vorhanden | Top 10% | R: Niedrig · I: Hoch · L: Niedrig · A: Niedrig |
 
-> CLI-/MCP-Pendants (Sentry CLI, Sentry MCP) siehe [03_cli.md](../worldmap/Tooling/02_cli.md) bzw. [02_mcp.md](../worldmap/Tooling/01_mcp.md).
+> CLI-/MCP-Pendants (Sentry CLI, Sentry MCP) siehe [03_cli.md](../T_CLI/02_cli.md) bzw. [02_mcp.md](../T_MCP/01_mcp.md).
 
 #### Produktanalyse
 
@@ -49,7 +49,7 @@
 | --- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
 | 16  | Production-Monitoring: `/api/health` + externer Free-Checker (UptimeRobot) | 🟢 Verifiziert (2026-08-16), Rest offen — Details: `docs/archive/05_1.13_Uptime-Kuma-Monitoring.md` | Top 20% | R: Niedrig · I: Mittel · L: Niedrig · A: Niedrig |
 | 24  | Telegram statt/zusätzlich zu E-Mail als Alarmkanal                         | ⬜ Vorschlag, noch nicht eingerichtet                                                               | Top 80% | R: Niedrig · I: Mittel · L: Mittel · A: Niedrig  |
-| 26  | Synthetic Check auf echten API-Endpunkt statt nur `/api/health`            | ⬜ Vorschlag, baut auf Automation-Vorschlag in [03_cli.md](../worldmap/Tooling/02_cli.md) auf       | Top 85% | R: Niedrig · I: Mittel · L: Mittel · A: Mittel   |
+| 26  | Synthetic Check auf echten API-Endpunkt statt nur `/api/health`            | ⬜ Vorschlag, baut auf Automation-Vorschlag in [03_cli.md](../T_CLI/02_cli.md) auf                  | Top 85% | R: Niedrig · I: Mittel · L: Mittel · A: Mittel   |
 
 ---
 

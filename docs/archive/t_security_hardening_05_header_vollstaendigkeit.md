@@ -5,7 +5,7 @@
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
 
-1. Lies §1–§3. Diese Säule ist die **sauberste Einzelarbeit der zehn** (`worldmap/04_security_hardening.md`): jede der 21 Permissions-Policy-Direktiven wurde einzeln gegen echte Feature-Nutzung im Code gegrept, bevor sie verweigert wurde — kein pauschales Blockieren mit Risiko, ein genutztes Feature zu brechen.
+1. Lies §1–§3. Diese Säule ist die **sauberste Einzelarbeit der zehn** (`T_SECURITY_HARDENING/04_security_hardening.md`): jede der 21 Permissions-Policy-Direktiven wurde einzeln gegen echte Feature-Nutzung im Code gegrept, bevor sie verweigert wurde — kein pauschales Blockieren mit Risiko, ein genutztes Feature zu brechen.
 2. **Regel für künftige Feature-Arbeit:** Wird ein neues Browser-Feature genutzt (z. B. Kamera für eine neue KYC-Funktion), MUSS die entsprechende `Permissions-Policy`-Direktive in `src/proxy.ts` von `()` auf `(self)` (oder enger) angepasst werden — sonst bricht das Feature im Browser lautlos.
 3. `X-Permitted-Cross-Domain-Policies: none` ist am 2026-09-06 ergänzt worden (§4 L1). COEP (§8) ist bewusst **nicht** umgesetzt — echte Cross-Origin-Bildquellen gefunden, die es brechen könnten; siehe §8 vor jeder künftigen Umsetzung lesen.
 
@@ -34,7 +34,7 @@
 |  6  | Permissions-Policy — Fullscreen/USB/HID/Serial/Gamepad         | Top 10 % |   🟢   | Ebenfalls kein Nutzungsnachweis → `()`                                                                                                                           |
 |  7  | Direktiven-Anzahl (Vollständigkeit ggü. Browser-Spezifikation) | Top 20 % |   🟢   | 21 von den gängig empfohlenen Direktiven (Ausgangspunkt war 3)                                                                                                   |
 |  8  | Feature-Verifikations-Methodik dokumentiert                    | Top 10 % |   🟢   | Jede Direktive einzeln gegen Grep-Nachweis begründet, nicht pauschal kopiert                                                                                     |
-|  9  | Live-Deployment-Bestätigung                                    | Top 10 % |   🟢   | `curl -sI` gegen Produktion bestätigt (Stand 2026-08-30, `worldmap/04_security_hardening.md`)                                                                    |
+|  9  | Live-Deployment-Bestätigung                                    | Top 10 % |   🟢   | `curl -sI` gegen Produktion bestätigt (Stand 2026-08-30, `T_SECURITY_HARDENING/04_security_hardening.md`)                                                        |
 | 10  | Wartungsprozess bei neuen Features                             | Top 30 % |   🟡   | Kein automatisierter Check, der eine neue `navigator.*`-API-Nutzung gegen eine noch verweigerte Permissions-Policy-Direktive abgleicht — rein manuelle Disziplin |
 
 **Rechnerischer Schnitt (Stand vor L1-Ausführung):** (10+10+10+10+10+10+20+10+10+30)/10 = **Top 13 %**. Nach Ausführung von L1 (§4) auf **Top 14 %** neu berechnet — siehe §8.
@@ -43,7 +43,7 @@
 
 ## 3 — Verifizierter Ist-Stand (2026-09-06)
 
-`src/proxy.ts:93` — `Permissions-Policy`-Header gesetzt (Zeilenreferenz bestätigt per Grep 2026-09-06). Inhaltliche 21-Direktiven-Zusammensetzung nicht in dieser Runde erneut Zeile für Zeile gegen jede Feature-Nutzung neu verifiziert (letzte vollständige Verifikation: `worldmap/04_security_hardening.md`, 2026-08-30) — keine Anzeichen für Code-Änderungen an dieser Stelle seit damals (kein `git log -- src/proxy.ts` in dieser Runde geprüft, aber kein Hinweis in den Commit-Historie-Auszügen aus `git status`/`git log` zu Beginn dieser Konversation auf proxy.ts-Änderungen).
+`src/proxy.ts:93` — `Permissions-Policy`-Header gesetzt (Zeilenreferenz bestätigt per Grep 2026-09-06). Inhaltliche 21-Direktiven-Zusammensetzung nicht in dieser Runde erneut Zeile für Zeile gegen jede Feature-Nutzung neu verifiziert (letzte vollständige Verifikation: `T_SECURITY_HARDENING/04_security_hardening.md`, 2026-08-30) — keine Anzeichen für Code-Änderungen an dieser Stelle seit damals (kein `git log -- src/proxy.ts` in dieser Runde geprüft, aber kein Hinweis in den Commit-Historie-Auszügen aus `git status`/`git log` zu Beginn dieser Konversation auf proxy.ts-Änderungen).
 
 `Strict-Transport-Security`-Header (separat, Säule 9) ebenfalls in `src/proxy.ts:76` bestätigt — nur als Kontext erwähnt, nicht Teil dieser Säule.
 
@@ -84,7 +84,7 @@
 | Bedarf                                                   | Datei                                                                                                 |
 | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | Technischer Deep-Dive (Säule 2 in der Docs-Nummerierung) | [`docs/security-hardening/02_security_headers.md`](../docs/security-hardening/02_security_headers.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 04)             | [`worldmap/04_security_hardening.md`](../worldmap/04_security_hardening.md)                           |
+| Übergeordnete Aufschlüsselung (Kategorie 04)             | [`T_SECURITY_HARDENING/04_security_hardening.md`](../T_SECURITY_HARDENING/04_security_hardening.md)   |
 | Gewichtete Subkategorien-Übersicht (alle 10 Säulen)      | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                        |
 
 ---

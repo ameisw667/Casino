@@ -39,8 +39,8 @@ Eine 1-%-Dokumentation eines 30-%-Systems ist **korrekt** (die Doku beschreibt e
 | **08** | **Analytics & BI**               | _Kein Paket_ (`xx_docs/06`, `xx_sop/08`) _(Ziel: `docs/analytics/`)_                          | —                                                 | 08 Analytics & Business Intelligence   |      15 %       |     15 %     |  15 %  | 🟡 **Struktur-Roadmap (Ziel: `docs/analytics/`)** — PostHog Privacy-Stack live, Doku-Paket geplant        |
 | **13** | **UI-Architektur (Frontend)**    | [`docs/frontend/00`](./frontend/00_FRONTEND_OVERVIEW.md)                                      | **„Niveau V4: Top 8,4 %"** (10 Module gewichtet)  | 13 UI-Architektur & Design-System      |      8,4 %      |     20 %     |  20 %  | 🟢 **Synchron (V4 kalibriert)** — Refactorings umgesetzt, `docs/README.md` korrigiert                     |
 | **15** | **LLM-Integration & KI-Guide**   | _Kein Paket_ (`Z_LLM/10_llm_erweiterung.md`) _(Ziel: `docs/llm/`)_                            | —                                                 | 15 LLM-Integration & KI-Guide          |      10 %       |     35 %     |  35 %  | 🟡 **Doku-Roadmap (Ziel: `docs/llm/`)** — 13 Stufen A–N live, Doku zwischen Z_LLM und Archiv zersplittert |
-| **16** | **MCP (Model Context Protocol)** | `worldmap/Tooling/01_mcp.md` _(Ziel: `docs/mcp/`)_                                            | —                                                 | 16 MCP                                 |      45 %       |     40 %     |  40 %  | 🟡 **Doku-Roadmap (Ziel: `docs/mcp/`)** — 4/7 Piloten verifiziert, 3 offen                                |
-| **17** | **CLI (Command Line Tools)**     | `worldmap/Tooling/02_cli.md` & `xx_docs/02` _(Ziel: `docs/cli/`)_                             | —                                                 | 17 CLI                                 |      25 %       |     25 %     |  25 %  | 🟡 **Doku-Roadmap (Ziel: `docs/cli/`)** — 6 CLIs im Einsatz, Referenzhandbuch vorhanden                   |
+| **16** | **MCP (Model Context Protocol)** | `T_MCP/01_mcp.md` _(Ziel: `docs/mcp/`)_                                                       | —                                                 | 16 MCP                                 |      45 %       |     40 %     |  40 %  | 🟡 **Doku-Roadmap (Ziel: `docs/mcp/`)** — 4/7 Piloten verifiziert, 3 offen                                |
+| **17** | **CLI (Command Line Tools)**     | `T_CLI/02_cli.md` & `xx_docs/02` _(Ziel: `docs/cli/`)_                                        | —                                                 | 17 CLI                                 |      25 %       |     25 %     |  25 %  | 🟡 **Doku-Roadmap (Ziel: `docs/cli/`)** — 6 CLIs im Einsatz, Referenzhandbuch vorhanden                   |
 | **—**  | **Images (Dev-Asset-Tool)**      | [`docs/images/00`](../public/images/00_IMAGES_OVERVIEW.md)                                    | „98 % (Enterprise-Grade)" (Fertigstellung)        | _Keine Worldmap-Entsprechung_          |        —        |      —       |   —    | ⚪ **Nicht kalibrierbar** — Internes Dev-Tool zur KI-Bilderzeugung außerhalb der Core-App                 |
 
 ---
@@ -72,7 +72,7 @@ Das Dokumentationspaket `docs/database/` wurde am 2026-09-02 vollumfänglich nac
 
 ### 2.4 Security Hardening — der aktuell einzige Fall vollständiger Live-Synchronisation
 
-Als Referenz, wie das Ziel-Bild aussieht: `worldmap/04_security_hardening.md` und `00_WORLDMAP_STATUS.md` Zeile 22 wurden am 2026-08-30 in derselben Session aktualisiert (siehe `worldmap/04_security_hardening.md` Abschnitt „Ergänzung 2026-08-30"), inklusive einer belegten SOP-12-Punktzahl (30/33) als Herleitung für die Doku-Tier-Einstufung — nicht nur eine behauptete Zahl, sondern eine nachrechenbare. Genau dieses Muster (Behauptung → Herleitung → Quelle) sollte laut dieser Datei für alle sechs Kategorien gelten.
+Als Referenz, wie das Ziel-Bild aussieht: `T_SECURITY_HARDENING/04_security_hardening.md` und `00_WORLDMAP_STATUS.md` Zeile 22 wurden am 2026-08-30 in derselben Session aktualisiert (siehe `T_SECURITY_HARDENING/04_security_hardening.md` Abschnitt „Ergänzung 2026-08-30"), inklusive einer belegten SOP-12-Punktzahl (30/33) als Herleitung für die Doku-Tier-Einstufung — nicht nur eine behauptete Zahl, sondern eine nachrechenbare. Genau dieses Muster (Behauptung → Herleitung → Quelle) sollte laut dieser Datei für alle sechs Kategorien gelten.
 
 ### 2.5 Die 6 Doku-Roadmap-Kandidaten (Langfristige Überführung in vollwertige Docs-Pakete)
 
@@ -171,12 +171,12 @@ Diese Datei trifft die Entscheidung nicht — sie liegt bei Jan (Option-Gate-Kan
 
 ## 7 — Verwandte Artefakte
 
-| Bedarf                                                                  | Datei                                                                                                         |
-| :---------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------ |
-| Flacher Datei-Index (alle `docs/`-Dateien, lebend vs. archiviert)       | [`docs/README.md`](./README.md)                                                                               |
-| Live-Status-Master-Quelle (System-Reifegrad je Kategorie)               | [`worldmap/00_WORLDMAP_STATUS.md`](../worldmap/00_WORLDMAP_STATUS.md)                                         |
-| Doku-Qualitäts-Rubrik (Kern-8 + Docs-Erweiterung + Skeleton-Konvention) | [`xx_sop/12_workflow_dokument_qualitaet.md`](../xx_sop/12_workflow_dokument_qualitaet.md)                     |
-| Agent-Erstellungs-Prozess (Vertrag, Evaluierung, Lifecycle)             | [`xx_sop/13_workflow_agent_creation.md`](../xx_sop/13_workflow_agent_creation.md)                             |
-| Agent-Registry & Scorecard                                              | [`t_claude_code/agents/12_workflow_agent_creation.md`](../t_claude_code/agents/12_workflow_agent_creation.md) |
-| Option-Gate (für die offene Agent-Design-Frage)                         | [`xx_sop/01_workflow_jan_option_gate.md`](../xx_sop/01_workflow_jan_option_gate.md)                           |
-| Referenzbeispiel vollständiger Sync (Kategorie 04, heute hergestellt)   | [`worldmap/04_security_hardening.md`](../worldmap/04_security_hardening.md), Abschnitt „Ergänzung 2026-08-30" |
+| Bedarf                                                                  | Datei                                                                                                                                 |
+| :---------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
+| Flacher Datei-Index (alle `docs/`-Dateien, lebend vs. archiviert)       | [`docs/README.md`](./README.md)                                                                                                       |
+| Live-Status-Master-Quelle (System-Reifegrad je Kategorie)               | [`worldmap/00_WORLDMAP_STATUS.md`](../worldmap/00_WORLDMAP_STATUS.md)                                                                 |
+| Doku-Qualitäts-Rubrik (Kern-8 + Docs-Erweiterung + Skeleton-Konvention) | [`xx_sop/12_workflow_dokument_qualitaet.md`](../xx_sop/12_workflow_dokument_qualitaet.md)                                             |
+| Agent-Erstellungs-Prozess (Vertrag, Evaluierung, Lifecycle)             | [`xx_sop/13_workflow_agent_creation.md`](../xx_sop/13_workflow_agent_creation.md)                                                     |
+| Agent-Registry & Scorecard                                              | [`t_claude_code/agents/12_workflow_agent_creation.md`](../t_claude_code/agents/12_workflow_agent_creation.md)                         |
+| Option-Gate (für die offene Agent-Design-Frage)                         | [`xx_sop/01_workflow_jan_option_gate.md`](../xx_sop/01_workflow_jan_option_gate.md)                                                   |
+| Referenzbeispiel vollständiger Sync (Kategorie 04, heute hergestellt)   | [`T_SECURITY_HARDENING/04_security_hardening.md`](../T_SECURITY_HARDENING/04_security_hardening.md), Abschnitt „Ergänzung 2026-08-30" |

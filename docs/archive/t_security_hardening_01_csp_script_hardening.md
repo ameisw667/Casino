@@ -48,7 +48,7 @@
 
 Kein dediziertes Testfile für `src/proxy.ts` gefunden (`src/proxy.test.ts` existiert nicht); die einzige Verifikationsquelle ist Live-`curl` gegen die Produktions-URL, nicht Teil der automatisierten Test-Suite.
 
-Live-Header-Check (letzter bestätigter Stand laut `worldmap/04_security_hardening.md`, 2026-08-30, ~18:55 UTC): `curl -sI https://casino-xi-six.vercel.app/` liefert die gehärtete CSP wie im Code beschrieben — kein Deployment-Gap.
+Live-Header-Check (letzter bestätigter Stand laut `T_SECURITY_HARDENING/04_security_hardening.md`, 2026-08-30, ~18:55 UTC): `curl -sI https://casino-xi-six.vercel.app/` liefert die gehärtete CSP wie im Code beschrieben — kein Deployment-Gap.
 
 ---
 
@@ -84,7 +84,7 @@ Live-Header-Check (letzter bestätigter Stand laut `worldmap/04_security_hardeni
 | Bedarf                                              | Datei                                                                                                         |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | Technischer Deep-Dive (Säule 1)                     | [`docs/security-hardening/01_csp_script_hardening.md`](../docs/security-hardening/01_csp_script_hardening.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 04)        | [`worldmap/04_security_hardening.md`](../worldmap/04_security_hardening.md)                                   |
+| Übergeordnete Aufschlüsselung (Kategorie 04)        | [`T_SECURITY_HARDENING/04_security_hardening.md`](../T_SECURITY_HARDENING/04_security_hardening.md)           |
 | Master-Dokumentation                                | [`docs/security-hardening/00_SECURITY_OVERVIEW.md`](../docs/security-hardening/00_SECURITY_OVERVIEW.md)       |
 | Gewichtete Subkategorien-Übersicht (alle 10 Säulen) | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                |
 | Planungsdateien-Konvention                          | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md)                   |

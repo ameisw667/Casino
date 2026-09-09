@@ -84,7 +84,7 @@ Kein offener LLM-Meilenstein. Der einzige inhaltliche Punkt (§2 #9, HMAC-Versio
 | Technischer Deep-Dive (Säule 6 in der Docs-Nummerierung) | [`docs/security-hardening/06_secret_rotation_gitleaks.md`](../docs/security-hardening/06_secret_rotation_gitleaks.md) |
 | Secret-Rotation-SOP                                      | [`xx_sop/14_secret_rotation.md`](../xx_sop/14_secret_rotation.md)                                                     |
 | Rotation-Fälligkeits-Log                                 | [`xx_docs/13_secret_rotation_log.md`](../xx_docs/13_secret_rotation_log.md)                                           |
-| Übergeordnete Aufschlüsselung (Kategorie 04)             | [`worldmap/04_security_hardening.md`](../worldmap/04_security_hardening.md)                                           |
+| Übergeordnete Aufschlüsselung (Kategorie 04)             | [`T_SECURITY_HARDENING/04_security_hardening.md`](../T_SECURITY_HARDENING/04_security_hardening.md)                   |
 | Gewichtete Subkategorien-Übersicht (alle 10 Säulen)      | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                        |
 
 ---

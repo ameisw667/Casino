@@ -1,4 +1,4 @@
-# 05 — Fail-Closed Rate-Limiter-Instrumentierung (35 Routen, 1 Funktion)
+# 05 — Fail-Closed Rate-Limiter-Instrumentierung (44 Routen, 2 Funktionen)
 
 > **Säule:** 5 von 9 · **Status:** 🟢 Produktionsreif · **Niveau:** 🟢 Top 10 % (siehe [Bewertungsmethode](00_OBSERVABILITY_OVERVIEW.md#1--executive-summary-für-jan-high-level--verständlich); Abzug wegen Pitfall 1 unten) · **Stand:** 2026-08-31 (Code 1:1 verifiziert, Aufrufer-Liste frisch gegrept)
 > **Kern-Datei:** `src/lib/security/request-security.ts` · **Back:** [`00_OBSERVABILITY_OVERVIEW.md`](00_OBSERVABILITY_OVERVIEW.md)
@@ -7,7 +7,7 @@
 
 ## 1 — High-Level: Was ist das & wann brauche ich das?
 
-`enforceRateLimit()` ist die zentrale Rate-Limit-Funktion für **35 API-Routen**. Ihr eigentlicher Zweck ist Missbrauchsschutz (Sliding-Window über Upstash Redis) — für Observability entscheidend ist aber ihr **Fail-Closed-Verhalten**: Ist Upstash nicht erreichbar oder in Produktion nicht konfiguriert, meldet die Funktion sich selbst per `Sentry.captureMessage()` und liefert eine kontrollierte Fehlerantwort statt eines stillen Durchwinkens.
+`enforceRateLimit()` ist die zentrale Rate-Limit-Funktion für **42 API-Routen** (direkt oder über den `withRateLimit()`-Wrapper, beide identisch fail-closed). Ihr eigentlicher Zweck ist Missbrauchsschutz (Sliding-Window über Upstash Redis) — für Observability entscheidend ist aber ihr **Fail-Closed-Verhalten**: Ist Upstash nicht erreichbar oder in Produktion nicht konfiguriert, meldet die Funktion sich selbst per `Sentry.captureMessage()` und liefert eine kontrollierte Fehlerantwort statt eines stillen Durchwinkens.
 
 - **Wann berühren:** Eine neue API-Route braucht Rate-Limiting, oder das Fail-Closed-Verhalten bei Infrastruktur-Ausfall muss angepasst werden.
 - **Nicht hier:** `/api/health` nutzt bewusst **nicht** diese Funktion, sondern einen eigenen fail-**offenen** In-Memory-Limiter → [Modul 06](./06_health_check_uptime_monitoring.md).
@@ -124,32 +124,39 @@ export function rateLimitHeaders(result: RateLimitDecision): HeadersInit {
 
 ---
 
-## 5 — Die 37 Aufrufer (Stand 2026-09-04)
+## 5 — Die 44 Aufrufer (Stand 2026-09-08)
 
 ```
-user/stats, user/history, user/login-history, user/balance,
-telegram/toggle, telegram/unlink, telegram/link, telegram/status,
+user/stats, user/history, user/login-history, user/balance, user/self-exclusion,
+telegram/toggle, telegram/unlink, telegram/link, telegram/status, telegram/webhook,
 notifications, notifications/[id], notifications/read-all,
 leaderboard,
 chat, chat/voice-synthesize, chat/voice-transcribe, chat/bot-response, chat/feedback,
-casino/seeds, casino/seeds/history, casino/redeem-code, casino/blackjack, casino/bet, casino/bet-crash-multiplayer,
-admin/users, admin/overview, admin/promo-codes, admin/knowledge, admin/games,
+casino/seeds, casino/seeds/history, casino/redeem-code, casino/blackjack, casino/bet, casino/bet-crash-multiplayer, casino/guide-persona,
+admin/users, admin/users/[id]/status, admin/overview, admin/promo-codes, admin/promo-codes/[code]/reverse, admin/knowledge, admin/games, admin/job-health,
 admin/fraud, admin/fraud/scan, admin/fraud/complete-wait, admin/evals, admin/analytics,
 analytics/identity, internal/csp-report,
-auth/login-guard (scope `login-attempt`), auth/signup-suspicion (scope `signup-suspicion`)
+auth/login-guard (scope `login-attempt`), auth/signup-suspicion (scope `signup-suspicion`),
+auth/signup-fingerprint (scope `signup-fingerprint`)
 ```
+
+> **Update 2026-09-08 (06_3 Multi-Account-Abuse-Prevention, L0/L2):** Neu instrumentiert: `auth/signup-fingerprint` (`signup-fingerprint`, 10/60s, IP-basiert, fail-offener Empfänger analog `signup-suspicion`) und `admin/users/[id]/status` (`admin-users-status-write`, 10/60s, Admin-fail-closed). Damit: 44 instrumentiert von 59 Route-Dateien gesamt.
+
+> **Update 2026-09-06 (06_6 Distributed-/Edge-Konsistenz, L0/L1/L3/L4):** Neu instrumentiert: `casino/guide-persona` (GET+PATCH, `guide-persona` 20/60s, auth-first via `withRateLimit()`-resolve) und `telegram/webhook` (`telegram-webhook` 60/60s, Secret-first via `withRateLimit()`-resolve — die bisher dokumentierten 120/min waren ein Dokumentationsfehler, die Route hatte real **0** Rate-Limit-Aufrufe). Zuvor fehlten in dieser Liste bereits `admin/job-health`, `admin/promo-codes/[code]/reverse` (06_10) und `user/self-exclusion`. Neu: der `withRateLimit()`-Higher-Order-Wrapper (`request-security.ts`) führt die Limit-Entscheidung **vor** dem Handler aus und ist seit 06_6 Pflichtmuster für **neue** Routen (bestehende 40 manuell instrumentierte Routen bleiben bewusst unangetastet). Damit existiert ein struktureller Vollständigkeits-Check: `src/lib/security/rate-limit-route-inventory.ts` + `rate-limit-route-completeness.test.ts` scannen alle `src/app/api/**/route.ts` und schlagen fehl, wenn eine Route weder instrumentiert noch auf der Exemption-Allowlist ist (42 instrumentiert von 57 Route-Dateien gesamt — Stand 2026-09-06, seit 06_3: 44 von 59).
 
 > **Update 2026-09-04 (06_1 Bot-Automation-Detection, L1/L3):** Zwei neue öffentliche Auth-Routen nutzen `enforceRateLimit()`: `POST /api/auth/login-guard` (`login-attempt`, 5/60s, IP-basiert, fail-closed) als serverseitiger Login-Preflight und `POST /api/auth/signup-suspicion` (`signup-suspicion`, 10/60s, fail-closed) als fail-offener Empfänger für Signup-Honeypot/Timing-Signale. Zusätzlich existiert seit L2 ein **separater** Daily-Cost-Cap (`src/lib/security/daily-cost-cap.ts`) für die Chat-Routen — ein festes 24h-Kontingent (INCR + `EXPIRE 86400 NX`, fail-closed 503 ohne Upstash in Produktion) _neben_ den bestehenden Sliding-Windows der Chat-Routen; er läuft nicht über `enforceRateLimit()` und taucht deshalb nicht in dieser Liste auf.
 
-**Bewusst NICHT über `enforceRateLimit()` instrumentiert:** `/api/health` (eigener fail-offener Limiter, [Modul 06](./06_health_check_uptime_monitoring.md)), `/api/internal/cron-alert` (kein Rate-Limit, nur Secret-Auth, [Modul 07](./07_cron_failure_alerting.md)), `/api/casino/config`, `/api/casino/jackpot`, `/api/casino/active-round`, `/api/community`, `/api/tournaments/daily-race`, `/api/internal/big-win-events`, `/api/internal/wallet-events`, `/api/admin/digest-preview/start`, `/api/casino/session-sync` + `/api/casino/migrate-session` (beide `410 Gone`), `/api/webhooks/clerk` (`410 Gone`).
+**Bewusst NICHT über `enforceRateLimit()`/`withRateLimit()` instrumentiert** (Allowlist in `src/lib/security/rate-limit-route-inventory.ts`): `/api/health` (eigener fail-offener Limiter, [Modul 06](./06_health_check_uptime_monitoring.md)), `/api/internal/cron-alert` (kein Rate-Limit, nur Secret-Auth, [Modul 07](./07_cron_failure_alerting.md)), `/api/internal/big-win-events`, `/api/internal/wallet-events` (beide Secret-Auth, nur pg_net/pg_cron aus der DB), `/api/casino/config`, `/api/casino/jackpot`, `/api/casino/active-round`, `/api/community`, `/api/tournaments/daily-race`, `/api/admin/digest-preview/start`, `/api/casino/session-sync` + `/api/casino/migrate-session` (beide `410 Gone`), `/api/webhooks/clerk` (`410 Gone`), `/api/docs` + `/api/openapi.json` (force-static, CDN-gecached — 06_6 L2).
 
 ---
 
 ## 6 — Code-Pfade
 
 ```
-src/lib/security/request-security.ts          # enforceRateLimit(), reportRateLimiterUnavailable(), rateLimitHeaders()
+src/lib/security/request-security.ts          # enforceRateLimit(), withRateLimit(), reportRateLimiterUnavailable(), rateLimitHeaders()
+src/lib/security/rate-limit-route-inventory.ts # 06_6 L3: Exemption-Allowlist + Instrumentierungs-Erkennung (Call-Syntax, nicht Kommentare)
 src/lib/security/__tests__/request-security.test.ts  # Testsuite (sliding window, fail-closed, fail-open dev)
+src/lib/security/__tests__/rate-limit-route-completeness.test.ts  # 06_6 L3: Dateisystem-Scan aller API-Routen gegen die Allowlist (fail on forgotten route)
 ```
 
 ---

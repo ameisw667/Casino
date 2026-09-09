@@ -51,7 +51,7 @@ const PUBLIC_ROUTES = [
 
 `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload` (siehe [`02_security_headers.md`](./02_security_headers.md)) ist der **Header**, der die Preload-Absicht signalisiert. Die tatsächliche Aufnahme in Browser-Preload-Listen ist ein separater Schritt.
 
-**Selbst frisch verifiziert (2026-08-30, nicht nur aus `worldmap/04_security_hardening.md` übernommen):** `curl -s "https://hstspreload.org/api/v2/status?domain=casino-xi-six.vercel.app"` → `{"name":"casino-xi-six.vercel.app","status":"preloaded","bulk":false,"preloadedDomain":"app"}`.
+**Selbst frisch verifiziert (2026-08-30, nicht nur aus `T_SECURITY_HARDENING/04_security_hardening.md` übernommen):** `curl -s "https://hstspreload.org/api/v2/status?domain=casino-xi-six.vercel.app"` → `{"name":"casino-xi-six.vercel.app","status":"preloaded","bulk":false,"preloadedDomain":"app"}`.
 
 **Wichtig, ehrlich eingeordnet:** Das ist **kein eigener Ingenieurserfolg dieses Projekts**, sondern eine Eigenschaft der Domain-Wahl — Google preloadet die gesamte `.app`-Top-Level-Domain zwingend und dauerhaft (HTTPS ist für `.app`-Domains verpflichtend, unabhängig von einer projektspezifischen Submission). Bei einer `.com`/`.io`-Domain wäre eine echte, hier nie durchgeführte manuelle Submission bei `hstspreload.org` nötig gewesen. Diese Zeile im Code sichert also nicht die Preload-Aufnahme selbst, sondern verstärkt zusätzlich (`includeSubDomains`), was die TLD-Politik bereits erzwingt.
 

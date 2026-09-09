@@ -1,9 +1,9 @@
 # 09 — Red-Team-Probes (Offensive CI-Gate)
 
-> **Säule:** 9 von 10 · **Status:** 🟢 **Debugging-Session abgeschlossen, Root-Cause bestätigt** (nachgetragen 2026-08-30, ~17:45 UTC) · **Stand:** 2026-08-30
+> **Säule:** 9 von 10 · **Status:** 🟢 **Debugging-Session abgeschlossen, Root-Cause bestätigt** (nachgetragen 2026-08-30, ~17:45 UTC) · **06_7-Execution 2026-09-06:** wöchentlicher Schedule-Trigger, Concurrency-Blöcke, Bot-Bypass-Probe (Autor-TODOs aus Abschnitt 6 erledigt), Crash-MP-/Admin-Fraud-Proben, Katalog-Vollständigkeits-Check · **Stand:** 2026-09-06
 > **Dateien:** `.github/workflows/red-team-security.yml`, `scripts/red-team/*.ts` · **Back:** [`00_SECURITY_OVERVIEW.md`](00_SECURITY_OVERVIEW.md)
 
-> **Diese Säule ist neu und wird von keinem der bisherigen Status-Reports (`worldmap/04_security_hardening.md`, `docs/status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md`) erfasst** — sie ist während der Recherche für diese Dokumentation live auf `main` entstanden. Die zum ursprünglichen Schreibzeitpunkt offene Debugging-Session (Abschnitt 4) ist inzwischen abgeschlossen und mit dem tatsächlichen Ausgang nachgetragen.
+> **Diese Säule ist neu und wird von keinem der bisherigen Status-Reports (`T_SECURITY_HARDENING/04_security_hardening.md`, `docs/status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md`) erfasst** — sie ist während der Recherche für diese Dokumentation live auf `main` entstanden. Die zum ursprünglichen Schreibzeitpunkt offene Debugging-Session (Abschnitt 4) ist inzwischen abgeschlossen und mit dem tatsächlichen Ausgang nachgetragen.
 
 ---
 
@@ -17,14 +17,20 @@ Alle bisherigen Gates (`secret-scan`, `dependency-audit`, `security-staging`) pr
 
 ```yaml
 on:
-  workflow_dispatch: # bewusst manuell, kein automatischer Trigger auf jeden Push
+  schedule:
+    - cron: '0 4 * * 0' # wöchentlich, Sonntag 04:00 UTC (06_7 L0 — eine Stunde nach backup-drill 03:00)
+  workflow_dispatch:
+
+concurrency:
+  group: red-team-security-${{ github.ref }} # 06_7 L1 — parallele Läufe canceln statt auf
+  cancel-in-progress: true # denselben ephemeren Supabase-Stack zu rennen
 ```
 
-**Wichtige Design-Entscheidung, im Workflow-Kommentar begründet:** Der Rate-Limiter (`enforceRateLimit()`) liefert einen fail-closed `503`, sobald `NODE_ENV=production` UND kein Upstash konfiguriert ist — in einem ephemeren Runner ohne echte Upstash-Instanz würde ein Production-Build den Rate-Limit-Bypass-Probe also sinnlos machen (jeder Request bekäme `503` statt einer echten Rate-Limit-Antwort). Der Workflow startet die App deshalb bewusst per `npm run dev` — dieselbe getestete In-Memory-Rate-Limit-Fallback-Logik, die Jan auch lokal nutzt.
+**Wichtige Design-Entscheidung, im Workflow-Kommentar begründet:** Der Rate-Limiter (`enforceRateLimit()`) liefert einen fail-closed `503`, sobald `NODE_ENV=production` UND kein Upstash konfiguriert ist — in einem ephemeren Runner ohne echte Upstash-Instanz würde ein Production-Build den Rate-Limit-Bypass-Probe also sinnlos machen (jeder Request bekäme `503` statt einer echten Rate-Limit-Antwort). Der Workflow startet die App deshalb bewusst per `npm run dev` — dieselbe getestete In-Memory-Rate-Limit-Fallback-Logik, die Jan auch lokal nutzt. **Update 06_7 (2026-09-06):** Der Gate läuft jetzt wöchentlich automatisch (`schedule: '0 4 * * 0'`) zusätzlich zu `workflow_dispatch`, mit `concurrency`-Block gegen kollidierende Läufe — die frühere reine Manuell-Situation (Abschnitt 5, Bullet 1) ist damit aufgehoben; ein Prod-Build-Wechsel bleibt bewusst außen vor (06_7 Q3a).
 
 ---
 
-## 3 — Die vier Probe-Skripte (`scripts/red-team/`)
+## 3 — Die sieben Probe-Skripte (`scripts/red-team/`)
 
 | Skript                   | Was es prüft                                                                                                                                                                                           | Erwartetes Ergebnis                                                                             |
 | :----------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------- |
@@ -32,6 +38,10 @@ on:
 | `ephemeral-bootstrap.ts` | Legt zwei Wegwerf-Nutzer (Admin + Nicht-Admin) im ephemeren Supabase an, leitet Session-Cookies für die übrigen Probes ab                                                                              | Liefert `RED_TEAM_AUTH_COOKIE`, `RED_TEAM_NON_ADMIN_COOKIE`, `RED_TEAM_FOREIGN_USER_ID`         |
 | `rate-limit-bypass.ts`   | Feuert `limit + 2` parallele Requests gegen `/api/casino/bet` (Limit 30) und `/api/casino/blackjack` (Limit 20), jeweils mit unterschiedlicher `x-forwarded-for` und teils fehlendem `Idempotency-Key` | Erwartet mindestens einen `429` UND nicht mehr akzeptierte Requests als das konfigurierte Limit |
 | `admin-idor.ts`          | Versucht mit einem **Nicht-Admin-Cookie**, per `PATCH /api/admin/users` den Kontostand eines **fremden** Nutzers zu verändern (IDOR — Insecure Direct Object Reference)                                | Erwartet `401`, `403` oder `404` — niemals einen Erfolgsstatus                                  |
+
+| `bot-bypass.ts` (06_7) | Live-Angriffssimulation der 06_1-Anti-Automation-Guards: Signup-Honeypot-Signal gegen `/api/auth/signup-suspicion`, Login-Flood gegen `/api/auth/login-guard` (hartes 5/60s-Ceiling), Promo-Guess-Flood gegen `/api/casino/redeem-code` (10×400 fail-open, 11. Request → 429) | Signup: `200 {recorded:true}` **plus** `bot_signal_honeypot`-Risk-Event (per Service-Role-Query gegen die ephemere DB verifiziert); Login: erste 5 Requests `200`, danach `429`; Promo: `voucher_velocity`/`guess_threshold`-Event für den Probe-Code |
+| `crash-mp-bypass.ts` (06_7) | Rate-Limit-Boundary des separaten Crash-Multiplayer-Transports (`/api/casino/bet-crash-multiplayer`, Limit 30/10s): 32 parallele Requests mit ungültigem Body (Validation `400` **vor** jeder Wallet-Operation) | Mindestens ein `429`, nicht mehr akzeptierte Requests als das Limit, Statusmenge ⊆ {400, 429} |
+| `admin-fraud-idor.ts` (06_7) | IDOR-Analogon zu `admin-idor.ts`, aber für Risk-Event-Review-Status: Nicht-Admin versucht `PATCH /api/admin/fraud` mit fabrizierter Event-UUID (kann mit keiner realen Zeile kollidieren) | Erwartet `401`, `403` oder `404` — niemals einen Erfolgsstatus |
 
 **Bemerkenswert an `rate-limit-bypass.ts`:** Es toleriert _fehlende_ `Idempotency-Key`-Header bei jedem dritten Request (`index % 3 !== 2`) — das Skript prüft damit implizit auch, dass fehlende Idempotenz nicht versehentlich zu doppelten Wett-Buchungen führt, nicht nur das Rate-Limit selbst.
 
@@ -58,7 +68,7 @@ Der Fehler (siehe [`04_csrf_origin_guard.md`](./04_csrf_origin_guard.md) Abschni
 
 ## 5 — Sicherheits-Grenzen & Ehrliche Einschätzung
 
-- **`workflow_dispatch`-only, kein automatischer Trigger.** Anders als die übrigen drei Gates läuft dieses nicht bei jedem Push — es muss manuell ausgelöst werden. Eine Regression in der Rate-Limit- oder IDOR-Schutzlogik fällt also nicht automatisch bei jedem PR auf, nur wenn jemand das Gate aktiv anstößt.
+- **~~`workflow_dispatch`-only, kein automatischer Trigger~~ (seit 06_7, 2026-09-06 aufgehoben).** Das Gate läuft jetzt wöchentlich automatisch (Sonntag 04:00 UTC, `schedule`-Trigger) zusätzlich zu manuellem `workflow_dispatch`. Bewusst **nicht** bei jedem Push/PR: ein Red-Team-Lauf betrifft potenziell jede Route, ein sinnvoller Pfadfilter wäre unpraktisch breit, und die Ephemeral-Stack-Laufzeit macht wöchentlich den Kosten-Nutzen-Schnitt (06_7 Q1a). Eine Regression fällt damit spätestens wöchentlich automatisch auf statt nur bei manuellem Anstoßen.
 - **Nutzt `next dev`, nicht den Produktions-Build.** Ein Unterschied im Verhalten zwischen Dev- und Production-Modus (z. B. andere Fehlerbehandlung, andere Bundle-Struktur) würde von diesem Gate nicht erfasst.
 - **Ephemere, synthetische Nutzer (`ci-red-team-admin@ephemeral.test`) statt echter Produktionsdaten** — realistisch für Auth-/Berechtigungs-Logik, aber nicht für Datenvolumen- oder Produktionslast-Verhalten.
 
@@ -68,5 +78,6 @@ Der Fehler (siehe [`04_csrf_origin_guard.md`](./04_csrf_origin_guard.md) Abschni
 
 - **Erledigt:** Ausgang nachgetragen (Abschnitt 4), Root-Cause bestätigt.
 - **Noch offen, unverändert seit Ersterfassung:** `00_SECURITY_OVERVIEW.md` Zeile 9 trägt weiterhin den alten 🔴-Status dieser Säule und war nicht Teil dieser Überarbeitungsrunde — vor der nächsten Verwendung dieser Zeile den dort stehenden Status gegen diese Datei abgleichen.
-- **Neu, aus dem jetzt grünen Lauf abgeleitet:** Da das Gate erstmals nachweislich grün lief, wäre der nächste sinnvolle Schritt, es testweise als regelmäßig laufendes Gate (z. B. wöchentlicher `schedule`-Trigger statt nur `workflow_dispatch`) zu etablieren — bisher fällt eine Regression nur auf, wenn jemand es manuell anstößt.
-- **Neu 2026-09-04, Folgeaufgabe aus [`docs/archive/06_1_bot_automation_detection_plan.md`](../archive/06_1_bot_automation_detection_plan.md) L7 (nur benannt, nicht umgesetzt):** `scripts/red-team/rate-limit-bypass.ts` um einen **Bot-Bypass-Testfall** ergänzen — die neuen Anti-Automation-Schranken (`/api/auth/login-guard`-Preflight, Signup-Honeypot/Timing-Signalisierung, Promo-Guess-Zähler, Bet-Velocity-Hint, Daily-Cost-Cap) liegen bewusst außerhalb des bisherigen 429-Bypass-Profilings und werden vom Gate aktuell nicht berührt. Sinnvollster Fall: automatisierter Signup-/Login-Ablauf mit leerem Honeypot und <2s-Submit-Timing → erwartet wird eine erfolgreiche Submission (bewusst fail-open), aber ein `bot_signal_*`-Risk-Event im Admin-Dashboard — verifiziert, dass die Signal-Kette nicht regressioniert.
+- **Neu, aus dem jetzt grünen Lauf abgeleitet — erledigt 2026-09-06 (06_7 L0):** Der wöchentliche `schedule`-Trigger ist eingerichtet (`'0 4 * * 0'`, zusätzlich zu `workflow_dispatch`, plus `concurrency`-Block auch in `security-staging.yml`). Abschnitt 2 zeigt die aktuelle Trigger-Konfiguration.
+- **Neu 2026-09-04, Folgeaufgabe aus [`docs/archive/06_1_bot_automation_detection_plan.md`](../archive/06_1_bot_automation_detection_plan.md) L7 — erledigt 2026-09-06 (06_7 L2):** Der **Bot-Bypass-Testfall** ist gebaut (`scripts/red-team/bot-bypass.ts`, siehe Abschnitt 3): Signup-Honeypot-Signal-Verifikation per Service-Role-Query, Login-Guard-Flood (hartes 5/60s-Ceiling — der Guard ist bewusst NICHT fail-open, anders als die übrigen Bot-Signale) und Promo-Guess-Kette (`voucher_velocity`/`guess_threshold`). **Bekannte Restlücke dabei:** der Signal-Typ `bot_signal_login_flood` existiert im Enum, hat aber bislang keinen Producer (Stand 2026-09-06 verifiziert) — der Flood-Case prüft daher das Rate-Limit-Ceiling, nicht ein Risk-Event. Bewusst weiter ausgeklammert: Chat/Guide-Tages-Cap (Kosten- statt Sicherheitstest) und Bet-Velocity-Hint (realtime-only Signal ohne eigenen Endpunkt-Angriffsfall).
+- **Neu 2026-09-06, Folgeaufgabe aus 06_7 L3 (7 bewusst nicht gebaute Proben):** Die folgende Money-/Auth-Routen-Teilmenge bleibt ohne Red-Team-Probe und ist als benannte Folgeaufgabe im Katalog (`scripts/red-team/test-catalog.json` + `scripts/red-team/catalog-coverage.ts`, `RED_TEAM_KNOWN_NOT_BUILT_ROUTES`) dokumentiert, nicht stillschweigend fallen gelassen: `casino/jackpot`, `user/balance`, `tournaments/daily-race`, `admin/promo-codes` (Erstellung), `casino/guide-persona`, `telegram/webhook`, `user/self-exclusion`. Der `red-team-catalog-coverage.test.ts` warnt bei jeder NEUEN kritischen Route ohne Probe-Entscheidung (warn-only, kein hartes CI-Gate — 06_7 L4) und schlägt fehl, wenn ein Katalogeintrag auf eine nicht mehr existierende Route zeigt.

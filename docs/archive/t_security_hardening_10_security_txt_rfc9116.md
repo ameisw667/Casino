@@ -34,7 +34,7 @@
 |  6  | Standardpfad (`/.well-known/security.txt`)     | Top 5 %  |   🟢   | RFC-9116-konformer Pfad, kein Custom-Ort                                                                                                                                             |
 |  7  | HTTPS-Auslieferung                             | Top 5 %  |   🟢   | Läuft über dieselbe HTTPS-erzwungene `.app`-Domain wie der Rest der App                                                                                                              |
 |  8  | Korrekter `Content-Type`                       | Top 20 % |   🟡   | Nicht in dieser Runde explizit gegen `text/plain; charset=utf-8` (RFC-Empfehlung) verifiziert — statisches Public-Asset, Next.js setzt i. d. R. korrekt, aber nicht frisch bestätigt |
-|  9  | Live-Erreichbarkeit (Produktion)               | Top 10 % |   🟢   | `curl -sI` gegen Produktion lieferte laut `worldmap/04_security_hardening.md` (2026-08-30) `200`                                                                                     |
+|  9  | Live-Erreichbarkeit (Produktion)               | Top 10 % |   🟢   | `curl -sI` gegen Produktion lieferte laut `T_SECURITY_HARDENING/04_security_hardening.md` (2026-08-30) `200`                                                                         |
 | 10  | Wiedervorlage-Mechanismus vor `Expires`-Ablauf | Top 40 % |   🟠   | Kein automatisierter Reminder gefunden (anders als `xx_docs/13_secret_rotation_log.md` für Secrets) — rein manuelle Disziplin, Ablauf aber erst 2027                                 |
 
 **Rechnerischer Schnitt:** (10+10+15+10+10+5+5+20+10+40)/10 = **Top 13,5 %**. Kein akuter Bottleneck — #10 ist erst relevant, wenn sich der Ablauftermin (2027-08-28) nähert.
@@ -54,7 +54,7 @@ Canonical: https://casino-xi-six.vercel.app/.well-known/security.txt
 
 Alle RFC-9116-Pflicht- und Empfehlungsfelder (`Contact`, `Expires`) sowie sinnvolle optionale Felder (`Preferred-Languages`, `Canonical`) vorhanden. `Expires` liegt knapp ein Jahr in der Zukunft ab heutigem Datum (2026-09-06) — kein akuter Handlungsbedarf.
 
-Die Middleware-Matcher-Ausnahme (`/.well-known/(.*)` in `PUBLIC_ROUTES`) wurde in dieser Runde nicht erneut im Code gegengelesen, ist aber laut `worldmap/04_security_hardening.md` (2026-08-30) als notwendige Zusatzentdeckung dokumentiert und live bestätigt (`200`-Status per `curl`).
+Die Middleware-Matcher-Ausnahme (`/.well-known/(.*)` in `PUBLIC_ROUTES`) wurde in dieser Runde nicht erneut im Code gegengelesen, ist aber laut `T_SECURITY_HARDENING/04_security_hardening.md` (2026-08-30) als notwendige Zusatzentdeckung dokumentiert und live bestätigt (`200`-Status per `curl`).
 
 ---
 
@@ -84,7 +84,7 @@ Bereits erfüllt — keine offenen Punkte vor 2027.
 | Bedarf                                                                 | Datei                                                                                                                   |
 | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | Technischer Deep-Dive (gemeinsam mit Säule 9 in der Docs-Nummerierung) | [`docs/security-hardening/10_security_txt_hsts_preload.md`](../docs/security-hardening/10_security_txt_hsts_preload.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 04)                           | [`worldmap/04_security_hardening.md`](../worldmap/04_security_hardening.md)                                             |
+| Übergeordnete Aufschlüsselung (Kategorie 04)                           | [`T_SECURITY_HARDENING/04_security_hardening.md`](../T_SECURITY_HARDENING/04_security_hardening.md)                     |
 | Die Datei selbst                                                       | [`public/.well-known/security.txt`](../public/.well-known/security.txt)                                                 |
 | Gewichtete Subkategorien-Übersicht (alle 10 Säulen)                    | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                          |
 

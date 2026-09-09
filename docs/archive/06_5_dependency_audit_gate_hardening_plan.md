@@ -1,8 +1,8 @@
-> **Archiviert 2026-08-29.** Ursprünglich `worldmap/04_07_dependency_audit_gate.md`. Alle 6 Meilensteine (L1–L6) sind umgesetzt und lokal verifiziert — siehe Abschnitt 5/6 für das ehrliche Ergebnis (Top 36 %, verbessert sich deutlich von Top 58 % Ist-Zustand, erreicht aber das Ziel „mindestens Top 30 %" nicht vollständig, weil die `ws`-Breaking-Change-Entscheidung bewusst bei Jan bleibt). Aktueller Stand der Kategorie 04 in [`worldmap/04_security_hardening.md`](../../worldmap/04_security_hardening.md), Live-Status in [`worldmap/00_WORLDMAP_STATUS.md`](../../worldmap/00_WORLDMAP_STATUS.md).
+> **Archiviert 2026-08-29.** Ursprünglich `worldmap/04_07_dependency_audit_gate.md`. Alle 6 Meilensteine (L1–L6) sind umgesetzt und lokal verifiziert — siehe Abschnitt 5/6 für das ehrliche Ergebnis (Top 36 %, verbessert sich deutlich von Top 58 % Ist-Zustand, erreicht aber das Ziel „mindestens Top 30 %" nicht vollständig, weil die `ws`-Breaking-Change-Entscheidung bewusst bei Jan bleibt). Aktueller Stand der Kategorie 04 in [`T_SECURITY_HARDENING/04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md), Live-Status in [`worldmap/00_WORLDMAP_STATUS.md`](../../worldmap/00_WORLDMAP_STATUS.md).
 
 # 04.07 — Supply-Chain-/Dependency-Audit-Gate: Von Top 65 % zu möglichst nah an Top 30 %
 
-> **Status:** Executed (archiviert) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Härtung von Unterkategorie #7 „Supply-Chain-/Dependency-Audit-Gate" (`.github/workflows/dependency-audit.yml`) aus [`04_security_hardening.md`](../../worldmap/04_security_hardening.md) (Kategorie 04, Prio 1) — bewusst **nicht** die Breaking-Change-Entscheidung zu `ws`/`@trigger.dev/sdk` (bleibt bei Jan, K5) und **nicht** Rate Limiting (Kategorie 06).
+> **Status:** Executed (archiviert) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Härtung von Unterkategorie #7 „Supply-Chain-/Dependency-Audit-Gate" (`.github/workflows/dependency-audit.yml`) aus [`04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md) (Kategorie 04, Prio 1) — bewusst **nicht** die Breaking-Change-Entscheidung zu `ws`/`@trigger.dev/sdk` (bleibt bei Jan, K5) und **nicht** Rate Limiting (Kategorie 06).
 > **Money-Pfad:** Nein (Build-/CI-Infrastruktur, kein Wallet-Schreibpfad) · **Security-Review:** Pflicht (Supply-Chain-Gate)
 
 ---
@@ -16,24 +16,24 @@ Zwei Dinge kann dieser Plan **nicht** selbst herbeiführen:
 
 **Wichtiger, unschöner Zwischenbefund bei der Vorbereitung dieses Plans (2026-08-29):** Der bisherige Report nannte „1 verbleibenden High-Fund (`ws`)". Ein frischer `npm audit --audit-level=high`-Lauf zeigt heute **3 High-Funde**, nicht 1:
 
-| Fund | Behebbar ohne Breaking Change? |
-| --- | --- |
-| `ws` (via `engine.io-client`/`socket.io-client`, transitiv über `@trigger.dev/sdk`) | Nein — nur `--force`, K5 |
-| `deepmerge-ts` (via `@prisma/config`) | Laut `npm audit` „fix available via `npm audit fix`" — **tatsächlich getestet: `npm audit fix` änderte 0 an der Fund-Anzahl** (weiterhin 20 gesamt, 3 High). Wahrscheinlich eine Peer-Dependency-Sackgasse, die npm selbst nicht auflösen kann, obwohl es das behauptet. |
-| `@opentelemetry/*`-Kette (neu, via `@trigger.dev/core`) | Wie oben — kein Effekt durch `npm audit fix` |
+| Fund                                                                                | Behebbar ohne Breaking Change?                                                                                                                                                                                                                                           |
+| ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ws` (via `engine.io-client`/`socket.io-client`, transitiv über `@trigger.dev/sdk`) | Nein — nur `--force`, K5                                                                                                                                                                                                                                                 |
+| `deepmerge-ts` (via `@prisma/config`)                                               | Laut `npm audit` „fix available via `npm audit fix`" — **tatsächlich getestet: `npm audit fix` änderte 0 an der Fund-Anzahl** (weiterhin 20 gesamt, 3 High). Wahrscheinlich eine Peer-Dependency-Sackgasse, die npm selbst nicht auflösen kann, obwohl es das behauptet. |
+| `@opentelemetry/*`-Kette (neu, via `@trigger.dev/core`)                             | Wie oben — kein Effekt durch `npm audit fix`                                                                                                                                                                                                                             |
 
 Das bedeutet: **2 der 3 aktuellen High-Funde sind neu seit dem letzten Report**, vermutlich durch spätere Dependabot-Merges (z. B. an `@trigger.dev/sdk`-nahen Paketen) eingeschleppt — nicht durch diese Session verursacht, aber ein echter, dokumentierter Regressions-Fund, kein beschönigter. `npm audit fix` wurde einmal ausgeführt (Ergebnis: `package-lock.json` wurde neu aufgelöst, aber 0 Netto-Sicherheitsverbesserung) — es wird in diesem Plan **nicht erneut** ausgeführt, um die bereits von einem anderen Workstream in Bearbeitung befindliche `package.json`/`package-lock.json` nicht weiter zu verändern, ohne dafür einen Sicherheitsgewinn zu erzielen.
 
 ## 1 — Übersicht für Jan
 
-| Nummer | Meilenstein | Status | Nächster Schritt | Zuständigkeit |
-| :--- | :--- | :---: | :--- | :---: |
-| **L1** | **Hard-Gate mit Allowlist** (`audit-ci` statt reinem `npm audit`, bekannte Funde pro CVE ausgenommen statt pauschal `continue-on-error`) | 🟢 Verifiziert | — | LLM |
-| **L2** | **SBOM-Generierung** (CycloneDX) | 🟢 Verifiziert | — | LLM |
-| **L3** | **Moderate-Severity-Sichtbarkeit** (advisory, nicht blockierend) | 🟢 Verifiziert | — | LLM |
-| **L4** | **GitHub-Actions SHA-Pinning** (`actions/checkout`, `actions/setup-node`) | 🟢 Verifiziert | — | LLM |
-| **L5** | **Postinstall-Script-Risiko dokumentieren** (bewusst keine Code-Änderung) | 🟢 Verifiziert | — | LLM |
-| **L6** | **Dependabot-Merge-Policy dokumentieren** | 🟢 Verifiziert | — | LLM |
+| Nummer | Meilenstein                                                                                                                              |     Status     | Nächster Schritt | Zuständigkeit |
+| :----- | :--------------------------------------------------------------------------------------------------------------------------------------- | :------------: | :--------------- | :-----------: |
+| **L1** | **Hard-Gate mit Allowlist** (`audit-ci` statt reinem `npm audit`, bekannte Funde pro CVE ausgenommen statt pauschal `continue-on-error`) | 🟢 Verifiziert | —                |      LLM      |
+| **L2** | **SBOM-Generierung** (CycloneDX)                                                                                                         | 🟢 Verifiziert | —                |      LLM      |
+| **L3** | **Moderate-Severity-Sichtbarkeit** (advisory, nicht blockierend)                                                                         | 🟢 Verifiziert | —                |      LLM      |
+| **L4** | **GitHub-Actions SHA-Pinning** (`actions/checkout`, `actions/setup-node`)                                                                | 🟢 Verifiziert | —                |      LLM      |
+| **L5** | **Postinstall-Script-Risiko dokumentieren** (bewusst keine Code-Änderung)                                                                | 🟢 Verifiziert | —                |      LLM      |
+| **L6** | **Dependabot-Merge-Policy dokumentieren**                                                                                                | 🟢 Verifiziert | —                |      LLM      |
 
 Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
@@ -41,20 +41,20 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
 ## 2 — Ausgangslage: Sub-Kategorie-Aufschlüsselung (max. 10, aus #7 abgeleitet)
 
-> Hinweis zur Methodik: „Ist der Workflow gepusht/live sichtbar" wird hier bewusst **nicht** als eigene Zeile geführt — das ist derselbe Deployment-Gap, der bereits additiv für alle 10 Unterkategorien von Kategorie 04 gilt (siehe [`04_security_hardening.md`](../../worldmap/04_security_hardening.md), Kernaussage). Die 10 Zeilen unten bewerten stattdessen ausschließlich die **Bauqualität**, die von einem Push unabhängig ist.
+> Hinweis zur Methodik: „Ist der Workflow gepusht/live sichtbar" wird hier bewusst **nicht** als eigene Zeile geführt — das ist derselbe Deployment-Gap, der bereits additiv für alle 10 Unterkategorien von Kategorie 04 gilt (siehe [`04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md), Kernaussage). Die 10 Zeilen unten bewerten stattdessen ausschließlich die **Bauqualität**, die von einem Push unabhängig ist.
 
-| # | Sub-Unterkategorie | Niveau | Kernbefund |
-| - | --- | --- | --- |
-| 1 | Workflow-Struktur/Syntax | **Top 15 %** | Valide YAML, sauberer Trigger (`pull_request`/`push` auf `main`), minimale Permissions (`contents: read`) |
-| 2 | Gate-Härte (advisory vs. hart) | **Top 60 %** | `continue-on-error: true` — blockiert aktuell keinen einzigen Merge, unabhängig vom Fund |
-| 3 | Aktueller Vuln-Zustand (`--audit-level=high`) | **Top 55 %** | **3 High-Funde** (siehe Abschnitt 0), nicht 1 wie zuletzt dokumentiert — 2 davon neu/durch `npm audit fix` nicht lösbar |
-| 4 | Breaking-Change-Fund-Bearbeitung (`ws`) | **Top 70 %** | Braucht Jans Entscheidung — bewusst zurückgestellt, K5 |
-| 5 | SBOM-/Lizenz-Scan | **Top 95 %** | Nicht vorhanden — 0 Sichtbarkeit, welche Lizenzen/Herkunft die ~1000+ transitiven Pakete haben |
-| 6 | Lockfile-Integritätsprüfung | **Top 40 %** | `npm ci` erzwingt bereits Lockfile-Konsistenz (kein automatisches Re-Resolving in CI) — das ist die Basisabsicherung, aber kein expliziter Integritäts-/Provenance-Check darüber hinaus |
-| 7 | Dependabot-Automerge-Disziplin | **Top 30 %** | Laut vorherigem Bericht 8/10 offene Dependabot-PRs gemerged — solide, aber kein dokumentierter Turnus/Review-Rhythmus |
-| 8 | Moderate-/Low-Severity-Sichtbarkeit | **Top 70 %** | Gate deckt nur `--audit-level=high` ab — 17 Moderate-Funde sind aktuell für niemanden im CI-Log sichtbar |
-| 9 | Postinstall-Script-Risiko | **Top 85 %** | Kein `--ignore-scripts`/Allowlist — beliebige Drittanbieter-Postinstall-Skripte laufen ungeprüft bei `npm ci` (4 von 612 Paketen betroffen, siehe L5) |
-| 10 | GitHub-Actions-Pinning (SHA vs. Tag) | **Top 60 %** | `actions/checkout@v4`, `actions/setup-node@v4` — Tags sind mutable, ein kompromittiertes Tag würde unbemerkt anderen Code ausführen |
+| #   | Sub-Unterkategorie                            | Niveau       | Kernbefund                                                                                                                                                                              |
+| --- | --------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Workflow-Struktur/Syntax                      | **Top 15 %** | Valide YAML, sauberer Trigger (`pull_request`/`push` auf `main`), minimale Permissions (`contents: read`)                                                                               |
+| 2   | Gate-Härte (advisory vs. hart)                | **Top 60 %** | `continue-on-error: true` — blockiert aktuell keinen einzigen Merge, unabhängig vom Fund                                                                                                |
+| 3   | Aktueller Vuln-Zustand (`--audit-level=high`) | **Top 55 %** | **3 High-Funde** (siehe Abschnitt 0), nicht 1 wie zuletzt dokumentiert — 2 davon neu/durch `npm audit fix` nicht lösbar                                                                 |
+| 4   | Breaking-Change-Fund-Bearbeitung (`ws`)       | **Top 70 %** | Braucht Jans Entscheidung — bewusst zurückgestellt, K5                                                                                                                                  |
+| 5   | SBOM-/Lizenz-Scan                             | **Top 95 %** | Nicht vorhanden — 0 Sichtbarkeit, welche Lizenzen/Herkunft die ~1000+ transitiven Pakete haben                                                                                          |
+| 6   | Lockfile-Integritätsprüfung                   | **Top 40 %** | `npm ci` erzwingt bereits Lockfile-Konsistenz (kein automatisches Re-Resolving in CI) — das ist die Basisabsicherung, aber kein expliziter Integritäts-/Provenance-Check darüber hinaus |
+| 7   | Dependabot-Automerge-Disziplin                | **Top 30 %** | Laut vorherigem Bericht 8/10 offene Dependabot-PRs gemerged — solide, aber kein dokumentierter Turnus/Review-Rhythmus                                                                   |
+| 8   | Moderate-/Low-Severity-Sichtbarkeit           | **Top 70 %** | Gate deckt nur `--audit-level=high` ab — 17 Moderate-Funde sind aktuell für niemanden im CI-Log sichtbar                                                                                |
+| 9   | Postinstall-Script-Risiko                     | **Top 85 %** | Kein `--ignore-scripts`/Allowlist — beliebige Drittanbieter-Postinstall-Skripte laufen ungeprüft bei `npm ci` (4 von 612 Paketen betroffen, siehe L5)                                   |
+| 10  | GitHub-Actions-Pinning (SHA vs. Tag)          | **Top 60 %** | `actions/checkout@v4`, `actions/setup-node@v4` — Tags sind mutable, ein kompromittiertes Tag würde unbemerkt anderen Code ausführen                                                     |
 
 **Rechnerischer Schnitt (Ist-Zustand):** (15+60+55+70+95+40+30+70+85+60)/10 = **Top 58 %** — niedriger als der bisherige pauschale Top-65-%-Wert, hauptsächlich weil #3 (Vuln-Zustand) sich seit dem letzten Report tatsächlich verschlechtert hat (1→3 High) und #5/#9 (SBOM, Postinstall-Risiko) bisher nie eigenständig gemessen wurden.
 
@@ -131,18 +131,18 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
 ## 5 — Tatsächliches Niveau nach Ausführung (Ziel-Check, ehrlich statt geschönt)
 
-| # | Sub-Unterkategorie | Vorher | Danach (real, verifiziert) |
-| - | --- | --- | --- |
-| 1 | Struktur/Syntax | 15 % | 15 % |
-| 2 | Gate-Härte | 60 % | 20 % (lokal verifiziert: `audit-ci` schlägt korrekt fehl bei den neuen, nicht allowlisteten Funden — Gate ist real hart, nicht nur behauptet) |
-| 3 | Vuln-Zustand | 55 % | 55 % (bewusst unverändert — kein weiterer `npm audit fix`-Versuch, siehe Abschnitt 0) |
-| 4 | Breaking-Change (`ws`) | 70 % | 70 % (bewusst unverändert, K5 bei Jan) |
-| 5 | SBOM/Lizenz | 95 % | 30 % (lokal generiert und verifiziert: valides CycloneDX 1.6, 918 Komponenten) |
-| 6 | Lockfile-Integrität | 40 % | 35 % |
-| 7 | Dependabot-Disziplin | 30 % | 25 % (Policy jetzt dokumentiert in `docs/status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md`) |
-| 8 | Moderate-Sichtbarkeit | 70 % | 20 % (Logik lokal gegen echten `npm audit --json`-Output getestet: 17 moderate korrekt erkannt) |
-| 9 | Postinstall-Risiko | 85 % | 70 % (reale Zählung statt Schätzung: exakt 4 von 612 Paketen betroffen, alle plausibel) |
-| 10 | Actions-Pinning | 60 % | 15 % (alle 4 SHAs live gegen die GitHub-API aufgelöst, nicht geraten, über 4 Workflow-Dateien hinweg umgesetzt) |
+| #   | Sub-Unterkategorie     | Vorher | Danach (real, verifiziert)                                                                                                                    |
+| --- | ---------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Struktur/Syntax        | 15 %   | 15 %                                                                                                                                          |
+| 2   | Gate-Härte             | 60 %   | 20 % (lokal verifiziert: `audit-ci` schlägt korrekt fehl bei den neuen, nicht allowlisteten Funden — Gate ist real hart, nicht nur behauptet) |
+| 3   | Vuln-Zustand           | 55 %   | 55 % (bewusst unverändert — kein weiterer `npm audit fix`-Versuch, siehe Abschnitt 0)                                                         |
+| 4   | Breaking-Change (`ws`) | 70 %   | 70 % (bewusst unverändert, K5 bei Jan)                                                                                                        |
+| 5   | SBOM/Lizenz            | 95 %   | 30 % (lokal generiert und verifiziert: valides CycloneDX 1.6, 918 Komponenten)                                                                |
+| 6   | Lockfile-Integrität    | 40 %   | 35 %                                                                                                                                          |
+| 7   | Dependabot-Disziplin   | 30 %   | 25 % (Policy jetzt dokumentiert in `docs/status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md`)                                              |
+| 8   | Moderate-Sichtbarkeit  | 70 %   | 20 % (Logik lokal gegen echten `npm audit --json`-Output getestet: 17 moderate korrekt erkannt)                                               |
+| 9   | Postinstall-Risiko     | 85 %   | 70 % (reale Zählung statt Schätzung: exakt 4 von 612 Paketen betroffen, alle plausibel)                                                       |
+| 10  | Actions-Pinning        | 60 %   | 15 % (alle 4 SHAs live gegen die GitHub-API aufgelöst, nicht geraten, über 4 Workflow-Dateien hinweg umgesetzt)                               |
 
 **Realer Schnitt:** (15+20+55+70+30+35+25+20+70+15)/10 = **Top 36 %** — verbessert sich deutlich (von Top 58 % auf Top 36 %), erreicht aber das Ziel „mindestens Top 30 %" nicht vollständig. Die zwei größten verbleibenden Anker sind bewusst unverändert: #4 (`ws`-Breaking-Change, echtes K5) und #3 (Vuln-Zustand, da ein erneuter `npm audit fix`-Versuch ohne Sicherheitsgewinn das Risiko birgt, ein paralleles Workstream zu stören). **Ehrlich benannt statt beschönigt:** Ohne Jans `ws`-Entscheidung ist Top 30 % für diese Unterkategorie mit rein LLM-eigenen, sicheren Mitteln nicht erreichbar — der Rest (Top 36 % statt der ursprünglichen Top 58 %) ist der maximal mögliche, tatsächlich verifizierte Fortschritt in diesem Rahmen.
 
@@ -161,7 +161,7 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
 ## 7 — Verwandte Artefakte
 
-| Bedarf | Datei |
-| :--- | :--- |
-| Übergeordnete Kategorie-04-Aufschlüsselung (Herkunft dieses Plans) | [`04_security_hardening.md`](../../worldmap/04_security_hardening.md) |
-| Security-Hardening-Status (`ws`-Breaking-Change-Kontext) | [`docs/status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md`](../status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md) |
+| Bedarf                                                             | Datei                                                                                                                    |
+| :----------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------- |
+| Übergeordnete Kategorie-04-Aufschlüsselung (Herkunft dieses Plans) | [`04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md)                                        |
+| Security-Hardening-Status (`ws`-Breaking-Change-Kontext)           | [`docs/status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md`](../status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md) |
