@@ -6,10 +6,8 @@
     "node": ">=20.9.0"
   },
   "scripts": {
-    "predev": "node -e \"const fs=require('fs');const p='.next/dev/cache/turbopack';try{fs.rmSync(p,{recursive:true,force:true});console.log('[predev] Turbopack cache cleared')}catch(e){}; if(!fs.existsSync('.env.local')&&fs.existsSync('.env.local.verification-bak')){fs.copyFileSync('.env.local.verification-bak','.env.local');console.log('[predev] .env.local restored from backup')}\" && tsx scripts/assert-core-env.ts",
-    "dev": "next dev --port 3015",
-    "prebuild": "tsx scripts/assert-core-env.ts",
-    "build": "next build",
+    "dev": "node -e \"const fs=require('fs');const p='.next/dev/cache/turbopack';try{fs.rmSync(p,{recursive:true,force:true});console.log('[predev] Turbopack cache cleared')}catch(e){}; if(!fs.existsSync('.env.local')&&fs.existsSync('.env.local.verification-bak')){fs.copyFileSync('.env.local.verification-bak','.env.local');console.log('[predev] .env.local restored from backup')}\" && tsx scripts/assert-core-env.ts && next dev --port 3015",
+    "build": "tsx scripts/assert-core-env.ts && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
