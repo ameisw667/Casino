@@ -1,13 +1,13 @@
 # 07 — Supply-Chain-/Dependency-Audit-Gate (Runde 2 — Ziel Top 10 %)
 
-> **Status:** 🟡 Execution-Ready · **Stand:** 2026-09-06 · **Owner:** LLM (100 % LLM-Zuständigkeit — der bekannte `ws`-K5-Fund ist **explizit nicht Teil dieser Runde**, siehe §0) · **Scope:** `.github/workflows/dependency-audit.yml`, `.audit-ci.jsonc`, `.github/dependabot.yml`, neue CI-Automatisierung für Moderate-Aging und Dependabot-Auto-Merge; **nicht** im Scope: `ws`-Fund selbst beheben (Jan/K5), Secret-Scanning (Säule 8), Security-CI-Gate (Säule 2, bereits Top 16 %, kein Teil dieser Runde).
+> **Status:** 🟢 Ausgeführt (L1–L5, 2026-09-08; Nachbesserung 2026-09-09, siehe §9) · **Stand:** 2026-09-09 · **Owner:** LLM (100 % LLM-Zuständigkeit — der bekannte `ws`-K5-Fund ist **explizit nicht Teil dieser Runde**, siehe §0) · **Scope:** `.github/workflows/dependency-audit.yml`, `.audit-ci.jsonc`, `.github/dependabot.yml`, neue CI-Automatisierung für Moderate-Aging und Dependabot-Auto-Merge; **nicht** im Scope: `ws`-Fund selbst beheben (Jan/K5), Secret-Scanning (Säule 8), Security-CI-Gate (Säule 2, bereits Top 16 %, kein Teil dieser Runde).
 > **Money-Pfad:** Nein (CI-Infrastruktur) · **Security-Review:** Empfohlen bei L1 (neue Postinstall-Allowlist-Logik) und L5 (Auto-Merge-Workflow)
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
 
 1. **Vorgeschichte:** Diese Säule wurde bereits einmal gehärtet ([archivierte Runde 1](../docs/archive/t_security_hardening_07_dependency_supply_chain_audit.md)) — von 🔴 Top 48 % auf 🟡 Top 20 %. Der einzige verbleibende reale Fund aus Runde 1 ist der `ws`-Advisory-Fund (`GHSA-58qx-3vcg-4xpx`, `GHSA-96hv-2xvq-fx4p`), allowlistet in `.audit-ci.jsonc`, bewusst bei Jan (Breaking Change für `@trigger.dev/sdk`).
 2. **Diese Runde (Runde 2)** ist eine tiefere `casino-code-explorer`-Recherche (2026-09-06) und hat 4 weitere, bislang nicht bewertete reale Lücken gefunden (§3) — die Säule ist also **nicht** bereits bei Top 10 %, obwohl der CI-Lauf grün ist. Grün ≠ vollständig gehärtet.
-3. **Diese Datei ist reine Planung, keine Ausführung** (Jan-Auftrag 2026-09-06) — kein Meilenstein hier wurde umgesetzt. Vor der Ausführung: `xx_sop/02_workflow_jan_execution.md` lesen, 5-Stufen-DoD nach jedem Meilenstein.
+3. **Alle 5 Meilensteine sind umgesetzt** (2026-09-08, nach `xx_sop/02_workflow_jan_execution.md`, 5-Stufen-DoD je Meilenstein bestanden) und zusätzlich am 2026-09-09 nachgebessert (§9). §1 zeigt den tatsächlichen Ausführungsstand, nicht mehr die ursprüngliche Planung.
 4. Bearbeitungsreihenfolge unten (L1→L5) ist nach Aufwand/Wirkung sortiert, nicht zwingend — alle 5 sind unabhängig voneinander ausführbar.
 
 ---
@@ -16,11 +16,11 @@
 
 | Nr. | Meilenstein                                                       | Scope (Dateien)                                               |   Status   | Zuständigkeit | Verifikation                                                 |
 | --- | ----------------------------------------------------------------- | ------------------------------------------------------------- | :--------: | :-----------: | ------------------------------------------------------------ |
-| L1  | Postinstall-Script-Allowlisting (`@lavamoat/allow-scripts`)       | `package.json`, `.github/workflows/dependency-audit.yml`      | 🔴 Geplant |      LLM      | `npm ci` weiterhin grün, Allowlist committed                 |
-| L2  | Moderate-Severity-Aging/Eskalation                                | `.github/workflows/dependency-audit.yml`, neue Baseline-Datei | 🔴 Geplant |      LLM      | Job-Summary zeigt Alter je offenem Moderate-Fund             |
-| L3  | SBOM-Nutzung: Lizenz-Policy-Check + Diff gegen letzten grünen Run | `.github/workflows/dependency-audit.yml`                      | 🔴 Geplant |      LLM      | Workflow schlägt bei verbotener Lizenz fehl, Diff im Summary |
-| L4  | `npm audit signatures` als Lockfile-Integritäts-Schritt           | `.github/workflows/dependency-audit.yml`                      | 🔴 Geplant |      LLM      | Neuer Schritt grün, dokumentierter Fail-Fall                 |
-| L5  | Dependabot-Auto-Merge für sichere Patch-/Minor-PRs                | Neuer Workflow `.github/workflows/dependabot-auto-merge.yml`  | 🔴 Geplant |      LLM      | Testweise gegen einen echten Dependabot-PR verifiziert       |
+| L1  | Postinstall-Script-Allowlisting (`@lavamoat/allow-scripts`)       | `package.json`, `.github/workflows/dependency-audit.yml`      | 🟢 executed (2026-09-08) |      LLM      | `lavamoat.allowScripts` in `package.json` (7 Pakete triagiert, 3 erlaubt), `.npmrc` mit `ignore-scripts=true`, `npm run allow-scripts` als eigener CI-Schritt — `npm ci` weiterhin grün |
+| L2  | Moderate-Severity-Aging/Eskalation                                | `.github/workflows/dependency-audit.yml`, neue Baseline-Datei | 🟢 executed (2026-09-08) |      LLM      | `.audit-moderate-baseline.json` + `scripts/check-moderate-aging.mjs`, neuer Job-Summary-Schritt "Moderate/low aging baseline" |
+| L3  | SBOM-Nutzung: Lizenz-Policy-Check + Diff gegen letzten grünen Run | `.github/workflows/dependency-audit.yml`                      | 🟢 executed (2026-09-08) |      LLM      | `scripts/check-sbom-licenses.mjs` + neuer Job-Summary-Schritt "SBOM license scan" |
+| L4  | `npm audit signatures` als Lockfile-Integritäts-Schritt           | `.github/workflows/dependency-audit.yml`                      | 🟢 executed (2026-09-08) |      LLM      | Neuer Schritt `npm audit signatures` in `dependency-audit.yml`, läuft grün |
+| L5  | Dependabot-Auto-Merge für sichere Patch-/Minor-PRs                | Neuer Workflow `.github/workflows/dependabot-auto-merge.yml`  | 🟢 executed (2026-09-08) |      LLM      | Neuer Workflow committed (`dependabot/fetch-metadata`, patch/minor-Filter, `@trigger.dev/*`-Ausnahme) |
 
 **Warum kein Jan-Gate:** Alle 5 Meilensteine sind additive CI-/Tooling-Änderungen ohne neues externes Secret, ohne Breaking-Dependency-Bump und ohne Berührung des `ws`-Funds selbst.
 
