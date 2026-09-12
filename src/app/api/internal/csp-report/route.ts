@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/nextjs';
 import { enforceRateLimit, getClientIdentifier } from '@/lib/security/request-security';
+import { getCspReportSampler } from '@/lib/security/csp-report';
 import { CasinoLogger } from '@/lib/casino/logger';
 
 // M6 (worldmap/00-04-SecurityHardening.md): sink for the browser's own CSP violation reports
@@ -53,6 +54,27 @@ export async function POST(request: Request): Promise<Response> {
         : [raw];
 
     for (const report of reports.slice(0, 20)) {
+      // L2: @sentry/nextjs 10.x has no per-capture sampling hook, so sampling is decided here in
+      // the route — deterministic, in-memory, per warm instance. The distributed guarantee is L1's
+      // Upstash global cap; this is the second line that bounds a single instance's event output.
+      const sampling = getCspReportSampler().decide(Date.now());
+      if (!sampling.forward) {
+        CasinoLogger.info('API/Internal/CspReport', 'CSP report dropped by sampling', {
+          forwarded: getCspReportSampler().stats().forwarded,
+          dropped: getCspReportSampler().stats().dropped,
+        });
+        if (sampling.notifyDrop) {
+          // One aggregated counter event per window instead of one event per dropped report —
+          // otherwise the drop bookkeeping would itself recreate the cost it prevents.
+          Sentry.captureMessage('CSP report sampling suppressed reports', {
+            level: 'warning',
+            tags: { source: 'csp-report', sampling: 'active' },
+            extra: getCspReportSampler().stats(),
+          });
+        }
+        continue;
+      }
+
       Sentry.captureMessage('CSP violation reported', {
         level: 'warning',
         tags: { source: 'csp-report' },
