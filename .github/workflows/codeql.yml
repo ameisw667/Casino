@@ -1,0 +1,52 @@
+name: CodeQL security analysis
+
+# Added 2026-09-12 (T_SECURITY_HARDENING/02_security_ci_gate.md L1): before this workflow the repo
+# had zero static application security testing (SAST) — `grep -ril "codeql\|semgrep" .github/workflows/`
+# returned nothing. ESLint (quality-ci.yml) covers code style and some correctness rules but no
+# taint-flow/injection analysis. CodeQL is GitHub-native, runs on the standard GITHUB_TOKEN only —
+# no new secret. `security-events: write` is required to upload the SARIF results into the
+# Security > Code scanning tab (the repo-wide `contents: read` convention is insufficient for
+# that upload, so this job deliberately widens only this one permission).
+#
+# First-run triage rule (plan L1): every initial finding gets evaluated individually (real finding
+# vs. false positive) and is either fixed or marked with a documented, reasoned suppression in a
+# `.github/codeql/codeql-config.yml` — never silently allowlisted.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Weekly sweep, Sunday 05:00 UTC — staggered after backup-drill.yml's '0 3 * * 0'. The red-team
+  # workflow's weekly '0 4 * * 0' slot (T_SECURITY_HARDENING/02 §9 deviation note) is not part of
+  # this branch's base commit yet; once the pending round-1 hardening state is committed, Sunday
+  # 03:00 / 04:00 / 05:00 is the intended non-overlapping sequence for the scheduled security jobs.
+  schedule:
+    - cron: '0 5 * * 0'
+
+# quality-ci.yml pattern: a new push to the same ref supersedes a still-running analysis.
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (javascript-typescript)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      # Pinned to commit SHA 2026-09-12 (same convention as security-staging.yml / quality-ci.yml,
+      # worldmap/04_07_dependency_audit_gate.md L4) — a mutable tag could be repointed to different
+      # code without this file changing.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: github/codeql-action/init@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4.38.0
+        with:
+          languages: javascript-typescript
+          # Interpreted-language analysis does not need a build; avoids an autobuild step.
+          build-mode: none
+      - uses: github/codeql-action/analyze@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4.38.0
+        with:
+          category: '/language:javascript-typescript'
