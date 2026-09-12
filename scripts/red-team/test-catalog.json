@@ -3,6 +3,7 @@
   "environment": "synthetic",
   "cases": [
     { "id": "rate-limit-bypass", "class": "rate-limit-bypass" },
-    { "id": "admin-idor", "class": "admin-idor" }
+    { "id": "admin-idor", "class": "admin-idor" },
+    { "id": "origin-bypass", "class": "origin-bypass" }
   ]
 }

@@ -82,6 +82,10 @@ jobs:
       - run: npx tsx scripts/red-team/target-guard.ts
       - run: npx tsx scripts/red-team/rate-limit-bypass.ts
       - run: npx tsx scripts/red-team/admin-idor.ts
+      # P1.4 origin-bypass (T_SECURITY_HARDENING/04 Runde 2, L5): three attack shapes against the
+      # two-layer CSRF Origin-Guard on /api/casino/bet — forged Origin, missing Origin headers, and
+      # a spoofed Sec-Fetch-Site header (only catchable by the route-level Layer 2 guard).
+      - run: npx tsx scripts/red-team/origin-bypass.ts
 
       - name: Show app log on failure
         if: failure()
