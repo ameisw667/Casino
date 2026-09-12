@@ -52,13 +52,14 @@ describe('POST /api/internal/csp-report', () => {
       { type: 'csp-violation', body: { blockedURL: 'https://evil.example/y.js' } },
     ];
     await POST(reportRequest(batch));
-    expect(mocks.captureMessage).toHaveBeenCalledTimes(2);
+    expect(forwardedCspEventCount()).toBe(2);
+    // L4 adds a per-event repeat counter; a single-report group counts as 1.
     expect(mocks.captureMessage).toHaveBeenCalledWith(
       'CSP violation reported',
       expect.objectContaining({
         level: 'warning',
         tags: { source: 'csp-report' },
-        extra: { report: batch[0] },
+        extra: { report: batch[0], count: 1 },
       }),
     );
   });
@@ -66,10 +67,10 @@ describe('POST /api/internal/csp-report', () => {
   it('unwraps the legacy single-object { "csp-report": {...} } shape', async () => {
     const legacyReport = { 'blocked-uri': 'https://evil.example/x.js' };
     await POST(reportRequest({ 'csp-report': legacyReport }, 'application/csp-report'));
-    expect(mocks.captureMessage).toHaveBeenCalledTimes(1);
+    expect(forwardedCspEventCount()).toBe(1);
     expect(mocks.captureMessage).toHaveBeenCalledWith(
       'CSP violation reported',
-      expect.objectContaining({ extra: { report: legacyReport } }),
+      expect.objectContaining({ extra: { report: legacyReport, count: 1 } }),
     );
   });
 
@@ -85,18 +86,65 @@ describe('POST /api/internal/csp-report', () => {
   });
 
   it('caps how many reports from a single batch are forwarded to Sentry', async () => {
-    const batch = Array.from({ length: 25 }, (_, i) => ({ type: 'csp-violation', body: { i } }));
+    const batch = Array.from({ length: 25 }, (_, i) => ({
+      type: 'csp-violation',
+      body: { violatedDirective: 'script-src', blockedURL: `https://evil.example/${i}.js` },
+    }));
     await POST(reportRequest(batch));
-    expect(mocks.captureMessage).toHaveBeenCalledTimes(20);
+    expect(forwardedCspEventCount()).toBe(20);
+  });
+
+  it('forwards a generic malformed warning instead of unvalidated report fields', async () => {
+    const response = await POST(
+      reportRequest([
+        { type: 'csp-violation', body: { violatedDirective: 'script-src' } },
+        { type: 'csp-violation', body: { violatedDirective: 42 } },
+        { type: 'csp-violation', body: { junk: 'no recognised field at all' } },
+      ]),
+    );
+    expect(response.status).toBe(204);
+    expect(forwardedCspEventCount()).toBe(1);
+    expect(mocks.captureMessage).toHaveBeenCalledWith(
+      'Malformed CSP report discarded',
+      expect.objectContaining({
+        level: 'warning',
+        tags: { source: 'csp-report', quality: 'malformed' },
+        extra: { count: 2 },
+      }),
+    );
+  });
+
+  it('collapses identical violations of one batch into a single counted event', async () => {
+    const duplicate = { violatedDirective: 'script-src', blockedURL: 'https://evil.example/x.js' };
+    await POST(
+      reportRequest([
+        { type: 'csp-violation', body: duplicate },
+        { type: 'csp-violation', body: duplicate },
+        { type: 'csp-violation', body: duplicate },
+        { type: 'csp-violation', body: { violatedDirective: 'style-src', blockedURL: 'inline' } },
+      ]),
+    );
+    expect(forwardedCspEventCount()).toBe(2);
+    expect(mocks.captureMessage).toHaveBeenCalledWith(
+      'CSP violation reported',
+      expect.objectContaining({
+        tags: { source: 'csp-report' },
+        extra: { report: { type: 'csp-violation', body: duplicate }, count: 3 },
+      }),
+    );
   });
 
   it('silently drops reports once the per-IP rate limit is exceeded', async () => {
     for (let i = 0; i < 20; i += 1) {
-      await POST(reportRequest([{ type: 'csp-violation', body: { i } }]));
+      await POST(
+        reportRequest([{ type: 'csp-violation', body: { violatedDirective: 'script-src' } }]),
+      );
     }
     mocks.captureMessage.mockClear();
 
-    const response = await POST(reportRequest([{ type: 'csp-violation', body: {} }]));
+    const response = await POST(
+      reportRequest([{ type: 'csp-violation', body: { violatedDirective: 'script-src' } }]),
+    );
     expect(response.status).toBe(204);
     expect(mocks.captureMessage).not.toHaveBeenCalled();
   });

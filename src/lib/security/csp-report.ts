@@ -3,6 +3,162 @@
 // Kept out of the route file so the sampling/dedup/normalisation logic is unit-testable without
 // exercising the transport layer.
 
+import { z } from 'zod';
+
+/** Maximum size of any single report field before the report counts as malformed (L3). */
+export const CSP_REPORT_FIELD_MAX_LENGTH = 2048;
+/** How many reports a single request may contribute to the pipeline (unchanged batch cap). */
+export const CSP_REPORT_BATCH_LIMIT = 20;
+
+const boundedText = z.string().max(CSP_REPORT_FIELD_MAX_LENGTH);
+// Legacy line/column numbers arrive as integers; some user agents send strings instead.
+const boundedNumber = z.union([z.number().int().min(0).max(Number.MAX_SAFE_INTEGER), boundedText]);
+
+// Both report shapes are stripped, not strict: unknown junk fields are dropped rather than
+// forwarded verbatim to Sentry, while browsers that add spec fields keep working.
+const legacyViolationSchema = z.object({
+  'document-uri': boundedText.optional(),
+  'violated-directive': boundedText.optional(),
+  'effective-directive': boundedText.optional(),
+  'blocked-uri': boundedText.optional(),
+  disposition: boundedText.optional(),
+  'status-code': boundedNumber.optional(),
+  'source-file': boundedText.optional(),
+  'line-number': boundedNumber.optional(),
+  'column-number': boundedNumber.optional(),
+  'script-sample': boundedText.optional(),
+  referrer: boundedText.optional(),
+});
+
+const reportingViolationSchema = z.object({
+  documentURL: boundedText.optional(),
+  violatedDirective: boundedText.optional(),
+  effectiveDirective: boundedText.optional(),
+  blockedURL: z.union([boundedText, z.record(z.string(), boundedText)]).optional(),
+  disposition: boundedText.optional(),
+  statusCode: boundedNumber.optional(),
+  sourceFile: boundedText.optional(),
+  lineNumber: boundedNumber.optional(),
+  columnNumber: boundedNumber.optional(),
+  sample: boundedText.optional(),
+  referrer: boundedText.optional(),
+});
+
+export interface NormalizedCspViolation {
+  /** Sanitised payload forwarded as `extra.report` — no unvalidated browser data reaches Sentry. */
+  report: Record<string, unknown>;
+  /** `violated-directive` + `blocked-uri` identity used for in-batch aggregation (L4). */
+  key: string;
+}
+
+export interface AggregatedCspViolation {
+  key: string;
+  report: Record<string, unknown>;
+  count: number;
+}
+
+export interface CspReportNormalization {
+  violations: NormalizedCspViolation[];
+  malformedCount: number;
+  nonCspCount: number;
+}
+
+/** Both report shapes: legacy `{ "csp-report": {...} }` and the Reporting API batch `[...]`. */
+export function parseCspReports(raw: unknown): unknown[] {
+  if (Array.isArray(raw)) return raw;
+  if (raw && typeof raw === 'object' && 'csp-report' in raw) {
+    return [(raw as Record<string, unknown>)['csp-report']];
+  }
+  return [raw];
+}
+
+function blockedUriText(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (value && typeof value === 'object') return '[object]';
+  return '';
+}
+
+function violationKey(directive: string, blockedUri: string): string {
+  return `${directive} ${blockedUri}`;
+}
+
+function isNonEmptyRecord(value: Record<string, unknown>): boolean {
+  return Object.keys(value).length > 0;
+}
+
+export function normalizeCspReports(entries: unknown[]): CspReportNormalization {
+  const violations: NormalizedCspViolation[] = [];
+  let malformedCount = 0;
+  let nonCspCount = 0;
+
+  for (const entry of entries) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      malformedCount += 1;
+      continue;
+    }
+    const record = entry as Record<string, unknown>;
+
+    if (typeof record.type === 'string') {
+      // The report-to endpoint is shared by every registered report type; only CSP violations
+      // belong in this sink, anything else is dropped without noise.
+      if (record.type !== 'csp-violation') {
+        nonCspCount += 1;
+        continue;
+      }
+      const parsed = reportingViolationSchema.safeParse(record.body);
+      if (!parsed.success || !isNonEmptyRecord(parsed.data)) {
+        malformedCount += 1;
+        continue;
+      }
+      violations.push({
+        report: {
+          type: record.type,
+          ...(typeof record.url === 'string' && record.url.length <= CSP_REPORT_FIELD_MAX_LENGTH
+            ? { url: record.url }
+            : {}),
+          body: parsed.data,
+        },
+        key: violationKey(
+          parsed.data.violatedDirective ?? '',
+          blockedUriText(parsed.data.blockedURL),
+        ),
+      });
+      continue;
+    }
+
+    const parsed = legacyViolationSchema.safeParse(record);
+    if (!parsed.success || !isNonEmptyRecord(parsed.data)) {
+      malformedCount += 1;
+      continue;
+    }
+    violations.push({
+      report: parsed.data,
+      key: violationKey(
+        parsed.data['violated-directive'] ?? '',
+        blockedUriText(parsed.data['blocked-uri']),
+      ),
+    });
+  }
+
+  return { violations, malformedCount, nonCspCount };
+}
+
+/** In-batch dedup (L4): identical directive+URI pairs become one event with a counter tag. */
+export function aggregateCspViolations(
+  violations: NormalizedCspViolation[],
+): AggregatedCspViolation[] {
+  const groups = new Map<string, AggregatedCspViolation>();
+  for (const violation of violations) {
+    const existing = groups.get(violation.key);
+    if (existing) {
+      existing.count += 1;
+      continue;
+    }
+    groups.set(violation.key, { key: violation.key, report: violation.report, count: 1 });
+  }
+  return [...groups.values()];
+}
+
 export interface CspReportSamplerConfig {
   /** Length of one sampling window in ms. */
   windowMs: number;
