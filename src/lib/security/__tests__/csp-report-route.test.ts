@@ -7,12 +7,20 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@sentry/nextjs', () => ({ captureMessage: mocks.captureMessage }));
 
 import { POST } from '@/app/api/internal/csp-report/route';
+import { CSP_REPORT_GLOBAL_REQUEST_LIMIT } from '@/app/api/internal/csp-report/route';
 import { resetLocalRateLimitsForTests } from '@/lib/security/request-security';
 
-function reportRequest(body: unknown, contentType = 'application/reports+json'): Request {
+function reportRequest(
+  body: unknown,
+  contentType = 'application/reports+json',
+  clientIp?: string,
+): Request {
   return new Request('https://casino.test/api/internal/csp-report', {
     method: 'POST',
-    headers: { 'content-type': contentType },
+    headers: {
+      'content-type': contentType,
+      ...(clientIp ? { 'x-forwarded-for': `10.0.0.1, ${clientIp}` } : {}),
+    },
     body: JSON.stringify(body),
   });
 }
@@ -86,5 +94,28 @@ describe('POST /api/internal/csp-report', () => {
     const response = await POST(reportRequest([{ type: 'csp-violation', body: {} }]));
     expect(response.status).toBe(204);
     expect(mocks.captureMessage).not.toHaveBeenCalled();
+  });
+
+  it('caps forwarding behind a global request budget even when no single IP exceeds its own limit', async () => {
+    for (let i = 0; i < CSP_REPORT_GLOBAL_REQUEST_LIMIT; i += 1) {
+      await POST(
+        reportRequest(
+          [{ type: 'csp-violation', body: { blockedURL: `https://evil.example/${i}.js` } }],
+          'application/reports+json',
+          `203.0.113.${i}`,
+        ),
+      );
+    }
+    expect(mocks.captureMessage).toHaveBeenCalledTimes(CSP_REPORT_GLOBAL_REQUEST_LIMIT);
+
+    const response = await POST(
+      reportRequest(
+        [{ type: 'csp-violation', body: { blockedURL: 'https://evil.example/over.js' } }],
+        'application/reports+json',
+        '203.0.113.254',
+      ),
+    );
+    expect(response.status).toBe(204);
+    expect(mocks.captureMessage).toHaveBeenCalledTimes(CSP_REPORT_GLOBAL_REQUEST_LIMIT);
   });
 });
