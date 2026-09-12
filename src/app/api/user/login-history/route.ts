@@ -6,6 +6,7 @@ import {
   enforceRateLimit,
   getClientIdentifier,
   rateLimitHeaders,
+  validateMutationOrigin,
 } from '@/lib/security/request-security';
 import {
   authMethodSchema,
@@ -78,6 +79,15 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const originFailure = validateMutationOrigin(request);
+  if (originFailure) {
+    return apiErrorResponse(
+      'PERMISSION_DENIED',
+      'Keine Berechtigung.',
+      originFailure.status || 403,
+    );
+  }
+
   try {
     const supabase = await createSupabaseServerClient();
     const {

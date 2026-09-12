@@ -54,7 +54,7 @@ describe('guide persona route', () => {
     const response = await PATCH(
       new Request('https://casino.test/api/casino/guide-persona', {
         method: 'PATCH',
-        headers: { 'content-type': 'application/json' },
+        headers: { 'content-type': 'application/json', origin: 'https://casino.test' },
         body: JSON.stringify({ persona: 'casual_buddy' }),
       }),
     );
@@ -63,5 +63,20 @@ describe('guide persona route', () => {
     expect(await response.json()).toEqual({ persona: 'casual_buddy' });
     expect(query.from).toHaveBeenCalledWith('users');
     expect(query.updateEq).toHaveBeenCalledWith('id', 'player-1');
+  });
+
+  it('rejects a cross-origin PATCH before touching any data (T_SECURITY_HARDENING/04 L1)', async () => {
+    authenticatedClient();
+
+    const response = await PATCH(
+      new Request('https://casino.test/api/casino/guide-persona', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', origin: 'https://attacker.example' },
+        body: JSON.stringify({ persona: 'casual_buddy' }),
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ error: 'Cross-site mutation rejected' });
   });
 });
