@@ -17,7 +17,22 @@ name: Security red team probes
 # which was already passing).
 
 on:
+  # 06_7 L0 (R3, original-author TODO from docs/security-hardening/09_red_team_probes.md §6):
+  # weekly schedule so a rate-limit/IDOR regression surfaces automatically. Deliberately
+  # weekly (not per-push/PR like security-staging.yml) — a red-team run touches potentially
+  # every route, so a meaningful path filter would be impractically broad, and the
+  # ephemeral-stack runtime makes weekly cadence the cost-appropriate gate.
+  # Sunday 04:00 UTC, one hour after backup-drill.yml's '0 3 * * 0' to avoid runner overlap.
+  schedule:
+    - cron: '0 4 * * 0'
   workflow_dispatch:
+
+concurrency:
+  # 06_7 L1 (R4): same pattern as quality-ci.yml — two simultaneous runs (e.g. a manual
+  # workflow_dispatch colliding with the new weekly schedule) would otherwise race for the
+  # same ephemeral Supabase stack and its fixed local ports.
+  group: red-team-security-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -82,6 +97,11 @@ jobs:
       - run: npx tsx scripts/red-team/target-guard.ts
       - run: npx tsx scripts/red-team/rate-limit-bypass.ts
       - run: npx tsx scripts/red-team/admin-idor.ts
+      # 06_7 L2/L3 (R5/R6): bot-signal chain, crash-multiplayer rate-limit boundary and the
+      # admin-fraud review IDOR analogon — documented in docs/security-hardening/09_red_team_probes.md §3.
+      - run: npx tsx scripts/red-team/bot-bypass.ts
+      - run: npx tsx scripts/red-team/crash-mp-bypass.ts
+      - run: npx tsx scripts/red-team/admin-fraud-idor.ts
 
       - name: Show app log on failure
         if: failure()

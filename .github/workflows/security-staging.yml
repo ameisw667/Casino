@@ -31,6 +31,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  # 06_7 L1 (R4): same ephemeral local Supabase stack as red-team-security.yml (fixed local
+  # ports) — a push-triggered run colliding with a manual workflow_dispatch would otherwise
+  # race for that stack. Same pattern as quality-ci.yml.
+  group: security-staging-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   security-staging:
     runs-on: ubuntu-latest
