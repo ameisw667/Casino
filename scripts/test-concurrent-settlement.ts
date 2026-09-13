@@ -35,13 +35,6 @@ const SETTLE_ARGS = {
   p_result: { roll: 42 },
 };
 
-async function createScenarioUser(supabase: SupabaseClient, userId: string): Promise<void> {
-  const { error } = await supabase
-    .from('users')
-    .insert({ id: userId, username: userId, balance: 100 });
-  if (error) throw new Error(`synthetic user setup failed: ${error.message}`);
-}
-
 async function countRows(
   supabase: SupabaseClient,
   table: 'wallet_transactions' | 'game_rounds',
