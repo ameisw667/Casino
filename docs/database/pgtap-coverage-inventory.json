@@ -20,8 +20,8 @@
       "name": "settle_game_round",
       "definition": "045_fix_wallet_events_jackpot_regression.sql:194",
       "priority": "P0",
-      "tested": false,
-      "testFiles": []
+      "tested": "direct",
+      "testFiles": ["supabase/tests/settle_game_round.test.sql"]
     },
     {
       "name": "start_game_round",
@@ -41,22 +41,25 @@
       "name": "reconcile_wallet_ledger",
       "definition": "058_reconcile_remote_schema_drift.sql:723",
       "priority": "P0",
-      "tested": false,
-      "testFiles": []
+      "tested": "direct",
+      "testFiles": ["supabase/tests/reconcile_wallet_ledger.test.sql"]
     },
     {
       "name": "admin_update_user",
       "definition": "058_reconcile_remote_schema_drift.sql:13",
       "priority": "P0",
-      "tested": false,
-      "testFiles": []
+      "tested": "direct",
+      "testFiles": ["supabase/tests/admin_update_user.test.sql"]
     },
     {
       "name": "redeem_promo_code",
       "definition": "058_reconcile_remote_schema_drift.sql:809",
       "priority": "P0",
-      "tested": "fixture-only",
-      "testFiles": ["supabase/tests/promo_reversal_rpc.test.sql"]
+      "tested": "direct",
+      "testFiles": [
+        "supabase/tests/redeem_promo_code.test.sql",
+        "supabase/tests/promo_reversal_rpc.test.sql"
+      ]
     },
     {
       "name": "reverse_promo_code",
@@ -76,15 +79,15 @@
       "name": "settle_daily_race",
       "definition": "060_pg_cron_retry_failure_handling.sql:467 (Overload ohne Datum: :567, delegiert)",
       "priority": "P0",
-      "tested": false,
-      "testFiles": []
+      "tested": "direct",
+      "testFiles": ["supabase/tests/settle_daily_race.test.sql"]
     },
     {
       "name": "guard_wallet_transaction_immutable",
       "definition": "058_reconcile_remote_schema_drift.sql:591",
       "priority": "P0",
-      "tested": false,
-      "testFiles": []
+      "tested": "direct",
+      "testFiles": ["supabase/tests/wallet_transactions_immutability.test.sql"]
     },
     {
       "name": "jackpot_pool_contribute",
