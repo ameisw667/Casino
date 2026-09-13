@@ -75,7 +75,45 @@ async function main() {
       }
     }
 
-    // 5. QA-Perspektive (4.3): Moduswechsel zwischen zwei Requests im selben Lauf konsistent?
+    // 5. transient (N3/L6): erster POST wird gefaultet, danach pass — ein zweiter POST
+    //    (der Retry-Kandidat) MUSS durchkommen, ein GET darf nie gefaultet werden.
+    currentMode = 'transient';
+    const firstPost = await fetch(`http://127.0.0.1:${PROXY_PORT}/transient`, {
+      method: 'POST',
+      signal: AbortSignal.timeout(3000),
+    }).then(
+      (r) => `unexpected-response-${r.status}`,
+      (err) => err.name ?? 'unknown-error',
+    );
+    if (firstPost.startsWith('unexpected-response-')) {
+      console.error(
+        `❌ transient: erster POST sollte als Verbindungs-Fault scheitern, war ${firstPost}.`,
+      );
+      failures++;
+    } else {
+      console.log(`✅ transient: erster POST schlug wie erwartet fehl (${firstPost}).`);
+    }
+    const retryPost = await fetch(`http://127.0.0.1:${PROXY_PORT}/transient-retry`, {
+      method: 'POST',
+    });
+    const retryBody = await retryPost.json();
+    if (retryPost.status === 200 && retryBody.ok === true) {
+      console.log('✅ transient: Retry-POST (zweiter POST) lief in pass durch.');
+    } else {
+      console.error(`❌ transient: zweiter POST sollte 200 sein, erhalten ${retryPost.status}`);
+      failures++;
+    }
+    const transientGet = await fetch(`http://127.0.0.1:${PROXY_PORT}/transient-get`);
+    if (transientGet.status === 200) {
+      console.log('✅ transient: GET wird nie gefaultet (nur POST-RPCs sind Retry-Kandidaten).');
+    } else {
+      console.error(
+        `❌ transient: GET sollte unverändert 200 sein, erhalten ${transientGet.status}`,
+      );
+      failures++;
+    }
+
+    // 6. QA-Perspektive (4.3): Moduswechsel zwischen zwei Requests im selben Lauf konsistent?
     currentMode = 'pass';
     const secondPass = await fetch(`http://127.0.0.1:${PROXY_PORT}/second`);
     if (secondPass.status === 200) {

@@ -1,11 +1,15 @@
-// HTTP-Reverse-Proxy mit 4 Fault-Modi, nur Node-Bordmittel (http/https), keine neue
+// HTTP-Reverse-Proxy mit 5 Fault-Modi, nur Node-Bordmittel (http/https), keine neue
 // Dependency. Details/Begründung: worldmap/05_1.10 Resilience Chaos Testing.md Abschnitt 3.
 //
 // Modi:
-//   pass   - Request 1:1 an den echten Upstream weiterreichen (Kontrollgruppe).
-//   hang   - Verbindung annehmen, nie beantworten.
-//   reset  - Socket sofort hart zerstören.
-//   502/504- Sofort selbst mit dem Fehlercode antworten, Upstream nie kontaktieren.
+//   pass      - Request 1:1 an den echten Upstream weiterreichen (Kontrollgruppe).
+//   hang      - Verbindung annehmen, nie beantworten.
+//   reset     - Socket sofort hart zerstören.
+//   502/504   - Sofort selbst mit dem Fehlercode antworten, Upstream nie kontaktieren.
+//   transient - Einmaliger Verbindungs-Fault (reset-Semantik), aber NUR auf den ersten
+//               POST-Request; alle weiteren Requests (und alle GETs) laufen in 'pass'.
+//               Das ist die deterministische Umgebung für den L6-Retry (Säule 8): die
+//               Geld-RPCs laufen als POST über supabase-js, der Retry greift genau dort.
 
 import http from 'http';
 import https from 'https';
@@ -20,17 +24,38 @@ function logRequest({ method, path, status, durationMs }) {
  * Startet den Proxy und löst erst auf, sobald er tatsächlich lauscht — dient
  * gleichzeitig als Bereitschaftsprüfung (Plan Abschnitt 3.3: Proxy muss vor dem
  * isolierten next-Prozess bereitstehen).
- * @param {{ port: number, upstreamOrigin: string, getMode: () => 'pass'|'hang'|'reset'|'502'|'504' }} opts
+ * @param {{ port: number, upstreamOrigin: string, getMode: () => 'pass'|'hang'|'reset'|'502'|'504'|'transient', allowedUpstreamHosts?: string[] }} opts
  * @returns {Promise<{ server: http.Server, close: () => Promise<void> }>}
  */
-export function createFaultProxy({ port, upstreamOrigin, getMode }) {
+export function createFaultProxy({ port, upstreamOrigin, getMode, allowedUpstreamHosts }) {
   const upstream = new URL(upstreamOrigin);
+  // Security-Review-Fix (LOW, Defense-in-Depth): ein Caller kann den Proxy an einen
+  // festen Host-Lock koppeln (run-fault-test.mjs nutzt das im Loopback-Override-Modus).
+  // Ohne Lock bleibt das Proxying echter Remote-Upstreams legitim (Modus 'pass' ist
+  // die Grundfunktion) — der Lock ist also bewusst opt-in, nicht global.
+  if (allowedUpstreamHosts && !allowedUpstreamHosts.includes(upstream.hostname)) {
+    throw new Error(
+      `Upstream-Host "${upstream.hostname}" verletzt den allowedUpstreamHosts-Lock ` +
+        `[${allowedUpstreamHosts.join(', ')}].`,
+    );
+  }
   const upstreamClient = upstream.protocol === 'https:' ? https : http;
   const defaultPort = upstream.protocol === 'https:' ? 443 : 80;
 
+  // transient: der einmalige Fault ist pro Proxy-Instanz "abgefeuert" — danach pass.
+  let transientArmed = true;
+
   const server = http.createServer((req, res) => {
     const startedAt = Date.now();
-    const mode = getMode();
+    let mode = getMode();
+    if (mode === 'transient') {
+      if (req.method === 'POST' && transientArmed) {
+        transientArmed = false;
+        mode = 'reset';
+      } else {
+        mode = 'pass';
+      }
+    }
 
     if (mode === 'reset') {
       req.socket.destroy();
