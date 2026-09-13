@@ -1,0 +1,51 @@
+name: Pooler health check
+
+# Täglicher, rein informativer Pooler-Health-Check (Säule 8 L4, Vorlage:
+# doc-drift-check.yml, Transport wie query-performance-audit.yml aus Säule 7 L7).
+# Führt scripts/check-pooler-health.ts im Remote-Modus gegen das Projekt aus
+# (read-only SELECT auf pg_stat_activity über die Management-API
+# /database/query/read-only — supabase/cli#6392-Workaround) und schreibt das
+# Ergebnis in die Job-Step-Summary. Bei warning/critical läuft der Job rot
+# (Exit-Code 1 des Skripts) — rein informativ, kein PR-Blocker.
+#
+# BENÖTIGT (Jan-exklusiv): GitHub-Repo-Secret `SUPABASE_ACCESS_TOKEN`
+# (dasselbe granulare Token wie in query-performance-audit.yml — wird
+# wiederverwendet, kein zweites Secret nötig). Ohne Secret schlägt der Lauf
+# fehl; der Health-Check bleibt dann ein manueller lokaler Check
+# (`npm run db:pooler-health`).
+
+on:
+  schedule:
+    - cron: '0 5 * * *' # täglich 05:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  pooler-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: hmqwozhdckbwjqzcmire
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (Pinning wie query-performance-audit.yml)
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+      - run: npm ci
+      - name: Run pooler health check (Management-API-Modus)
+        run: |
+          npm run db:pooler-health 2>&1 | tee pooler-health-output.json
+          exit ${PIPESTATUS[0]}
+      - name: Summarize result
+        if: always()
+        run: |
+          {
+            echo "## Pooler-Health-Check"
+            echo '```json'
+            cat pooler-health-output.json || echo '(keine Ausgabe — fehlendes SUPABASE_ACCESS_TOKEN-Secret?)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
