@@ -29,6 +29,15 @@ config:
       duration: 30
       arrivalRate: 15
 
+# Säule 8 L5a: Connection-Count-Sampling während desselben Laufs (Zeitreihe nach
+# docs/database/audits/); N1 koppelt zusätzlich das Query-Audit-Sampling aus Säule 7.
+before:
+  flow:
+    - function: startPoolerSampler
+after:
+  flow:
+    - function: stopPoolerSamplerAndWriteAudit
+
 scenarios:
   - name: Dice bet session
     beforeScenario: 'assignLoadtestUser'

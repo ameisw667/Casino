@@ -4,6 +4,7 @@ import { type WalletSnapshot, walletSnapshotSchema } from './wallet-contract';
 import { CasinoLogger } from './logger';
 import { ProvablyFairEngine } from './provably-fair';
 import { toJsonValue } from './json-value';
+import { withConnectionRetry } from './db-retry';
 import {
   dailyRaceStandingSchema,
   secondsUntilNextUtcMidnight,
@@ -122,19 +123,23 @@ export class WalletService {
     nonce?: number;
   }): Promise<WalletSettlement> {
     const supabase = createAdminClient();
-    const { data, error } = await supabase.rpc('settle_game_bet', {
-      p_user_id: params.userId,
-      p_request_id: params.requestId,
-      p_result_id: params.resultId,
-      p_game: params.game,
-      p_amount: params.amount,
-      p_payout: params.payout,
-      p_xp_gain: params.xpGain,
-      p_result: toJsonValue(params.result),
-      // undefined → supabase-js lässt das Feld weg → SQL-DEFAULT NULL greift.
-      p_server_seed_hash: params.serverSeedHash,
-      p_nonce: params.nonce,
-    });
+    // L6 (Säule 8): einmaliger Retry bei transienten Verbindungsfehlern — dieselbe
+    // requestId macht den zweiten Aufruf zum Idempotenz-Replay, kein Doppel-Buchungsrisiko.
+    const { data, error } = await withConnectionRetry(() =>
+      supabase.rpc('settle_game_bet', {
+        p_user_id: params.userId,
+        p_request_id: params.requestId,
+        p_result_id: params.resultId,
+        p_game: params.game,
+        p_amount: params.amount,
+        p_payout: params.payout,
+        p_xp_gain: params.xpGain,
+        p_result: toJsonValue(params.result),
+        // undefined → supabase-js lässt das Feld weg → SQL-DEFAULT NULL greift.
+        p_server_seed_hash: params.serverSeedHash,
+        p_nonce: params.nonce,
+      }),
+    );
     if (error) {
       if (error.message.includes('Insufficient')) throw new Error('Insufficient balance');
       throw new Error('Atomic bet settlement failed');
@@ -153,10 +158,12 @@ export class WalletService {
     requestId: string;
   }): Promise<{ serverSeed: string; serverSeedHash: string; nonce: number; replayed: boolean }> {
     const supabase = createAdminClient();
-    const { data, error } = await supabase.rpc('consume_active_seed', {
-      p_user_id: params.userId,
-      p_request_id: params.requestId,
-    });
+    const { data, error } = await withConnectionRetry(() =>
+      supabase.rpc('consume_active_seed', {
+        p_user_id: params.userId,
+        p_request_id: params.requestId,
+      }),
+    );
     if (error || !data) throw new Error('Failed to consume provably fair seed');
     return z
       .object({
@@ -176,13 +183,15 @@ export class WalletService {
     state: Record<string, unknown>;
   }): Promise<GameRoundStart> {
     const supabase = createAdminClient();
-    const { data, error } = await supabase.rpc('start_game_round', {
-      p_user_id: params.userId,
-      p_request_id: params.requestId,
-      p_game: params.game,
-      p_amount: params.amount,
-      p_state: toJsonValue(params.state),
-    });
+    const { data, error } = await withConnectionRetry(() =>
+      supabase.rpc('start_game_round', {
+        p_user_id: params.userId,
+        p_request_id: params.requestId,
+        p_game: params.game,
+        p_amount: params.amount,
+        p_state: toJsonValue(params.state),
+      }),
+    );
     if (error) {
       if (error.message.includes('Insufficient')) throw new Error('Insufficient balance');
       if (
@@ -317,15 +326,17 @@ export class WalletService {
     result: Record<string, unknown>;
   }): Promise<WalletSettlement> {
     const supabase = createAdminClient();
-    const { data, error } = await supabase.rpc('settle_game_round', {
-      p_user_id: params.userId,
-      p_round_id: params.roundId,
-      p_request_id: params.requestId,
-      p_result_id: params.resultId,
-      p_payout: params.payout,
-      p_xp_gain: params.xpGain,
-      p_result: toJsonValue(params.result),
-    });
+    const { data, error } = await withConnectionRetry(() =>
+      supabase.rpc('settle_game_round', {
+        p_user_id: params.userId,
+        p_round_id: params.roundId,
+        p_request_id: params.requestId,
+        p_result_id: params.resultId,
+        p_payout: params.payout,
+        p_xp_gain: params.xpGain,
+        p_result: toJsonValue(params.result),
+      }),
+    );
     if (error) {
       if (error.message.includes('Insufficient')) throw new Error('Insufficient balance');
       throw new Error('Game round settlement failed');
@@ -461,13 +472,14 @@ export class WalletService {
     requestId: string;
     reason: string;
   }): Promise<
-    {
-      ok: true;
-      amount: number;
-      shortfall: number;
-      replayed: boolean;
-      snapshot: WalletSnapshot;
-    } | { ok: false; code: string }
+    | {
+        ok: true;
+        amount: number;
+        shortfall: number;
+        replayed: boolean;
+        snapshot: WalletSnapshot;
+      }
+    | { ok: false; code: string }
   > {
     const supabase = createAdminClient();
     const { data, error } = await supabase.rpc('reverse_promo_code', {
