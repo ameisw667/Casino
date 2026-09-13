@@ -1,0 +1,36 @@
+name: CSP report rate watch
+
+# T_SECURITY_HARDENING/06_csp_violation_reporting.md L5 — non-blocking observability job. Queries
+# the Sentry API for the last 48h of events tagged source:"csp-report" and marks a >3x escalation
+# against the preceding 24h in the job summary. Deliberately its OWN workflow file (not a step in
+# an existing security workflow) so parallel security-pillar branches cannot collide on this file.
+on:
+  schedule:
+    # Daily 05:17 UTC — off-peak, once per day is enough for a 24h-vs-24h comparison.
+    - cron: '17 5 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  rate-watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+
+      # Informational only: a missing secret or a Sentry outage writes a "skipped" note into the
+      # summary instead of failing the job.
+      - name: Compare 24h CSP-report rate against rolling baseline
+        continue-on-error: true
+        env:
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          # Sentry org is EU-hosted (docs/architecture/05_1.9_ERROR_TRACKING_SENTRY.md).
+          SENTRY_API_BASE: https://de.sentry.io
+        run: node scripts/csp-report-rate-watch.mjs
