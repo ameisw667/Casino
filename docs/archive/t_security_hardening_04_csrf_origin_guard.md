@@ -13,6 +13,14 @@
 
 ## 1 — Übersicht für Jan
 
+> **Korrekturvermerk (2026-09-12, T_SECURITY_HARDENING/04 Runde 2, L4):** Diese Archiv-Doku behauptet
+> mehrfach, **beide** Origin-Guard-Schichten nutzten `Sec-Fetch-Site`. Das stimmt so nicht und wird
+> hier gekennzeichnet statt still umgeschrieben: **Nur Layer 1** (`hasValidOrigin()`,
+> `src/lib/security/origin-guard.ts`) prüft `Sec-Fetch-Site` primär (Fallback: `Origin`-vs-`Host`).
+> **Layer 2** (`validateMutationOrigin()`, `src/lib/security/request-security.ts`) prüft
+> **ausschließlich** `Origin` gegen die `APP_ORIGINS`-Allowlist und referenziert `Sec-Fetch-Site`
+> nirgends — siehe `docs/security-hardening/04_csrf_origin_guard.md` §3 („Wichtiger Unterschied“).
+
 | Nr. | Meilenstein                                                            |           Status            | Nächster Schritt | Zuständigkeit | Money-Pfad |
 | --- | ---------------------------------------------------------------------- | :-------------------------: | ---------------- | :-----------: | :--------: |
 | L0  | Kontext & Ist-Stand-Verifikation                                       | 🟢 verifiziert (2026-09-06) | —                |      LLM      |     Ja     |
@@ -34,7 +42,7 @@
 |  5  | Zweite Schicht auf Geld-Routen (`validateMutationOrigin()`)           | Top 15 % |   🟢   | Explizite `APP_ORIGINS`-Allowlist statt Host-Vergleich — greift auch bei Middleware-Bypass                                                                                                                                                                                                                                     |
 |  6  | Dev-Fallback-Konsistenz (`request.url`-Origin in Non-Prod)            | Top 30 % |   🟡   | Historischer Fund (`red-team-security.yml`-Kommentar, 2026-08-30): `127.0.0.1` vs. `localhost`-Mismatch führte zu falschen 403 in CI — behoben, aber ein Beispiel für Fragilität dieses Fallback-Pfads                                                                                                                         |
 |  7  | Red-Team-Probe-Abdeckung (CSRF/Origin spezifisch)                     | Top 40 % |   🟠   | Kein dediziertes Origin-Bypass-Skript in `scripts/red-team/` gefunden (nur `admin-idor.ts`, `rate-limit-bypass.ts`, `bot-bypass.ts`, `crash-mp-bypass.ts`, `admin-fraud-idor.ts` laut `T_RATE_LIMITING_ABUSE_PREVENTION/06_rate_limiting_abuse_prevention.md`) — Origin-Guard wird nur indirekt über andere Probes mitgetestet |
-|  8  | Konsistenz zwischen beiden Schichten (keine widersprüchliche Logik)   | Top 20 % |   🟢   | Beide Schichten nutzen dieselbe `Sec-Fetch-Site`-Präferenz, keine gegenläufige Origin-Definition gefunden                                                                                                                                                                                                                      |
+|  8  | Konsistenz zwischen beiden Schichten (keine widersprüchliche Logik)   | Top 20 % |   🟢   | Beide Schichten nutzen dieselbe `Sec-Fetch-Site`-Präferenz, keine gegenläufige Origin-Definition gefunden _(korrigiert 2026-09-12, siehe Korrekturvermerk oben — Layer 2 nutzt KEIN `Sec-Fetch-Site`, sondern ausschließlich `Origin`-vs-`APP_ORIGINS`)_                                                                       |
 |  9  | Live-Verifikation (Produktion)                                        | Top 15 % |   🟢   | Laut `T_SECURITY_HARDENING/04_security_hardening.md` (2026-08-30) als „committed & live" bestätigt                                                                                                                                                                                                                             |
 | 10  | Dokumentierte Architektur-Begründung (kein Redundanz-Missverständnis) | Top 10 % |   🟢   | `docs/security-hardening/04_csrf_origin_guard.md` §2.2 erklärt explizit, warum zwei Checks kein Duplikat sind                                                                                                                                                                                                                  |
 
@@ -60,7 +68,7 @@ Kein offener LLM-Meilenstein aus heutiger Sicht — diese Säule ist im Erhalt-M
 
 ## 5 — Definition of Done
 
-1. Beide Origin-Guard-Schichten bleiben synchron in ihrer `Sec-Fetch-Site`-Präferenz (Erhalt-Modus, kein aktiver Fix nötig).
+1. Beide Origin-Guard-Schichten bleiben synchron in ihrer `Sec-Fetch-Site`-Präferenz (Erhalt-Modus, kein aktiver Fix nötig). _(korrigiert 2026-09-12, siehe Korrekturvermerk oben)_
 2. Ein dediziertes Origin-Bypass-Red-Team-Skript wird als benannte Folgeaufgabe in der Red-Team-Probe-Dokumentation geführt, nicht in dieser Datei dupliziert.
 
 ---

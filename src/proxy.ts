@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { isAdminEmail } from '@/lib/security/admin';
+import { withExplicitSameSite } from '@/lib/security/cookie-samesite';
 import { hasValidOrigin } from '@/lib/security/origin-guard';
 import { CasinoLogger } from '@/lib/casino/logger';
 
@@ -161,7 +162,10 @@ export default async function proxy(req: NextRequest) {
     const isDev = process.env.NODE_ENV === 'development';
     const cspHeader =
       `default-src 'self'; ` +
-      `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}; ` +
+      // `https:` fallback token (CSP Level 2 pattern, 2026-09-12 round-2 hardening): browsers that
+      // understand 'strict-dynamic' ignore it per spec, while legacy browsers without
+      // strict-dynamic support fall back to https: instead of breaking entirely.
+      `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https:${isDev ? " 'unsafe-eval'" : ''}; ` +
       `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ` +
       `font-src 'self' https://fonts.gstatic.com data:; ` +
       `img-src 'self' data: blob: https:; ` +
@@ -173,6 +177,10 @@ export default async function proxy(req: NextRequest) {
       // import, not a CDN <script>, so script-src needs no host allowlist for it either.
       `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io https://o4511899214020608.ingest.de.sentry.io https://us.i.posthog.com; ` +
       `frame-ancestors 'none'; ` +
+      // Explicit fallback directives (2026-09-12 round-2 hardening): previously only implicitly
+      // covered by default-src 'self' — OWASP recommends setting them explicitly so a future
+      // default-src regression cannot silently reopen several directives at once.
+      `base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests; ` +
       // M6: both directives point at the same sink for broad browser support — `report-uri` is
       // deprecated but still the only one Firefox honors for CSP; `report-to` is the current
       // Reporting API, resolved via the `Reporting-Endpoints` response header set below.
@@ -208,7 +216,7 @@ export default async function proxy(req: NextRequest) {
           cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
           response = NextResponse.next({ request: { headers: requestHeaders } });
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options),
+            response.cookies.set(name, value, withExplicitSameSite(options)),
           );
         },
       },

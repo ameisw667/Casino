@@ -73,3 +73,34 @@ response.headers.set('Content-Security-Policy', cspHeader); // zusätzlich auf d
   3. `scopes the PostHog connect-src entry to the exact ingest host, never a wildcard` — prüft explizit das **Fehlen** von `*.posthog.com`/`*.i.posthog.com`.
 - **Reale, unveränderte Lücke:** Diese Tests sind String-Matching gegen den Quelltext, kein Laufzeit-Test. Es gibt **keinen** Test, der verifiziert, dass der Nonce zur Laufzeit tatsächlich (a) pro Request eindeutig ist und (b) im ausgelieferten HTML auf den `<script>`-Tags landet, die Next.js injiziert — das wäre nur per E2E-Test (z. B. Playwright, zwei aufeinanderfolgende Requests, Nonce-Wert im Response-Body vergleichen) belegbar und existiert aktuell nicht.
 - **Live-Verifikation ausstehend:** Ein `curl -I https://casino-xi-six.vercel.app` zeigt zum Zeitpunkt dieser Dokumentation (2026-08-30) noch die alte Produktions-CSP — der Commit `1e75626` ist auf `main` committed, aber der Produktions-Stand hängt vom nächsten Vercel-Deploy ab, das außerhalb des Scopes dieser reinen Doku-Aufgabe liegt.
+
+---
+
+## 6 — Trusted-Types-Entscheidungsgrundlage (K5-Punkt, 2026-09-12)
+
+**Für Jan — was wäre die Entscheidung?** Die CSP-Direktive `require-trusted-types-for 'script'` verbietet dem Browser, XSS-gefährliche DOM-Sinks (`innerHTML`, `outerHTML`, `document.write`, `eval`-artige Injection über Skript-URLs) mit einem rohen String aufzurufen: Nur ein eigens erzeugtes `TrustedTypePolicy`-Objekt darf weitergereicht werden. Das ist die tiefste verfügbare XSS-Verteidigungslinie zusätzlich zur Nonce — sie schützt auch dort, wo ein Nonce-Attribut durch DOM-Injection umgangen werden kann. **Diese Runde aktiviert Trusted Types nicht** — sie bereitet nur die Entscheidung vor.
+
+### Browser-Support-Stand (Stand 2026-09-12)
+
+| Browser                | Support                                                      |
+| ---------------------- | ------------------------------------------------------------ |
+| Chromium (Chrome/Edge) | ja, seit 83/84 stabil                                        |
+| Firefox                | ja, seit 133 (2024) stabil                                   |
+| Safari                 | ja, seit 18.2 (2024) stabil                                  |
+| Ältere Browser         | ignorieren die Direktive (kein Break, aber auch kein Schutz) |
+
+Damit sind die drei großen Engines inzwischen stabil — das frühere Haupt-Hindernis (Safari) ist gefallen. **Kombinierbar** mit `Content-Security-Policy-Report-Only` (beobachten) vor dem Hard-Enforcement.
+
+### Betroffene DOM-Sink-Stellen im Repo (grobe Schätzung)
+
+- `dangerouslySetInnerHTML`: wenige Stellen, grep-basiert verifizieren vor Umsetzung (react-dom ruft intern keine Trusted-Types-freien Sinks auf, wenn keine `dangerouslySetInnerHTML`-Props verwendet werden — React 19 erzeugt bei aktivem Trusted Types keine Verstoß-Reports für gewöhnliches Rendering).
+- `innerHTML`/`outerHTML`/`document.write`: laut Repo-Konvention (XSS-Prävention, `xx_sop/04_design_system_ui.md`) verboten — Grep-Verifizierung im Umsetzungsfall als erster Schritt.
+- **Nicht betroffen:** Textknoten (`textContent`), React-Normalelemente, Framework-Hydration (Next.js 16 trägt seit 15.x Trusted-Types-kompatible Sanitizer-Policies in framework-injizierte Skripte ein — im Umsetzungsfall gegen die konkrete Next-Version verifizieren, Hinweis: `node_modules/next/dist/docs/01-app/02-guides/content-security-policy.md`).
+
+### Empfohlener schrittweiser Pfad (3 Stufen)
+
+1. **Beobachten:** `Content-Security-Policy-Report-Only: require-trusted-types-for 'script'` in `src/proxy.ts` ergänzen — der bestehende CSP-Report-Kanal (`/api/internal/csp-report`, Säule 6) macht jeden Verstoß sichtbar, ohne irgendetwas zu brechen. Dauer: 1–2 Wochen echtes Traffic-Bild.
+2. **Beseitigen:** Gefundene Sinks einzeln auf `textContent`/sanitized Rendering umstellen (erwartbar: kleine Anzahl).
+3. **Aktivieren:** Direktive in die enforce-CSP übernehmen; danach `allow TrustedTypes-Policy-Namen` via `trusted-types`-Direktive festnageln (verhindert, dass beliebiger Code eigene Policies registriert).
+
+**Aufwandsschätzung:** Stufe 1 ~1 h (eine Direktive + Reports beobachten), Stufe 2 abhängig von der Fundzahl (typischerweise Stunden, nicht Tage), Stufe 1 h. **Risiko:** Stufe 3 kann Legacy-Fallbacks im Analytics-/Sentry-Snippet-Bereich brechen — deshalb Report-Only zuerst. **Diese Entscheidung bleibt bei Jan (K5).**
