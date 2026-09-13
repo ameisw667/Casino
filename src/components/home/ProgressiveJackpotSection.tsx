@@ -1,7 +1,8 @@
 'use client';
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Coins, Zap, ShieldCheck, Activity } from 'lucide-react';
+import { Coins, Timer, Activity } from 'lucide-react';
+import Image from 'next/image';
 import { useProgressiveJackpot } from '@/hooks/useProgressiveJackpot';
 
 export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
@@ -23,7 +24,7 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
       mobileLabel: 'SPEED',
       value: '1.8 SEKUNDEN',
       mobileValue: '1.8 SEK.',
-      icon: Zap,
+      icon: Timer,
       color: '#00E701',
     },
     {
@@ -39,7 +40,9 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
       mobileLabel: 'FAIRNESS',
       value: '100% TRANSPARENT',
       mobileValue: '100% FAIR',
-      icon: ShieldCheck,
+      icon: ({ size = 14 }: { size?: number }) => (
+        <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Provably Fair" width={size} height={size} aria-hidden />
+      ),
       color: '#D4AF37',
     },
   ];
@@ -114,7 +117,7 @@ export const ProgressiveJackpotSection: React.FC<{ isMobile?: boolean }> = ({
             boxShadow: '0 0 20px rgba(212, 175, 55, 0.15)',
           }}
         >
-          <Trophy size={14} />
+          <Image src="/images/2026-09-06_icon-trophy-win-quantum-gold_v001.png" alt="Jackpot" width={14} height={14} aria-hidden />
           <span>LIVE PROGRESSIVE JACKPOT</span>
         </div>
 

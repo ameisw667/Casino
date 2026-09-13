@@ -62,7 +62,7 @@ Es gibt keinen wiederkehrenden Trigger (weder Skill noch Hook noch SOP-Absatz), 
 
 ## Anti-Overengineering-Hinweis: nur 8 statt 10 Unterkategorien
 
-Analog zur Entscheidung in `worldmap/04_security_hardening.md` („Secret-Scanning-Lücke bewusst nicht als 11. Unterkategorie geführt") wird hier bewusst **nicht** künstlich auf 10 Positionen aufgefüllt. Zwei denkbare Zusatzpositionen (z. B. „Permission-Diff-Review vor jedem Commit" oder „Rollen-/Multi-User-Trennung") hätten für ein Einzelnutzer-Setup wie dieses keinen belegbaren, eigenständigen Mehrwert gegenüber den bereits erfassten 8 Punkten und würden nur die Kompaktübersicht künstlich strecken.
+Analog zur Entscheidung in `T_SECURITY_HARDENING/04_security_hardening.md` („Secret-Scanning-Lücke bewusst nicht als 11. Unterkategorie geführt") wird hier bewusst **nicht** künstlich auf 10 Positionen aufgefüllt. Zwei denkbare Zusatzpositionen (z. B. „Permission-Diff-Review vor jedem Commit" oder „Rollen-/Multi-User-Trennung") hätten für ein Einzelnutzer-Setup wie dieses keinen belegbaren, eigenständigen Mehrwert gegenüber den bereits erfassten 8 Punkten und würden nur die Kompaktübersicht künstlich strecken.
 
 ## Empfohlene Bearbeitungsreihenfolge
 

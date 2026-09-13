@@ -55,7 +55,7 @@
 
 **Kein Rollback-/Down-Migration-Tooling:** Keine Treffer für `rollback`/`down.sql` in `supabase/` oder `scripts/`. Rollback läuft ausschließlich über kompensierende Migrationen oder `supabase migration repair` — kein Standardformat, keine Vorlage dafür im Repo.
 
-**Signifikanter Doku-Drift:** `docs/database/01_migrations_und_versionierung.md` behauptet durchgehend „59 fortlaufend nummerierte Migrationsdateien" (Zeilen 3–4, 50–52, 158) und listet die Historie nur bis `059`, ohne `060`–`063` (`pg_cron_retry_failure_handling`, `wallet_transactions_history_cursor_index`, `bot_signal_types`, `user_wellbeing_limits`). `worldmap/04_datenbank_migrationen.md` (Stand 2026-08-29) ist ebenfalls auf 059 stehen geblieben; die dort beschriebenen Kollisions-/Lücken-Befunde (Zeilen 47–48) sind durch die zwischenzeitliche Umnummerierung überholt.
+**Signifikanter Doku-Drift:** `docs/database/01_migrations_und_versionierung.md` behauptet durchgehend „59 fortlaufend nummerierte Migrationsdateien" (Zeilen 3–4, 50–52, 158) und listet die Historie nur bis `059`, ohne `060`–`063` (`pg_cron_retry_failure_handling`, `wallet_transactions_history_cursor_index`, `bot_signal_types`, `user_wellbeing_limits`). `T_DATABASE/04_datenbank_migrationen.md` (Stand 2026-08-29) ist ebenfalls auf 059 stehen geblieben; die dort beschriebenen Kollisions-/Lücken-Befunde (Zeilen 47–48) sind durch die zwischenzeitliche Umnummerierung überholt.
 
 **`npm run supabase:migrations` läuft nirgends in CI:** Keine Treffer für `supabase:migrations`/`migration list` in den 6 GitHub-Actions-Workflows. Rein manuell, wie in `xx_sop/05_database_supabase.md` Abschnitt 2 als Pre-Flight-Schritt beschrieben — funktioniert, aber ohne automatisierten Frühwarn-Mechanismus.
 
@@ -70,7 +70,7 @@
 - **Ziel:** Den in Abschnitt 3 belegten Drift schließen, ohne ihn bei der nächsten Migration erneut zu erzeugen.
 - **Schritte:**
   1. `docs/database/01_migrations_und_versionierung.md` Zeilen 3–4, 50–52, 158: Zahl "59" durch den aktuellen Stand ersetzen (`ls supabase/migrations | sort | tail -1` frisch abfragen), Historie-Abschnitt um 060–063 ergänzen.
-  2. `worldmap/04_datenbank_migrationen.md` Zeilen 47–48 (Kollisions-/Lücken-Befunde): als historisch überholt kennzeichnen — die beschriebenen Kollisionen sind inzwischen durch Umnummerierung aufgelöst (055/056).
+  2. `T_DATABASE/04_datenbank_migrationen.md` Zeilen 47–48 (Kollisions-/Lücken-Befunde): als historisch überholt kennzeichnen — die beschriebenen Kollisionen sind inzwischen durch Umnummerierung aufgelöst (055/056).
   3. Wo möglich, Formulierungen so wählen, dass sie nicht bei jeder neuen Migration erneut veralten (Muster bereits etabliert in `T_DATABASE/02_database_schema_design.md` L2: "aktuell bis Migration NNN, per `npm run supabase:migrations` prüfbar" statt einer bloßen Zahl).
 - **Verifizierung:** Genannte Zahl in beiden Dateien stimmt mit `ls supabase/migrations | sort | tail -1` überein.
 - **Freigabe-Gate:** Keines. **Money-Pfad:** Nein. **Security-Review:** Nein.
@@ -140,5 +140,5 @@
 | Postgres-Migrations-Patterns                                      | [`xx_sop/18_postgres_patterns_migrations.md`](../xx_sop/18_postgres_patterns_migrations.md)                                         |
 | Referenzfall für Drift-Fix (L5)                                   | [`supabase/migrations/059_harden_legacy_definer_search_path.sql`](../supabase/migrations/059_harden_legacy_definer_search_path.sql) |
 | Gewichtete Subkategorien-Bewertung (Kategorie 02, alle 10 Säulen) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md)                                                                      |
-| Übergeordnete Aufschlüsselung (Kategorie 02)                      | [`worldmap/04_datenbank_migrationen.md`](../worldmap/04_datenbank_migrationen.md)                                                   |
+| Übergeordnete Aufschlüsselung (Kategorie 02)                      | [`T_DATABASE/04_datenbank_migrationen.md`](../T_DATABASE/04_datenbank_migrationen.md)                                                   |
 | Planungsdateien-Konvention                                        | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md)                                         |

@@ -1,7 +1,8 @@
 'use client';
 import React from 'react';
 import { useCasinoStore } from '@/store/useCasinoStore';
-import { Shield, Crown, Zap } from 'lucide-react';
+import { Shield } from 'lucide-react';
+import Image from 'next/image';
 interface LevelProgressProps {
   isMobile?: boolean;
 }
@@ -52,11 +53,21 @@ export default function LevelProgress({ isMobile }: LevelProgressProps) {
           }}
         >
           {level >= 100 ? (
-            <Crown size={20} />
+            <Image src="/images/2026-09-06_icon-crown-vip-quantum-gold_v001.png" alt="Level 100+" width={20} height={20} aria-hidden />
           ) : level >= 50 ? (
             <Shield size={20} />
           ) : (
-            <Zap size={20} />
+            <span
+              aria-hidden
+              style={{
+                display: 'inline-block',
+                width: 20,
+                height: 20,
+                backgroundColor: 'currentColor',
+                WebkitMask: 'url(/images/2026-09-06_icon-star-level-quantum-gold_v001.webp) center / contain no-repeat',
+                mask: 'url(/images/2026-09-06_icon-star-level-quantum-gold_v001.webp) center / contain no-repeat',
+              }}
+            />
           )}
         </div>
         <div

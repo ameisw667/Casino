@@ -1,5 +1,10 @@
 ﻿import { NextResponse } from 'next/server';
 
+// 06_6 L2 (E4): deliberately NOT rate-limited — this route is force-static, so repeated
+// hits are served from the Next.js/Vercel CDN cache and never touch route logic or the
+// database. Same documented-abweichender-Schutzansatz precedent as /api/health
+// (docs/observability/06_health_check_uptime_monitoring.md); listed in the 06_6 L3
+// exemption allowlist (src/lib/security/rate-limit-route-inventory.ts).
 export const dynamic = 'force-static';
 export const revalidate = 3600;
 

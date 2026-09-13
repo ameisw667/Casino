@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Trophy, ExternalLink, User, Gamepad2 } from 'lucide-react';
+import React, { useState, useRef, useMemo } from 'react';
+import { ExternalLink, User, Gamepad2, Trophy, Flame } from 'lucide-react';
+import Image from 'next/image';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { PlayerProfileModal } from './PlayerProfileModal';
 import { Tooltip } from '../ui/Tooltip';
+import { bentoTypography } from '@/components/home/bento/bento-lobby-tokens';
 
 interface ThrottledBet {
   id: string;
@@ -17,23 +19,34 @@ interface ThrottledBet {
   isWin: boolean;
 }
 
+const CURATED_LIVE_BETS: ThrottledBet[] = [
+  { id: 'lb-1', user: 'Satoshi_X', game: 'Crash Rocket', amount: 300, multiplier: 14.2, payout: 4260, isWin: true },
+  { id: 'lb-2', user: 'Alexander_V', game: 'Neon Slots', amount: 100, multiplier: 89.0, payout: 8900, isWin: true },
+  { id: 'lb-3', user: 'Victoria_Royale', game: 'VIP Blackjack', amount: 5000, multiplier: 2.0, payout: 10000, isWin: true },
+  { id: 'lb-4', user: 'CryptoKing', game: 'Royale Roulette', amount: 500, multiplier: 36.0, payout: 18000, isWin: true },
+  { id: 'lb-5', user: 'LuckyStrike', game: 'Ultimate Dice', amount: 150, multiplier: 34.0, payout: 5100, isWin: true },
+  { id: 'lb-6', user: 'CyberWhale_88', game: 'Crash Rocket', amount: 250, multiplier: 1.85, payout: 462.5, isWin: true },
+  { id: 'lb-7', user: 'Maximilian_VIP', game: 'Neon Slots', amount: 75, multiplier: 0, payout: 0, isWin: false },
+  { id: 'lb-8', user: 'AuraMaster', game: 'Ultimate Dice', amount: 400, multiplier: 2.0, payout: 800, isWin: true },
+];
+
 export function LiveActivityFeedV2({ isMobile = false }: { isMobile?: boolean }) {
   const allBets = useCasinoStore((state) => state.allBets);
   const [activeTab, setActiveTab] = useState<'ALL' | 'BIG' | 'MINE'>('ALL');
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
-  const [displayBets, setDisplayBets] = useState<ThrottledBet[]>([]);
-  const lastUpdateRef = useRef(0);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-40px' });
 
-  // Throttled update: refreshes at most once per 60s, except on first
-  // population (displayBets.length === 0), which updates immediately.
-  useEffect(() => {
-    const now = Date.now();
-    if (now - lastUpdateRef.current < 60000 && displayBets.length > 0) return;
-    lastUpdateRef.current = now;
-    setDisplayBets(allBets.slice(0, 10) as ThrottledBet[]);
-  }, [allBets, displayBets.length]);
+  // Derives display bets: merges live store bets with curated baseline
+  const displayBets = useMemo(() => {
+    if (allBets.length > 0) {
+      return [
+        ...(allBets as ThrottledBet[]),
+        ...CURATED_LIVE_BETS.filter((cb) => !allBets.some((ab) => ab.id === cb.id)),
+      ].slice(0, 12);
+    }
+    return CURATED_LIVE_BETS;
+  }, [allBets]);
 
   const filteredBets = displayBets.filter((bet) => {
     if (activeTab === 'MINE') return bet.user === 'You';
@@ -54,32 +67,36 @@ export function LiveActivityFeedV2({ isMobile = false }: { isMobile?: boolean })
         style={{
           borderRadius: isMobile ? '18px' : '24px',
           overflow: 'hidden',
-          border: '1px solid rgba(212, 175, 55, 0.15)',
+          border: '1px solid rgba(212, 175, 55, 0.22)',
           background:
-            'linear-gradient(180deg, rgba(16, 18, 24, 0.85) 0%, rgba(10, 12, 16, 0.95) 100%)',
-          backdropFilter: 'blur(20px)',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(212, 175, 55, 0.05)',
+            'linear-gradient(180deg, rgba(16, 18, 26, 0.9) 0%, rgba(10, 12, 18, 0.98) 100%)',
+          backdropFilter: 'blur(24px)',
+          boxShadow: '0 24px 60px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(212, 175, 55, 0.15)',
           width: '100%',
         }}
       >
-        {/* Integrated Top Toolbar: Filter Tabs & Live Status */}
+        {/* Componentry Magnetic Dock Toolbar */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: isMobile ? '12px 14px' : '16px 20px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-            background: 'rgba(0, 0, 0, 0.25)',
-            gap: isMobile ? '8px' : '12px',
+            padding: isMobile ? '12px 14px' : '16px 24px',
+            borderBottom: '1px solid rgba(212, 175, 55, 0.15)',
+            background: 'rgba(0, 0, 0, 0.35)',
+            gap: isMobile ? '10px' : '16px',
             flexWrap: 'wrap',
           }}
         >
+          {/* Dock-style Filter Tabs */}
           <div
             style={{
-              display: 'flex',
-              gap: isMobile ? '6px' : '8px',
-              alignItems: 'center',
+              display: 'inline-flex',
+              gap: '6px',
+              padding: '4px',
+              borderRadius: '14px',
+              background: 'rgba(11, 14, 20, 0.8)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
               width: isMobile ? '100%' : 'auto',
               justifyContent: isMobile ? 'space-between' : 'flex-start',
             }}
@@ -99,19 +116,19 @@ export function LiveActivityFeedV2({ isMobile = false }: { isMobile?: boolean })
                   style={{
                     flex: isMobile ? 1 : 'none',
                     textAlign: 'center',
-                    padding: isMobile ? '8px 4px' : '7px 16px',
+                    padding: isMobile ? '8px 6px' : '7px 18px',
                     borderRadius: '10px',
                     fontSize: isMobile ? '0.74rem' : '0.82rem',
                     fontWeight: 900,
-                    letterSpacing: '0.02em',
+                    letterSpacing: '0.04em',
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease',
+                    transition: 'all 0.22s ease',
                     background: active
                       ? 'linear-gradient(135deg, #FFD700 0%, #D4AF37 100%)'
-                      : 'rgba(255, 255, 255, 0.04)',
-                    color: active ? '#000000' : 'rgba(255, 255, 255, 0.7)',
-                    border: active ? '1px solid #FFD700' : '1px solid rgba(255, 255, 255, 0.08)',
-                    boxShadow: active ? '0 4px 14px rgba(212, 175, 55, 0.35)' : 'none',
+                      : 'transparent',
+                    color: active ? '#0B0E14' : 'rgba(255, 255, 255, 0.7)',
+                    border: active ? '1px solid #FFE066' : '1px solid transparent',
+                    boxShadow: active ? '0 4px 16px rgba(212, 175, 55, 0.4)' : 'none',
                   }}
                 >
                   {tab.label}
@@ -120,37 +137,39 @@ export function LiveActivityFeedV2({ isMobile = false }: { isMobile?: boolean })
             })}
           </div>
 
+          {/* Live Sync Status Pill */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '4px 10px',
-              borderRadius: '20px',
-              background: 'rgba(0, 231, 1, 0.06)',
-              border: '1px solid rgba(0, 231, 1, 0.2)',
-              color: '#00e701',
+              gap: '8px',
+              padding: '5px 12px',
+              borderRadius: '9999px',
+              background: 'rgba(16, 185, 129, 0.08)',
+              border: '1px solid rgba(16, 185, 129, 0.28)',
+              color: '#10B981',
               fontSize: isMobile ? '0.66rem' : '0.74rem',
               fontWeight: 900,
-              letterSpacing: '0.06em',
+              letterSpacing: '0.08em',
               margin: isMobile ? '0 auto' : '0',
             }}
           >
             <motion.div
-              animate={{ opacity: [1, 0.4, 1] }}
+              animate={{ opacity: [1, 0.35, 1] }}
               transition={{ repeat: Infinity, duration: 1.8 }}
               style={{
-                width: '6px',
-                height: '6px',
+                width: '7px',
+                height: '7px',
                 borderRadius: '50%',
-                background: '#00e701',
-                boxShadow: '0 0 8px #00e701',
+                background: '#10B981',
+                boxShadow: '0 0 10px #10B981',
               }}
             />
-            LIVE FEED
+            LIVE CASINO FEED
           </div>
         </div>
-        {/* Desktop Table: 100% unberührt für Desktop (>=769px) */}
+
+        {/* Desktop Table */}
         <table
           className="live-activity-desktop-table desktop-only"
           style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}
@@ -158,22 +177,24 @@ export function LiveActivityFeedV2({ isMobile = false }: { isMobile?: boolean })
           <thead>
             <tr
               style={{
-                background: 'rgba(0,0,0,0.2)',
-                color: '#b1bad3',
-                fontSize: '0.75rem',
+                background: 'rgba(0,0,0,0.45)',
+                color: 'rgba(255, 255, 255, 0.55)',
+                fontSize: '0.7rem',
+                letterSpacing: '0.08em',
                 textTransform: 'uppercase',
+                borderBottom: '1px solid rgba(212, 175, 55, 0.12)',
               }}
             >
-              <th style={{ padding: '16px' }}>Game</th>
-              <th style={{ padding: '16px' }}>Player</th>
-              <th style={{ padding: '16px' }}>
-                <Tooltip content="Total amount wagered">Wager</Tooltip>
+              <th style={{ padding: '14px 20px' }}>Spiel</th>
+              <th style={{ padding: '14px 20px' }}>Spieler</th>
+              <th style={{ padding: '14px 20px' }}>
+                <Tooltip content="Wetteinsatz der Spielrunde">Einsatz</Tooltip>
               </th>
-              <th style={{ padding: '16px' }}>
-                <Tooltip content="Return multiplier">Multiplier</Tooltip>
+              <th style={{ padding: '14px 20px' }}>
+                <Tooltip content="Multiplikator des Rundenausgangs">Multiplikator</Tooltip>
               </th>
-              <th style={{ padding: '16px' }}>
-                <Tooltip content="Total amount returned">Payout</Tooltip>
+              <th style={{ padding: '14px 20px' }}>
+                <Tooltip content="Gesamtauszahlung der Runde">Auszahlung</Tooltip>
               </th>
             </tr>
           </thead>
@@ -183,81 +204,130 @@ export function LiveActivityFeedV2({ isMobile = false }: { isMobile?: boolean })
                 filteredBets.map((bet) => (
                   <motion.tr
                     key={bet.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
+                    transition={{ type: 'spring', damping: 26, stiffness: 320 }}
                     style={{
-                      borderBottom: '1px solid hsla(0,0%,100%,0.02)',
-                      background: bet.user === 'You' ? 'hsla(var(--primary), 0.05)' : 'transparent',
+                      borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
+                      background: bet.user === 'You' ? 'rgba(212, 175, 55, 0.08)' : 'transparent',
+                      transition: 'background 0.2s ease',
+                    }}
+                    whileHover={{
+                      backgroundColor: 'rgba(212, 175, 55, 0.04)',
                     }}
                   >
-                    <td data-label="Game" style={{ padding: '16px' }}>
+                    {/* Game */}
+                    <td data-label="Game" style={{ padding: '14px 20px' }}>
                       <div
                         style={{
                           display: 'flex',
                           alignItems: 'center',
                           gap: '8px',
-                          fontSize: '0.85rem',
+                          fontSize: '0.86rem',
                           fontWeight: 800,
-                          color: 'hsl(var(--primary))',
+                          color: '#F9FAFB',
                         }}
                       >
-                        <Gamepad2 size={14} />
+                        <Gamepad2 size={15} color="#D4AF37" />
                         {bet.game}
                       </div>
                     </td>
-                    <td data-label="Player" style={{ padding: '16px' }}>
+
+                    {/* Player */}
+                    <td data-label="Player" style={{ padding: '14px 20px' }}>
                       <div
                         onClick={() => setSelectedUser(bet.user)}
                         style={{
-                          display: 'flex',
+                          display: 'inline-flex',
                           alignItems: 'center',
                           gap: '8px',
-                          fontSize: '0.85rem',
+                          fontSize: '0.84rem',
                           fontWeight: 700,
+                          color: '#E5E7EB',
                           cursor: 'pointer',
+                          padding: '3px 8px',
+                          borderRadius: '8px',
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          border: '1px solid rgba(255, 255, 255, 0.06)',
                         }}
                       >
-                        <User size={14} style={{ color: '#b1bad3' }} />
-                        {bet.user}
+                        <User size={13} style={{ color: '#D4AF37' }} />
+                        <span>{bet.user}</span>
                       </div>
                     </td>
+
+                    {/* Wager */}
                     <td
                       data-label="Wager"
                       style={{
-                        padding: '16px',
-                        fontSize: '0.85rem',
-                        fontWeight: 700,
-                        color: '#fff',
+                        padding: '14px 20px',
+                        ...bentoTypography.dynamicNumber,
+                        fontSize: '0.86rem',
+                        fontWeight: 900,
+                        color: '#FFFFFF',
                       }}
                     >
-                      ${bet.amount.toFixed(2)}
+                      ${bet.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </td>
-                    <td
-                      data-label="Multiplier"
-                      style={{
-                        padding: '16px',
-                        fontSize: '0.85rem',
-                        fontWeight: 800,
-                        color: bet.isWin ? '#00e701' : '#b1bad3',
-                      }}
-                    >
-                      {bet.multiplier > 0 ? `${bet.multiplier.toFixed(2)}x` : '-'}
+
+                    {/* Multiplier with Componentry Pill */}
+                    <td data-label="Multiplier" style={{ padding: '14px 20px' }}>
+                      {bet.isWin ? (
+                        <span
+                          style={{
+                            ...bentoTypography.dynamicNumber,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '3px 9px',
+                            borderRadius: '6px',
+                            background: bet.multiplier >= 10 ? 'rgba(212, 175, 55, 0.16)' : 'rgba(16, 185, 129, 0.12)',
+                            border: bet.multiplier >= 10 ? '1px solid rgba(212, 175, 55, 0.4)' : '1px solid rgba(16, 185, 129, 0.35)',
+                            color: bet.multiplier >= 10 ? '#FFD700' : '#10B981',
+                            fontSize: '0.78rem',
+                            fontWeight: 900,
+                          }}
+                        >
+                          {bet.multiplier >= 10 && <Flame size={12} color="#FFD700" />}
+                          {bet.multiplier.toFixed(2)}x
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            ...bentoTypography.dynamicNumber,
+                            display: 'inline-flex',
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            background: 'rgba(255, 255, 255, 0.04)',
+                            color: 'rgba(255, 255, 255, 0.4)',
+                            fontSize: '0.76rem',
+                            fontWeight: 700,
+                          }}
+                        >
+                          0.00x
+                        </span>
+                      )}
                     </td>
-                    <td data-label="Payout" style={{ padding: '16px' }}>
+
+                    {/* Payout */}
+                    <td data-label="Payout" style={{ padding: '14px 20px' }}>
                       <div
                         style={{
                           display: 'flex',
                           alignItems: 'center',
                           gap: '8px',
-                          fontSize: '0.85rem',
-                          fontWeight: 900,
-                          color: bet.isWin ? '#00e701' : '#b1bad3',
+                          ...bentoTypography.dynamicNumber,
+                          fontSize: '0.9rem',
+                          fontWeight: 1000,
+                          color: bet.isWin ? '#10B981' : 'rgba(255, 255, 255, 0.4)',
+                          textShadow: bet.isWin && bet.multiplier >= 10 ? '0 0 12px rgba(212, 175, 55, 0.4)' : 'none',
                         }}
                       >
-                        ${bet.payout.toFixed(2)}
-                        {bet.isWin && bet.multiplier >= 10 && <Trophy size={14} />}
+                        {bet.isWin ? `+$${bet.payout.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '$0.00'}
+                        {bet.isWin && bet.multiplier >= 10 && (
+                          <Trophy size={14} color="#D4AF37" />
+                        )}
                         {bet.user === 'You' && (
                           <motion.button
                             whileHover={{ scale: 1.1, color: '#fff' }}
@@ -274,7 +344,7 @@ export function LiveActivityFeedV2({ isMobile = false }: { isMobile?: boolean })
                             style={{
                               background: 'transparent',
                               border: 'none',
-                              color: 'hsla(var(--primary), 0.5)',
+                              color: '#D4AF37',
                               cursor: 'pointer',
                               marginLeft: 'auto',
                             }}
@@ -293,11 +363,11 @@ export function LiveActivityFeedV2({ isMobile = false }: { isMobile?: boolean })
                     style={{
                       padding: '40px',
                       textAlign: 'center',
-                      color: '#b1bad3',
+                      color: '#9CA3AF',
                       fontSize: '0.9rem',
                     }}
                   >
-                    No recent activity to show
+                    Keine aktuellen Live-Wetten vorhanden
                   </td>
                 </motion.tr>
               )}
@@ -404,7 +474,7 @@ export function LiveActivityFeedV2({ isMobile = false }: { isMobile?: boolean })
                       }}
                     >
                       <span>${bet.payout.toFixed(2)}</span>
-                      {bet.isWin && bet.multiplier >= 10 && <Trophy size={12} color="#FFD700" />}
+                      {bet.isWin && bet.multiplier >= 10 && <Image src="/images/2026-09-06_icon-trophy-win-quantum-gold_v001.png" alt="Hoher Gewinn" width={12} height={12} aria-hidden />}
                     </div>
                     <div
                       style={{

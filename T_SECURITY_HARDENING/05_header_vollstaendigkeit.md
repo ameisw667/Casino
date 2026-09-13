@@ -158,3 +158,11 @@
 | Bestehender Header-Test (wird in L2/L3 erweitert)     | [`src/lib/security/__tests__/proxy-security-headers.test.ts`](../src/lib/security/__tests__/proxy-security-headers.test.ts)             |
 | Referenzmuster für L5 (Schedule + Summary)            | [`.github/workflows/migration-drift-check.yml`](../.github/workflows/migration-drift-check.yml)                                         |
 | Übersicht (alle 4 Säulen dieser Runde)                | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                                          |
+
+---
+
+## 9 — Ausführungsstatus & Runde-3-Prüfung (2026-09-12)
+
+**Ausführungsstatus:** Alle 6 Meilensteine (L1-L6) sind auf dem verifizierten Merge-Stand `security-hardening-round2-merge` vollständig umgesetzt — bestätigt im lokalen Worktree `.claude/worktrees/round2-merge` (Commit `302a988`, alle L-Zeilen in dieser Datei dort zeigen `🟢 executed (2026-09-07)`, Kopfzeile „🟢 Ausgeführt (2026-09-07)"). Der Kopfbereich dieser Datei im Hauptbranch (`codex/uncommitted-cohort-review`) zeigt noch „🟡 Execution-Ready", weil der Merge-Branch technisch noch nicht in den Hauptbranch übernommen werden konnte (316+ fremde uncommittete Änderungen im Hauptverzeichnis blockieren den Merge — Details in [`branch_merge_saeulen_5_7_8_plan.md`](./branch_merge_saeulen_5_7_8_plan.md), **nicht Teil dieser Planungsaufgabe**). Dieser Status-Header wird bewusst **nicht** von dieser Planungsrunde geändert.
+
+**Runde-3-Prüfung:** Auf Basis des tatsächlich ausgeführten Merge-Stands geprüft: Kein neuer, bisher unentdeckter Fund über die bereits bekannte COEP-Aktivierungs-Grenze (#9, K5) hinaus. Die übrigen 9 Subkategorien liegen bereits bei Top 10-15 % (§7-Projektion). Eine weitere Härtungsrunde würde nur Bruchteile eines Prozentpunkts bewegen. **Bewusst keine Runde 3.** Nächster fälliger Check: sobald Jan die COEP-`credentialless`-Entscheidung trifft (per L6 bereits vollständig vorbereitet) oder bei einer neuen, bisher unentdeckten Admin-Route ohne `Cache-Control`.

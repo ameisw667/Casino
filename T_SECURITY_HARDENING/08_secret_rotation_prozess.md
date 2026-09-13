@@ -154,3 +154,11 @@
 | Rotation-Fälligkeits-Log (wird in L5 geändert)  | [`xx_docs/13_secret_rotation_log.md`](../xx_docs/13_secret_rotation_log.md)                                                             |
 | Referenzmuster für L4 (Job-Summary)             | [`.github/workflows/dependency-audit.yml`](../.github/workflows/dependency-audit.yml)                                                   |
 | Übersicht (alle 4 Säulen dieser Runde)          | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                                          |
+
+---
+
+## 9 — Ausführungsstatus & Runde-3-Prüfung (2026-09-12)
+
+**Ausführungsstatus:** Alle 5 Meilensteine (L1-L5) sind auf dem verifizierten Merge-Stand `security-hardening-round2-merge` vollständig umgesetzt — bestätigt im lokalen Worktree `.claude/worktrees/round2-merge` (Commit `302a988`, `grep -n "🔴 Geplant"` in dieser Datei dort liefert 0 Treffer, alle L-Zeilen zeigen `🟢 executed (2026-09-07)`). Der Kopfbereich dieser Datei im Hauptbranch (`codex/uncommitted-cohort-review`) zeigt noch „🟡 Execution-Ready", weil der Merge-Branch technisch noch nicht in den Hauptbranch übernommen werden konnte (316+ fremde uncommittete Änderungen im Hauptverzeichnis blockieren den Merge — Details in [`branch_merge_saeulen_5_7_8_plan.md`](./branch_merge_saeulen_5_7_8_plan.md), **nicht Teil dieser Planungsaufgabe**). Dieser Status-Header wird bewusst **nicht** von dieser Planungsrunde geändert — das ist Aufgabe des Merge-Plans, nicht dieser Datei.
+
+**Runde-3-Prüfung:** Auf Basis des tatsächlich ausgeführten Merge-Stands geprüft: Kein neuer, bisher unentdeckter Fund über die bereits bekannte HMAC-Versionierungs-Grenze (#9, K5) hinaus. Die übrigen 9 Subkategorien liegen bereits bei Top 10-15 % (§7-Projektion) — nahe am methodischen Floor der flachen 10er-Durchschnittsbildung. Eine weitere Härtungsrunde würde nur Bruchteile eines Prozentpunkts bewegen. **Bewusst keine Runde 3.** Nächster fälliger Check: sobald Jan die HMAC-Versionierungs-Entscheidung trifft (dann automatisch ein deutlicher Sprung ohne weitere LLM-Arbeit nötig) oder bei einem neuen, bisher unbekannten Secret im Repo.

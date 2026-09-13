@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion
 import { Gem } from 'lucide-react';
 import { springs } from '@/lib/design/motion-tokens';
 import { useProgressiveJackpot } from '@/hooks/useProgressiveJackpot';
-import { RollingJackpotDisplay } from '../ProgressiveJackpotSection';
+import { KineticNumberRoller } from '@/components/casino/typography/KineticNumberRoller';
 import { bentoColors, bentoTypography } from './bento-lobby-tokens';
 
 /**
@@ -35,13 +35,12 @@ export function BentoJackpotCell({ isMobile }: { isMobile: boolean }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 18 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ ...springs.gentle, delay: 0.16 }}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ ...springs.gentle }}
       style={{
-        gridColumn: 'span 2',
-        gridRow: 'span 1',
+        width: '100%',
+        height: '100%',
         position: 'relative',
         borderRadius: '16px',
         overflow: 'hidden',
@@ -49,14 +48,15 @@ export function BentoJackpotCell({ isMobile }: { isMobile: boolean }) {
         boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
         background:
           'linear-gradient(120deg, rgba(20, 18, 10, 0.9) 0%, rgba(11, 14, 20, 0.85) 55%, rgba(24, 18, 8, 0.9) 100%)',
-        minHeight: isMobile ? '150px' : '170px',
+        minHeight: isMobile ? '240px' : '300px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         textAlign: 'center',
-        padding: isMobile ? '16px 12px' : '22px 24px',
-        gap: '8px',
+        padding: isMobile ? '16px 12px' : '24px 20px',
+        gap: '12px',
+        boxSizing: 'border-box',
       }}
     >
       {/* Scroll-parallax liquid gold glow with slow breathing pulse */}
@@ -99,23 +99,25 @@ export function BentoJackpotCell({ isMobile }: { isMobile: boolean }) {
       <div
         style={{
           position: 'relative',
-          fontSize: isMobile ? 'clamp(1.6rem, 7vw, 2.4rem)' : 'clamp(2.4rem, 3.5vw, 3.4rem)',
-          fontWeight: 1000,
-          letterSpacing: '-0.02em',
-          lineHeight: 1.05,
-          background: 'linear-gradient(135deg, #FFFFFF 0%, #F5E08C 35%, #D4AF37 70%, #997517 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          filter: 'drop-shadow(0 0 28px rgba(212, 175, 55, 0.35))',
+          display: 'flex',
+          alignItems: 'center',
+          fontSize: isMobile ? 'clamp(1.2rem, 5.2vw, 1.8rem)' : 'clamp(1.6rem, 2.5vw, 2.3rem)',
+          fontWeight: 900,
+          lineHeight: 1.1,
         }}
       >
         {jackpotFormatted !== '—' ? (
-          <RollingJackpotDisplay formatted={jackpotFormatted} />
+          <KineticNumberRoller formatted={jackpotFormatted} />
         ) : (
           <motion.span
             animate={prefersReducedMotion ? undefined : { opacity: [0.35, 0.7, 0.35] }}
             transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
-            style={{ letterSpacing: '0.02em' }}
+            style={{
+              letterSpacing: '0.02em',
+              background: 'linear-gradient(135deg, #FFFFFF 0%, #F5E08C 35%, #D4AF37 70%, #997517 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
           >
             $ --,---,---.--{' '}
           </motion.span>
@@ -138,8 +140,8 @@ export function BentoJackpotCell({ isMobile }: { isMobile: boolean }) {
 }
 
 /**
- * Platform trust stats: the second row of the jackpot band, sitting directly
- * beside the lower half of the 2x2 Live-Stream cell — no bento hole.
+ * Platform trust stats: Frameless directly on the canvas background, spanning
+ * full width (1 / -1) without a box container or empty right-hand space.
  */
 export function PlatformStatsCell({ isMobile }: { isMobile: boolean }) {
   return (
@@ -149,19 +151,21 @@ export function PlatformStatsCell({ isMobile }: { isMobile: boolean }) {
       viewport={{ once: true, margin: '-40px' }}
       transition={{ ...springs.gentle, delay: 0.22 }}
       style={{
-        gridColumn: 'span 2',
+        gridColumn: '1 / -1',
         gridRow: 'span 1',
-        borderRadius: '16px',
-        background: 'rgba(11, 14, 20, 0.6)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+        background: 'transparent',
+        border: 'none',
+        boxShadow: 'none',
+        backdropFilter: 'none',
+        WebkitBackdropFilter: 'none',
         display: 'grid',
         gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))',
-        gap: isMobile ? '10px 0' : '0',
-        padding: isMobile ? '12px 4px' : '14px 0',
-        minHeight: '84px',
+        gap: isMobile ? '16px 0' : '0',
+        padding: isMobile ? '16px 0 20px' : '22px 0 26px',
+        margin: '6px 0',
+        borderTop: '1px solid rgba(212, 175, 55, 0.14)',
+        borderBottom: '1px solid rgba(212, 175, 55, 0.14)',
+        width: '100%',
       }}
     >
       {PLATFORM_STATS.map((stat, i) => {
@@ -174,10 +178,10 @@ export function PlatformStatsCell({ isMobile }: { isMobile: boolean }) {
               alignItems: 'center',
               justifyContent: 'center',
               textAlign: 'center',
-              padding: '4px 6px',
+              padding: '6px 12px',
               borderRight:
                 i < PLATFORM_STATS.length - 1 && !isMobile
-                  ? '1px solid rgba(255, 255, 255, 0.07)'
+                  ? '1px solid rgba(212, 175, 55, 0.16)'
                   : 'none',
             }}
           >
@@ -185,30 +189,38 @@ export function PlatformStatsCell({ isMobile }: { isMobile: boolean }) {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '5px',
-                marginBottom: '3px',
-                color: 'rgba(255, 255, 255, 0.55)',
-                fontSize: '0.58rem',
+                gap: '6px',
+                marginBottom: '5px',
+                color: 'rgba(255, 255, 255, 0.65)',
+                fontSize: '0.62rem',
                 fontWeight: 900,
-                letterSpacing: '0.05em',
+                letterSpacing: '0.08em',
                 textTransform: 'uppercase',
               }}
             >
+              <span
+                style={{
+                  width: '4px',
+                  height: '4px',
+                  borderRadius: '50%',
+                  background: bentoColors.gold,
+                  display: 'inline-block',
+                }}
+              />
               <span>{stat.label}</span>
             </div>
             <div
               style={{
                 ...bentoTypography.dynamicNumber,
-                // Fluid: hält z.B. "$14,280,450+" auch am unteren Desktop-Range
-                // (~1024px) ellipsenfrei, statt erst ab 1200px zu truncieren.
-                fontSize: isMobile ? '0.82rem' : 'clamp(0.62rem, -0.33rem + 1.5vw, 1.02rem)',
+                fontSize: isMobile ? '1.05rem' : 'clamp(1.15rem, 1.8vw, 1.55rem)',
                 fontWeight: 1000,
-                color: '#fff',
+                color: '#ffffff',
                 letterSpacing: '-0.02em',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 maxWidth: '100%',
+                textShadow: '0 2px 10px rgba(0,0,0,0.6)',
               }}
             >
               {stat.value}

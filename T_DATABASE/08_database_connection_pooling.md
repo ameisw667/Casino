@@ -1,29 +1,36 @@
 # 08 — Connection-Pooling & Skalierung
 
-> **Status:** Execution-Ready · **Stand:** 2026-09-04 · **Owner:** LLM (1 optionaler Jan-Touch bei L5b) · **Scope:** Monitoring, Verifikation und Resilienz des Supavisor-Connection-Poolings (lokal + Remote) für die Casino-Datenbank. Kein Tarifwechsel, kein echter Lasttest gegen Produktion ohne Jan-Freigabe.
+> **Status:** Execution-Ready (erweitert 2026-09-12) · **Stand:** 2026-09-12 · **Owner:** LLM (1 optionaler Jan-Touch bei L5b) · **Scope:** Monitoring, Verifikation und Resilienz des Supavisor-Connection-Poolings (lokal + Remote) für die Casino-Datenbank — jetzt inklusive Observability-Anbindung, Chaos-Test-Integration und synthetischem Erschöpfungstest. Kein Tarifwechsel, kein echter Lasttest gegen Produktion ohne Jan-Freigabe.
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
 
 1. Lies Abschnitt 1 (Übersicht), Abschnitt 2 (Subkategorien-Bewertung) und Abschnitt 3 (verifizierter Ist-Stand) vollständig.
-2. Beginne bei L1 in Reihenfolge. **Nur L5b braucht Jan** (echter Lasttest gegen die reale Produktions-Datenbank — Risiko für echte Spieler). Alles andere ist lokal/read-only.
-3. Nach jedem Meilenstein: Ampel in Abschnitt 4 aktualisieren.
+2. Beginne bei L1 in Reihenfolge (L1–L6 unverändert gegenüber der Erstfassung, weiterhin gültig und noch nicht ausgeführt). Die neuen Meilensteine **N1–N4** (Abschnitt 4a) bauen auf L2/L5a/L6 auf — erst nach diesen bearbeiten.
+3. **Nur L5b braucht Jan** (echter Lasttest gegen die reale Produktions-Datenbank). Alles andere ist lokal/read-only.
+4. **Cross-Datei-Abhängigkeit:** N1 koordiniert sich mit `T_DATABASE/11_database_query_performance_indexing.md` N1 (derselbe Lasttest-Lauf, zwei Auswertungen) — bei paralleler Bearbeitung beider Dateien vorher klären, welcher Subagent den Lasttest startet, um keinen doppelten gleichzeitigen Lauf zu erzeugen.
 
 ---
 
 ## 1 — Übersicht für Jan
 
-| Nr. | Meilenstein | Status | Nächster Schritt | Zuständigkeit | Money-Pfad |
-| --- | --- | :---: | --- | :---: | :---: |
-| L0 | Kontext & Scope | 🟢 verifiziert (2026-09-04) | — | LLM | Nein |
-| L1 | Doku-Korrektur (Status-Header, fiktives Skript, lokal/Remote-Diskrepanz) | 🔴 geplant | `docs/database/08` korrigieren | LLM | Nein |
-| L2 | Echtes Health-Check-Skript bauen | 🔴 geplant | `scripts/check-pooler-health.ts` | LLM | Nein |
-| L3 | npm-Script + Wiederholbarkeit | 🔴 geplant | `db:pooler-health` ergänzen | LLM | Nein |
-| L4 (optional) | CI-Cron-Monitoring | 🔴 geplant, nachrangig | Analog `doc-drift-check.yml` | LLM, ggf. 1 Jan-Secret | Nein |
-| L5a | Lasttest lokal um Connection-Counts erweitern | 🔴 geplant | `bet-flow.artillery.yml` erweitern | LLM | Nein |
-| L5b (optional) | Echter Lasttest gegen Produktion | 🔴 geplant, nachrangig | Nur mit Jan-Freigabe | **Jan-Freigabe**, Ausführung LLM | Nein (read-only Last, keine echten Wetten) |
-| L6 | Retry-/Backoff-Logik für DB-Verbindungsfehler | 🔴 geplant | Bet-Route + Service-Layer | LLM | Nein (nutzt bestehende Idempotenz) |
+| Nr. | Meilenstein | Nächster Schritt | Zuständigkeit | Money-Pfad |
+| --- | --- | --- | :---: | :---: |
+| L0 | Kontext & Scope | — | LLM | Nein |
+| L1 | Doku-Korrektur (Status-Header, fiktives Skript, lokal/Remote-Diskrepanz) | `docs/database/08` korrigieren | LLM | Nein |
+| L2 | Echtes Health-Check-Skript bauen | `scripts/check-pooler-health.ts` | LLM | Nein |
+| L3 | npm-Script + Wiederholbarkeit | `db:pooler-health` ergänzen | LLM | Nein |
+| L4 (optional) | CI-Cron-Monitoring | Analog `doc-drift-check.yml` | LLM, ggf. 1 Jan-Secret | Nein |
+| L5a | Lasttest lokal um Connection-Counts erweitern | `bet-flow.artillery.yml` erweitern | LLM | Nein |
+| L5b (optional) | Echter Lasttest gegen Produktion | Nur mit Jan-Freigabe | **Jan-Freigabe**, Ausführung LLM | Nein (read-only Last, keine echten Wetten) |
+| L6 | Retry-/Backoff-Logik für DB-Verbindungsfehler | Bet-Route + Service-Layer | LLM | Nein (nutzt bestehende Idempotenz) |
+| N1 | Lasttest-Kopplung mit Säule 7 (gemeinsamer Lauf) | Koordination mit `11_...md` N1 | LLM | Nein |
+| N2 | Observability-Integration (Sentry statt nur stdout) | `check-pooler-health.ts` erweitern | LLM | Nein |
+| N3 | Chaos-Test-Update für neue Retry-Semantik (L6) | `run-fault-test.mjs` anpassen | LLM | Nein |
+| N4 | Synthetischer Pool-Erschöpfungstest | Neues Skript, nur lokal | LLM | Nein |
 
-**Warum praktisch kein Jan-Gate nötig ist:** Alle Kernschritte (L1–L4, L5a, L6) sind entweder read-only (Health-Check, Lasttest-Erweiterung lokal) oder reiner Code-/Doku-Aufbau ohne externe Wirkung. Nur L5b (Lasttest gegen die **echte** Produktionsdatenbank mit echten Spielern) ist ein reales Risiko für den Live-Betrieb und braucht deshalb explizite Jan-Freigabe — analog zur bestehenden K-Level-Logik in `docs/database/08_connection_pooling_supavisor.md` §7.
+**Warum praktisch kein Jan-Gate nötig ist:** Alle Kernschritte (L1–L4, L5a, L6, N1–N4) sind entweder read-only (Health-Check, Lasttest-Erweiterung lokal) oder reiner Code-/Doku-Aufbau ohne externe Wirkung. Nur L5b (Lasttest gegen die **echte** Produktionsdatenbank mit echten Spielern) ist ein reales Risiko für den Live-Betrieb und braucht deshalb explizite Jan-Freigabe — analog zur bestehenden K-Level-Logik in `docs/database/08_connection_pooling_supavisor.md` §7.
+
+**Warum diese Erweiterung (Jan-Kontext, 2026-09-12):** Die Erstfassung dieser Datei war bereits Execution-Ready und methodisch solide, aber noch **nicht ausgeführt** (alle Meilensteine offen) und deckte drei Dinge nicht ab: (1) das Ergebnis des Health-Checks landete nur in CI-Logs, nicht in einem echten Observability-Tool, (2) der bestehende Chaos-Test (`scripts/chaos/run-fault-test.mjs`, Initiative 1.10) erwartet aktuell "immer 5xx bei einem Fault" — nach L6 (Retry-Logik) wird das für transiente Fehler falsch, ohne dass die Erstfassung das vorgesehen hätte, (3) die dokumentierten Warn-/Kritisch-Schwellen (140/42, 180/55) wurden nie tatsächlich lokal erreicht, nur aus der Doku übernommen. Die **"Status"-Spalte wurde entfernt** (durchgängig 🔴 vor Ausführung, kein Mehrwert gegenüber der reinen Meilensteinliste in einer frischen Execution-Ready-Datei).
 
 ---
 
@@ -130,25 +137,60 @@
 
 ---
 
+## 4a — Neue Meilensteine (N1–N4, bauen auf L2/L5a/L6 auf)
+
+### N1 — Lasttest-Kopplung mit Säule 7 (ein Lauf, zwei Auswertungen)
+
+- **Ziel:** L5a misst Connection-Counts während eines Lasttests; `T_DATABASE/11_database_query_performance_indexing.md` N1 braucht denselben Lasttest für Query-Latenz-Sampling unter Last. Statt zweier getrennter Lasttest-Infrastrukturen (Ressourcenverschwendung, Gefahr widersprüchlicher Ergebnisse aus unterschiedlichen Läufen) läuft **ein gemeinsamer Lauf**.
+- **Schritte:** `npm run loadtest:bet` so orchestrieren, dass sowohl `check-pooler-health.ts`-Sampling (L5a) als auch das Query-Audit-Sampling (Säule 7 N1) parallel während desselben Laufs mitschreiben; beide Ergebnisse referenzieren denselben Zeitstempel/Lauf-ID, damit sie später nebeneinander gelesen werden können.
+- **Verifizierung:** Ein einziger `loadtest:bet`-Lauf erzeugt sowohl eine Pooling-Audit-Datei als auch eine Query-Performance-Load-Audit-Datei mit übereinstimmendem Zeitstempel.
+- **Freigabe-Gate:** Keines. **Money-Pfad:** Nein. **Security-Review:** Nein.
+
+### N2 — Observability-Integration statt reiner stdout/CI-Log-Ausgabe
+
+- **Ziel:** Ein Health-Check, der nur in CI-Logs landet, wird in der Praxis nicht laufend beobachtet. Der Stack nutzt bereits Sentry — Weltklasse-Monitoring nutzt vorhandene Werkzeuge statt neue Dashboards zu bauen.
+- **Schritte:** `scripts/check-pooler-health.ts` (L2) um einen optionalen Versand des Ergebnisses als Sentry-Custom-Metric/Breadcrumb erweitern (nur wenn `SENTRY_DSN` in der Umgebung gesetzt ist — lokale Läufe ohne Sentry-Konfiguration funktionieren unverändert per stdout weiter, kein Breaking Change).
+- **Verifizierung:** Lokaler Lauf mit gesetzter Test-DSN erzeugt einen sichtbaren Sentry-Eintrag; ohne DSN läuft das Skript unverändert wie vor N2.
+- **Freigabe-Gate:** Keines. **Money-Pfad:** Nein. **Security-Review:** Nein (nur Metrikversand, keine neuen Datenzugriffsrechte).
+
+### N3 — Chaos-Test-Update für die neue Retry-Semantik (schließt eine Lücke, die L6 sonst selbst als Regression melden würde)
+
+- **Ziel:** [`scripts/chaos/run-fault-test.mjs`](../scripts/chaos/run-fault-test.mjs) (Initiative 1.10) prüft aktuell die Invariante "unter jedem Fault-Modus antwortet `/api/casino/bet` immer mit 5xx, nie 200". Nach L6 (Retry-Logik) ist das für **einmalige transiente** Fehler nicht mehr die erwartete Semantik — ein `reset`-Fault gefolgt von Erfolg beim Retry soll nach L6 tatsächlich `200` liefern. Ohne dieses Update würde der bestehende Chaos-Test L6 fälschlich als Bug markieren.
+- **Schritte:**
+  1. `run-fault-test.mjs` um einen neuen Modus-Parameter erweitern, der einen **einmaligen** transienten Fault simuliert (Fault beim ersten Versuch, `pass` beim Retry) statt eines dauerhaften Fault-Zustands — bestehende Dauerfault-Modi (`hang`/`reset`/`502`/`504` ohne Erholung) bleiben unverändert und erwarten weiterhin durchgehend 5xx (Retry erschöpft sich, Antwort bleibt korrekt ein Fehler).
+  2. Neue Erwartung für den einmaligen Fault-Fall: `200` mit korrektem `WalletSnapshot`, kein doppelter Kontostands-Effekt (gleiche Idempotenz-Prüfung wie im L6-Vitest-Test).
+- **Verifizierung:** `node scripts/chaos/run-fault-test.mjs` mit dem neuen einmaligen Fault-Modus liefert `200` nach L6; die bestehenden Dauerfault-Modi liefern weiterhin ausschließlich 5xx (Regressionstest für die bereits etablierte Garantie).
+- **Freigabe-Gate:** Keines. **Money-Pfad:** Ja (testet den echten Geld-Antwortpfad unter Fehlerbedingungen). **Security-Review:** Pflicht (gleiche Sorgfalt wie L6 — sicherstellen, dass der Retry weiterhin nur bei echten Connection-Fehlern greift, nicht bei Geschäftslogik-Ablehnungen).
+
+### N4 — Synthetischer Pool-Erschöpfungstest
+
+- **Ziel:** Die dokumentierten Warn-/Kritisch-Schwellen (140/42 Pooler-Clients bzw. DB-Verbindungen, 180/55 kritisch) stammen bisher ausschließlich aus der Doku, nicht aus einer tatsächlichen Beobachtung — L5a/N1 misst reale Last, aber nicht notwendigerweise genug, um die Schwellen tatsächlich zu erreichen.
+- **Schritte:** Neues, ausschließlich lokales Skript `scripts/pool-exhaustion-test.ts`: öffnet gezielt eine konfigurierbare Anzahl paralleler Verbindungen gegen die lokale Pooler-Instanz (Port 54329), bis entweder die dokumentierte Warnschwelle erreicht wird oder der Pooler Verbindungen ablehnt; loggt dabei parallel `check-pooler-health.ts` (L2), um das tatsächliche Verhalten (Fehlerklasse, Meldungstext) am Schwellenwert zu dokumentieren statt ihn nur zu behaupten.
+- **Verifizierung:** Lauf gegen die lokale Instanz erzeugt einen dokumentierten Beleg (Verbindungsanzahl bei erster Ablehnung, exakte Fehlermeldung) in `docs/database/audits/pool-exhaustion-<YYYY-MM-DD>.md`.
+- **Freigabe-Gate:** Keines (ausschließlich gegen die lokale Instanz, niemals gegen `--linked`/Remote — expliziter Safety-Guard im Skript analog zum Connection-String-Guard in `T_DATABASE/05_database_backup_and_recovery.md`). **Money-Pfad:** Nein. **Security-Review:** Pflicht (Guard gegen versehentliches Ausführen gegen Remote verifizieren).
+
+---
+
 ## 5 — Definition of Done
 
-1. Ein echtes, lauffähiges Health-Check-Skript ersetzt den bisherigen Doku-Pseudocode (L2/L3).
-2. Die dokumentierten Schwellenwerte sind mindestens einmal lokal empirisch mit echten Connection-Counts unterlegt (L5a); ein echter Produktions-Lasttest bleibt optional mit Jan-Gate (L5b).
-3. Transiente DB-Verbindungsfehler führen nicht mehr sofort zu einem harten 500 (L6), ohne die Idempotenz- oder Geschäftslogik-Garantien zu verändern.
-4. Die Doku-Status-Behauptung ist präzisiert (L1); die lokale/Remote-Konfigurationsdiskrepanz ist zumindest als bewusste Annahme dokumentiert, auch wenn nicht abschließend verifiziert.
-5. (Optional) Kontinuierliches CI-Monitoring läuft (L4).
+1. Ein echtes, lauffähiges Health-Check-Skript ersetzt den bisherigen Doku-Pseudocode (L2/L3), inklusive Observability-Anbindung (N2).
+2. Die dokumentierten Schwellenwerte sind lokal empirisch mit echten Connection-Counts unterlegt (L5a, gekoppelt mit Säule 7 über N1) **und** tatsächlich einmal erreicht/beobachtet (N4) — nicht nur aus der Doku übernommen.
+3. Transiente DB-Verbindungsfehler führen nicht mehr sofort zu einem harten 500 (L6); der bestehende Chaos-Test bildet diese neue Semantik korrekt ab, statt L6 fälschlich als Regression zu melden (N3).
+4. Die Doku-Status-Behauptung ist präzisiert (L1); die lokale/Remote-Konfigurationsdiskrepanz ist zumindest als bewusste Annahme dokumentiert.
+5. Ein echter Produktions-Lasttest bleibt optional mit Jan-Gate (L5b); kontinuierliches CI-Monitoring optional (L4).
+6. Erst nach L1–L6 **und** N1–N4 gilt Säule 8 als voraussichtlich **Top 15–20 %** (statt der bisherigen Top 35 %) — getragen durch echte Beobachtung statt Doku-Annahme, Observability statt reinem Log, und eine Chaos-Test-Suite, die die neue Retry-Semantik korrekt validiert statt sie fälschlich zu verwerfen.
 
 ---
 
 ## 6 — Selbstprüfung vor `Execution-Ready` (nach `xx_sop/03_workflow_jan_planungsdateien.md` §4)
 
-- [x] Scope gegenüber Säule 7 (`T_DATABASE/11_database_query_performance_indexing.md`, Query-Performance/Indexing) abgegrenzt: Diese Datei behandelt Verbindungs-/Pooling-Kapazität, nicht Query-Pläne oder Indizes — L4 verweist nur auf dasselbe CI-Vorlagen-Muster, baut keine doppelte Infrastruktur.
-- [x] Abhängigkeiten benannt: L2 vor L1-Teilschritt-2 (Doku braucht das echte Skript zum Verlinken) und vor L3/L4/L5a; L5a vor L5b; L6 unabhängig.
-- [x] Neue Schreiboperation: L6 ist die einzige, die den Geld-Antwortpfad berührt — Security-Review Pflicht, explizit auf Fehlerklassen-Unterscheidung geprüft.
-- [x] Statusbehauptungen sind als lokal/verifiziert gekennzeichnet (Abschnitt 3, Datum 2026-09-04) und verlinken auf Quellcode/Zeilen; die lokale/Remote-Diskrepanz ist explizit als unverifizierte Annahme markiert, nicht als Tatsache verkauft.
-- [x] Keine Referenz doppelt gepflegt: K-Level-Matrix und Schwellenwerte bleiben in `docs/database/08_connection_pooling_supavisor.md`, hier nur referenziert.
+- [x] Scope gegenüber Säule 7 (`T_DATABASE/11_database_query_performance_indexing.md`, Query-Performance/Indexing) abgegrenzt: Diese Datei behandelt Verbindungs-/Pooling-Kapazität, nicht Query-Pläne oder Indizes — N1 koppelt den Lasttest bewusst statt ihn zu duplizieren.
+- [x] Abhängigkeiten benannt: L2 vor L1-Teilschritt-2 und vor L3/L4/L5a; L5a vor L5b; L6 unabhängig; N1 vor Säule-7-N1 koordiniert; N3 nach L6; N2/N4 unabhängig.
+- [x] Neue Schreiboperation: L6 und N3 berühren den Geld-Antwortpfad — Security-Review Pflicht bei beiden, explizit auf Fehlerklassen-Unterscheidung geprüft.
+- [x] Statusbehauptungen sind als lokal/verifiziert gekennzeichnet (Abschnitt 3) und verlinken auf Quellcode/Zeilen; die lokale/Remote-Diskrepanz ist explizit als unverifizierte Annahme markiert, nicht als Tatsache verkauft.
+- [x] Keine Referenz doppelt gepflegt: K-Level-Matrix und Schwellenwerte bleiben in `docs/database/08_connection_pooling_supavisor.md`, Lasttest-Infrastruktur bleibt bei dieser Datei, Säule 7 konsumiert nur (siehe N1).
 - [x] Eine neue LLM-Konversation kann diese Datei allein verstehen: Abschnitt 0 + 2 + 3 liefern den kompletten Einstiegskontext ohne Chat-Historie.
-- [x] **Kritischer Selbstcheck:** L6 (Retry-Logik) hätte naiv umgesetzt ein Doppel-Buchungsrisiko schaffen können — die bestehende Idempotenz-Garantie wurde explizit als Sicherheitsvoraussetzung geprüft und benannt, bevor der Meilenstein als sicher freigegeben wurde.
+- [x] **Kritischer Selbstcheck:** L6 (Retry-Logik) hätte naiv umgesetzt ein Doppel-Buchungsrisiko schaffen können — die bestehende Idempotenz-Garantie wurde explizit als Sicherheitsvoraussetzung geprüft. **Zusätzlicher Selbstcheck bei dieser Erweiterung:** Ohne N3 hätte L6 den eigenen, bereits etablierten Chaos-Test (Initiative 1.10) fälschlich rot werden lassen — dieser Konflikt wurde erkannt und durch N3 aufgelöst, statt L6 isoliert zu betrachten.
 
 ---
 
@@ -158,8 +200,9 @@
 | --- | --- |
 | Kanonischer Doku-Standard (Säule 8) | [`docs/database/08_connection_pooling_supavisor.md`](../docs/database/08_connection_pooling_supavisor.md) — wird in L1 korrigiert |
 | Bestehendes Lasttest-Tooling | [`docs/archive/05_Observability_und_Lasttest.md`](../docs/archive/05_Observability_und_Lasttest.md) |
-| Finanz-/Idempotenz-Invarianten (Grundlage für L6) | [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md) |
-| CI-Vorlage für L4 (identisches Muster) | [`T_DATABASE/11_database_query_performance_indexing.md`](./11_database_query_performance_indexing.md) L7 |
+| Bestehende Chaos-Test-Infrastruktur (Grundlage für N3) | [`scripts/chaos/run-fault-test.mjs`](../scripts/chaos/run-fault-test.mjs), [`scripts/chaos/README.md`](../scripts/chaos/README.md) |
+| Finanz-/Idempotenz-Invarianten (Grundlage für L6/N3) | [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md) |
+| Gekoppelte Datei (gemeinsamer Lasttest, N1) | [`T_DATABASE/11_database_query_performance_indexing.md`](./11_database_query_performance_indexing.md) |
 | Gewichtete Subkategorien-Bewertung (Kategorie 02, alle 10 Säulen) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 02) | [`worldmap/04_datenbank_migrationen.md`](../worldmap/04_datenbank_migrationen.md) |
+| Übergeordnete Aufschlüsselung (Kategorie 02) | [`T_DATABASE/04_datenbank_migrationen.md`](../T_DATABASE/04_datenbank_migrationen.md) |
 | Planungsdateien-Konvention | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md) |

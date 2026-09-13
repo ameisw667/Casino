@@ -6,7 +6,7 @@ import { useSupabaseSession } from '@/components/auth/SupabaseSessionProvider';
 import { VaultProfileBanner } from '@/components/casino/vault/VaultProfileBanner';
 import { VaultVipProgression } from '@/components/casino/vault/VaultVipProgression';
 import { VaultLifetimeStats } from '@/components/casino/vault/VaultLifetimeStats';
-import { VaultTierShowcase } from '@/components/casino/vault/VaultTierShowcase';
+import { VipBookshelfShowcase } from '@/components/casino/vault/VipBookshelfShowcase';
 import { VaultRedeemCard } from '@/components/casino/vault/VaultRedeemCard';
 import { VaultQuickPlayCta } from '@/components/casino/vault/VaultQuickPlayCta';
 import { resolvePlayerAvatar } from '@/lib/casino/player-avatar';
@@ -15,6 +15,7 @@ import {
   DEFAULT_ACHIEVEMENT_CONFIGS,
   mergeAchievementsWithConfig,
 } from '@/lib/casino/achievements-config';
+import { VaultPrismBackdrop } from '@/components/casino/vault/VaultPrismBackdrop';
 
 function VaultContent() {
   const { balance, xp, level, vipTiers, achievements, isMobile, redeemCode, gameStats, analytics } =
@@ -143,12 +144,23 @@ function VaultContent() {
   return (
     <div
       style={{
-        maxWidth: '1400px',
+        position: 'relative',
+        minHeight: '100vh',
         width: '100%',
-        margin: '0 auto',
-        padding: isMobile ? '16px 12px 120px' : '20px 32px 80px',
+        overflow: 'hidden',
       }}
     >
+      <VaultPrismBackdrop isMobile={isMobile} />
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          maxWidth: '1400px',
+          width: '100%',
+          margin: '0 auto',
+          padding: isMobile ? '16px 12px 120px' : '20px 32px 80px',
+        }}
+      >
       {/* ──── ROW 1: Profile Banner (full width) ──── */}
       <VaultProfileBanner
         isMobile={isMobile}
@@ -181,8 +193,8 @@ function VaultContent() {
         <VaultLifetimeStats isMobile={isMobile} totalStats={totalStats} />
       </div>
 
-      {/* ──── ROW 2.5: Neumorphic Metallic Tier Showcase ──── */}
-      <VaultTierShowcase
+      {/* ──── ROW 2.5: 3D Bookshelf Magazine Tier Showcase (Componentry Touchpoint 13) ──── */}
+      <VipBookshelfShowcase
         isMobile={isMobile}
         vipTiers={vipTiers}
         currentTier={currentTier}
@@ -212,6 +224,7 @@ function VaultContent() {
         </div>
       </div>
     </div>
+  </div>
   );
 }
 

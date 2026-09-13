@@ -2,7 +2,8 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { deriveVipRecords, type HistoryRow } from '@/lib/casino/stats-derivation';
-import { Trophy, Zap, Flame, Sparkles } from 'lucide-react';
+import { TrendingUp, Flame } from 'lucide-react';
+import Image from 'next/image';
 
 interface VipPersonalRecordsProps {
   loading: boolean;
@@ -16,7 +17,7 @@ export function VipPersonalRecords({ loading, rows, isMobile }: VipPersonalRecor
   const items = [
     {
       title: 'HÖCHSTER EINZELGEWINN',
-      icon: <Trophy size={14} color="#D4AF37" />,
+      icon: <Image src="/images/2026-09-06_icon-trophy-record-quantum-gold_v001.png" alt="Höchster Einzelgewinn" width={14} height={14} aria-hidden />,
       value: loading
         ? '…'
         : `+$${records.maxSingleWin.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
@@ -25,7 +26,7 @@ export function VipPersonalRecords({ loading, rows, isMobile }: VipPersonalRecor
     },
     {
       title: 'MAX. MULTIPLIKATOR',
-      icon: <Zap size={14} color="#D4AF37" />,
+      icon: <TrendingUp size={14} color="#D4AF37" />,
       value: loading ? '…' : `${records.maxMultiplier.multiplier.toFixed(2)}x`,
       sub: records.maxMultiplier.game ? records.maxMultiplier.game.toUpperCase() : 'NOCH OFFEN',
       color: '#ffffff',
@@ -39,7 +40,14 @@ export function VipPersonalRecords({ loading, rows, isMobile }: VipPersonalRecor
     },
     {
       title: 'GLÜCKS-INDEX (RTP-DELTA)',
-      icon: <Sparkles size={14} color="#D4AF37" />,
+      icon: (
+        <Image
+          src="/images/2026-09-06_icon-promo-bonus-quantum-gold_v001.png"
+          alt="Glücks-Index"
+          width={14}
+          height={14}
+        />
+      ),
       value: loading ? '…' : `${records.luckIndex}%`,
       sub: records.luckIndex >= 100 ? 'ÜBERDURCHSCHNITTLICH' : 'STATISTISCHE NORM',
       color: '#ffffff',

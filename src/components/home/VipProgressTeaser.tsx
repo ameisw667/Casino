@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
-import { Crown, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { soundManager } from '@/lib/casino/sound-manager';
 
 const RankBenefitsModal = dynamic(() => import('@/components/casino/RankBenefitsModal'), {
@@ -96,7 +96,7 @@ export const VipProgressTeaser: React.FC<{ isMobile?: boolean }> = ({ isMobile =
               marginBottom: '4px',
             }}
           >
-            <Crown size={13} />
+            <Image src="/images/2026-09-06_icon-crown-vip-quantum-gold_v001.png" alt="Exklusiver VIP Club" width={13} height={13} aria-hidden />
             <span>EXKLUSIVER VIP CLUB</span>
           </div>
           <h2

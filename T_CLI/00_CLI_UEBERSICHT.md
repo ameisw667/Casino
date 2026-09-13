@@ -5,11 +5,11 @@
 
 ## 1 — Executive Summary für Jan
 
-Der gewichtete Reifegrad liegt bei **Top 25 %** — identisch mit der bisherigen Worldmap-Headline **Top 25 %** (unveränderte Übernahme aus [`worldmap/Tooling/02_cli.md`](../worldmap/Tooling/02_cli.md), dort als ungewichteter Schnitt über 6 aktiv genutzte CLIs berechnet). Wie bei Kategorie 16 (MCP) bestätigt die Gewichtung nach Nutzungsimportanz hier den bestehenden Wert, statt ihn zu revidieren — diese Kategorie hat keinen Selbstwiderspruch wie API/Auth/LLM. Größte Lücke bleibt Vercel CLI (Top 80 %, nur Basis-Nutzung: Deploy-/Log-Abfrage, keine Tiefe).
+Der gewichtete Reifegrad liegt bei **Top 25 %** — identisch mit der bisherigen Worldmap-Headline **Top 25 %** (unveränderte Übernahme aus [`T_CLI/02_cli.md`](../T_CLI/02_cli.md), dort als ungewichteter Schnitt über 6 aktiv genutzte CLIs berechnet). Wie bei Kategorie 16 (MCP) bestätigt die Gewichtung nach Nutzungsimportanz hier den bestehenden Wert, statt ihn zu revidieren — diese Kategorie hat keinen Selbstwiderspruch wie API/Auth/LLM. Größte Lücke bleibt Vercel CLI (Top 80 %, nur Basis-Nutzung: Deploy-/Log-Abfrage, keine Tiefe).
 
 ## 2 — Bewertungsmethode
 
-Gewichtung nach praktischem Nutzungsgewicht im Alltag (wie oft/zentral wird das Tool eingesetzt), nicht nach Sicherheitsrisiko — CLI-Kompetenz ist reines Tooling-Skill, kein Code dieses Repos. Werte und Status stammen aus [`worldmap/Tooling/02_cli.md`](../worldmap/Tooling/02_cli.md).
+Gewichtung nach praktischem Nutzungsgewicht im Alltag (wie oft/zentral wird das Tool eingesetzt), nicht nach Sicherheitsrisiko — CLI-Kompetenz ist reines Tooling-Skill, kein Code dieses Repos. Werte und Status stammen aus [`T_CLI/02_cli.md`](../T_CLI/02_cli.md).
 
 ## 3 — Die 6 Subkategorien: Gewichtung & Bewertung
 
@@ -33,7 +33,7 @@ Gewichtung nach praktischem Nutzungsgewicht im Alltag (wie oft/zentral wird das 
 
 ## 6 — Verwandte Artefakte
 
-- [CLI-Integrations-Lernlandkarte (volle Detailtabellen je Kategorie)](../worldmap/Tooling/02_cli.md)
+- [CLI-Integrations-Lernlandkarte (volle Detailtabellen je Kategorie)](../T_CLI/02_cli.md)
 - [Opensource-Tools-Recherche (weitere Kandidaten)](../worldmap/Tooling/03_opensource_tools_recherche.md)
 - [MCP-Übersicht (Pendant, gleiche Methodik)](../T_MCP/00_MCP_UEBERSICHT.md)
 - [Worldmap-Status](../worldmap/00_WORLDMAP_STATUS.md)

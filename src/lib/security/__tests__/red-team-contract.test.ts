@@ -6,6 +6,9 @@ const root = resolve(__dirname, '../../../..');
 const guard = readFileSync(resolve(root, 'scripts/red-team/target-guard.ts'), 'utf8');
 const rateLimit = readFileSync(resolve(root, 'scripts/red-team/rate-limit-bypass.ts'), 'utf8');
 const idor = readFileSync(resolve(root, 'scripts/red-team/admin-idor.ts'), 'utf8');
+const botBypass = readFileSync(resolve(root, 'scripts/red-team/bot-bypass.ts'), 'utf8');
+const crashMpBypass = readFileSync(resolve(root, 'scripts/red-team/crash-mp-bypass.ts'), 'utf8');
+const fraudIdor = readFileSync(resolve(root, 'scripts/red-team/admin-fraud-idor.ts'), 'utf8');
 const catalog = readFileSync(resolve(root, 'scripts/red-team/test-catalog.json'), 'utf8');
 const workflow = readFileSync(resolve(root, '.github/workflows/red-team-security.yml'), 'utf8');
 
@@ -38,5 +41,37 @@ describe('P1.4 red-team contract', () => {
     expect(workflow).toContain('scripts/red-team/rate-limit-bypass.ts');
     expect(workflow).toContain('scripts/red-team/admin-idor.ts');
     expect(workflow).not.toContain('continue-on-error: true');
+  });
+
+  // 06_7 L0/L1 (R3/R4): the gate must no longer be workflow_dispatch-only, and concurrent
+  // runs must cancel instead of racing for the same ephemeral Supabase stack.
+  it('runs on a weekly schedule and cancels concurrent runs', () => {
+    expect(workflow).toContain("cron: '0 4 * * 0'");
+    expect(workflow).toContain('workflow_dispatch');
+    expect(workflow).toContain('concurrency:');
+    expect(workflow).toContain('cancel-in-progress: true');
+    const staging = readFileSync(resolve(root, '.github/workflows/security-staging.yml'), 'utf8');
+    expect(staging).toContain('concurrency:');
+    expect(staging).toContain('cancel-in-progress: true');
+  });
+
+  // 06_7 L2/L3 (R5/R6): the three new probes share the target guard, verify the fail-open
+  // bot-signal chain, and keep the 429 contracts for the two transport-layer boundaries.
+  it('covers the 06_7 bot-signal and new-coverage probes in catalog and workflow', () => {
+    expect(botBypass).toContain('assertSafePhase1Target');
+    expect(botBypass).toContain('bot_signal_honeypot');
+    expect(botBypass).toContain('voucher_velocity');
+    expect(botBypass).toContain('RED_TEAM_NON_ADMIN_COOKIE');
+    expect(crashMpBypass).toContain('assertSafePhase1Target');
+    expect(crashMpBypass).toContain('429');
+    expect(fraudIdor).toContain('assertSafePhase1Target');
+    expect(fraudIdor).toContain('403');
+    expect(fraudIdor).toContain('404');
+    expect(catalog).toContain('bot-bypass');
+    expect(catalog).toContain('crash-mp-bypass');
+    expect(catalog).toContain('admin-fraud-idor');
+    expect(workflow).toContain('scripts/red-team/bot-bypass.ts');
+    expect(workflow).toContain('scripts/red-team/crash-mp-bypass.ts');
+    expect(workflow).toContain('scripts/red-team/admin-fraud-idor.ts');
   });
 });

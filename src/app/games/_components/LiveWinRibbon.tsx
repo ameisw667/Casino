@@ -5,7 +5,7 @@ import { Clock } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 
 // ──── Live Social Proof Ribbon ────
-export function LiveWinRibbon() {
+export function LiveWinRibbon({ inline = false }: { inline?: boolean }) {
   const { allBets } = useCasinoStore();
 
   const recentWins = React.useMemo(() => {
@@ -77,21 +77,30 @@ export function LiveWinRibbon() {
 
   return (
     <div
-      style={{
-        position: 'relative',
-        overflow: 'hidden',
-        borderRadius: '14px',
-        border: '1px solid rgba(212, 175, 55, 0.15)',
-        background:
-          'linear-gradient(90deg, rgba(212, 175, 55, 0.08) 0%, rgba(0, 240, 255, 0.05) 100%)',
-        padding: '10px 0',
-      }}
+      style={
+        inline
+          ? {
+              position: 'relative',
+              overflow: 'hidden',
+              borderTop: '1px solid rgba(212, 175, 55, 0.12)',
+              padding: '6px 0 0',
+            }
+          : {
+              position: 'relative',
+              overflow: 'hidden',
+              borderRadius: '14px',
+              border: '1px solid rgba(212, 175, 55, 0.15)',
+              background:
+                'linear-gradient(90deg, rgba(212, 175, 55, 0.08) 0%, rgba(0, 240, 255, 0.05) 100%)',
+              padding: '10px 0',
+            }
+      }
       className="live-ribbon"
     >
       <div
         style={{
           display: 'flex',
-          gap: '32px',
+          gap: inline ? '22px' : '32px',
           width: 'max-content',
           animation: 'ribbonScroll 40s linear infinite',
         }}
@@ -104,7 +113,7 @@ export function LiveWinRibbon() {
               alignItems: 'center',
               gap: '8px',
               whiteSpace: 'nowrap',
-              fontSize: '0.75rem',
+              fontSize: inline ? '0.66rem' : '0.75rem',
               fontWeight: 800,
               color: 'hsl(var(--text-muted))',
               textShadow: '0 1px 3px rgba(0,0,0,0.8)',

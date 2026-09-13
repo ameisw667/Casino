@@ -3,7 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import type { CasinoGuidePanelProps } from '@/components/social/casino-guide/guide-config';
+import {
+  resolveGuideActionRoute,
+  type CasinoGuidePanelProps,
+} from '@/components/social/casino-guide/guide-config';
 import { GuideTriggerButton } from '@/components/social/casino-guide/GuideTriggerButton';
 import { GuideBackdrop } from '@/components/social/casino-guide/GuideBackdrop';
 import { GuideHeader } from '@/components/social/casino-guide/GuideHeader';
@@ -12,6 +15,7 @@ import { GuideMessageList } from '@/components/social/casino-guide/GuideMessageL
 import { GuideImagePreview } from '@/components/social/casino-guide/GuideImagePreview';
 import { GuideVoiceBanner } from '@/components/social/casino-guide/GuideVoiceBanner';
 import { GuideVoiceErrorBanner } from '@/components/social/casino-guide/GuideVoiceErrorBanner';
+import { GuideQuickChips } from '@/components/social/casino-guide/GuideQuickChips';
 import { GuideInputForm } from '@/components/social/casino-guide/GuideInputForm';
 import { useGuideVoiceRecorder } from '@/components/social/casino-guide/hooks/useGuideVoiceRecorder';
 import { useGuideAttachment } from '@/components/social/casino-guide/hooks/useGuideAttachment';
@@ -63,10 +67,10 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
   // Custom Event trigger for opening guide with predefined prompt
   useEffect(() => {
     const handleCustomOpen = (e: Event) => {
-      const customEvent = e as CustomEvent<{ prompt?: string }>;
+      const customEvent = e as CustomEvent<{ prompt?: string; expand?: boolean }>;
       setIsOpen(true);
-      if (!isMobile) {
-        setIsExpanded(true);
+      if (customEvent.detail?.expand !== undefined) {
+        setIsExpanded(Boolean(customEvent.detail.expand));
       }
       if (customEvent.detail?.prompt) {
         setDraft(customEvent.detail.prompt);
@@ -142,28 +146,13 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
   }, [isOpen]);
 
   const handleActionClick = (action: { type: string; target?: string; label: string }) => {
-    if (action.type === 'open_vault') {
-      router.push('/vault');
-    } else if (action.type === 'open_history') {
-      router.push('/history');
-    } else if (action.type === 'open_leaderboard') {
-      router.push('/leaderboard');
-    } else if (action.type === 'open_settings') {
-      router.push('/vault');
-    } else if (action.type === 'open_rank_benefits') {
-      router.push('/vault');
-    } else if (action.type === 'navigate_game' && action.target) {
-      const cleanTarget = action.target.toLowerCase().replace(/[^a-z0-9]/g, '');
-      router.push(`/games/${cleanTarget}`);
-    }
+    const route = resolveGuideActionRoute(action);
+    if (route) router.push(route);
   };
 
   const openPanel = () => {
     onOpen();
     setIsOpen(true);
-    if (!isMobile) {
-      setIsExpanded(true);
-    }
   };
 
   const handleSend = (customPrompt?: string) => {
@@ -178,13 +167,17 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
 
   return (
     <>
-      {/* Floating Trigger Button */}
-      <GuideTriggerButton
-        isOpen={isOpen}
-        isMobile={isMobile}
-        panelBottom={panelBottom}
-        onOpen={openPanel}
-      />
+      {/* Floating Trigger Button with AnimatePresence */}
+      <AnimatePresence>
+        {!isOpen && (
+          <GuideTriggerButton
+            isOpen={isOpen}
+            isMobile={isMobile}
+            panelBottom={panelBottom}
+            onOpen={openPanel}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Backdrop for Expanded Center-Modal & Mobile Dimming */}
       <GuideBackdrop
@@ -192,12 +185,8 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
         isExpanded={isExpanded}
         isMobile={isMobile}
         onClose={() => {
-          if (isMobile) {
-            setIsOpen(false);
-            setIsExpanded(false);
-          } else {
-            setIsExpanded(false);
-          }
+          setIsOpen(false);
+          setIsExpanded(false);
         }}
       />
 
@@ -259,10 +248,15 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                       scale: 0.96,
                     }
               }
+              layout={!shouldReduceMotion}
               transition={
                 shouldReduceMotion
                   ? { duration: 0.15 }
-                  : { type: 'spring', bounce: 0.15, duration: 0.3 }
+                  : {
+                      layout: { type: 'spring', bounce: 0.16, duration: 0.38 },
+                      opacity: { duration: 0.2 },
+                      scale: { type: 'spring', bounce: 0.15, duration: 0.3 },
+                    }
               }
               style={{
                 position: 'relative',
@@ -270,7 +264,7 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                 display: 'flex',
                 flexDirection: 'column',
                 overflow: 'hidden',
-                border: 'none',
+                border: '1px solid rgba(212, 175, 55, 0.28)',
                 borderRadius: '20px',
                 background: '#0B0E14',
                 boxShadow:
@@ -284,7 +278,7 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                       : '380px',
                 height:
                   isExpanded && !isMobile
-                    ? 'min(680px, calc(100dvh - 64px))'
+                    ? 'min(720px, calc(100dvh - 64px))'
                     : isMobile
                       ? 'calc(100dvh - 112px)'
                       : 'min(580px, calc(100dvh - 48px))',
@@ -400,12 +394,14 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                 style={{ display: 'flex', flex: 1, minHeight: 0, position: 'relative', zIndex: 1 }}
               >
                 {/* Desktop 2-Column Sidebar */}
-                {isExpanded && !isMobile && (
-                  <GuideSidebar
-                    isSending={isSending}
-                    onTopicClick={(prompt: string) => handleSend(prompt)}
-                  />
-                )}
+                <AnimatePresence initial={false}>
+                  {isExpanded && !isMobile && (
+                    <GuideSidebar
+                      isSending={isSending}
+                      onTopicClick={(prompt: string) => handleSend(prompt)}
+                    />
+                  )}
+                </AnimatePresence>
 
                 {/* Chat Conversation Column */}
                 <div
@@ -432,6 +428,14 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
                     onSuggestionClick={(query: string) => handleSend(query)}
                     onPlayVoice={handlePlayVoice}
                   />
+
+                  {/* Quick-Chips Bar (in compact floating mode & mobile) */}
+                  {(!isExpanded || isMobile) && (
+                    <GuideQuickChips
+                      isSending={isSending}
+                      onChipClick={(query: string) => handleSend(query)}
+                    />
+                  )}
 
                   {/* Screenshot / Image Preview Chip */}
                   {attachedImage && (

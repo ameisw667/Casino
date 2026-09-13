@@ -180,7 +180,11 @@ export async function POST(request: Request) {
 
     return apiSuccessResponse({ text, success: true }, { headers: responseHeaders });
   } catch (error) {
-    CasinoLogger.error('VoiceTranscribe', error instanceof Error ? error.message : 'Unknown error');
+    CasinoLogger.error(
+      'VoiceTranscribe',
+      'Voice transcription request failed',
+      error instanceof Error ? error : undefined,
+    );
     return apiErrorResponse(
       'SERVICE_UNAVAILABLE',
       'Voice transcription service unavailable',

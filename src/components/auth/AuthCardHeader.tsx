@@ -1,4 +1,4 @@
-import { CrownEmblem } from './AuthBrandMarks';
+import { SealEmblem } from './AuthBrandMarks';
 
 interface AuthCardHeaderProps {
   title: string;
@@ -22,7 +22,7 @@ export function AuthCardHeader({ title, subtitle }: AuthCardHeaderProps) {
           justifyContent: 'center',
         }}
       >
-        <CrownEmblem />
+        <SealEmblem />
       </div>
       <h1
         style={{

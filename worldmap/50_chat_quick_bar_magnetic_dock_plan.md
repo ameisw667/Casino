@@ -1,7 +1,9 @@
 # 50 — Live-Chat Drawer Quick-Bar: Magnetic Mini-Dock
 
-> **Status:** Execution-Ready · **Stand:** 2026-09-07 · **Owner:** LLM (100 % LLM-Zuständigkeit) · **Scope:** Haptisches Mini-Dock (`magnetic-dock`) für Schnellreaktionen, Emojis und VIP-Trinkgeld im Chat-Drawer (`src/components/chat/ChatDrawer.tsx`).
+> **Status:** Geplant · **Stand:** 2026-09-12 · **Owner:** LLM (100 % LLM-Zuständigkeit) · **Scope:** Haptisches Mini-Dock (`magnetic-dock`) für Schnellreaktionen, Emojis und VIP-Trinkgeld im Chat-Drawer (`src/components/chat/ChatDrawer.tsx`).
 > **Money-Pfad:** Nein · **Security-Review:** Nein
+
+> **Statuskorrektur 2026-09-12:** Der im Scope genannte Host-Pfad existiert nicht mehr. Vor L0 ist eine aktuelle Host-Zuordnung und die Aktualisierung des Kontext-Koffers erforderlich; erst danach ist der Plan wieder Execution-Ready.
 
 ---
 

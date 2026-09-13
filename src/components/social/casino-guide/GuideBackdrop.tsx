@@ -12,7 +12,7 @@ interface GuideBackdropProps {
 export function GuideBackdrop({ isOpen, isExpanded, isMobile, onClose }: GuideBackdropProps) {
   return (
     <AnimatePresence>
-      {isOpen && (isExpanded || isMobile) && (
+      {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -23,9 +23,21 @@ export function GuideBackdrop({ isOpen, isExpanded, isMobile, onClose }: GuideBa
             position: 'fixed',
             inset: 0,
             zIndex: 45,
-            background: isMobile ? 'rgba(0, 0, 0, 0.72)' : 'hsla(0, 0%, 0%, 0.65)',
-            backdropFilter: isMobile ? 'blur(8px)' : 'blur(12px)',
-            WebkitBackdropFilter: isMobile ? 'blur(8px)' : 'blur(12px)',
+            background: isMobile
+              ? 'rgba(0, 0, 0, 0.72)'
+              : isExpanded
+                ? 'hsla(0, 0%, 0%, 0.65)'
+                : 'hsla(0, 0%, 0%, 0.38)',
+            backdropFilter: isMobile
+              ? 'blur(8px)'
+              : isExpanded
+                ? 'blur(12px)'
+                : 'blur(6px)',
+            WebkitBackdropFilter: isMobile
+              ? 'blur(8px)'
+              : isExpanded
+                ? 'blur(12px)'
+                : 'blur(6px)',
             overflow: 'hidden',
           }}
         >
@@ -58,6 +70,28 @@ export function GuideBackdrop({ isOpen, isExpanded, isMobile, onClose }: GuideBa
               pointerEvents: 'none',
             }}
           />
+          {/* Third Ambient Gold Orb for Expanded 880px Modal */}
+          {isExpanded && !isMobile && (
+            <motion.div
+              aria-hidden="true"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.35 }}
+              style={{
+                position: 'absolute',
+                top: '25%',
+                left: '18%',
+                width: '420px',
+                height: '420px',
+                borderRadius: '50%',
+                background:
+                  'radial-gradient(circle, rgba(212, 175, 55, 0.14) 0%, transparent 70%)',
+                filter: 'blur(95px)',
+                pointerEvents: 'none',
+              }}
+            />
+          )}
         </motion.div>
       )}
     </AnimatePresence>

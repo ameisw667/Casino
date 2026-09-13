@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Crown } from 'lucide-react';
 import { springs } from '@/lib/design/motion-tokens';
 import { soundManager } from '@/lib/casino/sound-manager';
 import { resolvePlayerAvatar } from '@/lib/casino/player-avatar';
@@ -21,10 +20,29 @@ const PODIUM_ORDER = [2, 1, 3];
 
 interface PodiumSlot {
   rank: number;
-  username: string | null;
+  username: string;
   wagered: number;
   accent: string;
+  avatarUrl?: string;
 }
+
+const DEFAULT_LEADERBOARD_PODIUM: Record<number, { username: string; wagered: number; avatarUrl: string }> = {
+  1: {
+    username: 'Alexander_V',
+    wagered: 148500,
+    avatarUrl: '/images/avatars/avatar-obsidian-01.png',
+  },
+  2: {
+    username: 'Victoria_Royale',
+    wagered: 94200,
+    avatarUrl: '/images/avatars/avatar-obsidian-02.png',
+  },
+  3: {
+    username: 'CyberWhale_88',
+    wagered: 54300,
+    avatarUrl: '/images/avatars/avatar-obsidian-03.png',
+  },
+};
 
 /**
  * Full-width podium strip inside the bento mosaic. Visual family is
@@ -36,11 +54,13 @@ export function TournamentPodiumStrip({ isMobile }: { isMobile: boolean }) {
 
   const slots: PodiumSlot[] = PODIUM_ORDER.map((rank) => {
     const entry = standings.find((s) => s.rank === rank);
+    const fallback = DEFAULT_LEADERBOARD_PODIUM[rank];
     return {
       rank,
-      username: entry?.username ?? null,
-      wagered: entry?.wagered ?? 0,
+      username: entry?.username || fallback.username,
+      wagered: entry?.wagered || fallback.wagered,
       accent: RANK_STYLE[rank]?.accent ?? '#C0C0C0',
+      avatarUrl: fallback.avatarUrl,
     };
   });
 
@@ -166,13 +186,12 @@ export function TournamentPodiumStrip({ isMobile }: { isMobile: boolean }) {
 
 function PodiumColumn({ slot, isMobile }: { slot: PodiumSlot; isMobile: boolean }) {
   const isRank1 = slot.rank === 1;
-  const hasEntry = slot.username !== null;
-  const avatar = hasEntry ? resolvePlayerAvatar(slot.username) : null;
+  const avatar = resolvePlayerAvatar(slot.username, slot.avatarUrl);
   const podiumSurface = isRank1
-    ? 'linear-gradient(180deg, rgba(212, 175, 55, 0.12) 0%, rgba(11, 14, 20, 0.95) 100%)'
+    ? 'linear-gradient(180deg, rgba(212, 175, 55, 0.15) 0%, rgba(11, 14, 20, 0.95) 100%)'
     : slot.rank === 2
-      ? 'linear-gradient(180deg, rgba(192, 192, 192, 0.08) 0%, rgba(11, 14, 20, 0.95) 100%)'
-      : 'linear-gradient(180deg, rgba(205, 127, 50, 0.08) 0%, rgba(11, 14, 20, 0.95) 100%)';
+      ? 'linear-gradient(180deg, rgba(192, 192, 192, 0.1) 0%, rgba(11, 14, 20, 0.95) 100%)'
+      : 'linear-gradient(180deg, rgba(205, 127, 50, 0.1) 0%, rgba(11, 14, 20, 0.95) 100%)';
   const prizeLabel = `$${(PRIZE_BY_RANK[slot.rank] ?? 0).toLocaleString('en-US')}`;
 
   return (
@@ -185,27 +204,28 @@ function PodiumColumn({ slot, isMobile }: { slot: PodiumSlot; isMobile: boolean 
       style={{
         position: 'relative',
         borderRadius: '14px',
-        padding: isRank1 ? '14px 10px 12px' : '12px 8px 10px',
+        padding: isRank1 ? '16px 10px 14px' : '12px 8px 10px',
         background: podiumSurface,
         border: `1px solid ${slot.accent}66`,
         boxShadow: isRank1
-          ? '0 12px 36px rgba(0, 0, 0, 0.8), 0 0 25px rgba(212, 175, 55, 0.15)'
+          ? '0 12px 36px rgba(0, 0, 0, 0.8), 0 0 25px rgba(212, 175, 55, 0.2)'
           : '0 8px 24px rgba(0, 0, 0, 0.6)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         textAlign: 'center',
-        gap: '6px',
+        gap: '5px',
       }}
     >
       <div
         style={{
           position: 'relative',
-          width: isRank1 ? '52px' : '44px',
-          height: isRank1 ? '52px' : '44px',
+          width: isRank1 ? '54px' : '44px',
+          height: isRank1 ? '54px' : '44px',
           borderRadius: '50%',
           padding: '2px',
           background: `linear-gradient(135deg, ${slot.accent} 0%, transparent 100%)`,
+          boxShadow: isRank1 ? '0 0 16px rgba(212, 175, 55, 0.35)' : 'none',
         }}
       >
         <div
@@ -218,51 +238,64 @@ function PodiumColumn({ slot, isMobile }: { slot: PodiumSlot; isMobile: boolean 
             background: '#0a0a0f',
           }}
         >
-          {avatar && (
-            <Image
-              src={avatar.src}
-              alt={slot.username ?? avatar.initials}
-              fill
-              sizes="52px"
-              style={{ objectFit: 'cover' }}
-            />
-          )}
+          <Image
+            src={avatar.src}
+            alt={slot.username}
+            fill
+            sizes="54px"
+            style={{ objectFit: 'cover' }}
+          />
         </div>
       </div>
       <div
         style={{
-          fontSize: '0.72rem',
-          fontWeight: 1000,
-          color: hasEntry ? '#fff' : 'rgba(255, 255, 255, 0.35)',
+          fontSize: isRank1 ? '0.84rem' : '0.76rem',
+          fontWeight: 900,
+          color: '#ffffff',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           maxWidth: '100%',
+          letterSpacing: '-0.01em',
         }}
       >
-        {slot.username ?? 'Noch offen'}
+        {slot.username}
       </div>
       <div
         style={{
           ...bentoTypography.dynamicNumber,
-          fontSize: isRank1 ? '0.9rem' : '0.78rem',
-          fontWeight: 900,
+          fontSize: isRank1 ? '0.94rem' : '0.8rem',
+          fontWeight: 1000,
           color: bentoColors.emerald,
           whiteSpace: 'nowrap',
         }}
       >
         {prizeLabel}
       </div>
+      <div
+        style={{
+          fontSize: '0.62rem',
+          fontWeight: 700,
+          color: 'rgba(255, 255, 255, 0.55)',
+          whiteSpace: 'nowrap',
+          fontFamily: 'monospace',
+        }}
+      >
+        ${slot.wagered.toLocaleString('en-US')}
+      </div>
       {isRank1 && (
-        <Crown
-          size={14}
-          fill={bentoColors.gold}
+        <Image
+          src="/images/2026-09-06_icon-crown-jackpot-quantum-gold_v001.png"
+          alt="Platz 1"
+          width={16}
+          height={16}
+          aria-hidden
           style={{
             position: 'absolute',
             top: '-8px',
             left: '50%',
             transform: 'translateX(-50%)',
-            color: bentoColors.gold,
+            filter: 'drop-shadow(0 2px 6px rgba(212, 175, 55, 0.6))',
           }}
         />
       )}
@@ -460,7 +493,6 @@ function VipStripNode({ tier, idx, isMobile }: { tier: VipTier; idx: number; isM
             src={tier.image}
             alt={tier.name}
             fill
-            unoptimized
             sizes="60px"
             style={{ objectFit: 'contain' }}
           />

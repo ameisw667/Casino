@@ -24,7 +24,7 @@ const LeaderboardResponseSchema = z.object({
 export async function GET(request: Request) {
   try {
     const rate = await enforceRateLimit(
-      getClientIdentifier(request, 'anon'),
+      getClientIdentifier(request),
       'leaderboard-read',
       10,
       60,

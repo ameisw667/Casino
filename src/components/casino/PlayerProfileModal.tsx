@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { User, Zap, TrendingUp, Star, X } from 'lucide-react';
+import { User, TrendingUp, X } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { Z_INDEX } from '@/lib/design/tokens.generated';
 interface PlayerProfileModalProps {
@@ -189,7 +189,7 @@ export default function PlayerProfileModal({
                   marginBottom: '8px',
                 }}
               >
-                <Zap size={12} /> High Win
+                <TrendingUp size={12} /> High Win
               </div>
               <div
                 style={{
@@ -225,7 +225,17 @@ export default function PlayerProfileModal({
                 gap: '8px',
               }}
             >
-              <Star size={14} fill="currentColor" /> {rank.toUpperCase()} PERKS
+              <span
+                aria-hidden
+                style={{
+                  display: 'inline-block',
+                  width: 14,
+                  height: 14,
+                  backgroundColor: 'currentColor',
+                  WebkitMask: 'url(/images/2026-09-06_icon-star-level-quantum-gold_v001.webp) center / contain no-repeat',
+                  mask: 'url(/images/2026-09-06_icon-star-level-quantum-gold_v001.webp) center / contain no-repeat',
+                }}
+              /> {rank.toUpperCase()} PERKS
             </h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
               {ranks

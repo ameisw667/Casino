@@ -2,6 +2,7 @@
 
 import { Volume2 } from 'lucide-react';
 import type { RouletteNumber } from './types';
+import { KineticTextReveal } from '@/components/casino/typography/KineticTextReveal';
 
 interface RouletteCroupierRibbonProps {
   spinning: boolean;
@@ -14,6 +15,17 @@ export function RouletteCroupierRibbon({
   spinPhase,
   displayWinningNumber,
 }: RouletteCroupierRibbonProps) {
+  const calloutText =
+    spinPhase === 'ball_launched'
+      ? '„FAITES VOS JEUX — DIE KUGEL ROLLT“'
+      : spinPhase === 'no_more_bets'
+        ? '„RIEN NE VA PLUS — NICHTS GEHT MEHR“'
+        : spinPhase === 'drop'
+          ? '„KUGEL FÄLLT IN DEN KRANZ...“'
+          : displayWinningNumber
+            ? `„NUMMER ${displayWinningNumber.n}, ${displayWinningNumber.c === 'RED' ? 'ROT' : displayWinningNumber.c === 'BLACK' ? 'SCHWARZ' : 'ZERO'}, IMPAIR ET MANQUE“`
+            : '„FAITES VOS JEUX — BITTE PLATZIEREN SIE IHRE EINSÄTZE“';
+
   return (
     <div
       style={{
@@ -41,24 +53,26 @@ export function RouletteCroupierRibbon({
         <span
           style={{
             fontSize: '0.70rem',
-            fontWeight: 700,
-            color: '#FCE7A1',
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase',
+            fontWeight: 800,
+            color: '#D4AF37',
+            letterSpacing: '0.8px',
             fontFamily: 'serif',
+            marginRight: '4px',
           }}
         >
-          CROUPIER:{' '}
-          {spinPhase === 'ball_launched'
-            ? '„Faites vos jeux — Die Kugel rollt“'
-            : spinPhase === 'no_more_bets'
-              ? '„Rien ne va plus — Nichts geht mehr“'
-              : spinPhase === 'drop'
-                ? '„Kugel fällt in den Kranz...“'
-                : displayWinningNumber
-                  ? `„Nummer ${displayWinningNumber.n}, ${displayWinningNumber.c === 'RED' ? 'Rot' : displayWinningNumber.c === 'BLACK' ? 'Schwarz' : 'Zero'}, Impair et Manque“`
-                  : '„Faites vos jeux — Bitte platzieren Sie Ihre Einsätze“'}
+          CROUPIER:
         </span>
+        <KineticTextReveal
+          text={calloutText}
+          triggerKey={`${spinPhase}-${displayWinningNumber?.n ?? 'none'}`}
+          variant="croupier"
+          colorScheme="gold"
+          skewAngle={10}
+          fontSize="0.70rem"
+          fontFamily="serif"
+          fontWeight={700}
+          letterSpacing="0.5px"
+        />
       </div>
     </div>
   );

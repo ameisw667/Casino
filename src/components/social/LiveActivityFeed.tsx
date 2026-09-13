@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Trophy, ExternalLink, User, Gamepad2 } from 'lucide-react';
+import { ExternalLink, User, Gamepad2 } from 'lucide-react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { PlayerProfileModal } from './PlayerProfileModal';
@@ -218,7 +219,7 @@ export function LiveActivityFeed() {
                         }}
                       >
                         ${bet.payout.toFixed(2)}
-                        {bet.isWin && bet.multiplier >= 10 && <Trophy size={14} />}
+                        {bet.isWin && bet.multiplier >= 10 && <Image src="/images/2026-09-06_icon-trophy-win-quantum-gold_v001.png" alt="Hoher Gewinn" width={14} height={14} aria-hidden />}
                         {(bet.user === 'You' || bet.user === 'You') && (
                           <motion.button
                             whileHover={{ scale: 1.1, color: '#fff' }}

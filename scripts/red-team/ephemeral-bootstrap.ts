@@ -1,7 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { appendFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
+import { reportCliFailure } from './target-guard';
+
+// 06_4 (T5/L1): CLI entry guarded by the same fileURLToPath idiom as target-guard.ts so
+// unit tests (src/lib/security/__tests__/red-team-script-logic.test.ts) can import the
+// module and mock the Supabase clients without triggering real user creation.
 
 // Creates 3 disposable users against the ephemeral local Supabase instance started in CI
 // (worldmap/00-09-CICD.md, M9) and derives real @supabase/ssr session cookies for 2 of them, so
@@ -74,9 +80,9 @@ async function signInAndDeriveCookie(email: string): Promise<string> {
   return capturedCookies.map(({ name, value }) => `${name}=${value}`).join('; ');
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   await createConfirmedUser(adminEmail!);
-  await createConfirmedUser(NON_ADMIN_EMAIL);
+  const nonAdminUserId = await createConfirmedUser(NON_ADMIN_EMAIL);
   const foreignUserId = await createConfirmedUser(FOREIGN_EMAIL);
 
   const adminCookie = await signInAndDeriveCookie(adminEmail!);
@@ -87,12 +93,11 @@ async function main(): Promise<void> {
 
   appendFileSync(
     githubEnvPath,
-    `RED_TEAM_AUTH_COOKIE=${adminCookie}\nRED_TEAM_NON_ADMIN_COOKIE=${nonAdminCookie}\nRED_TEAM_FOREIGN_USER_ID=${foreignUserId}\n`,
+    `RED_TEAM_AUTH_COOKIE=${adminCookie}\nRED_TEAM_NON_ADMIN_COOKIE=${nonAdminCookie}\nRED_TEAM_NON_ADMIN_USER_ID=${nonAdminUserId}\nRED_TEAM_FOREIGN_USER_ID=${foreignUserId}\n`,
   );
   console.log('Ephemeral red-team users created and session cookies exported to GITHUB_ENV');
 }
 
-main().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : 'ephemeral red-team bootstrap failed');
-  process.exitCode = 1;
-});
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  main().catch(reportCliFailure);
+}

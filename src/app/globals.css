@@ -2904,3 +2904,113 @@ input[type='range']:focus {
     font-size: 0.7rem;
   }
 }
+
+/* Dice v2: select the mobile-sized felt before JavaScript hydration. */
+.dice-v2-main {
+  background-image:
+    linear-gradient(180deg, rgba(11, 14, 20, 0.35) 0%, rgba(11, 14, 20, 0.08) 36%, rgba(11, 14, 20, 0.75) 100%),
+    url('/images/2026-09-04_backdrop-dice-quantum-felt_v001.webp');
+}
+
+@media (max-width: 1023px) {
+  .dice-v2-main {
+    background-image:
+      linear-gradient(180deg, rgba(11, 14, 20, 0.35) 0%, rgba(11, 14, 20, 0.08) 36%, rgba(11, 14, 20, 0.75) 100%),
+      url('/images/2026-09-04_backdrop-dice-quantum-felt-mobile_v001.webp');
+  }
+}
+/* Dice v2: static mobile shell rendered before the interactive 3D bundle. */
+.dice-v2-initial {
+  min-height: 680px;
+  padding: 28px 32px 32px;
+  order: 2;
+}
+
+.dice-v2-initial__header,
+.dice-v2-initial__status {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.dice-v2-initial__header span:first-child,
+.dice-v2-initial__header span:last-child {
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(7, 9, 14, 0.56);
+}
+
+.dice-v2-initial__header span:last-child {
+  color: #34D399;
+}
+
+.dice-v2-initial__arena {
+  display: grid;
+  flex: 1;
+  place-items: center;
+}
+
+.dice-v2-initial__die {
+  display: grid;
+  width: 124px;
+  height: 124px;
+  place-items: center;
+  border: 2px solid rgba(212, 175, 55, 0.72);
+  border-radius: 28px;
+  color: #F8E7A0;
+  font-family: var(--font-mono, monospace);
+  font-size: 3.5rem;
+  font-weight: 900;
+  background: linear-gradient(145deg, rgba(34, 39, 53, 0.94), rgba(8, 10, 15, 0.94));
+  box-shadow: 0 24px 42px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: rotate(8deg);
+}
+
+.dice-v2-initial__status {
+  justify-content: center;
+  gap: 8px;
+}
+
+.dice-v2-initial__status strong {
+  color: #F8E7A0;
+  font-family: var(--font-mono, monospace);
+  font-size: 1.35rem;
+}
+
+@media (max-width: 1023px) {
+  .dice-v2-initial {
+    min-height: 520px;
+    padding: 18px 12px 24px;
+    order: 1;
+  }
+
+  .dice-v2-initial__die {
+    width: 102px;
+    height: 102px;
+    border-radius: 24px;
+    font-size: 3rem;
+  }
+}
+/* Crash: select the mobile backdrop before JavaScript hydration. */
+.crash-stage-mobile-backdrop {
+  display: none;
+}
+.crash-stage-backdrop {
+  background-image: url('/images/2026-09-05_backdrop-crash-quantum-nebula_v001.png');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+}
+
+@media (max-width: 1023px) {
+  .crash-stage-backdrop {
+    background-image: url('/images/2026-09-05_backdrop-crash-quantum-nebula-mobile_v001.webp');
+  }
+}

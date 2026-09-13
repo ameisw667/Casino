@@ -1,7 +1,9 @@
 # 40 — Sicherheits- & Auszahlungs-Audits: Case Study Flip Stack (Obsidian & Gold)
 
-> **Status:** Execution-Ready · **Stand:** 2026-09-07 · **Owner:** LLM (100 % LLM-Zuständigkeit) · **Scope:** Integration eines interaktiven 3D-Kartenstapels (`case-study-flip-stack`) für Sicherheitszertifikate und Auszahlungs-Audits im Footer (`src/components/layout/Footer.tsx`).
+> **Status:** In Execution · **Stand:** 2026-09-12 · **Owner:** LLM (100 % LLM-Zuständigkeit) · **Scope:** Integration eines interaktiven 3D-Kartenstapels (`case-study-flip-stack`) für Sicherheitszertifikate und Auszahlungs-Audits im Footer (`src/components/layout/Footer.tsx`).
 > **Money-Pfad:** Nein · **Security-Review:** Nein
+
+> **Statuskorrektur 2026-09-12:** `SecurityAuditFlipStack.tsx` ist vorhanden; `Footer.tsx` importiert bzw. rendert die Komponente jedoch nicht. Damit sind Integration, Responsive-Prüfung und DoD weiterhin offen.
 
 ---
 
@@ -20,8 +22,8 @@
 
 | Nummer | Meilenstein                      | Scope (Dateien)                                    | Status     | Zuständigkeit | Verifikation                               |
 | ------ | -------------------------------- | -------------------------------------------------- | ---------- | :-----------: | ------------------------------------------ |
-| **L0** | Baseline & Snapshot              | `src/components/layout/Footer.tsx`                 | 🔴 Geplant |      LLM      | Lint & Typecheck fehlerfrei                |
-| **L1** | Kernkomponente mit Motion-Physik | `src/components/layout/SecurityAuditFlipStack.tsx` | 🔴 Geplant |      LLM      | Isolierte Motion & Interaktivitäts-Prüfung |
+| **L0** | Baseline & Snapshot              | `src/components/layout/Footer.tsx`                 | 🟡 Teilweise |      LLM      | Host und fehlende Einbindung belegt        |
+| **L1** | Kernkomponente mit Motion-Physik | `src/components/layout/SecurityAuditFlipStack.tsx` | 🟢 Implementiert |      LLM      | Komponente im Quellbaum vorhanden          |
 | **L2** | Integration in Host-Komponente   | `src/components/layout/Footer.tsx`                 | 🔴 Geplant |      LLM      | State, Navigation & UI-Event-Fluss intakt  |
 | **L3** | Responsive & Performance-Tuning  | `src/components/layout/SecurityAuditFlipStack.tsx` | 🔴 Geplant |      LLM      | 60+ FPS Test & Mobile Fallback             |
 | **L4** | Verifikation & 5-Stufen-DoD      | Lokale Test-Suite                                  | 🔴 Geplant |      LLM      | Typecheck, Vitest, Lint & Build 100 % grün |

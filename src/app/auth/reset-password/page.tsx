@@ -10,46 +10,7 @@ import { Magnetic } from '@/components/ui/Magnetic';
 import { formatAuthError } from '@/components/auth/AuthForm';
 import { trackAllowedEvent } from '@/lib/analytics/events';
 import { PasswordStrengthMeter } from '@/components/auth/PasswordStrengthMeter';
-
-function CrownEmblem() {
-  return (
-    <svg
-      width="34"
-      height="34"
-      viewBox="0 0 32 32"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id="crownGoldGradReset" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FFE8A3" />
-          <stop offset="45%" stopColor="#D4AF37" />
-          <stop offset="100%" stopColor="#8A6412" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M6 22 L6 13 L11 17 L16 7 L21 17 L26 13 L26 22 Z"
-        fill="url(#crownGoldGradReset)"
-        stroke="#8A6412"
-        strokeWidth="0.6"
-        strokeLinejoin="round"
-      />
-      <rect
-        x="6"
-        y="22"
-        width="20"
-        height="4"
-        rx="1"
-        fill="url(#crownGoldGradReset)"
-        stroke="#8A6412"
-        strokeWidth="0.6"
-      />
-      <circle cx="6" cy="13" r="1.6" fill="#00e676" />
-      <circle cx="26" cy="13" r="1.6" fill="#ff3366" />
-      <circle cx="16" cy="7" r="2" fill="#fffbe8" stroke="#D4AF37" strokeWidth="0.4" />
-    </svg>
-  );
-}
+import { SealEmblem } from '@/components/auth/AuthBrandMarks';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -163,7 +124,7 @@ export default function ResetPasswordPage() {
                 justifyContent: 'center',
               }}
             >
-              <CrownEmblem />
+              <SealEmblem />
             </div>
             <h1
               style={{

@@ -11,8 +11,32 @@ const mocks = vi.hoisted(() => ({
   checkWellbeingGuard: vi.fn(),
   redeemPromoCode: vi.fn(),
   recordRiskEventBestEffort: vi.fn(),
+  recordBetNetworkFingerprintBestEffort: vi.fn(),
+  checkKnownClusterBeforeGrant: vi.fn(),
+  afterCallbacks: [] as Array<() => unknown>,
   loggerError: vi.fn(),
 }));
+
+// 06_3 L0/L1: the redeem route now defers the fingerprint recording via after() and runs
+// the pre-grant cluster check — mock both so the contract tests exercise only the error
+// contracts (same technique as redeem-code-route.test.ts).
+vi.mock('next/server', () => ({
+  after: (callback: () => unknown) => {
+    mocks.afterCallbacks.push(callback);
+  },
+}));
+vi.mock('@/lib/casino/network-fingerprint', () => ({
+  recordBetNetworkFingerprintBestEffort: mocks.recordBetNetworkFingerprintBestEffort,
+}));
+vi.mock('@/lib/casino/fraud-detection', async (importOriginal) => {
+  // The real module's constants are re-exported because bet-velocity-guard.ts imports
+  // them; only the RPC-touching guard function is mocked.
+  const actual = await importOriginal<typeof import('@/lib/casino/fraud-detection')>();
+  return {
+    ...actual,
+    checkKnownClusterBeforeGrant: mocks.checkKnownClusterBeforeGrant,
+  };
+});
 
 vi.mock('server-only', () => ({}));
 vi.mock('@/utils/supabase/server', () => ({ createClient: mocks.createClient }));

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 // cannot be imported from a client-context test without this established repo mock.
 vi.mock('server-only', () => ({}));
 
-import { cleanMarkdownForSpeech } from '@/app/api/chat/voice-synthesize/route';
+import { cleanMarkdownForSpeech } from '@/lib/casino/voice-markdown';
 import { isAudioRecordingSupported } from '../voice-audio';
 
 describe('voice-audio unit tests', () => {

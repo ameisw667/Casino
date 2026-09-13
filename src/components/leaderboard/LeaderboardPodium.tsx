@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { resolvePlayerAvatar } from '@/lib/casino/player-avatar';
 import { motion } from 'framer-motion';
 import type { LeaderRow } from './LeaderboardStreamTable';
+import { LetterCascade } from '@/components/casino/typography/LetterCascade';
 
 interface LeaderboardPodiumProps {
   topThree: LeaderRow[];
@@ -147,14 +148,22 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
                   style={{
                     fontSize: isFirst ? '1.35rem' : '1.15rem',
                     fontWeight: 700,
-                    color: '#FFFFFF',
                     letterSpacing: '-0.02em',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  {card.player.username}
+                  <LetterCascade
+                    value={card.player.username}
+                    direction="ltr"
+                    staggerDelay={0.02}
+                    stiffness={320}
+                    damping={22}
+                    colorScheme={isFirst ? 'gold' : 'white'}
+                    fontSize={isFirst ? '1.35rem' : '1.15rem'}
+                    isMobile={isMobile}
+                  />
                 </div>
                 <div style={{ fontSize: '0.78rem', color: '#8A8A8A', marginTop: '2px' }}>
                   Höchster Gewinn: +$
@@ -166,7 +175,7 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
               </div>
             </div>
 
-            {/* Financial Hero: Total Wagered */}
+            {/* Financial Hero: Total Wagered with Mechanical Letter Cascade */}
             <div
               style={{
                 paddingTop: '14px',
@@ -185,15 +194,22 @@ export function LeaderboardPodium({ topThree, isMobile }: LeaderboardPodiumProps
                   fontVariantNumeric: 'tabular-nums',
                   fontSize: isFirst ? '1.25rem' : '1.1rem',
                   fontWeight: 700,
-                  color: isFirst ? '#D4AF37' : '#FFFFFF',
                   letterSpacing: '-0.02em',
                 }}
               >
-                $
-                {card.player.total_wagered.toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
+                <LetterCascade
+                  value={`$${card.player.total_wagered.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`}
+                  direction="rtl"
+                  staggerDelay={0.025}
+                  stiffness={340}
+                  damping={22}
+                  colorScheme={isFirst ? 'gold' : 'white'}
+                  fontSize={isFirst ? '1.25rem' : '1.1rem'}
+                  isMobile={isMobile}
+                />
               </div>
             </div>
           </motion.div>

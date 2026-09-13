@@ -4,6 +4,14 @@ import { z } from 'zod';
 import { consumeTelegramLinkToken, unlinkTelegramByChatId } from '@/lib/casino/telegram-link';
 import { sendTelegramMessage } from '@/lib/casino/telegram-api';
 import { CasinoLogger } from '@/lib/casino/logger';
+import {
+  withRateLimit,
+  getClientIdentifier,
+} from '@/lib/security/request-security';
+import {
+  TELEGRAM_WEBHOOK_LIMIT,
+  TELEGRAM_WEBHOOK_WINDOW_SECONDS,
+} from '@/lib/security/rate-limit-config';
 
 const updateSchema = z.object({
   message: z
@@ -47,39 +55,53 @@ async function handleStart(chatId: number, token: string | undefined, username: 
   await sendTelegramMessage(chatId, reply).catch(() => undefined);
 }
 
-export async function POST(request: Request) {
-  if (!hasValidWebhookSecret(request)) {
-    return apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401);
-  }
+// 06_6 L1/L4 (E3+E6): this webhook had 0 rate-limit calls while the docs claimed 120/min.
+// One of the two reference implementations for withRateLimit(): the resolve hook runs the
+// secret gate FIRST (it stays the primary boundary), so floods of unauthenticated requests
+// cannot exhaust the IP bucket and deny the legitimate Telegram caller; only secret-valid
+// traffic consumes the conservative-high 60/min budget (legitimate webhook bursts).
+export const POST = withRateLimit(
+  async (request) => {
+    try {
+      const body = await request.json().catch(() => null);
+      const parsed = updateSchema.safeParse(body);
+      const message = parsed.success ? parsed.data.message : undefined;
+      if (!message) return apiSuccessResponse({ ok: true });
 
-  try {
-    const body = await request.json().catch(() => null);
-    const parsed = updateSchema.safeParse(body);
-    const message = parsed.success ? parsed.data.message : undefined;
-    if (!message) return apiSuccessResponse({ ok: true });
+      const chatId = message.chat.id;
+      const text = message.text?.trim() ?? '';
 
-    const chatId = message.chat.id;
-    const text = message.text?.trim() ?? '';
+      if (text.startsWith('/start')) {
+        await handleStart(chatId, text.split(/\s+/)[1], message.from?.username ?? null);
+        return apiSuccessResponse({ ok: true });
+      }
 
-    if (text.startsWith('/start')) {
-      await handleStart(chatId, text.split(/\s+/)[1], message.from?.username ?? null);
+      if (text === '/stop') {
+        await unlinkTelegramByChatId(chatId);
+        await sendTelegramMessage(
+          chatId,
+          'Disconnected. You will no longer receive notifications here.',
+        ).catch(() => undefined);
+        return apiSuccessResponse({ ok: true });
+      }
+
+      await sendTelegramMessage(chatId, HELP_TEXT).catch(() => undefined);
+      return apiSuccessResponse({ ok: true });
+    } catch {
+      CasinoLogger.error('API/Telegram/Webhook', 'Failed to process telegram update');
+      // Always 200: an internal error here must not make Telegram retry-storm the webhook.
       return apiSuccessResponse({ ok: true });
     }
-
-    if (text === '/stop') {
-      await unlinkTelegramByChatId(chatId);
-      await sendTelegramMessage(
-        chatId,
-        'Disconnected. You will no longer receive notifications here.',
-      ).catch(() => undefined);
-      return apiSuccessResponse({ ok: true });
-    }
-
-    await sendTelegramMessage(chatId, HELP_TEXT).catch(() => undefined);
-    return apiSuccessResponse({ ok: true });
-  } catch {
-    CasinoLogger.error('API/Telegram/Webhook', 'Failed to process telegram update');
-    // Always 200: an internal error here must not make Telegram retry-storm the webhook.
-    return apiSuccessResponse({ ok: true });
-  }
-}
+  },
+  {
+    scope: 'telegram-webhook',
+    limit: TELEGRAM_WEBHOOK_LIMIT,
+    windowSeconds: TELEGRAM_WEBHOOK_WINDOW_SECONDS,
+    resolve: async (request) => {
+      if (!hasValidWebhookSecret(request)) {
+        return { earlyResponse: apiErrorResponse('UNAUTHORIZED', 'Unauthorized', 401) };
+      }
+      return { identifier: getClientIdentifier(request), data: undefined };
+    },
+  },
+);

@@ -8,7 +8,6 @@ import {
   Copy,
   Check,
   CircleDollarSign,
-  Zap,
 } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { useModalKeyboard } from '@/hooks/useModalKeyboard';
@@ -363,7 +362,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                     borderRadius: '16px',
                   }}
                 >
-                  <Zap size={20} /> CONFIRM DEPOSIT
+                  <Check size={20} /> CONFIRM DEPOSIT
                 </button>
               </div>
             </div>
@@ -507,7 +506,6 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                   background: 'hsla(var(--success), 0.05)',
                 }}
               >
-                <Zap size={24} color="hsl(var(--success))" style={{ flexShrink: 0 }} />
                 <div
                   style={{ fontSize: '0.75rem', color: 'hsl(var(--text-main))', lineHeight: 1.4 }}
                 >

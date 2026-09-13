@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Play, Zap } from 'lucide-react';
+import { Play, Repeat } from 'lucide-react';
 import { soundManager } from '@/lib/casino/sound-manager';
 
 export interface BetModeTabsProps {
@@ -153,7 +153,7 @@ export function BetModeTabs({
             transition={{ type: 'spring', stiffness: 500, damping: 32 }}
           />
         )}
-        <Zap
+        <Repeat
           size={14}
           style={{
             position: 'relative',

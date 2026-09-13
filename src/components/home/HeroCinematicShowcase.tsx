@@ -37,7 +37,16 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
   const router = useRouter();
   const addToast = useCasinoStore((s) => s.addToast);
   const [activeTab, setActiveTab] = useState<GameTabConfig>(GAME_TABS[0]);
+  // Do not SSR desktop-only showcase media into the mobile critical path.
+  const [shouldRenderDesktopContent, setShouldRenderDesktopContent] = useState(false);
 
+  useEffect(() => {
+    const desktopQuery = window.matchMedia('(min-width: 1024px)');
+    const syncDesktopContent = () => setShouldRenderDesktopContent(desktopQuery.matches);
+    syncDesktopContent();
+    desktopQuery.addEventListener('change', syncDesktopContent);
+    return () => desktopQuery.removeEventListener('change', syncDesktopContent);
+  }, []);
   const handleBonusActivate = async () => {
     soundManager.playClick();
     try {
@@ -131,9 +140,9 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
       ref={containerRef}
       onMouseMove={isMobile ? undefined : handleMouseMove}
       onMouseLeave={isMobile ? undefined : handleMouseLeave}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease: 'easeOut' }}
+
+      // Above-the-fold content must stay paintable in the SSR response for mobile LCP.
+
       style={{
         position: 'relative',
         width: '100%',
@@ -169,10 +178,10 @@ export const HeroCinematicShowcase: React.FC<HeroCinematicShowcaseProps> = ({
         <HeroHeadlineColumn isMobile={isMobile} onBonusActivate={handleBonusActivate} />
 
         {/* Column 2 (Center): Live Progressive Jackpot Pulse & VIP Radar (Option 1) */}
-        {!isMobile && <JackpotPulseCard jackpotFormatted={jackpotFormatted} />}
+        {shouldRenderDesktopContent && <JackpotPulseCard jackpotFormatted={jackpotFormatted} />}
 
         {/* Column 3 (Right): Frameless Floating Live Game Showcase Sandbox */}
-        {!isMobile && (
+        {shouldRenderDesktopContent && (
           <GameShowcaseCard
             activeTab={activeTab}
             onSelectTab={setActiveTab}

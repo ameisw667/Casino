@@ -17,6 +17,10 @@ import {
   rateLimitHeaders,
   validateMutationOrigin,
 } from '@/lib/security/request-security';
+import {
+  BLACKJACK_ACTION_LIMIT,
+  BLACKJACK_ACTION_WINDOW_SECONDS,
+} from '@/lib/security/rate-limit-config';
 import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
 import { apiSuccessResponse } from '@/lib/api/response';
 
@@ -119,8 +123,8 @@ export async function POST(request: Request) {
     const rate = await enforceRateLimit(
       getClientIdentifier(request, userId),
       'blackjack-action',
-      20,
-      10,
+      BLACKJACK_ACTION_LIMIT,
+      BLACKJACK_ACTION_WINDOW_SECONDS,
     );
     if (!rate.success) {
       const retryAfterSeconds = Math.max(1, Math.ceil((rate.reset - Date.now()) / 1000));

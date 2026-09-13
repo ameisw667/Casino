@@ -1,8 +1,10 @@
 'use client';
-import { Menu, Star, Wallet, Eye, EyeOff, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { Menu, LogIn, UserPlus, LogOut, Keyboard } from 'lucide-react';
 import { IconBadge } from '@/components/layout/IconBadge';
 import { AuthHeaderBtn } from '@/components/layout/AuthHeaderBtn';
 import { NotificationCenter } from '@/components/layout/NotificationCenter';
+import { DesktopHeaderDock } from '@/components/casino/navigation/DesktopHeaderDock';
+import { WalletTextMorphChip } from './WalletTextMorphChip';
 
 interface MainHeaderProps {
   isMobile: boolean;
@@ -50,7 +52,7 @@ export function MainHeader({
         zIndex: 40,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px' }}>
         {isMobile && (
           <button
             onClick={onOpenMobileSidebar}
@@ -63,18 +65,48 @@ export function MainHeader({
         )}
         <button
           onClick={onShowRankInfo}
-          className="header-chip header-chip-gold no-mobile-minheight"
+          className={
+            isMobile
+              ? 'header-chip header-chip-gold no-mobile-minheight'
+              : 'no-mobile-minheight'
+          }
           style={{
             padding: isMobile ? '4px 8px' : '6px 12px 6px 6px',
             display: 'flex',
             alignItems: 'center',
             gap: isMobile ? '8px' : '10px',
             cursor: 'pointer',
+            background: isMobile ? undefined : 'transparent',
+            border: isMobile ? undefined : '1px solid transparent',
+            borderRadius: isMobile ? undefined : '12px',
+            transition: 'background 0.2s ease, border-color 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            if (!isMobile) {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
+              e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.2)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isMobile) {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.borderColor = 'transparent';
+            }
           }}
         >
           {!isMobile && (
             <IconBadge tone="gold">
-              <Star size={12} color="#000" fill="#000" />
+              <span
+                aria-hidden
+                style={{
+                  display: 'inline-block',
+                  width: 12,
+                  height: 12,
+                  backgroundColor: '#000',
+                  WebkitMask: 'url(/images/2026-09-06_icon-star-level-quantum-gold_v001.webp) center / contain no-repeat',
+                  mask: 'url(/images/2026-09-06_icon-star-level-quantum-gold_v001.webp) center / contain no-repeat',
+                }}
+              />
             </IconBadge>
           )}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
@@ -92,7 +124,17 @@ export function MainHeader({
             )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               {isMobile && (
-                <Star size={10} fill="hsl(var(--primary))" color="hsl(var(--primary))" />
+                <span
+                  aria-hidden
+                  style={{
+                    display: 'inline-block',
+                    width: 10,
+                    height: 10,
+                    backgroundColor: 'hsl(var(--primary))',
+                    WebkitMask: 'url(/images/2026-09-06_icon-star-level-quantum-gold_v001.webp) center / contain no-repeat',
+                    mask: 'url(/images/2026-09-06_icon-star-level-quantum-gold_v001.webp) center / contain no-repeat',
+                  }}
+                />
               )}
               <span
                 style={{
@@ -128,65 +170,59 @@ export function MainHeader({
             </div>
           )}
         </button>
+        {!isMobile && (
+          <div
+            aria-hidden="true"
+            style={{
+              width: 1,
+              height: 28,
+              background: 'linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+              marginLeft: 4,
+            }}
+          />
+        )}
       </div>
+ 
+      {!isMobile && <DesktopHeaderDock />}
 
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: isMobile ? '8px' : '16px',
+          gap: isMobile ? '8px' : '12px',
           paddingRight: isMobile ? '8px' : '0',
         }}
       >
-        <div
-          className="header-chip"
-          style={{
-            padding: isMobile ? '6px 10px 6px 6px' : '6px 16px 6px 6px',
-            borderRadius: 'var(--radius-full)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: isMobile ? '8px' : '10px',
-          }}
-        >
-          <IconBadge tone="gold" size={isMobile ? 22 : 26}>
-            <Wallet size={isMobile ? 11 : 13} color="#000" />
-          </IconBadge>
-          <span
+        {!isMobile && (
+          <div
+            aria-hidden="true"
             style={{
-              fontFamily: 'var(--font-mono)',
-              color: 'hsl(var(--text-main))',
-              fontWeight: 800,
-              fontSize: isMobile ? '0.9rem' : '1.15rem',
-              letterSpacing: '-0.01em',
-              maxWidth: isMobile ? '130px' : 'none',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
+              width: 1,
+              height: 28,
+              background: 'linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+              marginRight: 2,
             }}
-          >
-            {hideBalance
-              ? '••••••'
-              : `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-          </span>
-          <button
-            onClick={onToggleHideBalance}
-            className="no-mobile-minheight"
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'hsla(0,0%,100%,0.3)',
-              cursor: 'pointer',
-              padding: '2px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {hideBalance ? <Eye size={14} /> : <EyeOff size={14} />}
-          </button>
-        </div>
+          />
+        )}
+        <WalletTextMorphChip
+          balance={balance}
+          hideBalance={hideBalance}
+          onToggleHideBalance={onToggleHideBalance}
+          isMobile={isMobile}
+        />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {!isMobile && (
+          <div
+            aria-hidden="true"
+            style={{
+              width: 1,
+              height: 28,
+              background: 'linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+            }}
+          />
+        )}
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '10px' }}>
           <NotificationCenter userId={notificationUserId} isMobile={isMobile} />
           {!isMobile && (
             <>
@@ -200,32 +236,91 @@ export function MainHeader({
                     <UserPlus size={13} strokeWidth={2.5} />
                     REGISTER
                   </AuthHeaderBtn>
+                  <button
+                    type="button"
+                    data-testid="keyboard-shortcuts-trigger-guest"
+                    onClick={() => window.dispatchEvent(new CustomEvent('open-keyboard-shortcuts'))}
+                    title="Tastatur-Shortcuts (?)"
+                    aria-label="Tastatur-Shortcuts (?)"
+                    className="hover:text-[#D4AF37] hover:border-[rgba(212,175,55,0.45)] hover:bg-[rgba(212,175,55,0.08)] transition-all duration-150"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '3px',
+                      padding: '4px 6px',
+                      borderRadius: '4px',
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      color: 'rgba(255, 255, 255, 0.55)',
+                      fontSize: '0.58rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      lineHeight: 1,
+                    }}
+                  >
+                    <Keyboard size={10} color="#D4AF37" />
+                    <span style={{ fontFamily: 'monospace', color: '#D4AF37', fontWeight: 700 }}>?</span>
+                  </button>
                 </div>
               ) : (
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '12px',
-                    padding: '4px 8px',
-                    background: 'hsla(0,0%,100%,0.03)',
-                    borderRadius: '16px',
-                    border: '1px solid hsla(0,0%,100%,0.05)',
+                    gap: '10px',
+                    padding: '4px 6px',
                   }}
                 >
-                  <div style={{ textAlign: 'right', paddingRight: '4px' }}>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 900, color: '#fff' }}>
+                  <div style={{ textAlign: 'right', paddingRight: '2px' }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 900, color: '#fff', lineHeight: 1.2 }}>
                       {displayName}
                     </div>
                     <div
                       style={{
-                        fontSize: '0.6rem',
-                        fontWeight: 800,
-                        color: 'hsl(var(--primary))',
-                        textTransform: 'uppercase',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-end',
+                        gap: '6px',
+                        marginTop: '3px',
                       }}
                     >
-                      {rank}
+                      <span
+                        style={{
+                          fontSize: '0.6rem',
+                          fontWeight: 800,
+                          color: 'hsl(var(--primary))',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em',
+                          lineHeight: 1,
+                        }}
+                      >
+                        {rank}
+                      </span>
+                      <button
+                        type="button"
+                        data-testid="keyboard-shortcuts-trigger"
+                        onClick={() => window.dispatchEvent(new CustomEvent('open-keyboard-shortcuts'))}
+                        title="Tastatur-Shortcuts (?)"
+                        aria-label="Tastatur-Shortcuts (?)"
+                        className="hover:text-[#D4AF37] hover:border-[rgba(212,175,55,0.45)] hover:bg-[rgba(212,175,55,0.1)] transition-all duration-150"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          padding: '1.5px 5px',
+                          borderRadius: '4px',
+                          background: 'rgba(255, 255, 255, 0.03)',
+                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          color: 'rgba(255, 255, 255, 0.45)',
+                          fontSize: '0.55rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          lineHeight: 1,
+                        }}
+                      >
+                        <Keyboard size={9} color="rgba(212, 175, 55, 0.75)" />
+                        <span style={{ fontFamily: 'var(--font-mono, monospace)', color: '#D4AF37', fontWeight: 700 }}>?</span>
+                      </button>
                     </div>
                   </div>
                   <button
@@ -233,17 +328,17 @@ export function MainHeader({
                     aria-label="Abmelden"
                     className="btn btn-ghost"
                     style={{
-                      width: '40px',
-                      height: '40px',
+                      width: '36px',
+                      height: '36px',
                       padding: 0,
-                      borderRadius: '12px',
-                      border: '2px solid hsla(var(--primary), 0.5)',
+                      borderRadius: '10px',
+                      border: '1px solid hsla(var(--primary), 0.4)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <LogOut size={16} />
+                    <LogOut size={15} />
                   </button>
                 </div>
               )}

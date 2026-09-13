@@ -1,8 +1,8 @@
 'use client';
 import Image from 'next/image';
-import { ShieldCheck } from 'lucide-react';
 import type { VipTier } from '@/lib/casino/vip-config';
 import { card } from './vault-card';
+import { CursorParticleTypography } from '@/components/casino/fx/CursorParticleTypography';
 
 interface VaultProfileBannerProps {
   isMobile: boolean;
@@ -109,18 +109,21 @@ export function VaultProfileBanner({
             />
           </div>
         </div>
-        <div style={{ minWidth: 0 }}>
-          <div
-            style={{
-              fontSize: '1.05rem',
-              fontWeight: 800,
-              color: '#fff',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {displayName}
+        <div style={{ minWidth: 0, minHeight: '32px' }}>
+          <div style={{ maxWidth: '220px' }}>
+            <CursorParticleTypography
+              text={displayName}
+              fontSize={isMobile ? 16 : 20}
+              fontFamily="var(--font-heading, 'Cinzel', serif)"
+              fontWeight={800}
+              as="div"
+              subtleRepulsion={true}
+              maxDisplacement={12}
+              repulsionRadius={35}
+              repulsionForce={3}
+              palette={['#FFFFFF', '#E5E4E2', '#D4AF37', '#CBD5E1']}
+              isMobile={isMobile}
+            />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '3px' }}>
             <span
@@ -183,9 +186,23 @@ export function VaultProfileBanner({
               fontWeight: 900,
               color: '#D4AF37',
               fontFamily: 'var(--font-mono, monospace)',
+              minHeight: '28px',
             }}
           >
-            ${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            <CursorParticleTypography
+              text={`$${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              fontSize={isMobile ? 16 : 19}
+              fontFamily="var(--font-mono, monospace)"
+              fontWeight={900}
+              subtleRepulsion={true}
+              maxDisplacement={10}
+              repulsionRadius={35}
+              repulsionForce={2.5}
+              ambientFlakes={true}
+              ambientCount={12}
+              palette={['#FFEBAA', '#F5D77F', '#D4AF37', '#E5E4E2']}
+              isMobile={isMobile}
+            />
           </div>
         </div>
         <div
@@ -246,7 +263,17 @@ export function VaultProfileBanner({
             color: '#10b981',
           }}
         >
-          <ShieldCheck size={11} /> VERIFIED
+          <span
+            aria-hidden
+            style={{
+              display: 'inline-block',
+              width: 11,
+              height: 11,
+              backgroundColor: 'currentColor',
+              WebkitMask: 'url(/images/2026-09-06_icon-security-verified-quantum-gold_v001.png) center / contain no-repeat',
+              mask: 'url(/images/2026-09-06_icon-security-verified-quantum-gold_v001.png) center / contain no-repeat',
+            }}
+          /> VERIFIED
         </div>
       </div>
     </div>

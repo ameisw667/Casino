@@ -8,6 +8,8 @@ export const fraudAlertWaitPayloadSchema = z.object({
   signalType: z.string().min(1),
   score: z.number().nonnegative(),
   details: z.unknown().optional(),
+  // 06_9 L2: marks the single escalation round after the first 48h wait timed out.
+  escalated: z.boolean().optional(),
 });
 
 export type FraudAlertWaitPayload = z.infer<typeof fraudAlertWaitPayloadSchema>;
@@ -17,7 +19,9 @@ export function buildFraudAlertMessage(
   appUrl = 'https://casino-nine-omega.vercel.app',
 ): string {
   return [
-    '⚠️ High-Severity Fraud-Signal erkannt!',
+    payload.escalated
+      ? '🚨 ESKALATION: High-Severity Fraud-Signal seit 48h unbeachtet!'
+      : '⚠️ High-Severity Fraud-Signal erkannt!',
     '',
     `Signal: ${payload.signalType}`,
     `Score: ${payload.score}`,
@@ -57,10 +61,12 @@ export async function executeFraudAlertWait(payload: FraudAlertWaitPayload) {
     }
   }
 
-  // 2. Create wait token with 48h timeout
+  // 2. Create wait token with 48h timeout. The escalation round gets its own
+  // idempotency key — reusing the base key would collide with the (already expired)
+  // token of the original run and fail the second wait immediately.
   const token = await wait.createToken({
     timeout: '48h',
-    idempotencyKey: `fraud-wait-${payload.eventId}`,
+    idempotencyKey: `fraud-wait-${payload.eventId}${payload.escalated ? '-escalation' : ''}`,
   });
 
   metadata.set('tokenId', token.id);
@@ -104,6 +110,24 @@ export async function executeFraudAlertWait(payload: FraudAlertWaitPayload) {
   metadata.set('timedOut', true);
   metadata.set('resolved', false);
 
+  // 06_9 L2: exactly ONE escalation round — an unreviewed 48h timeout re-triggers the
+  // same task with a sharper message. If the escalation run also times out, the signal
+  // stays open for human decision instead of escalating forever (alert fatigue).
+  // Fire-and-forget: escalation dispatch must not fail the task run itself.
+  if (!payload.escalated) {
+    try {
+      void fraudAlertWait
+        .trigger({ ...payload, escalated: true })
+        .catch((error: unknown) => logger.error('Fraud escalation re-trigger failed', { error }));
+    } catch (error) {
+      logger.error('Fraud escalation re-trigger could not be enqueued', { error });
+    }
+  } else {
+    logger.log('Escalated fraud signal timed out again — no further escalation rounds', {
+      eventId: payload.eventId,
+    });
+  }
+
   return {
     eventId: payload.eventId,
     resolved: false,
@@ -114,6 +138,9 @@ export async function executeFraudAlertWait(payload: FraudAlertWaitPayload) {
 export const fraudAlertWait = schemaTask({
   id: 'fraud-alert-wait',
   schema: fraudAlertWaitPayloadSchema,
-  maxDuration: 172800, // 48h in seconds
+  // 48h token wait + 1h buffer: if maxDuration exactly equals the waitpoint timeout, the
+  // run can be cancelled at the same instant the token resolves its timeout — the
+  // escalation branch below would then never execute (security review 2026-09-06).
+  maxDuration: 172800 + 3600,
   run: async (payload) => executeFraudAlertWait(payload),
 });

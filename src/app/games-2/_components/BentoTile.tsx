@@ -11,7 +11,7 @@ import {
   useTransform,
   useReducedMotion,
 } from 'framer-motion';
-import { ShieldCheck, Star, Maximize2 } from 'lucide-react';
+import { Maximize2 } from 'lucide-react';
 import { springs } from '@/lib/design/motion-tokens';
 import type { GameMeta } from '@/app/games/_components/config';
 
@@ -271,7 +271,7 @@ export function BentoTile({
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            <Star size={isFeatured ? 13 : 11} fill="#D4AF37" color="#D4AF37" />
+            <Image src="/images/2026-09-06_icon-star-rating-quantum-gold_v001.png" alt="Bewertung" width={isFeatured ? 13 : 11} height={isFeatured ? 13 : 11} aria-hidden />
             {game.rating}
           </span>
         </div>
@@ -352,7 +352,17 @@ export function BentoTile({
           padding: '3px 8px',
         }}
       >
-        <ShieldCheck size={10} color="#10b981" />
+        <span
+          aria-hidden
+          style={{
+            display: 'inline-block',
+            width: 10,
+            height: 10,
+            backgroundColor: '#10b981',
+            WebkitMask: 'url(/images/2026-09-06_icon-security-verified-quantum-gold_v001.png) center / contain no-repeat',
+            mask: 'url(/images/2026-09-06_icon-security-verified-quantum-gold_v001.png) center / contain no-repeat',
+          }}
+        />
         99.0% RTP
       </span>
     </motion.article>

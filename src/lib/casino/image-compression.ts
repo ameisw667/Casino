@@ -131,3 +131,27 @@ export async function compressImageFile(
     img.src = objectUrl;
   });
 }
+
+export type GuideAttachmentResult =
+  | { status: 'accepted'; dataUrl: string }
+  | { status: 'rejected'; reason: 'invalid-type' }
+  | { status: 'rejected'; reason: 'compression-failed'; error: unknown };
+
+/**
+ * Validates and compresses a picked/pasted file for the guide chat attachment, returning a
+ * discriminated result instead of throwing or resolving to undefined on failure — this is what
+ * lets the caller distinguish "not an image" from "compression failed" and react to (and log)
+ * each case instead of a single silent catch-and-ignore.
+ */
+export async function processGuideAttachment(file: File | Blob): Promise<GuideAttachmentResult> {
+  if (!isAllowedImageFile(file)) {
+    return { status: 'rejected', reason: 'invalid-type' };
+  }
+
+  try {
+    const dataUrl = await compressImageFile(file);
+    return { status: 'accepted', dataUrl };
+  } catch (error) {
+    return { status: 'rejected', reason: 'compression-failed', error };
+  }
+}

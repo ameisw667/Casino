@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Bell, Check, CheckCheck, Info, Trophy, X } from 'lucide-react';
+import { Bell, Check, Info, X } from 'lucide-react';
+import Image from 'next/image';
 import { createClient } from '@/utils/supabase/client';
 import {
   getNotificationRealtimeChannel,
@@ -192,7 +193,7 @@ export function NotificationCenter({
                   aria-label="Mark all notifications as read"
                   style={{ padding: '6px' }}
                 >
-                  <CheckCheck size={16} />
+                  <Check size={16} />
                 </button>
               )}
               <button
@@ -242,7 +243,7 @@ export function NotificationCenter({
                   }}
                 >
                   {notification.kind === 'big_win' ? (
-                    <Trophy size={18} color="hsl(var(--primary))" />
+                    <Image src="/images/2026-09-06_icon-trophy-win-quantum-gold_v001.png" alt="Big Win" width={18} height={18} aria-hidden />
                   ) : notification.kind === 'achievement' ? (
                     <Check size={18} color="hsl(var(--success))" />
                   ) : (

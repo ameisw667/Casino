@@ -38,3 +38,8 @@
 - 2026-09-06 — `icon-trophy-win-quantum-gold` v001 (1024x1024, medium, 1512486 B, sha256:be890def, 50.3s, ~0.08 USD) → `2026-09-06_icon-trophy-win-quantum-gold_v001.png`
 - 2026-09-06 — `icon-trophy-tournament-quantum-gold` v001 (1024x1024, medium, 1419043 B, sha256:2e49d97c, 52.6s, ~0.08 USD) → `2026-09-06_icon-trophy-tournament-quantum-gold_v001.png`
 - 2026-09-06 — `icon-trophy-record-quantum-gold` v001 (1024x1024, medium, 1475241 B, sha256:dcb1f9dc, 50.6s, ~0.08 USD) → `2026-09-06_icon-trophy-record-quantum-gold_v001.png`
+- 2026-09-06 — `icon-crown-vip-quantum-gold` v001 (1024x1024, medium, 1832038 B, sha256:a13332b8, 53.1s, ~0.08 USD) → `2026-09-06_icon-crown-vip-quantum-gold_v001.png`
+- 2026-09-06 — `icon-crown-jackpot-quantum-gold` v001 (1024x1024, medium, 1833760 B, sha256:891cea27, 47.6s, ~0.08 USD) → `2026-09-06_icon-crown-jackpot-quantum-gold_v001.png`
+- 2026-09-06 — `icon-star-rating-quantum-gold` v001 (1024x1024, medium, 1498022 B, sha256:2bd3066b, 49.5s, ~0.08 USD) → `2026-09-06_icon-star-rating-quantum-gold_v001.png`
+- 2026-09-06 — `icon-star-level-quantum-gold` v001 (1024x1024, medium, 1452460 B, sha256:ac7f0510, 47.2s, ~0.08 USD) → `2026-09-06_icon-star-level-quantum-gold_v001.png`
+- 2026-09-06 — `icon-security-verified-quantum-gold` v001 (1024x1024, medium, 1533089 B, sha256:b4ba9f5c, 52.6s, ~0.08 USD) → `2026-09-06_icon-security-verified-quantum-gold_v001.png`

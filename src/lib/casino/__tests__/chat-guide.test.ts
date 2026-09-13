@@ -24,6 +24,7 @@ import {
 } from '../chat-guide';
 import { GUIDE_KNOWLEDGE_SOURCES } from '../guide-knowledge/registry';
 import type { GuideKnowledgeSource } from '../guide-knowledge/schema';
+import { WalletService } from '../wallet';
 
 const originalApiKey = process.env.OPENAI_API_KEY;
 
@@ -382,6 +383,162 @@ describe('Casino guide service', () => {
         }),
       ]),
     );
+  });
+
+  it('surfaces a sanitized trigger_ui_action tool call as result.action on the non-streaming path (regression: action was silently dropped, never reaching GuideAnswerResult or the JSON API response)', async () => {
+    process.env.OPENAI_API_KEY = 'test-key';
+    const fetchSpy = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            output: [
+              {
+                type: 'function_call',
+                call_id: 'call_ui_action_test',
+                name: 'trigger_ui_action',
+                // Deliberately malicious/out-of-allowlist raw model arguments — the fix must
+                // surface executeGuideTool's sanitized output, never these raw values.
+                arguments: JSON.stringify({
+                  action: 'navigate_game',
+                  target: 'javascript:alert(1)',
+                  label: 'Zu Blackjack'.repeat(10),
+                }),
+              },
+            ],
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            output_text: JSON.stringify({
+              type: 'guide_answer',
+              topic: 'navigation',
+              answer: 'Klick den Button, um zu Blackjack zu wechseln.',
+            }),
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        ),
+      );
+
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const result = await requestCasinoGuideAnswer('Wie komme ich zu Blackjack?', 'test-user-123');
+
+    // 'navigate_game' is itself a valid action type, so it passes through unchanged, but
+    // the out-of-allowlist target and the oversized label must both be sanitized — the
+    // exact opposite of just replaying the model's raw, untrusted call arguments.
+    expect(result.action).toEqual({
+      type: 'navigate_game',
+      target: undefined,
+      label: 'Zu Blackjack'.repeat(10).slice(0, 60),
+    });
+  });
+
+  it('gives turn 2 only the remaining slice of the shared 8s budget instead of a fresh window', async () => {
+    process.env.OPENAI_API_KEY = 'test-key';
+    const fetchSpy = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            output: [
+              {
+                type: 'function_call',
+                call_id: 'call_vip_test',
+                name: 'get_player_vip_progress',
+                arguments: '{}',
+              },
+            ],
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            output_text: JSON.stringify({
+              type: 'guide_answer',
+              topic: 'vip_stats',
+              answer: 'You are currently Silver rank with 6,450 XP.',
+            }),
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        ),
+      );
+    vi.stubGlobal('fetch', fetchSpy);
+    // A resolved wallet lookup keeps the tool path free of a logging side effect that
+    // would otherwise call Date.now() and desynchronize the two mocked timestamps below.
+    vi.spyOn(WalletService, 'getWallet').mockResolvedValue({
+      balance: 100,
+      xp: 6450,
+      level: 15,
+      rank: 'SILVER',
+      transactionId: 'tx-123',
+    });
+
+    const timeoutSpy = vi.spyOn(AbortSignal, 'timeout');
+    // Turn 1 starts the shared clock at 1_000_000ms; by the time turn 2 is built, 3s elapsed.
+    const nowSpy = vi
+      .spyOn(Date, 'now')
+      .mockReturnValueOnce(1_000_000)
+      .mockReturnValueOnce(1_003_000);
+
+    try {
+      await requestCasinoGuideAnswer('What is my rank?', 'test-user-123');
+
+      expect(timeoutSpy).toHaveBeenNthCalledWith(1, 8_000);
+      expect(timeoutSpy).toHaveBeenNthCalledWith(2, 5_000);
+    } finally {
+      nowSpy.mockRestore();
+      timeoutSpy.mockRestore();
+      vi.mocked(WalletService.getWallet).mockRestore();
+    }
+  });
+
+  it('fails closed without calling turn 2 once the shared 8s budget is nearly exhausted', async () => {
+    process.env.OPENAI_API_KEY = 'test-key';
+    const fetchSpy = vi.fn().mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          output: [
+            {
+              type: 'function_call',
+              call_id: 'call_vip_test',
+              name: 'get_player_vip_progress',
+              arguments: '{}',
+            },
+          ],
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      ),
+    );
+    vi.stubGlobal('fetch', fetchSpy);
+    vi.spyOn(WalletService, 'getWallet').mockResolvedValue({
+      balance: 100,
+      xp: 6450,
+      level: 15,
+      rank: 'SILVER',
+      transactionId: 'tx-123',
+    });
+
+    // Turn 1 already consumed 7.8s of the shared 8s budget — too little remains for turn 2.
+    const nowSpy = vi
+      .spyOn(Date, 'now')
+      .mockReturnValueOnce(1_000_000)
+      .mockReturnValueOnce(1_007_800);
+
+    try {
+      await expect(
+        requestCasinoGuideAnswer('What is my rank?', 'test-user-123'),
+      ).rejects.toMatchObject({ name: CasinoGuideError.name, kind: 'upstream' });
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      nowSpy.mockRestore();
+      vi.mocked(WalletService.getWallet).mockRestore();
+    }
   });
 
   it('builds multi-turn sliding window input payload limited to 6 turns', () => {

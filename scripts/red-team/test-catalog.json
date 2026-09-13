@@ -1,8 +1,31 @@
 {
-  "version": 1,
+  "version": 2,
   "environment": "synthetic",
   "cases": [
-    { "id": "rate-limit-bypass", "class": "rate-limit-bypass" },
-    { "id": "admin-idor", "class": "admin-idor" }
+    {
+      "id": "rate-limit-bypass",
+      "class": "rate-limit-bypass",
+      "routes": ["casino/bet", "casino/blackjack"]
+    },
+    {
+      "id": "admin-idor",
+      "class": "admin-idor",
+      "routes": ["admin/users"]
+    },
+    {
+      "id": "bot-bypass",
+      "class": "bot-bypass",
+      "routes": ["auth/signup-suspicion", "auth/login-guard", "casino/redeem-code"]
+    },
+    {
+      "id": "crash-mp-bypass",
+      "class": "crash-mp-bypass",
+      "routes": ["casino/bet-crash-multiplayer"]
+    },
+    {
+      "id": "admin-fraud-idor",
+      "class": "admin-fraud-idor",
+      "routes": ["admin/fraud"]
+    }
   ]
 }

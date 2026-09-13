@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { GLYPH_TOKENS } from '@/lib/design-tokens/glyph-tokens';
 
 interface Card {
   suit: 'spades' | 'clubs' | 'hearts' | 'diamonds';
@@ -27,7 +28,7 @@ const getSuitSymbol = (suit: string): string => {
     spades: '♠',
     clubs: '♣',
     hearts: '♥',
-    diamonds: '♦',
+    diamonds: GLYPH_TOKENS.diamond.value,
   };
   return symbols[suit] || '♠';
 };

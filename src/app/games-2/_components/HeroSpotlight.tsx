@@ -10,7 +10,6 @@ import {
   useMotionTemplate,
   useReducedMotion,
 } from 'framer-motion';
-import { ShieldCheck, Star } from 'lucide-react';
 import { springs } from '@/lib/design/motion-tokens';
 import type { GameMeta } from '@/app/games/_components/config';
 
@@ -267,7 +266,7 @@ export function HeroSpotlight({ game, onOpen }: { game: GameMeta; onOpen: () => 
                 fontVariantNumeric: 'tabular-nums',
               }}
             >
-              <Star size={12} fill="#D4AF37" color="#D4AF37" />
+              <Image src="/images/2026-09-06_icon-star-rating-quantum-gold_v001.png" alt="Bewertung" width={12} height={12} aria-hidden />
               {game.rating}
             </span>
           </div>
@@ -351,7 +350,17 @@ export function HeroSpotlight({ game, onOpen }: { game: GameMeta; onOpen: () => 
                   padding: '3px 8px',
                 }}
               >
-                <ShieldCheck size={10} color="#10b981" />
+                <span
+                  aria-hidden
+                  style={{
+                    display: 'inline-block',
+                    width: 10,
+                    height: 10,
+                    backgroundColor: '#10b981',
+                    WebkitMask: 'url(/images/2026-09-06_icon-security-verified-quantum-gold_v001.png) center / contain no-repeat',
+                    mask: 'url(/images/2026-09-06_icon-security-verified-quantum-gold_v001.png) center / contain no-repeat',
+                  }}
+                />
                 99.0% RTP
               </span>
               <span

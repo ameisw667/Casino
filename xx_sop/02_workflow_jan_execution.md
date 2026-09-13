@@ -14,17 +14,27 @@
 
 ---
 
-## 2 — Verbindliche 5-Stufen-Abschlussprüfung (DoD für Casino)
+## 2 — Verbindliche Abschlussprüfung (DoD für Casino)
 
-Vor jeder Erfolgsmeldung an Jan MÜSSEN alle 5 Stufen lokal ausgeführt und bestanden sein:
+Vor jeder Erfolgsmeldung an Jan MÜSSEN die relevanten Prüfstufen lokal ausgeführt und bestanden sein:
 
-| Stufe | Disziplin                | Lokaler Casino-Befehl | Akzeptanzkriterium                         |
-| ----- | ------------------------ | --------------------- | ------------------------------------------ |
-| **1** | **Typecheck**            | `npm run typecheck`   | 0 TypeScript-Fehler                        |
-| **2** | **Automatisierte Tests** | `npm test`            | Betroffene und bestehende Tests 100 % grün |
-| **3** | **Linter & Hygiene**     | `npm run lint`        | 0 ESLint-Errors                            |
-| **4** | **Production-Build**     | `npm run build`       | Next.js Build Exit 0 (erfolgreich)         |
-| **5** | **Git Diff Audit**       | `git status --short`  | Nur geplante Dateien modifiziert           |
+| Stufe | Disziplin                         | Lokaler Casino-Befehl                   | Akzeptanzkriterium                                                                     |
+| ----- | --------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------- |
+| **1** | **Typecheck**                     | `npm run typecheck`                     | 0 TypeScript-Fehler                                                                    |
+| **2** | **Automatisierte Tests**          | `npm test`                              | Betroffene und bestehende Tests 100 % grün                                             |
+| **3** | **Linter & Hygiene**              | `npm run lint`                          | 0 ESLint-Errors                                                                        |
+| **4** | **Production-Build**              | `npm run build`                         | Next.js Build Exit 0 (erfolgreich)                                                     |
+| **5** | **Git Diff Audit**                | `git status --short`                    | Nur geplante Dateien modifiziert                                                       |
+| **6** | **Visuelle Screenshot-Prüfung**   | Playwright / Screenshot-Script          | **Pflicht bei allen Frontend-/UI-Aufgaben**: Zugeschnittener Screenshot im Output     |
+
+### Mandatorischer Frontend-Screenshot-Standard (Stufe 6)
+- **Gültigkeit:** Gilt ausnahmslos für alle Änderungen mit UI-, CSS-, Tailwind-, Framer-Motion-, Layout- oder Komponenten-Bezug.
+- **Vorgehen:**
+  1. Live-Server auf Port 3015 ansteuern (`http://localhost:3015/...`).
+  2. Per headless Playwright (oder passendem Screenshot-Script) einen fokussierten Screenshot aufnehmen.
+  3. Den Screenshot präzise auf die geänderte Komponente zuschneiden (Bounding Box / Clip).
+  4. Ablage unter `docs/frontend/screenshots/` oder `public/images/...`.
+- **Output-Pflicht:** Der zugeschnittene Screenshot MUSS zwingend im Abschluss-Output an Jan eingebunden oder direkt verlinkt werden, damit Jan die visuelle Qualität sofort ohne manuellen Browseraufruf prüfen und abnehmen kann.
 
 ---
 

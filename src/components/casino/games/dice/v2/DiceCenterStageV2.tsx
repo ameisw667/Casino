@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Flame, RefreshCw } from 'lucide-react';
+import { Flame, RotateCcw } from 'lucide-react';
 import { MULTIPLIER_PRESETS } from '@/components/casino/games/dice/dice-config';
 import type { DiceCenterStageV2Props } from './dice-v2-types';
 import { Dice3DPolyhedron } from './Dice3DPolyhedron';
 import { DiceSpotlightCanvas } from './DiceSpotlightCanvas';
 import { diceV2Audio } from './DiceV2Audio';
+import { LetterCascade } from '@/components/casino/typography/LetterCascade';
 
 export function DiceCenterStageV2({
   isMobile,
@@ -110,7 +111,7 @@ export function DiceCenterStageV2({
       style={{
         borderRadius: '24px',
         backgroundColor: '#07090E',
-        backgroundImage: `linear-gradient(180deg, rgba(11, 14, 20, 0.35) 0%, rgba(11, 14, 20, 0.08) 36%, rgba(11, 14, 20, 0.75) 100%), url('/images/2026-09-04_backdrop-dice-quantum-felt_v001.png')`,
+
         backgroundSize: 'cover',
         backgroundPosition: 'center 45%',
         backgroundRepeat: 'no-repeat',
@@ -288,7 +289,7 @@ export function DiceCenterStageV2({
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
               >
-                <RefreshCw size={12} />
+                <RotateCcw size={12} />
               </motion.div>
               <span>ROLLING 3D DICE...</span>
             </>
@@ -341,7 +342,7 @@ export function DiceCenterStageV2({
               fontWeight: 800,
             }}
           >
-            <RefreshCw size={12} />
+            <RotateCcw size={12} />
             <span>{isRollOver ? 'ROLL OVER' : 'ROLL UNDER'}</span>
           </button>
 
@@ -352,11 +353,11 @@ export function DiceCenterStageV2({
               fontFamily: 'var(--font-mono, monospace)',
             }}
           >
-            <span style={{ color: 'rgba(255,255,255,0.6)' }}>
-              TARGET: <strong style={{ color: '#FFFFFF' }}>{targetPoint.toFixed(2)}</strong>
+            <span style={{ color: 'rgba(255,255,255,0.6)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              TARGET: <LetterCascade value={targetPoint.toFixed(2)} direction="rtl" staggerDelay={0.015} stiffness={600} damping={30} colorScheme="white" fontSize="0.80rem" isMobile={isMobile} />
             </span>
-            <span style={{ color: 'rgba(255,255,255,0.6)' }}>
-              CHANCE: <strong style={{ color: '#34D399' }}>{winChance.toFixed(2)}%</strong>
+            <span style={{ color: 'rgba(255,255,255,0.6)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              CHANCE: <LetterCascade value={`${winChance.toFixed(2)}%`} direction="rtl" staggerDelay={0.015} stiffness={600} damping={30} colorScheme="emerald" fontSize="0.80rem" isMobile={isMobile} />
             </span>
           </div>
         </div>

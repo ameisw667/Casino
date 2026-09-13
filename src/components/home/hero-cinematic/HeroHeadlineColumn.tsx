@@ -1,9 +1,11 @@
 'use client';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Star, ShieldCheck, Zap, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 import { Magnetic } from '@/components/ui/Magnetic';
 import { soundManager } from '@/lib/casino/sound-manager';
+import { TextRepelHeadline } from './TextRepelHeadline';
 
 interface HeroHeadlineColumnProps {
   isMobile: boolean;
@@ -14,44 +16,60 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
   return (
     <div
       style={{
-        flex: isMobile ? '1 1 auto' : '1 1 420px',
-        maxWidth: isMobile ? '100%' : '480px',
+        flex: isMobile ? '1 1 auto' : '1 1 540px',
+        maxWidth: isMobile ? '100%' : '580px',
+        width: '100%',
       }}
     >
-      {/* Main Headline */}
-      <motion.h1
-        initial={{ opacity: 0, y: 15 }}
+      {/* Royale Privé High-Stakes Tag */}
+      <motion.div
+        initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.7 }}
+        transition={{ duration: 0.5 }}
         style={{
-          fontSize: isMobile ? 'clamp(1.7rem, 6.2vw, 2.2rem)' : 'clamp(2.6rem, 3.6vw, 3.5rem)',
-          fontWeight: 1000,
-          lineHeight: isMobile ? 1.0 : 0.95,
-          letterSpacing: '-0.04em',
-          color: '#ffffff',
-          marginBottom: isMobile ? '8px' : '12px',
-          textTransform: 'uppercase',
-          textShadow: '0 4px 20px rgba(0,0,0,0.9)',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '4px 12px',
+          borderRadius: '20px',
+          background:
+            'linear-gradient(135deg, rgba(212, 175, 55, 0.16) 0%, rgba(14, 17, 24, 0.85) 100%)',
+          border: '1px solid rgba(212, 175, 55, 0.38)',
+          boxShadow: '0 0 16px rgba(212, 175, 55, 0.18)',
+          marginBottom: isMobile ? '8px' : '14px',
         }}
       >
-        NEXT LEVEL <br />
         <span
           style={{
-            background: 'linear-gradient(135deg, #FFF 0%, #D4AF37 50%, #997517 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            filter: 'drop-shadow(0 0 30px rgba(212,175,55,0.4))',
+            width: '6px',
+            height: '6px',
+            borderRadius: '50%',
+            background: '#D4AF37',
+            boxShadow: '0 0 8px #D4AF37',
+          }}
+        />
+        <span
+          style={{
+            fontSize: '0.66rem',
+            fontFamily: 'var(--font-mono, monospace)',
+            fontWeight: 900,
+            letterSpacing: '0.08em',
+            color: '#F8E7A2',
+            textTransform: 'uppercase',
           }}
         >
-          VIP CASINO.
+          ROYALE PRIVÉ · HIGH ROLLER ECOSYSTEM
         </span>
-      </motion.h1>
+      </motion.div>
+
+      {/* Main Interactive Text-Repel Headline (Touchpoint 17) */}
+      <TextRepelHeadline isMobile={isMobile} />
 
       {/* Value Proposition Description */}
       <motion.p
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.7 }}
+
+        // This copy is a mobile LCP candidate, so it cannot begin transparent.
+
         style={{
           fontSize: isMobile ? '0.82rem' : '0.98rem',
           color: 'rgba(255, 255, 255, 0.88)',
@@ -67,9 +85,9 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
 
       {/* VIP Welcome Bonus-Claim Stage (Option 1) */}
       <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+
+        // Keep the adjacent above-the-fold CTA paintable with the copy.
+
         style={{ marginBottom: isMobile ? '10px' : '18px' }}
       >
         <div
@@ -78,12 +96,12 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
             background:
               'linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(18, 18, 24, 0.9) 100%)',
             border: '1px solid rgba(212, 175, 55, 0.35)',
-            padding: isMobile ? '10px 12px' : '12px 16px',
+            padding: isMobile ? '10px 12px' : '10px 14px',
             display: 'flex',
             flexDirection: isMobile ? 'column' : 'row',
             alignItems: isMobile ? 'stretch' : 'center',
             justifyContent: isMobile ? 'flex-start' : 'space-between',
-            gap: isMobile ? '8px' : '12px',
+            gap: isMobile ? '8px' : '10px',
             backdropFilter: 'blur(16px)',
             boxShadow: '0 10px 28px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.15)',
           }}
@@ -93,25 +111,26 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
+              gap: '8px',
               minWidth: 0,
-              flex: isMobile ? '1 1 auto' : '0 0 auto',
+              flex: isMobile ? '1 1 auto' : '0 1 auto',
             }}
           >
             <div
               style={{
-                padding: '4px 8px',
+                padding: '3px 7px',
                 borderRadius: '6px',
                 background: 'rgba(0, 0, 0, 0.6)',
                 border: '1px solid rgba(212, 175, 55, 0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
+                flexShrink: 0,
               }}
             >
               <span
                 style={{
-                  fontSize: '0.62rem',
+                  fontSize: '0.60rem',
                   color: 'rgba(255, 255, 255, 0.6)',
                   fontWeight: 800,
                 }}
@@ -120,32 +139,34 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
               </span>
               <span
                 style={{
-                  fontSize: '0.74rem',
+                  fontSize: '0.72rem',
                   color: '#D4AF37',
                   fontWeight: 1000,
                   fontFamily: 'monospace',
-                  letterSpacing: '0.06em',
+                  letterSpacing: '0.05em',
                 }}
               >
                 VIPPRO
               </span>
             </div>
-            <div>
+            <div style={{ minWidth: 0 }}>
               <div
                 style={{
-                  fontSize: '0.82rem',
+                  fontSize: '0.80rem',
                   fontWeight: 1000,
                   color: '#ffffff',
                   lineHeight: 1.1,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 100% BONUS <span style={{ color: '#00E701' }}>+$500</span>
               </div>
               <div
                 style={{
-                  fontSize: '0.65rem',
+                  fontSize: '0.62rem',
                   color: 'rgba(255, 255, 255, 0.5)',
                   fontWeight: 600,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 + Instant VIP Rakeback
@@ -161,28 +182,28 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
               whileHover={{ scale: 1.04, boxShadow: '0 0 25px rgba(212, 175, 55, 0.55)' }}
               whileTap={{ scale: 0.96 }}
               style={{
-                height: '40px',
-                padding: '0 18px',
+                height: '38px',
+                padding: '0 14px',
                 borderRadius: '10px',
                 background: 'linear-gradient(135deg, #D4AF37 0%, #AA7C11 100%)',
                 color: '#000',
-                fontSize: '0.78rem',
+                fontSize: '0.74rem',
                 fontWeight: 1000,
                 border: 'none',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '6px',
+                gap: '5px',
                 boxShadow: '0 4px 16px rgba(212, 175, 55, 0.35)',
-                letterSpacing: '0.04em',
+                letterSpacing: '0.03em',
                 textTransform: 'uppercase',
                 whiteSpace: 'nowrap',
                 width: isMobile ? '100%' : 'auto',
                 flexShrink: 0,
               }}
             >
-              <Zap size={14} fill="#000" /> BONUS AKTIVIEREN
+              <Image src="/images/2026-09-06_icon-promo-bonus-quantum-gold_v001.png" alt="" width={13} height={13} aria-hidden /> BONUS AKTIVIEREN
             </motion.button>
           </Magnetic>
         </div>
@@ -237,9 +258,8 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
             fontSize: '0.68rem',
             fontWeight: 700,
             maxWidth: '100%',
-            flexWrap: 'nowrap',
-            overflowX: 'auto',
-            justifyContent: 'center',
+            flexWrap: 'wrap',
+            justifyContent: 'flex-start',
           }}
         >
           {/* Micro-Chip 1: 100% Provably Fair */}
@@ -259,7 +279,7 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
               flexShrink: 0,
             }}
           >
-            <ShieldCheck size={11} color="#D4AF37" />
+            <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Provably Fair" width={11} height={11} aria-hidden />
             <span>100% PROVABLY FAIR</span>
           </div>
 
@@ -289,7 +309,7 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
           >
             <div style={{ display: 'flex', gap: '1px' }}>
               {[...Array(5)].map((_, i) => (
-                <Star key={i} size={9} fill="#D4AF37" color="#D4AF37" />
+                <Image key={i} src="/images/2026-09-06_icon-star-rating-quantum-gold_v001.png" alt="" width={9} height={9} aria-hidden />
               ))}
             </div>
             <span
@@ -340,7 +360,6 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
               flexShrink: 0,
             }}
           >
-            <Zap size={11} color="#00E701" />
             <span>INSTANT AUSZAHLUNG</span>
           </div>
         </motion.div>

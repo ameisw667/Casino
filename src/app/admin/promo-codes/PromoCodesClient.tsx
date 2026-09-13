@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Ticket, Plus, RefreshCw, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import { Ticket, Plus, RefreshCw, AlertCircle, CheckCircle2, Clock, Undo2 } from 'lucide-react';
 import { getApiErrorMessage } from '@/lib/security/form-errors';
 
 interface PromoCode {
@@ -16,8 +16,18 @@ interface PromoCode {
 
 export default function PromoCodesClient() {
   const [codes, setCodes] = useState<PromoCode[]>([]);
+  const [redemptions24h, setRedemptions24h] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // 06_10 L0: admin-triggered reversal of a fraudulent redemption. Always explicit —
+  // userId and reason are required inputs, the route itself is idempotent via
+  // Idempotency-Key and rejects a second reversal server-side.
+  const [reversal, setReversal] = useState<{ code: string; userId: string; reason: string } | null>(
+    null,
+  );
+  const [reversing, setReversing] = useState(false);
+  const [reversalMsg, setReversalMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
   const [form, setForm] = useState({
     code: '',
@@ -34,8 +44,9 @@ export default function PromoCodesClient() {
       const res = await fetch('/api/admin/promo-codes', { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const raw = await res.json();
-      const json = (raw?.data ?? raw) as { codes: PromoCode[] };
+      const json = (raw?.data ?? raw) as { codes: PromoCode[]; redemptions24h?: Record<string, number> };
       setCodes(json.codes ?? []);
+      setRedemptions24h(json.redemptions24h ?? {});
       setError(null);
     } catch {
       setError('Promo-Codes konnten nicht geladen werden.');
@@ -48,6 +59,38 @@ export default function PromoCodesClient() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
   }, []);
+
+  const submitReversal = async () => {
+    if (!reversal) return;
+    setReversing(true);
+    setReversalMsg(null);
+    try {
+      const res = await fetch(`/api/admin/promo-codes/${encodeURIComponent(reversal.code)}/reverse`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() },
+        body: JSON.stringify({ userId: reversal.userId.trim(), reason: reversal.reason.trim() }),
+      });
+      const raw = await res.json();
+      if (!res.ok) {
+        setReversalMsg({ kind: 'err', text: getApiErrorMessage(raw, 'Rückbuchung fehlgeschlagen') });
+        return;
+      }
+      const json = (raw?.data ?? raw) as { amount?: number; shortfall?: number };
+      const shortfallNote = json.shortfall && json.shortfall > 0
+        ? ` (uncollectable shortfall $${json.shortfall.toFixed(2)})`
+        : '';
+      setReversalMsg({
+        kind: 'ok',
+        text: `$${(json.amount ?? 0).toFixed(2)} zurückgebucht${shortfallNote}`,
+      });
+      setReversal(null);
+      await load();
+    } catch {
+      setReversalMsg({ kind: 'err', text: 'Netzwerkfehler bei der Rückbuchung' });
+    } finally {
+      setReversing(false);
+    }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -266,8 +309,10 @@ export default function PromoCodesClient() {
                 <th style={thStyle}>Code</th>
                 <th style={thStyle}>Betrag</th>
                 <th style={thStyle}>Nutzung</th>
+                <th style={thStyle}>24h</th>
                 <th style={thStyle}>Ablauf</th>
                 <th style={thStyle}>Status</th>
+                <th style={thStyle}>Aktion</th>
               </tr>
             </thead>
             <tbody>
@@ -291,6 +336,15 @@ export default function PromoCodesClient() {
                     </td>
                     <td style={{ ...tdStyle, fontFamily: 'var(--font-mono, monospace)' }}>
                       {c.used_count}/{c.max_uses}
+                    </td>
+                    <td
+                      style={{
+                        ...tdStyle,
+                        fontFamily: 'var(--font-mono, monospace)',
+                        color: (redemptions24h[c.code] ?? 0) >= 5 ? '#ef4444' : undefined,
+                      }}
+                    >
+                      {redemptions24h[c.code] ?? 0}
                     </td>
                     <td style={tdStyle}>
                       {c.expires_at ? (
@@ -332,11 +386,103 @@ export default function PromoCodesClient() {
                               : 'aktiv'}
                       </span>
                     </td>
+                    <td style={tdStyle}>
+                      <button
+                        onClick={() =>
+                          setReversal(
+                            reversal?.code === c.code ? null : { code: c.code, userId: '', reason: '' },
+                          )
+                        }
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.3rem',
+                          background: 'rgba(239,68,68,0.08)',
+                          border: '1px solid rgba(239,68,68,0.35)',
+                          color: '#ef4444',
+                          borderRadius: 6,
+                          padding: '0.3rem 0.6rem',
+                          fontSize: '0.78rem',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <Undo2 size={13} /> Rückbuchen
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+        )}
+        {reversal && (
+          <div
+            style={{
+              marginTop: '1.25rem',
+              border: '1px solid rgba(239,68,68,0.35)',
+              borderRadius: 10,
+              padding: '1rem',
+              background: 'rgba(239,68,68,0.05)',
+            }}
+          >
+            <div style={{ color: '#ef4444', fontWeight: 600, marginBottom: '0.75rem' }}>
+              Rückbuchung für Code {reversal.code}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.9rem' }}>
+              <Field label="Nutzer-ID">
+                <input
+                  value={reversal.userId}
+                  onChange={(e) => setReversal({ ...reversal, userId: e.target.value })}
+                  style={inputStyle}
+                />
+              </Field>
+              <Field label="Grund (Pflicht, max. 500 Zeichen)">
+                <input
+                  value={reversal.reason}
+                  maxLength={500}
+                  onChange={(e) => setReversal({ ...reversal, reason: e.target.value })}
+                  placeholder="z. B. Multi-Account-Cluster bestätigt"
+                  style={inputStyle}
+                />
+              </Field>
+            </div>
+            <button
+              onClick={submitReversal}
+              disabled={reversing || reversal.userId.trim() === '' || reversal.reason.trim() === ''}
+              style={{
+                marginTop: '0.9rem',
+                background: 'linear-gradient(135deg, #ef4444, #b91c1c)',
+                color: '#fff',
+                fontWeight: 700,
+                border: 'none',
+                borderRadius: 8,
+                padding: '0.5rem 1rem',
+                cursor: reversing ? 'not-allowed' : 'pointer',
+                opacity: reversing || reversal.userId.trim() === '' || reversal.reason.trim() === '' ? 0.6 : 1,
+              }}
+            >
+              {reversing ? 'Buche zurück…' : 'Rückbuchung ausführen'}
+            </button>
+            <div style={{ marginTop: '0.6rem', fontSize: '0.78rem', color: '#94a3b8' }}>
+              Bucht die ursprüngliche Einlösung zurück (max. bis auf 0; ein bereits verspielter
+              Teil wird als Fehlbetrag im Ledger vermerkt, nicht ins Negative gebucht).
+            </div>
+          </div>
+        )}
+        {reversalMsg && (
+          <div
+            style={{
+              marginTop: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              color: reversalMsg.kind === 'ok' ? '#10b981' : '#ef4444',
+              fontSize: '0.9rem',
+            }}
+          >
+            {reversalMsg.kind === 'ok' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+            {reversalMsg.text}
+          </div>
         )}
       </section>
     </div>

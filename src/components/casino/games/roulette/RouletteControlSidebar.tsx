@@ -1,7 +1,8 @@
 'use client';
 
 import type { Dispatch, SetStateAction } from 'react';
-import { RotateCcw, Trash2, Undo2, Zap, ShieldCheck, TrendingUp, Sliders } from 'lucide-react';
+import { RotateCcw, Trash2, Undo2, TrendingUp, Sliders } from 'lucide-react';
+import Image from 'next/image';
 import type { BetPlacement } from './types';
 import { VIP_CHIPS } from './roulette-config';
 import { CasinoJeton } from './CasinoJeton';
@@ -99,7 +100,7 @@ export function RouletteControlSidebar({
               border: '1px solid rgba(212, 175, 55, 0.3)',
             }}
           >
-            <Zap size={18} color="#FFD700" />
+            <Image src="/images/2026-09-06_icon-hud-sidebar-badge-quantum-gold_v001.png" alt="Roulette Controls" width={18} height={18} aria-hidden />
           </div>
           <h3
             style={{
@@ -522,7 +523,7 @@ export function RouletteControlSidebar({
           fontWeight: 700,
         }}
       >
-        <ShieldCheck size={14} color="#D4AF37" />
+        <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Provably Fair" width={14} height={14} aria-hidden />
         <span>PROVABLY FAIR SYSTEM ACTIVE</span>
       </div>
     </div>

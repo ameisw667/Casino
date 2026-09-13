@@ -1,7 +1,8 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { RotateCcw, Play, Zap, Info, Trophy } from 'lucide-react';
+import { RotateCcw, Play, Info } from 'lucide-react';
+import Image from 'next/image';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { validateBet } from '@/lib/casino/bet-validator';
 import { sanitizeClientSeed } from '@/lib/casino/provably-fair';
@@ -279,7 +280,7 @@ export default function SlotsV2Page() {
         <div className="slots-grid">
           <aside className="slot-legend">
             <div className="slot-legend-header">
-              <Trophy size={18} color="hsl(var(--primary))" />
+              <Image src="/images/2026-09-06_icon-trophy-win-quantum-gold_v001.png" alt="Paytable" width={18} height={18} aria-hidden />
               <span>PAYTABLE</span>
             </div>
             <div className="slot-legend-rule">
@@ -321,7 +322,7 @@ export default function SlotsV2Page() {
 
           <aside className="slot-control-panel">
             <div className="slot-panel-header">
-              <Zap size={20} color="hsl(var(--primary))" />
+              <Image src="/images/2026-09-06_icon-hud-sidebar-badge-quantum-gold_v001.png" alt="Slots Control" width={20} height={20} aria-hidden />
               <h3>CONTROL</h3>
               <button
                 className="btn btn-secondary"

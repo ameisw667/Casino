@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Medal, Crown, User, TrendingUp } from 'lucide-react';
+import { Medal, User, TrendingUp } from 'lucide-react';
+import Image from 'next/image';
 import { Tooltip } from '../ui/Tooltip';
 
 export function GlobalLeaderboard() {
@@ -40,7 +41,7 @@ export function GlobalLeaderboard() {
               color: 'hsl(var(--primary))',
             }}
           >
-            <Trophy size={20} />
+            <Image src="/images/2026-09-06_icon-trophy-record-quantum-gold_v001.png" alt="Top Wagered" width={20} height={20} aria-hidden />
           </div>
           <div>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 950 }}>TOP WAGERED</h2>
@@ -114,7 +115,7 @@ export function GlobalLeaderboard() {
                 <td data-label="Rank" style={{ padding: '16px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     {i === 0 ? (
-                      <Crown size={18} color="#ffd700" />
+                      <Image src="/images/2026-09-06_icon-crown-jackpot-quantum-gold_v001.png" alt="Platz 1" width={18} height={18} aria-hidden />
                     ) : i === 1 ? (
                       <Medal size={18} color="#c0c0c0" />
                     ) : i === 2 ? (

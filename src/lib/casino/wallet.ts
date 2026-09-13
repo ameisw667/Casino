@@ -445,6 +445,73 @@ export class WalletService {
     return { ok: true, amount: Number(result.amount), snapshot };
   }
 
+  /**
+   * 06_10 L0: admin-triggered clawback of a promo bonus later identified as fraudulent.
+   * Always human-initiated via the admin promo-codes reverse route — never automatic.
+   * Idempotent per requestId (network retry replays the same answer); the SQL side
+   * (066_promo_reversal_and_expiry.sql) rejects a second reversal of the same redemption.
+   * `shortfall` is the uncollected part when the balance already sits below the redemption
+   * amount (users.balance CHECK (balance >= 0) forbids a negative balance — the shortfall
+   * is reported honestly in ledger metadata + risk-event evidence instead of hidden).
+   */
+  static async reversePromoCode(params: {
+    actorId: string;
+    userId: string;
+    code: string;
+    requestId: string;
+    reason: string;
+  }): Promise<
+    {
+      ok: true;
+      amount: number;
+      shortfall: number;
+      replayed: boolean;
+      snapshot: WalletSnapshot;
+    } | { ok: false; code: string }
+  > {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.rpc('reverse_promo_code', {
+      p_actor_id: params.actorId,
+      p_user_id: params.userId,
+      p_code: params.code.trim().toUpperCase(),
+      p_request_id: params.requestId,
+      p_reason: params.reason,
+    });
+    if (error || !data) {
+      CasinoLogger.error('WalletService/reversePromoCode', 'RPC failed', error);
+      throw new Error('Promo reversal RPC failed');
+    }
+    const result = data as {
+      ok: boolean;
+      code?: string;
+      amount?: number;
+      shortfall?: number;
+      balance?: number;
+      xp?: number;
+      level?: number;
+      rank?: string;
+      transactionId?: string;
+      replayed?: boolean;
+    };
+    if (!result.ok) {
+      return { ok: false, code: String(result.code ?? 'REVERSAL_NOT_FOUND') };
+    }
+    const snapshot = walletSnapshotSchema.parse({
+      balance: Number(result.balance),
+      xp: Number(result.xp ?? 0),
+      level: Number(result.level ?? 1),
+      rank: String(result.rank ?? 'BRONZE'),
+      transactionId: String(result.transactionId),
+    });
+    return {
+      ok: true,
+      amount: Number(result.amount),
+      shortfall: Number(result.shortfall ?? 0),
+      replayed: Boolean(result.replayed),
+      snapshot,
+    };
+  }
+
   static async getUserStats(userId: string) {
     const supabase = createAdminClient();
     const { data, error } = await supabase.rpc('get_user_stats', { p_user_id: userId });

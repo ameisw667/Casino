@@ -29,6 +29,12 @@ import {
   type GuideConversationHistoryItem,
 } from './types';
 
+// Turn 2 must not get a fresh full timeout budget — that would let the documented
+// "8s total for both turns" invariant silently become up to 16s worst-case. Below
+// this remaining-budget floor, firing turn 2 would abort almost immediately anyway,
+// so fail closed instead of racing a doomed request.
+const MIN_TURN2_TIMEOUT_MS = 500;
+
 export async function requestCasinoGuideAnswer(
   message: string,
   userId?: string,
@@ -41,7 +47,12 @@ export async function requestCasinoGuideAnswer(
   }
 
   const request = await buildCasinoGuideRequest(message, history, image, persona);
+  const guideRequestStartedAt = Date.now();
   let response: Response;
+  // Populated only when the model calls trigger_ui_action; surfaced on every return
+  // below so the non-streaming JSON response can carry it the same way the SSE
+  // streaming path already does (stream.ts's own, separate uiAction handling).
+  let uiAction: GuideAnswerResult['action'];
 
   try {
     response = await fetch(request.url, request.init);
@@ -84,6 +95,19 @@ export async function requestCasinoGuideAnswer(
       });
 
       const toolResult = await executeGuideTool(call.name, call.arguments, userId);
+      if (call.name === 'trigger_ui_action') {
+        // toolResult is executeGuideTool's already-sanitized output (allowlisted action/target,
+        // trimmed+capped label) — never the model's raw call arguments.
+        const action = typeof toolResult.action === 'string' ? toolResult.action : undefined;
+        const label = typeof toolResult.label === 'string' ? toolResult.label : undefined;
+        if (action && label) {
+          uiAction = {
+            type: action,
+            target: typeof toolResult.target === 'string' ? toolResult.target : undefined,
+            label,
+          };
+        }
+      }
       toolInputs.push({
         type: 'function_call_output',
         call_id: call.callId,
@@ -101,12 +125,17 @@ export async function requestCasinoGuideAnswer(
       CASINO_GUIDE_MODEL.includes('o1') ||
       CASINO_GUIDE_MODEL.includes('o3');
 
+    const remainingBudgetMs = GUIDE_REQUEST_TIMEOUT_MS - (Date.now() - guideRequestStartedAt);
+    if (remainingBudgetMs < MIN_TURN2_TIMEOUT_MS) {
+      throw new CasinoGuideError('upstream');
+    }
+
     const turn2Request = {
       url: OPENAI_RESPONSES_URL,
       init: {
         method: 'POST',
         headers: createGuideHeaders(),
-        signal: AbortSignal.timeout(GUIDE_REQUEST_TIMEOUT_MS),
+        signal: AbortSignal.timeout(remainingBudgetMs),
         body: JSON.stringify({
           model: CASINO_GUIDE_MODEL,
           store: false,
@@ -156,6 +185,7 @@ export async function requestCasinoGuideAnswer(
           return {
             answer: cleanText,
             suggestions: suggestions.length > 0 ? suggestions : undefined,
+            action: uiAction,
             model: CASINO_GUIDE_MODEL,
             usage: normalizeGuideUsage(
               typeof turn2Payload === 'object' && turn2Payload !== null && 'usage' in turn2Payload
@@ -192,6 +222,7 @@ export async function requestCasinoGuideAnswer(
   return {
     answer: cleanText,
     suggestions: suggestions.length > 0 ? suggestions : undefined,
+    action: uiAction,
     model: CASINO_GUIDE_MODEL,
     usage: normalizeGuideUsage(
       typeof payload === 'object' && payload !== null && 'usage' in payload ? payload.usage : null,

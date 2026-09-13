@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, User, Wallet, Zap, Rocket, Dice6, RotateCcw, LayoutGrid } from 'lucide-react';
+import { Search, User, Wallet, Volume2, Rocket, Dices, RotateCcw, LayoutGrid } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcuts';
@@ -31,7 +31,7 @@ export function CommandPalette() {
     {
       id: 'dice',
       title: 'Play Dice',
-      icon: <Dice6 size={18} />,
+      icon: <Dices size={18} />,
       category: 'Games',
       action: () => router.push('/games/dice'),
     },
@@ -66,7 +66,7 @@ export function CommandPalette() {
     {
       id: 'sound',
       title: `Toggle Sound (${soundEnabled ? 'ON' : 'OFF'})`,
-      icon: <Zap size={18} />,
+      icon: <Volume2 size={18} />,
       category: 'Settings',
       action: toggleSound,
     },

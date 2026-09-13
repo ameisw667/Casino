@@ -2,7 +2,7 @@
 import React, { useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
-import { Star, Trophy } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { Magnetic } from '@/components/ui/Magnetic';
 
 interface Withdrawal {
@@ -322,7 +322,7 @@ export const HeroSectionV2: React.FC<HeroSectionV2Props> = ({
               animate={{ rotate: [0, 15, -15, 0] }}
               transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
             >
-              <Trophy size={14} fill="currentColor" />
+              <Image src="/images/2026-09-06_icon-promo-bonus-quantum-gold_v001.png" alt="First Deposit Bonus" width={14} height={14} aria-hidden />
             </motion.div>
             100% FIRST DEPOSIT BONUS ACTIVE
           </motion.div>

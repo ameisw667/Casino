@@ -14,6 +14,24 @@ import {
 } from '@/lib/casino/chat-guide/personas';
 import { playSynthesizedAudio, stopActiveAudioPlayback } from '@/lib/casino/voice-audio';
 
+// Must match guideHistoryItemSchema's content max in src/app/api/chat/bot-response/route.ts —
+// a single turn longer than this makes the server reject the ENTIRE history array (Zod .max()
+// on the array item, not a truncation), silently breaking every follow-up message for the rest
+// of the conversation once one guide answer or player message crosses the limit.
+const GUIDE_HISTORY_TURN_MAX_CHARS = 1000;
+
+export function buildGuideHistoryPayload(
+  turns: readonly GuideTurn[],
+): Array<{ role: 'user' | 'assistant'; content: string }> {
+  return turns
+    .filter((t) => t.id !== 'royale-guide-intro' && !t.isSystemNotice)
+    .slice(-6)
+    .map((t) => ({
+      role: t.role === 'player' ? ('user' as const) : ('assistant' as const),
+      content: t.text.slice(0, GUIDE_HISTORY_TURN_MAX_CHARS),
+    }));
+}
+
 export function useGuideChatStream() {
   const [turns, setTurns] = useState<GuideTurn[]>([INITIAL_TURN]);
   const [isSending, setIsSending] = useState(false);
@@ -145,13 +163,7 @@ export function useGuideChatStream() {
       setIsSending(true);
       setActiveToolName(null);
 
-      const history = turns
-        .filter((t) => t.id !== 'royale-guide-intro')
-        .slice(-6)
-        .map((t) => ({
-          role: t.role === 'player' ? ('user' as const) : ('assistant' as const),
-          content: t.text,
-        }));
+      const history = buildGuideHistoryPayload(turns);
 
       const guideTurnId = nextTurnId('guide');
       const replyTime = getCurrentTime();
@@ -188,7 +200,7 @@ export function useGuideChatStream() {
           }
           setTurns((current) => [
             ...current,
-            { id: guideTurnId, role: 'guide', text, time: replyTime },
+            { id: guideTurnId, role: 'guide', text, time: replyTime, isSystemNotice: true },
           ]);
           return;
         }
@@ -261,6 +273,7 @@ export function useGuideChatStream() {
                   ? {
                       ...t,
                       text: 'Royale Guide konnte keine Antwort generieren. Bitte versuche es erneut.',
+                      isSystemNotice: true,
                     }
                   : t,
               ),
@@ -317,6 +330,7 @@ export function useGuideChatStream() {
             role: 'guide',
             text: 'Royale Guide ist vorübergehend nicht erreichbar. Bitte versuche es gleich erneut.',
             time: replyTime,
+            isSystemNotice: true,
           },
         ]);
       } finally {

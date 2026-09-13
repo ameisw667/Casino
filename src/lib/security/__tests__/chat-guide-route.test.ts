@@ -138,6 +138,46 @@ describe('chat guide response route', () => {
     );
   });
 
+  it('forwards a trigger_ui_action result in the non-streaming JSON response (regression: the route dropped answerResult.action entirely, so the button never reached the client)', async () => {
+    mocks.requestCasinoGuideAnswer.mockResolvedValue({
+      answer: 'Klick den Button, um zu Blackjack zu wechseln.',
+      model: 'gpt-4o-mini',
+      usage: null,
+      action: { type: 'navigate_game', target: 'blackjack', label: 'Zu Blackjack' },
+    });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      data: {
+        answer: 'Klick den Button, um zu Blackjack zu wechseln.',
+        action: { type: 'navigate_game', target: 'blackjack', label: 'Zu Blackjack' },
+        contextVersion: '2026-08-21',
+      },
+    });
+  });
+
+  it('forwards follow-up suggestions in the non-streaming JSON response (regression: the route dropped answerResult.suggestions entirely, same root cause as the action-dropping bug)', async () => {
+    mocks.requestCasinoGuideAnswer.mockResolvedValue({
+      answer: 'Der Hausvorteil bei Dice liegt bei 1%.',
+      model: 'gpt-4o-mini',
+      usage: null,
+      suggestions: ['Wie funktioniert Roulette?', 'Was ist Provably Fair?'],
+    });
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      data: {
+        answer: 'Der Hausvorteil bei Dice liegt bei 1%.',
+        suggestions: ['Wie funktioniert Roulette?', 'Was ist Provably Fair?'],
+        contextVersion: '2026-08-21',
+      },
+    });
+  });
+
   it('rejects a malformed guide payload before the guide service runs', async () => {
     const response = await POST(request(' '));
 

@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
@@ -53,9 +52,21 @@ export async function GET(request: Request) {
       });
       if (!error && data) {
         observability = data as Record<string, unknown>;
+      } else if (error) {
+        // A genuine RPC error is otherwise indistinguishable from "no traffic yet" once the
+        // zero-value fallback below kicks in — log it so a broken RPC doesn't go unnoticed.
+        CasinoLogger.error(
+          'API/Admin/Evals',
+          'get_guide_observability RPC returned an error',
+          new Error(error.message),
+        );
       }
-    } catch {
-      // RPC fallback handled below
+    } catch (rpcError) {
+      CasinoLogger.error(
+        'API/Admin/Evals',
+        'get_guide_observability RPC threw unexpectedly',
+        rpcError instanceof Error ? rpcError : undefined,
+      );
     }
 
     // Default fallback if table/RPC is not yet populated

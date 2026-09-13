@@ -202,18 +202,20 @@ describe('chat-guide pure contracts (L12.5 regression net)', () => {
       expect(res.textToEmit).toBe('Antworttext.');
       expect(res.suggestionsFound).toEqual(['Frage A', 'Frage B']);
 
+      // Regression: flush() used to re-emit the same suggestions array a second time here,
+      // since processChunk() already returned it once via `res` above.
       const flush = filter.flush();
       expect(flush.textToEmit).toBe('');
-      expect(flush.suggestionsFound).toEqual(['Frage A', 'Frage B']);
+      expect(flush.suggestionsFound).toBeNull();
     });
 
-    it('keeps already-captured suggestions available on flush without re-emitting text', () => {
+    it('does not re-emit already-captured suggestions on flush, only trailing text (if any)', () => {
       const filter = new SuggestionStreamFilter();
       filter.processChunk('Text.<<<SUGGESTIONS: ["Einzel"]>>>');
       const flush = filter.flush();
 
       expect(flush.textToEmit).toBe('');
-      expect(flush.suggestionsFound).toEqual(['Einzel']);
+      expect(flush.suggestionsFound).toBeNull();
     });
   });
 });

@@ -5,7 +5,7 @@
 
 | Secret | Letztes Rotationsdatum | Grund | Klasse (siehe SOP) |
 | :--- | :---: | :--- | :--- |
-| _(noch keine Rotation dokumentiert seit Einführung dieses Logs, 2026-08-29)_ | — | — | — |
+| FRAUD_FINGERPRINT_SECRET | 2026-08-16 | Ersteinrichtung (ursprüngliche Anlage mit der Anti-Fraud-Einführung, Commit ee64643; Rotationsintervall 365 Tage laut `xx_sop/14_secret_rotation.md`, Abschnitt 1 — erstmals dokumentiert am 2026-09-08 im Rahmen von Plan 06_3 L4) | Mittel |
 
 ## Format für neue Einträge
 

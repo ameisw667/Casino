@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ShieldCheck } from 'lucide-react';
+import Image from 'next/image';
 import {
   type ConsentValue,
   readConsent,
@@ -56,7 +56,7 @@ export function ConsentBanner() {
                 marginBottom: '6px',
               }}
             >
-              <ShieldCheck size={14} color="#D4AF37" style={{ flexShrink: 0 }} />
+              <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Datenschutz" width={14} height={14} aria-hidden style={{ flexShrink: 0 }} />
               <div
                 style={{
                   fontSize: '0.62rem',

@@ -1,7 +1,9 @@
 import 'server-only';
 
 import { executeGuideTool } from '../guide-tools';
+import { recordGuideTelemetry, type GuideTelemetryOutcome } from '../guide-telemetry';
 import { loadGuideLeaderboardSnippet } from '../guide-live-leaderboard';
+import { CasinoLogger } from '../logger';
 import { requestCasinoGuideAnswer } from './answer';
 import { buildCasinoGuideContextAsync } from './context';
 import { buildCasinoGuideInstructions } from './instructions';
@@ -25,6 +27,8 @@ export async function requestCasinoGuideAnswerStream(
   image?: string,
   persona: GuidePersona = DEFAULT_PERSONA,
 ): Promise<GuideStreamResult> {
+  const streamStartedAt = performance.now();
+
   if (!process.env.OPENAI_API_KEY?.trim()) {
     throw new CasinoGuideError('configuration');
   }
@@ -146,7 +150,7 @@ export async function requestCasinoGuideAnswerStream(
         controller.close();
       },
     });
-    return { stream: fallbackStream, model: fallbackAnswer.model };
+    return { stream: fallbackStream, model: fallbackAnswer.model, telemetryHandledInStream: false };
   }
 
   if (!openAiStreamRes.ok || !openAiStreamRes.body) {
@@ -189,7 +193,7 @@ export async function requestCasinoGuideAnswerStream(
         controller.close();
       },
     });
-    return { stream: fallbackStream, model: fallbackAnswer.model };
+    return { stream: fallbackStream, model: fallbackAnswer.model, telemetryHandledInStream: false };
   }
 
   const encoder = new TextEncoder();
@@ -269,17 +273,48 @@ export async function requestCasinoGuideAnswerStream(
           encoder.encode(`data: ${JSON.stringify({ done: true, model: CASINO_GUIDE_MODEL })}\n\n`),
         );
         controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+
+        // Recorded here (actual stream completion), not by the caller right after this
+        // function returns the (still-unread) stream — a mid-stream failure below must be
+        // able to report its true outcome instead of a 'success' already written upstream.
+        if (userId) {
+          await recordGuideTelemetry({
+            actorId: userId,
+            outcome: 'success',
+            latencyMs: Math.round(performance.now() - streamStartedAt),
+            model: CASINO_GUIDE_MODEL,
+            usage: null,
+          });
+        }
       } catch (err) {
+        // Never forward the raw internal error message into the SSE payload — it can
+        // contain upstream/network detail the client has no business seeing (the same
+        // "no message leak" rule already enforced on every non-streaming guide error path).
+        CasinoLogger.error(
+          'ChatGuideStream',
+          'SSE stream failed mid-response',
+          err instanceof Error ? err : undefined,
+        );
         controller.enqueue(
           encoder.encode(
-            `data: ${JSON.stringify({ error: err instanceof Error ? err.message : 'Stream Error' })}\n\n`,
+            `data: ${JSON.stringify({ error: 'Casino guide is temporarily unavailable' })}\n\n`,
           ),
         );
+        if (userId) {
+          const outcome: GuideTelemetryOutcome = 'upstream';
+          await recordGuideTelemetry({
+            actorId: userId,
+            outcome,
+            latencyMs: Math.round(performance.now() - streamStartedAt),
+            model: CASINO_GUIDE_MODEL,
+            usage: null,
+          });
+        }
       } finally {
         controller.close();
       }
     },
   });
 
-  return { stream, model: CASINO_GUIDE_MODEL };
+  return { stream, model: CASINO_GUIDE_MODEL, telemetryHandledInStream: true };
 }

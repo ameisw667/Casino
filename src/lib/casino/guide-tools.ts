@@ -115,6 +115,12 @@ export type PlayerAccountLimitsResult = {
   provablyFairVerification: string;
 };
 
+// Single source of truth for the guide-chat rate limit, consumed both here (the
+// player-facing self-disclosure string) and by the API route's enforceRateLimit()
+// call — a prior review found these drifting apart when kept as separate literals.
+export const GUIDE_CHAT_RATE_LIMIT_MAX = 30;
+export const GUIDE_CHAT_RATE_LIMIT_WINDOW_SECONDS = 60;
+
 export async function executeGetPlayerVipProgress(
   userId?: string,
 ): Promise<PlayerVipProgressResult> {
@@ -215,7 +221,7 @@ export function executeGetPlayerAccountLimits(): PlayerAccountLimitsResult {
   return {
     minBetPerRound: '$0.10',
     maxBetPerRound: '$10,000.00',
-    guideRateLimit: '30 Anfragen pro 60 Sekunden',
+    guideRateLimit: `${GUIDE_CHAT_RATE_LIMIT_MAX} Anfragen pro ${GUIDE_CHAT_RATE_LIMIT_WINDOW_SECONDS} Sekunden`,
     provablyFairVerification: 'Aktiv (HMAC-SHA256 mit Client Seed & Nonce)',
   };
 }

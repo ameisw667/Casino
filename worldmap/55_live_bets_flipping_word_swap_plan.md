@@ -1,7 +1,9 @@
 # 55 — Live-Wetten Ticker & Rollen: Flipping Word Swap
 
-> **Status:** Execution-Ready · **Stand:** 2026-09-07 · **Owner:** LLM (100 % LLM-Zuständigkeit) · **Scope:** Kinetisches 3D-Flipwerk (`flipping-word-swap`) für einlaufende Live-Wetten in der Bento-Lobby (`src/components/home/bento/BentoLiveWinsCell.tsx`).
+> **Status:** Geplant · **Stand:** 2026-09-12 · **Owner:** LLM (100 % LLM-Zuständigkeit) · **Scope:** Kinetisches 3D-Flipwerk (`flipping-word-swap`) für einlaufende Live-Wetten in der Bento-Lobby (`src/components/home/bento/BentoLiveWinsCell.tsx`).
 > **Money-Pfad:** Nein · **Security-Review:** Nein
+
+> **Statuskorrektur 2026-09-12:** Der im Scope genannte Host-Pfad existiert nicht mehr. Vor L0 ist eine aktuelle Host-Zuordnung und die Aktualisierung des Kontext-Koffers erforderlich; erst danach ist der Plan wieder Execution-Ready.
 
 ---
 

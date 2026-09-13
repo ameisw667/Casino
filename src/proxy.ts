@@ -41,6 +41,11 @@ const PUBLIC_ROUTES = [
   // signup; the freshly created session may not yet be visible to the server, so the route
   // treats "no user" as fail-open and only rate-limits plus records an observability signal.
   '/api/auth/signup-suspicion',
+  // 06_3 L0 signup network-fingerprint receiver — same fire-and-forget shape as the
+  // suspicion receiver above: freshly created sessions may not yet be visible to the
+  // server, so the route treats "no user" as fail-open and only rate-limits plus records
+  // observability data.
+  '/api/auth/signup-fingerprint',
   // These handlers perform their own Supabase auth and return API-shaped 401/503 responses.
   '/api/casino/(.*)',
   '/api/chat/bot-response',

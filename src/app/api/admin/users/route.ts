@@ -1,9 +1,11 @@
 import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
+import { after } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { isAdminEmail } from '@/lib/security/admin';
 import { CasinoLogger } from '@/lib/casino/logger';
+import { recordRiskEventBestEffort } from '@/lib/casino/risk-event-store';
 import {
   enforceRateLimit,
   getClientIdentifier,
@@ -209,6 +211,28 @@ export async function PATCH(request: Request) {
       fields: Object.keys(updates),
       replayed: parsedResult.data.replayed,
     });
+
+    // 06_9 L1 (Q1a): manual admin balance corrections are the only balance-changing path
+    // that previously left no risk-signal trace. A `balance_correction` event makes every
+    // manual intervention audit-visible like automated signals. Per-transaction evidence
+    // (transactionId) gives each correction its own fingerprint, so this never bumps an
+    // existing event's occurrences. Low severity on purpose: routine, authorized admin
+    // work — the signal exists for the audit trail, not for alarm.
+    if (updates.balance !== undefined) {
+      after(async () => {
+        await recordRiskEventBestEffort({
+          subjectUserId: targetUserId,
+          signalType: 'balance_correction',
+          severity: 'low',
+          windowStart: new Date().toISOString(),
+          evidence: {
+            changedFields: Object.keys(updates),
+            transactionId: parsedResult.data.transactionId,
+            replayed: parsedResult.data.replayed,
+          },
+        });
+      });
+    }
 
     return apiSuccessResponse({
       success: true,

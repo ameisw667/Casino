@@ -140,5 +140,5 @@
 | Kontextreferenz mit Cross-Doc-Drift | [`xx_docs/01_supabase_context.md`](../xx_docs/01_supabase_context.md) — wird in L2 korrigiert |
 | Beleg für Ledger-Architektur | [`supabase/migrations/002_wallet.sql`](../supabase/migrations/002_wallet.sql) |
 | Gewichtete Subkategorien-Bewertung (Kategorie 02, alle 10 Säulen) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 02) | [`worldmap/04_datenbank_migrationen.md`](../worldmap/04_datenbank_migrationen.md) |
+| Übergeordnete Aufschlüsselung (Kategorie 02) | [`T_DATABASE/04_datenbank_migrationen.md`](../T_DATABASE/04_datenbank_migrationen.md) |
 | Planungsdateien-Konvention | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md) |

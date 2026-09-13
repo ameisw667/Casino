@@ -9,7 +9,6 @@ import { useCasinoStore } from '@/store/useCasinoStore';
 import { CasinoLogger } from '@/lib/casino/logger';
 import { getOrCreateSessionId } from '@/lib/casino/session';
 import { isBigWin } from '@/lib/casino/big-win';
-import { useMounted } from '@/hooks/useMounted';
 import { KeyboardShortcutProvider } from '@/hooks/useKeyboardShortcuts';
 import { NavigationShortcuts } from './NavigationShortcuts';
 import { MainSidebar, type MenuItem } from './MainSidebar';
@@ -18,6 +17,7 @@ import { ToastContainer } from './ToastContainer';
 import { BarChart3, Gamepad2, History, Home, Settings, Target, Trophy } from 'lucide-react';
 
 import { MainLayoutModals } from './MainLayoutModals';
+import { Footer } from './Footer';
 
 const ProvablyFairModal = dynamic(
   () => import('../casino/ProvablyFairModal').then((mod) => mod.ProvablyFairModal),
@@ -32,7 +32,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   type CasinoWindow = Window & { _stopCasinoBackground?: () => void };
   const router = useRouter();
   const pathname = usePathname();
-  const mounted = useMounted();
 
   // Navigation Handler with logging
   const navigate = (path: string) => {
@@ -116,7 +115,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       authLoaded &&
       effectiveIsSignedIn &&
       onboardingStep !== 'NONE' &&
-      onboardingStep !== 'COMPLETED'
+      onboardingStep !== 'COMPLETED' &&
+      onboardingStep !== 'WELCOME'
     ) {
       setOnboardingStep('COMPLETED');
     }
@@ -319,24 +319,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     },
   ];
 
-  if (!mounted) {
-    return (
-      <div
-        style={{
-          background: '#000',
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#ffd700',
-          fontWeight: 900,
-          fontFamily: 'var(--font-inter), sans-serif',
-        }}
-      >
-        INITIALIZING CASINO...
-      </div>
-    );
-  }
 
   return (
     <KeyboardShortcutProvider>
@@ -399,6 +381,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
           />
           <div
+            id="main-scroll-container"
             style={{
               flex: 1,
               minHeight: 0,
@@ -412,7 +395,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               flexDirection: 'column',
             }}
           >
-            {children}
+            <div style={{ flex: 1 }}>{children}</div>
+            <Footer />
           </div>
         </main>
 

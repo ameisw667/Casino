@@ -25,8 +25,9 @@ describe('migration history hardening', () => {
   it('uses one filename per migration version and keeps the repaired range contiguous', () => {
     const versions = migrations.map((file) => file.slice(0, 3));
     // Die Obergrenze wird pro neuer Migration bewusst hartkodiert gepflegt (wie bisher):
-    // 064_enable_pgtap.sql (T_DATABASE/10 L3) erweitert den erwarteten Kontiguitätsbereich auf 64.
-    const expectedVersions = Array.from({ length: 64 }, (_, index) =>
+    // 069_risk_event_retention_purge.sql (06_3 L6) erweitert den erwarteten
+    // Kontiguitätsbereich auf 69.
+    const expectedVersions = Array.from({ length: 69 }, (_, index) =>
       String(index + 1).padStart(3, '0'),
     );
 

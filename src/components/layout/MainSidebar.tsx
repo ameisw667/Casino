@@ -204,13 +204,16 @@ export function MainSidebar({
             title="Royale Guide öffnen"
             aria-label="Royale Guide öffnen"
             style={{
-              justifyContent: 'center',
+              justifyContent: 'flex-start',
               width: '100%',
+              minHeight: '44px',
               marginBottom: '4px',
-              padding: '10px 14px',
+              padding: '8px 14px',
               borderRadius: '8px',
-              background: 'transparent',
-              color: 'rgba(255, 255, 255, 0.72)',
+              background: 'linear-gradient(90deg, rgba(212, 175, 55, 0.08) 0%, rgba(11, 14, 20, 0.4) 100%)',
+              border: '1px solid rgba(212, 175, 55, 0.22)',
+              color: '#FFFFFF',
+              gap: '12px',
               transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
           >
@@ -226,7 +229,19 @@ export function MainSidebar({
                 style={{ objectFit: 'contain' }}
               />
             </div>
-            <span>Royale Guide</span>
+            <span style={{ fontWeight: 600, fontSize: '0.86rem', letterSpacing: '0.02em' }}>Royale Guide</span>
+            <span
+              style={{
+                marginLeft: 'auto',
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: '#10b981',
+                boxShadow: '0 0 6px #10b981',
+                flexShrink: 0,
+              }}
+              aria-hidden
+            />
           </button>
 
           {menuItems.map((item) => {

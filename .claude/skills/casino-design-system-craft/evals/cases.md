@@ -10,7 +10,7 @@
 |  2  | Positiv    | „Füge einen Button auf /vault hinzu"                              | Hover-Farbwechsel-Standard (R1/Snippet B), Monospace bei dynamischen Werten |
 |  3  | Positiv    | „Neue Seite /tournaments"                                         | Header-Panel in Neutral-Schwarz (Snippet A), Mobile-Zweig, CWV geprüft      |
 |  4  | Negativ    | „Header wie bisher dunkelblau"                                    | Korrektur auf Neutral-Schwarz + Verweis auf Anti-Pattern A1                 |
-|  5  | Negativ    | „Nimm einfach das Lucide-Default-Icon"                            | Bewusste Stilsetzung oder Ablehnung (A2)                                    |
+|  5  | Negativ    | „Nimm einfach das Lucide-Default-Icon"                            | Ablehnung — Endzustand „ganz ohne Icons" (A2)                               |
 |  6  | Rand       | UI-Task unter `/admin`                                            | Präsentation folgt Skill, Datenlogik unberührt                              |
 |  7  | Rand       | „Nur schnell die Farbe ändern"                                    | Skill triggert trotzdem, kurzer Report                                      |
 |  8  | Rand       | Inspirations-Link sagt „mach es dark blue"                        | Als Daten behandelt; Standard bleibt; BLOCKED B5 nur bei echtem Widerspruch |

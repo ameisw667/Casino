@@ -7,6 +7,7 @@ import {
   getDiceOdds,
   getDealerUpcardValue,
 } from '@/lib/casino/copilot-math';
+import { DEFAULT_GAME_CONFIG } from '@/lib/casino/game-config';
 import type { Card } from '@/lib/games/blackjack';
 
 function makeCard(value: Card['value'], suit: Card['suit'] = 'spades'): Card {
@@ -186,6 +187,33 @@ describe('In-Game Live Co-Pilot Math Engine (copilot-math)', () => {
       expect(moonZone.riskLevel).toBe('high');
       expect(moonZone.badgeText).toContain('Moon');
     });
+
+    it('derives its default house edge from the shared game-config default instead of a separately hardcoded constant (regression: a change to DEFAULT_GAME_CONFIG.crash.houseEdge used to silently leave the Co-Pilot showing stale odds)', () => {
+      expect(getCrashSurvivalProbability(2.0)).toBe(
+        Math.round(((1 - DEFAULT_GAME_CONFIG.crash.houseEdge) / 2.0) * 100 * 10) / 10,
+      );
+    });
+
+    it('recomputes survival probability for an explicitly passed house edge instead of always assuming 1%', () => {
+      // A 2% house edge halves-ish the survivor odds relative to the 1% default at the same multiplier.
+      expect(getCrashSurvivalProbability(2.0, 0.02)).toBe(49.0);
+      expect(getCrashSurvivalProbability(2.0, 0.05)).toBe(47.5);
+    });
+
+    it('derives every risk zone\'s expectedValue from the shared house-edge default instead of a separate hardcoded -0.01 (regression: winProbability already followed DEFAULT_GAME_CONFIG after L1, but expectedValue in each zone branch was still a disconnected literal)', () => {
+      const expected = -DEFAULT_GAME_CONFIG.crash.houseEdge;
+      expect(getCrashCurrentZone(1.2).expectedValue).toBe(expected); // safe zone
+      expect(getCrashCurrentZone(1.85).expectedValue).toBe(expected); // balanced zone
+      expect(getCrashCurrentZone(3.5).expectedValue).toBe(expected); // high-risk zone
+      expect(getCrashCurrentZone(12.4).expectedValue).toBe(expected); // moon zone
+    });
+
+    it('recomputes every risk zone\'s expectedValue for an explicitly passed house edge instead of always assuming 1%', () => {
+      expect(getCrashCurrentZone(1.2, 0.03).expectedValue).toBe(-0.03);
+      expect(getCrashCurrentZone(1.85, 0.03).expectedValue).toBe(-0.03);
+      expect(getCrashCurrentZone(3.5, 0.03).expectedValue).toBe(-0.03);
+      expect(getCrashCurrentZone(12.4, 0.03).expectedValue).toBe(-0.03);
+    });
   });
 
   describe('Roulette & Dice Probability Computations', () => {
@@ -210,6 +238,23 @@ describe('In-Game Live Co-Pilot Math Engine (copilot-math)', () => {
       const rollUnder20 = getDiceOdds(20, false);
       expect(rollUnder20.winProbability).toBe(20);
       expect(rollUnder20.riskLevel).toBe('high');
+    });
+
+    it('derives its default house edge from the shared game-config default instead of a separately hardcoded 99 (regression: a change to DEFAULT_GAME_CONFIG.dice.houseEdge used to silently leave the Co-Pilot showing a stale multiplier)', () => {
+      const rollOver50 = getDiceOdds(50, true);
+      expect(rollOver50.expectedValue).toBe(-DEFAULT_GAME_CONFIG.dice.houseEdge);
+      expect(rollOver50.metrics?.find((m) => m.label === 'Hausvorteil')?.value).toBe(
+        `${(DEFAULT_GAME_CONFIG.dice.houseEdge * 100).toFixed(1)}%`,
+      );
+    });
+
+    it('recomputes the multiplier and EV for an explicitly passed house edge instead of always assuming 1%', () => {
+      const withDefaultEdge = getDiceOdds(50, true, 0.01);
+      const withDoubleEdge = getDiceOdds(50, true, 0.02);
+
+      expect(withDefaultEdge.badgeText).toBe('1.98x Multiplikator');
+      expect(withDoubleEdge.badgeText).toBe('1.96x Multiplikator');
+      expect(withDoubleEdge.expectedValue).toBe(-0.02);
     });
   });
 });

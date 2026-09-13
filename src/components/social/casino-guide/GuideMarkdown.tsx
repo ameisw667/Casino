@@ -11,7 +11,7 @@ function cleanLatexMath(text: string): string {
 function parseInlineMarkdown(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
   const cleaned = text.replace(/\\text\{([^}]+)\}/g, '$1');
-  const regex = /(\*\*.*?\*\*|\*.*?\*|`.*?`)/g;
+  const regex = /(\*\*.*?\*\*|\*.*?\*|`.*?`|(?:\$|\\\()[^$\n]+?(?:\$|\\\)))/g;
   const tokens = cleaned.split(regex);
 
   for (let i = 0; i < tokens.length; i++) {
@@ -19,7 +19,7 @@ function parseInlineMarkdown(text: string): React.ReactNode[] {
     if (!token) continue;
     if (token.startsWith('**') && token.endsWith('**') && token.length > 4) {
       parts.push(
-        <strong key={i} style={{ color: 'hsl(var(--primary))', fontWeight: 700 }}>
+        <strong key={i} style={{ color: '#D4AF37', fontWeight: 700 }}>
           {token.slice(2, -2)}
         </strong>,
       );
@@ -36,15 +36,41 @@ function parseInlineMarkdown(text: string): React.ReactNode[] {
           style={{
             padding: '1.5px 6px',
             borderRadius: '4px',
-            background: 'hsla(var(--primary), 0.15)',
-            border: '1px solid hsla(var(--primary), 0.28)',
-            color: 'hsl(var(--primary))',
-            fontFamily: 'monospace',
+            background: 'rgba(212, 175, 55, 0.12)',
+            border: '1px solid rgba(212, 175, 55, 0.28)',
+            color: '#F4D068',
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
             fontSize: '0.78rem',
+            fontVariantNumeric: 'tabular-nums',
           }}
         >
           {token.slice(1, -1)}
         </code>,
+      );
+    } else if (
+      ((token.startsWith('$') && token.endsWith('$') && token.length > 2) ||
+        (token.startsWith('\\(') && token.endsWith('\\)') && token.length > 4)) &&
+      !token.includes('\n')
+    ) {
+      const mathInner = token.startsWith('\\(') ? token.slice(2, -2) : token.slice(1, -1);
+      parts.push(
+        <span
+          key={i}
+          style={{
+            display: 'inline-block',
+            padding: '1px 5.5px',
+            borderRadius: '4px',
+            background: 'rgba(212, 175, 55, 0.12)',
+            border: '1px solid rgba(212, 175, 55, 0.28)',
+            color: '#F4D068',
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+            fontSize: '0.78rem',
+            fontVariantNumeric: 'tabular-nums',
+            fontWeight: 600,
+          }}
+        >
+          {cleanLatexMath(mathInner)}
+        </span>,
       );
     } else {
       parts.push(token);
@@ -79,7 +105,9 @@ function MarkdownMessage({ content }: { content: string }) {
           margin: '8px 0',
           overflowX: 'auto',
           borderRadius: '8px',
-          border: '1px solid hsla(var(--primary), 0.25)',
+          border: '1px solid rgba(212, 175, 55, 0.28)',
+          background: 'rgba(11, 14, 20, 0.65)',
+          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
         }}
       >
         <table
@@ -88,18 +116,27 @@ function MarkdownMessage({ content }: { content: string }) {
             borderCollapse: 'collapse',
             fontSize: '0.78rem',
             textAlign: 'left',
+            fontVariantNumeric: 'tabular-nums',
           }}
         >
           <thead>
-            <tr style={{ background: 'hsla(var(--primary), 0.14)' }}>
+            <tr
+              style={{
+                background:
+                  'linear-gradient(90deg, rgba(212, 175, 55, 0.22) 0%, rgba(212, 175, 55, 0.08) 100%)',
+              }}
+            >
               {headerRow.map((col, idx) => (
                 <th
                   key={idx}
                   style={{
-                    padding: '6px 10px',
-                    color: 'hsl(var(--primary))',
+                    padding: '7px 10px',
+                    color: '#D4AF37',
                     fontWeight: 700,
-                    borderBottom: '1px solid hsla(var(--primary), 0.25)',
+                    fontSize: '0.72rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                    borderBottom: '1px solid rgba(212, 175, 55, 0.30)',
                   }}
                 >
                   {parseInlineMarkdown(col)}
@@ -113,16 +150,17 @@ function MarkdownMessage({ content }: { content: string }) {
                 key={rIdx}
                 style={{
                   borderBottom:
-                    rIdx < bodyRows.length - 1 ? '1px solid hsla(var(--primary), 0.1)' : 'none',
-                  background: rIdx % 2 === 1 ? 'hsla(var(--primary), 0.03)' : 'transparent',
+                    rIdx < bodyRows.length - 1 ? '1px solid rgba(212, 175, 55, 0.10)' : 'none',
+                  background: rIdx % 2 === 1 ? 'rgba(212, 175, 55, 0.04)' : 'transparent',
                 }}
               >
                 {row.map((cell, cIdx) => (
                   <td
                     key={cIdx}
                     style={{
-                      padding: '6px 10px',
-                      color: 'hsl(var(--text-main))',
+                      padding: '7px 10px',
+                      color: 'rgba(255, 255, 255, 0.88)',
+                      fontVariantNumeric: 'tabular-nums',
                     }}
                   >
                     {parseInlineMarkdown(cell)}
@@ -150,6 +188,7 @@ function MarkdownMessage({ content }: { content: string }) {
           gap: '5px',
           fontSize: '0.80rem',
           lineHeight: 1.55,
+          fontVariantNumeric: 'tabular-nums',
         }}
       >
         {listBuffer.map((item, lIdx) => (
@@ -200,7 +239,7 @@ function MarkdownMessage({ content }: { content: string }) {
           style={{
             fontSize: '0.86rem',
             fontWeight: 700,
-            color: 'hsl(var(--primary))',
+            color: '#D4AF37',
             margin: '10px 0 4px 0',
             letterSpacing: '0.02em',
             textWrap: 'balance',
@@ -222,18 +261,64 @@ function MarkdownMessage({ content }: { content: string }) {
         <div
           key={`math-${i}`}
           style={{
-            margin: '6px 0',
-            padding: '6px 12px',
-            borderRadius: '6px',
-            background: 'hsla(var(--primary), 0.08)',
-            border: '1px solid hsla(var(--primary), 0.22)',
-            fontFamily: 'monospace',
-            fontSize: '0.78rem',
-            color: 'hsl(var(--primary))',
-            textAlign: 'center',
+            margin: '8px 0',
+            borderRadius: '8px',
+            background:
+              'linear-gradient(180deg, rgba(18, 24, 38, 0.85) 0%, rgba(11, 14, 20, 0.90) 100%)',
+            border: '1px solid rgba(212, 175, 55, 0.35)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(212, 175, 55, 0.15)',
+            overflow: 'hidden',
           }}
         >
-          {formulaText}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '4px 10px',
+              background: 'rgba(212, 175, 55, 0.12)',
+              borderBottom: '1px solid rgba(212, 175, 55, 0.20)',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '0.52rem',
+                fontWeight: 700,
+                color: '#D4AF37',
+                textTransform: 'uppercase',
+                letterSpacing: '0.10em',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+              }}
+            >
+              <span>Σ</span> Quoten- & Wahrscheinlichkeits-Formel
+            </span>
+            <span
+              style={{
+                fontSize: '0.50rem',
+                fontWeight: 600,
+                color: 'rgba(255, 255, 255, 0.45)',
+                letterSpacing: '0.04em',
+              }}
+            >
+              Provably Fair / EV
+            </span>
+          </div>
+          <div
+            style={{
+              padding: '8px 12px',
+              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              color: '#F4D068',
+              letterSpacing: '0.02em',
+              textAlign: 'center',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {formulaText}
+          </div>
         </div>,
       );
       continue;
@@ -248,6 +333,7 @@ function MarkdownMessage({ content }: { content: string }) {
           fontSize: '0.80rem',
           lineHeight: 1.55,
           textWrap: 'pretty',
+          fontVariantNumeric: 'tabular-nums',
         }}
       >
         {parseInlineMarkdown(trimmed)}
@@ -258,7 +344,18 @@ function MarkdownMessage({ content }: { content: string }) {
   flushTable(lines.length);
   flushList(lines.length);
 
-  return <div style={{ display: 'flex', flexDirection: 'column' }}>{elements}</div>;
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        fontVariantNumeric: 'tabular-nums',
+        fontFeatureSettings: '"tnum" on, "cv02" on, "cv03" on, "cv04" on',
+      }}
+    >
+      {elements}
+    </div>
+  );
 }
 
 export { cleanLatexMath, parseInlineMarkdown, MarkdownMessage };

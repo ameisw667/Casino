@@ -154,3 +154,99 @@ describe('request security', () => {
     });
   });
 });
+
+// 06_5 L3/L4/L5: identifier extraction edge cases — IPv6 /64 normalization, header
+// fallbacks, and the de-shared no-IP fallback bucket.
+describe('identifier extraction edge cases (06_5)', () => {
+  function requestWithHeaders(headers: Record<string, string>): Request {
+    return new Request('http://casino.test/api', { headers });
+  }
+
+  it('normalizes IPv6 addresses of the same /64 block into one bucket', () => {
+    expect(getClientIdentifier(requestWithHeaders({ 'x-forwarded-for': '2001:db8:85a3:0:8a2e:370:7334' }))).toBe(
+      'ip:2001:db8:85a3:0',
+    );
+    expect(getClientIdentifier(requestWithHeaders({ 'x-forwarded-for': '2001:db8:85a3:0:abcd:ef01:2345:6789' }))).toBe(
+      'ip:2001:db8:85a3:0',
+    );
+  });
+
+  it('keeps IPv6 addresses of different /64 blocks in separate buckets', () => {
+    expect(getClientIdentifier(requestWithHeaders({ 'x-forwarded-for': '2001:db8:85a3:1::1' }))).not.toBe(
+      getClientIdentifier(requestWithHeaders({ 'x-forwarded-for': '2001:db8:85a3:2::1' })),
+    );
+  });
+
+  it('rate-limits two addresses of the same IPv6 /64 block together (06_5 L3 verification)', async () => {
+    const first = new Request('http://casino.test/api', {
+      headers: { 'x-forwarded-for': '2001:db8:85a3:0::1' },
+    });
+    const second = new Request('http://casino.test/api', {
+      headers: { 'x-forwarded-for': '2001:db8:85a3:0::2' },
+    });
+    const idA = getClientIdentifier(first);
+    const idB = getClientIdentifier(second);
+    expect(idA).toBe(idB);
+    for (let i = 0; i < 3; i += 1) {
+      await enforceRateLimit(idA, 'ipv6-test', 3, 10);
+    }
+    expect((await enforceRateLimit(idB, 'ipv6-test', 3, 10)).success).toBe(false);
+  });
+
+  it('leaves IPv4 addresses unchanged', () => {
+    expect(getClientIdentifier(requestWithHeaders({ 'x-forwarded-for': '203.0.113.5' }))).toBe(
+      'ip:203.0.113.5',
+    );
+  });
+
+  it('rate-limits IPv4-mapped IPv6 addresses on the embedded IPv4, not one collapsed bucket', () => {
+    expect(
+      getClientIdentifier(requestWithHeaders({ 'x-forwarded-for': '::ffff:203.0.113.9' })),
+    ).toBe('ip:203.0.113.9');
+  });
+
+  it('falls back to x-real-ip when x-forwarded-for is empty after trim', () => {
+    expect(
+      getClientIdentifier(requestWithHeaders({ 'x-forwarded-for': '   ', 'x-real-ip': '198.51.100.7' })),
+    ).toBe('ip:198.51.100.7');
+  });
+
+  it('uses x-real-ip when only that header is set', () => {
+    expect(getClientIdentifier(requestWithHeaders({ 'x-real-ip': '198.51.100.9' }))).toBe(
+      'ip:198.51.100.9',
+    );
+  });
+
+  it('no longer shares one bucket across all header-less requests — different UA means different bucket (06_5 L4 verification)', async () => {
+    const first = new Request('http://casino.test/api', {
+      headers: { 'user-agent': 'browser-a' },
+    });
+    const second = new Request('http://casino.test/api', {
+      headers: { 'user-agent': 'browser-b' },
+    });
+    expect(getClientIdentifier(first)).not.toBe(getClientIdentifier(second));
+    for (let i = 0; i < 3; i += 1) {
+      await enforceRateLimit(getClientIdentifier(first), 'no-ip-test', 3, 10);
+    }
+    expect((await enforceRateLimit(getClientIdentifier(second), 'no-ip-test', 3, 10)).success).toBe(
+      true,
+    );
+  });
+});
+
+// 06_5 L1 verification: anonymous leaderboard callers are IP-bucketed individually —
+// no more hardcoded `user:anon` shared bucket for every anonymous visitor.
+describe('leaderboard anonymous identifier (06_5 L1)', () => {
+  it('gives two anonymous visitors from different IPs independent rate-limit buckets', () => {
+    const visitorA = getClientIdentifier(new Request('http://casino.test/api', {
+      headers: { 'x-forwarded-for': '203.0.113.10' },
+    }));
+    const visitorB = getClientIdentifier(new Request('http://casino.test/api', {
+      headers: { 'x-forwarded-for': '203.0.113.11' },
+    }));
+    expect(visitorA).toBe('ip:203.0.113.10');
+    expect(visitorB).toBe('ip:203.0.113.11');
+    expect(visitorA).not.toBe(visitorB);
+    expect(visitorA).not.toBe('user:anon');
+  });
+});

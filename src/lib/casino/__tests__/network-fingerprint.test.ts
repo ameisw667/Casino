@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createHmac } from 'node:crypto';
 
 vi.mock('server-only', () => ({}));
 
@@ -10,11 +11,14 @@ vi.mock('@/utils/supabase/admin', () => ({
   createAdminClient: vi.fn(() => ({ rpc: mocks.rpc })),
 }));
 vi.mock('../logger', () => ({
-  CasinoLogger: { error: vi.fn() },
+  CasinoLogger: { error: vi.fn(), warn: vi.fn() },
 }));
 
-import { getClientIdentifier } from '@/lib/security/request-security';
-import { extractClientIp, recordBetNetworkFingerprintBestEffort } from '../network-fingerprint';
+import {
+  extractClientIp,
+  getClientIdentifier,
+} from '@/lib/security/request-security';
+import { recordBetNetworkFingerprintBestEffort } from '../network-fingerprint';
 
 const originalSecret = process.env.FRAUD_FINGERPRINT_SECRET;
 
@@ -31,8 +35,34 @@ describe('extractClientIp vs getClientIdentifier', () => {
     expect(getClientIdentifier(request, 'user_123')).toBe('user:user_123');
   });
 
-  it('falls back to unknown when no IP header is present', () => {
-    expect(extractClientIp(requestWithIp(null))).toBe('unknown');
+  it('returns null when no IP header is present', () => {
+    expect(extractClientIp(requestWithIp(null))).toBeNull();
+  });
+
+  it('uses the LAST xff entry for a prepared multi-value header (06_5 L0 — anti-spoofing parity with getClientIdentifier)', () => {
+    const request = requestWithIp('198.51.100.1, 203.0.113.7');
+    expect(extractClientIp(request)).toBe('203.0.113.7');
+  });
+
+  it('fingerprint hash for a prepared multi-value xff header matches the secure (last-entry) IP, not the spoofable first entry (06_5 L0)', async () => {
+    const secret = 'test-secret-32-bytes-minimum-000000';
+    process.env.FRAUD_FINGERPRINT_SECRET = secret;
+    mocks.rpc.mockResolvedValue({ error: null });
+
+    await recordBetNetworkFingerprintBestEffort(
+      'user_123',
+      requestWithIp('198.51.100.1, 203.0.113.7'),
+    );
+
+    const [, args] = mocks.rpc.mock.calls[0] as [string, { p_ip_hash: string }];
+    const expectedLastEntryHash = createHmac('sha256', secret)
+      .update('203.0.113.7')
+      .digest('hex');
+    const spoofedFirstEntryHash = createHmac('sha256', secret)
+      .update('198.51.100.1')
+      .digest('hex');
+    expect(args.p_ip_hash).toBe(expectedLastEntryHash);
+    expect(args.p_ip_hash).not.toBe(spoofedFirstEntryHash);
   });
 });
 

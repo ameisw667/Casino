@@ -10,6 +10,10 @@ export type GuideTurn = {
     label: string;
   };
   suggestions?: string[];
+  // True for a client-generated fallback/error notice (offline, non-2xx response, empty
+  // stream) rendered with role 'guide' so it visually matches a real answer. Never actually
+  // said by the model — must be excluded when building the history payload sent back to it.
+  isSystemNotice?: boolean;
 };
 
 export type CasinoGuidePanelProps = {
@@ -130,4 +134,33 @@ export const SIDEBAR_TOPICS = [
 
 export function nextTurnId(role: GuideTurn['role']): string {
   return `${role}-${crypto.randomUUID()}`;
+}
+
+// Only these 5 slugs have a real /games/<slug> route. The server's trigger_ui_action
+// allowlist (UI_ACTION_TARGETS in guide-tools.ts) is shared across every action type and
+// also permits non-game targets like "vault" or "settings" — nothing there stops the model
+// from pairing action: "navigate_game" with one of those, which would otherwise send the
+// player to a dead-end /games/vault route.
+const GUIDE_ACTION_GAME_TARGETS = ['blackjack', 'crash', 'dice', 'roulette', 'slots'] as const;
+
+export function resolveGuideActionRoute(action: { type: string; target?: string }): string | null {
+  switch (action.type) {
+    case 'open_vault':
+    case 'open_settings':
+    case 'open_rank_benefits':
+      return '/vault';
+    case 'open_history':
+      return '/history';
+    case 'open_leaderboard':
+      return '/leaderboard';
+    case 'navigate_game': {
+      if (!action.target) return null;
+      const cleanTarget = action.target.toLowerCase().replace(/[^a-z0-9]/g, '');
+      return (GUIDE_ACTION_GAME_TARGETS as readonly string[]).includes(cleanTarget)
+        ? `/games/${cleanTarget}`
+        : null;
+    }
+    default:
+      return null;
+  }
 }

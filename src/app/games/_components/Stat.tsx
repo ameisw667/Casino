@@ -19,19 +19,19 @@ export function Stat({
     >
       <span
         style={{
-          fontSize: '0.6rem',
+          fontSize: '0.54rem',
           fontWeight: 700,
           color: 'rgba(255, 255, 255, 0.35)',
-          letterSpacing: '0.08em',
+          letterSpacing: '0.07em',
           textTransform: 'uppercase',
-          marginBottom: '3px',
+          marginBottom: '2px',
         }}
       >
         {label}
       </span>
       <span
         style={{
-          fontSize: '0.95rem',
+          fontSize: '0.82rem',
           fontWeight: 900,
           color: highlight ? '#D4AF37' : '#ffffff',
           fontFamily: 'var(--font-mono, monospace)',

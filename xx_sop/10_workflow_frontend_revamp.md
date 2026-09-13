@@ -67,10 +67,13 @@ flowchart TD
 - Glassmorphism: `backdrop-filter: blur(12px)` und `bg-black/40` bis `bg-black/60`.
 - Spring-Physik: Framer Motion mit `bounce: 0.4` für interaktive Buttons.
 
-### Phase 5: Responsive-Audit & Übergabe
+### Phase 5: Responsive-Audit & Screenshot-Übergabe
 
 - Automatisierte Prüfskripte ausführen (siehe Abschnitt 4).
-- Übergabe mit konkreten Test-URLs (`http://localhost:3015/games/...`).
+- **Mandatorische Screenshot-Lieferung im Output:**
+  - Jede Frontend-Änderung MUSS durch einen live auf `http://localhost:3015` aufgenommenen Screenshot belegt werden.
+  - Der Screenshot wird präzise auf die geänderte Komponente / Sektion zugeschnitten (`clip` / Bounding Box) und unter `docs/frontend/screenshots/` oder `public/images/...` gespeichert.
+  - Der finale Output an Jan MUSS den Screenshot direkt per Markdown einbinden bzw. verlinken, inklusive URL (`http://localhost:3015/...`), damit Jan die optische Qualität sofort abnehmen kann.
 
 ---
 

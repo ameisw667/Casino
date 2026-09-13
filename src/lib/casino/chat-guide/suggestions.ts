@@ -37,6 +37,12 @@ export class SuggestionStreamFilter {
   private buffer = '';
   private isCapturing = false;
   private suggestions: string[] = [];
+  // Tracks whether processChunk() already returned the parsed suggestions once — without
+  // this, flush()'s fallback branch re-emitted the exact same suggestions array a second
+  // time on every single response (the delimiter block sits at the very end of the model's
+  // output per the prompt instructions, so the leftover buffer at flush() time is normally
+  // empty, which always fell through to that fallback branch).
+  private suggestionsEmitted = false;
 
   processChunk(chunk: string): { textToEmit: string; suggestionsFound: string[] | null } {
     this.buffer += chunk;
@@ -55,6 +61,7 @@ export class SuggestionStreamFilter {
           this.isCapturing = false;
           const { suggestions } = extractSuggestionsFromText(rawBlock);
           this.suggestions = suggestions;
+          this.suggestionsEmitted = true;
           return { textToEmit, suggestionsFound: suggestions };
         }
         return { textToEmit, suggestionsFound: null };
@@ -81,6 +88,7 @@ export class SuggestionStreamFilter {
         this.isCapturing = false;
         const { suggestions } = extractSuggestionsFromText(rawBlock);
         this.suggestions = suggestions;
+        this.suggestionsEmitted = true;
         return { textToEmit: '', suggestionsFound: suggestions };
       }
       return { textToEmit: '', suggestionsFound: null };
@@ -91,10 +99,18 @@ export class SuggestionStreamFilter {
     if (this.isCapturing || this.buffer.includes('<<<SUGGESTIONS:')) {
       const { suggestions } = extractSuggestionsFromText(this.buffer);
       this.buffer = '';
+      if (this.suggestionsEmitted) {
+        return { textToEmit: '', suggestionsFound: null };
+      }
+      this.suggestionsEmitted = true;
       return { textToEmit: '', suggestionsFound: suggestions.length > 0 ? suggestions : null };
     }
     const textToEmit = this.buffer;
     this.buffer = '';
+    if (this.suggestionsEmitted) {
+      return { textToEmit, suggestionsFound: null };
+    }
+    this.suggestionsEmitted = true;
     return { textToEmit, suggestionsFound: this.suggestions.length > 0 ? this.suggestions : null };
   }
 }

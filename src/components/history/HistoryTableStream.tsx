@@ -2,16 +2,16 @@
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ShieldCheck,
   History,
   ChevronRight,
   Rocket,
   Dices,
-  Sparkles,
-  RotateCcw,
+  Cherry,
+  Disc3,
   Gamepad2,
   Calendar,
 } from 'lucide-react';
+import Image from 'next/image';
 
 export interface HistoryRow {
   id: string;
@@ -66,13 +66,13 @@ function getGameConfig(game: string | null) {
       return {
         name: 'Slots',
         category: 'Original',
-        icon: <Sparkles size={12} color="#D4AF37" />,
+        icon: <Cherry size={12} color="#D4AF37" />,
       };
     case 'roulette':
       return {
         name: 'Roulette',
         category: 'Tisch',
-        icon: <RotateCcw size={12} color="#D4AF37" />,
+        icon: <Disc3 size={12} color="#D4AF37" />,
       };
     case 'blackjack':
       return {
@@ -802,7 +802,7 @@ export function HistoryTableStream({
                               transition: 'all 0.15s ease',
                             }}
                           >
-                            <ShieldCheck size={13} color="#D4AF37" />
+                            <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Quittung" width={13} height={13} aria-hidden />
                             <span>Quittung</span>
                             <ChevronRight size={12} />
                           </div>

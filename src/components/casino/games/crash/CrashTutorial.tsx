@@ -1,6 +1,6 @@
 'use client';
 
-import { Sparkles } from 'lucide-react';
+import Image from 'next/image';
 
 interface CrashTutorialProps {
   onClose: () => void;
@@ -49,7 +49,12 @@ export function CrashTutorial({ onClose }: CrashTutorialProps) {
             margin: '0 auto 20px',
           }}
         >
-          <Sparkles size={28} color="#FFD700" />
+          <Image
+            src="/images/2026-09-06_icon-ai-guide-quantum-gold_v001.png"
+            alt="Crash Tutorial"
+            width={28}
+            height={28}
+          />
         </div>
         <h2
           style={{

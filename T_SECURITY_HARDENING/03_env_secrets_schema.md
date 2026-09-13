@@ -167,6 +167,12 @@ Alle 5 Meilensteine umgesetzt. **Wichtige reale Erkenntnis bei L2:** `src/lib/en
 
 **Betroffene Dateien:** `src/utils/supabase/admin.ts`, `package.json`, `.env.example`, `trigger.config.ts`, neu: `scripts/assert-core-env.ts`, `src/__tests__/instrumentation.test.ts`.
 
+---
+
+## 10 — Runde-3-Prüfung (2026-09-12): kein weiteres Potenzial
+
+Im Rahmen der Jahres-Gesamtprüfung aller 10 Security-Hardening-Säulen wurde diese Säule erneut geprüft: Alle 5 Meilensteine (L1-L5) sind im verifizierten Merge-Stand (`security-hardening-round2-merge`, Worktree `.claude/worktrees/round2-merge`) vollständig umgesetzt — `grep -n "TODO\|FIXME"` über die betroffenen Dateien liefert 0 Treffer. Diese Säule hat **keinen K5-Blocker** und war bereits nach Runde 2 auf Ziel-Niveau (Top 10,2 %, „Ziel erreicht"). Eine weitere Härtungsrunde würde nur noch Bruchteile eines Prozentpunkts bewegen — kein sinnvolles Kosten-Nutzen-Verhältnis mehr. **Bewusst keine Runde 3.** Nächster fälliger Check: nur bei einer neuen, bisher unbekannten Lücke (z. B. neue Secret-Variable ohne Fail-Fast) oder auf Jans Wunsch.
+
 ## 8 — Verwandte Artefakte
 
 | Bedarf                                                          | Datei                                                                                                                         |

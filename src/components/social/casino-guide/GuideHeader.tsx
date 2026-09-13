@@ -1,8 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Maximize2, Minimize2, X } from 'lucide-react';
 import { GUIDE_PERSONAS, PERSONA_META, type GuidePersona } from '@/lib/casino/chat-guide/personas';
+import { springs } from '@/lib/design/motion-tokens';
 
 const PERSONA_BADGES: Record<
   GuidePersona,
@@ -47,6 +48,7 @@ export function GuideHeader({
   onClose,
 }: GuideHeaderProps) {
   const activeMeta = PERSONA_META[activePersona] ?? PERSONA_META.math_strategist;
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <header
@@ -222,8 +224,23 @@ export function GuideHeader({
                 role="radio"
                 aria-checked={isSelected}
                 title={`${meta.label}: ${meta.description}`}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                className="group relative"
+                whileHover={
+                  shouldReduceMotion
+                    ? undefined
+                    : {
+                        y: -2,
+                        scale: 1.025,
+                        borderColor: isSelected
+                          ? 'rgba(212, 175, 55, 0.90)'
+                          : 'rgba(212, 175, 55, 0.40)',
+                        boxShadow: isSelected
+                          ? '0 10px 24px rgba(0, 0, 0, 0.65), 0 0 18px rgba(212, 175, 55, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                          : '0 6px 16px rgba(0, 0, 0, 0.45), 0 0 12px rgba(212, 175, 55, 0.15)',
+                      }
+                }
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.97, y: 0 }}
+                transition={springs.snappy}
                 onClick={() => onSelectPersona?.(p)}
                 style={{
                   display: 'flex',
@@ -238,12 +255,23 @@ export function GuideHeader({
                     ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.22) 0%, rgba(11, 14, 20, 0.85) 100%)'
                     : 'rgba(18, 23, 34, 0.35)',
                   cursor: 'pointer',
+                  overflow: 'hidden',
                   boxShadow: isSelected
                     ? '0 6px 18px rgba(0, 0, 0, 0.55), 0 0 14px rgba(212, 175, 55, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.12)'
                     : 'none',
-                  transition: 'all 0.18s ease',
+                  transition: 'border-color 0.18s ease, background-color 0.18s ease',
                 }}
               >
+                {/* Metallic Hover Sheen Light Reflection */}
+                <div
+                  className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                  style={{
+                    background:
+                      'linear-gradient(105deg, transparent 20%, rgba(212, 175, 55, 0.14) 45%, rgba(255, 255, 255, 0.18) 50%, rgba(212, 175, 55, 0.14) 55%, transparent 80%)',
+                  }}
+                  aria-hidden="true"
+                />
+
                 {/* 3D Medaillon Avatar with Live Indicator Dot */}
                 <div
                   style={{
@@ -265,7 +293,7 @@ export function GuideHeader({
                         ? '1.5px solid hsl(var(--primary))'
                         : '1.5px solid rgba(255, 255, 255, 0.22)',
                       boxShadow: isSelected
-                        ? '0 0 12px hsla(var(--primary), 0.45)'
+                        ? '0 0 12px hsla(var(--primary), 0.55), 0 0 20px hsla(var(--primary), 0.25)'
                         : '0 2px 6px rgba(0, 0, 0, 0.4)',
                       background: '#0B0E14',
                     }}
@@ -382,8 +410,19 @@ export function GuideHeader({
                 role="radio"
                 aria-checked={isSelected}
                 title={`${meta.label} (${badge.tag}): ${meta.description}`}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={
+                  shouldReduceMotion
+                    ? undefined
+                    : {
+                        scale: 1.04,
+                        y: -1,
+                        borderColor: isSelected
+                          ? 'rgba(212, 175, 55, 0.85)'
+                          : 'rgba(212, 175, 55, 0.35)',
+                      }
+                }
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
+                transition={springs.snappy}
                 onClick={() => onSelectPersona?.(p)}
                 style={{
                   display: 'flex',
@@ -398,7 +437,7 @@ export function GuideHeader({
                   background: isSelected ? 'rgba(212, 175, 55, 0.14)' : 'rgba(255, 255, 255, 0.02)',
                   cursor: 'pointer',
                   minWidth: 0,
-                  transition: 'all 0.15s ease',
+                  transition: 'border-color 0.18s ease, background-color 0.18s ease',
                 }}
               >
                 <div

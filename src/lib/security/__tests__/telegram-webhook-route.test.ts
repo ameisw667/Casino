@@ -17,6 +17,7 @@ vi.mock('@/lib/casino/telegram-api', () => ({
 vi.mock('@/lib/casino/logger', () => ({ CasinoLogger: { error: mocks.casinoLoggerError } }));
 
 import { POST } from '@/app/api/telegram/webhook/route';
+import { resetLocalRateLimitsForTests } from '@/lib/security/request-security';
 
 const originalEnvironment = { ...process.env };
 
@@ -33,6 +34,7 @@ function webhookRequest(body: unknown, secret = 'webhook-secret') {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  resetLocalRateLimitsForTests();
   process.env.TELEGRAM_WEBHOOK_SECRET = 'webhook-secret';
 });
 
@@ -118,5 +120,33 @@ describe('POST /api/telegram/webhook', () => {
       webhookRequest({ message: { chat: { id: 42 }, text: '/start abc' } }),
     );
     expect(response.status).toBe(200);
+  });
+});
+
+describe('POST /api/telegram/webhook — rate limiting (06_6 L1/L4)', () => {
+  it('rejects the 61st valid-secret call in-window with the shared 429 envelope', async () => {
+    const ack = webhookRequest({ update_id: 1 });
+    for (let i = 0; i < 60; i += 1) {
+      expect((await POST(ack)).status).toBe(200);
+    }
+    const rejected = await POST(ack);
+
+    expect(rejected.status).toBe(429);
+    expect((await rejected.json()).error.code).toBe('RATE_LIMITED');
+    expect(rejected.headers.get('Retry-After')).toBeTruthy();
+  });
+
+  it('does NOT let invalid-secret floods consume the IP bucket (secret-first resolve ordering)', async () => {
+    // 60 unauthenticated floods: each 401, none may touch the limiter decision.
+    for (let i = 0; i < 60; i += 1) {
+      const flood = await POST(webhookRequest({ update_id: i }, 'wrong-secret'));
+      expect(flood.status).toBe(401);
+    }
+    // The legitimate Telegram caller afterwards still gets 200 — had the floods consumed
+    // the shared 60/60 bucket, this 61st decision would have been a 429. (The webhook's
+    // always-200 acks deliberately do not echo rate-limit headers; only the wrapper's
+    // rejects do.)
+    const legitimate = await POST(webhookRequest({ update_id: 999 }));
+    expect(legitimate.status).toBe(200);
   });
 });

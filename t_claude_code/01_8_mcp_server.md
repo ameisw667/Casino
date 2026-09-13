@@ -1,7 +1,7 @@
 # 01.8 — MCP-Server & externe Programme: Sub-Kategorie-Aufschlüsselung
 
 > Stand: **2026-08-30** — Erstaufschlüsselung von Kategorie **8 „MCP-Server & externe Programme"** aus `00_claude_code_uebersicht.md` in 10 einzeln bewertete Unterkategorien. Skala: **Top 1 % = Weltklasse**, **Top 100 % = schlechtestes Viertel**.
-> **Wichtige Abgrenzung:** `worldmap/Tooling/01_mcp.md` (Kategorie 16 der Haupt-Worldmap) bewertet bereits **projektbezogene MCP-Piloten für konkrete Dev-Tasks** (Sentry, Playwright, Context7, GitHub, Supabase, Vercel, DeepWiki — dort Top 45 %). Diese Datei dupliziert das nicht, sondern bewertet eine andere Ebene: **Konfigurations- und Sicherheitshygiene der MCP-Anbindung selbst** (welche Server sind überhaupt verbunden, wie sauber ist das gescoped, driftet die Permissions-Datei von der echten Server-Liste). Bei Widerspruch zwischen Server-_Nutzungstiefe_ zählt `02_mcp.md`, bei Fragen zur _Hygiene der Anbindung_ zählt diese Datei.
+> **Wichtige Abgrenzung:** `T_MCP/01_mcp.md` (Kategorie 16 der Haupt-Worldmap) bewertet bereits **projektbezogene MCP-Piloten für konkrete Dev-Tasks** (Sentry, Playwright, Context7, GitHub, Supabase, Vercel, DeepWiki — dort Top 45 %). Diese Datei dupliziert das nicht, sondern bewertet eine andere Ebene: **Konfigurations- und Sicherheitshygiene der MCP-Anbindung selbst** (welche Server sind überhaupt verbunden, wie sauber ist das gescoped, driftet die Permissions-Datei von der echten Server-Liste). Bei Widerspruch zwischen Server-_Nutzungstiefe_ zählt `02_mcp.md`, bei Fragen zur _Hygiene der Anbindung_ zählt diese Datei.
 
 ## Kernaussage für Jan
 
@@ -32,7 +32,7 @@ _Spaltenlogik (ergänzt 2026-09-05, einheitlich für `01_1`–`01_10`):_ **Planu
 
 ### 1 — Projekt-Scope MCP-Konfiguration (Top 10 %)
 
-`V:\VibeCoding\Casino\.mcp.json` definiert ausschließlich `playwright` (E2E-Browser-Automatisierung, siehe auch `worldmap/Tooling/01_mcp.md` Pilot „Top 15 %") und `context7` (Live-Dokulookup für Next.js/Supabase-APIs, Pilot „Top 25 %"). Beide sind bereits in der Haupt-Worldmap als evaluierte Piloten geführt — diese Kategorie bewertet hier nur, dass die _Anzahl_ der Projekt-Server bewusst klein gehalten wurde, nicht ihre inhaltliche Nutzungstiefe.
+`V:\VibeCoding\Casino\.mcp.json` definiert ausschließlich `playwright` (E2E-Browser-Automatisierung, siehe auch `T_MCP/01_mcp.md` Pilot „Top 15 %") und `context7` (Live-Dokulookup für Next.js/Supabase-APIs, Pilot „Top 25 %"). Beide sind bereits in der Haupt-Worldmap als evaluierte Piloten geführt — diese Kategorie bewertet hier nur, dass die _Anzahl_ der Projekt-Server bewusst klein gehalten wurde, nicht ihre inhaltliche Nutzungstiefe.
 
 ### 2 — Sicherheits-Scoping einzelner Projekt-Server (Top 5 %)
 
@@ -48,7 +48,7 @@ In dieser Sitzung sichtbare, nicht projektlokal konfigurierte MCP-Namespaces: ei
 
 ### 5/7 — Verweise statt Doppelmessung
 
-Beide Punkte verweisen auf bereits andernorts geleistete Arbeit (`worldmap/Tooling/01_mcp.md` für Nutzungstiefe, `01_7_context_management.md` für Ladeverhalten), um die Projektregel „keine Referenz doppelt pflegen" einzuhalten.
+Beide Punkte verweisen auf bereits andernorts geleistete Arbeit (`T_MCP/01_mcp.md` für Nutzungstiefe, `01_7_context_management.md` für Ladeverhalten), um die Projektregel „keine Referenz doppelt pflegen" einzuhalten.
 
 ### 6 — Nutzungsanleitungen je Server (Top 15 %)
 
@@ -64,7 +64,7 @@ Ein Mail-Tool mit Aktionen wie `send_message`, `trash_message`, `forward` sowie 
 
 ### 10 — Zentrale Übersicht „welcher Connector ist wofür nötig" (Top 85 %)
 
-Es existiert weder in `t_claude_code/` noch in `worldmap/` eine Datei, die die ≈ 16 Account-Connector einzeln bewertet („für Casino relevant: ja/nein, warum"). `worldmap/Tooling/01_mcp.md` deckt nur die 7 projektbezogen pilotierten Werkzeuge ab, nicht den vollen Connector-Bestand dieser Sitzung.
+Es existiert weder in `t_claude_code/` noch in `worldmap/` eine Datei, die die ≈ 16 Account-Connector einzeln bewertet („für Casino relevant: ja/nein, warum"). `T_MCP/01_mcp.md` deckt nur die 7 projektbezogen pilotierten Werkzeuge ab, nicht den vollen Connector-Bestand dieser Sitzung.
 
 ## Empfohlene Bearbeitungsreihenfolge
 
@@ -79,6 +79,6 @@ Es existiert weder in `t_claude_code/` noch in `worldmap/` eine Datei, die die �
 
 | Bedarf                                              | Datei                                                      |
 | --------------------------------------------------- | ---------------------------------------------------------- |
-| Projektbezogene MCP-Pilot-Bewertung (Nutzungstiefe) | [`02_mcp.md`](../worldmap/Tooling/01_mcp.md)               |
+| Projektbezogene MCP-Pilot-Bewertung (Nutzungstiefe) | [`02_mcp.md`](../T_MCP/01_mcp.md)               |
 | Token-Ökonomie-Perspektive auf MCP-Anzahl           | [`01_7_context_management.md`](01_7_context_management.md) |
 | Permissions-Gesamtbewertung (Kategorie 10)          | [`01_10_permissions.md`](01_10_permissions.md)             |

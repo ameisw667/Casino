@@ -1,0 +1,16 @@
+# 01 — Adversariale Qualitätssicherung (Subkategorie #6)
+
+> **Status:** 🔵 Bewertung (Ebene 1) — keine Ausführungs-Historie · **Stand:** 2026-09-12 · **Owner:** LLM · **Scope:** Ausschließlich Subkategorie #6 aus [`01_multi_agent_scaling_und_autonomie.md`](01_multi_agent_scaling_und_autonomie.md) Abschnitt 3.
+
+| # | Sub-Subkategorie | Niveau | Befund & Beleg | Bottleneck? | Planungsdatei | Status/Execution |
+|---|---|---|---|---|---|---|
+| 1 | Existenz `santa-loop` | **Top 15 %** | Real vorhanden im Skill-Katalog: „Adversarial dual-review convergence loop — zwei unabhängige Reviewer müssen zustimmen" | Nein | — | kein Plan vorgesehen (kein Bottleneck) |
+| 2 | Existenz `gan-build` | **Top 15 %** | Real vorhanden: „Generator/Evaluator-Build-Loop für Implementierungsaufgaben, bounded iterations and scoring" | Nein | — | kein Plan vorgesehen (kein Bottleneck) |
+| 3 | Existenz `gan-design` | **Top 15 %** | Real vorhanden: „Generator/Evaluator-Design-Loop für Frontend-/visuelle Arbeit" | Nein | — | kein Plan vorgesehen (kein Bottleneck) |
+| 4 | Reale Nutzung im Casino-Projekt (alle drei zusammen) | **Top 100 %** | Kein Nachweis, dass einer der drei Skills je für Casino ausgelöst wurde (deckungsgleich mit Hauptdatei #6) | 🔴 JA | — | kein Plan angelegt — wartet auf Jans Bestätigung (Skalierungs-Gate) |
+| 5 | Dokumentiertes Einsatzkriterium (wann `santa-loop` vs. `code-reviewer` vs. `gan-build`) | **Top 100 %** | Kein Verfahren — weder `CLAUDE.md` noch `xx_sop/*` erwähnen einen der drei Skills namentlich | 🔴 JA | — | kein Plan angelegt — wartet auf Jans Bestätigung |
+| 6 | Kostenprofil (mehrfache Iterationen = mehr Tokens) | **Top 90 %** | Nie für dieses Projekt gemessen, wie teuer ein `santa-loop`/`gan-build`-Durchlauf im Vergleich zu einem einfachen Review ist | 🔴 JA | — | kein Plan angelegt — wartet auf Jans Bestätigung |
+
+**Rechnerischer Schnitt:** (15+15+15+100+100+90)/6 = **Top 56 %**.
+
+**Ersetzt vorherige grobe Schätzung Top 65 % nach Sub-Dekomposition vom 2026-09-12** — leichte Verschlechterung gegenüber der Pauschalzahl, weil die Einzelbewertung von Einsatzkriterium (Zeile 5) und Kostenprofil (Zeile 6) als jeweils vollständig ungetestet sichtbar wird, statt in einem gemittelten „teilweise" unterzugehen.

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { KineticTextReveal } from '@/components/casino/typography/KineticTextReveal';
 
 export type FeltTheme = 'emerald' | 'obsidian' | 'burgundy';
 
@@ -163,40 +164,24 @@ export function ClassicCasinoTableFelt({
           {/* Linker Ausgleichsbereich */}
           <div style={{ flex: 1 }} />
 
-          {/* Mittiger, gedruckter Tisch-Schriftzug (Golden Leaf Filz-Druck) */}
+          {/* Mittiger, gedruckter Tisch-Schriftzug (Kinetic Gold Leaf Filz-Druck) */}
           <div
             style={{
               textAlign: 'center',
               userSelect: 'none',
-              pointerEvents: 'none',
               padding: '0 12px',
             }}
           >
-            <div
-              style={{
-                fontSize: '0.88rem',
-                fontWeight: 900,
-                letterSpacing: '3px',
-                color: feltStyles.textGold,
-                textTransform: 'uppercase',
-                textShadow: '0 2px 8px rgba(0, 0, 0, 0.8)',
-                fontFamily: 'serif, var(--font-mono, monospace)',
-              }}
-            >
-              BLACKJACK PAYS 3 TO 2
-            </div>
-            <div
-              style={{
-                fontSize: '0.68rem',
-                fontWeight: 700,
-                letterSpacing: '2px',
-                color: feltStyles.textMuted,
-                textTransform: 'uppercase',
-                marginTop: '3px',
-              }}
-            >
-              DEALER MUST STAND ON 17 AND DRAW TO 16
-            </div>
+            <KineticTextReveal
+              text="BLACKJACK PAYS 3 TO 2"
+              subtitle="DEALER MUST STAND ON 17 AND DRAW TO 16"
+              variant="verdict"
+              colorScheme="gold"
+              skewAngle={14}
+              fontSize="0.92rem"
+              fontFamily="serif, var(--font-mono, monospace)"
+              letterSpacing="3px"
+            />
           </div>
 
           {/* Rechter Bereich: 3D-Kartenschlitten (Shoe) */}

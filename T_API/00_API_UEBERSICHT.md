@@ -132,6 +132,40 @@ Der tatsächliche Bestand umfasst **zehn** API-Subkategorien. Jede besitzt genau
 - Ein universeller OAuth-Aggregator für ein Projekt mit nur einer oder zwei Integrationen; direkte, klar begrenzte APIs sind dann leichter zu prüfen.
 - Ein AI-Gateway ohne Logging-, Daten- und Kostenentscheidung; zentralisiertes Routing kann Transparenz erhöhen, aber auch Prompt-Daten zentral sammeln.
 
+
+## Fokussierte Entscheidung: KI-Agent-Observability und Evals
+
+> **Recherche-Stand:** 2026-09-09. Kein Anbieter wurde aktiviert, kein Trace versendet und keine Evaluation ausgeführt. Dieses Kapitel bewertet die nächste Lernstufe für künftige Vibe-Coding-Projekte, nicht die bestehende Casino-Integration.
+
+### Was zuerst gelöst werden muss
+
+Ein KI-Feature ist erst dann zuverlässig weiterentwickelbar, wenn es drei voneinander getrennte Fragen beantworten kann: **Was geschah?** (Trace), **war es gut genug?** (Eval) und **hat sich eine Änderung verbessert oder verschlechtert?** (wiederholbares Experiment). Reines Logging beantwortet nur die erste Frage.
+
+| Option | Passend wenn | Stärken | Grenze / Risiko | Urteil |
+| :-- | :-- | :-- | :-- | :-- |
+| Code-eigene Testfälle plus vorhandenes OpenTelemetry | Ein KI-Feature ist klein, noch in Entwicklung oder enthält sensible Daten | Kein neuer SaaS-Zugang; erwartete Ausgaben und Regeln bleiben versioniert im Projekt | Keine komfortable Trace-Analyse oder Vergleichsoberfläche | **Startpunkt für jedes Projekt** |
+| Langfuse mit OpenTelemetry | TypeScript-/Fullstack-App braucht Traces, Kosten-/Latenzsicht und wiederholbare Experimente | Observation-, Metrics- und Experiments-APIs; OTel-kompatibel; Code-Evaluators für deterministische Regeln | Traces können Prompt-, Tool- und Nutzerkontext enthalten; aktuelle v4-/JS-v5-Migration beachten | **Erster Plattformkandidat** |
+| LangSmith | Ein Projekt nutzt LangChain oder LangGraph und braucht dessen enge Debug-/Eval-Integration | Traces, Feedback, Datasets und Evaluation; OTel-Anbindung möglich | SaaS-Retention laut Hersteller 400 Tage; nur mit erlaubter Datenklasse und Retention-Entscheidung | **Framework-spezifische Alternative** |
+| Mehrere Plattformen parallel | Selten | Redundanz | Doppelte Kosten, doppelte Datenabflüsse, unklare Wahrheit | **Nicht starten** |
+
+### Minimaler, sicherer Lernpfad
+
+1. Lege für ein konkretes neues KI-Feature 10–20 **synthetische** Testfälle mit erwarteter Struktur, verbotenen Ausgaben und Akzeptanzkriterien im Repository an.
+2. Führe daraus lokal deterministische Checks aus: Schema, Tool-Aufruf, erlaubte Quellen, Budget, Latenzgrenze. Keine Produktionsprompts und keine realen Kundendaten.
+3. Erst wenn der lokale Satz einen wiederkehrenden Nutzen zeigt, evaluiere **genau eine** Plattform in einer Entwicklungsumgebung. Für ein TypeScript-Projekt ohne LangChain ist Langfuse die Standardoption; bei LangChain/LangGraph kann LangSmith die passendere Wahl sein.
+4. Vor dem ersten Trace schriftlich festlegen: Datenklassen, Redaction, Projekt-/Umgebungsnamen, Retention, Kostenlimit, Nutzer-ID-Policy und Deaktivierungsweg.
+5. Der Pilot gilt erst als erfolgreich, wenn ein konkreter Fehler oder eine Regression dadurch früher gefunden wurde als mit bisherigen Tests. Sonst wieder deaktivieren.
+
+### Aktuelle technische Warnungen
+
+- Langfuse führt v4 als GA und JS/TS v5 als aktuelle Linie; alte Cloud-v3- und Legacy-Read-Pfade sind vor dem 16. November 2026 abzulösen. Ein späterer Pilot muss deshalb nur die aktuelle OTel-/Observations-API verwenden.
+- Langfuse-Evals können lokale Datensätze verwenden; bei lokalen Daten entstehen laut Hersteller dennoch Traces, wenn sie an Langfuse exportiert werden. Synthetische Daten bleiben deshalb auch dort der sichere Start.
+- LangSmith beschreibt für SaaS eine 400-Tage-Trace-Retention. Das ist für personenbezogene Eingaben keine Default-Freigabe, sondern ein klarer Datenschutz-Gate.
+
+### Quellen
+
+- [Langfuse: Evaluation Overview](https://langfuse.com/docs/evaluation/overview) · [Experiments via SDK](https://langfuse.com/docs/evaluation/experiments/experiments-via-sdk) · [Versionskompatibilität](https://langfuse.com/docs/compatibility), abgerufen 2026-09-09.
+- [LangSmith: Observability](https://docs.langchain.com/langsmith/observability) · [Observability Concepts](https://docs.langchain.com/langsmith/observability-concepts), abgerufen 2026-09-09.
 ## Ehrliche Reifegradbewertung
 
 | Dimension             | Bewertung                                                         | Fehlende Governance                                                  |

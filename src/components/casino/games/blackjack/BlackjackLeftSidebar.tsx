@@ -1,7 +1,8 @@
 'use client';
 
 import type { Dispatch, SetStateAction } from 'react';
-import { Zap, ShieldCheck, TrendingUp, Sparkles, RotateCcw } from 'lucide-react';
+import { TrendingUp, RotateCcw } from 'lucide-react';
+import Image from 'next/image';
 
 import { CasinoJeton } from '@/components/casino/games/blackjack/CasinoJeton';
 import {
@@ -60,7 +61,7 @@ export function BlackjackLeftSidebar({
               border: '1px solid rgba(212, 175, 55, 0.3)',
             }}
           >
-            <Zap size={16} color="#FFD700" />
+            <Image src="/images/2026-09-06_icon-hud-sidebar-badge-quantum-gold_v001.png" alt="Blackjack Controls" width={16} height={16} aria-hidden />
           </div>
           <h3
             style={{
@@ -105,7 +106,12 @@ export function BlackjackLeftSidebar({
           gap: '8px',
         }}
       >
-        <Sparkles size={14} color="#FFD700" />
+        <Image
+          src="/images/2026-09-06_icon-ai-guide-quantum-gold_v001.png"
+          alt="Monte Carlo VIP Suite"
+          width={14}
+          height={14}
+        />
         <span
           style={{
             fontSize: '0.74rem',
@@ -404,7 +410,7 @@ export function BlackjackLeftSidebar({
           paddingTop: '2px',
         }}
       >
-        <ShieldCheck size={13} color="#D4AF37" />
+        <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Provably Fair" width={13} height={13} aria-hidden />
         <span>PROVABLY FAIR SYSTEM ACTIVE</span>
       </div>
     </div>

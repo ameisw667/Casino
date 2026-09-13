@@ -76,7 +76,10 @@ Komponenten: `src/components/social/casino-guide/` (`GuideHeader.tsx`, `GuideThi
 
 ## 5 — Offene Punkte an Jan (vor R3 zu klären)
 
-1. **Surface-Standard:** Nur die 4 Seiten auf Leaderboard-Schwarz (R3 wie geplant) — oder projektweite Umstellung der Flächen-Familie auf Neutral-Schwarz (wäre B5-Konflikt mit CLAUDE.md-`#0B0E14`, dann mit deiner Freigabe zu lösen)?
-2. **Blackjack-Tisch:** Ist der blaue Radial-Gradient (`#152238`) bewusstes Spiel-Look (Thema „Casino-Tisch") oder auch zu ersetzen?
-3. **Skeletons:** Sollen die Slate-Ladezustände (GameSkeleton) ebenfalls auf Gold/Obsidian-Schwarz umgestellt werden? (Niedrige Priorität, aber sichtbar beim Laden.)
-4. **Royal-Assets:** Dateipfade der neuen Sidebar-Bilder/Logos nach Restyle nachliefern, damit 2d vollständig wird.
+> **Status 2026-09-06:** Punkte 1–3 per AskUserQuestion entschieden; verankert in
+> `.claude/skills/casino-design-system-craft/` (positiv-referenzen R5, anti-patterns A1/A2, design-laws).
+
+1. **Surface-Standard — ENTSCHEIDEN:** Nur die 4 Seiten (/games, /history, /vault, /stats) auf Leaderboard-Schwarz; **nicht** projektweit. CLAUDE.md-`#0B0E14` bleibt unverändert.
+2. **Blackjack-Tisch — ENTSCHEIDEN:** Blaue Radial-Gradient bleibt als bewusster Spiel-Look (dokumentierte Ausnahme).
+3. **Skeletons — ENTSCHEIDEN:** Ja, GameSkeleton-Slate-Ladezustände kommen mit in R3.
+4. **Royal-Assets — OFFEN:** Dateipfade der neuen Sidebar-Bilder/Logos nach Restyle nachliefern, damit 2d vollständig wird.

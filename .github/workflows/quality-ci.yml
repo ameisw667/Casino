@@ -44,6 +44,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      # 06_4 (T7/L2, 2026-09-06): observability-only coverage report for the Rate-Limiting/
+      # Abuse-Prevention scope (vitest.config.ts coverage.include). Deliberately non-blocking —
+      # it supplements the npm test gate above and is not a hard coverage gate yet (plan Q2:
+      # observe first, decide on a hard gate later). Pre-existing threshold misses outside that
+      # scope (sentry-scrub, useCasinoStore, wallet) must not fail this PR.
+      - run: npm run test:coverage -- --coverage.reporter=json-summary
+        continue-on-error: true
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run check-doc-links

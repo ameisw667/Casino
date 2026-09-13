@@ -1,7 +1,9 @@
 # 59 — Dynamic Ambient Glow in Bento-Cards: Animated Gradient
 
-> **Status:** Execution-Ready · **Stand:** 2026-09-07 · **Owner:** LLM (100 % LLM-Zuständigkeit) · **Scope:** Subtiler WebGL-Perlin-Noise Gold-Glimmer (`animated-gradient`) hinter den wichtigsten Bento-Karten (`src/components/home/bento/BentoCell.tsx`).
+> **Status:** Geplant · **Stand:** 2026-09-12 · **Owner:** LLM (100 % LLM-Zuständigkeit) · **Scope:** Subtiler WebGL-Perlin-Noise Gold-Glimmer (`animated-gradient`) hinter den wichtigsten Bento-Karten (`src/components/home/bento/BentoCell.tsx`).
 > **Money-Pfad:** Nein · **Security-Review:** Nein
+
+> **Statuskorrektur 2026-09-12:** Der im Scope genannte Host-Pfad existiert nicht mehr. Vor L0 ist eine aktuelle Host-Zuordnung und die Aktualisierung des Kontext-Koffers erforderlich; erst danach ist der Plan wieder Execution-Ready.
 
 ---
 

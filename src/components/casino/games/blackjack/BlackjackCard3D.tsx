@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import type { Card } from './PlayingCard';
 import { VintageCardBack } from './VintageCardBack';
+import { GLYPH_TOKENS } from '@/lib/design-tokens/glyph-tokens';
 
 interface BlackjackCard3DProps {
   card: Card | null;
@@ -17,7 +18,7 @@ const SUIT_SYMBOLS: Record<string, string> = {
   spades: '♠',
   clubs: '♣',
   hearts: '♥',
-  diamonds: '♦',
+  diamonds: GLYPH_TOKENS.diamond.value,
 };
 
 export function BlackjackCard3D({

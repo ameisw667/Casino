@@ -1,7 +1,9 @@
 # 58 — Wett-Modus Umschalter (Auto/Manual): Flipping Word Swap
 
-> **Status:** Execution-Ready · **Stand:** 2026-09-07 · **Owner:** LLM (100 % LLM-Zuständigkeit) · **Scope:** Haptischer 3D-Perspektiven-Flip (`flipping-word-swap`) beim Umschalten zwischen Manual und Auto Bet (`src/components/casino/controls/BetControlPanel.tsx`).
+> **Status:** Geplant · **Stand:** 2026-09-12 · **Owner:** LLM (100 % LLM-Zuständigkeit) · **Scope:** Haptischer 3D-Perspektiven-Flip (`flipping-word-swap`) beim Umschalten zwischen Manual und Auto Bet (`src/components/casino/controls/BetControlPanel.tsx`).
 > **Money-Pfad:** Nein · **Security-Review:** Nein
+
+> **Statuskorrektur 2026-09-12:** Der im Scope genannte Host-Pfad existiert nicht mehr. Vor L0 ist eine aktuelle Host-Zuordnung und die Aktualisierung des Kontext-Koffers erforderlich; erst danach ist der Plan wieder Execution-Ready.
 
 ---
 

@@ -82,6 +82,10 @@ export async function GET(request: Request) {
         503,
       );
     }
+    // 06_3 L2: a frozen account receives the same 403 contract as the money routes.
+    if (wellbeing.state === 'account-frozen') {
+      return apiErrorResponse(APP_ERROR_CODES.ACCOUNT_FROZEN, 'Dein Konto ist gesperrt.', 403);
+    }
 
     return apiSuccessResponse(
       wellbeing.state === 'self-excluded'

@@ -1,7 +1,8 @@
 'use client';
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Crown, Star, Lock } from 'lucide-react';
+import { Lock } from 'lucide-react';
+import Image from 'next/image';
 import type { VipTier } from '@/lib/casino/vip-config';
 import { card } from './vault-card';
 
@@ -33,7 +34,7 @@ export function VaultVipProgression({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Crown size={16} color="#D4AF37" />
+          <Image src="/images/2026-09-06_icon-crown-vip-quantum-gold_v001.png" alt="VIP-Progression" width={16} height={16} aria-hidden />
           <span
             style={{
               fontSize: '0.8rem',
@@ -94,7 +95,17 @@ export function VaultVipProgression({
                 }}
               >
                 {isPast ? (
-                  <Star size={isActive ? 16 : 11} color={tier.color} fill={tier.color} />
+                  <span
+                    aria-hidden
+                    style={{
+                      display: 'inline-block',
+                      width: isActive ? 16 : 11,
+                      height: isActive ? 16 : 11,
+                      backgroundColor: tier.color,
+                      WebkitMask: 'url(/images/2026-09-06_icon-star-level-quantum-gold_v001.webp) center / contain no-repeat',
+                      mask: 'url(/images/2026-09-06_icon-star-level-quantum-gold_v001.webp) center / contain no-repeat',
+                    }}
+                  />
                 ) : (
                   <Lock size={10} color="rgba(255,255,255,0.15)" />
                 )}

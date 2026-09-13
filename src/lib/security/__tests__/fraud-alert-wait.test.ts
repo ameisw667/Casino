@@ -5,11 +5,12 @@ const mocks = vi.hoisted(() => ({
   forToken: vi.fn(),
   sendTelegramMessage: vi.fn(),
   setMetadata: vi.fn(),
+  triggerTask: vi.fn(),
 }));
 
 vi.mock('server-only', () => ({}));
 vi.mock('@trigger.dev/sdk', () => ({
-  schemaTask: vi.fn((opts) => opts),
+  schemaTask: vi.fn((opts) => ({ ...opts, trigger: mocks.triggerTask })),
   task: vi.fn((opts) => opts),
   schedules: { task: vi.fn((opts) => opts) },
   idempotencyKeys: { create: vi.fn(async (k) => k) },
@@ -95,5 +96,55 @@ describe('fraud-alert-wait task (M5)', () => {
 
     expect(result.resolved).toBe(false);
     expect(result.timedOut).toBe(true);
+  });
+
+  it('escalates exactly once when the 48h wait times out (06_9 L2)', async () => {
+    mocks.forToken.mockResolvedValue({ ok: false, error: 'Token timed out' });
+    mocks.triggerTask.mockResolvedValue({ id: 'run_esc' });
+
+    await executeFraudAlertWait(basePayload);
+
+    expect(mocks.triggerTask).toHaveBeenCalledTimes(1);
+    expect(mocks.triggerTask).toHaveBeenCalledWith({ ...basePayload, escalated: true });
+  });
+
+  it('does NOT escalate a second time when the escalation run itself times out', async () => {
+    mocks.forToken.mockResolvedValue({ ok: false, error: 'Token timed out' });
+    mocks.triggerTask.mockResolvedValue({ id: 'run_esc' });
+
+    await executeFraudAlertWait({ ...basePayload, escalated: true });
+
+    expect(mocks.triggerTask).not.toHaveBeenCalled();
+  });
+
+  it('gives the escalation run its own wait-token idempotency key', async () => {
+    mocks.forToken.mockResolvedValue({ ok: false, error: 'Token timed out' });
+    mocks.triggerTask.mockResolvedValue({ id: 'run_esc' });
+
+    await executeFraudAlertWait({ ...basePayload, escalated: true });
+
+    expect(mocks.createToken).toHaveBeenCalledWith({
+      timeout: '48h',
+      idempotencyKey: `fraud-wait-${basePayload.eventId}-escalation`,
+    });
+  });
+
+  it('renders the escalation variant of the alert message', () => {
+    const text = buildFraudAlertMessage({ ...basePayload, escalated: true }, 'https://casino.example');
+    expect(text).toContain('🚨 ESKALATION: High-Severity Fraud-Signal seit 48h unbeachtet!');
+    expect(text).toContain(
+      'https://casino.example/admin/fraud?id=123e4567-e89b-12d3-a456-426614174000',
+    );
+  });
+
+  it('never escalates when the decision arrives before timeout', async () => {
+    mocks.forToken.mockResolvedValue({
+      ok: true,
+      output: { status: 'reviewed', reason: 'False positive', reviewerId: 'admin_1' },
+    });
+
+    await executeFraudAlertWait(basePayload);
+
+    expect(mocks.triggerTask).not.toHaveBeenCalled();
   });
 });

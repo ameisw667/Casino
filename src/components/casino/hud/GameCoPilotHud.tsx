@@ -2,8 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import Image from 'next/image';
 import {
-  Sparkles,
   ChevronDown,
   ChevronUp,
   HelpCircle,
@@ -11,7 +11,6 @@ import {
   Eye,
   TrendingUp,
   ShieldAlert,
-  ShieldCheck,
   Move,
 } from 'lucide-react';
 import { useGameCoPilot, type GameCoPilotContext } from '@/hooks/useGameCoPilot';
@@ -116,7 +115,9 @@ export function GameCoPilotHud({
       badgeBorder: 'rgba(16, 185, 129, 0.3)',
       barGradient: 'linear-gradient(90deg, #10B981 0%, #34D399 100%)',
       accentColor: '#10B981',
-      icon: ShieldCheck,
+      icon: ({ size = 14 }: { size?: number }) => (
+        <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Geringes Risiko" width={size} height={size} aria-hidden />
+      ),
     },
     medium: {
       border: 'rgba(212, 175, 55, 0.45)',
@@ -179,7 +180,12 @@ export function GameCoPilotHud({
           title="Live Co-Pilot einblenden"
           aria-label="Live Co-Pilot einblenden"
         >
-          <Sparkles size={14} color="#D4AF37" />
+          <Image
+            src="/images/2026-09-06_icon-ai-guide-quantum-gold_v001.png"
+            alt="Live Co-Pilot"
+            width={14}
+            height={14}
+          />
           <span>Co-Pilot</span>
           <Eye size={13} color="#94a3b8" />
         </motion.button>
@@ -240,7 +246,12 @@ export function GameCoPilotHud({
                 flexShrink: 0,
               }}
             >
-              <Sparkles size={12} color="#D4AF37" />
+              <Image
+                src="/images/2026-09-06_icon-ai-guide-quantum-gold_v001.png"
+                alt="Live Co-Pilot"
+                width={12}
+                height={12}
+              />
               <span
                 style={{
                   position: 'absolute',
@@ -351,7 +362,12 @@ export function GameCoPilotHud({
                     flexShrink: 0,
                   }}
                 >
-                  <Sparkles size={15} color="#D4AF37" />
+                  <Image
+                    src="/images/2026-09-06_icon-ai-guide-quantum-gold_v001.png"
+                    alt="Live Co-Pilot"
+                    width={15}
+                    height={15}
+                  />
                   {/* Live Pulsing Dot */}
                   <span
                     style={{

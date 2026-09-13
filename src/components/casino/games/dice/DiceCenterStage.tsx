@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Flame, Percent, RefreshCw } from 'lucide-react';
+import { Flame, Percent, RotateCcw } from 'lucide-react';
 import {
   MULTIPLIER_PRESETS,
   type DiceHistoryItem,
@@ -574,7 +574,7 @@ export function DiceCenterStage({
                   cursor: 'pointer',
                 }}
               >
-                <RefreshCw size={9} />
+                <RotateCcw size={9} />
                 <span>SWAP</span>
               </button>
             </div>

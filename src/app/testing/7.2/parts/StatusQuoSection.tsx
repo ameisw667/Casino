@@ -1,5 +1,5 @@
 import React from 'react';
-import { SlidersHorizontal } from 'lucide-react';
+import { Sliders } from 'lucide-react';
 import { sectionHeadingStyle } from './shared';
 
 const cardContainerStyle = {
@@ -332,7 +332,7 @@ export function StatusQuoSection({
     <section style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
         <h2 style={sectionHeadingStyle}>
-          <SlidersHorizontal size={22} style={{ color: '#94a3b8' }} />
+          <Sliders size={22} style={{ color: '#94a3b8' }} />
           1. Status Quo — Ist-Zustand im Bestand (Crash vs. Dice vs. Blackjack)
         </h2>
         <p style={{ fontSize: '0.875rem', color: '#94a3b8', margin: '4px 0 0 0' }}>

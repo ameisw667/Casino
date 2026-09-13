@@ -1,6 +1,7 @@
 'use client';
 
-import { Sparkles, X } from 'lucide-react';
+import { X } from 'lucide-react';
+import Image from 'next/image';
 
 interface GuideImagePreviewProps {
   attachedImage: string;
@@ -69,7 +70,13 @@ export function GuideImagePreview({ attachedImage, onRemove }: GuideImagePreview
             gap: '4px',
           }}
         >
-          <Sparkles size={11} /> Screenshot angehängt
+          <Image
+            src="/images/2026-09-06_icon-ai-guide-quantum-gold_v001.png"
+            alt="Screenshot angehängt"
+            width={11}
+            height={11}
+          />{' '}
+          Screenshot angehängt
         </span>
         <span style={{ fontSize: '0.64rem', color: 'hsl(var(--text-muted))' }}>
           Vision-Analyse wird beim Senden ausgeführt

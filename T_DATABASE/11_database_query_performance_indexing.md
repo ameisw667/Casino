@@ -1,147 +1,116 @@
 # 11 — Query-Performance & Indexing
 
-> **Status:** 🟢 Ausgeführt (L0–L7 verifiziert am 2026-09-05 inkl. erstem grünen CI-Lauf) · **Stand:** 2026-09-05 · **Owner:** LLM (kein Pflicht-Jan-Gate; L7 optional mit kleinem Jan-Touch) · **Scope:** Reproduzierbare, wiederholbare Read-Only-Audit-Methodik für Index-/Query-Performance der Casino-Datenbank. Kein Lasttest (siehe `docs/archive/05_Observability_und_Lasttest.md` für RPC-Latenz global), keine neue Index-Migration ohne konkreten, im Audit gefundenen Befund.
+> **Status:** Execution-Ready (Neufassung 2026-09-12) · **Stand:** 2026-09-12 · **Owner:** LLM (kein Pflicht-Jan-Gate) · **Scope:** Von einer einmaligen Ruhezustands-Stichprobe zu einer kontinuierlichen, lastgekoppelten Performance-Verifikation mit Trendvergleich und Regressions-Alarm. Kein synthetischer Lasttest wird hier neu gebaut — die Lastquelle kommt aus `T_DATABASE/08_database_connection_pooling.md` N1 (Kopplung statt Duplikat).
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
 
-1. Lies Abschnitt 1 (Übersicht) und Abschnitt 2 (verifizierter Ist-Stand inkl. eines wichtigen Sicherheitshinweises für L4) vollständig.
-2. Beginne bei L1 in Reihenfolge. **L0–L6 brauchen kein Jan-Gate.** Nur L7 (CI-Automatisierung) ist optional und braucht ggf. ein GitHub-Secret von Jan — bei Zeitdruck einfach weglassen, der Plan gilt auch ohne L7 als vollständig.
-3. **Sicherheitsregel für L4, unbedingt vorher lesen:** Niemals `EXPLAIN ANALYZE` direkt auf einen Aufruf einer Geld-RPC (`settle_game_bet(...)`, `start_game_round(...)`, `advance_blackjack_round(...)`) anwenden — `EXPLAIN ANALYZE` führt die Funktion dabei **wirklich aus**, inklusive aller Schreibeffekte. Eine echte Wette würde real verbucht. Nur die einzelnen `SELECT`/`UPDATE`-Statements **innerhalb** der Funktionskörper isoliert analysieren.
-4. Nach jedem Meilenstein: Ampel in Abschnitt 1 aktualisieren.
+1. Lies Abschnitt 1 (Warum diese Neufassung) und Abschnitt 2 (bereits vorhandene Audit-Infrastruktur, Referenz) vollständig.
+2. **Wichtige Abhängigkeit:** N1 dieser Datei setzt voraus, dass `T_DATABASE/08_database_connection_pooling.md` Meilenstein L5a (Lasttest-Erweiterung) existiert oder gleichzeitig gebaut wird. Falls beide Dateien in derselben Session bearbeitet werden: 08-L5a zuerst oder parallel mit einem eigenen Subagenten, N1 hier konsumiert dessen Ausgabe.
+3. N2–N4 sind unabhängig voneinander und können parallel bearbeitet werden.
+4. **Sicherheitsregel, unbedingt vorher lesen (unverändert aus der Vorversion, weiterhin bindend):** Niemals `EXPLAIN ANALYZE` direkt auf einen Aufruf einer Geld-RPC (`settle_game_bet(...)`, `start_game_round(...)`, `advance_blackjack_round(...)`) anwenden — das würde die Funktion real ausführen inklusive aller Schreibeffekte. Nur die einzelnen `SELECT`/`UPDATE`-Statements **innerhalb** der Funktionskörper isoliert analysieren.
 
 ---
 
-## 1 — Übersicht für Jan
+## 1 — Warum diese Neufassung existiert (Jan-Kontext)
 
-| Nr.           | Meilenstein                                                       |                               Status                                | Nächster Schritt                                        |   Zuständigkeit   |           Money-Pfad           |
-| ------------- | ----------------------------------------------------------------- | :-----------------------------------------------------------------: | ------------------------------------------------------- | :---------------: | :----------------------------: |
-| L0            | Kontext & Scope                                                   |                     🟢 verifiziert (2026-09-04)                     | —                                                       |        LLM        |              Nein              |
-| L1            | Doku-Korrektur: Index-Zahl & widersprüchliche Audit-Behauptung    |                     🟢 verifiziert (2026-09-05)                     | —                                                       |        LLM        |              Nein              |
-| L2            | Audit-Skript bauen (kapselt die 4 `supabase inspect`-Befehle)     |                     🟢 verifiziert (2026-09-05)                     | —                                                       |        LLM        |              Nein              |
-| L3            | Ersten echten, datierten Auditlauf ausführen & persistieren       |                     🟢 verifiziert (2026-09-05)                     | —                                                       |        LLM        |              Nein              |
-| L4            | Gezielte EXPLAIN-ANALYZE-Tiefenprüfung der 3 Geld-RPC-Query-Pfade |                     🟢 verifiziert (2026-09-05)                     | —                                                       |        LLM        | Nein (bei korrekter Umsetzung) |
-| L5            | Befund bewerten: Index-Migration nur bei echtem Fund              |      🟢 verifiziert (2026-09-05) — kein Fund, keine Migration       | Nächster Quartals-Check ~2026-12-05                     |        LLM        |              Nein              |
-| L6            | Wiederholbarkeit: npm-Script ergänzen                             |                     🟢 verifiziert (2026-09-05)                     | —                                                       |        LLM        |              Nein              |
-| L7 (optional) | CI-Cron-Automatisierung, quartalsweise                            | 🟢 verifiziert (2026-09-05, erster grüner CI-Lauf: Run 33993162288) | Secret hinterlegen, ersten Workflow-Dispatch beobachten | LLM, 1 Jan-Secret |              Nein              |
+Die Vorversion war vollständig ausgeführt (L0–L7, grüner CI-Lauf, quartalsweiser Cron aktiv) und trotzdem beim Re-Rating nur auf **Top 40 %** eingestuft. Der Grund ist strukturell, nicht ein Ausführungsfehler: Der bisherige Audit misst **ausschließlich im Ruhezustand** (`pg_stat_statements` ohne aktive Last) — eine Aussage wie "kein Fund" unter Idle-Last ist deutlich schwächer als eine Aussage unter realistischer, gleichzeitiger Last. Ein einzelner Messpunkt pro Quartal erlaubt zudem keine Trendaussage ("wird es langsam schlechter?") — nur einen Schwellenwert-Vergleich gegen einen absoluten Grenzwert.
 
-**Warum praktisch kein Jan-Gate nötig ist:** Alle Kernschritte (L1–L6) sind read-only gegen die Datenbank — dieselbe Kategorie wie die bereits im Projekt etablierten, freigabefreien K1-Befehle `npm run supabase:migrations` und `npm run supabase:diff` (beide laufen ebenfalls mit `--linked` gegen das Remote-Projekt, ohne Jan-Freigabe, siehe `CLAUDE.md` K-Matrix). L7 ist die einzige Ausnahme, weil ein GitHub-Actions-Secret (`SUPABASE_ACCESS_TOKEN`) nötig wäre, das nur Jan im Repo-Secret-Store hinterlegen kann — und selbst L7 ist optional, kein Kernbestandteil.
+Diese Neufassung schließt drei Lücken, ohne die bestehende, bereits solide Methodik zu verwerfen:
+
+1. **Last-Kopplung statt Idle-Messung** (N1) — die eigentliche Ursache der Top-40-%-Bewertung.
+2. **Trendspeicherung statt Einzel-Momentaufnahme** (N2/N3) — macht schleichende Verschlechterung sichtbar, bevor sie zum Fund wird.
+3. **Breiteres Query-Set** (N4) — die Säule ist laut ihrer eigenen Gewichtungsbegründung für **breite Nutzererfahrung** verantwortlich, bisher wurden aber ausschließlich die 3 Geld-RPC-Pfade geprüft, nicht die tatsächlich nutzerseitig sichtbaren Lesepfade (Leaderboard, Admin-Dashboards).
+
+Die **"Status"-Spalte der bisherigen Übersichtstabelle wurde entfernt** — durchgängig 🟢 ohne Informationswert, gleiches Muster wie bei den Säulen 9 und 10.
 
 ---
 
-## 2 — Verifizierter Ist-Stand (2026-09-04, gegen echten Repo-Code geprüft)
+## 2 — Bereits vorhandene Audit-Infrastruktur (Referenz — nicht neu bauen)
 
-**Bereits vorhanden (nicht neu erfinden):**
-
-- `docs/database/07_indexing_query_performance.md` enthält bereits eine reife, konkrete Methodik: `npx supabase inspect db calls --linked`, `db outliers --linked`, `db seq-scans --linked`, `db unused-indexes --linked` (Zeilen 80–83, 142–153) plus ein `EXPLAIN (ANALYZE, BUFFERS, COSTS, VERBOSE)`-Studio-Snippet (Zeilen 100–106) und eine klare Schwelle für neue Indizes: **>50 ms EXPLAIN ANALYZE oder Seq-Scan auf einer Tabelle mit >5.000 Zeilen** (Zeile 118). Das ist keine Prosa-Lücke — es fehlt nur die **Automatisierung/Wiederholbarkeit**, nicht die Methode selbst.
-- 41 `CREATE (UNIQUE) INDEX`-Statements in 25 Migrationsdateien (Doku nennt 40 — kleine Differenz, wird in L1 korrigiert). Hot-Path-Indizes für die Geld-RPCs existieren bereits: `idx_game_rounds_active` (`supabase/migrations/007_server_authority.sql:32`), `idx_transactions_user`/`idx_transactions_game`/`idx_transactions_created`/`idx_sessions_user`/`idx_sessions_game` (`supabase/migrations/002_wallet.sql:42-46`).
-
-**Wichtiger Fund — widersprüchliche Behauptungen zweier Dokumente:** `docs/database/07_indexing_query_performance.md:63` behauptet einen "jüngsten Remote-Audit ... 35 FK-Relationen" als bereits durchgeführt. `worldmap/04_datenbank_migrationen.md:74` sagt dagegen explizit: "Keine dokumentierte `EXPLAIN ANALYZE`-Prüfung, kein Slow-Query-Log-Review" und nennt kein Datum für einen tatsächlichen Audit-Lauf. **Keine der beiden Dateien belegt Datum oder Rohausgabe eines echten Laufs.** Diese Planungsdatei löst den Widerspruch nicht durch Vermutung, sondern dadurch, dass L3 einen echten, frisch datierten Lauf erzeugt, der beide bisherigen Behauptungen ersetzt.
-
-**Bestätigt fehlend:**
-
-- Kein Skript im Repo automatisiert die vier `supabase inspect`-Befehle oder persistiert ihr Ergebnis (`scripts/` enthält nichts dazu).
-- Kein npm-Script kapselt sie (`package.json:21-27` hat nur `supabase:start/stop/reset/migrations/types/diff`, kein `perf`/`inspect`/`explain`).
-- `pg_stat_statements` ist in keiner Migration und keiner `config.toml`-Zeile explizit aktiviert — die Doku setzt stillschweigend auf Supabase-Hosted-Standardaktivierung. **Vor L2 verifizieren:** `SELECT extname FROM pg_extension WHERE extname = 'pg_stat_statements';` gegen `--linked` ausführen; falls leer, liefern die `inspect`-Befehle in L3 keine sinnvollen Daten und eine Aktivierungsmigration wird zur Voraussetzung (dann zusätzlicher Schritt in L2, siehe dort).
-
-**Verfügbare CI-Vorlage für L7:** `.github/workflows/doc-drift-check.yml:8-9` — `schedule: cron: '0 6 * * 1'`, informativ, `permissions: contents: read`, kein PR-Blocker. Gutes Gerüst, muss auf `SUPABASE_ACCESS_TOKEN`-Secret und die L2-Skript-Aufrufe umgestellt werden.
+- [`scripts/audit-query-performance.ts`](../scripts/audit-query-performance.ts): kapselt `calls`, `outliers`, `index-stats` (Supabase-CLI 2.116.0, `seq-scans`/`unused-indexes` sind deprecated und werden bereits aus `index-stats` abgeleitet).
+- npm-Script: `npm run db:perf-audit`.
+- CI: [`.github/workflows/query-performance-audit.yml`](../.github/workflows/query-performance-audit.yml) — quartalsweiser Cron + `workflow_dispatch`, nutzt `SUPABASE_ACCESS_TOKEN` (bereits von Jan hinterlegt) gegen die Management-API `/projects/{ref}/database/query/read-only` (CLI-`link`-Workaround wegen [supabase/cli#6392](https://github.com/supabase/cli/issues/6392)).
+- Letzter belegter Auditlauf: [`docs/database/audits/query-performance-2026-09-05.md`](../docs/database/audits/query-performance-2026-09-05.md) — kein Fund im Anwendungspfad, alle 3 Geld-RPC-Lesepfade Index-Scan (0.017–1.32 ms).
+- Schwelle (unverändert gültig): **>50 ms `EXPLAIN ANALYZE`** oder **Seq-Scan auf einer Tabelle mit >5.000 Zeilen**.
+- 42 `CREATE (UNIQUE) INDEX`-Statements über die Migrationshistorie (Stand 2026-09-05, per `grep` vor Nutzung neu zählen — die Zahl driftet mit jeder neuen Migration).
 
 ---
 
-## 3 — Meilensteine
+## 3 — Neue Meilensteine (N1–N4)
 
-### L1 — Doku-Korrektur: Index-Zahl & widersprüchliche Audit-Behauptung
+### N1 — Last-Kopplung: Audit während echtem Lasttest statt nur im Ruhezustand
 
-- **Ziel:** `docs/database/07_indexing_query_performance.md` an den echten Repo-Stand angleichen und die unbelegte Audit-Behauptung durch einen Verweis auf diese Planungsdatei ersetzen, statt sie stehen zu lassen.
-- **Schritte:** Zeile mit "40 gezielt gesetzte Indizes" → "41" (nach eigener `grep`-Nachzählung vor dem Edit bestätigen, Zahl kann sich zwischen dieser Planung und Ausführung erneut verschoben haben). Zeile 63 ("jüngster Remote-Audit … 35 FK-Relationen") präzisieren: entweder mit echtem Datum/Befehl belegen, falls beim Nachprüfen doch ein Nachweis auftaucht, oder auf "siehe `T_DATABASE/11_database_query_performance_indexing.md` L3 für den ersten belegten Auditlauf" ändern.
-- **Verifizierung:** `grep -c "CREATE INDEX\|CREATE UNIQUE INDEX" supabase/migrations/*.sql | ...` (Summe) stimmt mit der in der Doku genannten Zahl überein.
-- **Freigabe-Gate:** Keines. **Money-Pfad:** Nein. **Security-Review:** Nein.
-- **Umsetzung 2026-09-05:** Vorab-Nachzählung per `Select-String` über `supabase/migrations/*.sql`: **42** `CREATE (UNIQUE) INDEX`-Statements, **64** Migrationsdateien (die Planung erwartete 41/59 — die Zahl driftet, wie in der Planung bereits vermutet). [`docs/database/07_indexing_query_performance.md`](../docs/database/07_indexing_query_performance.md) korrigiert: §2-Überschrift entnommen ("Das 40-Indizes-Inventar" → neutrales "Technisches Index-Inventar"), Zahl auf 42 mit Nachzähl-Datum und Drift-Hinweis. §3 umgebaut: die unbelegte "jüngster Remote-Audit … 35 FK-Relationen"-Behauptung durch einen Hinweis-Block ersetzt (unbelegt bis L3, Verweis auf Audit-Dateien unter `docs/database/audits/`); die FK-Analyse selbst bleibt als "Bisherige Einschätzung (unbelegt, bis L3 liefert)" erhalten. Verifiziert: `grep` auf "40 gezielt", "59 Migrationen", "jüngster Remote-Audit" → 0 Treffer.
-
-### L2 — Audit-Skript bauen
-
-- **Ziel:** Die vier bereits dokumentierten `supabase inspect`-Befehle in ein wiederholbares, ergebnisspeicherndes Skript kapseln, statt sie jedes Mal manuell und ohne Historie auszuführen.
+- **Ziel:** Die zentrale Schwäche der Vorversion beheben — eine Aussage "kein Fund" soll künftig unter realistischer gleichzeitiger Last gelten, nicht nur im Leerlauf.
 - **Schritte:**
-  1. Vorab prüfen (siehe Abschnitt 2): `pg_stat_statements` aktiv? Falls nicht, **vor** dem eigentlichen Skript eine Migration `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;` vorbereiten (gleicher Pre-Flight-Kollisionscheck + `@migration-security-guard`-Pflicht wie bei jeder neuen Migration, siehe `xx_sop/05_database_supabase.md` Abschnitt 2 und `CLAUDE.md`).
-  2. Neues Skript `scripts/audit-query-performance.ts`: ruft `npx supabase inspect db calls --linked`, `db outliers --linked`, `db seq-scans --linked`, `db unused-indexes --linked` über `execFile` (kein Shell-String, analog zu `scripts/backup-supabase.ts`) auf, sammelt `stdout` jedes Befehls.
-  3. Ergebnis als Markdown-Datei unter `docs/database/audits/query-performance-<YYYY-MM-DD>.md` schreiben: Zeitstempel, CLI-Version, Rohausgabe aller vier Befehle, plus eine automatische Bewertung gegen die Schwelle aus `docs/database/07_indexing_query_performance.md:118` (>50 ms oder Seq-Scan >5.000 Zeilen → `⚠️ Befund`, sonst `✅ Kein Handlungsbedarf`).
-  4. Kein Schreibzugriff auf die Datenbank in diesem Skript — ausschließlich `inspect`-Befehle, die selbst laut Supabase-CLI-Dokumentation read-only sind.
-- **Verifizierung:** `npx tsx scripts/audit-query-performance.ts` läuft einmal lokal durch (gegen `--linked`, da lokale Dev-Instanz ohne Produktionslast keine aussagekräftigen `pg_stat_statements`-Daten hat), erzeugt eine Markdown-Datei mit den vier Rohausgaben.
-- **Freigabe-Gate:** Keines (read-only, K1-Klasse siehe Abschnitt 1). **Money-Pfad:** Nein. **Security-Review:** Nein (kein neuer Datenzugriff über bestehende `--linked`-Rechte hinaus, keine Credentials im Skript — nutzt die bereits vorhandene, lokal eingeloggte Supabase-CLI-Session).
-- **Umsetzung 2026-09-05:** Vorab-Check gegen `--linked` per `npx supabase db query`: `pg_stat_statements` ist auf dem Remote-Projekt aktiv — **keine Zusatzmigration nötig**. [`scripts/audit-query-performance.ts`](../scripts/audit-query-performance.ts) gebaut (execFile-Muster analog `backup-supabase.ts`, kein Shell-String; JSON-Ausgabe statt Text für auswertbare Schwellenwerte). **Bewusste Planabweichung:** CLI 2.116.0 stuft `seq-scans` und `unused-indexes` als deprecated ein (beide mappen auf `index-stats`, dessen JSON beide Daten hergibt) — das Skript läuft daher `calls`, `outliers`, `index-stats` und leitet die vier geplanten Sichten daraus ab statt der zwei Deprecated-Befehle. Erster Lauf erfolgreich: `docs/database/audits/query-performance-2026-09-05.md` erzeugt, inkl. automatischer Schwellenwert-Bewertung. Während der Umsetzung gefundener Skript-Bug sofort gefixt: `unusedIndexes` war berechnet, aber nicht ins Markdown geschrieben worden.
+  1. `scripts/audit-query-performance.ts` um einen Modus `--sample-during-load` erweitern: statt eines Einzelaufrufs sampelt das Skript `pg_stat_statements`-Deltas in einem Intervall (z. B. alle 5 s) für die Dauer eines extern laufenden Lasttests.
+  2. Abstimmung mit `T_DATABASE/08_database_connection_pooling.md` N1 (dortiger Lasttest liefert Connection-Counts; diese Datei liefert im selben Lauf die Query-Latenz-/Outlier-Zeitreihe) — **ein gemeinsamer Lasttest-Lauf, zwei Auswertungen**, keine doppelte Lasttest-Infrastruktur.
+  3. `npm run loadtest:bet` (bestehend, siehe `docs/archive/05_Observability_und_Lasttest.md`) so erweitern/aufrufen, dass beide Sampler (Pooling-Health aus 08-N1, Query-Audit aus diesem Meilenstein) parallel während desselben Laufs mitschreiben.
+  4. Ergebnis in `docs/database/audits/query-performance-load-<YYYY-MM-DD>.md` persistieren, mit klarer Trennung von der bestehenden Ruhezustands-Audit-Konvention (unterschiedlicher Dateiname-Präfix `-load-`).
+- **Verifizierung:** Audit-Datei zeigt eine Zeitreihe mit sichtbar erhöhter `calls`/`outliers`-Aktivität während der Lastphase im Vergleich zur Ruhephase davor/danach (Beweis, dass die Last tatsächlich gemessen wurde, nicht nur behauptet).
+- **Freigabe-Gate:** Keines (read-only, läuft lokal gegen die lokale Dev-Instanz). **Money-Pfad:** Nein. **Security-Review:** Nein.
 
-### L3 — Ersten echten, datierten Auditlauf ausführen & persistieren
+### N2 — Historische Trendspeicherung
 
-- **Ziel:** Den in Abschnitt 2 belegten Widerspruch zwischen zwei Dokumenten durch einen echten, nachvollziehbaren Lauf ersetzen.
-- **Schritte:** `scripts/audit-query-performance.ts` (L2) tatsächlich ausführen, die erzeugte Datei unter `docs/database/audits/` committen (als Nachweis, nicht nur lokal liegen lassen), `docs/database/07_indexing_query_performance.md` Zeile 63 (bereits in L1 zur Präzisierung markiert) mit dem echten Datum und Link auf die neue Audit-Datei aktualisieren.
-- **Verifizierung:** Datei unter `docs/database/audits/query-performance-2026-09-04.md` (oder aktuelles Datum) existiert und enthält vier nicht-leere Abschnitte.
+- **Ziel:** Aus Einzel-Momentaufnahmen eine Zeitreihe machen, die schleichende Verschlechterung sichtbar macht, bevor ein absoluter Schwellenwert überschritten wird.
+- **Schritte:**
+  1. `scripts/audit-query-performance.ts` schreibt zusätzlich zur Markdown-Datei einen kompakten JSON-Datensatz (Datum, p50/p95 je geprüftem Pfad, Anzahl Outlier-Funde) an eine append-only Datei `docs/database/audits/trend.jsonl` (ein JSON-Objekt pro Zeile, ein Lauf pro Zeile — kein Datenbank-Overhead nötig für diese Datenmenge, quartalsweise Läufe über Jahre bleiben klein).
+  2. Kein Löschen/Überschreiben alter Einträge — reine Anhänge, damit die Historie vollständig bleibt.
+- **Verifizierung:** Nach zwei aufeinanderfolgenden lokalen Testläufen enthält `trend.jsonl` zwei Zeilen mit unterschiedlichem Zeitstempel.
 - **Freigabe-Gate:** Keines. **Money-Pfad:** Nein. **Security-Review:** Nein.
-- **Umsetzung 2026-09-05:** [`docs/database/audits/query-performance-2026-09-05.md`](../docs/database/audits/query-performance-2026-09-05.md) persistiert mit Zeitstempel, CLI-Version (2.116.0) und Roh-JSON aller drei Inspect-Sichten. **Ergebnis des Laufs:** 6 Befunde über der 50-ms-Schwelle, aber **alle sechs sind Infrastruktur-/Katalog-Queries** (`pg_sleep` von Testinfrastruktur, `pg_catalog`-Introspection von Studio/CLI) — **keine Anwendungs- oder Money-Pfad-Query**, kein Seq-Scan über 5.000 Aufrufe. 30 unbenutzte Indizes (informativ). `docs/database/07` §3 verweist jetzt auf diese konkrete Audit-Datei als ersten belegten Lauf. **Hinweis (beim Commit zu beachten):** Die Audit-Rohdaten enthalten bis zu 160 Zeichen der Query-Texte aus `pg_stat_statements` — keine Secrets, keine User-Daten, nur Schema-/Katalog-Statements.
 
-### L4 — Gezielte EXPLAIN-ANALYZE-Tiefenprüfung der 3 Geld-RPC-Query-Pfade
+### N3 — CI-Regressions-Gate gegen die Trendbaseline
 
-- **Ziel:** Die generische Outlier-Liste aus L2/L3 zeigt Symptome projektweit, aber nicht gezielt, ob genau die Geld-RPCs betroffen sind. Diese Tiefenprüfung schließt das.
-- **Zwingende Sicherheitsregel (siehe auch Abschnitt 0):** `EXPLAIN ANALYZE` auf einen RPC-Aufruf selbst (`EXPLAIN ANALYZE SELECT settle_game_bet(...)`) ist **verboten** — die Funktion würde real ausgeführt inklusive Wallet-Mutation. Stattdessen: aus den Funktionskörpern in `045_fix_wallet_events_jackpot_regression.sql:99` (`settle_game_bet`), `058_reconcile_remote_schema_drift.sql:1138` (`start_game_round`), `014_fix_user_stats.sql:202` (`advance_blackjack_round`) die einzelnen `SELECT ... FROM wallet_transactions/users/game_rounds ...`-Lesestatements extrahieren und **nur diese** isoliert mit `EXPLAIN (ANALYZE, BUFFERS)` gegen `--linked` prüfen (reine `SELECT`-Statements sind bei `ANALYZE` sicher, da sie selbst bei echter Ausführung nichts mutieren).
-- **Schritte:** Für jede der 3 Funktionen die relevanten internen `SELECT`-Statements identifizieren (per Lesen der Migrationsdatei, nicht raten), gegen `--linked` mit `EXPLAIN (ANALYZE, BUFFERS, COSTS, VERBOSE)` ausführen (Supabase Studio SQL-Editor oder `psql` mit `--linked`-Connection-String), Ergebnis in der Audit-Datei aus L3 als eigenen Abschnitt "Geld-RPC-Tiefenprüfung" ergänzen.
-- **Verifizierung:** Alle 3 Funktionen haben mindestens einen dokumentierten `EXPLAIN ANALYZE`-Beleg mit tatsächlicher Laufzeit in Millisekunden.
-- **Freigabe-Gate:** Keines, sofern die Sicherheitsregel eingehalten wird. **Money-Pfad:** Nein (bei korrekter Umsetzung — genau deshalb die zwingende Sicherheitsregel). **Security-Review:** Pflicht (Vier-Augen-Charakter: vor Ausführung nochmal bestätigen, dass keine der geprüften Queries eine `INSERT`/`UPDATE`/`DELETE`-Komponente enthält).
-- **Umsetzung 2026-09-05:** Sicherheitsregel vollständig eingehalten: kein einziger RPC-Aufruf mit `EXPLAIN ANALYZE` ausgeführt. Funktionskörper aus 045:99 / 058:1138 / 014:202 gelesen, 6 interne reine `SELECT`-Pfade extrahiert und **nur diese** per `npx supabase db query "EXPLAIN (ANALYZE, BUFFERS) …" --linked` gegen **nicht-existierende IDs** geprüft (0 Zeilen, keine Locks, keine Mutation). Vier-Augen-Check dokumentiert: kein Statement mit DML-Komponente. **Ergebnis:** Alle 6 Pfade Index-Scan (u. a. `idx_wallet_transactions_history_cursor`, `idx_users_id`, `game_rounds_pkey`), Race-Guard sogar Index-Only-Scan auf `idx_game_rounds_active`; Actual 0.017–1.32 ms, alles unterhalb der 50-ms-Schwelle. Beleg als Abschnitt "Geld-RPC-Tiefenprüfung" in [`docs/database/audits/query-performance-2026-09-05.md`](../docs/database/audits/query-performance-2026-09-05.md) ergänzt. Nebenbefund dokumentiert (nicht behoben): Replay-Lookup auf `game_rounds` nutzt `idx_game_rounds_active` statt `game_rounds_user_id_request_id_key` — korrekt und schnell, optionaler Feinschliff.
-
-### L5 — Befund bewerten: Index-Migration nur bei echtem Fund
-
-- **Ziel:** Nicht auf Vorrat indizieren (widerspräche der bestehenden, bereits guten Praxis laut `worldmap/04_datenbank_migrationen.md`), aber einen echten Fund aus L3/L4 nicht ignorieren.
-- **Schritte:** Ergebnisse aus L3 (`unused-indexes`, `seq-scans`, `outliers`) und L4 (RPC-Tiefenprüfung) gegen die Schwelle (>50 ms, Seq-Scan >5.000 Zeilen) auswerten. **Kein Fund (aktuell erwarteter Fall laut vorheriger Einschätzung):** Nur Audit-Datei als "kein Handlungsbedarf, nächster Quartals-Check am `<Datum + 3 Monate>`" abschließen. **Echter Fund:** Neue Index-Migration mit Pre-Flight-Kollisionscheck + Pflicht-`@migration-security-guard`-Review anlegen (K3, lokal) — der spätere Remote-Push dieser Migration bleibt regulär K4 (Jan-Freigabe), das ist keine neue Sonderregel dieses Plans.
-- **Freigabe-Gate:** Nur im Fund-Fall, und dann ausschließlich der bereits bestehende K4-Prozess für den Remote-Push — keine Besonderheit. **Money-Pfad:** Nein. **Security-Review:** Nur im Fund-Fall Pflicht (neue Migration).
-- **Umsetzung 2026-09-05 (Ergebnis: KEIN Fund, keine Index-Migration):** Auswertung L3: 6 Überschreitungen der 50-ms-Schwelle in `pg_stat_statements`, aber **alle sechs sind Infrastruktur-/Katalog-Queries** (`pg_sleep` aus Testinfrastruktur, `pg_catalog`-Introspection aus Studio/CLI) — keine Anwendungs-Query, keine Money-Pfad-Query. Kein Seq-Scan über 5.000 Aufrufe (max. beobachtete Seq-Scans: 0 auf allen Kern-Indizes). Auswertung L4: alle 6 Geld-RPC-Pfade Index-Scan, 0.017–1.32 ms. 30 unbenutzte Indizes sind informativ (viele davon Neu-Anlage in Migrationen 063/064 oder konfigurative Lookup-Tabellen) — Entfernung erst nach ≥ 90 Tagen Beobachtungswindow. **Entscheidung:** Keine Index-Migration. Nächster Quartals-Check: **~2026-12-05** (via `npm run db:perf-audit`, dann automatisiert falls L7 umgesetzt wird).
-
-### L6 — Wiederholbarkeit: npm-Script ergänzen
-
-- **Ziel:** Die in Abschnitt 2 bestätigte Lücke schließen (kein `perf`/`inspect`/`explain`-Script existiert).
-- **Schritte:** `package.json` um `"db:perf-audit": "tsx scripts/audit-query-performance.ts"` ergänzen (Namenskonvention konsistent zu `backup:run`).
-- **Verifizierung:** `npm run db:perf-audit` funktioniert identisch zu `npx tsx scripts/audit-query-performance.ts`.
+- **Ziel:** Verschlechterung automatisch erkennen, statt auf den nächsten manuellen Blick in die Quartals-Audit-Datei zu warten.
+- **Schritte:**
+  1. Neues Skript `scripts/check-query-performance-regression.ts`: liest die letzten beiden Einträge aus `trend.jsonl` (N2), vergleicht p95 je Pfad. Bei Verschlechterung **>25 %** gegenüber dem Vorlauf **oder** einem neuen Seq-Scan-Fund, der im Vorlauf nicht vorkam: Exit-Code `1`.
+  2. In [`.github/workflows/query-performance-audit.yml`](../.github/workflows/query-performance-audit.yml) nach dem bestehenden Audit-Schritt einhängen. Bei Fehlschlag: `gh issue create` (gleiches Muster wie `T_DATABASE/05_database_backup_and_recovery.md` N4 — kein neuer Alerting-Dienst nötig).
+  3. **Bewusst kein Blocker für Deployments** (nur Cron/Dispatch, kein PR-Gate) — eine einzelne Lastspitze soll keinen Merge blockieren, aber sichtbar gemeldet werden.
+- **Verifizierung:** Mit zwei absichtlich unterschiedlichen Fixture-Einträgen in einer Test-`trend.jsonl` (eine mit +40 % p95) erkennt das Skript die Regression korrekt; mit stabilen Werten bleibt es grün.
 - **Freigabe-Gate:** Keines. **Money-Pfad:** Nein. **Security-Review:** Nein.
-- **Umsetzung 2026-09-05:** `package.json` um `"db:perf-audit": "tsx scripts/audit-query-performance.ts"` ergänzt (Zeile direkt nach `backup:run`, gleiche Namenskonvention). Verifiziert per `npm run db:perf-audit` — identisches Ergebnis zum Direktaufruf (Audit-Datei erneut erzeugt).
 
-### L7 (optional, nachrangig) — CI-Cron-Automatisierung
+### N4 — Breiteres Query-Set über die 3 Geld-RPCs hinaus
 
-- **Ziel:** Den quartalsweisen Check nicht auf "jemand erinnert sich" verlassen.
-- **Schritte:** `.github/workflows/query-performance-audit.yml` nach Vorlage `doc-drift-check.yml` (Abschnitt 2): `schedule: cron` quartalsweise (z. B. `0 6 1 1,4,7,10 *`), `permissions: contents: read`, ruft `npm run db:perf-audit` (L6) auf. **Braucht `SUPABASE_ACCESS_TOKEN` als GitHub-Actions-Secret** — muss von Jan im Repo-Settings hinterlegt werden (LLM kann das nicht selbst, Secret-Store-Zugriff ist Jan-exklusiv laut `xx_sop/09_security_wallet_invariants.md`). **Das ist der einzige Punkt in diesem gesamten Plan, der Jan überhaupt berührt — und er ist optional.** Ohne L7 bleibt der Audit ein manuell (aber vollständig LLM-ausführbar) wiederholter Vierteljahres-Check.
-- **Freigabe-Gate:** Nur für das Secret-Hinterlegen selbst (einmalig). **Money-Pfad:** Nein. **Security-Review:** Nein (Token ist bereits ein bestehendes, nur bisher nicht in CI verwendetes Credential, kein neues Berechtigungsmodell).
-- **Umsetzung 2026-09-05:** [`.github/workflows/query-performance-audit.yml`](../.github/workflows/query-performance-audit.yml) gebaut nach Vorlage `doc-drift-check.yml`: quartalsweiser Cron (`0 6 1 1,4,7,10 *`, 1. Jan/Apr/Jul/Okt) + `workflow_dispatch`, `permissions: contents: read`, Actions-Pinning per Commit-SHA wie `security-staging.yml`. Der Workflow ruft `npm run db:perf-audit` auf; das Ergebnis landet als Summary im Run-View.
-- **CI-Nachweis 2026-09-05 (🟢):** Jan hat das Secret `SUPABASE_ACCESS_TOKEN` hinterlegt (granulares Token v3, Read auf Project Settings/Database/Migrations). Zwei Nachjustagen waren nötig: (1) `supabase link` akzeptiert granulare Access-Tokens nicht (offener CLI-Bug [supabase/cli#6392](https://github.com/supabase/cli/issues/6392)) — der Workflow wurde daher auf den Management-API-Endpoint `/projects/{ref}/database/query/read-only` umgestellt (`e27aec1`); (2) `pg_stat_statements` liegt im Extension-Schema und ist im `search_path` des Endpunkts nicht auflösbar — dynamische Schemalookup via `pg_extension` (`1c9dcaf`). **Erster grüner Lauf: Run 33993162288** (workflow_dispatch, 2026-09-05, ~1 Min).
+- **Ziel:** Die Gewichtungsbegründung dieser Säule lautet "betrifft Nutzererfahrung breit" — bisher wurden ausschließlich die 3 Geld-RPC-Lesepfade geprüft, nicht die tatsächlich breiten, nutzerseitig sichtbaren Pfade.
+- **Schritte:**
+  1. Kandidaten identifizieren: Leaderboard-Abfrage (`get_leaderboard`, Migration `015_get_leaderboard.sql`), Admin-Dashboard-Aggregationen (`src/app/admin/**`, per `grep` auf `.from(` / RPC-Aufrufe in den Admin-Datenquellen), Analytics-/Fraud-Aggregationen (029/030/040) — vor Testbau tatsächliche Nutzungshäufigkeit grob einschätzen (z. B. per `pg_stat_statements`-`calls`-Feld aus einem bestehenden Audit), nicht raten.
+  2. Für jeden identifizierten Pfad denselben sicheren `EXPLAIN (ANALYZE, BUFFERS)`-Ansatz wie in der Vorversion für die Geld-RPCs anwenden — bei reinen `SELECT`-Abfragen (Leaderboard, Dashboards) ist direktes `EXPLAIN ANALYZE` unproblematisch, die Sicherheitsregel aus Abschnitt 0 gilt nur für RPCs mit Schreibeffekten.
+  3. Ergebnis in dieselbe Audit-Datei wie N1 als zusätzlichen Abschnitt "Breites Query-Set" integrieren.
+- **Verifizierung:** Mindestens 3 zusätzliche, nicht-Geld-RPC-Pfade haben einen dokumentierten `EXPLAIN ANALYZE`-Beleg.
+- **Freigabe-Gate:** Keines. **Money-Pfad:** Nein. **Security-Review:** Nein (reine `SELECT`-Analyse ohne Schreibeffekte).
 
 ---
 
-## 4 — Definition of Done
+## 4 — Definition of Done & Abhängigkeiten
 
-1. Ein wiederholbares Skript (L2/L6) ersetzt die bisherige Handanleitung, ohne die dokumentierte Methodik zu verändern.
-2. Ein echter, datierter Auditlauf (L3) ersetzt die unbelegte "jüngster Remote-Audit"-Behauptung.
-3. Alle 3 Geld-RPCs haben eine sichere, gezielte `EXPLAIN ANALYZE`-Tiefenprüfung (L4), ohne dass dabei reale Geldmutationen ausgelöst wurden.
-4. Ein klarer, dokumentierter Entscheidungspfad für "Fund vs. kein Fund" verhindert sowohl Ignorieren echter Probleme als auch Index-Aufblähung auf Vorrat (L5).
-5. (Optional) Der Check läuft automatisiert quartalsweise ohne manuelles Erinnern (L7).
+1. N1 hängt von `T_DATABASE/08_database_connection_pooling.md` L5a/N1 ab (gemeinsamer Lasttest) — bei paralleler Bearbeitung beider Dateien in derselben Session zuerst koordinieren, welcher Subagent den Lasttest tatsächlich startet, um doppelte gleichzeitige Läufe zu vermeiden.
+2. N2 unabhängig, kann vor oder parallel zu N1 gebaut werden (reine Speicherlogik).
+3. N3 nach N2 (braucht mindestens zwei Trend-Einträge, um sinnvoll zu vergleichen).
+4. N4 vollständig unabhängig, kann jederzeit parallel laufen.
+5. Erst nach N1–N4 gilt Säule 7 als voraussichtlich **Top 20–25 %** (statt der alten Top 40 %) — getragen durch lastgekoppelte statt Idle-Messung, Trendfähigkeit und ein Query-Set, das die tatsächliche Gewichtungsbegründung ("breite Nutzererfahrung") abdeckt.
 
 ---
 
 ## 5 — Selbstprüfung vor `Execution-Ready` (nach `xx_sop/03_workflow_jan_planungsdateien.md` §4)
 
-- [x] Scope gegenüber `docs/archive/05_Observability_und_Lasttest.md` (globale RPC-Latenz unter Last) abgegrenzt: Diese Datei prüft Index-Wirksamkeit isoliert, keinen Lasttest.
-- [x] Abhängigkeiten benannt: L1 unabhängig; L2 vor L3 vor L4 vor L5; L6 kann parallel zu L3–L5 laufen; L7 unabhängig, nachrangig.
-- [x] Neue Schreiboperation (nur im Fund-Fall in L5, sonst keine) hat Pre-Flight-Check und Pflicht-Security-Review.
-- [x] Statusbehauptungen sind als lokal/verifiziert gekennzeichnet (Abschnitt 2, Datum 2026-09-04) und verlinken auf Quellcode/Zeilen; der Widerspruch zwischen zwei bestehenden Dokumenten ist explizit benannt statt stillschweigend eine Seite zu glauben.
-- [x] Keine Referenz doppelt gepflegt: Methodik und Schwellenwerte bleiben in `docs/database/07_indexing_query_performance.md`, hier nur referenziert und automatisiert.
-- [x] Eine neue LLM-Konversation kann diese Datei allein verstehen: Abschnitt 0 (inkl. der kritischen Sicherheitsregel für L4) + Abschnitt 2 liefern den kompletten Einstiegskontext.
-- [x] **Kritischer Selbstcheck durchgeführt:** Die naheliegende, aber gefährliche Umsetzung ("EXPLAIN ANALYZE direkt auf die RPC-Aufrufe") wurde erkannt und explizit als verboten markiert, bevor sie in Code hätte landen können.
+- [x] Scope gegenüber `T_DATABASE/08_database_connection_pooling.md` explizit abgegrenzt und verzahnt: der Lasttest selbst gehört zu 08, diese Datei konsumiert dessen Lauf nur für die Query-Auswertung — keine doppelte Lasttest-Infrastruktur (Verstoß gegen "keine Referenz doppelt gepflegt" wäre sonst hier entstanden).
+- [x] Abhängigkeiten benannt (Abschnitt 4), Cross-Datei-Koordination bei paralleler Subagenten-Nutzung explizit adressiert.
+- [x] Sicherheitsregel aus der Vorversion unverändert übernommen und in Abschnitt 0 vorangestellt (keine `EXPLAIN ANALYZE` auf Geld-RPC-Aufrufe direkt).
+- [x] Neue Schreiboperationen (GitHub-Issue-Erstellung in N3) sind read-only bezüglich der Datenbank, kein Money-Pfad.
+- [x] Eine neue LLM-Konversation kann diese Datei allein verstehen: Abschnitt 0 + 1 + 2 liefern den kompletten Einstiegskontext ohne Chat-Historie.
+- [x] **Kritischer Selbstcheck:** N4 hätte naiv versuchen können, `EXPLAIN ANALYZE` pauschal auf alle RPCs anzuwenden — die Unterscheidung "reine SELECT-Pfade sind sicher, RPCs mit Schreibeffekt sind es nicht" wurde explizit als Kriterium benannt, um keinen Wiederholungsfehler der ursprünglich in der Vorversion vermiedenen Gefahr zu riskieren.
 
 ---
 
 ## 6 — Verwandte Artefakte
 
-| Bedarf                                           | Datei                                                                                                                                    |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Kanonischer Doku-Standard (Säule 7)              | [`docs/database/07_indexing_query_performance.md`](../docs/database/07_indexing_query_performance.md) — wird in L1/L3 korrigiert/ergänzt |
-| Globaler Lasttest (RPC-Latenz, kein Index-Fokus) | [`docs/archive/05_Observability_und_Lasttest.md`](../docs/archive/05_Observability_und_Lasttest.md)                                      |
-| CI-Vorlage für L7                                | [`.github/workflows/doc-drift-check.yml`](../.github/workflows/doc-drift-check.yml)                                                      |
-| Postgres-Migrations-Patterns, K-Level            | [`xx_sop/18_postgres_patterns_migrations.md`](../xx_sop/18_postgres_patterns_migrations.md)                                              |
-| Supabase-Betriebs-SOP, Pre-Flight-Check          | [`xx_sop/05_database_supabase.md`](../xx_sop/05_database_supabase.md)                                                                    |
-| Gewichtete Subkategorien-Bewertung (Säule 7)     | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md)                                                                           |
-| Übergeordnete Aufschlüsselung (Kategorie 02)     | [`worldmap/04_datenbank_migrationen.md`](../worldmap/04_datenbank_migrationen.md)                                                        |
-| Planungsdateien-Konvention                       | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md)                                              |
+| Bedarf | Datei |
+| --- | --- |
+| Kanonischer Doku-Standard (Säule 7) | [`docs/database/07_indexing_query_performance.md`](../docs/database/07_indexing_query_performance.md) |
+| Gekoppelter Lasttest (Quelle für N1) | [`T_DATABASE/08_database_connection_pooling.md`](./08_database_connection_pooling.md) L5a / N1 |
+| Bestehendes Lasttest-Tooling | [`docs/archive/05_Observability_und_Lasttest.md`](../docs/archive/05_Observability_und_Lasttest.md) |
+| Letzter belegter Ruhezustands-Audit | [`docs/database/audits/query-performance-2026-09-05.md`](../docs/database/audits/query-performance-2026-09-05.md) |
+| CI-Vorlage | [`.github/workflows/query-performance-audit.yml`](../.github/workflows/query-performance-audit.yml) |
+| Postgres-Migrations-Patterns, K-Level | [`xx_sop/18_postgres_patterns_migrations.md`](../xx_sop/18_postgres_patterns_migrations.md) |
+| Gewichtete Subkategorien-Bewertung (Säule 7) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md) |
+| Übergeordnete Aufschlüsselung (Kategorie 02) | [`T_DATABASE/04_datenbank_migrationen.md`](../T_DATABASE/04_datenbank_migrationen.md) |
+| Planungsdateien-Konvention | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md) |

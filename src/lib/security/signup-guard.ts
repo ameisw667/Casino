@@ -27,3 +27,11 @@ export function reportSignupSuspicion(reason: SignupSuspicionReason): void {
     body: JSON.stringify({ reason }),
   }).catch(() => {});
 }
+
+// 06_3 L0: records the signup-side network fingerprint (and runs the pre-grant cluster
+// check server-side) right after a successful signup — same fire-and-forget contract as
+// reportSignupSuspicion. Body is empty on purpose: the route attributes everything to the
+// server-verified session, the client supplies no IDs.
+export function reportSignupNetworkFingerprint(): void {
+  void fetch('/api/auth/signup-fingerprint', { method: 'POST' }).catch(() => {});
+}

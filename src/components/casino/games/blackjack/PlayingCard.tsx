@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { GLYPH_TOKENS } from '@/lib/design-tokens/glyph-tokens';
 
 export interface Card {
   suit: 'spades' | 'clubs' | 'hearts' | 'diamonds';
@@ -20,7 +21,7 @@ const SUIT_SYMBOLS: Record<string, string> = {
   spades: '♠',
   clubs: '♣',
   hearts: '♥',
-  diamonds: '♦',
+  diamonds: GLYPH_TOKENS.diamond.value,
 };
 
 export default function PlayingCard({ card, faceDown = false, size = 'md' }: PlayingCardProps) {

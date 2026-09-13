@@ -3,6 +3,8 @@ import type { WellbeingGuardStatus } from '../responsible-gambling';
 
 const mocks = vi.hoisted(() => ({
   maybeSingle: vi.fn<() => Promise<{ data: Record<string, unknown> | null; error: unknown }>>(),
+  // 06_3 L2: the guard now queries users.account_status before the wellbeing row.
+  userMaybeSingle: vi.fn<() => Promise<{ data: Record<string, unknown> | null; error: unknown }>>(),
   upsert: vi.fn<(values: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>>(),
   rpc: vi.fn<
     (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>
@@ -14,6 +16,9 @@ vi.mock('server-only', () => ({}));
 vi.mock('@/utils/supabase/admin', () => ({
   createAdminClient: () => ({
     from: (table: string) => {
+      if (table === 'users') {
+        return { select: () => ({ eq: () => ({ maybeSingle: mocks.userMaybeSingle }) }) };
+      }
       if (table !== 'user_wellbeing_limits') {
         throw new Error(`unexpected table: ${table}`);
       }
@@ -38,6 +43,7 @@ describe('checkWellbeingGuard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.rpc.mockResolvedValue({ data: 0, error: null });
+    mocks.userMaybeSingle.mockResolvedValue({ data: { account_status: 'active' }, error: null });
   });
 
   it('blocks while self_excluded_until lies in the future', async () => {
@@ -90,9 +96,57 @@ describe('checkWellbeingGuard', () => {
   });
 });
 
+// 06_3 L2: admin-initiated fraud enforcement — account_status takes priority over every
+// wellbeing state and the four money routes receive ACCOUNT_FROZEN (403) via
+// wellbeingApiError.
+describe('checkWellbeingGuard — account_status frozen (06_3 L2)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('blocks a frozen account before any wellbeing lookup result', async () => {
+    mocks.userMaybeSingle.mockResolvedValue({ data: { account_status: 'frozen' }, error: null });
+    mocks.maybeSingle.mockResolvedValue({ data: null, error: null });
+
+    const status: WellbeingGuardStatus = await checkWellbeingGuard('user-1');
+    expect(status).toEqual({ state: 'account-frozen' });
+    expect(mocks.maybeSingle).not.toHaveBeenCalled();
+  });
+
+  it('maps account-frozen to ACCOUNT_FROZEN with 403', () => {
+    const error = wellbeingApiError({ state: 'account-frozen' });
+    expect(error).toEqual({
+      code: 'ACCOUNT_FROZEN',
+      message: 'Dein Konto ist gesperrt — Spielen ist nicht möglich.',
+      httpStatus: 403,
+    });
+  });
+
+  it('treats a missing account_status column (067 pending) as not frozen instead of failing closed', async () => {
+    mocks.userMaybeSingle.mockResolvedValue({
+      data: null,
+      error: {
+        code: 'PGRST204',
+        message: "Could not find the 'account_status' column of 'users' in the schema cache",
+      },
+    });
+    expect(await checkWellbeingGuard('user-1')).toEqual({
+      state: 'allowed',
+      dailyLossLimitCents: null,
+      dailyNetLossCents: 0,
+    });
+  });
+
+  it('reports unavailable when the users lookup fails for any other reason', async () => {
+    mocks.userMaybeSingle.mockResolvedValue({ data: null, error: { message: 'db down' } });
+    expect(await checkWellbeingGuard('user-1')).toEqual({ state: 'unavailable' });
+  });
+});
+
 describe('checkWellbeingGuard — daily loss limit (06_2 L3, Q4a net loss)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.userMaybeSingle.mockResolvedValue({ data: { account_status: 'active' }, error: null });
   });
 
   it('calls the net-loss RPC only when a limit is set, with the caller id', async () => {

@@ -76,6 +76,19 @@ describe('voice-routes security and contract tests', () => {
         60,
       );
     });
+
+    it('logs the actual exception object instead of just its message, so Sentry keeps the stack trace (regression: message was passed positionally as the log message, dropping the error)', async () => {
+      mocks.enforceRateLimit.mockRejectedValue(new Error('redis unreachable'));
+      const req = new Request('https://casino.test/api/chat/voice-transcribe', { method: 'POST' });
+      const res = await transcribePOST(req);
+
+      expect(res.status).toBe(500);
+      expect(mocks.casinoLoggerError).toHaveBeenCalledWith(
+        'VoiceTranscribe',
+        expect.any(String),
+        expect.any(Error),
+      );
+    });
   });
 
   describe('POST /api/chat/voice-synthesize', () => {
@@ -113,6 +126,23 @@ describe('voice-routes security and contract tests', () => {
         'guide-voice-tts',
         15,
         60,
+      );
+    });
+
+    it('logs the actual exception object instead of just its message, so Sentry keeps the stack trace (regression: message was passed positionally as the log message, dropping the error)', async () => {
+      mocks.enforceRateLimit.mockRejectedValue(new Error('redis unreachable'));
+      const req = new Request('https://casino.test/api/chat/voice-synthesize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: 'Hallo Spieler' }),
+      });
+      const res = await synthesizePOST(req);
+
+      expect(res.status).toBe(500);
+      expect(mocks.casinoLoggerError).toHaveBeenCalledWith(
+        'VoiceSynthesize',
+        expect.any(String),
+        expect.any(Error),
       );
     });
   });

@@ -36,4 +36,6 @@ const nextConfig: NextConfig = {
 export default withSentryConfig(nextConfig, {
   silent: !process.env.CI,
   widenClientFileUpload: false,
+  // Navigation tracing remains intentionally disabled until URL redaction has its own review.
+  suppressOnRouterTransitionStartWarning: true,
 });

@@ -5,7 +5,11 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { validateAuthCredentials } from './auth-validation';
 import { mapAuthError } from '@/lib/security/form-errors';
-import { detectSignupSuspicion, reportSignupSuspicion } from '@/lib/security/signup-guard';
+import {
+  detectSignupSuspicion,
+  reportSignupNetworkFingerprint,
+  reportSignupSuspicion,
+} from '@/lib/security/signup-guard';
 import { trackAllowedEvent } from '@/lib/analytics/events';
 import {
   getStoredCooldownState,
@@ -163,6 +167,9 @@ export function AuthForm({ mode }: AuthFormProps) {
         // never blocks) — the risk-events FK requires the just-created user to exist.
         const suspicion = detectSignupSuspicion(honeypotValue, formRenderedAtRef.current);
         if (suspicion) reportSignupSuspicion(suspicion);
+        // 06_3 L0: signup-side network fingerprint (cluster detection without any bet),
+        // same fire-and-forget contract — attribution happens server-side via the session.
+        reportSignupNetworkFingerprint();
         void trackAllowedEvent({ name: 'sign_up_completed' });
       } else {
         resetCooldownState();

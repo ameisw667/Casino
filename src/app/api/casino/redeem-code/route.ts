@@ -1,13 +1,20 @@
 import { z } from 'zod';
+import { after } from 'next/server';
 import { WalletService } from '@/lib/casino/wallet';
 import { CasinoLogger } from '@/lib/casino/logger';
 import { recordRiskEventBestEffort } from '@/lib/casino/risk-event-store';
+import { recordBetNetworkFingerprintBestEffort } from '@/lib/casino/network-fingerprint';
+import { checkKnownClusterBeforeGrant } from '@/lib/casino/fraud-detection';
 import {
   enforceRateLimit,
   getClientIdentifier,
   rateLimitHeaders,
   validateMutationOrigin,
 } from '@/lib/security/request-security';
+import {
+  WALLET_REDEEM_LIMIT,
+  WALLET_REDEEM_WINDOW_SECONDS,
+} from '@/lib/security/rate-limit-config';
 import { createClient } from '@/utils/supabase/server';
 import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
 import { apiSuccessResponse } from '@/lib/api/response';
@@ -77,8 +84,8 @@ export async function POST(request: Request) {
     const rate = await enforceRateLimit(
       getClientIdentifier(request, userId),
       'wallet-redeem',
-      10,
-      60,
+      WALLET_REDEEM_LIMIT,
+      WALLET_REDEEM_WINDOW_SECONDS,
     );
     if (!rate.success) {
       await recordRiskEventBestEffort({
@@ -121,6 +128,11 @@ export async function POST(request: Request) {
       return zodErrorResponse(parseResult.error, 400);
     }
 
+    // 06_3 L0: promo redemption is the second blind spot of the fingerprint capture —
+    // a farmer redeeming codes without ever betting was invisible to cluster detection.
+    // Deferred via after(): the fingerprint lands once the response is already on the wire.
+    after(() => recordBetNetworkFingerprintBestEffort(userId, request));
+
     const rawCode = parseResult.data.code.toUpperCase();
     const requestId = validRequestId;
     if (!requestId) {
@@ -130,6 +142,11 @@ export async function POST(request: Request) {
         400,
       );
     }
+
+    // 06_3 L1 (Q1a, fail-open signal): pre-grant cluster check BEFORE the bonus is paid —
+    // a known cluster grants the bonus anyway but raises its high-severity signal now,
+    // not at the next daily scan. The check never throws (fail-open by contract).
+    await checkKnownClusterBeforeGrant(userId);
 
     const outcome = await WalletService.redeemPromoCode({ userId, code: rawCode, requestId });
 
@@ -167,9 +184,12 @@ export async function POST(request: Request) {
       );
     }
 
+    // 06_10 L3: masked to the last 4 chars — enough for debugging correlation (the admin
+    // can look the code up in the dashboard), but no full plaintext code in general logs.
+    // The risk-event evidence path (promo-guess-guard) deliberately keeps the full code.
     CasinoLogger.info(
       'API/RedeemCode',
-      `Successfully redeemed code ${rawCode} for +$${outcome.amount.toFixed(2)}`,
+      `Successfully redeemed code ****${rawCode.slice(-4)} for +$${outcome.amount.toFixed(2)}`,
       { userId },
     );
 

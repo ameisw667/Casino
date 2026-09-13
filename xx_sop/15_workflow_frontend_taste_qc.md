@@ -63,6 +63,7 @@ Erster Schritt immer: Surface-Typ nach `impeccable`s eigener Mode-Definition ein
 - **Reiner Politur-Auftrag ohne Redesign** ("mach das UI klarer/hochwertiger"): direkt `impeccable` (passendes Sub-Command aus der Tabelle in dessen SKILL.md wählen: `polish`, `bolder`, `quieter`, `distill`, `clarify`), kein 3-Optionen-Gate aus 10 nötig, da kein visueller Konzeptwechsel stattfindet.
 - **Neue Persuade-Surface ohne Vorlage:** `design-taste-frontend` Section 0–2 durchlaufen (Design Read + Dials), dabei Dial-Werte nur für Layout-Varianz/Motion-Intensität/Dichte nutzen — Farbpalette und Typografie werden trotzdem aus 04 übernommen, nicht aus der Skill-eigenen Palette-Tabelle.
 - **K-Level/Freigabe:** Es wird kein neues K-Level-System eingeführt. Es gilt die K-Level-Tabelle aus 04 §8 bzw. 10 §5, je nachdem welcher Workflow gerade aktiv ist.
+- **Mandatorischer Screenshot-Output:** Jede Taste-QC und jede UI-Politur schließt mit einem zugeschnittenen Verifikations-Screenshot der geänderten Oberfläche live von `http://localhost:3015` ab, der im finalen Antwortbericht an Jan eingebunden wird.
 
 ---
 

@@ -2,8 +2,12 @@
 
 import type { RefObject } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 import type { CrashStatus } from './crash-helpers';
+import { GLYPH_TOKENS } from '@/lib/design-tokens/glyph-tokens';
+import { CrashPixelCanvas } from './CrashPixelCanvas';
+import { KineticTextReveal } from '@/components/casino/typography/KineticTextReveal';
 
 interface CrashMilestoneFlash {
   value: number;
@@ -65,6 +69,16 @@ export function CrashStage({
         boxShadow: '0 25px 60px rgba(0, 0, 0, 0.95), inset 0 0 60px rgba(0, 0, 0, 0.8)',
       }}
     >
+      <Image
+        className="crash-stage-mobile-backdrop"
+        src="/images/2026-09-05_backdrop-crash-quantum-nebula-mobile_v001.webp"
+        alt=""
+        fill
+        sizes="(max-width: 1023px) 100vw, 1px"
+        style={{ objectFit: 'cover', objectPosition: 'center bottom', zIndex: 0 }}
+        priority
+      />
+
       {/* 1. Bespoke Orbital Launchpad Backdrop Artwork (Option A) */}
       <motion.div
         animate={
@@ -81,17 +95,17 @@ export function CrashStage({
             ? { duration: 9, repeat: Infinity, ease: 'easeInOut' }
             : { duration: 0.7, ease: 'easeOut' }
         }
+        className="crash-stage-backdrop"
         style={{
           position: 'absolute',
           inset: -14,
-          backgroundImage: "url('/images/2026-09-05_backdrop-crash-quantum-nebula_v001.png')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center bottom',
-          backgroundRepeat: 'no-repeat',
           pointerEvents: 'none',
           zIndex: 0,
         }}
       />
+
+      {/* Reactive Pixel Canvas Backdrop (Componentry Touchpoint 12) */}
+      <CrashPixelCanvas status={status} isMobile={isMobile} />
 
       {/* 2. Atmospheric Vignette & Contrast Tuning */}
       <div
@@ -181,26 +195,16 @@ export function CrashStage({
 
         {/* Processing / Arming State */}
         {status === 'IDLE' && isProcessing && (
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 20px',
-              borderRadius: '20px',
-              background: 'rgba(11, 14, 20, 0.85)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              border: '1px solid rgba(212, 175, 55, 0.6)',
-              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.7), inset 0 1px 2px rgba(212, 175, 55, 0.3)',
-              color: '#FFD700',
-              fontSize: isMobile ? '0.85rem' : '1.05rem',
-              fontWeight: 800,
-              letterSpacing: '3px',
-              marginBottom: '12px',
-            }}
-          >
-            <span>ARMING THRUSTERS...</span>
+          <div style={{ marginBottom: '12px' }}>
+            <KineticTextReveal
+              text="ARMING THRUSTERS..."
+              variant="smooth"
+              colorScheme="gold"
+              fontSize={isMobile ? '0.85rem' : '1.05rem'}
+              fontFamily="var(--font-mono, monospace)"
+              letterSpacing="3px"
+              isMobile={isMobile}
+            />
           </div>
         )}
 
@@ -267,24 +271,19 @@ export function CrashStage({
           </div>
         )}
 
-        {/* Crashed State Feedback */}
+        {/* Crashed State Feedback with Kinetic Split-Slice Reveal */}
         {status === 'CRASHED' && (
           <div style={{ marginTop: '12px' }}>
-            <div
-              style={{
-                display: 'inline-block',
-                background: 'rgba(239, 68, 68, 0.15)',
-                border: '1px solid rgba(239, 68, 68, 0.5)',
-                borderRadius: '12px',
-                padding: '8px 24px',
-                color: '#ef4444',
-                fontWeight: 900,
-                fontSize: isMobile ? '1rem' : '1.3rem',
-                letterSpacing: '4px',
-              }}
-            >
-              CRASHED
-            </div>
+            <KineticTextReveal
+              text="CRASHED"
+              variant="impact"
+              colorScheme="ruby"
+              skewAngle={14}
+              fontSize={isMobile ? '1.4rem' : '2.1rem'}
+              fontFamily="var(--font-mono, monospace)"
+              letterSpacing="6px"
+              isMobile={isMobile}
+            />
             {countdown !== null && (
               <div
                 style={{
@@ -318,8 +317,25 @@ export function CrashStage({
               letterSpacing: '1px',
             }}
           >
-            ✓ SECURED @ {cashoutAt.toFixed(2)}x — +$
-            {(betAmount * cashoutAt - betAmount).toFixed(2)}
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <Image
+                src={GLYPH_TOKENS.checkmark.value}
+                alt={GLYPH_TOKENS.checkmark.alt}
+                width={isMobile ? 14 : 18}
+                height={isMobile ? 14 : 18}
+                aria-hidden
+              />
+              <span>
+                SECURED @ {cashoutAt.toFixed(2)}x — +$
+                {(betAmount * cashoutAt - betAmount).toFixed(2)}
+              </span>
+            </span>
           </div>
         )}
       </div>
@@ -344,7 +360,8 @@ export function CrashStage({
             textShadow: '0 0 35px rgba(255, 215, 0, 0.9), 0 0 70px rgba(212, 175, 55, 0.5)',
           }}
         >
-          {milestoneFlash.value}× MILESTONE REACHED!
+          {milestoneFlash.value}
+          {GLYPH_TOKENS.multiplier.value} MILESTONE REACHED!
         </div>
       )}
     </div>
