@@ -71,11 +71,22 @@ jobs:
           } >> "$GITHUB_ENV"
           rm .supabase-status.env
 
+      # T_DATABASE/10 N4 — Coverage-Check (Inventar vs. supabase/tests/*.sql) VOR dem
+      # DB-Lauf. Lücken blockieren den Workflow nicht, sondern fallen als roter Step auf.
+      - name: Check pgTAP P0 coverage
+        continue-on-error: true
+        run: npx tsx scripts/check-pgtap-coverage.ts
+
       # T_DATABASE/10 L8 — pgTAP-Laufzeittests (supabase/tests/*.sql) gegen dieselbe
       # ephemere lokale Supabase-Instanz. `supabase start` hat bereits alle Migrationen
       # inkl. 064_enable_pgtap.sql angewendet, daher läuft die Suite direkt danach.
       - name: Run pgTAP database tests
         run: npx supabase test db
+
+      # T_DATABASE/10 N5 — echter Konkurrenztest der Advisory-Lock-Pfade (2 gleichzeitige
+      # service_role-Clients, gleiche request_id) gegen dieselbe ephemere lokale Instanz.
+      - name: Run concurrent settlement race test
+        run: npx tsx scripts/test-concurrent-settlement.ts
 
       - run: npm test -- src/lib/security/__tests__/staging-regression-contract.test.ts
       - run: npx tsx scripts/phase1-target-guard.ts
