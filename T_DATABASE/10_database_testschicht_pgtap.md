@@ -36,6 +36,33 @@ Die **"Status"-Spalte der bisherigen Übersichtstabelle wurde entfernt** (durchg
 - **Wichtiger Fakt, nicht erneut recherchieren:** `wallet-ledger-invariants.test.ts`, `rls-defense-in-depth.test.ts`, `wallet-authority.test.ts`, `wallet-service-authority.test.ts` sind **statische Datei-Assertions** (`readFileSync` + String-Matching), keine echten DB-Verbindungstests — das bleibt bewusst so (siehe `T_DATABASE/05_database_backup_and_recovery.md` Abschnitt 2), diese Datei hier baut die **echten** Laufzeittests.
 - 159 `SECURITY DEFINER`-Vorkommen über 48 Migrationsdateien (Grep-Stand 2026-09-12) — **nicht alle sind eigenständige, testwürdige RPCs** (viele sind wiederholte `CREATE OR REPLACE` derselben Funktion über mehrere Migrationen); N1 klärt die tatsächliche, deduplizierte Zielliste.
 
+### 2a — N1-Ergebnis (2026-09-13): priorisiertes Funktionsinventar
+
+Datenquelle: [`docs/database/pgtap-coverage-inventory.json`](../docs/database/pgtap-coverage-inventory.json) (73 Funktionen, dedupliziert auf die juengste Definition je Name; Basis fuer das N4-Coverage-Gate). Verteilung: **12 P0 · 15 P1 · 41 P2 · 5 legacy**.
+
+**P0 — direkter Geldpfad (12):**
+
+| Funktion                                          | Neueste Definition                     | Bereits getestet?                                                             |
+| ------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------- |
+| `settle_game_bet`                                 | 045:25                                 | ja — `settle_game_bet.test.sql`                                               |
+| `start_game_round`                                | 058:1138                               | ja — `start_game_round.test.sql`                                              |
+| `advance_blackjack_round`                         | 036:339                                | ja — `advance_blackjack_round.test.sql`                                       |
+| `settle_game_round`                               | 045:194                                | **nein → N2** (live: `src/lib/casino/wallet.ts` ruft es)                      |
+| `reconcile_wallet_ledger`                         | 058:723                                | **nein → N2**                                                                 |
+| `admin_update_user`                               | 058:13                                 | **nein → N2**                                                                 |
+| `redeem_promo_code`                               | 058:809                                | **nur als Fixture in `promo_reversal_rpc.test.sql` → dedizierter Test in N2** |
+| `reverse_promo_code`                              | 066:23                                 | ja — `promo_reversal_rpc.test.sql`                                            |
+| `deactivate_expired_promo_codes`                  | 066:143                                | ja — `promo_reversal_rpc.test.sql`                                            |
+| `settle_daily_race`                               | 060:467 (Overload `()` :567 delegiert) | **nein → N2**                                                                 |
+| `guard_wallet_transaction_immutable` (Trigger)    | 058:591                                | **nein → N2** (bisher nur statische Datei-Assertion)                          |
+| `jackpot_pool_contribute` / `jackpot_pool_settle` | 033:13 / 034:18                        | indirekt via `settle_game_bet`-Kette — kein eigener Test nötig                |
+
+**P1 — Zugriff/Risiko (15):** ungetestet `get_or_create_user_seed`, `rotate_user_seed`, `consume_active_seed` (Seed-Chain = Provably-Fair-Kern), `sync_crash_round`, `set_crash_round_point`, `release_fraud_scan_lock`, `record_bet_network_fingerprint`, `detect_bet_velocity_outliers`, `detect_multi_account_clusters`, `compute_cohort_win_rates`, `compute_fraud_ml_features`, `custom_access_token_hook`, `enforce_self_exclusion_only_extends`, `rls_auto_enable`; getestet (aus früheren Sessions): `record_risk_event`, `review_risk_event`, `try_acquire_fraud_scan_lock` — `risk_events_rpc.test.sql`.
+
+**P2 (41) und legacy (5)** — bewusst kein Ziel; Legacy (`place_bet`, `settle_bet`, `migrate_anonymous_session`, `upsert_anonymous_session`, `casino_rank_for_level`) ist per Migration 011 revoket.
+
+**Divergenz-Fund zur Plan-Annahme:** §2 listete 4 Testdateien/27 Tests — der Ist-Stand sind **6 Dateien** (zusätzlich `promo_reversal_rpc.test.sql` 22 Tests + `risk_events_rpc.test.sql` 20 Tests aus den inzwischen gelöschten T_RATE_LIMITING-Plänen 06_9/06_10). N2-Scope verkleinert sich entsprechend.
+
 ---
 
 ## 3 — Neue Meilensteine (N1–N7)
@@ -130,13 +157,13 @@ Die **"Status"-Spalte der bisherigen Übersichtstabelle wurde entfernt** (durchg
 
 ## 6 — Verwandte Artefakte
 
-| Bedarf | Datei |
-| --- | --- |
-| Kanonischer Doku-Standard (Säule 10) | [`docs/database/10_automatisierte_db_testschicht.md`](../docs/database/10_automatisierte_db_testschicht.md) — wird in N7 aktualisiert |
-| Bestehende pgTAP-Tests (Referenz) | `supabase/tests/*.test.sql` |
-| CI-Einbaupunkt | [`.github/workflows/security-staging.yml`](../.github/workflows/security-staging.yml) |
-| Finanz-/Idempotenz-Invarianten | [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md) |
-| Postgres-Migrations-Patterns, K-Level | [`xx_sop/18_postgres_patterns_migrations.md`](../xx_sop/18_postgres_patterns_migrations.md) |
-| Gewichtete Subkategorien-Bewertung | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 02) | [`T_DATABASE/04_datenbank_migrationen.md`](../T_DATABASE/04_datenbank_migrationen.md) |
-| Planungsdateien-Konvention | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md) |
+| Bedarf                                       | Datei                                                                                                                                 |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Kanonischer Doku-Standard (Säule 10)         | [`docs/database/10_automatisierte_db_testschicht.md`](../docs/database/10_automatisierte_db_testschicht.md) — wird in N7 aktualisiert |
+| Bestehende pgTAP-Tests (Referenz)            | `supabase/tests/*.test.sql`                                                                                                           |
+| CI-Einbaupunkt                               | [`.github/workflows/security-staging.yml`](../.github/workflows/security-staging.yml)                                                 |
+| Finanz-/Idempotenz-Invarianten               | [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md)                                               |
+| Postgres-Migrations-Patterns, K-Level        | [`xx_sop/18_postgres_patterns_migrations.md`](../xx_sop/18_postgres_patterns_migrations.md)                                           |
+| Gewichtete Subkategorien-Bewertung           | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md)                                                                        |
+| Übergeordnete Aufschlüsselung (Kategorie 02) | [`T_DATABASE/04_datenbank_migrationen.md`](../T_DATABASE/04_datenbank_migrationen.md)                                                 |
+| Planungsdateien-Konvention                   | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md)                                           |

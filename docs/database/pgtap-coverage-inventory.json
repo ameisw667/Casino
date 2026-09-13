@@ -1,0 +1,541 @@
+{
+  "generatedAt": "2026-09-13",
+  "generatedBy": "Saule 10 N1 (T_DATABASE/10_database_testschicht_pgtap.md)",
+  "method": "grep 'CREATE [OR REPLACE] FUNCTION' ueber supabase/migrations/*.sql, dedupliziert auf die juengste Definition je Funktionsname; Klassifizierung nach Geld-Naehe laut Plan-Abschnitt N1",
+  "priorityDefinitions": {
+    "P0": "Direkter Geldpfad: mutiert users-Balance, wallet_transactions, wallet_events, wallet_ledger_baselines direkt oder via Aufrufkette",
+    "P1": "Zugriffskontrolle/Risiko: Fraud-, Risk-, Seed-Chain- (Provably Fair), Auth- und Wellbeing-Pfade ohne direkte Geldmutation",
+    "P2": "Meta/Telemetrie: weder Geld noch Zugriffsentscheidungen — bewusst kein Ziel dieser Neufassung",
+    "legacy": "In Schema vorhanden (teils via 058-Drift-Reconciliation rekonstruiert), aber per Migration 011 revoket und ohne Caller — bewusst nicht testwuerdig"
+  },
+  "functions": [
+    {
+      "name": "settle_game_bet",
+      "definition": "045_fix_wallet_events_jackpot_regression.sql:25",
+      "priority": "P0",
+      "tested": "direct",
+      "testFiles": ["supabase/tests/settle_game_bet.test.sql"]
+    },
+    {
+      "name": "settle_game_round",
+      "definition": "045_fix_wallet_events_jackpot_regression.sql:194",
+      "priority": "P0",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "start_game_round",
+      "definition": "058_reconcile_remote_schema_drift.sql:1138",
+      "priority": "P0",
+      "tested": "direct",
+      "testFiles": ["supabase/tests/start_game_round.test.sql"]
+    },
+    {
+      "name": "advance_blackjack_round",
+      "definition": "036_wallet_events_outbox.sql:339",
+      "priority": "P0",
+      "tested": "direct",
+      "testFiles": ["supabase/tests/advance_blackjack_round.test.sql"]
+    },
+    {
+      "name": "reconcile_wallet_ledger",
+      "definition": "058_reconcile_remote_schema_drift.sql:723",
+      "priority": "P0",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "admin_update_user",
+      "definition": "058_reconcile_remote_schema_drift.sql:13",
+      "priority": "P0",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "redeem_promo_code",
+      "definition": "058_reconcile_remote_schema_drift.sql:809",
+      "priority": "P0",
+      "tested": "fixture-only",
+      "testFiles": ["supabase/tests/promo_reversal_rpc.test.sql"]
+    },
+    {
+      "name": "reverse_promo_code",
+      "definition": "066_promo_reversal_and_expiry.sql:23",
+      "priority": "P0",
+      "tested": "direct",
+      "testFiles": ["supabase/tests/promo_reversal_rpc.test.sql"]
+    },
+    {
+      "name": "deactivate_expired_promo_codes",
+      "definition": "066_promo_reversal_and_expiry.sql:143",
+      "priority": "P0",
+      "tested": "direct",
+      "testFiles": ["supabase/tests/promo_reversal_rpc.test.sql"]
+    },
+    {
+      "name": "settle_daily_race",
+      "definition": "060_pg_cron_retry_failure_handling.sql:467 (Overload ohne Datum: :567, delegiert)",
+      "priority": "P0",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "guard_wallet_transaction_immutable",
+      "definition": "058_reconcile_remote_schema_drift.sql:591",
+      "priority": "P0",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "jackpot_pool_contribute",
+      "definition": "033_progressive_jackpot_contribution.sql:13",
+      "priority": "P0",
+      "tested": "indirect",
+      "testFiles": ["supabase/tests/settle_game_bet.test.sql"]
+    },
+    {
+      "name": "jackpot_pool_settle",
+      "definition": "034_progressive_jackpot_trigger.sql:18",
+      "priority": "P0",
+      "tested": "indirect",
+      "testFiles": ["supabase/tests/settle_game_bet.test.sql"]
+    },
+
+    {
+      "name": "get_or_create_user_seed",
+      "definition": "058_reconcile_remote_schema_drift.sql:413",
+      "priority": "P1",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "rotate_user_seed",
+      "definition": "058_reconcile_remote_schema_drift.sql:1018",
+      "priority": "P1",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "consume_active_seed",
+      "definition": "058_reconcile_remote_schema_drift.sql:168",
+      "priority": "P1",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "sync_crash_round",
+      "definition": "038_fix_crash_round_pgcrypto_schema.sql:15",
+      "priority": "P1",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "set_crash_round_point",
+      "definition": "037_multiplayer_crash_rounds.sql:140",
+      "priority": "P1",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "record_risk_event",
+      "definition": "062_bot_signal_types.sql:29",
+      "priority": "P1",
+      "tested": "direct",
+      "testFiles": ["supabase/tests/risk_events_rpc.test.sql"]
+    },
+    {
+      "name": "review_risk_event",
+      "definition": "068_risk_event_suppressed_status.sql:20",
+      "priority": "P1",
+      "tested": "direct",
+      "testFiles": ["supabase/tests/risk_events_rpc.test.sql"]
+    },
+    {
+      "name": "try_acquire_fraud_scan_lock",
+      "definition": "058_reconcile_remote_schema_drift.sql:1232",
+      "priority": "P1",
+      "tested": "direct",
+      "testFiles": ["supabase/tests/risk_events_rpc.test.sql"]
+    },
+    {
+      "name": "release_fraud_scan_lock",
+      "definition": "058_reconcile_remote_schema_drift.sql:940",
+      "priority": "P1",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "record_bet_network_fingerprint",
+      "definition": "058_reconcile_remote_schema_drift.sql:785",
+      "priority": "P1",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "detect_bet_velocity_outliers",
+      "definition": "058_reconcile_remote_schema_drift.sql:273",
+      "priority": "P1",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "detect_multi_account_clusters",
+      "definition": "058_reconcile_remote_schema_drift.sql:293",
+      "priority": "P1",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "compute_cohort_win_rates",
+      "definition": "058_reconcile_remote_schema_drift.sql:131",
+      "priority": "P1",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "compute_fraud_ml_features",
+      "definition": "044_fix_fraud_ml_features_settlement_model.sql:26",
+      "priority": "P1",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "custom_access_token_hook",
+      "definition": "058_reconcile_remote_schema_drift.sql:233",
+      "priority": "P1",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "enforce_self_exclusion_only_extends",
+      "definition": "063_user_wellbeing_limits.sql:31",
+      "priority": "P1",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "rls_auto_enable",
+      "definition": "058_reconcile_remote_schema_drift.sql:988",
+      "priority": "P1",
+      "tested": false,
+      "testFiles": []
+    },
+
+    {
+      "name": "guard_canonical_user_provisioning",
+      "definition": "009_meta_features.sql:60",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "link_user_identity",
+      "definition": "009_meta_features.sql:100",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "handle_new_supabase_user",
+      "definition": "008_supabase_auth_bridge.sql:6",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "sync_user_achievement",
+      "definition": "058_reconcile_remote_schema_drift.sql:1209",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "get_user_stats",
+      "definition": "058_reconcile_remote_schema_drift.sql:479",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "get_leaderboard",
+      "definition": "058_reconcile_remote_schema_drift.sql:365",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "post_chat_message",
+      "definition": "058_reconcile_remote_schema_drift.sql:655",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "get_recent_chat_messages",
+      "definition": "058_reconcile_remote_schema_drift.sql:454",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "get_community_stats",
+      "definition": "058_reconcile_remote_schema_drift.sql:349",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "get_active_game_round",
+      "definition": "058_reconcile_remote_schema_drift.sql:317",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "get_daily_race_standings",
+      "definition": "041_daily_race.sql:58",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "run_daily_race_settlement_job",
+      "definition": "060_pg_cron_retry_failure_handling.sql:236",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "run_promo_expiry_job",
+      "definition": "066_promo_reversal_and_expiry.sql:161",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "run_guide_telemetry_purge_job",
+      "definition": "060_pg_cron_retry_failure_handling.sql:208",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "run_bet_fingerprint_purge_job",
+      "definition": "060_pg_cron_retry_failure_handling.sql:222",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "run_risk_event_purge_job",
+      "definition": "069_risk_event_retention_purge.sql:27",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "purge_guide_telemetry_events",
+      "definition": "024_guide_telemetry_events.sql:131",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "delete_guide_telemetry_events_for_actor",
+      "definition": "024_guide_telemetry_events.sql:147",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "purge_expired_telegram_link_tokens",
+      "definition": "058_reconcile_remote_schema_drift.sql:706",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "purge_bet_network_fingerprints",
+      "definition": "058_reconcile_remote_schema_drift.sql:697",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "purge_closed_risk_events",
+      "definition": "069_risk_event_retention_purge.sql:13",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "retry_stale_wallet_events",
+      "definition": "060_pg_cron_retry_failure_handling.sql:344",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "retry_stale_big_win_events",
+      "definition": "060_pg_cron_retry_failure_handling.sql:391",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "retry_failed_background_jobs",
+      "definition": "060_pg_cron_retry_failure_handling.sql:180",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "notify_wallet_event",
+      "definition": "036_wallet_events_outbox.sql:91",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "notify_big_win_event",
+      "definition": "060_pg_cron_retry_failure_handling.sql:303",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "apply_xp_gain",
+      "definition": "036_wallet_events_outbox.sql:29",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "emit_big_win_notify_event",
+      "definition": "047_event_bus_big_win_consumer.sql:20",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "claim_big_win_notify_event",
+      "definition": "047_event_bus_big_win_consumer.sql:66",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "ack_big_win_notify_event",
+      "definition": "047_event_bus_big_win_consumer.sql:102",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "get_guide_observability",
+      "definition": "024_guide_telemetry_events.sql:42",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "get_guide_feedback_summary",
+      "definition": "042_guide_feedback_evals.sql:27",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "get_jackpot_pool_public",
+      "definition": "035_progressive_jackpot_public_read.sql:9",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "get_user_history_page",
+      "definition": "061_wallet_transactions_history_cursor_index.sql:6",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "get_daily_net_loss_cents",
+      "definition": "063_user_wellbeing_limits.sql:64",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "match_guide_documents",
+      "definition": "039_guide_knowledge_pgvector.sql:30",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "casino_xp_level_divisor",
+      "definition": "010_dynamic_xp_divisor.sql:10",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "enqueue_cron_alert",
+      "definition": "060_pg_cron_retry_failure_handling.sql:30",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "execute_background_job",
+      "definition": "060_pg_cron_retry_failure_handling.sql:71",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "alert_wallet_event_dead_letters",
+      "definition": "060_pg_cron_retry_failure_handling.sql:271",
+      "priority": "P2",
+      "tested": false,
+      "testFiles": []
+    },
+
+    {
+      "name": "place_bet",
+      "definition": "058_reconcile_remote_schema_drift.sql:626 (Legacy, revoket via 011)",
+      "priority": "legacy",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "settle_bet",
+      "definition": "058_reconcile_remote_schema_drift.sql:1101 (Legacy, revoket via 011)",
+      "priority": "legacy",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "migrate_anonymous_session",
+      "definition": "005_anonymous_sessions.sql:47 (Legacy, revoket via 011)",
+      "priority": "legacy",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "upsert_anonymous_session",
+      "definition": "005_anonymous_sessions.sql:98 (Legacy, revoket via 011)",
+      "priority": "legacy",
+      "tested": false,
+      "testFiles": []
+    },
+    {
+      "name": "casino_rank_for_level",
+      "definition": "007_server_authority.sql:35 (revoket via 007)",
+      "priority": "legacy",
+      "tested": false,
+      "testFiles": []
+    }
+  ]
+}
