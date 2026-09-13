@@ -1,6 +1,6 @@
 # 05 — Disaster Recovery & Backup
 
-> **Status:** Execution-Ready (Neufassung 2026-09-12) · **Stand:** 2026-09-12 · **Owner:** LLM (Jan nur bei N7/Aktivierung) · **Scope:** Vollständiger, **redundanter** Recovery-Zyklus (Export → 2 unabhängige Ziele → Restore-Drill → Integritäts-Dauerverifikation → Staleness-Alerting → Config-Inventar) für die Supabase-Produktdaten des Casino-Projekts `hmqwozhdckbwjqzcmire`. Kein Produktiv-Restore, kein Tarifwechsel ohne Jan-Freigabe.
+> **Status:** N1–N6 ausgeführt (2026-09-13, siehe §9) · N7 = K4-Jan-Gate offen · **Stand:** 2026-09-13 · **Owner:** LLM (Jan nur bei N7/Aktivierung) · **Scope:** Vollständiger, **redundanter** Recovery-Zyklus (Export → 2 unabhängige Ziele → Restore-Drill → Integritäts-Dauerverifikation → Staleness-Alerting → Config-Inventar) für die Supabase-Produktdaten des Casino-Projekts `hmqwozhdckbwjqzcmire`. Kein Produktiv-Restore, kein Tarifwechsel ohne Jan-Freigabe.
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
 
@@ -29,17 +29,17 @@ Die **Spalte "Status" der Vorversion wurde entfernt** — bei einer frischen Exe
 
 ## 2 — Bereits vorhandener, verifizierter Code (Referenz — nicht neu bauen)
 
-| Datei | Rolle |
-| --- | --- |
-| [`scripts/backup-supabase.ts`](../scripts/backup-supabase.ts) | Orchestrator: `npm run backup:run` |
-| [`scripts/restore-supabase.ts`](../scripts/restore-supabase.ts) | Orchestrator Restore (Download/Decrypt/Apply) |
-| [`scripts/restore-drill.ts`](../scripts/restore-drill.ts) | Ephemerer Docker-Restore-Drill inkl. `validateFinancialInvariants()` |
-| [`src/lib/backup/supabase-dump.ts`](../src/lib/backup/supabase-dump.ts) | `dumpSupabaseArtifacts()` |
-| [`src/lib/backup/recovery-crypto.ts`](../src/lib/backup/recovery-crypto.ts) | AES-256-GCM Encrypt/Decrypt, Manifest, SigV4-Signierung (PUT **und** GET) |
-| [`src/lib/backup/backup-runner.ts`](../src/lib/backup/backup-runner.ts) | `runBackup()` — validiert, verschlüsselt, baut Manifest, lädt hoch |
-| [`src/lib/backup/s3-client.ts`](../src/lib/backup/s3-client.ts) / `s3-download.ts` | Signierter `PUT`/`GET` gegen ein S3-kompatibles Ziel |
-| `src/lib/backup/__tests__/*.test.ts` (mehrere Dateien) | Grüne Tests: Endpoint-/Key-Validierung, GCM-Tamper-Schutz, Manifest-Hash, SigV4, Safety-Guard gegen Produktions-Connection-Strings |
-| [`.github/workflows/backup-drill.yml`](../.github/workflows/backup-drill.yml) | Wöchentlicher + PR-getriggerter CI-Lauf: Dump → Drill → Live-Invarianten, ohne Secrets |
+| Datei                                                                              | Rolle                                                                                                                              |
+| ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| [`scripts/backup-supabase.ts`](../scripts/backup-supabase.ts)                      | Orchestrator: `npm run backup:run`                                                                                                 |
+| [`scripts/restore-supabase.ts`](../scripts/restore-supabase.ts)                    | Orchestrator Restore (Download/Decrypt/Apply)                                                                                      |
+| [`scripts/restore-drill.ts`](../scripts/restore-drill.ts)                          | Ephemerer Docker-Restore-Drill inkl. `validateFinancialInvariants()`                                                               |
+| [`src/lib/backup/supabase-dump.ts`](../src/lib/backup/supabase-dump.ts)            | `dumpSupabaseArtifacts()`                                                                                                          |
+| [`src/lib/backup/recovery-crypto.ts`](../src/lib/backup/recovery-crypto.ts)        | AES-256-GCM Encrypt/Decrypt, Manifest, SigV4-Signierung (PUT **und** GET)                                                          |
+| [`src/lib/backup/backup-runner.ts`](../src/lib/backup/backup-runner.ts)            | `runBackup()` — validiert, verschlüsselt, baut Manifest, lädt hoch                                                                 |
+| [`src/lib/backup/s3-client.ts`](../src/lib/backup/s3-client.ts) / `s3-download.ts` | Signierter `PUT`/`GET` gegen ein S3-kompatibles Ziel                                                                               |
+| `src/lib/backup/__tests__/*.test.ts` (mehrere Dateien)                             | Grüne Tests: Endpoint-/Key-Validierung, GCM-Tamper-Schutz, Manifest-Hash, SigV4, Safety-Guard gegen Produktions-Connection-Strings |
+| [`.github/workflows/backup-drill.yml`](../.github/workflows/backup-drill.yml)      | Wöchentlicher + PR-getriggerter CI-Lauf: Dump → Drill → Live-Invarianten, ohne Secrets                                             |
 
 **Bestätigt weiterhin gültig (vor Nutzung per `grep` gegenprüfen, falls sich der Code seit 2026-09-05 verschoben hat):** Tabelleninventar `users` (Balance-Feld), `wallet_transactions`, `wallet_events`, `wallet_invariant_events`, `wallet_ledger_baselines`, `game_rounds`, `game_sessions`, `crash_rounds`, `seeds`, `seed_history`. Keine Tabellen `wallets`/`transactions`/`bets`. RPO-Ziel `≤ 24 h`, RTO-Ziel `≤ 4 h` (lokal bereits mit großem Puffer erfüllt: voller Zyklus < 50 s).
 
@@ -83,7 +83,7 @@ Die **Spalte "Status" der Vorversion wurde entfernt** — bei einer frischen Exe
 
 ### N4 — Staleness-Alerting (Regelbetrieb schließt die alte "künftige Erweiterung"-Lücke)
 
-- **Ziel:** Die Vorversion markierte "Regelbetrieb erkennt fehlende Sicherungen" explizit als offen ("erst nach L11 sinnvoll"). Das stimmt für den *Trigger* (echte Backups), nicht für den *Code* — der lässt sich jetzt bauen und mit einem simulierten Manifest testen.
+- **Ziel:** Die Vorversion markierte "Regelbetrieb erkennt fehlende Sicherungen" explizit als offen ("erst nach L11 sinnvoll"). Das stimmt für den _Trigger_ (echte Backups), nicht für den _Code_ — der lässt sich jetzt bauen und mit einem simulierten Manifest testen.
 - **Schritte:**
   1. Neues Skript `scripts/check-backup-freshness.ts`: liest das jüngste Manifest (lokal oder von N2-Zielen), vergleicht dessen Zeitstempel gegen `RPO ≤ 24 h` (+ 2h Puffer wie in L1 der Vorversion definiert). Bei Überschreitung: Exit-Code `1` und eine strukturierte Fehlermeldung.
   2. GitHub-Actions-Workflow `.github/workflows/backup-freshness-check.yml`: täglicher Cron, ruft das Skript auf. Bei Fehlschlag: `gh issue create` (via `GITHUB_TOKEN`, bereits impliziter CI-Standard-Token, kein neues Secret) mit Titel „Backup überfällig: letzter Erfolg vor >26h" — kein externer Alerting-Dienst nötig, GitHub Issues genügt als erster Regelbetrieb-Baustein.
@@ -144,13 +144,61 @@ Die **Spalte "Status" der Vorversion wurde entfernt** — bei einer frischen Exe
 
 ## 7 — Verwandte Artefakte
 
-| Bedarf | Datei |
-| --- | --- |
-| Kanonischer Doku-Standard (Säule 9) | [`docs/database/09_backup_disaster_recovery.md`](../docs/database/09_backup_disaster_recovery.md) |
-| Neues Jan-Runbook (N1) | `docs/database/runbooks/09_backup_jan_aktivierung.md` (wird in N1 angelegt) |
+| Bedarf                                            | Datei                                                                                                                                                                                                                                                |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kanonischer Doku-Standard (Säule 9)               | [`docs/database/09_backup_disaster_recovery.md`](../docs/database/09_backup_disaster_recovery.md)                                                                                                                                                    |
+| Neues Jan-Runbook (N1)                            | `docs/database/runbooks/09_backup_jan_aktivierung.md` (wird in N1 angelegt)                                                                                                                                                                          |
 | Finanz-/Security-Regressionstests (Drill-Nutzung) | [`src/lib/casino/__tests__/wallet-ledger-invariants.test.ts`](../src/lib/casino/__tests__/wallet-ledger-invariants.test.ts), [`src/lib/security/__tests__/rls-defense-in-depth.test.ts`](../src/lib/security/__tests__/rls-defense-in-depth.test.ts) |
-| Supabase-Betriebs-SOP | [`xx_sop/05_database_supabase.md`](../xx_sop/05_database_supabase.md) |
-| Finanz-/Sicherheitsnachweis-Pflichten | [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md) |
-| Gewichtete Subkategorien-Bewertung | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 02) | [`T_DATABASE/04_datenbank_migrationen.md`](../T_DATABASE/04_datenbank_migrationen.md) |
-| Planungsdateien-Konvention | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md) |
+| Supabase-Betriebs-SOP                             | [`xx_sop/05_database_supabase.md`](../xx_sop/05_database_supabase.md)                                                                                                                                                                                |
+| Finanz-/Sicherheitsnachweis-Pflichten             | [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md)                                                                                                                                                              |
+| Gewichtete Subkategorien-Bewertung                | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md)                                                                                                                                                                                       |
+| Übergeordnete Aufschlüsselung (Kategorie 02)      | [`T_DATABASE/04_datenbank_migrationen.md`](../T_DATABASE/04_datenbank_migrationen.md)                                                                                                                                                                |
+| Planungsdateien-Konvention                        | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md)                                                                                                                                                          |
+
+---
+
+## 9 — Ausführungsergebnis (2026-09-13)
+
+**Branch:** `database-backup` (Worktree `.claude/worktrees/db-backup`) · **Commits:** `828424a` (N1+N2+N5+N6), `b2ec794` (N3+N4) · **Status:** N1–N6 fertig, N7 = Jan-Gate offen.
+
+### 9.1 Meilensteine
+
+| MS                                                   | Ergebnis                        | Artefakte                                                                                                                                                                                                                                                                                                    |
+| ---------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| N1 Runbook                                           | ✅                              | `docs/database/runbooks/09_backup_jan_aktivierung.md` — R2- + B2-Setup, Key-Generierung, `.env.local`-Block, erster Lauf + Checkliste, Teilerfolg-Verhalten, Kosten (beide Free-Tier 0 USD)                                                                                                                  |
+| N2 Multi-Target                                      | ✅                              | `src/lib/backup/targets.ts` (neu), `recovery-crypto.ts` (Config-Reader gesplittet), `backup-runner.ts` (sequenzielle Uploads pro Ziel, Teilerfolg ≠ stiller Erfolg, all-fail = throw), `backup-supabase.ts` (`backup-partial`/`backup-partial-targets`-Meldungen), `.env.example` (BACKUP_SECONDARY_*-Block) |
+| N3 Integritäts-Verifikation                          | ✅                              | `src/lib/backup/integrity-check.ts` (neu), `scripts/verify-backup-integrity.ts` (neu), Integritäts-Step in `backup-drill.yml` (Skip-Notice ohne Secrets)                                                                                                                                                     |
+| N4 Staleness-Alerting                                | ✅                              | `src/lib/backup/freshness.ts` (neu, 26h-Fenster = 24h RPO + 2h Puffer), `scripts/check-backup-freshness.ts` (heute→gestern-Manifest-Probing), `backup-freshness-check.yml` (täglich 04:37 UTC, deduped GitHub Issue, `issues: write`)                                                                        |
+| N5 Config-Inventar                                   | ✅ (Code) / ⏳ Echtlauf pending | `src/lib/backup/config-inventory.ts` (neu, Safe-Set-Filter + fail-closed `assertInventoryHasNoSecrets`), `scripts/export-project-config-inventory.ts` (neu), Step in `query-performance-audit.yml` — echter Management-API-Lauf braucht `SUPABASE_ACCESS_TOKEN` von Jan                                      |
+| N6 Multi-Target-Restore-Drill                        | ✅                              | `src/lib/backup/restore-target.ts` (neu, Hash-Prüfung fail-closed vor Restore), `scripts/restore-drill.ts` erweitert um `--target=primary\|secondary`                                                                                                                                                        |
+| N7 (R2/B2-Konten, echte Uploads, Restore-Drill live) | ⏳ **Jan-Gate**                 | Runbook N1 ist die Schritt-für-Schritt-Anleitung                                                                                                                                                                                                                                                             |
+
+### 9.2 Verifikation (5-Stufen, im Worktree)
+
+| Stufe                | Ergebnis                                                                                                                                              |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run typecheck`  | ✅ 0 Fehler                                                                                                                                           |
+| `npm test`           | ✅ **228 Dateien / 1725 Tests** (Baseline 1703) — 22 neue Tests: 5 multi-target, 5 integrity-check, 5 freshness, 5 config-inventory, 2 restore-target |
+| `npm run lint`       | ✅ 0 Errors / 37 Warnings (Baseline 36; +1 dokumentiert unten)                                                                                        |
+| `npm run build`      | ✅ grün                                                                                                                                               |
+| `git status --short` | ✅ sauber (vor §9-Anhang)                                                                                                                             |
+
+### 9.3 Security-Reviews (Pflicht-Posten)
+
+- **N2 (Credential-Trennung):** Selbstreview im Money-Nachbarpfad — Encryption-Key wird bewusst über beide Ziele geteilt (ein Key-Verlust = Kompromittierung beider Ziele ist akzeptiert, weil beide Ziele dieselben Dump-Daten tragen; Credentials sind getrennt, damit ein Provider-Kompromiss nicht beide Speicherort-Zugriffe öffnet). Upload-Callback erhält `target` + `config` je Ziel; Test `backup-runner.multi-target.test.ts` verifiziert per-target Endpoint-Hosts. Kein Secret im Code/Manifest; Manifest enthält nur Ciphertext-Hash + IV + Auth-Tag.
+- **N5 (Secret-Selbstcheck):** `assertInventoryHasNoSecrets` läuft **vor jedem Datei-Write**; Key-Pattern `(secret|token|password|credential|api_key|apikey|dsn|private_key)` (bewusst ohne bare `jwt`/`private` — `jwt_expiry` wäre false-positive; `jwt_secret` bleibt über `secret` abgedeckt), Value-Pattern Base64-artig ≥64 Zeichen, rekursiver Tree-Walk inkl. Arrays. Fail-closed: Abbruch statt Teil-Write. Tests verifizieren Key-Abort, Long-Value-Abort und Safe-Pass.
+- **migration-security-guard:** nicht anwendbar — keine Dateien unter `supabase/migrations/**` verändert.
+
+### 9.4 Abweichungen vom Plan (ehrlich dokumentiert)
+
+1. **Retention:** GFS 14/8/12-Tiers sind mit dem datumsbasierten Single-Prefix-Runner per Lifecycle-Regel nicht ausdrückbar → **Superset-Regel „30 Tage"** umgesetzt (deckt 14-täglich + kanonische „30 Tage Retention" ab); Wochen-/Monats-Präfixe als künftige Runner-Erweiterung im Runbook vermerkt.
+2. **Commit-Labeling:** Der nachgeholte Commit `828424a` (Message „N1+N2") enthält via `git add -A` auch die N5+N6-Dateien, weil der ursprüngliche N5+N6-Commit zweimal am Tool-Ausfall scheiterte und die Dateien bereits im Working Tree lagen. Inhaltlich vollständig committed; Messages nicht rückwirkend umgeschrieben (Branch ist lokal, aber History-Korrektheit war dem Label-Match nicht wert).
+3. **csp-nonce-Timeout:** File-Scan-Test erhielt per-Test-Timeout 20s (`it(name, { timeout: 20_000 }, fn)`) — load-bedingt flaky im Suite-Parallellauf (isoliert ~1,1s). Infra-Fix, keine Logikänderung.
+4. **N5-Echtlauf pending:** Management-API-Export läuft erst mit Jans `SUPABASE_ACCESS_TOKEN` — als K5-Rest unten nummeriert.
+5. **Kein Listing-Primitive:** S3-Client hat kein ListObjectsV2 → Integritäts-/Freshness-Check adressieren Manifeste über `--date` bzw. heute→gestern-Probing statt Bucket-Listing.
+
+### 9.5 K5-Reste (Jan-Freigabe nötig)
+
+1. **N7-Aktivierung:** R2-/B2-Accounts anlegen, Secrets in `.env.local`/GitHub setzen, erster echter `npm run backup:run` + Restore-Drill beider Ziele (Runbook: `docs/database/runbooks/09_backup_jan_aktivierung.md`).
+2. **N5-Echtlauf:** `SUPABASE_ACCESS_TOKEN` setzen und `npx tsx scripts/export-project-config-inventory.ts` einmalig ausführen (read-only).
+3. **Secrets in GitHub:** `BACKUP_*`/`BACKUP_SECONDARY_*` als Repo-Secrets (aktivieren N3-Integritäts-Step, N4-Freshness-Alerting und N5-Export-Step).

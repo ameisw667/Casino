@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { runBackup } from '@/lib/backup/backup-runner';
-import { readBackupConfig } from '@/lib/backup/recovery-crypto';
+import { readBackupTargets } from '@/lib/backup/targets';
 import { uploadS3Object } from '@/lib/backup/s3-client';
 import { dumpSupabaseArtifacts } from '@/lib/backup/supabase-dump';
 
@@ -33,7 +33,10 @@ async function getCliVersion(): Promise<string> {
 }
 
 async function main(): Promise<void> {
-  const config = readBackupConfig(process.env);
+  // Fail-closed: Ziel-Konfiguration (inkl. Credentials beider Ziele) wird vor jedem CLI-
+  // Aufruf validiert; ein Fehlschlag bricht ab, bevor Dump oder Upload starten.
+  const targets = readBackupTargets(process.env);
+  const includeRoles = targets[0].config.includeRoles;
   const temporaryDirectory = await mkdtemp(join(tmpdir(), 'casino-backup-'));
 
   try {
@@ -44,20 +47,34 @@ async function main(): Promise<void> {
           directory: temporaryDirectory,
           execute: runSupabaseCli,
           readFile,
-          includeRoles: config.includeRoles,
+          includeRoles,
         }),
-      upload: ({ objectKey, body, contentType }) =>
-        uploadS3Object({ config, objectKey, body, contentType, now: new Date() }),
+      upload: ({ target, config, objectKey, body, contentType }) => {
+        void target;
+        return uploadS3Object({ config, objectKey, body, contentType, now: new Date() });
+      },
       cliVersion: await getCliVersion(),
       keyVersion: process.env.BACKUP_ENCRYPTION_KEY_VERSION?.trim() || 'v1',
       now: new Date(),
     });
 
+    const failedTargets = manifest.targets
+      .filter((target) => target.status === 'failed')
+      .map((target) => ({ name: target.name, error: target.error }));
+
+    // Teilerfolg sichtbar machen, nicht still verschlucken (Säule 9 N2): das Primärziel
+    // kann vollständig ok sein, während das Sekundärziel scheitert — der Run gilt als
+    // `partial` und der Log trägt die Fehlschläge als Warnung.
+    if (failedTargets.length > 0) {
+      console.warn(JSON.stringify({ status: 'backup-partial-targets', failedTargets }, null, 2));
+    }
+
     console.info(
       JSON.stringify({
-        status: 'backup-uploaded',
+        status: failedTargets.length > 0 ? 'backup-partial' : 'backup-uploaded',
         createdAt: manifest.createdAt,
         artifactCount: manifest.artifacts.length,
+        targets: manifest.targets.map((target) => ({ name: target.name, status: target.status })),
       }),
     );
   } finally {

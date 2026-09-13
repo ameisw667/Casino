@@ -58,15 +58,21 @@ describe('no eval()/new Function() in application source (01_csp_script_hardenin
     return acc;
   }
 
-  it('finds zero eval(/new Function( calls outside test harnesses', () => {
-    const files = collectSourceFiles(resolve(root, 'src'));
-    const offenders: string[] = [];
-    for (const file of files) {
-      const content = readFileSync(file, 'utf8');
-      if (/\beval\(|new Function\(/.test(content)) {
-        offenders.push(file);
+  it(
+    // Der FS-Scan über alle src-Dateien läuft im vollen Suite-Parallellauf unter Last;
+    // das globale 5s-Timeout reicht dort knapp nicht (isolierter Lauf: ~1,1s).
+    'finds zero eval(/new Function( calls outside test harnesses',
+    { timeout: 20_000 },
+    () => {
+      const files = collectSourceFiles(resolve(root, 'src'));
+      const offenders: string[] = [];
+      for (const file of files) {
+        const content = readFileSync(file, 'utf8');
+        if (/\beval\(|new Function\(/.test(content)) {
+          offenders.push(file);
+        }
       }
-    }
-    expect(offenders).toEqual([]);
-  });
+      expect(offenders).toEqual([]);
+    },
+  );
 });

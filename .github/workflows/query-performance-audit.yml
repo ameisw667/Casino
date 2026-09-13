@@ -37,6 +37,9 @@ jobs:
       - run: npm ci
       - name: Run query performance audit (Management-API-Modus)
         run: npm run db:perf-audit
+      - name: Export project config inventory (Säule 9 N5, read-only)
+        if: env.SUPABASE_ACCESS_TOKEN != ''
+        run: npx tsx scripts/export-project-config-inventory.ts
       - name: Summarize result
         if: always()
         run: |
