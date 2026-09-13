@@ -6,6 +6,7 @@ import {
   DEFAULT_PERSONA,
   type GuidePersona,
 } from '@/lib/casino/chat-guide/personas';
+import { validateMutationOrigin } from '@/lib/security/request-security';
 
 const PRIVATE_NO_STORE = { 'Cache-Control': 'private, no-store' };
 
@@ -56,6 +57,14 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(request: Request) {
+  const originFailure = validateMutationOrigin(request);
+  if (originFailure) {
+    return NextResponse.json(
+      { error: 'Cross-site mutation rejected' },
+      { status: originFailure.status || 403, headers: PRIVATE_NO_STORE },
+    );
+  }
+
   try {
     const supabase = await createClient();
     const {

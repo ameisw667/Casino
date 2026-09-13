@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { isAdminEmail } from '@/lib/security/admin';
+import { withExplicitSameSite } from '@/lib/security/cookie-samesite';
 import { hasValidOrigin } from '@/lib/security/origin-guard';
 import { CasinoLogger } from '@/lib/casino/logger';
 
@@ -215,7 +216,7 @@ export default async function proxy(req: NextRequest) {
           cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
           response = NextResponse.next({ request: { headers: requestHeaders } });
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options),
+            response.cookies.set(name, value, withExplicitSameSite(options)),
           );
         },
       },
