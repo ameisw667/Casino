@@ -1,0 +1,64 @@
+name: Backup Freshness Check
+
+# T_DATABASE/05_database_backup_and_recovery.md N4 (2026-09-13): daily staleness alerting
+# for the offsite backup targets (RPO <= 24h + 2h buffer = 26h max manifest age).
+# Guard: before Jan activates real targets (N7), the BACKUP_S3_* secrets do not exist —
+# the job exits informatively (green) instead of failing the schedule.
+# On failure it opens a GitHub issue (GITHUB_TOKEN, issues:write — no external alerting).
+
+on:
+  schedule:
+    - cron: '37 4 * * *' # täglich, 04:37 UTC (RPO-Fenster endet am Folgetag)
+  workflow_dispatch:
+
+concurrency:
+  group: backup-freshness-check
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  freshness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BACKUP_S3_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+      BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+      BACKUP_S3_REGION: ${{ secrets.BACKUP_S3_REGION }}
+      BACKUP_S3_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_ACCESS_KEY_ID }}
+      BACKUP_S3_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET_ACCESS_KEY }}
+      BACKUP_ENCRYPTION_KEY_BASE64: ${{ secrets.BACKUP_ENCRYPTION_KEY_BASE64 }}
+      BACKUP_SECONDARY_S3_ENDPOINT: ${{ secrets.BACKUP_SECONDARY_S3_ENDPOINT }}
+      BACKUP_SECONDARY_S3_BUCKET: ${{ secrets.BACKUP_SECONDARY_S3_BUCKET }}
+      BACKUP_SECONDARY_S3_REGION: ${{ secrets.BACKUP_SECONDARY_S3_REGION }}
+      BACKUP_SECONDARY_S3_ACCESS_KEY_ID: ${{ secrets.BACKUP_SECONDARY_S3_ACCESS_KEY_ID }}
+      BACKUP_SECONDARY_S3_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_SECONDARY_S3_SECRET_ACCESS_KEY }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+      - run: npm ci
+      - name: Notice — backups not activated yet (Säule 9 N7)
+        if: env.BACKUP_S3_ENDPOINT == ''
+        run: echo "::notice::Offsite backups are not activated yet — freshness check skipped."
+      - name: Run freshness check against all configured targets
+        if: env.BACKUP_S3_ENDPOINT != ''
+        run: npx tsx scripts/check-backup-freshness.ts
+      - name: Open staleness issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE="Backup überfällig: letzter Erfolg vor >26h"
+          if gh issue list --state open --search "$TITLE" --json number,title | grep -q '"number"'; then
+            echo "Staleness issue already open — not duplicating."
+          else
+            gh issue create \
+              --title "$TITLE" \
+              --body "Der tägliche Backup-Freshness-Check hat ein Ziel jünger als das RPO-Fenster (26h) nicht gefunden. Details im Log dieses Workflow-Runs. Runbook: docs/database/runbooks/09_backup_jan_aktivierung.md" \
+              --label "database"
+          fi

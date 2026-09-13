@@ -42,6 +42,21 @@ jobs:
   restore-drill:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # Säule 9 N3: nur für den optionalen Integritäts-Nachverifikation-Step gesetzt;
+      # vor N7/Aktivierung existieren diese Secrets nicht und der Step überspringt sich
+      # informativ (kein roter CI-Lauf durch fehlende Secrets).
+      BACKUP_S3_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+      BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+      BACKUP_S3_REGION: ${{ secrets.BACKUP_S3_REGION }}
+      BACKUP_S3_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_ACCESS_KEY_ID }}
+      BACKUP_S3_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET_ACCESS_KEY }}
+      BACKUP_ENCRYPTION_KEY_BASE64: ${{ secrets.BACKUP_ENCRYPTION_KEY_BASE64 }}
+      BACKUP_SECONDARY_S3_ENDPOINT: ${{ secrets.BACKUP_SECONDARY_S3_ENDPOINT }}
+      BACKUP_SECONDARY_S3_BUCKET: ${{ secrets.BACKUP_SECONDARY_S3_BUCKET }}
+      BACKUP_SECONDARY_S3_REGION: ${{ secrets.BACKUP_SECONDARY_S3_REGION }}
+      BACKUP_SECONDARY_S3_ACCESS_KEY_ID: ${{ secrets.BACKUP_SECONDARY_S3_ACCESS_KEY_ID }}
+      BACKUP_SECONDARY_S3_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_SECONDARY_S3_SECRET_ACCESS_KEY }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -53,6 +68,12 @@ jobs:
         run: npx supabase start
       - name: Run isolated restore drill + wallet/RLS regression tests
         run: npm run test:restore-drill
+      - name: Verify backup integrity against configured offsite targets (N3)
+        if: env.BACKUP_S3_ENDPOINT != ''
+        run: npx tsx scripts/verify-backup-integrity.ts
+      - name: Skip integrity verification — offsite secrets not present yet (Säule 9 N7)
+        if: env.BACKUP_S3_ENDPOINT == ''
+        run: echo "::notice::Offsite backups not activated yet — integrity check skipped (Säule 9 N3)."
       - name: Stop ephemeral local Supabase
         if: always()
         run: npx supabase stop --no-backup
