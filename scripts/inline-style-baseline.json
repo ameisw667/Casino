@@ -1,0 +1,8 @@
+{
+  "pattern": "style={{",
+  "scope": "src/**/*.{ts,tsx,js,jsx}",
+  "count": 4383,
+  "files": 312,
+  "updatedAt": "2026-09-12",
+  "note": "Baseline for the style-src 'unsafe-inline' regression gate (T_SECURITY_HARDENING/01_csp_script_hardening.md L4). Counted with the scripts/check-inline-style-baseline.mjs walker on 2026-09-12. The 2026-09-12 planning round reported 349 files / 4985 occurrences with a broader grep; this file pins the exact walker pattern above so the two numbers are never mixed. Growth requires a conscious update of this file with a one-line reason."
+}
