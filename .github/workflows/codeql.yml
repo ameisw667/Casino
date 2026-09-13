@@ -29,6 +29,10 @@ concurrency:
   group: codeql-${{ github.ref }}
   cancel-in-progress: true
 
+# Default for any future job; the analyze job widens only security-events: write explicitly.
+permissions:
+  contents: read
+
 jobs:
   analyze:
     name: Analyze (javascript-typescript)
@@ -42,11 +46,16 @@ jobs:
       # worldmap/04_07_dependency_audit_gate.md L4) — a mutable tag could be repointed to different
       # code without this file changing.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: github/codeql-action/init@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4.38.0
+      # Fork-PR guard (security review 2026-09-13): a fork PR gets a read-only GITHUB_TOKEN, so the
+      # SARIF upload below cannot write — the run would fail with a confusing error instead of
+      # silently being skipped. Skip the whole job for forks; same-repo PRs are unaffected.
+      - if: github.event_name == 'push' || github.event_name == 'schedule' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: github/codeql-action/init@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4.38.0
         with:
           languages: javascript-typescript
           # Interpreted-language analysis does not need a build; avoids an autobuild step.
           build-mode: none
-      - uses: github/codeql-action/analyze@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4.38.0
+      - if: github.event_name == 'push' || github.event_name == 'schedule' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: github/codeql-action/analyze@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4.38.0
         with:
           category: '/language:javascript-typescript'

@@ -12,7 +12,7 @@ const root = resolve(__dirname, '../../../..');
 const apiDir = resolve(root, 'src/app/api');
 
 const MUTATION_EXPORT_PATTERN =
-  /export\s+(?:async\s+)?(?:function|const)\s+(?:POST|PATCH|DELETE|PUT)\b/;
+  /export\s+(?:async\s+)?(?:function|const)\s+(?:POST|PATCH|DELETE|PUT)\b|export\s*\{[^}]*\b(?:POST|PATCH|DELETE|PUT)\b/;
 
 // Machine endpoints whose mutation handler is not a browser mutation: authenticated by a secret or
 // signature instead of a browser Origin (plan §2 #4), or retired to a constant 410 (no mutation
@@ -21,6 +21,10 @@ const MUTATION_EXPORT_PATTERN =
 const EXEMPTED_MUTATION_ROUTES = [
   { path: 'src/app/api/telegram/webhook/route.ts', authStoryToken: /secret/i },
   { path: 'src/app/api/webhooks/clerk/route.ts', authStoryToken: /retired/i },
+  // Review correction (2026-09-13): both routes are constant-410 stubs ("... has been retired"),
+  // no mutation left to protect — same story as webhooks/clerk, not open gaps.
+  { path: 'src/app/api/casino/migrate-session/route.ts', authStoryToken: /retired/i },
+  { path: 'src/app/api/casino/session-sync/route.ts', authStoryToken: /retired/i },
   { path: 'src/app/api/internal/wallet-events/route.ts', authStoryToken: /secret/i },
   { path: 'src/app/api/internal/cron-alert/route.ts', authStoryToken: /secret|CRON/i },
   { path: 'src/app/api/internal/big-win-events/route.ts', authStoryToken: /secret/i },
@@ -30,16 +34,16 @@ const EXEMPTED_MUTATION_ROUTES = [
   },
 ] as const;
 
-// Follow-up finding (round-2 dynamic scan, 2026-09-12): these browser-triggered mutation routes
-// still ship without Layer 2. The executed plan scoped L1 to guide-persona and login-history only;
-// touching the auth/session bootstrap flow (login-guard, migrate-session, session-sync) was
-// deliberately out of scope. This list is a tripwire, not an exemption: it fails when a fifth gap
-// appears AND when one of these four is fixed — either way the list must be consciously updated.
+// Follow-up finding (round-2 dynamic scan, 2026-09-12; corrected 2026-09-13): these
+// browser-triggered mutation routes still ship without Layer 2. The executed plan scoped L1 to
+// guide-persona and login-history only; touching the auth/session bootstrap flow
+// (login-guard, signup-suspicion) was deliberately out of scope. migrate-session/session-sync
+// initially landed here by mistake — they are retired 410 stubs and now sit on the exemption
+// list above. This list is a tripwire, not an exemption: it fails when a third gap appears AND
+// when one of these two is fixed — either way the list must be consciously updated.
 const OPEN_LAYER_2_GAPS = [
   'src/app/api/auth/login-guard/route.ts',
   'src/app/api/auth/signup-suspicion/route.ts',
-  'src/app/api/casino/migrate-session/route.ts',
-  'src/app/api/casino/session-sync/route.ts',
 ] as const;
 
 // Complete Layer-2 inventory pinned after L1 (guide-persona, login-history added). Base-commit
