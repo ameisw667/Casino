@@ -1,6 +1,6 @@
 # 11 — Query-Performance & Indexing
 
-> **Status:** Execution-Ready (Neufassung 2026-09-12) · **Stand:** 2026-09-12 · **Owner:** LLM (kein Pflicht-Jan-Gate) · **Scope:** Von einer einmaligen Ruhezustands-Stichprobe zu einer kontinuierlichen, lastgekoppelten Performance-Verifikation mit Trendvergleich und Regressions-Alarm. Kein synthetischer Lasttest wird hier neu gebaut — die Lastquelle kommt aus `T_DATABASE/08_database_connection_pooling.md` N1 (Kopplung statt Duplikat).
+> **Status:** ✅ Ausgeführt (Säule 7, 2026-09-13; reale Last-/EXPLAIN-Läufe = Merge-Phase) · **Stand:** 2026-09-13 · **Owner:** LLM (kein Pflicht-Jan-Gate) · **Scope:** Von einer einmaligen Ruhezustands-Stichprobe zu einer kontinuierlichen, lastgekoppelten Performance-Verifikation mit Trendvergleich und Regressions-Alarm. Kein synthetischer Lasttest wird hier neu gebaut — die Lastquelle kommt aus `T_DATABASE/08_database_connection_pooling.md` N1 (Kopplung statt Duplikat).
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
 
@@ -103,14 +103,60 @@ Die **"Status"-Spalte der bisherigen Übersichtstabelle wurde entfernt** — dur
 
 ## 6 — Verwandte Artefakte
 
-| Bedarf | Datei |
-| --- | --- |
-| Kanonischer Doku-Standard (Säule 7) | [`docs/database/07_indexing_query_performance.md`](../docs/database/07_indexing_query_performance.md) |
-| Gekoppelter Lasttest (Quelle für N1) | [`T_DATABASE/08_database_connection_pooling.md`](./08_database_connection_pooling.md) L5a / N1 |
-| Bestehendes Lasttest-Tooling | [`docs/archive/05_Observability_und_Lasttest.md`](../docs/archive/05_Observability_und_Lasttest.md) |
-| Letzter belegter Ruhezustands-Audit | [`docs/database/audits/query-performance-2026-09-05.md`](../docs/database/audits/query-performance-2026-09-05.md) |
-| CI-Vorlage | [`.github/workflows/query-performance-audit.yml`](../.github/workflows/query-performance-audit.yml) |
-| Postgres-Migrations-Patterns, K-Level | [`xx_sop/18_postgres_patterns_migrations.md`](../xx_sop/18_postgres_patterns_migrations.md) |
-| Gewichtete Subkategorien-Bewertung (Säule 7) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 02) | [`T_DATABASE/04_datenbank_migrationen.md`](../T_DATABASE/04_datenbank_migrationen.md) |
-| Planungsdateien-Konvention | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md) |
+| Bedarf                                       | Datei                                                                                                             |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Kanonischer Doku-Standard (Säule 7)          | [`docs/database/07_indexing_query_performance.md`](../docs/database/07_indexing_query_performance.md)             |
+| Gekoppelter Lasttest (Quelle für N1)         | [`T_DATABASE/08_database_connection_pooling.md`](./08_database_connection_pooling.md) L5a / N1                    |
+| Bestehendes Lasttest-Tooling                 | [`docs/archive/05_Observability_und_Lasttest.md`](../docs/archive/05_Observability_und_Lasttest.md)               |
+| Letzter belegter Ruhezustands-Audit          | [`docs/database/audits/query-performance-2026-09-05.md`](../docs/database/audits/query-performance-2026-09-05.md) |
+| CI-Vorlage                                   | [`.github/workflows/query-performance-audit.yml`](../.github/workflows/query-performance-audit.yml)               |
+| Postgres-Migrations-Patterns, K-Level        | [`xx_sop/18_postgres_patterns_migrations.md`](../xx_sop/18_postgres_patterns_migrations.md)                       |
+| Gewichtete Subkategorien-Bewertung (Säule 7) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md)                                                    |
+| Übergeordnete Aufschlüsselung (Kategorie 02) | [`T_DATABASE/04_datenbank_migrationen.md`](../T_DATABASE/04_datenbank_migrationen.md)                             |
+| Planungsdateien-Konvention                   | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md)                       |
+
+---
+
+## §9 — Ausführungsergebnis (Säule 7, 2026-09-13)
+
+### §9.1 — Meilenstein-Status
+
+| Meilenstein                               | Status           | Bemerkung                                                                                                                                                                                                                                                                                                                                                 |
+| ----------------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| N1 Last-Kopplung (`--sample-during-load`) | ✅ Implementiert | Sampler im `audit-query-performance.ts` (Intervall 5 s, Stop-Marker-File, Max-Dauer 30 min als Sicherheitsnetz); Kopplung über `before`/`after`-Hooks in `scripts/loadtest/bet-flow.processor.mjs` + `bet-flow.artillery.yml`. **Realer Lauf deferred in Merge-Phase** (docker daemon down — L5a Lasttest aus Säule 8 benötigt laufende lokale Supabase). |
+| N2 Trendspeicherung                       | ✅ Implementiert | `scripts/query-perf-trend.ts` + append-only `docs/database/audits/trend.jsonl`; `main()` des Idle-Audits hängt nach jedem Lauf einen Trend-Eintrag an; Last-Läufe landen mit `mode: 'load'` ebenfalls in der Historie.                                                                                                                                    |
+| N3 Regressions-Gate                       | ✅ Implementiert | `scripts/check-query-performance-regression.ts` (> 25 % Verschlechterung je Pfad oder neuer Seq-Scan-Fund → Exit 1); CI-Hook in `query-performance-audit.yml` mit `continue-on-error` + `gh issue create`, **kein Deployment-Blocker** (Plan-konform).                                                                                                    |
+| N4 breiteres Query-Set                    | ✅ Implementiert | `scripts/audit-broad-query-set.ts` mit 4-Pfad-Allowlist (get_leaderboard, get_community_stats, match_guide_documents, get_guide_feedback_summary); alle 4 per Migration als `STABLE` verifiziert (015, 016, 039, 042); **reale EXPLAIN-Läufe deferred in Merge-Phase**.                                                                                   |
+| Sicherheitsregel Abschnitt 0              | ✅ Eingehalten   | Allowlist enthält ausschließlich per Migration verifizierte `STABLE`-Funktionen; Geld-RPC-Exklusion per Unit-Test abgesichert (`audit-broad-query-set.test.ts`).                                                                                                                                                                                          |
+
+### §9.2 — 5-Stufen-Selbstprüfung
+
+- Stufe 1 typecheck: ✅ (`tsc --noEmit` fehlerfrei)
+- Stufe 2 Tests: ✅ 226 Dateien / 1715 Tests grün (neu: `query-perf-trend.test.ts` 6, `query-perf-regression.test.ts` 5, `audit-broad-query-set.test.ts` 3)
+- Stufe 3 lint: ✅ 0 Fehler / 37 Pre-existing-Warnings
+- Stufe 4 build: ✅
+- Stufe 5 git status: ✅ (alle Artefakte auf Branch `database-queryperf` committet)
+
+### §9.3 — Abweichungen vom Plan
+
+1. **p50/p95 → meanMs-Approximation (N2/N3):** `pg_stat_statements` liefert keine Perzentile, nur `mean_exec_time`. Der Trend-/Regressionsvergleich läuft daher über die Top-Pfade nach `meanMs` — die konservativste verfügbare Approximation. Im Header von `query-perf-trend.ts` dokumentiert.
+2. **N1-Sampler als Marker-File-Stopp statt Signal:** detached Child-Prozess + Stop-File (`query-perf-sampler.stop`, 5-s-Intervall-Prüfung) statt Prozess-Signalen — Artillery-Hooks und Sampler laufen in getrennten Prozessbäumen, Signal-Handling darüber ist unzuverlässig. Max-Dauer 30 min als Sicherheitsnetz, falls der after-Hook nie feuert.
+3. **N3-Issue-Erzeugung als eigener CI-Step:** statt Exit-1-Gate mit nachgelagertem Issue-Material nutzt der Workflow `continue-on-error: true` + bedingten `gh issue create`-Step — der Audit-Lauf selbst bleibt grün gemeldet, die Regression wird aber sichtbar als Issue (Plan-konform: kein Blocker).
+4. **N4-Allowlist mit 4 statt ≥ 3 Pfaden:** 4 nutzerseitig sichtbare Lesepfade gefunden und verifiziert — mehr als das Plan-Minimum.
+5. **Reale DB-Läufe (N1-Lasttest, N4-EXPLAIN) deferred in Merge-Phase** — docker daemon down während der Ausführung; die N1-Kopplung setzt ohnehin die L5a-Lasttest-Infrastruktur aus Säule 8 voraus (Plan-Kopplung Abschnitt 0 Punkt 2).
+
+### §9.4 — K5-/Jan-Reste
+
+1. **L5a-Lasttest mit N1-Kopplung:** realer Lauf erst in Merge-Phase (docker daemon); ein gemeinsamer Lauf erzeugt beide Auswertungen (Pooler-Health aus 08-L5a + pg_stat_statements-Zeitreihe aus N1).
+2. **N4-EXPLAIN-Läufe:** realer Lauf in Merge-Phase gegen lokale Instanz (`supabase db query --local`).
+3. **N3-CI-Lauf:** erster CI-Lauf erzeugt ggf. das erste Issue nur bei echter Regression; trend.jsonl startet leer (erster Lauf grün).
+4. **Secret:** `SUPABASE_ACCESS_TOKEN` bereits hinterlegt (Säule 7 L7-Konvention) — kein neues Secret nötig.
+
+### §9.5 — Commits (ausgeführt, 6)
+
+1. `e7858112` feat(queryperf): N2 trend.jsonl append-only Modul + Tests
+2. `b8ce7fa9` feat(queryperf): N3 Regressions-Gate + CI-Hook (continue-on-error + gh issue, kein Blocker)
+3. `9892629a` feat(queryperf): N4 breites Query-Set Audit (STABLE-Allowlist, 4 Pfade)
+4. `4e80a06f` feat(queryperf): N1 --sample-during-load Sampler + Artillery-Kopplung (ein Lauf, zwei Auswertungen)
+5. `9987a33c` chore(queryperf): npm-Scripts db:perf-regression + db:perf-broad-query-set
+6. `36a94a6c` docs(queryperf): §9 Ausführungsergebnis + Status-Header (Säule 7 ausgeführt)

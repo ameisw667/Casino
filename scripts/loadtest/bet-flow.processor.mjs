@@ -17,11 +17,19 @@ import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Säule 8 L5a (T_DATABASE/08_database_connection_pooling.md): periodischer
+// Connection-Count-Sampler während des Lasttest-Laufs.
+// Säule 7 N1 (T_DATABASE/11): zusätzlich detached Query-Performance-Sampler
+// (`audit-query-performance.ts --sample-during-load`) mit Stop-Marker-File —
+// ein gemeinsamer Lasttest-Lauf, zwei Auswertungen (keine doppelte
+// Lasttest-Infrastruktur).
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '../..');
 const AUDIT_DIR = join(REPO_ROOT, 'docs', 'database', 'audits');
 const SAMPLES_JSONL = join(AUDIT_DIR, 'pooler-health-loadtest.jsonl');
 const POOLER_SAMPLE_INTERVAL_MS = 5_000;
+const QUERY_PERF_STOP_FILE = join(AUDIT_DIR, 'query-perf-sampler.stop');
 const NPX = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 
 let samplerInterval = null;
@@ -100,5 +108,25 @@ export function stopPoolerSamplerAndWriteAudit(context, events, done) {
   mkdirSync(AUDIT_DIR, { recursive: true });
   writeFileSync(join(AUDIT_DIR, `pooler-loadtest-${date}.md`), markdown, 'utf8');
   poolerSamples = [];
+  return done();
+}
+
+export function startQueryPerfSampler(context, events, done) {
+  const child = spawn(NPX, ['tsx', 'scripts/audit-query-performance.ts', '--sample-during-load'], {
+    cwd: REPO_ROOT,
+    detached: true,
+    stdio: 'ignore',
+    shell: process.platform === 'win32',
+  });
+  child.unref();
+  context.vars.queryPerfSamplerPid = child.pid;
+  return done();
+}
+
+export function stopQueryPerfSampler(context, events, done) {
+  // Stop-Marker-File: der Sampler prüft es pro Intervall (5 s) und schreibt danach
+  // selbst die Last-Audit-Datei. Falls kein Sampler lief (Kopplung deaktiviert),
+  // ist der Marker harmlos — der Sampler räumt ihn am Ende seines Laufs auf.
+  writeFileSync(QUERY_PERF_STOP_FILE, new Date().toISOString(), 'utf8');
   return done();
 }

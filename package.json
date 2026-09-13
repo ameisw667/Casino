@@ -30,6 +30,8 @@
     "backup:run": "tsx scripts/backup-supabase.ts",
     "db:perf-audit": "tsx scripts/audit-query-performance.ts",
     "db:pooler-health": "tsx scripts/check-pooler-health.ts",
+    "db:perf-regression": "tsx scripts/check-query-performance-regression.ts",
+    "db:perf-broad-query-set": "tsx scripts/audit-broad-query-set.ts",
     "test:restore-drill": "tsx scripts/restore-drill.ts && vitest run src/lib/casino/__tests__/wallet-ledger-invariants.test.ts src/lib/security/__tests__/rls-defense-in-depth.test.ts src/lib/casino/__tests__/wallet-authority.test.ts src/lib/casino/__tests__/wallet-service-authority.test.ts",
     "design:generate": "tsx scripts/generate-design-assets.ts",
     "sentry:info": "sentry-cli info",

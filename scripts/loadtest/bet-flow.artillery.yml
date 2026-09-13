@@ -10,9 +10,17 @@
 #   - optional: `npm run observability:up` for the local Jaeger trace UI (localhost:16686)
 #
 # Run: npm run loadtest:bet
+# Säule 7 N1-Kopplung: before/after-Hooks starten den Query-Perf-Sampler
+# (--sample-during-load) parallel zum Lasttest und stoppen ihn danach — ein
+# gemeinsamer Lasttest-Lauf erzeugt zwei Audit-Auswertungen (Pooler-Health +
+# pg_stat_statements-Zeitreihe).
 config:
   target: 'http://localhost:3015'
   processor: './bet-flow.processor.mjs'
+  before:
+    - function: 'startQueryPerfSampler'
+  after:
+    - function: 'stopQueryPerfSampler'
   defaults:
     headers:
       origin: 'http://localhost:3015'
