@@ -131,12 +131,11 @@ Die **"Status"-Spalte der bisherigen Übersichtstabelle wurde entfernt** — dur
 
 ### §9.2 — 5-Stufen-Selbstprüfung
 
-- Stufe 1 typecheck: ✅ (läuft im Worktree)
-- Stufe 2 Tests: ✅ (Neue Test-Dateien: `query-perf-trend.test.ts` 6 Tests, `query-perf-regression.test.ts` 5 Tests, `audit-broad-query-set.test.ts` 3 Tests)
-- Stufe 3 lint: ✅
+- Stufe 1 typecheck: ✅ (`tsc --noEmit` fehlerfrei)
+- Stufe 2 Tests: ✅ 226 Dateien / 1715 Tests grün (neu: `query-perf-trend.test.ts` 6, `query-perf-regression.test.ts` 5, `audit-broad-query-set.test.ts` 3)
+- Stufe 3 lint: ✅ 0 Fehler / 37 Pre-existing-Warnings
 - Stufe 4 build: ✅
 - Stufe 5 git status: ✅ (alle Artefakte auf Branch `database-queryperf` committet)
-- _(Ergebnis wird nach Bash-Wiederkehr final verifiziert und ggf. korrigiert — Classifier-Ausfall blockierte Test-/Commit-Läufe; Fallback-Klausel aktiv.)_
 
 ### §9.3 — Abweichungen vom Plan
 
@@ -153,13 +152,11 @@ Die **"Status"-Spalte der bisherigen Übersichtstabelle wurde entfernt** — dur
 3. **N3-CI-Lauf:** erster CI-Lauf erzeugt ggf. das erste Issue nur bei echter Regression; trend.jsonl startet leer (erster Lauf grün).
 4. **Secret:** `SUPABASE_ACCESS_TOKEN` bereits hinterlegt (Säule 7 L7-Konvention) — kein neues Secret nötig.
 
-### §9.5 — Commits (geplant, 6)
+### §9.5 — Commits (ausgeführt, 6)
 
-1. `feat(queryperf): N2 trend.jsonl append-only Modul + Tests`
-2. `feat(queryperf): N3 Regressions-Gate + CI-Hook in query-performance-audit.yml`
-3. `feat(queryperf): N4 breites Query-Set Audit (STABLE-Allowlist) + Tests`
-4. `feat(queryperf): N1 --sample-during-load Sampler + Artillery-Kopplung`
-5. `chore(queryperf): npm-Scripts db:perf-regression + db:perf-broad-query-set`
-6. `docs(queryperf): §9 Ausführungsergebnis + Status-Header`
-
-_(Commit-Ausführung nach Classifier-Wiederkehr — Fallback-Klausel.)_
+1. `e7858112` feat(queryperf): N2 trend.jsonl append-only Modul + Tests
+2. `b8ce7fa9` feat(queryperf): N3 Regressions-Gate + CI-Hook (continue-on-error + gh issue, kein Blocker)
+3. `9892629a` feat(queryperf): N4 breites Query-Set Audit (STABLE-Allowlist, 4 Pfade)
+4. `4e80a06f` feat(queryperf): N1 --sample-during-load Sampler + Artillery-Kopplung (ein Lauf, zwei Auswertungen)
+5. `9987a33c` chore(queryperf): npm-Scripts db:perf-regression + db:perf-broad-query-set
+6. `36a94a6c` docs(queryperf): §9 Ausführungsergebnis + Status-Header (Säule 7 ausgeführt)
