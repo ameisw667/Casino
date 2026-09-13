@@ -37,6 +37,22 @@ jobs:
       - run: npm ci
       - name: Run query performance audit (Management-API-Modus)
         run: npm run db:perf-audit
+      # Säule 7 N3: Regressions-Gate über die letzten beiden trend.jsonl-Einträge.
+      # Bewusst KEIN Deployment-Blocker (kein PR-Gate) — bei Fehlschlag wird ein
+      # GitHub-Issue erzeugt (gleiches Muster wie T_DATABASE/05 N4). Der erste
+      # Lauf bleibt grün, solange trend.jsonl weniger als zwei Einträge hat.
+      - name: Check query performance regression (trend.jsonl)
+        id: regression
+        continue-on-error: true
+        run: npm run db:perf-regression
+      - name: Open issue on regression
+        if: steps.regression.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --title "Query-Performance-Regression erkannt (N3-Gate)" \
+            --body "Das N3-Regressions-Gate hat eine Verschlechterung > 25 % je Top-Pfad oder einen neuen Seq-Scan-Fund gemeldet. Details im Job-Log. Trendhistorie: docs/database/audits/trend.jsonl"
       - name: Summarize result
         if: always()
         run: |
