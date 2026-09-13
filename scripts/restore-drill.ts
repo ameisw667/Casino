@@ -17,6 +17,9 @@ import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { promisify } from 'node:util';
 import { restoreSupabaseArtifacts } from '@/lib/backup/supabase-restore';
+import { loadRestoreArtifacts } from '@/lib/backup/restore-target';
+import { readBackupTargets } from '@/lib/backup/targets';
+import { downloadS3Object } from '@/lib/backup/s3-download';
 
 const execFileAsync = promisify(execFile);
 
@@ -285,7 +288,18 @@ async function validateFinancialInvariants(): Promise<Record<string, unknown>> {
   };
 }
 
+function parseTargetArgument(argumentsList: string[]): 'primary' | 'secondary' | null {
+  const argument = argumentsList.find((value) => value.startsWith('--target='));
+  if (!argument) return null;
+  const raw = argument.slice('--target='.length);
+  if (raw !== 'primary' && raw !== 'secondary') {
+    throw new Error(`--target expects primary|secondary, received: ${raw}`);
+  }
+  return raw;
+}
+
 async function main(): Promise<void> {
+  const targetArgument = parseTargetArgument(process.argv.slice(2));
   const drillStartedAt = Date.now();
   await execFileAsync('docker', ['info'], { windowsHide: true }); // klarer Fehler statt stillem Überspringen
   await execFileAsync('docker', ['rm', '--force', CONTAINER_NAME], { windowsHide: true }).catch(
@@ -295,8 +309,37 @@ async function main(): Promise<void> {
   const stagingDirectory = await mkdtemp(join(tmpdir(), 'casino-drill-'));
   let containerRunning = false;
   try {
+    let restoreArtifacts: Array<{ name: string; plaintext: Buffer }>;
     const dumpStartedAt = Date.now();
-    await dumpLocalArtifacts(stagingDirectory);
+    if (targetArgument) {
+      // N6: Drill gegen ein echtes Offsite-Ziel — Artefakte werden heruntergeladen,
+      // gegen das Manifest hash-verifiziert und entschlüsselt, dann lokal restored.
+      const configuredTarget = readBackupTargets(process.env).find(
+        (target) => target.name === targetArgument,
+      );
+      if (!configuredTarget) {
+        throw new Error(`Backup target "${targetArgument}" is not configured in this environment`);
+      }
+      restoreArtifacts = await loadRestoreArtifacts({
+        target: configuredTarget,
+        date: new Date(),
+        download: ({ config, objectKey }) =>
+          downloadS3Object({ config, objectKey, now: new Date() }),
+      });
+      console.info(
+        JSON.stringify({
+          status: 'drill-source',
+          target: targetArgument,
+          restoredFromTarget: true,
+        }),
+      );
+    } else {
+      await dumpLocalArtifacts(stagingDirectory);
+      restoreArtifacts = [
+        { name: 'schema.sql', plaintext: await readFile(join(stagingDirectory, 'schema.sql')) },
+        { name: 'data.sql', plaintext: await readFile(join(stagingDirectory, 'data.sql')) },
+      ];
+    }
     const dumpMs = Date.now() - dumpStartedAt;
 
     const containerStartedAt = Date.now();
@@ -324,10 +367,7 @@ async function main(): Promise<void> {
 
     const restoreStartedAt = Date.now();
     const summary = await restoreSupabaseArtifacts({
-      artifacts: [
-        { name: 'schema.sql', plaintext: await readFile(join(stagingDirectory, 'schema.sql')) },
-        { name: 'data.sql', plaintext: await readFile(join(stagingDirectory, 'data.sql')) },
-      ],
+      artifacts: restoreArtifacts,
       connectionUrl: `postgresql://postgres:postgres@127.0.0.1:${DRILL_PORT}/postgres`,
       directory: stagingDirectory,
       execute: dockerPsqlExecutor,

@@ -71,18 +71,31 @@ function parsePrefix(value: string | undefined): string {
   return prefix.replace(/\/+$/, '');
 }
 
-export function readBackupConfig(environment: BackupEnvironment): BackupConfig {
+export function readBackupS3Config(
+  environment: BackupEnvironment,
+  variablePrefix: string = 'BACKUP',
+): BackupConfig['s3'] {
+  return {
+    endpoint: parseEndpoint(required(environment, `${variablePrefix}_S3_ENDPOINT`)),
+    bucket: parseBucket(required(environment, `${variablePrefix}_S3_BUCKET`)),
+    region: required(environment, `${variablePrefix}_S3_REGION`),
+    accessKeyId: required(environment, `${variablePrefix}_S3_ACCESS_KEY_ID`),
+    secretAccessKey: required(environment, `${variablePrefix}_S3_SECRET_ACCESS_KEY`),
+    prefix: parsePrefix(environment[`${variablePrefix}_S3_PREFIX`]),
+  };
+}
+
+export function readBackupEncryptionConfig(environment: BackupEnvironment) {
   return {
     encryptionKey: parseEncryptionKey(required(environment, 'BACKUP_ENCRYPTION_KEY_BASE64')),
-    s3: {
-      endpoint: parseEndpoint(required(environment, 'BACKUP_S3_ENDPOINT')),
-      bucket: parseBucket(required(environment, 'BACKUP_S3_BUCKET')),
-      region: required(environment, 'BACKUP_S3_REGION'),
-      accessKeyId: required(environment, 'BACKUP_S3_ACCESS_KEY_ID'),
-      secretAccessKey: required(environment, 'BACKUP_S3_SECRET_ACCESS_KEY'),
-      prefix: parsePrefix(environment.BACKUP_S3_PREFIX),
-    },
     includeRoles: environment.BACKUP_INCLUDE_ROLES === 'true',
+  };
+}
+
+export function readBackupConfig(environment: BackupEnvironment): BackupConfig {
+  return {
+    ...readBackupEncryptionConfig(environment),
+    s3: readBackupS3Config(environment, 'BACKUP'),
   };
 }
 
