@@ -1,6 +1,6 @@
 # 08 — Connection-Pooling & Skalierung
 
-> **Status:** Execution-Ready (erweitert 2026-09-12) · **Stand:** 2026-09-12 · **Owner:** LLM (1 optionaler Jan-Touch bei L5b) · **Scope:** Monitoring, Verifikation und Resilienz des Supavisor-Connection-Poolings (lokal + Remote) für die Casino-Datenbank — jetzt inklusive Observability-Anbindung, Chaos-Test-Integration und synthetischem Erschöpfungstest. Kein Tarifwechsel, kein echter Lasttest gegen Produktion ohne Jan-Freigabe.
+> **Status:** ✅ Ausgeführt (Säule 8, 2026-09-13; L5b = Jan-Gate offen) · **Stand:** 2026-09-13 · **Owner:** LLM (1 optionaler Jan-Touch bei L5b) · **Scope:** Monitoring, Verifikation und Resilienz des Supavisor-Connection-Poolings (lokal + Remote) für die Casino-Datenbank — jetzt inklusive Observability-Anbindung, Chaos-Test-Integration und synthetischem Erschöpfungstest. Kein Tarifwechsel, kein echter Lasttest gegen Produktion ohne Jan-Freigabe.
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
 
@@ -13,20 +13,20 @@
 
 ## 1 — Übersicht für Jan
 
-| Nr. | Meilenstein | Nächster Schritt | Zuständigkeit | Money-Pfad |
-| --- | --- | --- | :---: | :---: |
-| L0 | Kontext & Scope | — | LLM | Nein |
-| L1 | Doku-Korrektur (Status-Header, fiktives Skript, lokal/Remote-Diskrepanz) | `docs/database/08` korrigieren | LLM | Nein |
-| L2 | Echtes Health-Check-Skript bauen | `scripts/check-pooler-health.ts` | LLM | Nein |
-| L3 | npm-Script + Wiederholbarkeit | `db:pooler-health` ergänzen | LLM | Nein |
-| L4 (optional) | CI-Cron-Monitoring | Analog `doc-drift-check.yml` | LLM, ggf. 1 Jan-Secret | Nein |
-| L5a | Lasttest lokal um Connection-Counts erweitern | `bet-flow.artillery.yml` erweitern | LLM | Nein |
-| L5b (optional) | Echter Lasttest gegen Produktion | Nur mit Jan-Freigabe | **Jan-Freigabe**, Ausführung LLM | Nein (read-only Last, keine echten Wetten) |
-| L6 | Retry-/Backoff-Logik für DB-Verbindungsfehler | Bet-Route + Service-Layer | LLM | Nein (nutzt bestehende Idempotenz) |
-| N1 | Lasttest-Kopplung mit Säule 7 (gemeinsamer Lauf) | Koordination mit `11_...md` N1 | LLM | Nein |
-| N2 | Observability-Integration (Sentry statt nur stdout) | `check-pooler-health.ts` erweitern | LLM | Nein |
-| N3 | Chaos-Test-Update für neue Retry-Semantik (L6) | `run-fault-test.mjs` anpassen | LLM | Nein |
-| N4 | Synthetischer Pool-Erschöpfungstest | Neues Skript, nur lokal | LLM | Nein |
+| Nr.            | Meilenstein                                                              | Nächster Schritt                   |          Zuständigkeit           |                 Money-Pfad                 |
+| -------------- | ------------------------------------------------------------------------ | ---------------------------------- | :------------------------------: | :----------------------------------------: |
+| L0             | Kontext & Scope                                                          | —                                  |               LLM                |                    Nein                    |
+| L1             | Doku-Korrektur (Status-Header, fiktives Skript, lokal/Remote-Diskrepanz) | `docs/database/08` korrigieren     |               LLM                |                    Nein                    |
+| L2             | Echtes Health-Check-Skript bauen                                         | `scripts/check-pooler-health.ts`   |               LLM                |                    Nein                    |
+| L3             | npm-Script + Wiederholbarkeit                                            | `db:pooler-health` ergänzen        |               LLM                |                    Nein                    |
+| L4 (optional)  | CI-Cron-Monitoring                                                       | Analog `doc-drift-check.yml`       |      LLM, ggf. 1 Jan-Secret      |                    Nein                    |
+| L5a            | Lasttest lokal um Connection-Counts erweitern                            | `bet-flow.artillery.yml` erweitern |               LLM                |                    Nein                    |
+| L5b (optional) | Echter Lasttest gegen Produktion                                         | Nur mit Jan-Freigabe               | **Jan-Freigabe**, Ausführung LLM | Nein (read-only Last, keine echten Wetten) |
+| L6             | Retry-/Backoff-Logik für DB-Verbindungsfehler                            | Bet-Route + Service-Layer          |               LLM                |     Nein (nutzt bestehende Idempotenz)     |
+| N1             | Lasttest-Kopplung mit Säule 7 (gemeinsamer Lauf)                         | Koordination mit `11_...md` N1     |               LLM                |                    Nein                    |
+| N2             | Observability-Integration (Sentry statt nur stdout)                      | `check-pooler-health.ts` erweitern |               LLM                |                    Nein                    |
+| N3             | Chaos-Test-Update für neue Retry-Semantik (L6)                           | `run-fault-test.mjs` anpassen      |               LLM                |                    Nein                    |
+| N4             | Synthetischer Pool-Erschöpfungstest                                      | Neues Skript, nur lokal            |               LLM                |                    Nein                    |
 
 **Warum praktisch kein Jan-Gate nötig ist:** Alle Kernschritte (L1–L4, L5a, L6, N1–N4) sind entweder read-only (Health-Check, Lasttest-Erweiterung lokal) oder reiner Code-/Doku-Aufbau ohne externe Wirkung. Nur L5b (Lasttest gegen die **echte** Produktionsdatenbank mit echten Spielern) ist ein reales Risiko für den Live-Betrieb und braucht deshalb explizite Jan-Freigabe — analog zur bestehenden K-Level-Logik in `docs/database/08_connection_pooling_supavisor.md` §7.
 
@@ -38,18 +38,18 @@
 
 > Skala: Top 1 % = Marktspitze, Top 100 % = praktisch nicht vorhanden. Bewertung basiert auf der Recherche in Abschnitt 3, nicht auf der bestehenden (teils widersprüchlichen) Doku.
 
-| # | Subkategorie | Niveau | Status | Kernbefund |
-| :---: | --- | :---: | :---: | --- |
-| 2 | Monitoring & Health-Check-Automatisierung | **Top 95 %** | 🔴 | Das in der Doku beschriebene Health-Check-Skript existiert **nicht als Datei** — reiner Pseudocode |
-| 6 | Retry-/Failover-Resilienz bei Verbindungsfehlern | **Top 90 %** | 🔴 | Kein Retry/Backoff im Code; jeder DB-Fehler wird sofort als 500 durchgereicht |
-| 7 | Doku-Konsistenz (Status-Header vs. echter Zustand) | **Top 90 %** | 🔴 | Doku behauptet „Top 1 % — Produktionsreif", Worldmap misst Top 35 %; dasselbe Muster wie bei Säule 9/10 bereits gefunden |
-| 3 | Lasttest-Verifikation der dokumentierten Schwellenwerte | **Top 85 %** | 🔴 | Artillery-Lasttest existiert, misst aber keine Connection-Counts — die Schwellen 140/42 wurden nie empirisch geprüft |
-| 8 | Lokale/Remote-Paritäts-Dokumentation | **Top 60 %** | 🟡 | `config.toml` (lokal: 20/100) weicht von den dokumentierten Remote-Werten (15/200) ab, ohne erklärten Grund |
-| 10 | Kosten-/Skalierungspfad (Nano→Pro-Tier) | **Top 30 %** | 🟡 | Als Entscheidungspunkt dokumentiert, aber kein konkreter Trigger-Mechanismus |
-| 1 | Pooler-Architektur & Konfiguration | **Top 20 %** | 🟢 | Transaction-Mode korrekt gewählt, Supavisor Shared Nano läuft, lokale Parität grundsätzlich verifiziert |
-| 9 | Eskalations-Runbook (K-Level, Schwellen, Reaktionsschritte) | **Top 20 %** | 🟢 | Auf dem Papier vollständig (K1/K3/K4-Matrix, konkrete Zahlen) — fehlt nur die Automatisierung, die es auslöst (siehe #2) |
-| 4 | Client-seitiges Connection-Handling | **Top 15 %** | 🟢 | Alle 3 Supabase-Clients laufen korrekt über REST/PostgREST, kein Client umgeht den Pooler oder hält rohe PG-Verbindungen offen |
-| 5 | Prepared-Statement-/Transaction-Mode-Kompatibilität | **Top 5 %** | 🟢 | Verifiziert sauber: keine Session-level Prepared Statements im Code, REST-Architektur vermeidet diese Fehlerklasse strukturell |
+|  #  | Subkategorie                                                |    Niveau    | Status | Kernbefund                                                                                                                     |
+| :-: | ----------------------------------------------------------- | :----------: | :----: | ------------------------------------------------------------------------------------------------------------------------------ |
+|  2  | Monitoring & Health-Check-Automatisierung                   | **Top 95 %** |   🔴   | Das in der Doku beschriebene Health-Check-Skript existiert **nicht als Datei** — reiner Pseudocode                             |
+|  6  | Retry-/Failover-Resilienz bei Verbindungsfehlern            | **Top 90 %** |   🔴   | Kein Retry/Backoff im Code; jeder DB-Fehler wird sofort als 500 durchgereicht                                                  |
+|  7  | Doku-Konsistenz (Status-Header vs. echter Zustand)          | **Top 90 %** |   🔴   | Doku behauptet „Top 1 % — Produktionsreif", Worldmap misst Top 35 %; dasselbe Muster wie bei Säule 9/10 bereits gefunden       |
+|  3  | Lasttest-Verifikation der dokumentierten Schwellenwerte     | **Top 85 %** |   🔴   | Artillery-Lasttest existiert, misst aber keine Connection-Counts — die Schwellen 140/42 wurden nie empirisch geprüft           |
+|  8  | Lokale/Remote-Paritäts-Dokumentation                        | **Top 60 %** |   🟡   | `config.toml` (lokal: 20/100) weicht von den dokumentierten Remote-Werten (15/200) ab, ohne erklärten Grund                    |
+| 10  | Kosten-/Skalierungspfad (Nano→Pro-Tier)                     | **Top 30 %** |   🟡   | Als Entscheidungspunkt dokumentiert, aber kein konkreter Trigger-Mechanismus                                                   |
+|  1  | Pooler-Architektur & Konfiguration                          | **Top 20 %** |   🟢   | Transaction-Mode korrekt gewählt, Supavisor Shared Nano läuft, lokale Parität grundsätzlich verifiziert                        |
+|  9  | Eskalations-Runbook (K-Level, Schwellen, Reaktionsschritte) | **Top 20 %** |   🟢   | Auf dem Papier vollständig (K1/K3/K4-Matrix, konkrete Zahlen) — fehlt nur die Automatisierung, die es auslöst (siehe #2)       |
+|  4  | Client-seitiges Connection-Handling                         | **Top 15 %** |   🟢   | Alle 3 Supabase-Clients laufen korrekt über REST/PostgREST, kein Client umgeht den Pooler oder hält rohe PG-Verbindungen offen |
+|  5  | Prepared-Statement-/Transaction-Mode-Kompatibilität         | **Top 5 %**  |   🟢   | Verifiziert sauber: keine Session-level Prepared Statements im Code, REST-Architektur vermeidet diese Fehlerklasse strukturell |
 
 **Größte Bottlenecks (treiben die Action Items in Abschnitt 4):** #2 (Monitoring existiert nur als Fiktion), #6 (keine Resilienz bei Verbindungsfehlern), #7 (Doku überzeichnet den Reifegrad), #3 (Schwellenwerte nie empirisch verifiziert). Diese vier treiben L1–L3, L5a und L6. #8 und #10 sind niedrigere Priorität (dokumentierte, aber nicht dringende Lücken). #1, #4, #5, #9 sind bereits solide — reiner Erhalt-Modus.
 
@@ -196,13 +196,74 @@
 
 ## 7 — Verwandte Artefakte
 
-| Bedarf | Datei |
-| --- | --- |
-| Kanonischer Doku-Standard (Säule 8) | [`docs/database/08_connection_pooling_supavisor.md`](../docs/database/08_connection_pooling_supavisor.md) — wird in L1 korrigiert |
-| Bestehendes Lasttest-Tooling | [`docs/archive/05_Observability_und_Lasttest.md`](../docs/archive/05_Observability_und_Lasttest.md) |
-| Bestehende Chaos-Test-Infrastruktur (Grundlage für N3) | [`scripts/chaos/run-fault-test.mjs`](../scripts/chaos/run-fault-test.mjs), [`scripts/chaos/README.md`](../scripts/chaos/README.md) |
-| Finanz-/Idempotenz-Invarianten (Grundlage für L6/N3) | [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md) |
-| Gekoppelte Datei (gemeinsamer Lasttest, N1) | [`T_DATABASE/11_database_query_performance_indexing.md`](./11_database_query_performance_indexing.md) |
-| Gewichtete Subkategorien-Bewertung (Kategorie 02, alle 10 Säulen) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 02) | [`T_DATABASE/04_datenbank_migrationen.md`](../T_DATABASE/04_datenbank_migrationen.md) |
-| Planungsdateien-Konvention | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md) |
+| Bedarf                                                            | Datei                                                                                                                              |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Kanonischer Doku-Standard (Säule 8)                               | [`docs/database/08_connection_pooling_supavisor.md`](../docs/database/08_connection_pooling_supavisor.md) — wird in L1 korrigiert  |
+| Bestehendes Lasttest-Tooling                                      | [`docs/archive/05_Observability_und_Lasttest.md`](../docs/archive/05_Observability_und_Lasttest.md)                                |
+| Bestehende Chaos-Test-Infrastruktur (Grundlage für N3)            | [`scripts/chaos/run-fault-test.mjs`](../scripts/chaos/run-fault-test.mjs), [`scripts/chaos/README.md`](../scripts/chaos/README.md) |
+| Finanz-/Idempotenz-Invarianten (Grundlage für L6/N3)              | [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md)                                            |
+| Gekoppelte Datei (gemeinsamer Lasttest, N1)                       | [`T_DATABASE/11_database_query_performance_indexing.md`](./11_database_query_performance_indexing.md)                              |
+| Gewichtete Subkategorien-Bewertung (Kategorie 02, alle 10 Säulen) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md)                                                                     |
+| Übergeordnete Aufschlüsselung (Kategorie 02)                      | [`T_DATABASE/04_datenbank_migrationen.md`](../T_DATABASE/04_datenbank_migrationen.md)                                              |
+| Planungsdateien-Konvention                                        | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md)                                        |
+
+---
+
+## 9 — Ausführungsergebnis (Säule 8, 2026-09-13, Worktree db-pooling / Branch `database-pooling`)
+
+### 9.1 Umsetzungsstand je Meilenstein
+
+| Meilenstein | Status                          | Artefakt                                                                                                                                                                                           | Verifizierung                                                                                                                          |
+| ----------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| L1          | ✅                              | `docs/database/08_connection_pooling_supavisor.md` (Header-Präzisierung „Doku-Qualität ≠ System-Reifegrad", §3 Zwei-Ebenen-Konfiguration, §6 echtes Skript)                                        | Manuell gegen `supabase/config.toml` Zeilen 44–54 geprüft                                                                              |
+| L2          | ✅                              | `scripts/check-pooler-health.ts` — lokal `npx supabase db query --local`, remote via Management-API `/database/query/read-only` (Säule-7-Konvention)                                               | 12 Unit-Tests grün; realer CLI-Lauf deferred (docker daemon down, s. 9.5)                                                              |
+| L3          | ✅                              | `npm run db:pooler-health` in `package.json`                                                                                                                                                       | Skript-Registrierung verifiziert                                                                                                       |
+| L4          | ✅ (Secret-Abhängigkeit offen)  | `.github/workflows/pooler-health-check.yml` (täglich 05:00 UTC, stdout → Step-Summary)                                                                                                             | Nutzt `SUPABASE_ACCESS_TOKEN` (dasselbe Secret wie Säule 7 L7); Workflow aktiv erst nach Jan-Secret-Hinterlegung                       |
+| L5a         | ✅                              | Sampling-Hook in `scripts/loadtest/bet-flow.processor.mjs` (`startPoolerSampler`/`stopPoolerSamplerAndWriteAudit`, alle 5s) + `before:`/`after:`-Hooks in `bet-flow.artillery.yml`                 | Fehler-swallowing-Garantie: Sampling darf den Lasttest nie brechen; realer Lauf deferred (9.5)                                         |
+| L5b         | ⏸ Jan-Gate                      | — (bewusst nicht ausgeführt)                                                                                                                                                                       | Plan-Abschnitt 4 L5b unverändert                                                                                                       |
+| L6          | ✅                              | `src/lib/casino/db-retry.ts` (`withConnectionRetry`, `isConnectionError`) + 4 Call-Sites in `src/lib/casino/wallet.ts` (settle_game_bet, consume_active_seed, start_game_round, settle_game_round) | 11 Tests grün; Sicherheit: Retry ruft denselben RPC mit derselben `request_id` (Idempotenz-Replay, Migrations 007/019 UNIQUE-Backstop) |
+| N1          | ✅ (Code-Seite)                 | Sampler in L5a-Hook gekoppelt; gemeinsamer realer Lauf mit Säule 7 in der Merge-Phase                                                                                                              | siehe 9.5                                                                                                                              |
+| N2          | ✅                              | `buildSentryEnvelope`/`parseSentryDsn` + best-effort-Versand bei `SENTRY_DSN`                                                                                                                      | 8→12 Tests grün, kein DSN-Log                                                                                                          |
+| N3          | ✅                              | Modus `transient` in `fault-proxy.mjs` (exakt ein POST → reset, danach pass), Body-Fix in `run-fault-test.mjs`, `CHAOS_UPSTREAM_URL`/`CHAOS_UPSTASH_URL` Loopback-Override                         | Proxy-Selbsttest inkl. transient grün; reale Chaos-Läufe in der Merge-Phase                                                            |
+| N4          | ✅ (Code, realer Lauf deferred) | `scripts/pool-exhaustion-test.ts` — Raw-TCP gegen 127.0.0.1:54329, Loopback-Guard (Allowlist, doppelt geprüft), `POOL_EXHAUSTION_CONFIRM=local`-Gate, Cap 250                                      | 5 Tests grün; realer Lauf in der Merge-Phase (docker daemon down)                                                                      |
+
+### 9.2 5-Stufen-Selbstprüfung (2026-09-13, im Worktree)
+
+`npm run typecheck` ✅ · `npm test` **226 Dateien / 1729 Tests, alle grün** ✅ · `npm run lint` **0 errors / 36 warnings** (= Baseline) ✅ · `npm run build` ✅ · `git status --short`: sauber nach Commits.
+
+### 9.3 Security-Review (security-reviewer, Money-Pfad-Prüfung für L6/N3/N4)
+
+**Gesamt: PASS — keine CRITICAL/HIGH-Findings.** Alle 4 LOW-Findings wurden direkt umgesetzt:
+
+1. `pool-exhaustion-test.ts` Sampling spawnet jetzt mit gestripptem `SUPABASE_ACCESS_TOKEN`/`SUPABASE_PROJECT_REF` — Sampling strikt lokal (kein Remote-Modus durch Environment-Leak).
+2. `run-fault-test.mjs`: `CHAOS_UPSTASH_URL` als Loopback-Only-Override ergänzt (ohne sie blieb der Remote-Upstash live) + `allowedUpstreamHosts`-Lock im `fault-proxy.mjs` (Defense-in-Depth, sobald ein Override aktiv ist).
+3. `db-retry.ts`: `TimeoutError`/„aborted due to timeout" explizit in die Ausschlussregel (vorher korrekt-by-coincidence).
+4. `CONNECTION_RETRY_MAX_ATTEMPTS` ist jetzt funktional in `withConnectionRetry` verdrahtet (vorher dekorativ).
+5. `check-pooler-health.ts`: Management-API-Fehler-Body auf 300 Zeichen gekürzt (keine ungetrimmten Upstream-Bodies in Errors).
+
+**Kernbestätigung L6:** Retry kann nicht doppelt buchen — `UNIQUE (user_id, request_id)` (Migration 007) und `PRIMARY KEY (user_id, request_id)` auf der Seed-Chain (Migration 019) machen den zweiten Aufruf zum Replay; Klassifikation schließt Abort/Timeout und Business-Errors (P0001/42501) aus; kein ungebundener Loop; keine Pfad, der einen Fehler in einen Erfolg umdeutet.
+
+### 9.4 Abweichungen vom Plan (ehrlich dokumentiert)
+
+1. **N4-Ausgabeformat:** Plan sah „JSONL + Markdown-Audit" implizit vor; umgesetzt ist ein Markdown-Audit (`docs/database/audits/pool-exhaustion-<date>.md`) mit drei Health-Samples (Baseline/Peak/Cleanup) statt kontinuierlicher Zeitreihe — der kontinuierliche Verlauf deckt L5a (Lasttest-Sampler) ab, N4 beobachtet die Kappe punktuell.
+2. **L4-Rotation:** Workflow-Plan sah „analog doc-drift-check.yml" vor; umgesetzt mit Management-API-Transport wie `query-performance-audit.yml` (Säule 7 L7), weil die CLI granulare Tokens für `link` nicht akzeptiert (supabase/cli#6392) — dasselbe Secret, wiederverwendet.
+3. **advance_blackjack_round ist NICHT mit L6 gewrappt:** Blackjack-Route ≠ Bet-Route-Scope; Konsistenz-Entscheidung mit dem Plan-Umfang („Bet-Route + Service-Layer"). Kann in einem Folge-Durchgang ergänzt werden, wenn gewünscht.
+4. **N3-Befund am Baseline-Stand:** der alte Chaos-Request-Body (`{ game: 'dice', … }`) erfüllte das aktuelle `requestSchema` nicht (fehlendes `clientSeed`) und lieferte immer 400, bevor ein Supabase-POST gefeuert wurde — die authentifizierte 5xx-Prüfung war defekt. Body korrigiert gegen `requestSchema` (Befund, nicht Folge dieser Säule).
+5. **Reale DB-Läufe deferred:** docker daemon down beim Implementieren (wie bei Säule 10) → L2-CLI-Lauf, L5a-Lasttest, N4-Erschöpfungstest, N3-Chaos-Läufe sind in der Merge-Phase geplant (9.5).
+
+### 9.5 Offene Punkte (Jan-relevant)
+
+1. **K5-Rest L4:** Workflow benötigt das Repo-Secret `SUPABASE_ACCESS_TOKEN` (dasselbe wie Säule 7 L7 — kein zweites Secret nötig). Erst nach Hinterlegung läuft der Cron.
+2. **Jan-Gate L5b:** echter Lasttest gegen Produktion — unverändert offen.
+3. **Merge-Phase-Verifikationsliste:** `npm run db:pooler-health` (lokal), `npm run loadtest:bet` mit Sampler, N4 mit `POOL_EXHAUSTION_CONFIRM=local`, N3-Chaos-Läufe (transient + Dauerfault mit `CHAOS_UPSTREAM_URL` auf die lokale Instanz).
+4. **Merge-Kollisionspunkte mit Säule 7:** `package.json` und `scripts/loadtest/bet-flow.processor.mjs` — sequenziell, ohne `-X ours`/`-X theirs`.
+
+### 9.6 Commits (Branch `database-pooling`)
+
+1. `feat(db-pooling): L1-L3+N2 Pooler-Health-Check real implementieren` (Doku + Skript + Tests + npm-Script)
+2. `feat(db-pooling): L6 Connection-Retry für Money-Pfad-RPCs` (db-retry.ts + Tests + 4 Wallet-Call-Sites)
+3. `feat(db-pooling): L5a Artillery-Pooler-Sampling-Hook`
+4. `feat(chaos): N3 transient-Modus + Loopback-Overrides für L6-Retry-Semantik`
+5. `feat(db-pooling): N4 Pool-Erschöpfungstest (loopback-only, confirm-gated)`
+6. `ci(db-pooling): L4 Pooler-Health-Check-Cron (Jan-Secret-Abhängigkeit)`
+7. `docs(db-pooling): §9 Ausführungsergebnis + Status-Header`
