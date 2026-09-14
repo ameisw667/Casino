@@ -8,7 +8,7 @@
 BEGIN;
 SET LOCAL search_path = public, extensions;
 
-SELECT plan(7);
+SELECT plan(8);
 
 -- 1. Die Funktion existiert in der kanonischen 1-Argument-Signatur.
 SELECT has_function('public', 'reconcile_wallet_ledger', ARRAY['text']);
@@ -63,12 +63,23 @@ SELECT is(
 );
 
 -- 7. Wiederholte Reconciliation derselben Drift inkrementiert occurrences (kein zweiter Event).
+-- Zweistufig: der zweite Reconcile-Aufruf mutiert im Subquery DESSELBEN Statements — der
+-- Statement-Snapshot des Outer-Scans sieht die eigene Mutation nicht. Deshalb 7a nur
+-- „kein zweiter Event" (zählt vor der Mutation) und 7b den Inkrement im Folge-Statement,
+-- dessen frischer Snapshot den Upsert sieht.
 SELECT is(
-  ( SELECT occurrences::text FROM public.wallet_invariant_events
+  ( SELECT count(*)::text FROM public.wallet_invariant_events
     WHERE user_id = 'pgtap_recon_drift'
       AND fingerprint = (SELECT public.reconcile_wallet_ledger('pgtap_recon_drift') ->> 'eventFingerprint') ),
+  '1',
+  'zweiter Drift-Aufruf erzeugt keinen zweiten Event (Upsert auf (user_id, fingerprint))'
+);
+
+SELECT is(
+  ( SELECT occurrences::text FROM public.wallet_invariant_events
+    WHERE user_id = 'pgtap_recon_drift' ),
   '2',
-  'zweiter Drift-Aufruf muss occurrences auf 2 inkrementieren (kein zweites Event)'
+  'zweiter Drift-Aufruf inkrementiert occurrences auf 2'
 );
 
 SELECT * FROM finish();

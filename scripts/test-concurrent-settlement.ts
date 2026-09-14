@@ -33,6 +33,10 @@ const SETTLE_ARGS = {
   p_payout: 19,
   p_xp_gain: 5,
   p_result: { roll: 42 },
+  // Explizit gesetzt: die 10-Arg-Overload-Variante (045) hat DEFAULT NULL auf den
+  // Seed-Parametern — ohne sie kann PostgREST die Kandidaten nicht unterscheiden.
+  p_server_seed_hash: 'n5-concurrency-seed',
+  p_nonce: 1,
 };
 
 async function countRows(
@@ -58,12 +62,12 @@ async function runSettleGameBetScenario(
   const requestId = randomUUID();
   const resultId = randomUUID();
 
-  const [setup, baseline] = await Promise.all([
-    clientA.from('users').insert({ id: userId, username: userId, balance: 100 }),
-    clientA
-      .from('wallet_ledger_baselines')
-      .insert({ user_id: userId, opening_balance: 100, source: 'n5-concurrency' }),
-  ]);
+  // Sequenziell statt Promise.all: der Baseline-Insert hat einen FK auf users und
+  // verliert sonst das Race gegen das noch nicht committete users-Insert.
+  const setup = await clientA.from('users').insert({ id: userId, username: userId, balance: 100 });
+  const baseline = await clientA
+    .from('wallet_ledger_baselines')
+    .insert({ user_id: userId, opening_balance: 100, source: 'n5-concurrency' });
   if (setup.error || baseline.error) throw new Error('settle_game_bet fixture setup failed');
 
   const callArgs = {

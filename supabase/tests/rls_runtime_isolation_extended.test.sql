@@ -58,13 +58,27 @@ SELECT is(
 ) FROM rls_inventory inv ORDER BY inv.table_name;
 
 -- Setup: Nutzer A (Angreifer) + B (Ziel). Fremdzeilen von B duerfen fuer A unsichtbar bleiben.
+-- IDs im UUID-Textformat: mehrere RLS-Policies vergleichen user_id (text) mit auth.uid() (uuid);
+-- nicht-UUID-Text wuerde in der Policy-Berechnung einen invalid-input-Fehler werfen (kein
+-- Fail-Closed-Semantik-Problem, sondern ein Fixture-Format-Problem).
 INSERT INTO public.users (id, username, balance)
-VALUES ('pgtap_rlsx_user_a', 'pgtap_rlsx_user_a', 100.00),
-       ('pgtap_rlsx_user_b', 'pgtap_rlsx_user_b', 200.00);
+VALUES ('a0000000-0000-4000-8000-00000000000a', 'pgtap_rlsx_user_a', 100.00),
+       ('b0000000-0000-4000-8000-00000000000b', 'pgtap_rlsx_user_b', 200.00);
 
 -- Teil 2: kein fremder authenticated-Nutzer sieht Fremdzeilen (0 Zeilen ODER 42501).
+-- Hinweis zur Output-Form: is() innerhalb eines DO-Blocks verbraucht die Testnummer
+-- und zeichnet das Ergebnis auf, gibt aber seinen TAP-Text an den PL/pgSQL-Kontext
+-- zurueck (PERFORM verwirft ihn) — der TAP-Parser sieht die Zeile nicht und meldet
+-- Out-of-Sequence. Deshalb: DO-Block schreibt Ergebnisse in eine Temp-Tabelle, die
+-- eigentliche is()-Ausgabe erfolgt danach als SELECT (druckt TAP sauber sequenziell).
 SET LOCAL ROLE authenticated;
-SET LOCAL request.jwt.claims = '{"sub": "pgtap_rlsx_user_a"}';
+SET LOCAL request.jwt.claims = '{"sub": "a0000000-0000-4000-8000-00000000000a"}';
+
+CREATE TEMP TABLE rlsx_foreign_results (
+  table_name TEXT PRIMARY KEY,
+  ok BOOLEAN NOT NULL,
+  detail TEXT NOT NULL
+);
 
 DO $$
 DECLARE
@@ -78,9 +92,17 @@ BEGIN
     v_denied := false;
     BEGIN
       IF inv.has_user_id THEN
-        EXECUTE format('SELECT count(*) FROM public.%I WHERE user_id = ''pgtap_rlsx_user_b''', inv.table_name)
+        EXECUTE format('SELECT count(*) FROM public.%I WHERE user_id = ''b0000000-0000-4000-8000-00000000000b''', inv.table_name)
+          INTO v_count;
+      ELSIF inv.table_name = 'users' THEN
+        -- Sonderfall users (keine user_id-Spalte): A sieht die EIGENE Zeile legitime
+        -- (users_select_own vergleicht (auth.jwt() ->> 'sub') = id, id ist uuid) —
+        -- Fremdzugriff heisst hier: B's Zeile darf unsichtbar bleiben.
+        EXECUTE format('SELECT count(*) FROM public.%I WHERE id = ''b0000000-0000-4000-8000-00000000000b''', inv.table_name)
           INTO v_count;
       ELSE
+        -- Alle uebrigen Tabellen ohne user_id-Spalte sind fuer fremdes authenticated
+        -- fail-closed leer (verifiziert ueber die Policy-Definitionen) — Plain-Count: 0.
         EXECUTE format('SELECT count(*) FROM public.%I', inv.table_name) INTO v_count;
       END IF;
     EXCEPTION WHEN insufficient_privilege THEN
@@ -89,12 +111,24 @@ BEGIN
     v_ok := v_denied OR v_count = 0;
     v_detail := CASE WHEN v_denied THEN 'SELECT verboten (42501, fail-closed)'
                      ELSE 'Zeilen gefiltert (fremd: ' || v_count::text || ')' END;
-    PERFORM * FROM is(v_ok::text, 'true', 'Fremdzugriff geschlossen: public.' || inv.table_name || ' — ' || v_detail);
+    INSERT INTO rlsx_foreign_results VALUES (inv.table_name, v_ok, v_detail);
   END LOOP;
 END $$;
 
+SELECT is(
+  res.ok::text,
+  'true',
+  'Fremdzugriff geschlossen: public.' || res.table_name || ' — ' || res.detail
+) FROM rlsx_foreign_results res ORDER BY res.table_name;
+
 -- Teil 3: global-lesbare Tabellen muessen unter authenticated LESBAR bleiben
 -- (Schutz gegen ein Zu-restriktives RLS-Setup, das legitime Reads bricht).
+CREATE TEMP TABLE rlsx_public_results (
+  table_name TEXT PRIMARY KEY,
+  denied BOOLEAN NOT NULL,
+  row_count BIGINT
+);
+
 DO $$
 DECLARE
   inv RECORD;
@@ -108,20 +142,22 @@ BEGIN
     EXCEPTION WHEN OTHERS THEN
       v_denied := true;
     END;
-    PERFORM * FROM is(
-      v_denied,
-      false,
-      'global-lesbar unter authenticated: public.' || inv.table_name
-      || CASE WHEN v_denied THEN ' (SELECT fehlgeschlagen)' ELSE ' (' || v_count::text || ' Zeilen)' END
-    );
+    INSERT INTO rlsx_public_results VALUES (inv.table_name, v_denied, COALESCE(v_count, 0));
   END LOOP;
 END $$;
+
+SELECT is(
+  res.denied,
+  false,
+  'global-lesbar unter authenticated: public.' || res.table_name
+  || CASE WHEN res.denied THEN ' (SELECT fehlgeschlagen)' ELSE ' (' || res.row_count::text || ' Zeilen)' END
+) FROM rlsx_public_results res ORDER BY res.table_name;
 
 -- Teil 4: Mutationsschutz an einer neuen Grant-Tabelle — user_login_history hat einen
 -- SELECT-Grant an authenticated, aber KEINE Insert-Policy: der INSERT muss abgewiesen werden.
 SELECT throws_ok(
   $$ INSERT INTO public.user_login_history (user_id, auth_method, device_info, ip_masked)
-     VALUES ('pgtap_rlsx_user_b', 'password', 'pgtap-device', '1.2.3.4') $$,
+     VALUES ('b0000000-0000-4000-8000-00000000000b', 'password', 'pgtap-device', '1.2.3.4') $$,
   42501,
   NULL,
   'INSERT in user_login_history fuer fremden Nutzer muss abgewiesen werden (keine Insert-Policy)'
@@ -130,7 +166,7 @@ SELECT throws_ok(
 -- Teil 5: Negativbeweis-Integritaet — User A muss die EIGENE Zeile in einer
 -- Policy-geschuetzten Tabelle weiterhin sehen (nicht ueber-restrictiv).
 SELECT is(
-  ( SELECT count(*)::text FROM public.user_login_history WHERE user_id = 'pgtap_rlsx_user_a' ),
+  ( SELECT count(*)::text FROM public.user_login_history WHERE user_id = 'a0000000-0000-4000-8000-00000000000a' ),
   '0',
   'User A hat keine eigenen Login-Historie-Zeilen (Fixture-frei) — SELECT muss durchlaufen'
 );

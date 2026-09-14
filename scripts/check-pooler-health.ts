@@ -29,6 +29,8 @@
 import { execFile } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { writeFile, rm } from 'node:fs/promises';
+import path from 'node:path';
 import { promisify } from 'node:util';
 import { request as httpsRequest } from 'node:https';
 
@@ -86,6 +88,8 @@ export function evaluatePoolerHealth(
 
 async function queryLocalConnections(): Promise<PoolerActivityRow[]> {
   // Ein einzelnes JSON-Aggregat als TEXT — robust gegen CLI-Ausgabeformatierung.
+  // Transport ueber -f <Datei>: der CLI 2.116 lehnt unquoted Multi-Word-SQL als
+  // positional arguments ab (shell:true splittet Spaces in einzelne Argumente).
   const sql = `SELECT coalesce(json_agg(t), '[]'::json)::text FROM (
   SELECT application_name, state, count(*)::int AS connections
   FROM pg_stat_activity
@@ -93,17 +97,35 @@ async function queryLocalConnections(): Promise<PoolerActivityRow[]> {
   GROUP BY application_name, state
   ORDER BY application_name, state
 ) t;`;
-  const { stdout } = await execFileAsync(npxCommand, ['supabase', 'db', 'query', '--local', sql], {
-    cwd: process.cwd(),
-    windowsHide: true,
-    maxBuffer: 8 * 1024 * 1024,
-    shell: true,
-  });
-  const trimmed = stdout.trim();
-  if (!trimmed.startsWith('[')) {
+  const sqlFile = path.join(process.cwd(), 'scripts', '.tmp-pooler-health.sql');
+  await writeFile(sqlFile, sql, 'utf8');
+  try {
+    const { stdout } = await execFileAsync(
+      npxCommand,
+      ['supabase', 'db', 'query', '--local', '-f', 'scripts/.tmp-pooler-health.sql'],
+      {
+        cwd: process.cwd(),
+        windowsHide: true,
+        maxBuffer: 8 * 1024 * 1024,
+        shell: true,
+      },
+    );
+    const trimmed = stdout.trim();
+    // CLI >= 2.116 liefert {"boundary":..., "rows":[{"coalesce": "<json-string>"}]};
+    // aeltere Versionen den rohen JSON-String direkt.
+    if (trimmed.startsWith('[')) return JSON.parse(trimmed) as PoolerActivityRow[];
+    if (trimmed.startsWith('{')) {
+      const envelope = JSON.parse(trimmed) as { rows?: Array<{ coalesce?: string }> };
+      const payload = envelope.rows?.[0]?.coalesce;
+      if (typeof payload !== 'string') {
+        throw new Error(`db query-Envelope ohne coalesce-Wert: ${trimmed.slice(0, 200)}`);
+      }
+      return JSON.parse(payload) as PoolerActivityRow[];
+    }
     throw new Error(`Unerwartete db query-Ausgabe (kein JSON): ${trimmed.slice(0, 200)}`);
+  } finally {
+    await rm(sqlFile, { force: true });
   }
-  return JSON.parse(trimmed) as PoolerActivityRow[];
 }
 
 const apiToken = process.env.SUPABASE_ACCESS_TOKEN ?? '';
