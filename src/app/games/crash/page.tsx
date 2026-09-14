@@ -42,6 +42,11 @@ const CASHOUT_RESOLVE_DELAY_MS = 1200;
 // are economically unaffected — a player only exits a win via CASHOUT.
 const SOLO_CRASH_FLIGHT_CEILING_MULTIPLIER = 100;
 
+// Fixed stereo pan for the launch sound (plan 02_audio_engine_plan.md L3) — the rocket always
+// starts from the same near-left launch pad position (crash-helpers.ts getCrashTrajectoryState:
+// padX ~= width * 0.085), so a static left pan is an honest match, not an approximation.
+const CRASH_LAUNCH_PAN = -0.7;
+
 export default function CrashPage() {
   const isMobile = useCasinoStore((state) => state.isMobile);
   const balance = useCasinoStore((state) => state.balance);
@@ -288,7 +293,9 @@ export default function CrashPage() {
                 multiplierDisplayRef.current.style.textShadow = '0 0 40px rgba(74, 222, 128, 0.7)';
               }
               setStatus('CASHED_OUT');
-              soundManager.play('win');
+              // No soundManager.play('win') here anymore — processGameResult() above already
+              // plays 'crash-win' (with tiered escalation) via playWinTier(); this was a
+              // confirmed doubling (plan 02_audio_engine_plan.md, finding B3).
 
               // Spawn gold coin celebration particles at rocket location
               const canvas = canvasRef.current;
@@ -463,7 +470,10 @@ export default function CrashPage() {
 
       setIsProcessing(false);
       setStatus('RUNNING');
-      soundManager.play('crash-launch');
+      // Launch pad sits near the left edge of the canvas (getCrashTrajectoryState: padX ~= 8.5%
+      // of width) — a fixed left pan matches its on-screen position without needing new state
+      // (plan 02_audio_engine_plan.md, L3).
+      soundManager.playPositional('crash-launch', CRASH_LAUNCH_PAN);
     } catch (error: unknown) {
       CasinoLogger.error('Crash', 'Start error', error);
       setIsProcessing(false);

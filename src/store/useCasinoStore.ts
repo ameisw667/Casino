@@ -163,6 +163,10 @@ export const useCasinoStore = create<CasinoState>()(
 
         set((state) => {
           // --- 1. Audio Feedback ---
+          // playWinTier() plays the base sample unchanged and only layers a synthesized
+          // escalation sweep on top once `multiplier` crosses the medium/big-win thresholds
+          // (T_FRONTEND/Planungsdateien/02_audio_engine_plan.md, L4) — for a loss, multiplier is
+          // never in that range, so this behaves exactly like the old plain play() call.
           if (state.soundEnabled) {
             const gameSounds = GAME_RESULT_SOUNDS[game];
             const soundKey = win
@@ -170,7 +174,7 @@ export const useCasinoStore = create<CasinoState>()(
               : gameSounds
                 ? gameSounds.loss
                 : 'loss';
-            if (soundKey) soundManager.play(soundKey);
+            if (soundKey) soundManager.playWinTier(soundKey, multiplier);
           }
 
           // Wallet, XP, level and rank are applied separately from the server snapshot.

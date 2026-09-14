@@ -18,6 +18,7 @@ import type { WalletSnapshot } from '@/lib/casino/wallet-contract';
 vi.mock('@/lib/casino/sound-manager', () => ({
   soundManager: {
     play: vi.fn(),
+    playWinTier: vi.fn(),
     toggle: vi.fn(),
     setVolume: vi.fn(),
   },
@@ -198,7 +199,7 @@ describe('processGameResult — Happy Path', () => {
     const state = useCasinoStore.getState();
     expect(state.bets[0]).toMatchObject({ game: 'DICE', amount: 10, payout: 20, win: true });
     expect(state.gameStats.DICE).toEqual({ totalBets: 1, wins: 1, losses: 0, profit: 10 });
-    expect(soundManager.play).toHaveBeenCalledWith('dice-win');
+    expect(soundManager.playWinTier).toHaveBeenCalledWith('dice-win', 2);
   });
 
   it('records a losing bet, updates gameStats and plays the loss sound', () => {
@@ -217,7 +218,7 @@ describe('processGameResult — Happy Path', () => {
       losses: 1,
       profit: -10,
     });
-    expect(soundManager.play).toHaveBeenCalledWith('dice-loss');
+    expect(soundManager.playWinTier).toHaveBeenCalledWith('dice-loss', 0);
   });
 
   it('caps the bets history at 50 entries, newest first', () => {

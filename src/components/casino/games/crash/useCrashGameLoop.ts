@@ -116,7 +116,7 @@ export function useCrashGameLoop(params: CrashGameLoopParams) {
   } = params;
 
   // Explosions & Thruster Particle Physics
-  const createExplosion = (x: number, y: number) => {
+  const createExplosion = (x: number, y: number, canvasWidth: number) => {
     if (!prefersReducedMotionRef.current) {
       shakeRef.current.intensity = 18;
     }
@@ -151,7 +151,11 @@ export function useCrashGameLoop(params: CrashGameLoopParams) {
         type: 'explosion',
       });
     }
-    soundManager.play('crash-explode');
+    // Position the explosion sound where the rocket actually was on screen at crash time
+    // (animation-synchronized panning, plan 02_audio_engine_plan.md L3) instead of a flat,
+    // centered play() — canvasWidth is already available at the call site, no new state needed.
+    const pan = canvasWidth > 0 ? Math.max(-1, Math.min(1, (x / canvasWidth) * 2 - 1)) : 0;
+    soundManager.playPositional('crash-explode', pan);
   };
 
   const createTail = (x: number, y: number, angle: number, riskFactor: number) => {
@@ -938,7 +942,7 @@ export function useCrashGameLoop(params: CrashGameLoopParams) {
                 const width = canvas.clientWidth;
                 const height = canvas.clientHeight;
                 const { rocketX, rocketY } = getCrashTrajectoryState(width, height, next);
-                createExplosion(rocketX, rocketY);
+                createExplosion(rocketX, rocketY, width);
               }
             } else {
               const finalPoint = parseFloat(next.toFixed(2));
