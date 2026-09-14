@@ -10,7 +10,9 @@ import {
   TimeFilterType,
   OutcomeFilterType,
 } from '@/components/history/HistoryFilterBar';
+import { LayoutGrid, List } from 'lucide-react';
 import { HistoryTableStream, HistoryRow } from '@/components/history/HistoryTableStream';
+import { HistoryFisheyeGrid } from '@/components/casino/history/HistoryFisheyeGrid';
 import { BetReceiptModal } from '@/components/history/BetReceiptModal';
 
 interface HistoryPageResponse {
@@ -43,6 +45,7 @@ export default function HistoryPage() {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
   useEffect(() => {
     let cancelled = false;
@@ -229,27 +232,103 @@ export default function HistoryPage() {
         rows={filteredRows}
       />
 
-      <HistoryFilterBar
-        gameFilter={gameFilter}
-        setGameFilter={setGameFilter}
-        timeFilter={timeFilter}
-        setTimeFilter={setTimeFilter}
-        outcomeFilter={outcomeFilter}
-        setOutcomeFilter={setOutcomeFilter}
-        filteredCount={filteredRows.length}
-        isMobile={isMobile}
-      />
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '10px',
+        }}
+      >
+        <HistoryFilterBar
+          gameFilter={gameFilter}
+          setGameFilter={setGameFilter}
+          timeFilter={timeFilter}
+          setTimeFilter={setTimeFilter}
+          outcomeFilter={outcomeFilter}
+          setOutcomeFilter={setOutcomeFilter}
+          filteredCount={filteredRows.length}
+          isMobile={isMobile}
+        />
+
+        {/* View Switcher: Fisheye Grid vs Table */}
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            background: 'rgba(20, 24, 34, 0.8)',
+            border: '1px solid rgba(212, 175, 55, 0.2)',
+            borderRadius: '10px',
+            padding: '3px',
+            gap: '3px',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setViewMode('grid')}
+            title="Fisheye 2D Grid"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '7px',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              background: viewMode === 'grid' ? '#D4AF37' : 'transparent',
+              color: viewMode === 'grid' ? '#000000' : 'rgba(255, 255, 255, 0.6)',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <LayoutGrid size={13} />
+            {!isMobile && 'Fisheye Grid'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('table')}
+            title="Tabelle"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '7px',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              background: viewMode === 'table' ? '#D4AF37' : 'transparent',
+              color: viewMode === 'table' ? '#000000' : 'rgba(255, 255, 255, 0.6)',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <List size={13} />
+            {!isMobile && 'Tabelle'}
+          </button>
+        </div>
+      </div>
 
       <div>
-        <HistoryTableStream
-          loading={loading}
-          rows={filteredRows}
-          isMobile={isMobile}
-          onSelectRow={(row) => setSelectedRow(row)}
-          hasMore={hasMore}
-          loadingMore={loadingMore}
-          onLoadMore={loadMore}
-        />
+        {viewMode === 'grid' && !loading && filteredRows.length > 0 ? (
+          <HistoryFisheyeGrid
+            rows={filteredRows}
+            isMobile={isMobile}
+            onSelectRow={(row) => setSelectedRow(row)}
+          />
+        ) : (
+          <HistoryTableStream
+            loading={loading}
+            rows={filteredRows}
+            isMobile={isMobile}
+            onSelectRow={(row) => setSelectedRow(row)}
+            hasMore={hasMore}
+            loadingMore={loadingMore}
+            onLoadMore={loadMore}
+          />
+        )}
       </div>
 
       {/* VIP Bet Receipt Modal (NP-4) */}
