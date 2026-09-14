@@ -4,7 +4,6 @@ import { useCasinoStore } from '@/store/useCasinoStore';
 import { GameErrorBoundary } from '@/components/casino/GameErrorBoundary';
 import { sanitizeClientSeed } from '@/lib/casino/provably-fair';
 import { CasinoLogger } from '@/lib/casino/logger';
-import { soundManager } from '@/lib/casino/sound-manager';
 import { trackAllowedEvent } from '@/lib/analytics/events';
 import { type CrashRoundBroadcastPayload } from '@/lib/casino/realtime-types';
 
@@ -323,7 +322,9 @@ export default function CrashPage() {
                 multiplierDisplayRef.current.style.textShadow = '0 0 40px rgba(74, 222, 128, 0.7)';
               }
               setStatus('CASHED_OUT');
-              soundManager.play('win');
+              // No soundManager.play('win') here anymore — processGameResult() above already
+              // plays 'crash-win' (with tiered escalation) via playWinTier(); this was a
+              // confirmed doubling (plan 02_audio_engine_plan.md, finding B3).
 
               // Spawn gold coin celebration particles at rocket location
               const canvas = canvasRef.current;
