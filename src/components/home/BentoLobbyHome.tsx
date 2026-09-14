@@ -4,10 +4,7 @@ import React, { useEffect, useState, useSyncExternalStore } from 'react';
 import dynamic from 'next/dynamic';
 import { trackAllowedEvent } from '@/lib/analytics/events';
 import { HeroScrollyStage } from '@/components/home/hero-scrolly/HeroScrollyStage';
-import {
-  ArcadeHeroCell,
-  BentoArcadeDeferredCells,
-} from '@/components/home/bento/BentoArcadeCells';
+import { ArcadeHeroCell, BentoArcadeDeferredCells } from '@/components/home/bento/BentoArcadeCells';
 import { bentoRootVars } from '@/components/home/bento/bento-lobby-tokens';
 
 const LiveHighlightStream = dynamic(
@@ -74,7 +71,7 @@ function mosaicGridStyle(isMobile: boolean): React.CSSProperties {
     gridAutoFlow: 'row dense',
     gap: isMobile ? '10px' : '16px',
     maxWidth: '1560px',
-    margin: '0 auto',
+    margin: isMobile ? '0 auto' : '-60px auto 0',
     padding: isMobile ? '0 10px 32px' : '0 24px 48px',
   };
 }
