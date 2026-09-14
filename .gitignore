@@ -17,6 +17,13 @@
 /.next/
 /out/
 
+# next.js isolated build artifact dirs from performance/verification runs (regenerable —
+# each is a separate out-dir passed to next build; mirrors the `.next*/**` eslint ignore)
+/.next-*
+*.pid
+/.supabase-status.env
+/lighthouse-*-report.json
+
 # production
 /build
 
