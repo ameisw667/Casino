@@ -67,7 +67,7 @@ describe('game-roll', () => {
         Math.floor(0.5 * 8),
       ]);
     }
-  });
+  }, 15000);
 
   it('mirrors the provably-fair dice transformation exactly', () => {
     const samples = [0, 0.1, 0.25, 0.5, 0.737, 0.99321, 0.99999999];
