@@ -62,3 +62,27 @@ export interface GenerationResult {
   estimatedCostUsd: number;
   createdAt: string;
 }
+
+export interface ImageEditRequest {
+  imageBuffer: Buffer;
+  maskBuffer?: Buffer;
+  prompt: string;
+  name?: string;
+  size?: '1024x1024' | '512x512' | '256x256';
+  model?: string;
+  n?: number;
+}
+
+export interface EditResponsePayload {
+  imageBuffer: Buffer;
+  meta: {
+    durationMs: number;
+    requestId?: string;
+    model: string;
+    size: string;
+    attemptsMade: number;
+    hasMask: boolean;
+    rateLimitRemainingRequests?: string;
+    rateLimitRemainingTokens?: string;
+  };
+}

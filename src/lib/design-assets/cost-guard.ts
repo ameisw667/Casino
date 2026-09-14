@@ -38,6 +38,24 @@ export const DEFAULT_PRICING_TABLE: Record<ImageSize, Record<ImageQuality, numbe
 };
 
 /**
+ * Konservative Tarif-Tabelle für Bild-Editing (Inpainting, /v1/images/edits) in USD.
+ */
+export const DEFAULT_EDIT_PRICING_TABLE: Record<'1024x1024' | '512x512' | '256x256', number> = {
+  '1024x1024': 0.02,
+  '512x512': 0.018,
+  '256x256': 0.016,
+};
+
+/**
+ * Ermittelt den geschätzten Preis für einen Bild-Edit.
+ */
+export function getEstimatedCostForEdit(
+  size: '1024x1024' | '512x512' | '256x256' = '1024x1024',
+): number {
+  return DEFAULT_EDIT_PRICING_TABLE[size] ?? 0.02;
+}
+
+/**
  * Ermittelt den geschätzten Preis für ein konkretes Bild basierend auf Größe und Qualität.
  */
 export function getEstimatedCostForRequest(

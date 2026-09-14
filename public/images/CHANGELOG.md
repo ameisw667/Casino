@@ -1,5 +1,6 @@
 # Design-Assets Changelog
 
+- 2026-09-14 — `icon-dice-quantum-gold` transparent (Freistellung der v001 über die Editing-Pipeline, Alpha-Kanal; 1592092 B, sha256:6ff579d6; Basis: v001 vom 2026-09-02) → `2026-09-02_icon-dice-quantum-gold_transparent.png` — Erstnutzung: `HeroFloatingCosmos.tsx` (Hero-Scrolly)
 - 2026-09-02 — `icon-dice-quantum-gold` v001 (1024x1024, medium, 1396726 B, sha256:f345c0f2, 41.9s, ~0.08 USD) → `2026-09-02_icon-dice-quantum-gold_v001.png`
 - 2026-09-03 — `hero-dice-quantum-gold` v001 (1536x1024, medium, 2028744 B, sha256:65b696a9, 36.3s, ~0.12 USD) → `2026-09-03_hero-dice-quantum-gold_v001.png`
 - 2026-09-03 — `hero-crash-quantum-gold` v001 (1536x1024, medium, 2478236 B, sha256:20eb7ab8, 32.7s, ~0.12 USD) → `2026-09-03_hero-crash-quantum-gold_v001.png`

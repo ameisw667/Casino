@@ -1,5 +1,4 @@
 import fs from 'fs';
-import path from 'path';
 import { z } from 'zod';
 import type { ImageQuality, ImageSize } from './types';
 import { round2 } from './cost-guard';
