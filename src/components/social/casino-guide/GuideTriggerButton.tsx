@@ -8,6 +8,7 @@ interface GuideTriggerButtonProps {
   isOpen: boolean;
   isMobile?: boolean;
   panelBottom: string;
+  right?: string;
   unreadCount?: number;
   onOpen: () => void;
 }
@@ -16,6 +17,7 @@ export function GuideTriggerButton({
   isOpen,
   isMobile = false,
   panelBottom,
+  right,
   unreadCount = 0,
   onOpen,
 }: GuideTriggerButtonProps) {
@@ -87,7 +89,7 @@ export function GuideTriggerButton({
       onClick={onOpen}
       style={{
         position: 'fixed',
-        right: isMobile ? '12px' : '24px',
+        right: right ?? (isMobile ? '12px' : '24px'),
         bottom: panelBottom,
         zIndex: 46,
         display: 'inline-flex',
@@ -96,7 +98,8 @@ export function GuideTriggerButton({
         border: '1px solid rgba(212, 175, 55, 0.48)',
         borderRadius: '999px',
         padding: isMobile ? '8px 14px' : '12px 20px',
-        background: 'linear-gradient(135deg, rgba(18, 23, 34, 0.96) 0%, rgba(11, 14, 20, 0.94) 100%)',
+        background:
+          'linear-gradient(135deg, rgba(18, 23, 34, 0.96) 0%, rgba(11, 14, 20, 0.94) 100%)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
         color: '#FFFFFF',
@@ -218,4 +221,3 @@ export function GuideTriggerButton({
     </motion.button>
   );
 }
-

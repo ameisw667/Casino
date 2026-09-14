@@ -6,6 +6,7 @@ import { useCasinoStore } from '@/store/useCasinoStore';
 import { ChatBotService } from '@/lib/casino/chat-bot';
 import { PlayerProfileModal } from './PlayerProfileModal';
 import { CasinoGuidePanel } from './CasinoGuidePanel';
+import { ChatQuickActionDock } from './ChatQuickActionDock';
 import Image from 'next/image';
 
 export function GlobalChat() {
@@ -30,6 +31,10 @@ export function GlobalChat() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [chatMessages, isChatOpen]);
+
+  const handleQuickAction = (insertText: string) => {
+    setMessage((prev) => (prev ? `${prev} ${insertText}` : insertText));
+  };
 
   const handleSend = () => {
     if (!message.trim()) return;
@@ -298,10 +303,13 @@ export function GlobalChat() {
           </AnimatePresence>
         </div>
 
+        {/* Quick Action Dock */}
+        <ChatQuickActionDock onSelectAction={handleQuickAction} />
+
         {/* Input Area */}
         <div
           style={{
-            padding: '16px',
+            padding: '12px 16px 16px',
             background: 'hsla(var(--bg-color), 0.5)',
             borderTop: '1px solid var(--glass-border)',
           }}

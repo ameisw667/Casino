@@ -82,11 +82,10 @@ export default function GamesPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h1
               style={{
-                fontSize: isMobile ? '1.15rem' : '1.35rem',
+                fontSize: isMobile ? '1.15rem' : '1.45rem',
                 fontWeight: 900,
-                color: '#fff',
-                fontFamily: "var(--font-heading, 'Cinzel', serif)",
-                letterSpacing: '0.04em',
+                color: '#ffffff',
+                letterSpacing: '-0.02em',
                 lineHeight: 1.1,
                 margin: 0,
               }}

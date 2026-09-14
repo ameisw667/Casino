@@ -29,11 +29,6 @@ import type { RouletteStrategyPreset } from '@/components/casino/games/roulette/
 
 export function RouletteClient() {
   const isMobile = useCasinoStore((state) => state.isMobile);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
 
   const balance = useCasinoStore((state) => state.balance);
   const provablyFairSettings = useCasinoStore((state) => state.provablyFairSettings);
@@ -284,9 +279,10 @@ export function RouletteClient() {
       profit: prev.profit + (result.win ? result.payout - betAmt : -betAmt),
     }));
 
-    if (result.win) {
-      soundManager.play('win');
-    }
+    // No soundManager.play('win') here anymore — processGameResult() above already plays
+    // 'roulette-win' (with tiered escalation) via playWinTier(); this was a confirmed doubling
+    // (plan 02_audio_engine_plan.md, finding B3), previously already diagnosed once in the
+    // archived docs/architecture/05_1.6_SOUNDDESIGN.md and reintroduced under new line numbers.
 
     pendingResultRef.current = null;
   }, [applyServerWalletSnapshot, processGameResult, setIsProcessing, setProvablyFairSettings]);
@@ -479,8 +475,6 @@ export function RouletteClient() {
     autoRunning,
     setAutoRunning,
   ]);
-
-  if (!mounted) return null;
 
   return (
     <GameErrorBoundary gameName="Roulette">

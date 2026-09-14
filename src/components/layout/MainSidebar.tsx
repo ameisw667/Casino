@@ -115,6 +115,7 @@ export function MainSidebar({
                 src="/images/brand-ace-icon.png"
                 alt="Casino Royale"
                 fill
+                preload
                 sizes="100px"
                 style={{ objectFit: 'contain' }}
                 className="brand-logo-tilt"
@@ -210,7 +211,8 @@ export function MainSidebar({
               marginBottom: '4px',
               padding: '8px 14px',
               borderRadius: '8px',
-              background: 'linear-gradient(90deg, rgba(212, 175, 55, 0.08) 0%, rgba(11, 14, 20, 0.4) 100%)',
+              background:
+                'linear-gradient(90deg, rgba(212, 175, 55, 0.08) 0%, rgba(11, 14, 20, 0.4) 100%)',
               border: '1px solid rgba(212, 175, 55, 0.22)',
               color: '#FFFFFF',
               gap: '12px',
@@ -229,7 +231,9 @@ export function MainSidebar({
                 style={{ objectFit: 'contain' }}
               />
             </div>
-            <span style={{ fontWeight: 600, fontSize: '0.86rem', letterSpacing: '0.02em' }}>Royale Guide</span>
+            <span style={{ fontWeight: 600, fontSize: '0.86rem', letterSpacing: '0.02em' }}>
+              Royale Guide
+            </span>
             <span
               style={{
                 marginLeft: 'auto',

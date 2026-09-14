@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { KineticTextReveal } from '@/components/casino/typography/KineticTextReveal';
+import { BlackjackLiquidBackdrop } from './BlackjackLiquidBackdrop';
 
 export type FeltTheme = 'emerald' | 'obsidian' | 'burgundy';
 
@@ -91,6 +92,9 @@ export function ClassicCasinoTableFelt({
           boxSizing: 'border-box',
         }}
       >
+        {/* 0. WebGL Liquid Ambient Backdrop (Monte Carlo Fluid Velvet & Gold Veins) */}
+        <BlackjackLiquidBackdrop theme={theme} opacity={0.5} />
+
         {/* 1. Feine gewebte Woll-Textur des Casino-Filzes */}
         <div
           style={{

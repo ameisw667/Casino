@@ -11,6 +11,7 @@ import { useTiltGlare, type TiltGlareState } from '@/hooks/useTiltGlare';
 import { GAMES, type GameItem } from '../InteractiveArcadeGrid';
 import { bentoColors, bentoTypography } from './bento-lobby-tokens';
 import { Spiral3dSlider } from './Spiral3dSlider';
+import { BentoAnimatedGlow } from './BentoAnimatedGlow';
 
 /**
  * Bento arcade cells: one dominant 2x2 hero cell (Crash) plus four compact
@@ -85,6 +86,9 @@ export function ArcadeHeroCell({ isMobile }: { isMobile: boolean }) {
           whileTap={{ scale: 0.98 }}
           transition={springs.standard}
         >
+          {/* Dynamic Ambient Glow (Touchpoint 37 / Componentry #59) */}
+          <BentoAnimatedGlow intensity="medium" variant="gold" />
+
           {/* Motion-picture loop background (slow Ken-Burns drift) */}
           <motion.div
             animate={prefersReducedMotion ? undefined : { scale: [1, 1.08, 1] }}

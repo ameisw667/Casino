@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { motion, AnimatePresence, useSpring } from 'framer-motion';
 import { Z_INDEX } from '@/lib/design/tokens.generated';
-import { soundManager } from '@/lib/casino/sound-manager';
 import { CursorParticleTypography } from '@/components/casino/fx/CursorParticleTypography';
 
 import { ParticleTypographyCanvas } from '@/components/casino/fx/ParticleTypographyCanvas';
@@ -43,7 +42,10 @@ export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: B
 
   useEffect(() => {
     if (!isOpen) return;
-    soundManager.play('win');
+    // No soundManager.play('win') here anymore — the game-specific win sound (plus the tiered
+    // escalation sweep for this >=20x moment) already plays once via processGameResult() ->
+    // playWinTier() in useCasinoStore.ts. This was a confirmed doubling (plan
+    // 02_audio_engine_plan.md, finding B3): a generic 'win' on top of e.g. 'crash-win'.
     const timer = setTimeout(() => {
       onClose();
     }, 5500);

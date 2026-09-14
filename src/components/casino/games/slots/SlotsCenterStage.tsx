@@ -9,6 +9,7 @@ import { WinLine } from '@/components/casino/games/slots/WinLine';
 import { GAME_SYMBOLS, STAGGER_DELAYS_MS } from '@/app/games/slots/symbols';
 import {
   NO_WIN,
+  getReelPan,
   type HistoryEntry,
   type LastResult,
   type ReelSymbols,
@@ -256,6 +257,7 @@ export function SlotsCenterStage({
                     isAnticipating={isAnticipatingReel[i] && isSpinning}
                     hasWinInCabinet={hasWin && !isSpinning}
                     cellHeight={slotCellHeight}
+                    pan={getReelPan(i, finalReels.length)}
                   />
                 </React.Fragment>
               ))}

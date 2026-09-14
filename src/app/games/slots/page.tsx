@@ -30,11 +30,6 @@ import { SlotsPaytable } from '@/components/casino/games/slots/SlotsPaytable';
 
 export default function SlotsPage() {
   const isMobile = useCasinoStore((s) => s.isMobile);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
 
   const balance = useCasinoStore((s) => s.balance);
   const provablyFair = useCasinoStore((s) => s.provablyFairSettings);
@@ -304,8 +299,6 @@ export default function SlotsPage() {
 
   const hasWin = lastResult.type === 'win';
   const isBigWin = hasWin && (lastResult.multiplier ?? 0) >= 10;
-
-  if (!mounted) return null;
 
   return (
     <GameErrorBoundary gameName="Slots">

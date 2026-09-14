@@ -3,6 +3,18 @@ import type { SymbolType } from '@/components/casino/SlotSymbol';
 
 export const REEL_COUNT = 5;
 
+// Linear left-right pan mapping for reel-stop spatial audio (T_FRONTEND/Planungsdateien/
+// 02_audio_engine_plan.md, L2): column 0 pans hard left, the last column hard right, everything
+// else spread evenly in between. Pure function so the mapping is unit-testable without mounting
+// the animated SlotReel component.
+const REEL_PAN_RANGE = 0.7;
+
+export function getReelPan(columnIndex: number, totalReels: number): number {
+  if (totalReels <= 1) return 0;
+  const normalized = columnIndex / (totalReels - 1); // 0..1
+  return -REEL_PAN_RANGE + normalized * (REEL_PAN_RANGE * 2);
+}
+
 export type ReelSymbols = [SymbolType, SymbolType, SymbolType];
 export type WinningRows = [boolean, boolean, boolean];
 

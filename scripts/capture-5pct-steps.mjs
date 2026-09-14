@@ -2,7 +2,8 @@ import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 
-const ARTIFACT_DIR = 'C:/Users/hambu/.gemini/antigravity/brain/9491d6bc-1d4c-4af1-a400-7fa59f9e04b5';
+const ARTIFACT_DIR =
+  'C:/Users/hambu/.gemini/antigravity/brain/9491d6bc-1d4c-4af1-a400-7fa59f9e04b5';
 const FRAMES_DIR = path.join(ARTIFACT_DIR, 'frames_5pct');
 
 if (!fs.existsSync(FRAMES_DIR)) {
@@ -19,14 +20,15 @@ async function run() {
 
   // Measure total hero scroll distance
   const scrollDistance = await page.evaluate(() => {
-    const track = document.querySelector('[style*="140vh"]');
+    const track =
+      document.querySelector('[style*="200vh"]') || document.querySelector('[style*="140vh"]');
     const sc = document.querySelector('#main-scroll-container');
     if (track && sc) {
       // The distance the sticky element travels is track height minus sticky viewport height
       const diff = track.offsetHeight - sc.clientHeight;
-      return Math.max(350, diff);
+      return Math.max(500, diff);
     }
-    return 450;
+    return 750;
   });
 
   console.log(`Hero Scrolly total scrub distance: ${scrollDistance}px`);
@@ -54,7 +56,9 @@ async function run() {
 
     await page.screenshot({ path: filepath });
     generatedFiles.push({ pct, filename, filepath, targetScroll });
-    console.log(`Frame ${i + 1}/${totalSteps + 1}: ${pct}% (scroll: ${targetScroll}px) saved -> ${filename}`);
+    console.log(
+      `Frame ${i + 1}/${totalSteps + 1}: ${pct}% (scroll: ${targetScroll}px) saved -> ${filename}`,
+    );
   }
 
   await browser.close();

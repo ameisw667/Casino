@@ -1,12 +1,20 @@
 'use client';
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { motion, useMotionValue, useSpring, useTransform, animate, useReducedMotion } from 'framer-motion';
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  animate,
+  useReducedMotion,
+} from 'framer-motion';
 import { ChevronUp, ChevronDown, Sparkles } from 'lucide-react';
 import { soundManager } from '@/lib/casino/sound-manager';
 import { GlassSurface } from '@/components/ui/GlassSurface';
 import { HighrollerWinDetailModal, type HighrollerWinItem } from '../HighrollerWinDetailModal';
 import { bentoColors, bentoTypography } from './bento-lobby-tokens';
+import { LiveWinsFlippingSwap } from './LiveWinsFlippingSwap';
 
 const ROTATION_INTERVAL_MS = 4500;
 
@@ -347,7 +355,8 @@ export function LiveHighlightStream({ isMobile = false }: { isMobile?: boolean }
                 left: 0,
                 bottom: 0,
                 height: '2px',
-                background: 'linear-gradient(90deg, rgba(16, 185, 129, 0) 0%, rgba(16, 185, 129, 1) 100%)',
+                background:
+                  'linear-gradient(90deg, rgba(16, 185, 129, 0) 0%, rgba(16, 185, 129, 1) 100%)',
               }}
             />
           )}
@@ -439,7 +448,14 @@ function Payout3dCard({
       }}
     >
       {/* Top row: badge, user & time */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '4px',
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span
             style={{
@@ -473,7 +489,14 @@ function Payout3dCard({
       </div>
 
       {/* Main row: Payout & Multiplier */}
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          gap: '8px',
+        }}
+      >
         <span
           style={{
             ...bentoTypography.dynamicNumber,
@@ -488,23 +511,12 @@ function Payout3dCard({
           +${entry.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span
-            style={{
-              ...bentoTypography.dynamicNumber,
-              padding: '1px 6px',
-              borderRadius: '5px',
-              background: 'rgba(212, 175, 55, 0.12)',
-              border: '1px solid rgba(212, 175, 55, 0.3)',
-              color: bentoColors.gold,
-              fontSize: '0.72rem',
-              fontWeight: 900,
-            }}
-          >
-            {entry.mult}
-          </span>
-          <span style={{ fontSize: '0.68rem', color: 'rgba(255, 255, 255, 0.65)', fontWeight: 700 }}>
-            {entry.game}
-          </span>
+          <LiveWinsFlippingSwap
+            word={entry.mult}
+            secondaryWord={entry.game}
+            highlight={parseFloat(entry.mult) >= 30}
+            colorScheme={parseFloat(entry.mult) >= 30 ? 'gold' : 'emerald'}
+          />
         </div>
       </div>
     </motion.div>

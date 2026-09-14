@@ -67,7 +67,6 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
 
       {/* Value Proposition Description */}
       <motion.p
-
         // This copy is a mobile LCP candidate, so it cannot begin transparent.
 
         style={{
@@ -77,6 +76,10 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
           marginBottom: isMobile ? '12px' : '20px',
           fontWeight: 500,
           textShadow: '0 2px 10px rgba(0,0,0,0.9)',
+          wordBreak: 'break-word',
+          overflowWrap: 'break-word',
+          maxWidth: '100%',
+          width: '100%',
         }}
       >
         Erlebe die Zukunft des Online-Casinos: 100% Willkommensbonus, transparenter Provably-Fair
@@ -85,7 +88,6 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
 
       {/* VIP Welcome Bonus-Claim Stage (Option 1) */}
       <motion.div
-
         // Keep the adjacent above-the-fold CTA paintable with the copy.
 
         style={{ marginBottom: isMobile ? '10px' : '18px' }}
@@ -203,7 +205,14 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
                 flexShrink: 0,
               }}
             >
-              <Image src="/images/2026-09-06_icon-promo-bonus-quantum-gold_v001.png" alt="" width={13} height={13} aria-hidden /> BONUS AKTIVIEREN
+              <Image
+                src="/images/2026-09-06_icon-promo-bonus-quantum-gold_v001.png"
+                alt=""
+                width={13}
+                height={13}
+                aria-hidden
+              />{' '}
+              BONUS AKTIVIEREN
             </motion.button>
           </Magnetic>
         </div>
@@ -279,7 +288,13 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
               flexShrink: 0,
             }}
           >
-            <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Provably Fair" width={11} height={11} aria-hidden />
+            <Image
+              src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png"
+              alt="Provably Fair"
+              width={11}
+              height={11}
+              aria-hidden
+            />
             <span>100% PROVABLY FAIR</span>
           </div>
 
@@ -309,7 +324,14 @@ export function HeroHeadlineColumn({ isMobile, onBonusActivate }: HeroHeadlineCo
           >
             <div style={{ display: 'flex', gap: '1px' }}>
               {[...Array(5)].map((_, i) => (
-                <Image key={i} src="/images/2026-09-06_icon-star-rating-quantum-gold_v001.png" alt="" width={9} height={9} aria-hidden />
+                <Image
+                  key={i}
+                  src="/images/2026-09-06_icon-star-rating-quantum-gold_v001.png"
+                  alt=""
+                  width={9}
+                  height={9}
+                  aria-hidden
+                />
               ))}
             </div>
             <span

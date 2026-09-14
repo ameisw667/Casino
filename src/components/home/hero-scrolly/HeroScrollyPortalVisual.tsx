@@ -12,6 +12,7 @@ interface HeroScrollyPortalVisualProps {
   portalRef?: RefObject<HTMLDivElement | null>;
   cardRef?: RefObject<HTMLDivElement | null>;
   sealRef?: RefObject<HTMLDivElement | null>;
+  orbitClusterRef?: RefObject<HTMLDivElement | null>;
   onEnhancedPortalReady?: () => void;
 }
 
@@ -82,6 +83,7 @@ export function HeroScrollyPortalVisual({
   portalRef,
   cardRef,
   sealRef,
+  orbitClusterRef,
   onEnhancedPortalReady,
 }: HeroScrollyPortalVisualProps) {
   const [shouldRenderDesktopPortal, setShouldRenderDesktopPortal] = useState(false);
@@ -104,6 +106,7 @@ export function HeroScrollyPortalVisual({
       portalRef={portalRef}
       cardRef={cardRef}
       sealRef={sealRef}
+      orbitClusterRef={orbitClusterRef}
       onReady={onEnhancedPortalReady}
     />
   );

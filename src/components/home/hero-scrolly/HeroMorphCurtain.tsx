@@ -27,17 +27,21 @@ export function HeroMorphCurtain({ curtainRef, fogRef }: HeroMorphCurtainProps) 
         overflow: 'visible',
       }}
     >
-      {/* Soft Luminous Gold Dust Veil - no hard black boxes */}
+      {/* Multi-Layered Luminous Gold Dust Veil & Soft Upward Ambient Mist */}
       <div
         ref={fogRef}
         style={{
           position: 'absolute',
-          inset: 0,
+          bottom: '-40px',
+          left: '-10%',
+          right: '-10%',
+          height: '240px',
           background:
-            'radial-gradient(ellipse 80% 100% at 50% 100%, rgba(212, 175, 55, 0.12) 0%, rgba(212, 175, 55, 0.02) 55%, transparent 100%)',
-          filter: 'blur(25px)',
-          opacity: 0.75,
+            'radial-gradient(ellipse 90% 100% at 50% 100%, rgba(212, 175, 55, 0.22) 0%, rgba(212, 175, 55, 0.06) 45%, rgba(11, 14, 20, 0.0) 85%)',
+          filter: 'blur(35px)',
+          opacity: 0.8,
           willChange: 'opacity, transform',
+          pointerEvents: 'none',
         }}
       />
     </div>

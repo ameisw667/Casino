@@ -134,8 +134,8 @@ export function BetInputGroup({
             value={value}
             disabled={disabled}
             aria-label="Wetteinsatz in Dollar"
-            aria-valuemin={minBet}
-            aria-valuemax={maxBet}
+            min={minBet}
+            max={maxBet}
             onChange={(e) => updateValue(parseFloat(e.target.value) || 0)}
             style={{
               flex: 1,

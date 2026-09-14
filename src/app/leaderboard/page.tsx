@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { LeaderboardWeeklyBanner } from '@/components/leaderboard/LeaderboardWeeklyBanner';
-import { LeaderboardPodium } from '@/components/leaderboard/LeaderboardPodium';
+import { LeaderboardPodiumOrbitStack } from '@/components/casino/leaderboard/LeaderboardPodiumOrbitStack';
 import { LeaderboardStreamTable, LeaderRow } from '@/components/leaderboard/LeaderboardStreamTable';
 import { PersonalRankBar } from '@/components/leaderboard/PersonalRankBar';
 
@@ -156,9 +156,9 @@ export default function LeaderboardPage() {
         activePlayersCount={rows.length}
       />
 
-      {/* Podium Stage with Avatars */}
+      {/* Podium Stage with Avatars & 3D Orbit Stack */}
       {!loading && rows.length >= 3 && (
-        <LeaderboardPodium topThree={rows.slice(0, 3)} isMobile={isMobile} />
+        <LeaderboardPodiumOrbitStack topThree={rows.slice(0, 3)} isMobile={isMobile} />
       )}
 
       {/* High Roller Stream Table */}

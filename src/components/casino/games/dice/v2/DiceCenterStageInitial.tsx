@@ -1,5 +1,9 @@
 'use client';
 
+import { preload } from 'react-dom';
+
+const MOBILE_DICE_FELT_SRC = '/images/2026-09-04_backdrop-dice-quantum-felt-mobile_v001.webp';
+
 interface DiceCenterStageInitialProps {
   onRequestInteractive: () => void;
 }
@@ -9,6 +13,12 @@ interface DiceCenterStageInitialProps {
  * Web Audio, or 3D dependencies; the interactive stage replaces it after idle.
  */
 export function DiceCenterStageInitial({ onRequestInteractive }: DiceCenterStageInitialProps) {
+  preload(MOBILE_DICE_FELT_SRC, {
+    as: 'image',
+    fetchPriority: 'high',
+    media: '(max-width: 1023px)',
+  });
+
   return (
     <div
       className="dice-v2-main game-area dice-v2-initial"

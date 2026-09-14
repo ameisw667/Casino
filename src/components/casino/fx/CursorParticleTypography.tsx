@@ -86,7 +86,13 @@ export function CursorParticleTypography({
 
       offCtx.clearRect(0, 0, w, h);
       offCtx.fillStyle = '#FFFFFF';
-      offCtx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+      let resolvedFont = fontFamily;
+      if (resolvedFont.includes('var(')) {
+        resolvedFont = resolvedFont
+          .replace(/var\([^,]+,\s*([^)]+)\)/g, '$1')
+          .replace(/var\([^)]+\)/g, 'sans-serif');
+      }
+      offCtx.font = `${fontWeight} ${fontSize}px ${resolvedFont}`;
       offCtx.textAlign = 'center';
       offCtx.textBaseline = 'middle';
       offCtx.fillText(text, w / 2, h / 2);
@@ -201,9 +207,11 @@ export function CursorParticleTypography({
       canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       sampleGlyphPoints(width, height, dpr);
+      if (animFrameRef.current === null && typeof loop === 'function') {
+        isSettledRef.current = false;
+        loop();
+      }
     };
-
-    updateDimensions();
 
     const resizeObserver = new ResizeObserver(() => {
       updateDimensions();
@@ -252,8 +260,8 @@ export function CursorParticleTypography({
     const radiusSq = repulsionRadius * repulsionRadius;
 
     // Simulation Loop
-    const loop = () => {
-      if (!isTabVisible) return;
+    function loop() {
+      if (!isTabVisible || !ctx) return;
 
       const particles = particlesRef.current;
       const count = particleCountRef.current;
@@ -348,9 +356,9 @@ export function CursorParticleTypography({
       }
 
       animFrameRef.current = requestAnimationFrame(loop);
-    };
+    }
 
-    loop();
+    updateDimensions();
 
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);

@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCasinoStore } from '@/store/useCasinoStore';
+import { FooterClosingPlasma } from './FooterClosingPlasma';
 
 export function Footer() {
   return (
@@ -39,6 +40,9 @@ export function Footer() {
       />
 
       <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+        {/* Luxury Closing Plasma CTA & Community Anchor */}
+        <FooterClosingPlasma />
+
         {/* Top Tier: Brand Identity */}
         <div
           style={{
@@ -136,12 +140,34 @@ export function Footer() {
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#D4AF37' }} />
               Spiele
             </h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: 13, lineHeight: '2.2' }}>
-              <li><Link href="/games/blackjack" style={{ color: '#94A3B8', textDecoration: 'none' }}>Blackjack VIP</Link></li>
-              <li><Link href="/games/roulette" style={{ color: '#94A3B8', textDecoration: 'none' }}>European Roulette</Link></li>
-              <li><Link href="/games/crash" style={{ color: '#94A3B8', textDecoration: 'none' }}>Rocket Crash</Link></li>
-              <li><Link href="/games/slots" style={{ color: '#94A3B8', textDecoration: 'none' }}>Obsidian Slots</Link></li>
-              <li><Link href="/games/dice" style={{ color: '#94A3B8', textDecoration: 'none' }}>Classic Dice</Link></li>
+            <ul
+              style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: 13, lineHeight: '2.2' }}
+            >
+              <li>
+                <Link href="/games/blackjack" style={{ color: '#94A3B8', textDecoration: 'none' }}>
+                  Blackjack VIP
+                </Link>
+              </li>
+              <li>
+                <Link href="/games/roulette" style={{ color: '#94A3B8', textDecoration: 'none' }}>
+                  European Roulette
+                </Link>
+              </li>
+              <li>
+                <Link href="/games/crash" style={{ color: '#94A3B8', textDecoration: 'none' }}>
+                  Rocket Crash
+                </Link>
+              </li>
+              <li>
+                <Link href="/games/slots" style={{ color: '#94A3B8', textDecoration: 'none' }}>
+                  Obsidian Slots
+                </Link>
+              </li>
+              <li>
+                <Link href="/games/dice" style={{ color: '#94A3B8', textDecoration: 'none' }}>
+                  Classic Dice
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -163,11 +189,29 @@ export function Footer() {
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#D4AF37' }} />
               VIP & Vault
             </h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: 13, lineHeight: '2.2' }}>
-              <li><Link href="/vault" style={{ color: '#94A3B8', textDecoration: 'none' }}>High-Roller Vault</Link></li>
-              <li><Link href="/leaderboard" style={{ color: '#94A3B8', textDecoration: 'none' }}>Leaderboard Podiums</Link></li>
-              <li><Link href="/stats" style={{ color: '#94A3B8', textDecoration: 'none' }}>All-Time Statistiken</Link></li>
-              <li><Link href="/history" style={{ color: '#94A3B8', textDecoration: 'none' }}>Transaktions-Historie</Link></li>
+            <ul
+              style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: 13, lineHeight: '2.2' }}
+            >
+              <li>
+                <Link href="/vault" style={{ color: '#94A3B8', textDecoration: 'none' }}>
+                  High-Roller Vault
+                </Link>
+              </li>
+              <li>
+                <Link href="/leaderboard" style={{ color: '#94A3B8', textDecoration: 'none' }}>
+                  Leaderboard Podiums
+                </Link>
+              </li>
+              <li>
+                <Link href="/stats" style={{ color: '#94A3B8', textDecoration: 'none' }}>
+                  All-Time Statistiken
+                </Link>
+              </li>
+              <li>
+                <Link href="/history" style={{ color: '#94A3B8', textDecoration: 'none' }}>
+                  Transaktions-Historie
+                </Link>
+              </li>
               <li>
                 <button
                   data-testid="footer-open-onboarding"
@@ -210,11 +254,28 @@ export function Footer() {
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#D4AF37' }} />
               Sicherheit & Trust
             </h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: 13, lineHeight: '2.2', color: '#64748B' }}>
-              <li><span style={{ color: '#CBD5E1' }}>HMAC-SHA256 Engine</span></li>
-              <li><span style={{ color: '#CBD5E1' }}>CertiK Verified 2026</span></li>
-              <li><span style={{ color: '#CBD5E1' }}>iTech Labs NIST SP 800</span></li>
-              <li><span style={{ color: '#CBD5E1' }}>1:1 Liquid Cold-Vault</span></li>
+            <ul
+              style={{
+                listStyle: 'none',
+                padding: 0,
+                margin: 0,
+                fontSize: 13,
+                lineHeight: '2.2',
+                color: '#64748B',
+              }}
+            >
+              <li>
+                <span style={{ color: '#CBD5E1' }}>HMAC-SHA256 Engine</span>
+              </li>
+              <li>
+                <span style={{ color: '#CBD5E1' }}>CertiK Verified 2026</span>
+              </li>
+              <li>
+                <span style={{ color: '#CBD5E1' }}>iTech Labs NIST SP 800</span>
+              </li>
+              <li>
+                <span style={{ color: '#CBD5E1' }}>1:1 Liquid Cold-Vault</span>
+              </li>
             </ul>
           </div>
 
@@ -236,7 +297,16 @@ export function Footer() {
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#D4AF37' }} />
               Verantwortung & Recht
             </h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: 13, lineHeight: '2.2', color: '#64748B' }}>
+            <ul
+              style={{
+                listStyle: 'none',
+                padding: 0,
+                margin: 0,
+                fontSize: 13,
+                lineHeight: '2.2',
+                color: '#64748B',
+              }}
+            >
               <li style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span
                   style={{
@@ -252,9 +322,15 @@ export function Footer() {
                 </span>
                 <span style={{ color: '#94A3B8' }}>Nur für Volljährige</span>
               </li>
-              <li><span style={{ color: '#94A3B8' }}>Verantwortungsvolles Spielen</span></li>
-              <li><span style={{ color: '#94A3B8' }}>Selbstausschluss & Limits</span></li>
-              <li><span style={{ color: '#94A3B8' }}>256-Bit SSL Verschlüsselung</span></li>
+              <li>
+                <span style={{ color: '#94A3B8' }}>Verantwortungsvolles Spielen</span>
+              </li>
+              <li>
+                <span style={{ color: '#94A3B8' }}>Selbstausschluss & Limits</span>
+              </li>
+              <li>
+                <span style={{ color: '#94A3B8' }}>256-Bit SSL Verschlüsselung</span>
+              </li>
             </ul>
           </div>
         </div>

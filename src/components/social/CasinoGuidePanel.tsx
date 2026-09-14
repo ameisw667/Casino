@@ -20,8 +20,10 @@ import { GuideInputForm } from '@/components/social/casino-guide/GuideInputForm'
 import { useGuideVoiceRecorder } from '@/components/social/casino-guide/hooks/useGuideVoiceRecorder';
 import { useGuideAttachment } from '@/components/social/casino-guide/hooks/useGuideAttachment';
 import { useGuideChatStream } from '@/components/social/casino-guide/hooks/useGuideChatStream';
+import { useCasinoStore } from '@/store/useCasinoStore';
 
 export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
+  const isChatOpen = useCasinoStore((s) => s.isChatOpen);
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [draft, setDraft] = useState('');
@@ -174,6 +176,7 @@ export function CasinoGuidePanel({ isMobile, onOpen }: CasinoGuidePanelProps) {
             isOpen={isOpen}
             isMobile={isMobile}
             panelBottom={panelBottom}
+            right={!isMobile && isChatOpen ? '296px' : undefined}
             onOpen={openPanel}
           />
         )}

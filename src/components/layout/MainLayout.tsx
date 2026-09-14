@@ -18,6 +18,7 @@ import { BarChart3, Gamepad2, History, Home, Settings, Target, Trophy } from 'lu
 
 import { MainLayoutModals } from './MainLayoutModals';
 import { Footer } from './Footer';
+import { installE2eAnalyticsHooks } from '@/lib/testing/e2e-analytics-hooks';
 
 const ProvablyFairModal = dynamic(
   () => import('../casino/ProvablyFairModal').then((mod) => mod.ProvablyFairModal),
@@ -110,6 +111,13 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   };
 
   // 3. All Effect Hooks (Always called, never conditional)
+  // Playwright-only bridge (05_analytics_rum_plan.md L0/L2/L4) — no-op unless
+  // NEXT_PUBLIC_E2E_HOOKS=1, which is never set outside the analytics-tracking-e2e.yml
+  // workflow and local Playwright runs.
+  useEffect(() => {
+    installE2eAnalyticsHooks();
+  }, []);
+
   useEffect(() => {
     if (
       authLoaded &&
@@ -318,7 +326,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       },
     },
   ];
-
 
   return (
     <KeyboardShortcutProvider>
