@@ -1,6 +1,6 @@
 # 02 — Security-CI-Gate (Runde 2 — Ziel Top 10–15 %)
 
-> **Status:** 🔴 Geplant · **Stand:** 2026-09-12 · **Owner:** LLM (100 % LLM-Zuständigkeit — Failure-Alerting per Telegram/Slack ist **explizit nicht Teil dieser Runde**, siehe §0) · **Scope:** `.github/workflows/security-staging.yml`, `.github/workflows/red-team-security.yml`, neuer CodeQL-Workflow, `.nvmrc`/`setup-node`-Cache-Konfiguration; **nicht** im Scope: externe Alert-Integration (Jan/K5, neues Secret), Dependency-Audit (Säule 7), Secret-Scanning (Säule 8).
+> **Status:** 🟢 Executed (2026-09-12) — Reste: L1/L2/L3-Verifikation remote nach Push durch Jan; Concurrency-Blöcke liegen im Basis-Commit 8863b64 noch nicht vor (Abweichung, siehe §9) · **Stand:** 2026-09-12 · **Owner:** LLM (100 % LLM-Zuständigkeit — Failure-Alerting per Telegram/Slack ist **explizit nicht Teil dieser Runde**, siehe §0) · **Scope:** `.github/workflows/security-staging.yml`, `.github/workflows/red-team-security.yml`, neuer CodeQL-Workflow, `.nvmrc`/`setup-node`-Cache-Konfiguration; **nicht** im Scope: externe Alert-Integration (Jan/K5, neues Secret), Dependency-Audit (Säule 7), Secret-Scanning (Säule 8).
 > **Money-Pfad:** Nein (reine CI-Infrastruktur) · **Security-Review:** Empfohlen bei L1 (neues SAST-Gate — Prüfen, ob es False-Positives blockierend meldet)
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
@@ -14,13 +14,13 @@
 
 ## 1 — Übersicht für Jan
 
-| Nr. | Meilenstein                                                              | Scope (Dateien)                                                            |   Status   | Zuständigkeit | Verifikation                                                                                     |
-| --- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | :--------: | :-----------: | ---------------------------------------------------------------------------------------------------- |
-| L1  | CodeQL-Workflow für JavaScript/TypeScript ergänzen                          | Neuer Workflow `.github/workflows/codeql.yml`                                    | 🔴 Geplant |      LLM      | Erster CodeQL-Lauf grün (oder mit begründet allowlisteten Findings), sichtbar im Security-Tab       |
-| L2  | `npm ci`/Supabase-Docker-Image-Caching zwischen Läufen                      | `security-staging.yml`, `red-team-security.yml`                                  | 🔴 Geplant |      LLM      | Messbare Laufzeitverkürzung (Vorher/Nachher-Vergleich der Workflow-Dauer)                            |
-| L3  | Ephemeral-Stack-Isolation bei Parallelläufen empirisch verifizieren         | Kein Code-Änderung — gezielter Testlauf + Doku                                   | 🔴 Geplant |      LLM      | Zwei gleichzeitig ausgelöste Läufe zeigen, dass `cancel-in-progress: true` real greift, nicht nur laut YAML |
-| L4  | Branch-Protection-Dokumentation gegen echten Repo-Zustand verifizieren      | `docs/security-hardening/08_security_ci_gates.md` (technischer Deep-Dive)        | 🔴 Geplant |      LLM      | Dokumentierte Required-Status-Checks stimmen mit dem tatsächlich konfigurierten Branch-Protection-Regelwerk überein |
-| L5  | Alerting-Entscheidungsgrundlage für Jan dokumentieren                       | `docs/security-hardening/08_security_ci_gates.md`                                | 🔴 Geplant |      LLM      | Jan kann die K5-Entscheidung (Telegram vs. Slack vs. GitHub-native) informiert treffen                |
+| Nr. | Meilenstein                                                            | Scope (Dateien)                                                           |   Status   | Zuständigkeit | Verifikation                                                                                                        |
+| --- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------- | :--------: | :-----------: | ------------------------------------------------------------------------------------------------------------------- |
+| L1  | CodeQL-Workflow für JavaScript/TypeScript ergänzen                     | Neuer Workflow `.github/workflows/codeql.yml`                             | 🔴 Geplant |      LLM      | Erster CodeQL-Lauf grün (oder mit begründet allowlisteten Findings), sichtbar im Security-Tab                       |
+| L2  | `npm ci`/Supabase-Docker-Image-Caching zwischen Läufen                 | `security-staging.yml`, `red-team-security.yml`                           | 🔴 Geplant |      LLM      | Messbare Laufzeitverkürzung (Vorher/Nachher-Vergleich der Workflow-Dauer)                                           |
+| L3  | Ephemeral-Stack-Isolation bei Parallelläufen empirisch verifizieren    | Kein Code-Änderung — gezielter Testlauf + Doku                            | 🔴 Geplant |      LLM      | Zwei gleichzeitig ausgelöste Läufe zeigen, dass `cancel-in-progress: true` real greift, nicht nur laut YAML         |
+| L4  | Branch-Protection-Dokumentation gegen echten Repo-Zustand verifizieren | `docs/security-hardening/08_security_ci_gates.md` (technischer Deep-Dive) | 🔴 Geplant |      LLM      | Dokumentierte Required-Status-Checks stimmen mit dem tatsächlich konfigurierten Branch-Protection-Regelwerk überein |
+| L5  | Alerting-Entscheidungsgrundlage für Jan dokumentieren                  | `docs/security-hardening/08_security_ci_gates.md`                         | 🔴 Geplant |      LLM      | Jan kann die K5-Entscheidung (Telegram vs. Slack vs. GitHub-native) informiert treffen                              |
 
 **Warum kein Jan-Gate:** Alle 5 Meilensteine sind additive CI-/Doku-Ergänzungen ohne neues Secret — L1 nutzt ausschließlich den GitHub-nativen `GITHUB_TOKEN`, L5 aktiviert kein externes Alerting, sondern bereitet nur die Entscheidung vor.
 
@@ -28,18 +28,18 @@
 
 ## 2 — Security-CI-Gate in Subkategorien: Neubewertung (2026-09-12, Baseline für diese Runde)
 
-|  #  | Subkategorie                                               | Niveau (Baseline) | Status | Kernbefund                                                                                                                                                                              |
-| :-: | ----------------------------------------------------------- | :----------------: | :----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  1  | Ephemerer Stack statt Cloud-Staging                          |     Top 10 %      |   🟢   | Unverändert solide — kein Secret-Leck-Risiko                                                                                                                                             |
-|  2  | Concurrency-Schutz (beide Workflows)                          |     Top 10 %      |   🟢   | `security-staging.yml:34-39`, `red-team-security.yml:30-35` — beide haben einen `concurrency`-Block, bereits bestätigt                                                                   |
-|  3  | SHA-Pinning der Actions                                       |     Top 10 %      |   🟢   | Beide Workflows nutzen SHA-gepinnte `actions/checkout`/`actions/setup-node`                                                                                                              |
-|  4  | `paths:`-Filter auf sicherheitsrelevante Verzeichnisse        |     Top 10 %      |   🟢   | `security-staging.yml:22-29` bereits verfeinert (`supabase/migrations/**`, `src/lib/casino/**`, `src/lib/security/**` u. a.) — Runde-1-Optimierungspunkt #2 bereits erledigt              |
-|  5  | Job-Summary bei Fehlschlag                                    |     Top 10 %      |   🟢   | `security-staging.yml:93-104` — lesbare Fehlerzusammenfassung                                                                                                                            |
-|  6  | Fail-Closed bei Infrastruktur-Fehler                          |     Top 10 %      |   🟢   | Kein `continue-on-error`, ein gescheiterter Schritt blockiert den Workflow-Erfolg                                                                                                        |
-|  7  | Red-Team-Gate wöchentlich + Push-Gate bei jedem Push           |     Top 15 %      |   🟢   | `red-team-security.yml` läuft wöchentlich (Sonntag 04:00 UTC) + `workflow_dispatch`, `security-staging.yml` bei jedem sicherheitsrelevanten Push                                          |
-|  8  | **Kein SAST-/CodeQL-Scan**                                    |     Top 60 %      |   🔴   | 0 Treffer für `codeql`/`semgrep` in `.github/workflows/` — keinerlei statische Sicherheitsanalyse des JS/TS-Codes über ESLint-Regeln hinaus                                              |
-|  9  | **Kein CI-/Runtime-Caching**                                  |     Top 40 %      |   🟠   | `npm ci` läuft bei jedem Lauf komplett neu (nur `cache: npm` von `setup-node`, kein Supabase-Docker-Layer-Cache) — ~3-4 Min. Laufzeit pro Lauf, kein Caching zwischen Läufen             |
-| 10  | **Externes Failure-Alerting**                                 |     Top 45 %      |   🟡   | Nur GitHub-UI/Job-Summary sichtbar, kein aktiver Push-Alert bei rotem `main`-Lauf — bewusst K5 (neues Secret)                                                                             |
+|  #  | Subkategorie                                           | Niveau (Baseline) | Status | Kernbefund                                                                                                                                                                   |
+| :-: | ------------------------------------------------------ | :---------------: | :----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|  1  | Ephemerer Stack statt Cloud-Staging                    |     Top 10 %      |   🟢   | Unverändert solide — kein Secret-Leck-Risiko                                                                                                                                 |
+|  2  | Concurrency-Schutz (beide Workflows)                   |     Top 10 %      |   🟢   | `security-staging.yml:34-39`, `red-team-security.yml:30-35` — beide haben einen `concurrency`-Block, bereits bestätigt                                                       |
+|  3  | SHA-Pinning der Actions                                |     Top 10 %      |   🟢   | Beide Workflows nutzen SHA-gepinnte `actions/checkout`/`actions/setup-node`                                                                                                  |
+|  4  | `paths:`-Filter auf sicherheitsrelevante Verzeichnisse |     Top 10 %      |   🟢   | `security-staging.yml:22-29` bereits verfeinert (`supabase/migrations/**`, `src/lib/casino/**`, `src/lib/security/**` u. a.) — Runde-1-Optimierungspunkt #2 bereits erledigt |
+|  5  | Job-Summary bei Fehlschlag                             |     Top 10 %      |   🟢   | `security-staging.yml:93-104` — lesbare Fehlerzusammenfassung                                                                                                                |
+|  6  | Fail-Closed bei Infrastruktur-Fehler                   |     Top 10 %      |   🟢   | Kein `continue-on-error`, ein gescheiterter Schritt blockiert den Workflow-Erfolg                                                                                            |
+|  7  | Red-Team-Gate wöchentlich + Push-Gate bei jedem Push   |     Top 15 %      |   🟢   | `red-team-security.yml` läuft wöchentlich (Sonntag 04:00 UTC) + `workflow_dispatch`, `security-staging.yml` bei jedem sicherheitsrelevanten Push                             |
+|  8  | **Kein SAST-/CodeQL-Scan**                             |     Top 60 %      |   🔴   | 0 Treffer für `codeql`/`semgrep` in `.github/workflows/` — keinerlei statische Sicherheitsanalyse des JS/TS-Codes über ESLint-Regeln hinaus                                  |
+|  9  | **Kein CI-/Runtime-Caching**                           |     Top 40 %      |   🟠   | `npm ci` läuft bei jedem Lauf komplett neu (nur `cache: npm` von `setup-node`, kein Supabase-Docker-Layer-Cache) — ~3-4 Min. Laufzeit pro Lauf, kein Caching zwischen Läufen |
+| 10  | **Externes Failure-Alerting**                          |     Top 45 %      |   🟡   | Nur GitHub-UI/Job-Summary sichtbar, kein aktiver Push-Alert bei rotem `main`-Lauf — bewusst K5 (neues Secret)                                                                |
 
 **Rechnerischer Schnitt (Baseline dieser Runde):** (10+10+10+10+10+10+15+60+40+45)/10 = **Top 22 %** — schlechter als der Runde-1-Endwert (Top 16 %), weil eine tiefere Recherche eine bislang komplett unbewertete, real gravierende Lücke (#8, fehlendes SAST) gefunden hat, die in keiner der ursprünglichen 10 Subkategorien vorkam.
 
@@ -121,18 +121,18 @@
 
 ## 7 — Projizierter Niveau-Sprung nach Ausführung aller 5 Meilensteine
 
-|  #  | Subkategorie                       | Baseline | Nach Ausführung | Warum |
-| :-: | ------------------------------------- | :------: | :-------------: | ----- |
-|  1  | Ephemerer Stack                      | Top 10 % |    Top 10 %     | unverändert |
-|  2  | Concurrency-Schutz                   | Top 10 % |    Top 10 %     | unverändert (L3 bestätigt nur empirisch) |
-|  3  | SHA-Pinning                          | Top 10 % |    Top 10 %     | unverändert |
-|  4  | `paths:`-Filter                      | Top 10 % |    Top 10 %     | unverändert |
-|  5  | Job-Summary                          | Top 10 % |    Top 10 %     | unverändert |
-|  6  | Fail-Closed                          | Top 10 % |    Top 10 %     | unverändert |
-|  7  | Trigger-Abdeckung                    | Top 15 % |    Top 15 %     | unverändert |
-|  8  | SAST/CodeQL                          | Top 60 % |    Top 15 %     | L1 |
-|  9  | CI-Caching                           | Top 40 % |    Top 15 %     | L2 |
-| 10  | Externes Failure-Alerting            | Top 45 % |    Top 40 %     | L5 — reduziert Unsicherheit, löst Aktivierung selbst aber nicht (K5) |
+|  #  | Subkategorie              | Baseline | Nach Ausführung | Warum                                                                |
+| :-: | ------------------------- | :------: | :-------------: | -------------------------------------------------------------------- |
+|  1  | Ephemerer Stack           | Top 10 % |    Top 10 %     | unverändert                                                          |
+|  2  | Concurrency-Schutz        | Top 10 % |    Top 10 %     | unverändert (L3 bestätigt nur empirisch)                             |
+|  3  | SHA-Pinning               | Top 10 % |    Top 10 %     | unverändert                                                          |
+|  4  | `paths:`-Filter           | Top 10 % |    Top 10 %     | unverändert                                                          |
+|  5  | Job-Summary               | Top 10 % |    Top 10 %     | unverändert                                                          |
+|  6  | Fail-Closed               | Top 10 % |    Top 10 %     | unverändert                                                          |
+|  7  | Trigger-Abdeckung         | Top 15 % |    Top 15 %     | unverändert                                                          |
+|  8  | SAST/CodeQL               | Top 60 % |    Top 15 %     | L1                                                                   |
+|  9  | CI-Caching                | Top 40 % |    Top 15 %     | L2                                                                   |
+| 10  | Externes Failure-Alerting | Top 45 % |    Top 40 %     | L5 — reduziert Unsicherheit, löst Aktivierung selbst aber nicht (K5) |
 
 **Projizierter Schnitt nach Ausführung:** (10+10+10+10+10+10+15+15+15+40)/10 = **Top 14,5 %** (gerundet **Top 15 %**).
 
@@ -142,13 +142,54 @@
 
 ## 8 — Verwandte Artefakte
 
-| Bedarf                                                  | Datei                                                                                                                          |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Archivierte Runde-1-Planungsdatei                         | [`docs/archive/t_security_hardening_02_security_ci_gate.md`](../docs/archive/t_security_hardening_02_security_ci_gate.md) |
-| Staging-Regression-Gate (Referenz, unverändert)            | [`.github/workflows/security-staging.yml`](../.github/workflows/security-staging.yml)                                     |
-| Red-Team-Gate (Referenz, unverändert)                      | [`.github/workflows/red-team-security.yml`](../.github/workflows/red-team-security.yml)                                   |
-| Quality-Gate (Vergleichsreferenz)                          | [`.github/workflows/quality-ci.yml`](../.github/workflows/quality-ci.yml)                                                 |
-| Referenzmuster für externes Alerting (L5)                  | [`src/trigger/fraud-alert-wait.ts`](../src/trigger/fraud-alert-wait.ts)                                                    |
-| Referenzmuster für L1 (SHA-Pinning-Konvention)              | [`.github/workflows/dependency-audit.yml`](../.github/workflows/dependency-audit.yml)                                     |
-| Technischer Deep-Dive (wird in L4/L5 erweitert)             | [`docs/security-hardening/08_security_ci_gates.md`](../docs/security-hardening/08_security_ci_gates.md)                   |
-| Übersicht (alle 10 Säulen)                                | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                             |
+| Bedarf                                          | Datei                                                                                                                     |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Archivierte Runde-1-Planungsdatei               | [`docs/archive/t_security_hardening_02_security_ci_gate.md`](../docs/archive/t_security_hardening_02_security_ci_gate.md) |
+| Staging-Regression-Gate (Referenz, unverändert) | [`.github/workflows/security-staging.yml`](../.github/workflows/security-staging.yml)                                     |
+| Red-Team-Gate (Referenz, unverändert)           | [`.github/workflows/red-team-security.yml`](../.github/workflows/red-team-security.yml)                                   |
+| Quality-Gate (Vergleichsreferenz)               | [`.github/workflows/quality-ci.yml`](../.github/workflows/quality-ci.yml)                                                 |
+| Referenzmuster für externes Alerting (L5)       | [`src/trigger/fraud-alert-wait.ts`](../src/trigger/fraud-alert-wait.ts)                                                   |
+| Referenzmuster für L1 (SHA-Pinning-Konvention)  | [`.github/workflows/dependency-audit.yml`](../.github/workflows/dependency-audit.yml)                                     |
+| Technischer Deep-Dive (wird in L4/L5 erweitert) | [`docs/security-hardening/08_security_ci_gates.md`](../docs/security-hardening/08_security_ci_gates.md)                   |
+| Übersicht (alle 10 Säulen)                      | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                            |
+
+---
+
+## 9 — Ausführungsergebnis (2026-09-12, Branch `hardening-ci-gate`, Worktree-Basis `8863b64`)
+
+Alle LLM-lokal ausführbaren Teile umgesetzt; **drei Verifikationen sind bewusst remote** (erster CodeQL-Lauf, Laufzeit-Vorher/Nachher, empirische Concurrency) und müssen nach Push durch Jan nachgeholt werden — die Workflow-Dateien sind lokal YAML-geparst (`js-yaml`-Parse aller 3 Dateien OK) und logisch gegen die Repo-Konventionen geprüft.
+
+### 9.1 — Meilensteine
+
+| M   | Umsetzung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Verifiziert                                                                                       |
+| :-- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------ |
+| L1  | `.github/workflows/codeql.yml` neu: `github/codeql-action` `init`+`analyze`, SHA-gepinnt auf `v4.38.0` (`b96794f015dfd88f77b49b1c93e0fa7110f94c63`), Sprache `javascript-typescript`, Build-Mode `none`, Trigger `push`/`pull_request` auf `main` + wöchentlicher `schedule` (Sonntag 05:00 UTC, gestaffelt hinter Red-Team 04:00 UTC) + `concurrency`-Block (Muster `quality-ci.yml`); nur Standard-`GITHUB_TOKEN`, zusätzlich `security-events: write` (zwingend für den SARIF-Upload in den Security-Tab, bewusst nur in diesem Job erweitert) | YAML-Parse OK; erster Lauf + Finding-Triage remote ausstehend                                     |
+| L2  | Beide Security-Workflows: `actions/cache` `v6.1.0` (SHA-gepinnt, `55cc8345863c7cc4c66a329aec7e433d2d1c52a9`) auf `/tmp/supabase-images.tar`, Key aus pro Lauf ermittelter Supabase-CLI-Version (`npx supabase --version`) — kein Magic-String, CLI-Bump invalidiert automatisch; `docker load` bei Hit, `docker save` bei Miss; identischer Key in beiden Workflows (Cache ist repo-scoped, nicht workflow-scoped). Isolation bleibt erhalten: nur Images, nie DB-Zustand. `node_modules`-Caching bewusst abgelehnt (Korrektheitsrisiko > Gewinn) | YAML-Parse OK; Laufzeitvergleich remote ausstehend                                                |
+| L3  | Keine Code-Änderung (Plan-Scope). **Aber: Abweichung D1 unten** — der Basis-Commit enthält die Concurrency-Blöcke noch nicht                                                                                                                                                                                                                                                                                                                                                                                                                      | Empirische Verifikation remote, erst nach Commit der Blöcke                                       |
+| L4  | Live-API `gh api repos/ameisw667/Casino/branches/main/protection` (read-only, erfolgreich): `contexts: ["quality"]`, `strict: true`, `enforce_admins: true`, `allow_deletions: false` — Archiv-Doku (`00-09-CICD.md` M2) **stimmt weiterhin exakt**. **Neuer Befund:** `allow_force_pushes: true` auf `main` (Härtungslücke, Empfehlung dokumentiert, nicht umgesetzt — Write-Action wäre K5). `codeql` ist nicht required (K5-Entscheidung offen)                                                                                                | Live verifiziert 2026-09-12, dokumentiert in `docs/security-hardening/08_security_ci_gates.md` §8 |
+| L5  | Alerting-Entscheidungsgrundlage in `docs/security-hardening/08_security_ci_gates.md` §9 (3 Optionen: GitHub-native / Telegram / Slack; Aufwand, Secret, Wartungslast, Risiko je Option). **KEINE Aktivierung**                                                                                                                                                                                                                                                                                                                                    | Doku vollständig; Entscheidung liegt bei Jan (K5)                                                 |
+
+### 9.2 — Abweichungen vom Plan (dokumentiert, nicht verschwiegen)
+
+- **D1 (wichtigste):** Die Datei-/Zeilenreferenzen in §2/§3 (Concurrency-Blöcke `security-staging.yml:34-39`, `red-team-security.yml:30-35`; 105 bzw. 113 Zeilen) beschreiben den **uncommitteten** Stand des Hauptverzeichnisses, nicht den Worktree-Basis-Commit `8863b64`. Im Commit sind die Workflows 97 bzw. 92 Zeilen und **ohne** Concurrency-Block; die Blöcke existieren nur als uncommittete Änderung (Referenz `06_7 L1 (R4)` in deren Kommentaren). Konsequenz: L3 ist erst nach Commit/Push dieser Blöcke verifizierbar. Der Scope dieses Plans wurde **nicht** erweitert, um sie hier zu duplizieren (sie gehören zu einem anderen Plan, Misch-Kommits würden den Merge mit dem parallelen Branch riskieren).
+- **D2:** `on.push.paths` liegt im Commit auf Zeilen 21–29 (Plan: 22–29) — Inhalt identisch verifiziert (6 Muster, unverändert).
+- **D3 (L5-Prämisse korrigiert):** `TELEGRAM_BOT_TOKEN` **existiert bereits** (`src/lib/casino/telegram-api.ts`, Fraud-Alerts). Die K5-Prämisse „Alerting erfordert ein neues Secret" stimmt für Telegram nur eingeschränkt — fehlt nur eine Ziel-`chat_id`; entscheidungsrelevant ist der zusätzliche Expositions-Surface des App-Secrets im CI-Secret-Store. Entscheidung bleibt bei Jan.
+- **D4 (L4-Befund):** Nur `quality` ist ein Required-Check — `security-staging`/`red-team` triggern erst nach Merge auf `main`, können einen PR strukturell nicht blocken (korrekt dokumentiert); `allow_force_pushes: true` ist neu gefunden und nicht behoben (read-only Scope).
+- **D5 (L2-Umfang):** `npm ci` selbst bekommt kein `node_modules`-Caching; `setup-node`'s `cache: npm` war bereits aktiv. Der neue Cache deckt das im Plan benannte Docker-Image-Volumen ab.
+
+### 9.3 — Betroffene Dateien
+
+Neu: `.github/workflows/codeql.yml` · Geändert: `.github/workflows/security-staging.yml`, `.github/workflows/red-team-security.yml` (nur additiver Setup-Bereich; Red-Team-Probe-Schritte unberührt), `docs/security-hardening/08_security_ci_gates.md` (§6–§10), `T_SECURITY_HARDENING/02_security_ci_gate.md` (Status + §9).
+
+### 9.4 — 5-Stufen-Abschlussprüfung
+
+`npm run typecheck` 0 Fehler · `npm test` grün · `npm run lint` 0 Fehler · `npm run build` Exit 0 · `git status --short` nur geplante Dateien.
+
+### 9.5 — Offene Reste
+
+1. **Remote-Verifikation nach Push durch Jan:** erster CodeQL-Lauf inkl. Finding-Triage (L1), Laufzeit-Vorher/Nachher (L2), empirische Concurrency-Verifikation via zwei `workflow_dispatch`-Läufen (L3 — erst nach Commit der Concurrency-Blöcke, siehe D1).
+2. **Alerting-Rest bei Jan (K5):** Entscheidung GitHub-native vs. Telegram vs. Slack auf Basis von §9 der Doku — Telegram wäre ohne neues Token machbar (nur `chat_id`).
+3. **Neuer Härtungsbefund (K5):** `allow_force_pushes: true` auf `main` — Empfehlung in der Doku, Umsetzung bewusst nicht Teil dieses read-only Scopes.
+4. **K5-Entscheidung (optional):** `codeql` als Required-Check ergänzen, falls es merge-blocken soll.
+
+**Nachtrag (2026-09-13, Verifikations-Runde der Planungskonversation):** D1 wurde real geschlossen — die Concurrency-Blöcke/Red-Team-Skripte sind inzwischen per gezieltem Commit (`bcc035ba` auf einem Vorbereitungs-Branch, Basis für `security-round3-final-merge`) nachgezogen und mit `round3-security-merge` konfliktfrei zusammengeführt (einziger echter Konflikt: `red-team-security.yml`, beide additiven Blöcke behalten — per Trockenlauf UND echtem Merge zweimal verifiziert). Volle 5-Stufen-Prüfung auf dem finalen Stand: Typecheck 0, Test 212/212 Dateien · 1605/1605, Lint 0/23, Build ✅ (eigene `npm ci`, kein recyceltes `node_modules`).

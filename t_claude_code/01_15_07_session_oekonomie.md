@@ -1,0 +1,32 @@
+# 01.15.7 — Session-Ökonomie (Subkategorie #7): Sub-Subkategorien-Aufschlüsselung
+
+> **Status:** 🟢 Executed (Plan 7 Session-Ökonomie, 2026-09-14; L3-Einbau wartet auf Jan-A/B/C) · **Stand:** 2026-09-14 · **Owner:** LLM · **Scope:** Wie ökonomisch eine Session über ihre Lebensdauer mit Kontext umgeht — Handoff statt Neu-Recherche, Kompaktierung, Prompt-Caching, learn-eval. **Nicht** bewertet hier: Session-Memory-Infrastruktur gesamt (Kategorie 5 in [`../00_claude_code_uebersicht.md`](00_claude_code_uebersicht.md), Top 60 % in [`../01_5_session_memory.md`](01_5_session_memory.md)) und Memory-Files (Kategorie 6).
+>
+> **Pflicht-Vorprüfung (Duplizierungs-Check):** Parent-Position 7 ist eine **Referenz-Übernahme** aus `01_5_session_memory.md` (Top 60 %). Diese Datei zerlegt den Session-Ökonomie-Ausschnitt in Sub-Subkategorien, die über die Memory-Infrastruktur hinausgehen (Kompaktierung, Caching), und markiert jede Übernahme einzeln.
+
+## Kernaussage
+
+Die Verankerung ist da (`CLAUDE.md` § Session-Kontinuität verlangt `checkpoint`/`save-session`/`resume-session` und `learn-eval`), die Plattform-Sicherheitsnetze funktionieren (Auto-Kompaktierung) — aber die **Freigabe und Lebenspraxis** fehlen: Das Handoff-Protokoll wartet seit 2026-08-29 unfreigegeben, die Nutzung der Kommandos ist nie verifiziert. Sessions starten deshalb öfter mit Neu-Recherche, als nötig wäre.
+
+**Rechnerischer Schnitt über die 6 Positionen: (30+75+35+40+20+30)/6 = Top 38 %** (vorher Top 60 %) — identisch mit dem Parent-Wert in [`../01_15_token_oekonomie_effizienz.md`](01_15_token_oekonomie_effizienz.md) Position 7 und konsistent mit der Referenz aus `01_5_session_memory.md`.
+
+## Kompaktübersicht (sortiert nach Position, Bottlenecks markiert)
+
+| #   | Sub-Subkategorie                                    | Niveau       | Befund & Beleg                                                                                                                                                                                                                                                                                                                                 | Bottleneck?                                            |
+| :-- | --------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| 1   | checkpoint/save-session/resume-session verankert    | **Top 30 %** | `CLAUDE.md` § Session-Kontinuität mandatiert alle drei Kommandos („Vor Kompaktierung, Sitzungsende oder neuem Chat mit Altbezug"); Skills `checkpoint`, `save-session`, `resume-session` existieren im Skill-Listing. _Übernahme aus `01_5`-Verankerungs-Befund, Praxis-Niveau dort Top 60 % → hier enger als Verankerungs-Position bewertet._ | Nein                                                   |
+| 2   | Handoff-/Kompaktierungs-Protokoll (Freigabe-Status) | **Top 75 %** | Vorlage seit Plan 7 aktualisiert (2026-09-14): Umfang der offenen A/B/C-Entscheidung reduziert — Model-Routing-Bullet entfällt (seit Plan 4 direkt in `CLAUDE.md`), Prompt-Caching-Regel neu im Baustein E (`01_1` §4). Entscheidung selbst bleibt Jan-offen (wartet seit 2026-08-29).                                                         | 🔴 JA (entscheidungsreif, umfasst nur noch 3 Bullets)  |
+| 3   | learn-eval nach gelöstem Fehler                     | **Top 35 %** | Erster realer learn-eval-Lauf dokumentiert (Plan 7 §2a, 2026-09-14): Fehlerklasse „Pfad-Ebenen-Annahme bei relativen Markdown-Links", 2× aufgetreten (T_*-Zyklen + `01_15`-Übersichten), Prävention dreistufig verankert. Mechanismus damit einmal gelebt statt nur mandatiert.                                                                | Nein (erste Praxis)                                    |
+| 4   | Neu-Recherche nach Session-Neustart                 | **Top 40 %** | A/B-Nachweis real dokumentiert (Plan 7 §2a): Checkpoint-Handoff-Session startete ohne Kontext-Re-Recherche; Re-Reads nur auf Arbeitsobjekte. Grenze: `resume-session` als Befehl selbst noch nie getestet — Nachweis gilt für den Mechanismus.                                                                                                 | 🔴 JA (Mechanismus belegt, Befehls-Nutzung ausstehend) |
+| 5   | Auto-Kompaktierung als Sicherheitsnetz              | **Top 20 %** | Plattform-Mechanismus vorhanden und dokumentiert („The system will automatically compress prior messages … as it approaches context limits" — Beleg [`../01_7_context_management.md`](01_7_context_management.md) Position 5, Top 20 %); _Referenz-Übernahme, keine Neubewertung._                                                             | Nein                                                   |
+| 6   | Prompt-Caching-Management                           | **Top 30 %** | Regel seit Plan 7 in der Baustein-E-Freigabe-Vorlage verankert („System-Prompt-Reihenfolge zwischen Turns stabil halten — keine ungefragten Umsortierungen"); CLAUDE.md-Einbau wartet gemeinsam mit der reduzierten A/B/C-Entscheidung.                                                                                                        | 🔴 JA (Regel fertig, Einbau an Gate)                   |
+
+## Bottleneck-Identifikation für die Verbesserungsplanung
+
+Die 4 🔴-Bottlenecks zerfallen in zwei Paare: **Freigabe-Paare** (#2 Handoff-Protokoll — reine Jan-Entscheidung, Baustein existiert fertig) und **Praxis-Paare** (#3 learn-eval, #4 resume-session — beide mandatiert, beide mit fehlender Nutzungsspur; ein einziger A/B-Vergleich „Session mit resume-session vs. Neu-Recherche" würde beide belegen). #6 (Prompt-Caching) ist ein Bewusstseins-Add-on in die freizugebende Baustein-E-Struktur — die Planung sollte #6 an #2 koppeln statt separat.
+
+## Verwandte Artefakte
+
+- [`../01_15_token_oekonomie_effizienz.md`](01_15_token_oekonomie_effizienz.md) — Parent-Position 7 (Top 38 %, Gewichtung 10 %)
+- [`../01_5_session_memory.md`](01_5_session_memory.md) — Memory-Infrastruktur gesamt (Referenz-Basis)
+- [`../00_claude_code_uebersicht.md`](00_claude_code_uebersicht.md) — Kategorie 5, Bottleneck-Zeile 2

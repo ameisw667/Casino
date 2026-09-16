@@ -5,6 +5,22 @@ import { resolve } from 'node:path';
 const root = resolve(__dirname, '../../../..');
 
 describe('performance & mobile optimization', () => {
+  it('keeps the games-2 mobile hero available before interactive motion initializes', () => {
+    const gamesTwoContent = readFileSync(resolve(root, 'src/app/games-2/page.tsx'), 'utf8');
+
+    expect(gamesTwoContent).toContain('games2-mobile-hero');
+    expect(gamesTwoContent).toContain('MobileHeroStage');
+    expect(gamesTwoContent).toContain('<style>{' + String.fromCharCode(96));
+  });
+  it('does not withhold roulette or slots behind a mounted-only first render', () => {
+    for (const file of [
+      'src/app/games/roulette/RouletteClient.tsx',
+      'src/app/games/slots/page.tsx',
+    ]) {
+      const content = readFileSync(resolve(root, file), 'utf8');
+      expect(content).not.toContain('if (!mounted) return null;');
+    }
+  });
   it('has removed dead dependencies from package.json', () => {
     const pkgJson = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'));
     const deps = { ...pkgJson.dependencies, ...pkgJson.devDependencies };

@@ -15,13 +15,13 @@
 
 ## 1 — Übersicht für Jan
 
-| Nr. | Meilenstein                                                                      | Scope (Dateien)                                                                    |   Status   | Zuständigkeit | Verifikation                                                                 |
-| --- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | :--------: | :-----------: | ------------------------------------------------------------------------------ |
-| L1  | Fehlende CSP-Direktiven explizit setzen (`base-uri`, `form-action`, `object-src`, `upgrade-insecure-requests`) | `src/proxy.ts`                                                                        | 🔴 Geplant |      LLM      | Alle 4 Direktiven im ausgelieferten `Content-Security-Policy`-Header sichtbar  |
-| L2  | Regressionstests für bisher ungetestete Direktiven ergänzen                       | `src/lib/security/__tests__/proxy-security-headers.test.ts`                          | 🔴 Geplant |      LLM      | `img-src`, `font-src`, `report-uri`, die 4 neuen Direktiven aus L1 jetzt regressionsgeschützt |
-| L3  | `strict-dynamic`-Fallback (`https:`) für ältere Browser ergänzen                   | `src/proxy.ts`                                                                        | 🔴 Geplant |      LLM      | `script-src` enthält zusätzlichen `https:`-Fallback-Token, moderne Browser ignorieren ihn wegen `strict-dynamic` weiterhin korrekt |
-| L4  | Anti-Regressions-Gate für `style-src: unsafe-inline`-Wachstum                     | Neues Skript `scripts/check-inline-style-baseline.mjs`, `.github/workflows/quality-ci.yml`, neue Baseline-Datei | 🔴 Geplant |      LLM      | CI schlägt fehl, wenn die Zahl der Inline-Style-Fundstellen ohne bewusste Baseline-Aktualisierung steigt |
-| L5  | Trusted-Types-Entscheidungsgrundlage dokumentieren                                | `docs/security-hardening/01_csp_script_hardening.md` (neuer Abschnitt)               | 🔴 Geplant |      LLM      | Jan kann die K5-Entscheidung informiert treffen, ohne selbst zu recherchieren |
+| Nr. | Meilenstein                                                                                                    | Scope (Dateien)                                                                                                 |   Status   | Zuständigkeit | Verifikation                                                                                                                       |
+| --- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | :--------: | :-----------: | ---------------------------------------------------------------------------------------------------------------------------------- |
+| L1  | Fehlende CSP-Direktiven explizit setzen (`base-uri`, `form-action`, `object-src`, `upgrade-insecure-requests`) | `src/proxy.ts`                                                                                                  | 🔴 Geplant |      LLM      | Alle 4 Direktiven im ausgelieferten `Content-Security-Policy`-Header sichtbar                                                      |
+| L2  | Regressionstests für bisher ungetestete Direktiven ergänzen                                                    | `src/lib/security/__tests__/proxy-security-headers.test.ts`                                                     | 🔴 Geplant |      LLM      | `img-src`, `font-src`, `report-uri`, die 4 neuen Direktiven aus L1 jetzt regressionsgeschützt                                      |
+| L3  | `strict-dynamic`-Fallback (`https:`) für ältere Browser ergänzen                                               | `src/proxy.ts`                                                                                                  | 🔴 Geplant |      LLM      | `script-src` enthält zusätzlichen `https:`-Fallback-Token, moderne Browser ignorieren ihn wegen `strict-dynamic` weiterhin korrekt |
+| L4  | Anti-Regressions-Gate für `style-src: unsafe-inline`-Wachstum                                                  | Neues Skript `scripts/check-inline-style-baseline.mjs`, `.github/workflows/quality-ci.yml`, neue Baseline-Datei | 🔴 Geplant |      LLM      | CI schlägt fehl, wenn die Zahl der Inline-Style-Fundstellen ohne bewusste Baseline-Aktualisierung steigt                           |
+| L5  | Trusted-Types-Entscheidungsgrundlage dokumentieren                                                             | `docs/security-hardening/01_csp_script_hardening.md` (neuer Abschnitt)                                          | 🔴 Geplant |      LLM      | Jan kann die K5-Entscheidung informiert treffen, ohne selbst zu recherchieren                                                      |
 
 **Warum kein Jan-Gate:** Alle 5 Meilensteine sind additive CSP-/Test-/CI-Ergänzungen ohne Breaking-Change-Risiko — Trusted Types wird nicht aktiviert, nur vorbereitet.
 
@@ -29,18 +29,18 @@
 
 ## 2 — CSP-Nonce-Härtung in Subkategorien: Neubewertung (2026-09-12, Baseline für diese Runde)
 
-|  #  | Subkategorie                                                    | Niveau (Baseline) | Status | Kernbefund                                                                                                                                                                                          |
-| :-: | ------------------------------------------------------------------ | :----------------: | :----: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  1  | Nonce-Generierung (`crypto.randomUUID()` → Base64, per Request)   |     Top 10 %      |   🟢   | Unverändert solide — `src/proxy.ts:165`                                                                                                                                                              |
-|  2  | `strict-dynamic` + `unsafe-eval` nur Dev                          |     Top 10 %      |   🟢   | `src/proxy.ts:166,169` — unverändert solide                                                                                                                                                          |
-|  3  | 0 `eval(`/`new Function(` in Produktionscode                      |     Top 10 %      |   🟢   | Frisches Grep bestätigt 0 Treffer außerhalb von Testinfrastruktur                                                                                                                                    |
-|  4  | Kern-Testabdeckung `script-src`/Nonce                             |     Top 10 %      |   🟢   | `src/lib/security/__tests__/csp-nonce.test.ts`, 6 Tests grün                                                                                                                                         |
-|  5  | `connect-src`/`img-src`/`font-src` granular (keine Wildcards)     |     Top 10 %      |   🟢   | Seit Archiv-Stand real ausgebaut — exakte Sentry-/PostHog-/Supabase-/Upstash-Hosts statt Wildcard                                                                                                   |
-|  6  | `frame-ancestors 'none'`                                          |     Top 10 %      |   🟢   | `src/proxy.ts:167-184` — solide                                                                                                                                                                       |
-|  7  | **`style-src: unsafe-inline` — wachsender Rest**                  |     Top 40 %      |   🟠   | 349 Dateien / 4985 Fundstellen (vorher 312 Dateien) — kein Regressionsschutz gegen weiteres Wachstum, volle Elimination außerhalb dieser Runde (zu groß)                                            |
-|  8  | **Fehlende explizite Direktiven** (`base-uri`, `form-action`, `object-src`, `upgrade-insecure-requests`) |     Top 25 %      |   🟡   | 0 Treffer im Grep gegen `src/proxy.ts` — durch `default-src 'self'` implizit sicher, aber ohne explizite Tiefenverteidigung                                                                          |
-|  9  | **Testabdeckung `img-src`/`font-src`/`report-uri`/neue Direktiven** |     Top 30 %      |   🟡   | Nur `default-src`, `connect-src`, `frame-ancestors` sind in `proxy-security-headers.test.ts` explizit assertiert                                                                                     |
-| 10  | Trusted Types                                                      |     Top 45 %      |   🟠   | 0 Treffer für `trustedTypes`/`require-trusted-types-for` — bewusst K5, siehe §0 Punkt 5                                                                                                               |
+|  #  | Subkategorie                                                                                             | Niveau (Baseline) | Status | Kernbefund                                                                                                                                               |
+| :-: | -------------------------------------------------------------------------------------------------------- | :---------------: | :----: | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|  1  | Nonce-Generierung (`crypto.randomUUID()` → Base64, per Request)                                          |     Top 10 %      |   🟢   | Unverändert solide — `src/proxy.ts:165`                                                                                                                  |
+|  2  | `strict-dynamic` + `unsafe-eval` nur Dev                                                                 |     Top 10 %      |   🟢   | `src/proxy.ts:166,169` — unverändert solide                                                                                                              |
+|  3  | 0 `eval(`/`new Function(` in Produktionscode                                                             |     Top 10 %      |   🟢   | Frisches Grep bestätigt 0 Treffer außerhalb von Testinfrastruktur                                                                                        |
+|  4  | Kern-Testabdeckung `script-src`/Nonce                                                                    |     Top 10 %      |   🟢   | `src/lib/security/__tests__/csp-nonce.test.ts`, 6 Tests grün                                                                                             |
+|  5  | `connect-src`/`img-src`/`font-src` granular (keine Wildcards)                                            |     Top 10 %      |   🟢   | Seit Archiv-Stand real ausgebaut — exakte Sentry-/PostHog-/Supabase-/Upstash-Hosts statt Wildcard                                                        |
+|  6  | `frame-ancestors 'none'`                                                                                 |     Top 10 %      |   🟢   | `src/proxy.ts:167-184` — solide                                                                                                                          |
+|  7  | **`style-src: unsafe-inline` — wachsender Rest**                                                         |     Top 40 %      |   🟠   | 349 Dateien / 4985 Fundstellen (vorher 312 Dateien) — kein Regressionsschutz gegen weiteres Wachstum, volle Elimination außerhalb dieser Runde (zu groß) |
+|  8  | **Fehlende explizite Direktiven** (`base-uri`, `form-action`, `object-src`, `upgrade-insecure-requests`) |     Top 25 %      |   🟡   | 0 Treffer im Grep gegen `src/proxy.ts` — durch `default-src 'self'` implizit sicher, aber ohne explizite Tiefenverteidigung                              |
+|  9  | **Testabdeckung `img-src`/`font-src`/`report-uri`/neue Direktiven**                                      |     Top 30 %      |   🟡   | Nur `default-src`, `connect-src`, `frame-ancestors` sind in `proxy-security-headers.test.ts` explizit assertiert                                         |
+| 10  | Trusted Types                                                                                            |     Top 45 %      |   🟠   | 0 Treffer für `trustedTypes`/`require-trusted-types-for` — bewusst K5, siehe §0 Punkt 5                                                                  |
 
 **Rechnerischer Schnitt (Baseline dieser Runde):** (10+10+10+10+10+10+40+25+30+45)/10 = **Top 20 %** — besser als der isolierte Archiv-Wert (Top 15 %) bei den Kern-Direktiven, aber durch zwei neue, tiefer recherchierte Lücken (#7 Wachstumstrend, #8/#9 fehlende Direktiven/Tests) und den unveränderten K5-Punkt (#10) insgesamt realistischer eingeordnet.
 
@@ -127,18 +127,18 @@
 
 ## 7 — Projizierter Niveau-Sprung nach Ausführung aller 5 Meilensteine
 
-|  #  | Subkategorie                        | Baseline | Nach Ausführung | Warum                                                                 |
-| :-: | ------------------------------------ | :------: | :-------------: | ------------------------------------------------------------------- |
-|  1  | Nonce-Generierung                    | Top 10 % |    Top 10 %     | unverändert                                                          |
-|  2  | `strict-dynamic`/`unsafe-eval`       | Top 10 % |    Top 10 %     | unverändert                                                          |
-|  3  | 0 `eval(`-Aufrufe                    | Top 10 % |    Top 10 %     | unverändert                                                          |
-|  4  | Kern-Testabdeckung                   | Top 10 % |    Top 10 %     | unverändert                                                          |
-|  5  | `connect-src`/`img-src`/`font-src`   | Top 10 % |    Top 10 %     | unverändert                                                          |
-|  6  | `frame-ancestors`                    | Top 10 % |    Top 10 %     | unverändert                                                          |
-|  7  | `style-src`-Wachstum                 | Top 40 % |    Top 25 %     | L4 — Wachstum eingedämmt, bestehende Lücke bleibt (bewusst YAGNI)     |
-|  8  | Fehlende Direktiven                  | Top 25 % |    Top 10 %     | L1                                                                    |
-|  9  | Testabdeckung neuer Direktiven       | Top 30 % |    Top 10 %     | L2, L3                                                                |
-| 10  | Trusted Types                        | Top 45 % |    Top 45 %     | **unverändert — bewusst außerhalb des LLM-Scopes**                   |
+|  #  | Subkategorie                       | Baseline | Nach Ausführung | Warum                                                             |
+| :-: | ---------------------------------- | :------: | :-------------: | ----------------------------------------------------------------- |
+|  1  | Nonce-Generierung                  | Top 10 % |    Top 10 %     | unverändert                                                       |
+|  2  | `strict-dynamic`/`unsafe-eval`     | Top 10 % |    Top 10 %     | unverändert                                                       |
+|  3  | 0 `eval(`-Aufrufe                  | Top 10 % |    Top 10 %     | unverändert                                                       |
+|  4  | Kern-Testabdeckung                 | Top 10 % |    Top 10 %     | unverändert                                                       |
+|  5  | `connect-src`/`img-src`/`font-src` | Top 10 % |    Top 10 %     | unverändert                                                       |
+|  6  | `frame-ancestors`                  | Top 10 % |    Top 10 %     | unverändert                                                       |
+|  7  | `style-src`-Wachstum               | Top 40 % |    Top 25 %     | L4 — Wachstum eingedämmt, bestehende Lücke bleibt (bewusst YAGNI) |
+|  8  | Fehlende Direktiven                | Top 25 % |    Top 10 %     | L1                                                                |
+|  9  | Testabdeckung neuer Direktiven     | Top 30 % |    Top 10 %     | L2, L3                                                            |
+| 10  | Trusted Types                      | Top 45 % |    Top 45 %     | **unverändert — bewusst außerhalb des LLM-Scopes**                |
 
 **Projizierter Schnitt nach Ausführung:** (10+10+10+10+10+10+25+10+10+45)/10 = **Top 15 %**.
 
@@ -148,12 +148,34 @@
 
 ## 8 — Verwandte Artefakte
 
-| Bedarf                                                | Datei                                                                                                                                 |
-| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Archivierte Runde-1-Planungsdatei                     | [`docs/archive/t_security_hardening_01_csp_script_hardening.md`](../docs/archive/t_security_hardening_01_csp_script_hardening.md)   |
-| CSP-Direktiven-Quelle (wird in L1/L3 geändert)         | [`src/proxy.ts`](../src/proxy.ts)                                                                                                   |
-| Bestehender Nonce-Test                                | [`src/lib/security/__tests__/csp-nonce.test.ts`](../src/lib/security/__tests__/csp-nonce.test.ts)                                   |
-| Header-Test (wird in L2 erweitert)                     | [`src/lib/security/__tests__/proxy-security-headers.test.ts`](../src/lib/security/__tests__/proxy-security-headers.test.ts)         |
-| Referenzmuster für L4 (Baseline-Tracking)              | [`07_dependency_supply_chain_audit.md`](./07_dependency_supply_chain_audit.md) (L2, Moderate-Severity-Aging)                        |
+| Bedarf                                                    | Datei                                                                                                                             |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Archivierte Runde-1-Planungsdatei                         | [`docs/archive/t_security_hardening_01_csp_script_hardening.md`](../docs/archive/t_security_hardening_01_csp_script_hardening.md) |
+| CSP-Direktiven-Quelle (wird in L1/L3 geändert)            | [`src/proxy.ts`](../src/proxy.ts)                                                                                                 |
+| Bestehender Nonce-Test                                    | [`src/lib/security/__tests__/csp-nonce.test.ts`](../src/lib/security/__tests__/csp-nonce.test.ts)                                 |
+| Header-Test (wird in L2 erweitert)                        | [`src/lib/security/__tests__/proxy-security-headers.test.ts`](../src/lib/security/__tests__/proxy-security-headers.test.ts)       |
+| Referenzmuster für L4 (Baseline-Tracking)                 | [`07_dependency_supply_chain_audit.md`](./07_dependency_supply_chain_audit.md) (L2, Moderate-Severity-Aging)                      |
 | CSP-Violation-Reporting (verzahnte, aber getrennte Säule) | [`06_csp_violation_reporting.md`](./06_csp_violation_reporting.md)                                                                |
-| Übersicht (alle 10 Säulen)                            | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                                      |
+| Übersicht (alle 10 Säulen)                                | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                                    |
+
+---
+
+## 9 — Ausführungsergebnis (2026-09-12, Branch `hardening-csp-script`)
+
+**Alle 5 Meilensteine umgesetzt:**
+
+- **L1:** `src/proxy.ts` — CSP um `base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;` ergänzt (nach `frame-ancestors 'none'`), mit Begründungs-Kommentar (OWASP-Explizit-Empfehlung, Tiefenverteidigung gegen künftige `default-src`-Regression).
+- **L3:** `src/proxy.ts` — `script-src` um `https:`-Fallback-Token nach `'strict-dynamic'` ergänzt (CSP-Level-2-Muster; moderne Browser ignorieren den Token per Spezifikation).
+- **L2:** `proxy-security-headers.test.ts` um 5 neue Testfälle erweitert: `img-src`, `font-src`, `report-uri`/`report-to`, die 4 neuen L1-Direktiven, `https:`-Fallback hinter `strict-dynamic`.
+- **L4:** Neues Skript `scripts/check-inline-style-baseline.mjs` + Baseline `scripts/inline-style-baseline.json` + nicht-blockierender Schritt in `quality-ci.yml` (`continue-on-error: true`, Job-Summary-Vermerk bei Verstoß). Baseline-Verifikation lokal doppelt ausgeführt: Pass-Case (Exit 0 bei 4383) und simulierter Anstieg (Exit 1) — beide korrekt.
+- **L5:** `docs/security-hardening/01_csp_script_hardening.md` §6 ergänzt — Browser-Support (alle 3 großen Engines stabil), geschätzte DOM-Sink-Stellen, 3-Stufen-Pfad (Report-Only → Beseitigen → Aktivieren). Keine Aktivierung.
+
+**Abweichungen vom Plan (dokumentiert):**
+
+1. **Baseline-Zahl:** Plan §3 nannte 349 Dateien/4985 Fundstellen (breiteres Grep-Muster der Recherche). Der Ausführungs-Count mit dem exakten Skript-Pattern `style={{` in `src/**/*.{ts,tsx,js,jsx}` ergab **312 Dateien/4383 Fundstellen** — die Baseline pinnt diesen nachvollziehbaren Walker-Wert (beide Zahlen nicht mischbar, im JSON notiert).
+2. **Ein bestehender Test musste minimal angepasst werden:** `csp-nonce.test.ts` erwartete `'strict-dynamic'${isDev ...}` unmittelbar nebeneinander; der neue `https:`-Fallback-Token bricht diese Adjazenz. Die Assertion wurde zu `/'strict-dynamic'(?: https:)?\$\{isDev ...\}/` erweitert — die isDev-Guard-Semantik (unsafe-eval nur Development) bleibt vollständig erhalten.
+3. **Plan-verlangter manueller `curl`-Check gegen eine lokale Dev-Instanz** nicht möglich (kein laufender Dev-Server, keine visuelle Prüfung) — ersetzt durch die 5 neuen Header-Assertions (L2), die die ausgelieferte CSP-Zusammensetzung pinpen.
+
+**5-Stufen-Abschlussprüfung:** `npm run typecheck` 0 Fehler · `npm test` 1547/1547 grün (207 Dateien, inkl. 5 neuer) · `npm run lint` 0 Errors (23 vorbestehende Warnungen) · `npm run build` erfolgreich (nach Kopie der gitignored `.env.local` in den Worktree — Env-Check im prebuild) · `git status --short` nur geplante Dateien.
+
+**Rest bei Jan (K5):** Trusted Types (Entscheidungsgrundlage §6 oben) — bewusst nicht aktiviert.

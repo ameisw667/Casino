@@ -9,55 +9,62 @@
 
 ## 1 — Status auf einen Blick
 
-| | |
-|---|---|
-| **Aktueller Meilenstein** | ✅ Zyklus 2 abgeschlossen (L5–L7) |
-| **Gesamtfortschritt** | Zyklus 1 (L0–L4) ✅ · Zyklus 2 (L5–L7) ✅ |
-| **Niveau bei Start (Hauptdatei)** | Top 100 % |
-| **Niveau aktuell** | **Top 35 %** (zurückgeschrieben 2026-09-12, siehe Hauptdatei Abschnitt 3, Zeile #1) |
-| **Blockiert durch** | Nichts — 2 Zyklen abgeschlossen, offen ist ein möglicher Zyklus 3 (siehe Abschnitt 6, aktualisiert) |
+|                                   |                                                                                                     |
+| --------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **Aktueller Meilenstein**         | ✅ Zyklus 2 abgeschlossen (L5–L7)                                                                   |
+| **Gesamtfortschritt**             | Zyklus 1 (L0–L4) ✅ · Zyklus 2 (L5–L7) ✅                                                           |
+| **Niveau bei Start (Hauptdatei)** | Top 100 %                                                                                           |
+| **Niveau aktuell**                | **Top 35 %** (zurückgeschrieben 2026-09-12, siehe Hauptdatei Abschnitt 3, Zeile #1)                 |
+| **Blockiert durch**               | Nichts — 2 Zyklen abgeschlossen, offen ist ein möglicher Zyklus 3 (siehe Abschnitt 6, aktualisiert) |
 
 ---
 
 ## 2 — Meilenstein-Checkliste
 
-| # | Meilenstein | Status | Datum | Ergebnis (Kurzfassung) |
-|---|---|---|---|---|
-| L0 | Konzept verstanden | ✅ Erledigt | 2026-09-09 | Jan hat Konzept (sequenziell vs. parallel, Unabhängigkeits-Check) durchgesprochen, keine offenen Fragen |
-| L1 | Erster risikoarmer Testlauf (3 parallele read-only Agenten) | ✅ Erledigt | 2026-09-09 | 3 Agenten (`T_DATABASE`, `T_API`, `T_SECURITY_HARDENING`) liefen gleichzeitig in einer Antwort. 1 realer Fund: toter Link in `T_SECURITY_HARDENING/04_security_hardening.md:151`. Keine Widersprüche zwischen den drei Agenten. |
-| L2 | Auswertung sequenziell vs. parallel | ✅ Erledigt | 2026-09-09 | Fazit: **hat sich gelohnt.** Kein Merge-Aufwand nötig, da Domänen wirklich unabhängig waren — bestätigt den Unabhängigkeits-Check als korrektes Vorab-Kriterium. |
-| L3 | Skalierungstest (optional, nur bei positivem L2) | ⚪ Übersprungen | 2026-09-09 | Jan hat direkt zu L4 freigegeben statt L3 auszuführen — bewusste Entscheidung, kein Fehlschlag |
-| L4 | Niveau-Neubewertung & Rückschreiben in Hauptdatei | ✅ Erledigt | 2026-09-09 | Niveau von Top 100 % auf **Top 55 %** korrigiert; Gesamtschnitt der Hauptdatei von Top 83 % auf Top 78 % aktualisiert; zusätzlich 1 realer toter Link außerhalb des ursprünglichen Scopes behoben (`T_SECURITY_HARDENING/04_security_hardening.md:151`) |
-| L5 | Zyklus 2: Schreibender Testlauf mit 5 parallelen Agenten | ✅ Erledigt | 2026-09-12 | 5 Agenten (`T_FRONTEND`, `T_IMAGE`, `T_MCP`, `T_RATE_LIMITING_ABUSE_PREVENTION`, `T_CLI`), je strikt auf eigenen Ordner beschränkt. 9 echte tote Links gefunden und behoben, 1 Fall korrekt unverändert gelassen (fehlende Zieldatei, keine sichere Korrektur möglich). Scope-Disziplin per `git status` verifiziert — keine Überschreitung. |
-| L6 | Zyklus 2: Merge-Realfall-Suche | ✅ Erledigt | 2026-09-12 | 0 Widersprüche zwischen den 5 Ergebnissen — zweites Mal in Folge kein Merge-Konflikt, obwohl `T_MCP` und `T_CLI` gegenseitig aufeinander verweisen. |
-| L7 | Zyklus 2: Niveau-Neubewertung & Rückschreiben | ✅ Erledigt | 2026-09-12 | Niveau von Top 55 % auf **Top 35 %** korrigiert; Gesamtschnitt der Hauptdatei von Top 72 % auf Top 70 % aktualisiert. |
+| #   | Meilenstein                                                                           | Status          | Datum      | Ergebnis (Kurzfassung)                                                                                                                                                                                                                                                                                                                       |
+| --- | ------------------------------------------------------------------------------------- | --------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L0  | Konzept verstanden                                                                    | ✅ Erledigt     | 2026-09-09 | Jan hat Konzept (sequenziell vs. parallel, Unabhängigkeits-Check) durchgesprochen, keine offenen Fragen                                                                                                                                                                                                                                      |
+| L1  | Erster risikoarmer Testlauf (3 parallele read-only Agenten)                           | ✅ Erledigt     | 2026-09-09 | 3 Agenten (`T_DATABASE`, `T_API`, `T_SECURITY_HARDENING`) liefen gleichzeitig in einer Antwort. 1 realer Fund: toter Link in `T_SECURITY_HARDENING/04_security_hardening.md:151`. Keine Widersprüche zwischen den drei Agenten.                                                                                                              |
+| L2  | Auswertung sequenziell vs. parallel                                                   | ✅ Erledigt     | 2026-09-09 | Fazit: **hat sich gelohnt.** Kein Merge-Aufwand nötig, da Domänen wirklich unabhängig waren — bestätigt den Unabhängigkeits-Check als korrektes Vorab-Kriterium.                                                                                                                                                                             |
+| L3  | Skalierungstest (optional, nur bei positivem L2)                                      | ⚪ Übersprungen | 2026-09-09 | Jan hat direkt zu L4 freigegeben statt L3 auszuführen — bewusste Entscheidung, kein Fehlschlag                                                                                                                                                                                                                                               |
+| L4  | Niveau-Neubewertung & Rückschreiben in Hauptdatei                                     | ✅ Erledigt     | 2026-09-09 | Niveau von Top 100 % auf **Top 55 %** korrigiert; Gesamtschnitt der Hauptdatei von Top 83 % auf Top 78 % aktualisiert; zusätzlich 1 realer toter Link außerhalb des ursprünglichen Scopes behoben (`T_SECURITY_HARDENING/04_security_hardening.md:151`)                                                                                      |
+| L5  | Zyklus 2: Schreibender Testlauf mit 5 parallelen Agenten                              | ✅ Erledigt     | 2026-09-12 | 5 Agenten (`T_FRONTEND`, `T_IMAGE`, `T_MCP`, `T_RATE_LIMITING_ABUSE_PREVENTION`, `T_CLI`), je strikt auf eigenen Ordner beschränkt. 9 echte tote Links gefunden und behoben, 1 Fall korrekt unverändert gelassen (fehlende Zieldatei, keine sichere Korrektur möglich). Scope-Disziplin per `git status` verifiziert — keine Überschreitung. |
+| L6  | Zyklus 2: Merge-Realfall-Suche                                                        | ✅ Erledigt     | 2026-09-12 | 0 Widersprüche zwischen den 5 Ergebnissen — zweites Mal in Folge kein Merge-Konflikt, obwohl `T_MCP` und `T_CLI` gegenseitig aufeinander verweisen.                                                                                                                                                                                          |
+| L7  | Zyklus 2: Niveau-Neubewertung & Rückschreiben                                         | ✅ Erledigt     | 2026-09-12 | Niveau von Top 55 % auf **Top 35 %** korrigiert; Gesamtschnitt der Hauptdatei von Top 72 % auf Top 70 % aktualisiert.                                                                                                                                                                                                                        |
+| L8  | Nach-Batch-`/cost`-Routine verankert (Plan 2 Fan-out-Verhältnismäßigkeit, 2026-09-14) | ✅ Erledigt     | 2026-09-14 | Verbindliche Regel: Nach **jedem** Fan-out-Batch `/cost` auslesen und in die Benchmark-Tabelle (§3) eintragen (Kennzahl + Vor/Nach). Übergangs-Messkanal bis Plan 09 (`llm-usage`-Diagnose) liefert. Batch-Format-Regeln (Vor-Schätzung, Limit ≤ 5, Abbruch) stehen in `CLAUDE.md` § Subagent-Disziplin + `xx_sop/02` §3.                    |
 
 ---
 
 ## 3 — Benchmark-Tabelle (wird mit echten Zahlen aus L1/L2 gefüllt)
 
-| Kennzahl | Sequenziell (geschätzt) | Parallel (gemessen) | Delta | Beleg |
-|---|---|---|---|---|
-| Wanduhrzeit für 3 Recherchen (Zyklus 1) | 3 separate Antwort-Turns (geschätzt) | 1 Antwort-Turn (alle 3 Agenten gleichzeitig gestartet) | ~3× schneller in Turns, keine Sekunden-Messung möglich | Zyklus 1, 2026-09-09 |
-| Ergebnis-Widersprüche zwischen Agenten (Zyklus 1) | entfällt | 0 Widersprüche | — | Zyklus 1 |
-| Gefühlte Ergebnistiefe pro Teilaufgabe | — | Hoch — jeder Agent lieferte konkrete Datei+Zeile-Belege statt Vermutungen | — | Zyklus 1 & 2 |
-| Ungeplanter Merge-Aufwand nötig? (Ja/Nein) | entfällt | **Nein** (2× bestätigt) | — | Zyklus 1 & 2 |
-| Schreibzugriffe parallel möglich? (Zyklus 2) | ungetestet | **Ja** — 9 reale Fixes über 5 Agenten, 0 Scope-Verletzungen (git-verifiziert) | — | Zyklus 2, 2026-09-12 |
-| Skalierung auf 5 statt 3 Agenten (Zyklus 2) | ungetestet | Keine Qualitätseinbuße, keine höhere Auswertungslast spürbar | — | Zyklus 2, 2026-09-12 |
-| Konservatives Verhalten bei Unsicherheit (Zyklus 2) | ungetestet | 1 Agent hat einen unsicheren Fix korrekt verweigert statt zu raten | — | Zyklus 2, 2026-09-12 |
+| Kennzahl                                                                                                                               | Sequenziell (geschätzt)                                                      | Parallel (gemessen)                                                                                                                                                                                                                      | Delta                                                  | Beleg                                                                                            |
+| -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| Wanduhrzeit für 3 Recherchen (Zyklus 1)                                                                                                | 3 separate Antwort-Turns (geschätzt)                                         | 1 Antwort-Turn (alle 3 Agenten gleichzeitig gestartet)                                                                                                                                                                                   | ~3× schneller in Turns, keine Sekunden-Messung möglich | Zyklus 1, 2026-09-09                                                                             |
+| Ergebnis-Widersprüche zwischen Agenten (Zyklus 1)                                                                                      | entfällt                                                                     | 0 Widersprüche                                                                                                                                                                                                                           | —                                                      | Zyklus 1                                                                                         |
+| Gefühlte Ergebnistiefe pro Teilaufgabe                                                                                                 | —                                                                            | Hoch — jeder Agent lieferte konkrete Datei+Zeile-Belege statt Vermutungen                                                                                                                                                                | —                                                      | Zyklus 1 & 2                                                                                     |
+| Ungeplanter Merge-Aufwand nötig? (Ja/Nein)                                                                                             | entfällt                                                                     | **Nein** (2× bestätigt)                                                                                                                                                                                                                  | —                                                      | Zyklus 1 & 2                                                                                     |
+| Schreibzugriffe parallel möglich? (Zyklus 2)                                                                                           | ungetestet                                                                   | **Ja** — 9 reale Fixes über 5 Agenten, 0 Scope-Verletzungen (git-verifiziert)                                                                                                                                                            | —                                                      | Zyklus 2, 2026-09-12                                                                             |
+| Skalierung auf 5 statt 3 Agenten (Zyklus 2)                                                                                            | ungetestet                                                                   | Keine Qualitätseinbuße, keine höhere Auswertungslast spürbar                                                                                                                                                                             | —                                                      | Zyklus 2, 2026-09-12                                                                             |
+| Konservatives Verhalten bei Unsicherheit (Zyklus 2)                                                                                    | ungetestet                                                                   | 1 Agent hat einen unsicheren Fix korrekt verweigert statt zu raten                                                                                                                                                                       | —                                                      | Zyklus 2, 2026-09-12                                                                             |
+| **Subagent-Tokens je Batch (Batch 3: Plan-3-L0-Duplikations-Analyse)**                                                                 | entfällt                                                                     | **46.569 Tokens** (1 Agent `casino-code-explorer`, 3 Tool-Calls, 22 s) — erste echte Token-Messung, Quelle: Agent-Telemetrie                                                                                                             | —                                                      | Batch 3, 2026-09-14, Plan 09 L2                                                                  |
+| **Subagent-Tokens je Batch (Batch 4: 01_9-QA-Fan-out, 2 Agenten)**                                                                     | ~1× Hauptkontext-Leseaufwand im Hauptagenten (16 Dateien im eigenen Kontext) | **140.719 Tokens** (Agent A: 69.944, 18 Tool-Calls, ~156 s; Agent B: 70.775, 16 Tool-Calls, ~274 s) — beiderseits PASS, 1 kosmetischer Fund (Link-Text-Drift, 8 Zeilen) — Quelle: Agent-Telemetrie                                       | —                                                      | Batch 4, 2026-09-14, Aufgabe 01_9-Unterkategorien-Vollausbau (Verifikation der 16 neuen Dateien) |
+| **Subagent-Tokens je Batch (Batch 5: 01_6-Übersichten 1–5, 5 Agenten, schreibend)**                                                    | 5 × Memory-Ordner + Kontext sequenziell im Hauptagenten (~5 × 30–60k)        | **316.429 Tokens** (60.888 / 68.996 / 60.581 / 63.071 / 62.893; 7–19 Tool-Calls je Agent, 97–312 s) — 5 Übersichtsdateien erstellt, 0 Merge-Konflikte, 0 Scope-Verletzungen (Memory-Ordner read-only) — Quelle: Agent-Telemetrie         | ~Ø 63k/Agent, Wanduhr ~5,2 Min. statt ~10× sequenziell | Batch 5, 2026-09-14, Aufgabe 01_6-Memory-Files-Unterkategorien-Vollausbau                        |
+| **Subagent-Tokens je Batch (Batch 6: 01_6-Übersichten 6–10, 5 Agenten, schreibend)**                                                   | analog Batch 5                                                               | **330.729 Tokens** (63.412 / 69.714 / 65.353 / 61.858 / 70.392; 7–11 Tool-Calls je Agent, 122–284 s) — 5 Übersichtsdateien erstellt, 0 Merge-Konflikte — Quelle: Agent-Telemetrie                                                        | ~Ø 66k/Agent                                           | Batch 6, 2026-09-14, Aufgabe 01_6-Memory-Files-Unterkategorien-Vollausbau                        |
+| **Subagent-Tokens je Batch (Batch 7: 01_6-Pläne U01–U04, 4 Agenten, schreibend; U05 nach Classifier-Ausfall nachgezogen in Batch 7b)** | analog Batch 5                                                               | **283.393 + 65.685 = 349.078 Tokens** (Batch 7: 74.253 / 78.549 / 67.470 / 63.121; Batch 7b U05: 65.685; 7–24 Tool-Calls je Agent, 96–371 s) — 5 Planungsdateien erstellt, 0 Merge-Konflikte — Quelle: Agent-Telemetrie                  | ~Ø 70k/Agent                                           | Batch 7/7b, 2026-09-14, Aufgabe 01_6-Planungsdateien-Vollausbau                                  |
+| **Subagent-Tokens je Batch (Batch 8: 01_6-Pläne U06–U10, 5 Agenten, schreibend)**                                                      | analog Batch 5                                                               | **401.604 Tokens** (91.018 / 75.255 / 75.023 / 68.594 / 91.714; 9–15 Tool-Calls je Agent, 175–445 s) — 5 Planungsdateien erstellt, 0 Merge-Konflikte, Cross-Plän-Schnittstellen (u02/u03/u04/u06) verifiziert — Quelle: Agent-Telemetrie | ~Ø 80k/Agent                                           | Batch 8, 2026-09-14, Aufgabe 01_6-Planungsdateien-Vollausbau                                     |
 
 ---
 
 ## 4 — Entscheidungs-Log (nur Jan-Freigaben, keine Diskussion)
 
-| Datum | Entscheidung |
-|---|---|
-| 2026-09-09 | Thema "Parallele Subagenten-Nutzung" als erste Subkategorie zum Angehen gewählt |
-| 2026-09-09 | Planungsdatei `15_parallele_subagenten_nutzung_plan.md` freigegeben |
-| 2026-09-09 | Start von L1 freigegeben |
-| 2026-09-09 | L3 (Skalierungstest) übersprungen, direkt zu L4 |
+| Datum      | Entscheidung                                                                                                    |
+| ---------- | --------------------------------------------------------------------------------------------------------------- |
+| 2026-09-09 | Thema "Parallele Subagenten-Nutzung" als erste Subkategorie zum Angehen gewählt                                 |
+| 2026-09-09 | Planungsdatei `15_parallele_subagenten_nutzung_plan.md` freigegeben                                             |
+| 2026-09-09 | Start von L1 freigegeben                                                                                        |
+| 2026-09-09 | L3 (Skalierungstest) übersprungen, direkt zu L4                                                                 |
 | 2026-09-09 | Zusätzlicher Fund (toter Link) zur Behebung freigegeben, obwohl außerhalb des ursprünglichen L1/L2-Nicht-Scopes |
-| 2026-09-12 | Zyklus 2 freigegeben: Schreibzugriffe, Skalierung auf 5 Agenten, Merge-Realfall-Suche |
+| 2026-09-12 | Zyklus 2 freigegeben: Schreibzugriffe, Skalierung auf 5 Agenten, Merge-Realfall-Suche                           |
 
 ---
 
@@ -66,13 +73,14 @@
 - **Abschnitt 1** reicht für den schnellen Blick "wo stehen wir gerade".
 - **Abschnitt 2** ist die Checkliste — wird nach jedem abgeschlossenen Meilenstein mit Datum und Kurzergebnis gefüllt.
 - **Abschnitt 3** füllt sich erst mit echten Werten, sobald L1/L2 Daten liefern — bis dahin sind die Striche (`—`) beabsichtigt, kein Fehler.
-- Diese Datei ersetzt nicht die Planungsdatei — dort steht das *Wie*, hier steht das *Wo stehen wir gerade*.
+- Diese Datei ersetzt nicht die Planungsdatei — dort steht das _Wie_, hier steht das _Wo stehen wir gerade_.
 
 ---
 
 ## 6 — Offen für einen möglichen Zyklus 3
 
 Zyklus 1 (read-only, 3 Agenten) und Zyklus 2 (schreibend, 5 Agenten) haben beide funktioniert, 0 Merge-Konflikte in Summe 8 Agenten-Läufen. Noch ungetestet und damit Grund, warum Subkategorie #1 nicht höher als Top 35 % bewertet wurde:
+
 - **Ein tatsächlicher Merge-Konflikt-Fall** — bisher 0 Widersprüche in 2 Zyklen erlebt, das ist ermutigend, aber noch kein Beweis, dass die Merge-Strategie (#4) bei einem echten Konflikt auch greift, da sie noch nie unter Realbedingungen gebraucht wurde
 - **Ein Fall mit absichtlich falsch eingeschätzter Unabhängigkeit** — bisher wurden nur Aufgaben getestet, die tatsächlich unabhängig waren; nie beobachtet, was passiert, wenn die Einschätzung falsch war
 - **Andere Aufgabentypen als Link-/Doku-Prüfung** — z. B. Code-Refactoring, Tests schreiben, oder Recherche mit externen Quellen parallel

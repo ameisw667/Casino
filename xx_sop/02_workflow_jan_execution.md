@@ -18,16 +18,17 @@
 
 Vor jeder Erfolgsmeldung an Jan MÜSSEN die relevanten Prüfstufen lokal ausgeführt und bestanden sein:
 
-| Stufe | Disziplin                         | Lokaler Casino-Befehl                   | Akzeptanzkriterium                                                                     |
-| ----- | --------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------- |
-| **1** | **Typecheck**                     | `npm run typecheck`                     | 0 TypeScript-Fehler                                                                    |
-| **2** | **Automatisierte Tests**          | `npm test`                              | Betroffene und bestehende Tests 100 % grün                                             |
-| **3** | **Linter & Hygiene**              | `npm run lint`                          | 0 ESLint-Errors                                                                        |
-| **4** | **Production-Build**              | `npm run build`                         | Next.js Build Exit 0 (erfolgreich)                                                     |
-| **5** | **Git Diff Audit**                | `git status --short`                    | Nur geplante Dateien modifiziert                                                       |
-| **6** | **Visuelle Screenshot-Prüfung**   | Playwright / Screenshot-Script          | **Pflicht bei allen Frontend-/UI-Aufgaben**: Zugeschnittener Screenshot im Output     |
+| Stufe | Disziplin                       | Lokaler Casino-Befehl          | Akzeptanzkriterium                                                                |
+| ----- | ------------------------------- | ------------------------------ | --------------------------------------------------------------------------------- |
+| **1** | **Typecheck**                   | `npm run typecheck`            | 0 TypeScript-Fehler                                                               |
+| **2** | **Automatisierte Tests**        | `npm test`                     | Betroffene und bestehende Tests 100 % grün                                        |
+| **3** | **Linter & Hygiene**            | `npm run lint`                 | 0 ESLint-Errors                                                                   |
+| **4** | **Production-Build**            | `npm run build`                | Next.js Build Exit 0 (erfolgreich)                                                |
+| **5** | **Git Diff Audit**              | `git status --short`           | Nur geplante Dateien modifiziert                                                  |
+| **6** | **Visuelle Screenshot-Prüfung** | Playwright / Screenshot-Script | **Pflicht bei allen Frontend-/UI-Aufgaben**: Zugeschnittener Screenshot im Output |
 
 ### Mandatorischer Frontend-Screenshot-Standard (Stufe 6)
+
 - **Gültigkeit:** Gilt ausnahmslos für alle Änderungen mit UI-, CSS-, Tailwind-, Framer-Motion-, Layout- oder Komponenten-Bezug.
 - **Vorgehen:**
   1. Live-Server auf Port 3015 ansteuern (`http://localhost:3015/...`).
@@ -42,6 +43,7 @@ Vor jeder Erfolgsmeldung an Jan MÜSSEN die relevanten Prüfstufen lokal ausgef�
 
 - **Security-Review-Pflicht:** Änderungen an `src/lib/casino/`, Supabase-RPCs, Wallet- oder Auth-Pfade erfordern zwingend ein dokumentiertes Sicherheits-Review vor Abschluss.
 - **Zero-Wallet-Autorität:** Der Browser bestimmt niemals Guthabenstände; alle Mutationen erfolgen atomar über Supabase-RPCs.
+- **Fan-out-Batch-Format (seit 2026-09-14):** Vor jedem Batch 1 Satz Vor-Schätzung (N Agenten × Kontext-Kopie + Re-Reads ≈ N-facher Hauptkontext-Verbrauch, Lohn-Abwägung gegen sequenziell), Obergrenze 5 Agenten pro Batch, Mid-Batch-Abbruch bei Schwellen-Überschreitung eines Agenten, danach `/cost`-Wert in die Benchmark-Tabelle `t_claude_code/agents/15a_parallele_subagenten_status.md` §3. Kurzfassung in `CLAUDE.md` § Subagent-Disziplin.
 
 ---
 

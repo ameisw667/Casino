@@ -4,7 +4,7 @@
 > **Pflege-Pflicht:** Bei jeder `docs/`-Änderung diese Tabelle synchron halten (Pfad · Status · last-updated). Quelle der Planung: [`archive/DOCS_ORDNUNG_MASTER_PLAN.md`](./archive/DOCS_ORDNUNG_MASTER_PLAN.md) (M1–M11 ✅, archiviert) · Batch-Historie: [`archive/DOCS_ORDNUNG_BATCH2_M5_M8.md`](./archive/DOCS_ORDNUNG_BATCH2_M5_M8.md) + [`archive/DOCS_ORDNUNG_BATCH3_M9_M10.md`](./archive/DOCS_ORDNUNG_BATCH3_M9_M10.md) + [`archive/DOCS_ORDNUNG_BATCH4_M11.md`](./archive/DOCS_ORDNUNG_BATCH4_M11.md).
 > **Legende:** ✅ lebendig (autoritativ/aktuell) · 📦 archiv (historisch/ausgeführt, Lernwert) · 🗑️ gelöscht · 🔜 geplante Änderung (Milestone in `DOCS_ORDNUNG_MASTER_PLAN.md`).
 >
-> **Deckungshinweis (2026-09-03):** Der ursprüngliche Index deckte 41 Dateien (Stand 2026-08-09) ab; `docs/` enthält inzwischen 280+ `.md`-Dateien (2026-08-29: 185, seither u. a. `database/00–05` und `frontend/00–10` als vollwertige Docs-Systeme dazugekommen) — der Zuwachs ist **nicht vollständig im Datei-Index** unten gespiegelt. Der Index listet die Einstiegs- und Statusdateien vollständig; den vollständigen Archiv-Bestand liefert `ls docs/archive/` bzw. der [Archivlog](./archive/00_WORLDMAP_ARCHIVLOG.md).
+> **Deckungshinweis (2026-09-03):** Der ursprüngliche Index deckte 41 Dateien (Stand 2026-08-09) ab; `docs/` enthält inzwischen 342 `.md`-Dateien (2026-08-29: 185, seither u. a. `database/00–05` und `frontend/00–10` als vollwertige Docs-Systeme dazugekommen) — der Zuwachs ist **nicht vollständig im Datei-Index** unten gespiegelt. Der Index listet die Einstiegs- und Statusdateien vollständig; den vollständigen Archiv-Bestand liefert `ls docs/archive/` bzw. der [Archivlog](./archive/00_WORLDMAP_ARCHIVLOG.md).
 
 ## Wie nutze ich docs/?
 
