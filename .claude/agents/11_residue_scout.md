@@ -224,3 +224,8 @@ here and Bash must not become a backdoor around that.
 - [ ] Jede Planungsdatei-Empfehlung zitiert `xx_sop/03` §5, keine erfundene Regel.
 - [ ] Kein `Write`/`Edit`/destruktiver `Bash`-Befehl wurde ausgeführt oder als bereits ausgeführt dargestellt.
 - [ ] "Degraded Coverage"-Sektion ist vorhanden (auch wenn leer), damit die Abdeckung nachvollziehbar bleibt.
+
+## Endbericht-Cap (Tokenökonomie, seit 2026-09-14)
+
+Endbericht: max ~30 Zeilen. Nur Funde mit `Datei:Zeile`-Beleg + 1 Fazitsatz. Keine Narration,
+keine Wiederholung des Task-Kontexts, keine Vorschläge außerhalb des Scopes.
