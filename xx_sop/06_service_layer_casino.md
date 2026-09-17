@@ -24,12 +24,14 @@
 
 `src/lib/casino/` ist in vier strikt getrennte Modul-Klassen unterteilt:
 
-| Modul-Klasse | Suffix / Namenskonvention | Laufzeit-Umgebung | Regeln & Grenzen |
-| :--- | :--- | :--- | :--- |
-| **Pure Functions (Shared)** | `*.ts` (z. B. `dice.ts`, `roulette.ts`) | Client & Server | Deterministisch, keine Side-Effects, kein `process.env`, mathematische Berechnungen & Zod-Schemas. |
-| **Server-Services** | `*-server.ts` / `*.server.ts` | **Server-only** | Darf Node-APIs, DB-Clients, `process.env` und Secrets nutzen. **Niemals in Client-Komponenten importieren!** |
-| **Provably Fair Core** | `provably-fair.ts`, `seeds.ts` | Client & Server | Web Crypto / HMAC-SHA256 basierte Hash-Ketten und Verifikations-Algorithmen. |
-| **Realtime & Event-Bus** | `realtime.ts`, `event-bus.ts` | Server / Edge | WebSocket-Broadcasts, Presence-Tracking und Supabase-Broadcast-Channels. |
+| Modul-Klasse                | Suffix / Namenskonvention               | Laufzeit-Umgebung | Regeln & Grenzen                                                                                             |
+| :-------------------------- | :-------------------------------------- | :---------------- | :----------------------------------------------------------------------------------------------------------- |
+| **Pure Functions (Shared)** | `*.ts` (z. B. `dice.ts`, `roulette.ts`) | Client & Server   | Deterministisch, keine Side-Effects, kein `process.env`, mathematische Berechnungen & Zod-Schemas.           |
+| **Server-Services**         | `*-server.ts` / `*.server.ts`           | **Server-only**   | Darf Node-APIs, DB-Clients, `process.env` und Secrets nutzen. **Niemals in Client-Komponenten importieren!** |
+| **Provably Fair Core**      | `provably-fair.ts`, `seeds.ts`          | Client & Server   | Web Crypto / HMAC-SHA256 basierte Hash-Ketten und Verifikations-Algorithmen.                                 |
+| **Realtime & Event-Bus**    | `realtime.ts`, `event-bus.ts`           | Server / Edge     | WebSocket-Broadcasts, Presence-Tracking und Supabase-Broadcast-Channels.                                     |
+
+**Grenz-Konvention (03a-R01, 2026-09-14):** Innerhalb eines Service-Moduls gilt die **Warum-Grenze** — geschnitten wird entlang logischer Domänen (z. B. Settlement vs. Seeds vs. Promo), nie nach Zeilenzahl; Extraktion in ein eigenes Modul ab ~300 Zeilen; ab > 500 Zeilen Abschnittsmarker (`// ── Abschnitt: <Domäne> ──`) plus Domänen-Map am Klassen-/Dateikopf, damit LLM-Reads die Cluster-Grenzen ohne Voll-Read erkennen. Muster: `src/lib/casino/wallet.ts`.
 
 ---
 
@@ -44,21 +46,26 @@ flowchart TD
 ```
 
 ### Phase 1: Contract- & Schema-Definition
+
 - Jede Funktion definiert ihre Ein- und Ausgaben über strikte Zod-Schemas (z. B. `betSchema`, `blackjackActionSchema`).
 - Niemals rohe TypeScript-Typen ohne Runtime-Validierung an Systemgrenzen verwenden.
 
 ### Phase 2: Implementierung der Geschäftslogik
+
 - **Keine Wallet-Mutationen im Service-Layer:** Service-Module berechnen Multiplikatoren und Deltas; die eigentliche Guthabenabbuchung/-gutschrift erfolgt atomar in der Supabase-RPC (`007_consolidated_financial_system.sql`).
 - **Fail-Closed & Fehlerklassen:** Eigene Fehlerklassen definieren (`CasinoError`, `InvalidBetError`). Niemals Exceptions stillschweigend schlucken.
 
 ### Phase 3: Vitest-Testabdeckung (Pflicht vor Integration)
+
 - Für jedes neue Modul ist eine entsprechende `__tests__/<name>.test.ts`-Datei anzulegen.
 - 100 % Abdeckung für mathematische Edge-Cases (z. B. Split-Hand-Limits bei Blackjack, Null-Sektor bei Roulette).
 
 ### Phase 4: Verdrahtung mit API-Transport
+
 - API-Handler in `src/app/api/` importieren den Service und fungieren als schlanke Validierungs- und Auth-Schicht.
 
 ### Phase 5: Dokumentations-Sync
+
 - Neues Modul im Inventar von [`xx_docs/05_service_layer_context.md`](../xx_docs/05_service_layer_context.md) eintragen.
 
 ---
@@ -83,12 +90,12 @@ npm run typecheck
 
 ## 5 — Risiko- & Freigabeklassifizierung (K-Level)
 
-| Aktion im Service-Layer | K-Level | Freigabe-Voraussetzung |
-| :--- | :---: | :--- |
-| **Reine UI-Helper & Sound-Mappings (`voice-audio.ts`)** | **K1/K2** | Lokale Vitest-Tests ausreichend. |
-| **Erweiterung von Hilfsservices (`notifications.ts`, `daily-race.ts`)** | **K3** | Standard-Review im Task-Scope. |
-| **Änderungen an Spielquoten, RTP oder Multiplikatoren** | **K4** | **Explizite Jan-Freigabe zwingend erforderlich.** |
-| **Änderungen an Provably Fair oder RNG-Logik** | **K4** | **Explizite Jan-Freigabe zwingend erforderlich.** |
+| Aktion im Service-Layer                                                 |  K-Level  | Freigabe-Voraussetzung                            |
+| :---------------------------------------------------------------------- | :-------: | :------------------------------------------------ |
+| **Reine UI-Helper & Sound-Mappings (`voice-audio.ts`)**                 | **K1/K2** | Lokale Vitest-Tests ausreichend.                  |
+| **Erweiterung von Hilfsservices (`notifications.ts`, `daily-race.ts`)** |  **K3**   | Standard-Review im Task-Scope.                    |
+| **Änderungen an Spielquoten, RTP oder Multiplikatoren**                 |  **K4**   | **Explizite Jan-Freigabe zwingend erforderlich.** |
+| **Änderungen an Provably Fair oder RNG-Logik**                          |  **K4**   | **Explizite Jan-Freigabe zwingend erforderlich.** |
 
 ---
 
@@ -116,9 +123,9 @@ npm run typecheck
 
 ## 8 — Verwandte Artefakte
 
-| Bedarf | Datei |
-| :--- | :--- |
-| **Service-Layer Inventar** | [`xx_docs/05_service_layer_context.md`](../xx_docs/05_service_layer_context.md) |
-| **Sicherheits- & Wallet-Invarianten** | [`xx_sop/09_security_wallet_invariants.md`](09_security_wallet_invariants.md) |
-| **API Backend Routen** | [`xx_sop/07_api_backend_routes.md`](07_api_backend_routes.md) |
-| **Dokument-Qualitäts-Rubrik** | [`xx_sop/12_workflow_dokument_qualitaet.md`](12_workflow_dokument_qualitaet.md) |
+| Bedarf                                | Datei                                                                           |
+| :------------------------------------ | :------------------------------------------------------------------------------ |
+| **Service-Layer Inventar**            | [`xx_docs/05_service_layer_context.md`](../xx_docs/05_service_layer_context.md) |
+| **Sicherheits- & Wallet-Invarianten** | [`xx_sop/09_security_wallet_invariants.md`](09_security_wallet_invariants.md)   |
+| **API Backend Routen**                | [`xx_sop/07_api_backend_routes.md`](07_api_backend_routes.md)                   |
+| **Dokument-Qualitäts-Rubrik**         | [`xx_sop/12_workflow_dokument_qualitaet.md`](12_workflow_dokument_qualitaet.md) |

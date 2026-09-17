@@ -75,6 +75,15 @@ export async function isFirstBetSignal(userId: string, replayed: boolean): Promi
 }
 
 export class WalletService {
+  // ── Domänen-Map (03a-R01, 2026-09-14): Wallet & Settlement (getWallet, settleBet, startRound,
+  // getActiveRound, settleRound, advanceBlackjackRound) · Provably-Fair Seeds (consumeActiveSeed,
+  // getUserSeeds, rotateUserSeed, getSeedHistory) · Crash-Reconciliation & Multiplayer
+  // (autoReconcileStaleCrashRound, computeRoundJackpotRoll, getGameActiveRound, linkCrashRound,
+  // getCrashRoundParticipants) · Promo-Codes (redeemPromoCode, reversePromoCode) · Gamification
+  // (getUserStats, syncAchievement, getJackpotPool, getDailyRaceStandings, emitBigWinNotifyEvent) ·
+  // Social & Chat (getChatMessages, postChatMessage, getCommunityStats) · Analytics
+  // (isFirstEverBet). Domäne schlägt Zeilenzahl — ein späterer Split (Option-Gate 03a-R03)
+  // schneidet an diesen Abschnittsmarkern, nicht nach Zeilenzahl.
   static async getWallet(userId: string): Promise<WalletSnapshot> {
     const supabase = createAdminClient();
 
@@ -147,6 +156,7 @@ export class WalletService {
     return walletFromRpc(data);
   }
 
+  // ── Abschnitt: Provably-Fair Seeds — Verbrauch ──
   /**
    * Consumes the next nonce from the user's active provably-fair seed chain.
    * Idempotent per (userId, requestId) — a retried request replays the same
@@ -238,6 +248,7 @@ export class WalletService {
     };
   }
 
+  // ── Abschnitt: Crash-Reconciliation & Crash-Multiplayer ──
   static async autoReconcileStaleCrashRound(userId: string): Promise<boolean> {
     const supabase = createAdminClient();
     const { data: round } = await supabase
@@ -378,6 +389,7 @@ export class WalletService {
     return blackjackActionSchema.parse(data);
   }
 
+  // ── Abschnitt: Promo-Codes ──
   static async redeemPromoCode(params: {
     userId: string;
     code: string;
@@ -524,6 +536,7 @@ export class WalletService {
     };
   }
 
+  // ── Abschnitt: Gamification & Community ──
   static async getUserStats(userId: string) {
     const supabase = createAdminClient();
     const { data, error } = await supabase.rpc('get_user_stats', { p_user_id: userId });
@@ -582,6 +595,7 @@ export class WalletService {
     }
   }
 
+  // ── Abschnitt: Provably-Fair Seeds — Verwaltung & Historie ──
   static async getUserSeeds(userId: string) {
     const supabase = createAdminClient();
     const { data, error } = await supabase.rpc('get_or_create_user_seed', {
@@ -634,6 +648,7 @@ export class WalletService {
     }));
   }
 
+  // ── Abschnitt: Social & Chat ──
   static async getChatMessages(limit = 50) {
     const supabase = createAdminClient();
     const { data, error } = await supabase.rpc('get_recent_chat_messages', {
