@@ -5,6 +5,8 @@ import type { AssetCategory, ImageBackground } from './types';
  */
 export const OBSIDIAN_BASE_COLOR = '#0B0E14';
 export const GOLD_ACCENT_COLOR = '#D4AF37';
+export const EMERALD_WIN_COLOR = '#10B981';
+export const RUBY_LOSS_COLOR = '#EF4444';
 
 export const GLOBAL_EXCLUSIONS: readonly string[] = [
   'text',
@@ -17,6 +19,10 @@ export const GLOBAL_EXCLUSIONS: readonly string[] = [
   'jpeg artifacts',
   'flat 2d cartoon',
   'neon rainbow',
+  'shiny plastic',
+  'neon yellow',
+  'garish yellow',
+  'cheap stock render',
 ];
 
 export const CATEGORY_EXCLUSIONS: Record<AssetCategory, readonly string[]> = {
@@ -40,15 +46,92 @@ export const CATEGORY_STYLE_PRESETS: Record<AssetCategory, string> = {
   ui: 'sleek frosted glass card surface with 12px optical blur, subtle 1px gold border illumination (#D4AF37), clean geometric lines',
 };
 
-const OBSIDIAN_GOLD_MATERIAL_SUFFIX =
+export const ANTI_REWRITE_DIRECTIVE =
+  'Render strictly as specified without narrative background or room environment. Do not embellish or add unintended objects.';
+
+export const ANTI_TYPOGRAPHY_DIRECTIVE =
+  'Strictly plain background, absolute zero text, no letters, no numerals, no watermarks, no typography, no labels.';
+
+export const OBSIDIAN_GOLD_MATERIAL_SUFFIX =
   `luxurious warm metallic gold accents (${GOLD_ACCENT_COLOR}, radiant champagne gold with polished brass reflections and warm amber rim lighting), ` +
   'translucent frosted smoked glass surfaces with 12px optical blur and subtle internal refraction, ' +
   'cinematic premium casino atmosphere, high detail';
 
-const OPAQUE_BACKGROUND_CLAUSE = `deep pitch-black obsidian slate background (${OBSIDIAN_BASE_COLOR}, ultra-dark charcoal tones with ambient depth)`;
+export const OPAQUE_BACKGROUND_CLAUSE = `deep pitch-black obsidian slate background (${OBSIDIAN_BASE_COLOR}, ultra-dark charcoal tones with ambient depth)`;
 
-const TRANSPARENT_BACKGROUND_CLAUSE =
+export const TRANSPARENT_BACKGROUND_CLAUSE =
   'isolated on a transparent background, no background scenery, no backdrop';
+
+export const COMPONENT_FRAMING_PRESETS: Record<AssetCategory, string> = {
+  hero: 'Cinematic widescreen composition, 25% safe margin for text overlay, dynamic horizontal depth',
+  icon: 'Centered isometric 30-degree orthographic view, 20% safe margin, zero edge clipping, isolated floating asset',
+  badge:
+    'Centered symmetrical frontal emblem, high-relief medallion crest framing, perfect circular/shield contour',
+  background:
+    'Seamless ambient panoramic plane, non-distracting depth of field, balanced corner-to-center contrast',
+  avatar: 'Centered head-and-shoulders bust portrait, eye-level framing, dark vignetted perimeter',
+  ui: 'Frontal orthographic perspective, crisp rectilinear edge bounds, optical glass layer depth',
+};
+
+export const COMPONENT_LIGHTING_PRESETS: Record<AssetCategory, string> = {
+  hero: 'Key light 45 degrees top-left with dramatic chiaroscuro falloff, glowing amber rim lighting, dark volumetric haze',
+  icon: 'Studio three-point lighting, sharp specular gold reflections, soft diffused contact shadow below',
+  badge: 'Dramatic top spotlight, glistening facet reflections, subtle golden halo illumination',
+  background:
+    'Soft diffuse ambient occlusion, subtle golden bokeh glow (#D4AF37), deep dark corner shading',
+  avatar: 'Dramatic chiaroscuro side lighting, rich gold rim contour, deep obsidian shadow fill',
+  ui: 'Subtle overhead studio illumination, edge-lit gold borders (#D4AF37), soft shadow caster',
+};
+
+export const COMPONENT_ENGINE_DIRECTIVE =
+  '3D commercial product render, Octane raytraced render, subsurface scattering, 8k hyper-detailed asset';
+
+export interface StructuredPromptComponents {
+  subject: string;
+  category?: AssetCategory;
+  framing?: string;
+  lighting?: string;
+  materials?: string;
+  engine?: string;
+  background?: ImageBackground;
+  exclusions?: string[];
+  enforceAntiRewrite?: boolean;
+}
+
+/**
+ * Kompiliert einen Prompt nach der modularen 5-Komponenten-Grammatik:
+ * [Subjekt] + [Komposition/Kamera] + [Beleuchtung] + [Material/Farbe] + [Render-Engine] + [Guards & Exclusions]
+ */
+export function compileStructuredPrompt(components: StructuredPromptComponents): string {
+  const subject = components.subject.trim();
+  if (!subject) throw new Error('Subject darf nicht leer sein.');
+
+  const category = components.category ?? 'icon';
+  const framing = components.framing ?? COMPONENT_FRAMING_PRESETS[category];
+  const lighting = components.lighting ?? COMPONENT_LIGHTING_PRESETS[category];
+  const materials = components.materials ?? OBSIDIAN_GOLD_MATERIAL_SUFFIX;
+  const engine = components.engine ?? COMPONENT_ENGINE_DIRECTIVE;
+  const backgroundClause =
+    components.background === 'transparent'
+      ? TRANSPARENT_BACKGROUND_CLAUSE
+      : OPAQUE_BACKGROUND_CLAUSE;
+
+  const exclusions = buildExclusionString(category, components.exclusions);
+  const antiRewrite = components.enforceAntiRewrite !== false ? ANTI_REWRITE_DIRECTIVE : '';
+
+  const parts = [
+    subject,
+    framing,
+    lighting,
+    `${backgroundClause}, ${materials}`,
+    engine,
+    ANTI_TYPOGRAPHY_DIRECTIVE,
+    exclusions,
+    antiRewrite,
+  ].filter((p) => p.length > 0);
+
+  return parts.join(', ');
+}
 
 /**
  * Abwärtskompatibel: bisher immer der opake Hintergrund-Satz + Material-Suffix zusammen.
@@ -126,7 +209,9 @@ export function composePrompt(
   const parts: string[] = [trimmedBase];
   if (categoryPreset) parts.push(categoryPreset);
   parts.push(buildStyleSuffix(params.background));
+  parts.push(ANTI_TYPOGRAPHY_DIRECTIVE);
   if (exclusionStr) parts.push(exclusionStr);
+  parts.push(ANTI_REWRITE_DIRECTIVE);
 
   return parts.join(', ');
 }

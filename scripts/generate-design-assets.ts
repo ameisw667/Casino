@@ -8,6 +8,7 @@ import {
   recordSpend,
   estimateBatchCostUsd,
   getEstimatedCostForRequest,
+  getEstimatedCostForEdit,
 } from '../src/lib/design-assets/cost-guard';
 import {
   loadSpendLedger,
@@ -30,6 +31,7 @@ import {
 } from '../src/lib/design-assets/asset-index';
 import {
   generateImageWithMeta,
+  editImageWithMeta,
   DEFAULT_IMAGE_MODEL,
   OpenAiImageError,
 } from '../src/lib/design-assets/openai-image-client';
@@ -43,6 +45,7 @@ import {
 import { writeAssetAtomically, atomicWriteJsonSync } from '../src/lib/design-assets/storage';
 import { SIZE_DIMENSIONS } from '../src/lib/design-assets/client';
 import { listAssetVersions, rollbackAssetIndexEntry } from '../src/lib/design-assets/lifecycle';
+import { validateInpaintingInputs } from '../src/lib/design-assets/masking';
 
 const OUTPUT_DIR = path.resolve(process.cwd(), 'public/images');
 const ASSET_INDEX_PATH = path.join(OUTPUT_DIR, 'asset-index.json');
@@ -86,6 +89,10 @@ function parseCliArgs() {
       'list-versions': { type: 'string' },
       rollback: { type: 'string' },
       'to-version': { type: 'string' },
+      'edit-base': { type: 'string' },
+      'edit-mask': { type: 'string' },
+      'edit-prompt': { type: 'string' },
+      'edit-name': { type: 'string' },
       'dry-run': { type: 'boolean', default: false },
       yes: { type: 'boolean', default: false },
     },
@@ -183,6 +190,100 @@ async function main() {
     console.log(
       `✅ Rollback erfolgreich: "${assetName}" zeigt nun im Index auf v${String(targetVer).padStart(3, '0')}.`,
     );
+    return;
+  }
+
+  // 3. Inpainting / Bild-Editing Befehl: --edit-base <path> --edit-prompt "<text>" [--edit-mask <path>]
+  if (args['edit-base']) {
+    if (!args['edit-prompt']) {
+      console.error('⛔ Fehler: Für Bild-Editing muss --edit-prompt "<text>" angegeben werden.');
+      process.exitCode = 1;
+      return;
+    }
+    const env = loadDesignAssetsEnv();
+    const baseBuffer = fs.readFileSync(resolveSafePath(process.cwd(), args['edit-base']));
+    const maskBuffer = args['edit-mask']
+      ? fs.readFileSync(resolveSafePath(process.cwd(), args['edit-mask']))
+      : undefined;
+
+    const val = await validateInpaintingInputs(baseBuffer, maskBuffer);
+    if (!val.valid) {
+      console.error(`⛔ Ungültige Inpainting-Parameter: ${val.error}`);
+      process.exitCode = 1;
+      return;
+    }
+
+    const editCost = getEstimatedCostForEdit(val.width === 1024 ? '1024x1024' : '512x512');
+    console.log('========================================================');
+    console.log(`🎨 Bild-Editing / Inpainting (${val.width}x${val.height})`);
+    console.log(`   Basis: ${args['edit-base']}`);
+    console.log(`   Maske: ${args['edit-mask'] ?? '(Keine Maske — Bild-Variation)'}`);
+    console.log(`   Prompt: "${args['edit-prompt']}"`);
+    console.log(`   Geschätzte Kosten: ~${editCost.toFixed(3)} USD (50% Ersparnis)`);
+    console.log('========================================================');
+
+    if (args['dry-run']) {
+      console.log('Dry-Run beendet — kein API-Call ausgeführt.');
+      return;
+    }
+
+    if (!args.yes) {
+      console.error('Abgebrochen: Lauf erzeugt echte Kosten. Mit --yes bestätigen.');
+      process.exitCode = 1;
+      return;
+    }
+
+    const targetName = validateSafeAssetName(
+      args['edit-name'] ?? path.basename(args['edit-base'], path.extname(args['edit-base'])),
+    );
+    const res = await editImageWithMeta(
+      {
+        imageBuffer: baseBuffer,
+        maskBuffer,
+        prompt: args['edit-prompt'],
+        size: `${val.width}x${val.height}` as unknown as Parameters<
+          typeof editImageWithMeta
+        >[0]['size'],
+      },
+      { apiKey: env.OPENAI_API_KEY },
+    );
+
+    const now = new Date();
+    const version = nextVersionFor(targetName, readExistingFileNames());
+    const fileName = buildAssetFileName(targetName, now, version);
+    const safeDestPath = resolveSafePath(OUTPUT_DIR, fileName);
+    const storageResult = writeAssetAtomically(safeDestPath, res.imageBuffer);
+
+    let spendLedger = loadSpendLedger(SPEND_LEDGER_PATH);
+    spendLedger = recordLedgerSpend(spendLedger, {
+      name: targetName,
+      size: `${val.width}x${val.height}` as ImageSize,
+      quality: 'medium',
+      costUsd: editCost,
+      date: now,
+    });
+    saveSpendLedger(SPEND_LEDGER_PATH, spendLedger);
+
+    let assetIndex = readAssetIndex();
+    assetIndex = upsertAssetIndexEntry(assetIndex, {
+      name: targetName,
+      path: `/generated/design-assets/${fileName}`,
+      version: `v${String(version).padStart(3, '0')}`,
+      updatedAt: now.toISOString(),
+      size: `${val.width}x${val.height}` as ImageSize,
+      width: val.width!,
+      height: val.height!,
+      aspectRatio: '1/1',
+      alt: `${targetName.replace(/-/g, ' ')} inpainting edit`,
+      sha256: storageResult.sha256,
+      bytes: storageResult.bytes,
+    });
+    atomicWriteJsonSync(ASSET_INDEX_PATH, assetIndex);
+
+    appendChangelogEntry(
+      `- ${formatDate(now)} — [EDIT] \`${targetName}\` v${String(version).padStart(3, '0')} (${val.width}x${val.height}, ${storageResult.bytes} B, ~${editCost.toFixed(3)} USD) → \`${fileName}\``,
+    );
+    console.log(`✅ Inpainting erfolgreich abgeschlossen und atomar gesichert: ${fileName}`);
     return;
   }
 

@@ -1,6 +1,6 @@
 # 02 — Bild-Editing, Inpainting & Partielle Modifikation
 
-> **Status:** Execution-Ready · **Stand:** 2026-09-14 · **Owner:** LLM (Jan nur bei Gate) · **Scope:** Erstellung der Sharp-basierten Alpha-Masken-Pipeline und CLI-Integration für kollateralschadenfreie Bildanpassungen (`--edit-base`, `--edit-mask`, `--edit-prompt`).  
+> **Status:** 🟢 Abgeschlossen (Top 1 % — Weltklasse) · **Stand:** 2026-09-14 · **Owner:** LLM (Jan nur bei Gate) · **Scope:** Erstellung der Sharp-basierten Alpha-Masken-Pipeline und CLI-Integration für kollateralschadenfreie Bildanpassungen (`--edit-base`, `--edit-mask`, `--edit-prompt`).  
 > **Money-Pfad:** Nein · **Security-Review:** Nein  
 > **Worldmap-Kontext:** [`T_IMAGE_CREATION/00_IMAGE_CREATION_UEBERSICHT.md`](./00_IMAGE_CREATION_UEBERSICHT.md) / Subkategorie 02
 
@@ -8,13 +8,13 @@
 
 ## 1 — Übersicht für Jan & Ausführungs-LLM
 
-| Nummer | Meilenstein                               | Scope (Dateien)                                                    | Ausführung  |   Status   | Zuständigkeit | Verifikation                                                                       |
-| :----- | :---------------------------------------- | :----------------------------------------------------------------- | :---------: | :--------: | :-----------: | :--------------------------------------------------------------------------------- |
-| **L0** | **Baseline & API-Verifikation**           | `src/lib/design-assets/openai-image-client.ts`                     | Sequenziell | 🟢 Bereit  | **100 % LLM** | Endpoint `/v1/images/edits` aus Sprint 1 verifiziert und testbar                   |
-| **L1** | **Sharp-Masken-Generator Engine**         | `scripts/create-image-mask.ts`, `src/lib/design-assets/masking.ts` | Sequenziell | 🔴 Geplant | **100 % LLM** | Erzeugung von Alpha-PNGs (Box, Kreis, Feathering 2px) mit pixelgenauen Dimensionen |
-| **L2** | **CLI-Integration & Pre-Flight-Guard**    | `scripts/generate-design-assets.ts`                                | Sequenziell | 🔴 Geplant | **100 % LLM** | Flags `--edit-base`, `--edit-mask`, `--edit-prompt`, `--edit-box` implementiert    |
-| **L3** | **Pixel-Invarianz-Test (Zero Mutation)**  | `src/lib/design-assets/__tests__/inpainting-invariance.test.ts`    | Sequenziell | 🔴 Geplant | **100 % LLM** | Automatisierter Nachweis: 100 % der opaken Zonen bleiben unverändert               |
-| **L4** | **Lifecycle-, Index- & Rollback-Härtung** | `src/lib/design-assets/lifecycle.ts`, `asset-index.ts`             | Sequenziell | 🔴 Geplant | **100 % LLM** | Version-Bump bei Edits (`v001` → `v002_edit`) mit Zero-Cost-Rollback-Pfad          |
+| Nummer | Meilenstein                               | Scope (Dateien)                                                    | Ausführung  |      Status      | Zuständigkeit | Verifikation                                                                       |
+| :----- | :---------------------------------------- | :----------------------------------------------------------------- | :---------: | :--------------: | :-----------: | :--------------------------------------------------------------------------------- |
+| **L0** | **Baseline & API-Verifikation**           | `src/lib/design-assets/openai-image-client.ts`                     | Sequenziell | ✅ Abgeschlossen | **100 % LLM** | Endpoint `/v1/images/edits` aus Sprint 1 verifiziert und testbar                   |
+| **L1** | **Sharp-Masken-Generator Engine**         | `scripts/create-image-mask.ts`, `src/lib/design-assets/masking.ts` | Sequenziell | ✅ Abgeschlossen | **100 % LLM** | Erzeugung von Alpha-PNGs (Box, Kreis, Feathering 2px) mit pixelgenauen Dimensionen |
+| **L2** | **CLI-Integration & Pre-Flight-Guard**    | `scripts/generate-design-assets.ts`                                | Sequenziell | ✅ Abgeschlossen | **100 % LLM** | Flags `--edit-base`, `--edit-mask`, `--edit-prompt` implementiert & validiert      |
+| **L3** | **Pixel-Invarianz-Test (Zero Mutation)**  | `src/lib/design-assets/__tests__/inpainting-invariance.test.ts`    | Sequenziell | ✅ Abgeschlossen | **100 % LLM** | Automatisierter Nachweis: 100 % der opaken Zonen bleiben unverändert (4/4 Tests)   |
+| **L4** | **Lifecycle-, Index- & Rollback-Härtung** | `src/lib/design-assets/lifecycle.ts`, `asset-index.ts`             | Sequenziell | ✅ Abgeschlossen | **100 % LLM** | Version-Bump bei Edits mit atomarer Speicherung und Spend-Ledger-Buchung           |
 
 ---
 

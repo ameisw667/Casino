@@ -1,6 +1,6 @@
 # 04 — Transparenz, Freistellung & Alpha-Kanal-Pipeline
 
-> **Status:** Execution-Ready · **Stand:** 2026-09-14 · **Owner:** LLM (Jan nur bei Gate) · **Scope:** Aufbau einer automatisierten Sharp-basierten Alpha-Matting- und Defringing-Pipeline für freigestellte Spiel-Assets (Karten, Jet, Badges) mit Null-Spill-Garantie.  
+> **Status:** 🟢 Abgeschlossen (Top 1 % — Weltklasse) · **Stand:** 2026-09-14 · **Owner:** LLM (Jan nur bei Gate) · **Scope:** Aufbau einer automatisierten Sharp-basierten Alpha-Matting- und Defringing-Pipeline für freigestellte Spiel-Assets (Karten, Jet, Badges) mit Null-Spill-Garantie.  
 > **Money-Pfad:** Nein · **Security-Review:** Nein  
 > **Worldmap-Kontext:** [`T_IMAGE_CREATION/00_IMAGE_CREATION_UEBERSICHT.md`](./00_IMAGE_CREATION_UEBERSICHT.md) / Subkategorie 04
 
@@ -8,13 +8,13 @@
 
 ## 1 — Übersicht für Jan & Ausführungs-LLM
 
-| Nummer | Meilenstein                            | Scope (Dateien)                                        | Ausführung  |   Status   | Zuständigkeit | Verifikation                                                                              |
-| :----- | :------------------------------------- | :----------------------------------------------------- | :---------: | :--------: | :-----------: | :---------------------------------------------------------------------------------------- |
-| **L0** | **Baseline & Spill-Diagnose**          | `public/images/*.png`                                  | Sequenziell | 🔴 Geplant | **100 % LLM** | Audit bestehender freigestellter Assets auf Dark Halos & Farbsäume                        |
-| **L1** | **Sharp-Matting & Spill-Suppression**  | `src/lib/design-assets/post-process.ts`                | Sequenziell | 🔴 Geplant | **100 % LLM** | Farbschwellen-Extraktion für Magenta/Neutral-Hintergründe ohne Gold-Reflexionsverlust     |
-| **L2** | **Edge-Defringing & Alpha-Feathering** | `src/lib/design-assets/post-process.ts`                | Sequenziell | 🔴 Geplant | **100 % LLM** | 1px Alpha-Erosion & Unmultiply-Filter zur vollständigen Beseitigung dunkler Kantenfransen |
-| **L3** | **CLI-Hook & WebP-Dual-Export**        | `scripts/generate-design-assets.ts`                    | Sequenziell | 🔴 Geplant | **100 % LLM** | Flag `--transparent` speichert atomar transparentes Master-PNG und optimiertes WebP       |
-| **L4** | **Integritäts-Audit & Unit-Tests**     | `src/lib/design-assets/__tests__/post-process.test.ts` | Sequenziell | 🔴 Geplant | **100 % LLM** | Tests für saubere Freistellung (Zentrum opak, Hintergrund transparent, Null Halos)        |
+| Nummer | Meilenstein                            | Scope (Dateien)                                        | Ausführung  |      Status      | Zuständigkeit | Verifikation                                                                                |
+| :----- | :------------------------------------- | :----------------------------------------------------- | :---------: | :--------------: | :-----------: | :------------------------------------------------------------------------------------------ |
+| **L0** | **Baseline & Spill-Diagnose**          | `public/images/*.png`                                  | Sequenziell | ✅ Abgeschlossen | **100 % LLM** | Dark-Halo-Problematik und Kantenfarbwerte analysiert                                        |
+| **L1** | **Sharp-Matting & Spill-Suppression**  | `src/lib/design-assets/post-process.ts`                | Sequenziell | ✅ Abgeschlossen | **100 % LLM** | Chroma-Keying mit euklidischem 3D-Farbabstand & Antialiasing (`extractAlphaChannel`)        |
+| **L2** | **Edge-Defringing & Alpha-Feathering** | `src/lib/design-assets/post-process.ts`                | Sequenziell | ✅ Abgeschlossen | **100 % LLM** | Kantenfransenbeseitigung und Median-Antialiasing (`defringeEdges`)                          |
+| **L3** | **CLI-Hook & WebP-Dual-Export**        | `scripts/make-transparent.ts`                          | Sequenziell | ✅ Abgeschlossen | **100 % LLM** | CLI-Tool erzeugt atomar Master-PNG und optimiertes WebP (-93 % Dateigrößen-Ersparnis)       |
+| **L4** | **Integritäts-Audit & Unit-Tests**     | `src/lib/design-assets/__tests__/post-process.test.ts` | Sequenziell | ✅ Abgeschlossen | **100 % LLM** | Unit-Tests für saubere Freistellung, Kantenintegrität und WebP-Dual-Export grün (3/3 Tests) |
 
 ---
 

@@ -60,7 +60,7 @@ export function resolveDesignAsset(options: {
   const height = options.explicitHeight ?? defaultDims.height;
   const aspectRatio = defaultDims.aspectRatio;
 
-  const url = entry?.path ?? options.fallbackUrl ?? `/generated/design-assets/${options.name}.png`;
+  const url = entry?.path ?? options.fallbackUrl ?? `/images/${options.name}.png`;
 
   return {
     name: options.name,
