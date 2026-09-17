@@ -95,8 +95,11 @@ web/
 # remotion-ad: local Remotion experiment by Jan (own npm package, testing only)
 /remotion-ad/
 
-# shared skills (NTFS directory junction to v:/VibeCoding/.claude/skills)
-/xx_sop/shared/
+# shared skills: NTFS directory junction to v:/VibeCoding/.claude/skills.
+# Deliberately TRACKED since 2026-09-17 (G5 Option A, T_REPO_HYGIENE/Planungsdateien/02):
+# xx_sop/01-03 and two T_FRONTEND files link the canonical SKILL.md paths, and a CI clone
+# has no junction — an unversioned target is a permanently dead live link. Trade-off
+# accepted: edits in the junction target surface here as modified tracked files.
 
 # image-generation scratch output (regenerable; committed generated assets live in public/generated/)
 /output/
