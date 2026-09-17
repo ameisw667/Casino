@@ -103,7 +103,7 @@
 | `src/store/useCasinoStore.ts`              | Persist-`version` 3 → **4**; Migration normalisiert persistierte Alt-Stände `onboardingStep: 'OPEN_CASE'` → `'COMPLETED'` (sonst bliebe der Flow für Bestandsnutzer unsichtbar hängen); `onboardingDismissed` wird via bestehendes `partialize` automatisch persistiert     |
 | `src/components/layout/MainLayout.tsx`     | Neuer Menüpunkt **„So funktioniert es"** (`HelpCircle`-Icon) zwischen Stats und Settings → `startOnboarding(true)`                                                                                                                                                          |
 
-**Tests (TDD, `src/store/__tests__/useCasinoStore.test.ts`):** 3 neue Tests im Block `dismissOnboarding — Intro-Skip merken`: (1) Schließen schließt Flow und merkt sich das Dismiss, (2) erneut „Play Now" respektiert das Dismiss, (3) `startOnboarding(true)` öffnet die volle Tour und löscht das Dismiss. RED (3× `dismissOnboarding is not a function`) → GREEN.
+**Tests (TDD, seit 03a-R09 in `src/store/__tests__/snapshot-ui.test.ts`):** 3 neue Tests im Block `dismissOnboarding — Intro-Skip merken`: (1) Schließen schließt Flow und merkt sich das Dismiss, (2) erneut „Play Now" respektiert das Dismiss, (3) `startOnboarding(true)` öffnet die volle Tour und löscht das Dismiss. RED (3× `dismissOnboarding is not a function`) → GREEN.
 
 **Verifizierung (2026-08-30):**
 

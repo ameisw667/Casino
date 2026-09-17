@@ -22,38 +22,57 @@ async function run() {
   });
   await page.waitForTimeout(2500);
 
-  // Measure total scroll distance for testing/v3 (350vh sticky track)
-  const { scrollDistance, trackH, winH } = await page.evaluate(() => {
-    const track =
-      document.querySelector('[data-scrolly-track="v3-hero"]') ||
-      document.querySelector('[style*="350vh"]');
+  // Measure hero track scroll scrub distance (trackH - winH)
+  const heroMetrics = await page.evaluate(() => {
+    const track = document.querySelector('[data-scrolly-track="v3-hero"]');
     const tH = track ? track.offsetHeight : window.innerHeight * 3.5;
     const wH = window.innerHeight;
     return {
-      scrollDistance: tH - wH,
       trackH: tH,
       winH: wH,
+      scrubDistance: tH - wH,
     };
   });
+  console.log('HERO METRICS:', JSON.stringify(heroMetrics));
 
-  console.log(
-    `Testing V3 Scrolly track: ${trackH}px, winH: ${winH}px, total scrub distance: ${scrollDistance}px`,
-  );
+  // Disable smooth scrolling to ensure precise frame capture at target scroll positions
+  await page.evaluate(() => {
+    document.documentElement.style.scrollBehavior = 'auto';
+    document.body.style.scrollBehavior = 'auto';
+  });
 
   const auditSteps = [0, 20, 40, 60, 80, 100];
 
   for (const pct of auditSteps) {
-    const targetScroll = Math.round((pct / 100) * scrollDistance);
+    // For 100%, subtract 20px so the sticky container remains pinned in the hero track
+    const targetScroll =
+      pct === 100
+        ? heroMetrics.scrubDistance - 20
+        : Math.round((pct / 100) * heroMetrics.scrubDistance);
 
     await page.evaluate((st) => {
-      window.scrollTo(0, st);
+      window.scrollTo({ top: st, behavior: 'instant' });
     }, targetScroll);
 
     // Wait for GSAP scrub lerp, Framer Motion springs and 3D positioning to settle
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(800);
 
     const filename = `v3_audit_${String(pct).padStart(3, '0')}pct.png`;
     const filepath = path.join(AUDIT_DIR, filename);
+
+    const logInfo = await page.evaluate(() => {
+      const track = document.querySelector('[data-scrolly-track="v3-hero"]');
+      const sticky = track ? track.querySelector('[style*="position: sticky"]') : null;
+      const sRect = sticky ? sticky.getBoundingClientRect() : null;
+      const progressText = document.querySelector('[style*="SCROLL PROGRESS"]')?.textContent;
+      return {
+        scrollY: window.scrollY,
+        stickyTop: sRect ? sRect.top : null,
+        stickyHeight: sRect ? sRect.height : null,
+        progressText,
+      };
+    });
+    console.log(`[Frame ${pct}%]`, JSON.stringify(logInfo));
 
     await page.screenshot({ path: filepath });
     console.log(`Saved audit frame ${pct}% -> ${filename}`);

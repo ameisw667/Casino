@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Trophy, Crown, Flame, Sparkles, Timer, Zap } from 'lucide-react';
 import { HALL_OF_FAME_RECORDS } from '@/components/home/bento/Spiral3dSlider';
 
@@ -64,8 +65,9 @@ const PODIUM_TOP3 = [
 
 export function TestingV3FeatureShowcase({
   phaseProgress,
-  accentColor = '#D4AF37',
+  accentColor: _accentColor = '#D4AF37',
 }: TestingV3FeatureShowcaseProps) {
+  const router = useRouter();
   // Sub-phases:
   // 0.0 - 0.50: Spiral 3D Hall of Fame & Live-Payouts Stream
   // 0.50 - 1.00: Tägliches Turnier & VIP Podium
@@ -207,11 +209,16 @@ export function TestingV3FeatureShowcase({
               }}
             >
               <Image
-                src={activeRecord.avatar}
+                src={
+                  activeRecord.avatar.startsWith('/images/avatars')
+                    ? activeRecord.avatar
+                    : '/images/avatars/avatar-obsidian-01.png'
+                }
                 alt={activeRecord.user}
                 fill
                 sizes="44px"
                 style={{ objectFit: 'cover' }}
+                unoptimized
               />
             </div>
           </div>
@@ -456,6 +463,7 @@ export function TestingV3FeatureShowcase({
                   fill
                   sizes="36px"
                   style={{ objectFit: 'cover' }}
+                  unoptimized
                 />
               </div>
 
@@ -531,7 +539,7 @@ export function TestingV3FeatureShowcase({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            window.location.href = '/leaderboard';
+            router.push('/leaderboard');
           }}
           style={{
             width: '100%',

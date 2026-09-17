@@ -102,20 +102,20 @@ export function TestingV3MorphCard({
   const cardWidth = 320;
   const cardHeight = 445;
 
-  // Werbevideo Scrollytelling Phases:
-  // 0.00 - 0.50: Pure Frameless Ace Floating & Singularity Portal Entry
-  // 0.50 - 0.58: 180° Morphing Flip into Back Face
-  // 0.58 - 0.82: Phase I — 4 VIP Games Deck (Crash -> Roulette -> Blackjack -> Slots)
-  // 0.82 - 1.00: Phase II — Feature Showcase (Spiral 3D Stage & Tägliches Turnier)
-  const isBackFace = scrollProgress >= 0.54;
-  const isFeaturePhase = scrollProgress >= 0.82;
+  // Werbevideo Scrollytelling Phases across 350vh:
+  // 0.00 - 0.45: Pure Frameless Ace Floating & Singularity Portal Entry
+  // 0.45 - 0.54: 180° Morphing Flip into Back Face
+  // 0.54 - 0.78: Phase I — 4 VIP Games Deck (Crash -> Roulette -> Blackjack -> Slots)
+  // 0.78 - 1.00: Phase II — Feature Showcase (Spiral 3D Stage & Tägliches Turnier)
+  const isBackFace = scrollProgress >= 0.5;
+  const isFeaturePhase = scrollProgress >= 0.78;
 
-  // VIP Games Deck progression (0.58 to 0.82)
-  const deckProgress = Math.max(0, Math.min(1, (scrollProgress - 0.58) / 0.24));
+  // VIP Games Deck progression (0.54 to 0.78)
+  const deckProgress = Math.max(0, Math.min(1, (scrollProgress - 0.54) / 0.24));
   const activeFloat = deckProgress * 3; // 0.0 to 3.0 (4 games)
 
-  // Feature Showcase progression (0.82 to 1.00)
-  const featureProgress = Math.max(0, Math.min(1, (scrollProgress - 0.82) / 0.18));
+  // Feature Showcase progression (0.78 to 1.00)
+  const featureProgress = Math.max(0, Math.min(1, (scrollProgress - 0.78) / 0.22));
 
   return (
     <div
@@ -195,13 +195,11 @@ export function TestingV3MorphCard({
             position: 'absolute',
             inset: 0,
             display: isBackFace ? 'block' : 'none',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
             transform: 'rotateY(180deg)',
             transformStyle: 'preserve-3d',
           }}
         >
-          {/* Phase II: Spiral 3D Hall of Fame & Tägliches Turnier (Scroll >= 0.82) */}
+          {/* Phase II: Spiral 3D Hall of Fame & Tägliches Turnier (Scroll >= 0.78) */}
           {isFeaturePhase ? (
             <TestingV3FeatureShowcase phaseProgress={featureProgress} />
           ) : (

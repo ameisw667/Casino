@@ -157,7 +157,7 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
           );
         }
 
-        // Dissolve steles as we transition towards Section 2 (68% - 82%)
+        // Dissolve steles as we transition towards Section 2 (78% - 92%)
         tl.to(
           editorialRef.current,
           {
@@ -167,7 +167,7 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
             ease: 'power2.in',
             duration: 0.14,
           },
-          0.66,
+          0.78,
         );
       }
 
@@ -182,7 +182,7 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
             scale: 1.22,
             rotation: 15,
             ease: 'power2.out',
-            duration: 0.72,
+            duration: 0.8,
           },
           0,
         );
@@ -192,9 +192,9 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
             opacity: 0,
             filter: 'blur(16px)',
             ease: 'power2.in',
-            duration: 0.18,
+            duration: 0.15,
           },
-          0.72,
+          0.8,
         );
       }
 
@@ -209,7 +209,7 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
             rotation: -28,
             z: 180,
             ease: 'power2.out',
-            duration: 0.72,
+            duration: 0.8,
           },
           0,
         );
@@ -219,9 +219,9 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
             opacity: 0,
             filter: 'blur(16px)',
             ease: 'power2.in',
-            duration: 0.18,
+            duration: 0.15,
           },
-          0.72,
+          0.8,
         );
       }
 
@@ -235,7 +235,7 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
             scale: 1.25,
             rotation: '+=320',
             ease: 'power2.out',
-            duration: 0.72,
+            duration: 0.8,
           },
           0,
         );
@@ -245,9 +245,9 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
             opacity: 0,
             filter: 'blur(16px)',
             ease: 'power2.in',
-            duration: 0.18,
+            duration: 0.15,
           },
-          0.72,
+          0.8,
         );
       }
 
@@ -261,7 +261,7 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
             scale: 1.22,
             rotation: -24,
             ease: 'power2.out',
-            duration: 0.72,
+            duration: 0.8,
           },
           0,
         );
@@ -271,9 +271,9 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
             opacity: 0,
             filter: 'blur(16px)',
             ease: 'power2.in',
-            duration: 0.18,
+            duration: 0.15,
           },
-          0.72,
+          0.8,
         );
       }
 
@@ -284,7 +284,7 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
           {
             x: '-14vw',
             ease: 'power1.inOut',
-            duration: 0.75,
+            duration: 0.8,
           },
           0.15,
         );
@@ -298,7 +298,7 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
             scale: 1.85,
             rotation: '+=420',
             ease: 'power1.inOut',
-            duration: 0.75,
+            duration: 0.82,
           },
           0,
         );
@@ -308,9 +308,9 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
             opacity: 0,
             filter: 'blur(20px)',
             ease: 'power2.in',
-            duration: 0.22,
+            duration: 0.16,
           },
-          0.75,
+          0.82,
         );
       }
 
@@ -322,7 +322,7 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
             scale: 1.25,
             z: 100,
             ease: 'power1.out',
-            duration: 0.75,
+            duration: 0.82,
           },
           0,
         );
@@ -335,9 +335,9 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
             opacity: 0,
             filter: 'blur(18px)',
             ease: 'power2.in',
-            duration: 0.22,
+            duration: 0.16,
           },
-          0.75,
+          0.82,
         );
       }
 
@@ -382,16 +382,16 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
         );
       }
 
-      // 9. Sticky Stage Fade Out into Bento Section 2 (fließender Übergang bei 85%-100%)
+      // 9. Sticky Stage Fade Out into Bento Section 2 (fließender Übergang bei 88%-100%)
       if (stickyRef.current) {
         tl.to(
           stickyRef.current,
           {
             opacity: 0,
             ease: 'power2.in',
-            duration: 0.15,
+            duration: 0.12,
           },
-          0.85,
+          0.88,
         );
       }
     }, trackRef);
@@ -405,7 +405,7 @@ export function HeroScrollyStage({ isMobile }: HeroScrollyStageProps) {
       style={{
         position: 'relative',
         width: '100%',
-        height: isMobile ? 'auto' : '150vh',
+        height: isMobile ? 'auto' : '135vh',
         zIndex: 6,
       }}
     >
