@@ -12,8 +12,10 @@ export default defineConfig({
       reporter: ['text', 'lcov'],
       // wallet.ts and useCasinoStore.ts added once behavioral tests (mocked
       // Supabase client / jsdom store tests) existed for them — see
-      // src/lib/casino/__tests__/wallet.test.ts and
-      // src/store/__tests__/useCasinoStore.test.ts. Other casino files
+      // src/lib/casino/__tests__/wallet.test.ts and the split store test
+      // modules under src/store/__tests__/ (03a-R09: snapshot-ui,
+      // process-game-result, achievements, fail-closed-session,
+      // config-delegation). Other casino files
       // (sound-manager, provably-fair, chat-bot) still have no tests.
       include: [
         'src/lib/casino/casino-core.ts',
