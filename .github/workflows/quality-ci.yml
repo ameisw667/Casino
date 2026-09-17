@@ -54,4 +54,11 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run check-doc-links
+      # 03a-R07 duplication growth gate: warn-level only for the first runs —
+      # observe false-positive rate before deciding on a hard gate (fail-soft transition).
+      - run: npm run check-duplication
+        continue-on-error: true
+      # 03a-R10 file-size guardrail: hard gate at the coding-style 800-line limit
+      # (grandfathered legacy files warn, new oversize files fail the run).
+      - run: npm run check-file-sizes
       - run: npm run build

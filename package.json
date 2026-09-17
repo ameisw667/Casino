@@ -47,6 +47,8 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,mjs,json,css}\" \"scripts/**/*.{ts,js,mjs}\" \"tests/**/*.{ts,tsx,js}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,mjs,json,css}\" \"scripts/**/*.{ts,js,mjs}\" \"tests/**/*.{ts,tsx,js}\"",
     "check-doc-links": "node scripts/check-doc-links.mjs",
+    "check-duplication": "node scripts/check-duplication.mjs",
+    "check-file-sizes": "node scripts/check-file-sizes.mjs",
     "check-secret-rotation": "tsx scripts/check-secret-rotation-due.ts",
     "prepare": "husky"
   },
