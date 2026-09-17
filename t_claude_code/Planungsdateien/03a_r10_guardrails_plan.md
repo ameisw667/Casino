@@ -1,6 +1,6 @@
 # 03a-R10 — Guardrails: Lint + Messung (Regel 10)
 
-> **Status:** Executed (archiviert) · **Stand:** 2026-09-14 · **Owner:** LLM (Jan nur bei Gate) · **Scope:** Größen-Gate als `check-file-sizes`-Script + CI-Hard-Gate (L1-ESLint-Variante durch config-protection-Hook blockiert, fertig Diff in §5); die gelesen/gebraucht-Messung (#3) bleibt an Parent-Plan 09 (`llm-usage` defekt) gebunden und wird nur verweist.
+> **Status:** Executed (archiviert) · **Stand:** 2026-09-16 · **Owner:** LLM (Jan nur bei Gate) · **Scope:** Größen-Gate als `check-file-sizes`-Script + CI-Hard-Gate (L1-ESLint-Variante durch config-protection-Hook blockiert; Diff in §5 als Nachschlage-Notiz — **von Jan am 2026-09-16 verworfen**, das Script-Gate deckt die Enforcement ab); die gelesen/gebraucht-Messung (#3) bleibt an Parent-Plan 09 (`llm-usage` defekt) gebunden und wird nur verweist.
 > **Money-Pfad:** Nein (Lint-/CI-Config) · **Security-Review:** Nein
 > **Bewertungs-Basis:** [`../01_15_03a_code_modularisierung_regelkatalog.md`](../01_15_03a_code_modularisierung_regelkatalog.md) §R10 (Niveau 30 %, Bottlenecks #1/#2/#3) · Parent: [`../01_15_token_oekonomie_effizienz.md`](../01_15_token_oekonomie_effizienz.md) Position 9
 
@@ -36,7 +36,7 @@
 
 ## 5 — Execution-Log (2026-09-14)
 
-**L0 — Baseline (gemessen):** 1.044 src-Dateien: 903 ≤ 300 Z., 93 in 300–500, 45 in 500–800, 3 > 800 (`database.types.ts` 2.055 generiert, `useCrashGameLoop.ts` 983, `wallet.ts` 881). Warn-500 hätte **140 Warnungen** erzeugt (Plan §2 „zu laut"-Fall eingetreten) — verworfen.
+**L0 — Baseline (gemessen):** 1.044 src-Dateien: 903 ≤ 300 Z., 93 in 300–500, 45 in 500–800, 3 > 800 (`database.types.ts` 2.055 generiert, `useCrashGameLoop.ts` 983, `wallet.ts` 881 — **Zählmetrik des Gates**: `split('\n').length`, also je Datei 1 mehr als die letzte Inhaltszeile; das Doku-Set verwendet sonst die `wc -l`-Zahl: 2.054 / 982 / 880). Warn-500 hätte **140 Warnungen** erzeugt (Plan §2 „zu laut"-Fall eingetreten) — verworfen.
 
 **L1 — Abweichung vom Plan, dokumentiert:** Der `max-lines`-Edit an `eslint.config.mjs` wurde vom **config-protection-Hook** blockiert („Modifying eslint.config.mjs is not allowed … disable the hook temporarily"). Hook-Disable erfordert Settings-Änderung = Jan-Gate (gleiche Klasse wie R08-L1) — nicht eigenmächtig umgangen. **Stattdessen (R07-Präzedenz):** gleichwertiges Hard-Gate als 0-Dependency-Script:
 
@@ -50,3 +50,5 @@
 **L3 — Messung:** Sub-Sub #3 (gelesen/gebraucht) bleibt an Parent-Plan 09 gebunden — unverändert, kein eigener Meilenstein.
 
 **Ergebnis:** Gate aktiv und in CI blockierend; Struktur-Verfall ist ab jetzt messbar (19 Dateien in 600–800 als Beobachtungsliste = Input für künftige R03-Option-Gates).
+
+**Nachtrag 2026-09-16 — ESLint-Variante verworfen (Jan-Entscheidung):** Der in §5 vorbereitete `max-lines`-Diff wird **nicht** eingebaut. Begründung: `npm run check-file-sizes` blockiert in CI bereits hart (> 800 Z. = exit 1) und listet 600–800 Z. als INFO; eine zweite Regel im Linter würde dasselbe prüfen, nur früher sichtbar (Editor statt CI-Log) — doppeltes Enforcement ohne Zusatznutzen. Der Diff bleibt als Notiz stehen, falls der Editor-Komfort später doch gewünscht ist. Die Hook-Blockade (config-protection) ist damit kein offener Punkt mehr.

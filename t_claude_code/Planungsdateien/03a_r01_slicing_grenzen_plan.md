@@ -25,8 +25,8 @@
 
 ## 3 — Expliziter Nicht-Scope
 
-- Kein wallet.ts-Methoden-Split (→ R03, Money-Pfad, Option-Gate).
-- Keine Crash-Loop-Extraktion (→ Plan 03 Option B, Jan-Gate).
+- Kein wallet.ts-Methoden-Split (→ R03, Money-Pfad, Option-Gate — Gate am 2026-09-16 geschlossen: **W3**).
+- Keine Crash-Loop-Extraktion (→ Plan 03 §2a Option X3, Gate am 2026-09-16 geschlossen — Umsetzung in separatem Implementation-Plan).
 - Keine Lint-Regel (→ R10), keine Test-Aufteilung (→ R09), keine Fassaden (→ R04).
 
 ## 4 — Lebenszyklus

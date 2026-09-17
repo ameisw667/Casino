@@ -46,3 +46,5 @@
   Nach Jans Freigabe: Datei anlegen → Probe-Read von `database.types.ts` zur Verifikation der Deny-Wirkung (Typecheck/Tests laufen unverändert, da nur Agent-Read geblockt wird).
 - **L2:** ✅ Wachstums-Kennzahl in §R8 dokumentiert (2.054 Z., Stand 2026-09-14).
 - **L3:** ✅ Re-Rating §R8 (siehe Katalog).
+
+**Nachtrag 2026-09-16 — Nutzen nachgeschärft, Gate weiterhin offen:** Jan hat zurückgemeldet, dass der konkrete Nutzen der Maßnahme unklar war („ich weiß nicht ganz genau, was es damit in Aussicht hat"). Daraufhin hat die Entscheidungstabelle im Regelkatalog eine eigene Spalte **„Was es konkret bringt"** bekommen; der Eintrag zu R8 lautet dort: die Datei ist reine Supabase-Ausgabe, ein versehentlicher Voll-Read kostet grob **25.000 Tokens** (2.054 Zeilen × ~12 Tokens/Zeile, Schätzung), und die Deny-Regel blockiert ausschließlich den Agent-Read — Typecheck, Lint und Tests laufen unverändert, weil sie die Datei über den Compiler/Node lesen, nicht über das Read-Tool. L1 bleibt damit **das einzige offene Gate** dieser Runde; der Freigabe-Inhalt (`.claude/settings.json`) ist unverändert und fertig.

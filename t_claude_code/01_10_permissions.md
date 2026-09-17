@@ -58,7 +58,7 @@ Siehe `01_8_mcp_server.md` Position 4 für die vollständige Analyse. Hier nur d
 
 ### 8 — Sichtbarkeit/Pflegeprozess (Top 85 %)
 
-Es gibt keinen wiederkehrenden Trigger (weder Skill noch Hook noch SOP-Absatz), der die Permission-Datei periodisch auf veraltete Einträge prüft. Der naheliegende Kandidat dafür — der Skill `fewer-permission-prompts` — existiert bereits (siehe `01_9_hooks.md` Position 6), wurde aber nie ausgeführt.
+Es gibt keinen wiederkehrenden Trigger (weder Skill noch Hook noch SOP-Absatz), der die Permission-Datei periodisch auf veraltete Einträge prüft. Der naheliegende Kandidat dafür — der Skill `fewer-permission-prompts` — existiert bereits (siehe `01_9_hooks.md` Position 6); ein erster datengestützter Lauf (50 Transkripte) wurde am 2026-09-14 als reiner Vorschlag ausgeführt — Kernbefund: durch das globale `Bash(*)`/`PowerShell(*)`-Blanket entstehen für Bash/MCP keine Prompts mehr, die Tabelle ist nur für eine künftige Einschräfung der Allowlist relevant; Ergebnis inkl. `npm run *`-Wildcard-Flag in [`hooks/01_hooks_active_audit.md` §6.2](hooks/01_hooks_active_audit.md).
 
 ## Anti-Overengineering-Hinweis: nur 8 statt 10 Unterkategorien
 
