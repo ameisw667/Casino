@@ -14,13 +14,13 @@
 
 ## 1 — Übersicht für Jan
 
-| Nr. | Meilenstein                                                            | Scope (Dateien)                                                           |   Status   | Zuständigkeit | Verifikation                                                                                                        |
-| --- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------- | :--------: | :-----------: | ------------------------------------------------------------------------------------------------------------------- |
-| L1  | CodeQL-Workflow für JavaScript/TypeScript ergänzen                     | Neuer Workflow `.github/workflows/codeql.yml`                             | 🔴 Geplant |      LLM      | Erster CodeQL-Lauf grün (oder mit begründet allowlisteten Findings), sichtbar im Security-Tab                       |
-| L2  | `npm ci`/Supabase-Docker-Image-Caching zwischen Läufen                 | `security-staging.yml`, `red-team-security.yml`                           | 🔴 Geplant |      LLM      | Messbare Laufzeitverkürzung (Vorher/Nachher-Vergleich der Workflow-Dauer)                                           |
-| L3  | Ephemeral-Stack-Isolation bei Parallelläufen empirisch verifizieren    | Kein Code-Änderung — gezielter Testlauf + Doku                            | 🔴 Geplant |      LLM      | Zwei gleichzeitig ausgelöste Läufe zeigen, dass `cancel-in-progress: true` real greift, nicht nur laut YAML         |
-| L4  | Branch-Protection-Dokumentation gegen echten Repo-Zustand verifizieren | `docs/security-hardening/08_security_ci_gates.md` (technischer Deep-Dive) | 🔴 Geplant |      LLM      | Dokumentierte Required-Status-Checks stimmen mit dem tatsächlich konfigurierten Branch-Protection-Regelwerk überein |
-| L5  | Alerting-Entscheidungsgrundlage für Jan dokumentieren                  | `docs/security-hardening/08_security_ci_gates.md`                         | 🔴 Geplant |      LLM      | Jan kann die K5-Entscheidung (Telegram vs. Slack vs. GitHub-native) informiert treffen                              |
+| Nr. | Meilenstein                                                            | Scope (Dateien)                                                           |                   Status                   | Zuständigkeit | Verifikation                                                                                                        |
+| --- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------- | :----------------------------------------: | :-----------: | ------------------------------------------------------------------------------------------------------------------- |
+| L1  | CodeQL-Workflow für JavaScript/TypeScript ergänzen                     | Neuer Workflow `.github/workflows/codeql.yml`                             | 🟡 Executed, erster Lauf remote ausstehend |      LLM      | Erster CodeQL-Lauf grün (oder mit begründet allowlisteten Findings), sichtbar im Security-Tab                       |
+| L2  | `npm ci`/Supabase-Docker-Image-Caching zwischen Läufen                 | `security-staging.yml`, `red-team-security.yml`                           |   🟡 Executed, Laufzeitvergleich remote    |      LLM      | Messbare Laufzeitverkürzung (Vorher/Nachher-Vergleich der Workflow-Dauer)                                           |
+| L3  | Ephemeral-Stack-Isolation bei Parallelläufen empirisch verifizieren    | Kein Code-Änderung — gezielter Testlauf + Doku                            |    🟡 Wartet auf Push (Abweichung, §9)     |      LLM      | Zwei gleichzeitig ausgelöste Läufe zeigen, dass `cancel-in-progress: true` real greift, nicht nur laut YAML         |
+| L4  | Branch-Protection-Dokumentation gegen echten Repo-Zustand verifizieren | `docs/security-hardening/08_security_ci_gates.md` (technischer Deep-Dive) |     ✅ Executed (Live-API verifiziert)     |      LLM      | Dokumentierte Required-Status-Checks stimmen mit dem tatsächlich konfigurierten Branch-Protection-Regelwerk überein |
+| L5  | Alerting-Entscheidungsgrundlage für Jan dokumentieren                  | `docs/security-hardening/08_security_ci_gates.md`                         |      ✅ Executed (KEINE Aktivierung)       |      LLM      | Jan kann die K5-Entscheidung (Telegram vs. Slack vs. GitHub-native) informiert treffen                              |
 
 **Warum kein Jan-Gate:** Alle 5 Meilensteine sind additive CI-/Doku-Ergänzungen ohne neues Secret — L1 nutzt ausschließlich den GitHub-nativen `GITHUB_TOKEN`, L5 aktiviert kein externes Alerting, sondern bereitet nur die Entscheidung vor.
 
@@ -142,16 +142,60 @@
 
 ## 8 — Verwandte Artefakte
 
-| Bedarf                                          | Datei                                                                                                                     |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Archivierte Runde-1-Planungsdatei               | [`docs/archive/t_security_hardening_02_security_ci_gate.md`](../docs/archive/t_security_hardening_02_security_ci_gate.md) |
-| Staging-Regression-Gate (Referenz, unverändert) | [`.github/workflows/security-staging.yml`](../.github/workflows/security-staging.yml)                                     |
-| Red-Team-Gate (Referenz, unverändert)           | [`.github/workflows/red-team-security.yml`](../.github/workflows/red-team-security.yml)                                   |
-| Quality-Gate (Vergleichsreferenz)               | [`.github/workflows/quality-ci.yml`](../.github/workflows/quality-ci.yml)                                                 |
-| Referenzmuster für externes Alerting (L5)       | [`src/trigger/fraud-alert-wait.ts`](../src/trigger/fraud-alert-wait.ts)                                                   |
-| Referenzmuster für L1 (SHA-Pinning-Konvention)  | [`.github/workflows/dependency-audit.yml`](../.github/workflows/dependency-audit.yml)                                     |
-| Technischer Deep-Dive (wird in L4/L5 erweitert) | [`docs/security-hardening/08_security_ci_gates.md`](../docs/security-hardening/08_security_ci_gates.md)                   |
-| Übersicht (alle 10 Säulen)                      | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                            |
+| Bedarf                                                 | Datei                                                                                                                     |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Archivierte Runde-1-Planungsdatei                      | [`docs/archive/t_security_hardening_02_security_ci_gate.md`](../docs/archive/t_security_hardening_02_security_ci_gate.md) |
+| Staging-Regression-Gate (L2: Image-Cache ergänzt)      | [`.github/workflows/security-staging.yml`](../.github/workflows/security-staging.yml)                                     |
+| Red-Team-Gate (L2: Image-Cache ergänzt, Setup-Bereich) | [`.github/workflows/red-team-security.yml`](../.github/workflows/red-team-security.yml)                                   |
+| Quality-Gate (Vergleichsreferenz)                      | [`.github/workflows/quality-ci.yml`](../.github/workflows/quality-ci.yml)                                                 |
+| Referenzmuster für externes Alerting (L5)              | [`src/trigger/fraud-alert-wait.ts`](../src/trigger/fraud-alert-wait.ts)                                                   |
+| Referenzmuster für L1 (SHA-Pinning-Konvention)         | [`.github/workflows/dependency-audit.yml`](../.github/workflows/dependency-audit.yml)                                     |
+| Technischer Deep-Dive (wird in L4/L5 erweitert)        | [`docs/security-hardening/08_security_ci_gates.md`](../docs/security-hardening/08_security_ci_gates.md)                   |
+| Übersicht (alle 10 Säulen)                             | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                            |
+
+---
+
+## 9 — Ausführungsergebnis (2026-09-12, Worktree `hardening-ci-gate`)
+
+### 9.1 — Zentrale Abweichung des Plans vom committeten Ist-Stand (wichtigste Erkenntnis dieser Ausführung)
+
+Die Verifizierung jeder Datei:Zeile-Referenz aus §3 gegen den **committeten Basis-Commit 8863b64** ergab: **§2 #2 und §3 beschreiben nicht den Commit-Stand, sondern den uncommitteten Working-Tree des Haupt-Repos.** Im Basis-Commit gilt:
+
+| Plan-Referenz (§3)                                                                        | Behauptet                      | Real in 8863b64                                                                                                                                                                                                            |
+| :---------------------------------------------------------------------------------------- | :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `security-staging.yml` — Concurrency-Block „Zeilen 34-39"                                 | vorhanden, Top 10 % (#2)       | **nicht vorhanden** — 8863b64 hat keinen `concurrency:`-Block; Datei 97 Zeilen (nicht 105); Job-Summary 86-97, SHA-Pins 40-41                                                                                              |
+| `red-team-security.yml` — Concurrency „Zeilen 30-35" + Schedule `'0 4 * * 0'` + 6 Skripte | vorhanden, Top 10 % / Top 15 % | **nicht vorhanden** — nur `workflow_dispatch`, kein `schedule`, kein `concurrency`, 92 Zeilen, nur 3 Skripte (`target-guard`, `rate-limit-bypass`, `admin-idor`); `bot-bypass`/`crash-mp-bypass`/`admin-fraud-idor` fehlen |
+| Beide Dateien 105/113 Zeilen                                                              | „vollständig gelesen"          | stimmt nur für die **uncommitteten** Haupt-Repo-Versionen (104/112 Zeilen — dort existieren Concurrency + Schedule + 6 Skripte)                                                                                            |
+
+**Konsequenz:** Die Concurrency-Blöcke, der Red-Team-Wochenplan und 3 der 6 Red-Team-Skripte existieren in diesem Branch **nicht** — sie liegen nur als uncommittete Änderungen im Haupt-Repo (`V:\VibeCoding\Casino`, Stand 2026-09-12, `git status`: `M .github/workflows/red-team-security.yml`, `M .github/workflows/security-staging.yml`). Die Planung hatte diese Versionen gelesen (plausibel: Planning-Session lief im Haupt-Repo-Working-Tree), ohne zu prüfen, ob sie committet sind. **Bewusst NICHT kompensiert:** dieser Branch fügt die Concurrency-Blöcke/Skripte nicht selbst hinzu — das wäre (a) außerhalb des Plan-Scopes (L3 ist ausdrücklich „kein Code-Änderung") und (b) ein Merge-Konflikt-Risiko mit genau diesen Pend-Änderungen sowie der Säule-4-Erweiterung von `red-team-security.yml` in parallelen Branches. **Rest bei Jan:** die uncommitteten Workflow-Änderungen im Haupt-Repo committen (oder verwerfen) — sonst verliert ein Merge dieser Runde die in §2 als „Top 10 %" bewerteten Concurrency-Blöcke vollständig und L3 bleibt dauerhaft unverifizierbar.
+
+**Auswirkung auf die Niveau-Projektion (§7):** #2 (Concurrency) ist in diesem Commit-Stand real **nicht Top 10 %**, sondern ungeschützt. Nach Commit der Pend-Änderungen gilt die §7-Projektion wie geplant; solange nicht, ist der reale Schnitt schlechter als „Top 15 %" — die Baseline-Korrektur #2 (Top 10 % → ungeschützt, ~Top 60 %) verschiebt den Schnitt um ~+5 Prozentpunkte. Kein Planungsfehler in §7, aber die Verifikation hat die Projektion an die Bedingung „Pend-Änderungen werden committet" gebunden.
+
+### 9.2 — Meilenstein-Ergebnisse
+
+|  L  | Ergebnis                                                                                                                                                                                                                                                                                                                                                                                                 | Verifikation (lokal)                                                                                                                                                          | Verifikation (remote ausstehend)                                                                                                          |
+| :-: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
+| L1  | `.github/workflows/codeql.yml` angelegt — `javascript-typescript`, Build-Mode `none`, Trigger `push`/`pull_request` auf `main` + Sonntags-Schedule 05:00 UTC, Job-Concurrency `cancel-in-progress: true`, nur `contents: read` + `security-events: write`, kein Secret                                                                                                                                   | YAML geparst (`yaml`-Parser: 3 Jobs/Steps ok); beide SHAs **live über GitHub-API aufgelöst** (`checkout v4.4.0`, `codeql-action v4.38.0` → Tag-Objekt → Commit-SHA bestätigt) | Erster Lauf + Finding-Triage (jedes Finding einzeln bewerten, niemals blind allowlisten)                                                  |
+| L2  | Identischer Image-Cache-Block in beiden Security-Workflows: `actions/cache` v6.1.0 (SHA live verifiziert) auf `/tmp/supabase-images.tar`, Key `supabase-docker-images-<os>-<supabase-cli 2.116.0>` (Version pro Lauf aus `npx supabase --version`), `docker load` bei Hit, `docker save` bei Miss                                                                                                        | YAML geparst; Änderung **rein additiv im Setup-Bereich** — Red-Team-Probe-Steps unberührt (Säule-4-kompatibel); Isolationsgarantie unangetastet (nur Images, nie DB-Zustand)  | Laufzeit-Vorher/Nachher-Vergleich (`gh run list`)                                                                                         |
+| L3  | **Nicht durchführbar** — doppelt blockiert: (a) Concurrency-Blöcke existieren in diesem Branch nicht (siehe 9.1), (b) empirische Verifikation erfordert `workflow_dispatch` auf GitHub                                                                                                                                                                                                                   | Abweichung dokumentiert (9.1)                                                                                                                                                 | Nach Commit der Pend-Änderungen: 2 kurz aufeinanderfolgende Dispatches, `gh run list` zeigt 1× cancelled + 1× success, kein Port-Konflikt |
+| L4  | Live-API-Verifikation wiederholt bestätigt: `required_status_checks.contexts = ["quality"]` (app_id 15368), `strict = true`, `enforce_admins = true`, `allow_force_pushes = true` (**neuer Härtungsbefund**), `allow_deletions = false`, Signatures/Linear-History/Conversation-Resolution = `false` — exakt wie in `docs/security-hardening/08_security_ci_gates.md` §8 dokumentiert                    | `gh api repos/ameisw667/Casino/branches/main/protection` (read-only, in dieser Ausführung erneut ausgeführt) — Doku-Aussagen stimmt exakt                                     | —                                                                                                                                         |
+| L5  | Entscheidungsgrundlage in `docs/security-hardening/08_security_ci_gates.md` §9 (GitHub-native / Telegram / Slack; **KEINE Aktivierung**, K5 bleibt bei Jan). Korrektur gegenüber der Plan-Prämisse: `TELEGRAM_BOT_TOKEN` existiert bereits (`src/lib/casino/telegram-api.ts`, genutzt von `src/trigger/fraud-alert-wait.ts`) — es fehlt keine Neu-Einrichtung, sondern es fällt die Expositions-Abwägung | Referenzdateien existieren; `sendTelegramMessage`-Muster verifiziert                                                                                                          | —                                                                                                                                         |
+
+### 9.3 — 5-Stufen-Abschlussprüfung
+
+`npm run typecheck` 0 Fehler · `npm test` **1542/1542 grün** (207 Testdateien) — Achtung: weniger als die erwarteten ~1690, weil dieser Branch auf Basis-Commit 8863b64 steht und die Tests der parallelen Säulen-Branches (u. a. Runde-2-Tests) hier noch nicht enthalten sind; **0 Fehlschläge**, kein Test wurde geändert · `npm run lint` 0 Fehler (23 vorbestehende Warnungen, keine in geänderten Dateien) · `npm run build` erfolgreich (nach Kopie des gitignored `.env.local` aus dem Haupt-Repo in den Worktree — prebuild `assert-core-env.ts` braucht die Supabase-Env-Variablen) · `git status --short` zeigt nur die geplanten 5 Dateien.
+
+### 9.4 — Betroffene Dateien
+
+`.github/workflows/codeql.yml` (neu) · `.github/workflows/security-staging.yml` (Image-Cache, additiv) · `.github/workflows/red-team-security.yml` (Image-Cache, additiv im Setup-Bereich) · `docs/security-hardening/08_security_ci_gates.md` (§6-§10 erweitert, L4/L5) · `T_SECURITY_HARDENING/02_security_ci_gate.md` (Status-Header + dieser §9).
+
+### 9.5 — Reste bei Jan
+
+1. **Alerting-Rest (K5):** Alert-Kanal wählen (Entscheidungsgrundlage in `docs/security-hardening/08_security_ci_gates.md` §9) — Telegram ist lowest-effort, aber Weiterverwendung des existierenden `TELEGRAM_BOT_TOKEN` im CI-Secret-Store ist eigener K5-Punkt. Nicht in dieser Runde aktiviert.
+2. **Uncommittete Pend-Änderungen im Haupt-Repo committen:** Concurrency-Blöcke + Red-Team-Schedule + 3 Skripte existieren nur uncommittet; ohne diesen Commit bleibt Concurrency (#2) ungeschützt und L3 unmöglich.
+3. **Remote-Verifikation nach Push:** erster CodeQL-Lauf + Finding-Triage (L1), Laufzeitvergleich Image-Cache (L2), Concurrency-Empirie (L3, nur nach Rest 2).
+4. **K5-Option aus L4-Befund:** `allow_force_pushes` auf `main` ist live `true` — Härtung auf `false` ist eine Write-Aktion und liegt bewusst außerhalb dieses read-only Scopes.
+5. **`codeql` als Required-Check?** Aktuell nur `quality` merge-blockend; falls CodeQL PRs blocken soll, muss Jan den Context ergänzen (Write-Aktion, K5).
 
 ---
 
@@ -183,7 +227,7 @@ Neu: `.github/workflows/codeql.yml` · Geändert: `.github/workflows/security-st
 
 ### 9.4 — 5-Stufen-Abschlussprüfung
 
-`npm run typecheck` 0 Fehler · `npm test` grün · `npm run lint` 0 Fehler · `npm run build` Exit 0 · `git status --short` nur geplante Dateien.
+`npm run typecheck` 0 Fehler · `npm test` grün · `npm run lint` 0 Fehler · `npm run build` Exit 0 · `git status --short` nur geplante Dateien. (Exakte Zahlen: siehe Abschlussbericht.)
 
 ### 9.5 — Offene Reste
 
@@ -191,5 +235,3 @@ Neu: `.github/workflows/codeql.yml` · Geändert: `.github/workflows/security-st
 2. **Alerting-Rest bei Jan (K5):** Entscheidung GitHub-native vs. Telegram vs. Slack auf Basis von §9 der Doku — Telegram wäre ohne neues Token machbar (nur `chat_id`).
 3. **Neuer Härtungsbefund (K5):** `allow_force_pushes: true` auf `main` — Empfehlung in der Doku, Umsetzung bewusst nicht Teil dieses read-only Scopes.
 4. **K5-Entscheidung (optional):** `codeql` als Required-Check ergänzen, falls es merge-blocken soll.
-
-**Nachtrag (2026-09-13, Verifikations-Runde der Planungskonversation):** D1 wurde real geschlossen — die Concurrency-Blöcke/Red-Team-Skripte sind inzwischen per gezieltem Commit (`bcc035ba` auf einem Vorbereitungs-Branch, Basis für `security-round3-final-merge`) nachgezogen und mit `round3-security-merge` konfliktfrei zusammengeführt (einziger echter Konflikt: `red-team-security.yml`, beide additiven Blöcke behalten — per Trockenlauf UND echtem Merge zweimal verifiziert). Volle 5-Stufen-Prüfung auf dem finalen Stand: Typecheck 0, Test 212/212 Dateien · 1605/1605, Lint 0/23, Build ✅ (eigene `npm ci`, kein recyceltes `node_modules`).

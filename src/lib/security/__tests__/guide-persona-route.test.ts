@@ -25,7 +25,11 @@ function getRequest(userId: string): Request {
 function patchRequest(body: unknown): Request {
   return new Request('https://casino.test/api/casino/guide-persona', {
     method: 'PATCH',
-    headers: { 'content-type': 'application/json', 'x-forwarded-for': '203.0.113.10' },
+    headers: {
+      'content-type': 'application/json',
+      'x-forwarded-for': '203.0.113.10',
+      origin: 'https://casino.test',
+    },
     body: JSON.stringify(body),
   });
 }
@@ -44,7 +48,10 @@ function mockSupabase(options: {
   const selectEq = vi.fn(() => ({
     single: vi
       .fn()
-      .mockResolvedValue({ data: { guide_persona: options.persona ?? 'math_strategist' }, error: null }),
+      .mockResolvedValue({
+        data: { guide_persona: options.persona ?? 'math_strategist' },
+        error: null,
+      }),
   }));
   const updateEq = vi.fn().mockResolvedValue({ error: options.updateError ?? null });
   const from = vi.fn(() => ({
@@ -53,7 +60,9 @@ function mockSupabase(options: {
   }));
 
   mocks.createClient.mockResolvedValue({
-    auth: { getUser: async () => ({ data: { user: options.userId ? { id: options.userId } : null } }) },
+    auth: {
+      getUser: async () => ({ data: { user: options.userId ? { id: options.userId } : null } }),
+    },
     from,
   });
 
@@ -138,5 +147,20 @@ describe('PATCH /api/casino/guide-persona (06_6 reference route)', () => {
     const response = await PATCH(patchRequest({ persona: 'casual_buddy' }));
 
     expect(response.status).toBe(401);
+  });
+
+  it('rejects a cross-origin PATCH before touching any data (T_SECURITY_HARDENING/04 L1)', async () => {
+    mockSupabase({ userId: 'player-1' });
+
+    const response = await PATCH(
+      new Request('https://casino.test/api/casino/guide-persona', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', origin: 'https://attacker.example' },
+        body: JSON.stringify({ persona: 'casual_buddy' }),
+      }),
+    );
+
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ error: 'Cross-site mutation rejected' });
   });
 });

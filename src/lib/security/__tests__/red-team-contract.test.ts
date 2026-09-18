@@ -9,6 +9,7 @@ const idor = readFileSync(resolve(root, 'scripts/red-team/admin-idor.ts'), 'utf8
 const botBypass = readFileSync(resolve(root, 'scripts/red-team/bot-bypass.ts'), 'utf8');
 const crashMpBypass = readFileSync(resolve(root, 'scripts/red-team/crash-mp-bypass.ts'), 'utf8');
 const fraudIdor = readFileSync(resolve(root, 'scripts/red-team/admin-fraud-idor.ts'), 'utf8');
+const originBypass = readFileSync(resolve(root, 'scripts/red-team/origin-bypass.ts'), 'utf8');
 const catalog = readFileSync(resolve(root, 'scripts/red-team/test-catalog.json'), 'utf8');
 const workflow = readFileSync(resolve(root, '.github/workflows/red-team-security.yml'), 'utf8');
 
@@ -73,5 +74,14 @@ describe('P1.4 red-team contract', () => {
     expect(workflow).toContain('scripts/red-team/bot-bypass.ts');
     expect(workflow).toContain('scripts/red-team/crash-mp-bypass.ts');
     expect(workflow).toContain('scripts/red-team/admin-fraud-idor.ts');
+  });
+
+  it('probes the two-layer CSRF Origin-Guard with forged and spoofed origin shapes', () => {
+    expect(originBypass).toContain('target-guard');
+    expect(originBypass).toContain('sec-fetch-site');
+    expect(originBypass).toContain('403');
+    expect(originBypass).toContain('attacker.example');
+    expect(catalog).toContain('origin-bypass');
+    expect(workflow).toContain('scripts/red-team/origin-bypass.ts');
   });
 });

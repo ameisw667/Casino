@@ -10,6 +10,7 @@ import {
   withRateLimit,
   getClientIdentifier,
   rateLimitHeaders,
+  validateMutationOrigin,
 } from '@/lib/security/request-security';
 import {
   GUIDE_PERSONA_LIMIT,
@@ -23,9 +24,11 @@ const PRIVATE_NO_STORE = { 'Cache-Control': 'private, no-store' };
 // of the two reference implementations for withRateLimit(): the resolve hook runs the auth
 // gate BEFORE the limit decision (user-based buckets) and passes supabase/user through so
 // the handler does not re-authenticate.
-const personaGate = withRateLimit<
-  { supabase: Awaited<ReturnType<typeof createClient>>; userId: string; email?: string }
->(
+const personaGate = withRateLimit<{
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  userId: string;
+  email?: string;
+}>(
   async (request, context) => {
     const { supabase, userId } = context.data;
     try {
@@ -98,11 +101,22 @@ const patchSchema = z.object({
 // PATCH /api/casino/guide-persona
 // Updates the authenticated user's active guide persona.
 // Body: { persona: GuidePersona }
+// P1.4 (T_SECURITY_HARDENING/04 CSRF/Origin-Guard): mutation origin is checked before the
+// rate-limit/auth resolve step runs, so forged cross-site requests are rejected earliest.
 // ─────────────────────────────────────────────────────────────────────────────
-export const PATCH = withRateLimit<
-  { supabase: Awaited<ReturnType<typeof createClient>>; userId: string }
->(
+export const PATCH = withRateLimit<{
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  userId: string;
+}>(
   async (request, context) => {
+    const originFailure = validateMutationOrigin(request);
+    if (originFailure) {
+      return NextResponse.json(
+        { error: 'Cross-site mutation rejected' },
+        { status: originFailure.status || 403, headers: PRIVATE_NO_STORE },
+      );
+    }
+
     const { supabase, userId } = context.data;
     try {
       const body = await request.json().catch(() => null);

@@ -1,6 +1,6 @@
 # 01 — CSP `script-src` Nonce-Härtung (Runde 2 — Ziel Top 10–15 %)
 
-> **Status:** 🔴 Geplant · **Stand:** 2026-09-12 · **Owner:** LLM (100 % LLM-Zuständigkeit — Trusted Types ist **explizit nicht Teil dieser Runde**, siehe §0) · **Scope:** `src/proxy.ts` (CSP-Direktiven-Zusammensetzung), `src/lib/security/__tests__/csp-nonce.test.ts`, `src/lib/security/__tests__/proxy-security-headers.test.ts`, neues Anti-Regressions-Skript für `style-src`; **nicht** im Scope: `style-src: unsafe-inline` vollständig eliminieren (riesiger Refactor über 349 Dateien, YAGNI für diese Runde), Trusted Types einführen (Jan/K5), CSP-Violation-Reporting selbst (Säule 6).
+> **Status:** 🟢 Executed (2026-09-12; Trusted-Types-Rest bei Jan) · **Stand:** 2026-09-12 · **Owner:** LLM (100 % LLM-Zuständigkeit — Trusted Types ist **explizit nicht Teil dieser Runde**, siehe §0) · **Scope:** `src/proxy.ts` (CSP-Direktiven-Zusammensetzung), `src/lib/security/__tests__/csp-nonce.test.ts`, `src/lib/security/__tests__/proxy-security-headers.test.ts`, neues Anti-Regressions-Skript für `style-src`; **nicht** im Scope: `style-src: unsafe-inline` vollständig eliminieren (riesiger Refactor über 349 Dateien, YAGNI für diese Runde), Trusted Types einführen (Jan/K5), CSP-Violation-Reporting selbst (Säule 6).
 > **Money-Pfad:** Nein (Header-/CSP-Ebene) · **Security-Review:** Empfohlen bei L4 (neues Anti-Regressions-Gate, CI-Blocking-Verhalten)
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt

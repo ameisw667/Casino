@@ -56,8 +56,40 @@ jobs:
       # of allow-scripts re-invoking the root package's own lifecycle events, husky's git-hooks setup.
       - run: npm run allow-scripts
 
+      # T_SECURITY_HARDENING/02_security_ci_gate.md L2 (2026-09-12): `npx supabase start` pulls
+      # ~1.5-2 GB of Supabase stack Docker images (postgres, kong, gotrue, postgrest, ...) on every
+      # run. Cache the image set between runs, keyed on the pinned Supabase CLI version from
+      # package.json — a CLI bump changes which image tags get pulled, so the key changes too.
+      # Isolation guarantee is NOT diluted: only the immutable Docker images are cached, never any
+      # database state — every run still starts from an empty volume with all migrations applied
+      # fresh by `supabase start`. Both security workflows share this key so whichever runs first
+      # populates it for both (GitHub caches are repo- and branch-scoped, not workflow-scoped).
+      - id: supabase-version
+        run: echo "version=$(npx supabase --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')" >> "$GITHUB_OUTPUT"
+
+      - id: supabase-images
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: /tmp/supabase-images.tar
+          key: supabase-docker-images-${{ runner.os }}-${{ steps.supabase-version.outputs.version }}
+
+      - name: Load cached Supabase Docker images
+        run: if [ -f /tmp/supabase-images.tar ]; then docker load -i /tmp/supabase-images.tar; fi
+
       - name: Start ephemeral local Supabase
         run: npx supabase start
+
+      # ubuntu-latest runners ship with no pre-pulled Docker images, so after `supabase start` the
+      # image list is exactly the Supabase stack. Only saved on a cache miss (otherwise the tar
+      # already holds this exact image set and re-saving it would be wasted upload time). The
+      # cache action's post-job save step then uploads the tar for the next run.
+      - name: Save Supabase Docker images for the next run
+        if: always() && steps.supabase-images.outputs.cache-hit != 'true'
+        run: |
+          images=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -v '<none>')
+          if [ -n "$images" ]; then
+            docker save $images -o /tmp/supabase-images.tar
+          fi
 
       - name: Export local Supabase connection vars
         run: |

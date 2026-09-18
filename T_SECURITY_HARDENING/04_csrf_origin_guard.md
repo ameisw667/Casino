@@ -184,8 +184,6 @@ diese Säule scheiterte an der Classifier-Störung, analog Säule 1). Basis-Comm
 
 ### 9.4 Reste bei Jan / remote
 
-1. Die 2 real verbleibenden Layer-2-Lücken (§9.2 #1, `auth/login-guard`, `auth/signup-suspicion`) — Entscheidung: fixen oder als dokumentierte Ausnahme führen (Runde 3).
+1. Die 4 offenen Layer-2-Lücken (§9.2 #1) — Entscheidung: fixen oder als dokumentierte Ausnahme führen (Runde 3).
 2. Nach Push: erster Red-Team-Lauf mit `origin-bypass.ts` gegen die ephemere Instanz (alle 3 Angriffsformen erwarten 403); das Skript ist gegen die lokale Dev-Umgebung gebaut und wie die etablierten Probes auf `PHASE1_TARGET_CONFIRMED` guarded.
 3. Uncommittete Main-Dir-Dateien committen (`admin/users/[id]/status`, `admin/promo-codes/[code]/reverse` etc.) — sie erweitern den Inventar-Test dann automatisch; bis dahin ist die gepinnte Liste branch-lokal vollständig.
-
-**Nachtrag (2026-09-13, Verifikations-Runde der Planungskonversation):** Vollständig unabhängig verifiziert — `git diff`, Code-Lesung von `guide-persona/route.ts`/`login-history/route.ts`, `migrate-session`/`session-sync` als echte 410-Stubs bestätigt. Diese Säule zusammen mit `round3-security-merge` real in `security-round3-final-merge` gemergt (Commit `45491d52`) — 5-Stufen-Prüfung auf dem finalen Stand erneut grün (212/212 Dateien, 1605/1605 Tests).

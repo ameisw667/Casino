@@ -26,6 +26,11 @@
       "id": "admin-fraud-idor",
       "class": "admin-fraud-idor",
       "routes": ["admin/fraud"]
+    },
+    {
+      "id": "origin-bypass",
+      "class": "origin-bypass",
+      "routes": ["casino/bet"]
     }
   ]
 }

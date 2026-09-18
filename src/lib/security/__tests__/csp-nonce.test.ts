@@ -27,7 +27,10 @@ describe('proxy() CSP nonce generation (01_csp_script_hardening)', () => {
 
   it('only allows unsafe-eval when NODE_ENV is development, never unconditionally', () => {
     expect(proxySource).toMatch(/isDev = process\.env\.NODE_ENV === 'development'/);
-    expect(proxySource).toMatch(/'strict-dynamic'\$\{isDev \? " 'unsafe-eval'" : ''\}/);
+    // The optional ` https:` token is the round-2 legacy-browser fallback (T_SECURITY_HARDENING/01
+    // L3, 2026-09-12) — modern browsers ignore it under strict-dynamic, but it must always sit
+    // BEFORE the ${isDev ...} interpolation so unsafe-eval stays gated on development.
+    expect(proxySource).toMatch(/'strict-dynamic'(?: https:)?\$\{isDev \? " 'unsafe-eval'" : ''\}/);
     // Guard against a future edit accidentally hardcoding unsafe-eval outside the isDev branch.
     const scriptSrcLine = proxySource.split('\n').find((line) => line.includes('script-src'));
     expect(scriptSrcLine).toBeDefined();

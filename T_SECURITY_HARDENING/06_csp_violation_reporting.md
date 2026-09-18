@@ -1,6 +1,6 @@
 # 06 — CSP-Violation-Reporting (Runde 2 — Ziel Top 10–15 %)
 
-> **Status:** 🟢 Executed (2026-09-12; kein K5-Rest — 3 GitHub-Repo-Secrets für den Rate-Watch-Job ausstehend, non-blocking, siehe §9) · **Stand:** 2026-09-12 · **Owner:** LLM (100 % LLM-Zuständigkeit — **kein Jan-Gate in dieser Säule**, siehe §0) · **Scope:** `src/app/api/internal/csp-report/route.ts`, `src/lib/security/request-security.ts` (globaler Cap), `sentry.server.config.ts`/`sentry.edge.config.ts` (Sampling); **nicht** im Scope: CSP-Direktiven selbst (Säule 1), Admin-Dashboard-UI für CSP-Reports (größerer Frontend-Task, YAGNI ohne konkreten Bedarfsnachweis).
+> **Status:** 🟢 Executed (kein Rest) · **Stand:** 2026-09-12 · **Owner:** LLM (100 % LLM-Zuständigkeit — **kein Jan-Gate in dieser Säule**, siehe §0) · **Scope:** `src/app/api/internal/csp-report/route.ts`, `src/lib/security/csp-report.ts` (neu), `scripts/csp-report-rate-watch.mjs` + `.github/workflows/csp-report-rate-watch.yml` (L5); **nicht** im Scope: CSP-Direktiven selbst (Säule 1), Admin-Dashboard-UI für CSP-Reports (größerer Frontend-Task, YAGNI ohne konkreten Bedarfsnachweis).
 > **Money-Pfad:** Nein (Observability-/Report-Ebene) · **Security-Review:** Nein (additive Härtung einer bereits unauthentifizierten, absichtlich offenen Route)
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
@@ -14,13 +14,13 @@
 
 ## 1 — Übersicht für Jan
 
-| Nr. | Meilenstein                                                    | Scope (Dateien)                                                             |   Status   | Zuständigkeit | Verifikation                                                                                            |
-| --- | -------------------------------------------------------------- | --------------------------------------------------------------------------- | :--------: | :-----------: | ------------------------------------------------------------------------------------------------------- |
-| L1  | Globaler Request-Cap gegen Denial-of-Wallet                    | `src/app/api/internal/csp-report/route.ts`                                  | 🔴 Geplant |      LLM      | Ein aggregierter Deckel (z. B. X Reports/Minute über alle IPs) begrenzt den Sentry-Event-Ausstoß        |
-| L2  | Sentry-`sampleRate` für CSP-Reports ergänzen                   | `sentry.server.config.ts`, `sentry.edge.config.ts`, `route.ts`              | 🔴 Geplant |      LLM      | CSP-Reports werden mit reduzierter Rate an Sentry weitergeleitet, zweite Verteidigungslinie gegen L1    |
-| L3  | Zod-Schemavalidierung der einzelnen Report-Felder              | `src/app/api/internal/csp-report/route.ts`                                  | 🔴 Geplant |      LLM      | Malformed/unerwartete Felder werden vor dem Sentry-Versand strukturiert erkannt, Route bleibt 204       |
-| L4  | Dedup/Aggregation nach `violated-directive` vor Sentry-Versand | `src/app/api/internal/csp-report/route.ts`                                  | 🔴 Geplant |      LLM      | Identische Verstöße innerhalb eines Zeitfensters erzeugen nicht mehr N einzelne Sentry-Events           |
-| L5  | Alarm bei plötzlichem Anstieg der Violation-Rate               | Neuer, nicht-blockierender Workflow-Schritt (Muster: Säule 7/8 Job-Summary) | 🔴 Geplant |      LLM      | Ein Anstieg über einen definierten Schwellenwert wird sichtbar gemacht (Job-Summary, nicht blockierend) |
+| Nr. | Meilenstein                                            | Scope (Dateien)                                                                                 |   Status    | Zuständigkeit | Verifikation                                                                                      |
+| --- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------- | :---------: | :-----------: | ------------------------------------------------------------------------------------------------- |
+| L1  | Globaler Request-Cap gegen Denial-of-Wallet            | `src/app/api/internal/csp-report/route.ts`                                                      | 🟢 Executed |      LLM      | Ein aggregierter Deckel (120 Requests/60s über alle IPs) begrenzt den Sentry-Event-Ausstoß        |
+| L2  | Deterministisches Sampling vor dem Sentry-Forward      | `src/lib/security/csp-report.ts` (neu), `route.ts`                                              | 🟢 Executed |      LLM      | Max. 30 Reports/60s ungefiltert, danach 1 von 30; aggregierter Zähler-Event pro Fenster           |
+| L3  | Zod-Schemavalidierung der einzelnen Report-Felder      | `src/lib/security/csp-report.ts` (neu), `route.ts`                                              | 🟢 Executed |      LLM      | Malformed/unerwartete Felder werden vor dem Sentry-Versand strukturiert erkannt, Route bleibt 204 |
+| L4  | In-Batch-Dedup nach `violated-directive`+`blocked-uri` | `src/lib/security/csp-report.ts` (neu), `route.ts`                                              | 🟢 Executed |      LLM      | Identische Verstöße innerhalb eines Batches erzeugen ein einziges Event mit Zähler                |
+| L5  | Alarm bei plötzlichem Anstieg der Violation-Rate       | `scripts/csp-report-rate-watch.mjs` + `.github/workflows/csp-report-rate-watch.yml` (beide neu) | 🟢 Executed |      LLM      | >3x-Anstieg gegen rollierende 24h-Baseline wird im Job-Summary markiert (nicht blockierend)       |
 
 **Warum kein Jan-Gate:** Alle 5 Meilensteine sind additive Härtungen einer bereits absichtlich unauthentifizierten Route, ohne neues Secret, ohne Breaking Change.
 
@@ -143,15 +143,17 @@
 
 ## 8 — Verwandte Artefakte
 
-| Bedarf                                                  | Datei                                                                                                                                   |
-| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Archivierte Runde-1-Planungsdatei                       | [`docs/archive/t_security_hardening_06_csp_violation_reporting.md`](../docs/archive/t_security_hardening_06_csp_violation_reporting.md) |
-| Report-Ingestion-Route (wird in L1-L4 geändert)         | [`src/app/api/internal/csp-report/route.ts`](../src/app/api/internal/csp-report/route.ts)                                               |
-| Rate-Limit-Kernlogik (Referenz für L1)                  | [`src/lib/security/request-security.ts`](../src/lib/security/request-security.ts)                                                       |
-| Sentry-Konfiguration (wird in L2 geändert)              | [`sentry.server.config.ts`](../sentry.server.config.ts), [`sentry.edge.config.ts`](../sentry.edge.config.ts)                            |
-| Referenzmuster für L5 (Baseline/Schedule-Job-Summary)   | [`07_dependency_supply_chain_audit.md`](./07_dependency_supply_chain_audit.md) (L2)                                                     |
-| Verzahnte, aber getrennte Säule (CSP-Direktiven selbst) | [`01_csp_script_hardening.md`](./01_csp_script_hardening.md)                                                                            |
-| Übersicht (alle 10 Säulen)                              | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                                          |
+| Bedarf                                                  | Datei                                                                                                                                                                        |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Archivierte Runde-1-Planungsdatei                       | [`docs/archive/t_security_hardening_06_csp_violation_reporting.md`](../docs/archive/t_security_hardening_06_csp_violation_reporting.md)                                      |
+| Report-Ingestion-Route (wird in L1-L4 geändert)         | [`src/app/api/internal/csp-report/route.ts`](../src/app/api/internal/csp-report/route.ts)                                                                                    |
+| Verarbeitungslogik (neu, L2-L4)                         | [`src/lib/security/csp-report.ts`](../src/lib/security/csp-report.ts)                                                                                                        |
+| Rate-Limit-Kernlogik (Referenz für L1)                  | [`src/lib/security/request-security.ts`](../src/lib/security/request-security.ts)                                                                                            |
+| Sentry-Konfiguration (bewusst unverändert, siehe §9)    | [`sentry.server.config.ts`](../sentry.server.config.ts), [`sentry.edge.config.ts`](../sentry.edge.config.ts)                                                                 |
+| L5-Workflow + Rate-Watch-Script                         | [`scripts/csp-report-rate-watch.mjs`](../scripts/csp-report-rate-watch.mjs), [`.github/workflows/csp-report-rate-watch.yml`](../.github/workflows/csp-report-rate-watch.yml) |
+| Referenzmuster für L5 (Baseline/Schedule-Job-Summary)   | [`07_dependency_supply_chain_audit.md`](./07_dependency_supply_chain_audit.md) (L2)                                                                                          |
+| Verzahnte, aber getrennte Säule (CSP-Direktiven selbst) | [`01_csp_script_hardening.md`](./01_csp_script_hardening.md)                                                                                                                 |
+| Übersicht (alle 10 Säulen)                              | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                                                                               |
 
 ---
 
@@ -182,5 +184,3 @@ Alle 5 Meilensteine umgesetzt. **Wichtige reale Erkenntnis bei L2:** die install
 5. **Baseline-Testzahl:** 1543 Tests (nicht die im Auftrag genannten ~1690) — bereits auf unverändertem Basis-Commit 8863b64 so.
 6. **L5-Live-Verifikation** der echten Sentry-API nicht möglich (Secrets/Netz, kein Jan-Gate) — siehe oben; Logic voll deterministisch getestet.
 7. **Kanonische Doku unverändert:** `xx_docs/08_api_backend_context.md` / `xx_sop/07_api_backend_routes.md` listen die CSP-Report-Sink-Route nicht einzeln (nur die CSP-Header in `src/proxy.ts`, Säule 1); der externe Vertrag der Route (immer 204, unauthentifiziert, kein neuer Endpunkt) hat sich nicht geändert — daher kein Doku-Drift.
-
-**Nachtrag (2026-09-13, Verifikations-Runde der Planungskonversation):** Vollständig unabhängig verifiziert — Route/Sampling/Dedup-Code gelesen, K5-Integrität geprüft (`sentry.*.config.ts` wirklich unangetastet, bestätigt). Diese Säule zusammen mit `round3-security-merge` real in `security-round3-final-merge` gemergt (Commit `45491d52`) — 5-Stufen-Prüfung auf dem finalen Stand erneut grün (212/212 Dateien, 1605/1605 Tests). Die 3 GitHub-Repo-Secrets (`SENTRY_ORG`/`SENTRY_PROJECT`/`SENTRY_AUTH_TOKEN`) sind weiterhin nicht hinterlegt — bleibt der einzige, non-blocking offene Punkt bei Jan.
