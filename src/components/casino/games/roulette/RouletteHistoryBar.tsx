@@ -1,5 +1,6 @@
 'use client';
 
+import type { CSSProperties } from 'react';
 import { Flame, Snowflake } from 'lucide-react';
 import type { Color, RouletteNumber } from './types';
 
@@ -14,6 +15,24 @@ interface RouletteHistoryBarProps {
   hideHotCold?: boolean;
 }
 
+const VISUALLY_HIDDEN_STYLE: CSSProperties = {
+  position: 'absolute',
+  width: '1px',
+  height: '1px',
+  padding: 0,
+  margin: '-1px',
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+};
+
+const COLOR_LABEL: Record<Color, string> = {
+  RED: 'Rot',
+  BLACK: 'Schwarz',
+  GREEN: 'Grün',
+};
+
 /**
  * Top bar of the roulette stage: Optional stats badge on the left,
  * last winning-number badges on the right.
@@ -23,6 +42,8 @@ export function RouletteHistoryBar({
   sectorStats,
   hideHotCold = false,
 }: RouletteHistoryBarProps) {
+  const latest = history[0];
+
   return (
     <div
       style={{
@@ -149,6 +170,11 @@ export function RouletteHistoryBar({
             {h.n}
           </div>
         ))}
+      </div>
+
+      {/* Screenreader-only announcement of the newest winning number */}
+      <div aria-live="polite" role="status" style={VISUALLY_HIDDEN_STYLE}>
+        {latest ? `Ergebnis: ${latest.n}, ${COLOR_LABEL[latest.c]}` : ''}
       </div>
     </div>
   );

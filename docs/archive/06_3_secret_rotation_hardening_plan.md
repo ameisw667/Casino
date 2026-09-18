@@ -1,8 +1,8 @@
-> **Archiviert 2026-08-29.** Ursprünglich `worldmap/04_08_secret_rotation.md`. Alle 6 Meilensteine (L1–L6) sind umgesetzt und verifiziert — siehe Abschnitt 5/6 für das ehrliche Ergebnis (Top 22 %, unterschreitet das Ziel von mindestens Top 30 % deutlich, weil zwei Unterkategorien bewusst K5-gebunden bzw. unangetastet bleiben). Aktueller Stand der Kategorie 04 in [`worldmap/04_security_hardening.md`](../../worldmap/04_security_hardening.md), Live-Status in [`worldmap/00_WORLDMAP_STATUS.md`](../../worldmap/00_WORLDMAP_STATUS.md).
+> **Archiviert 2026-08-29.** Ursprünglich `worldmap/04_08_secret_rotation.md`. Alle 6 Meilensteine (L1–L6) sind umgesetzt und verifiziert — siehe Abschnitt 5/6 für das ehrliche Ergebnis (Top 22 %, unterschreitet das Ziel von mindestens Top 30 % deutlich, weil zwei Unterkategorien bewusst K5-gebunden bzw. unangetastet bleiben). Aktueller Stand der Kategorie 04 in [`T_SECURITY_HARDENING/04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md), Live-Status in [`worldmap/00_WORLDMAP_STATUS.md`](../../worldmap/00_WORLDMAP_STATUS.md).
 
 # 04.08 — Secret-Rotation-Prozess: Von Top 55 % zu mindestens Top 30 %
 
-> **Status:** Executed (archiviert) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Härtung von Unterkategorie #8 „Secret-Rotation-Prozess" aus [`04_security_hardening.md`](../../worldmap/04_security_hardening.md) (Kategorie 04, Prio 1) — bewusst **nicht** die Ausführung einer echten Rotation (K5, bleibt bei Jan) und **nicht** Auth/Identity (Kategorie 03) oder Rate Limiting (Kategorie 06).
+> **Status:** Executed (archiviert) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Härtung von Unterkategorie #8 „Secret-Rotation-Prozess" aus [`04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md) (Kategorie 04, Prio 1) — bewusst **nicht** die Ausführung einer echten Rotation (K5, bleibt bei Jan) und **nicht** Auth/Identity (Kategorie 03) oder Rate Limiting (Kategorie 06).
 > **Money-Pfad:** Nein (reine Prozess-/Tooling-Härtung, kein Wallet-Schreibpfad) · **Security-Review:** Pflicht (jede Änderung an Secret-Handling/CI ist sicherheitsrelevant)
 
 ---
@@ -13,14 +13,14 @@ Die tatsächliche **Rotation** eines echten Secrets (neuen Wert bei einem Dritta
 
 ## 1 — Übersicht für Jan
 
-| Nummer | Meilenstein | Status | Nächster Schritt | Zuständigkeit |
-| :--- | :--- | :---: | :--- | :---: |
-| **L1** | **Secret-Scanning in CI** (gitleaks als Workflow-Step) | 🟢 Verifiziert | — | LLM |
-| **L2** | **Secret-Scanning lokal** (Pre-Commit-Hook) | 🟢 Verifiziert | — | LLM |
-| **L3** | **Secret-Inventar vervollständigen** (SOP-Klassifizierung ↔ echte `process.env.*`-Nutzung) | 🟢 Verifiziert | — | LLM |
-| **L4** | **Rotation-Fälligkeits-Tracking** (Log + Prüfskript, keine Klartextwerte) | 🟢 Verifiziert | — | LLM |
-| **L5** | **Incident-Response-Runbook** (Casino-spezifisch, im Leck-Fall) | 🟢 Verifiziert | — | LLM |
-| **L6** | **Least-Privilege-Scope-Audit** (dokumentierte Empfehlung, keine Ausführung) | 🟢 Verifiziert | — | LLM |
+| Nummer | Meilenstein                                                                                |     Status     | Nächster Schritt | Zuständigkeit |
+| :----- | :----------------------------------------------------------------------------------------- | :------------: | :--------------- | :-----------: |
+| **L1** | **Secret-Scanning in CI** (gitleaks als Workflow-Step)                                     | 🟢 Verifiziert | —                |      LLM      |
+| **L2** | **Secret-Scanning lokal** (Pre-Commit-Hook)                                                | 🟢 Verifiziert | —                |      LLM      |
+| **L3** | **Secret-Inventar vervollständigen** (SOP-Klassifizierung ↔ echte `process.env.*`-Nutzung) | 🟢 Verifiziert | —                |      LLM      |
+| **L4** | **Rotation-Fälligkeits-Tracking** (Log + Prüfskript, keine Klartextwerte)                  | 🟢 Verifiziert | —                |      LLM      |
+| **L5** | **Incident-Response-Runbook** (Casino-spezifisch, im Leck-Fall)                            | 🟢 Verifiziert | —                |      LLM      |
+| **L6** | **Least-Privilege-Scope-Audit** (dokumentierte Empfehlung, keine Ausführung)               | 🟢 Verifiziert | —                |      LLM      |
 
 Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
@@ -28,18 +28,18 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
 ## 2 — Ausgangslage: Sub-Kategorie-Aufschlüsselung (max. 10, aus #8 abgeleitet)
 
-| # | Sub-Unterkategorie | Niveau | Kernbefund |
-| - | --- | --- | --- |
-| 1 | Rotationsklassen & Turnus-Dokumentation | **Top 15 %** | `xx_sop/14_secret_rotation.md` — 5 Klassen nach Blast-Radius (90–365 Tage), solide |
-| 2 | Secret-Inventar-Vollständigkeit | **Top 40 %** | Grep über alle `process.env.*` in `src/`/`scripts/` (2026-08-29) zeigt: `POSTHOG_PERSONAL_API_KEY` wird real verwendet, ist aber **nicht** in der SOP-Klassifizierungstabelle gelistet |
-| 3 | Automatisiertes Secret-Scanning in CI | **Top 90 %** | 0 Treffer für gitleaks/truffleHog/secretlint im Repo — nichts verhindert technisch, dass ein echtes Secret gepusht wird |
-| 4 | Pre-Commit Secret-Scanning (lokal) | **Top 90 %** | `.husky/pre-commit` prüft nur Migrations-Kollisionen + `lint-staged` (ESLint/Prettier) — kein Secret-Pattern-Check |
-| 5 | `.env.example`-Hygiene | **Top 15 %** | 26 Variablen, ausschließlich Platzhalter (`your_...`), keine echten Werte — verifiziert per Grep, sauber |
-| 6 | Rotation-Fälligkeits-Tracking | **Top 85 %** | SOP sagt explizit „Datum am besten im Anbieter-Dashboard, nicht im Repo" — es existiert aktuell **keinerlei** Mechanismus, der Fälligkeit automatisiert prüft oder anzeigt |
-| 7 | Incident-Response-Runbook (Casino-spezifisch) | **Top 70 %** | `_Brain/50_Library/Secrets-Reference.md` hat ein „CRITICAL Rotation-Backlog"-Muster, aber ausschließlich für andere Projekte (DashboardJan, Taschenrechner, ReactLandingpages) — Casino selbst hat kein eigenes „was tun, wenn hier etwas leakt"-Runbook |
-| 8 | HMAC-Secret-Versionierungs-Konsistenz | **Top 60 %** | Nur `GUIDE_TELEMETRY_HMAC_SECRET` hat ein Versions-Tag (`GUIDE_TELEMETRY_HMAC_VERSION`); `POSTHOG_DISTINCT_ID_HMAC_SECRET` hat keins — SOP benennt das bereits korrekt als bewusst zurückgestellt, da Rotation sonst alle bisherigen `distinctId`-Werte bräche (Breaking Change, braucht Jans Abwägung) |
-| 9 | Server-only-Enforcement / Zugriffsisolation | **Top 15 %** | `SUPABASE_SERVICE_ROLE_KEY` server-only, Admin-Allowlist — teilt sich den Nachweis mit Kategorie 02 #9 und Kategorie 04 #3, hier nur aus Secret-Rotation-Perspektive gezählt |
-| 10 | Least-Privilege-Scope der Secrets | **Top 70 %** | `.env.example` dokumentiert `POSTHOG_PERSONAL_API_KEY` mit `person_write`-Scope; nie gegen den tatsächlichen Verwendungscode geprüft, ob das minimal-notwendig ist |
+| #   | Sub-Unterkategorie                            | Niveau       | Kernbefund                                                                                                                                                                                                                                                                                              |
+| --- | --------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Rotationsklassen & Turnus-Dokumentation       | **Top 15 %** | `xx_sop/14_secret_rotation.md` — 5 Klassen nach Blast-Radius (90–365 Tage), solide                                                                                                                                                                                                                      |
+| 2   | Secret-Inventar-Vollständigkeit               | **Top 40 %** | Grep über alle `process.env.*` in `src/`/`scripts/` (2026-08-29) zeigt: `POSTHOG_PERSONAL_API_KEY` wird real verwendet, ist aber **nicht** in der SOP-Klassifizierungstabelle gelistet                                                                                                                  |
+| 3   | Automatisiertes Secret-Scanning in CI         | **Top 90 %** | 0 Treffer für gitleaks/truffleHog/secretlint im Repo — nichts verhindert technisch, dass ein echtes Secret gepusht wird                                                                                                                                                                                 |
+| 4   | Pre-Commit Secret-Scanning (lokal)            | **Top 90 %** | `.husky/pre-commit` prüft nur Migrations-Kollisionen + `lint-staged` (ESLint/Prettier) — kein Secret-Pattern-Check                                                                                                                                                                                      |
+| 5   | `.env.example`-Hygiene                        | **Top 15 %** | 26 Variablen, ausschließlich Platzhalter (`your_...`), keine echten Werte — verifiziert per Grep, sauber                                                                                                                                                                                                |
+| 6   | Rotation-Fälligkeits-Tracking                 | **Top 85 %** | SOP sagt explizit „Datum am besten im Anbieter-Dashboard, nicht im Repo" — es existiert aktuell **keinerlei** Mechanismus, der Fälligkeit automatisiert prüft oder anzeigt                                                                                                                              |
+| 7   | Incident-Response-Runbook (Casino-spezifisch) | **Top 70 %** | `_Brain/50_Library/Secrets-Reference.md` hat ein „CRITICAL Rotation-Backlog"-Muster, aber ausschließlich für andere Projekte (DashboardJan, Taschenrechner, ReactLandingpages) — Casino selbst hat kein eigenes „was tun, wenn hier etwas leakt"-Runbook                                                |
+| 8   | HMAC-Secret-Versionierungs-Konsistenz         | **Top 60 %** | Nur `GUIDE_TELEMETRY_HMAC_SECRET` hat ein Versions-Tag (`GUIDE_TELEMETRY_HMAC_VERSION`); `POSTHOG_DISTINCT_ID_HMAC_SECRET` hat keins — SOP benennt das bereits korrekt als bewusst zurückgestellt, da Rotation sonst alle bisherigen `distinctId`-Werte bräche (Breaking Change, braucht Jans Abwägung) |
+| 9   | Server-only-Enforcement / Zugriffsisolation   | **Top 15 %** | `SUPABASE_SERVICE_ROLE_KEY` server-only, Admin-Allowlist — teilt sich den Nachweis mit Kategorie 02 #9 und Kategorie 04 #3, hier nur aus Secret-Rotation-Perspektive gezählt                                                                                                                            |
+| 10  | Least-Privilege-Scope der Secrets             | **Top 70 %** | `.env.example` dokumentiert `POSTHOG_PERSONAL_API_KEY` mit `person_write`-Scope; nie gegen den tatsächlichen Verwendungscode geprüft, ob das minimal-notwendig ist                                                                                                                                      |
 
 **Rechnerischer Schnitt (Ist-Zustand):** (15+40+90+90+15+85+70+60+15+70)/10 = **Top 55 %** — deckt sich mit dem bisherigen Kategorie-04-Wert für #8, bestätigt die Konsistenz dieser Aufschlüsselung.
 
@@ -116,18 +116,18 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
 ## 5 — Tatsächliches Niveau nach Ausführung (Ziel-Check)
 
-| # | Sub-Unterkategorie | Vorher | Danach (real) |
-| - | --- | --- | --- |
-| 1 | Rotationsklassen & Turnus | 15 % | 15 % |
-| 2 | Inventar-Vollständigkeit | 40 % | 20 % |
-| 3 | CI Secret-Scanning | 90 % | 15 % |
-| 4 | Pre-Commit Secret-Scanning | 90 % | 15 % |
-| 5 | `.env.example`-Hygiene | 15 % | 15 % |
-| 6 | Rotation-Tracking | 85 % | 30 % |
-| 7 | Incident-Runbook | 70 % | 20 % |
-| 8 | HMAC-Versionierung | 60 % | 60 % (bewusst unverändert, siehe Abschnitt 0) |
-| 9 | Server-only-Enforcement | 15 % | 15 % |
-| 10 | Least-Privilege-Scope | 70 % | 20 % (auditiert: Scope ist bereits minimal-notwendig, keine Über-Berechtigung gefunden — besseres Ergebnis als ursprünglich vermutet) |
+| #   | Sub-Unterkategorie         | Vorher | Danach (real)                                                                                                                         |
+| --- | -------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Rotationsklassen & Turnus  | 15 %   | 15 %                                                                                                                                  |
+| 2   | Inventar-Vollständigkeit   | 40 %   | 20 %                                                                                                                                  |
+| 3   | CI Secret-Scanning         | 90 %   | 15 %                                                                                                                                  |
+| 4   | Pre-Commit Secret-Scanning | 90 %   | 15 %                                                                                                                                  |
+| 5   | `.env.example`-Hygiene     | 15 %   | 15 %                                                                                                                                  |
+| 6   | Rotation-Tracking          | 85 %   | 30 %                                                                                                                                  |
+| 7   | Incident-Runbook           | 70 %   | 20 %                                                                                                                                  |
+| 8   | HMAC-Versionierung         | 60 %   | 60 % (bewusst unverändert, siehe Abschnitt 0)                                                                                         |
+| 9   | Server-only-Enforcement    | 15 %   | 15 %                                                                                                                                  |
+| 10  | Least-Privilege-Scope      | 70 %   | 20 % (auditiert: Scope ist bereits minimal-notwendig, keine Über-Berechtigung gefunden — besseres Ergebnis als ursprünglich vermutet) |
 
 **Realer Schnitt:** (15+20+15+15+15+30+20+60+15+20)/10 = **Top 22 %** — unterschreitet das Ziel von mindestens Top 30 % deutlich. Grund: #8 (HMAC-Versionierung) und ein Teil von #10 bleiben bewusst bei Jan (Breaking-Change-Abwägung), alle anderen 8 Unterkategorien wurden aber deutlich unter 30 % gedrückt — der Gesamtschnitt liegt trotzdem darunter, weil die Ausgangswerte so schlecht waren, dass selbst 8 stark verbesserte Positionen die 2 unveränderten nicht kompensieren.
 
@@ -142,8 +142,8 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
 ## 7 — Verwandte Artefakte
 
-| Bedarf | Datei |
-| :--- | :--- |
-| Übergeordnete Kategorie-04-Aufschlüsselung (Herkunft dieses Plans) | [`04_security_hardening.md`](../../worldmap/04_security_hardening.md) |
-| Secret-Rotation-SOP (wird durch L3/L5 erweitert) | [`xx_sop/14_secret_rotation.md`](../../xx_sop/14_secret_rotation.md) |
-| Secrets-Übersicht projektübergreifend | [`_Brain/50_Library/Secrets-Reference.md`](../../../_Brain/50_Library/Secrets-Reference.md) |
+| Bedarf                                                             | Datei                                                                                       |
+| :----------------------------------------------------------------- | :------------------------------------------------------------------------------------------ |
+| Übergeordnete Kategorie-04-Aufschlüsselung (Herkunft dieses Plans) | [`04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md)           |
+| Secret-Rotation-SOP (wird durch L3/L5 erweitert)                   | [`xx_sop/14_secret_rotation.md`](../../xx_sop/14_secret_rotation.md)                        |
+| Secrets-Übersicht projektübergreifend                              | [`_Brain/50_Library/Secrets-Reference.md`](../../../_Brain/50_Library/Secrets-Reference.md) |

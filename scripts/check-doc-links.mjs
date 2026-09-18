@@ -3,13 +3,19 @@ import { dirname, join, resolve, relative, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOTS = ['worldmap', 'docs', 'xx_sop', 'xx_docs', 'T_BUGS', 'T_FRONTEND', 'Z_LLM'];
-const EXTRA_FILES = ['CLAUDE.md', 'AGENTS.md'];
+const EXTRA_FILES = ['CLAUDE.md', 'AGENTS.md', 't_claude_code/01_4_command_workflow.md'];
 const LINK_RE = /\]\((\.{1,2}\/[^)#\s]+)(#[^)]*)?\)/g;
 const MOJIBAKE_RE = /[一-鿿぀-ヿ゠-ヿ]/;
 // Bekannte, bewusst offene Ausnahmen — geprüft gegen das AUFLÖSTE ZIEL, nicht die Quelldatei
 // (siehe 04_datenbank_migrationen.md / 05_datenbank_haertung.md Teil A/L3 — Jans Klärung offen):
 const KNOWN_EXCEPTIONS = new Set(['worldmap/05_Gildensystem.md']);
 const ARCHIVE_PATTERN = /(^|[\\/])docs[\\/]archive[\\/]/;
+const BARE_OR_DOT_RELATIVE_LINK_RE =
+  /\]\((?![a-zA-Z][a-zA-Z0-9+.-]*:|\/|#)([^)#\s]+)(?:#[^)]*)?\)/g;
+
+export function extractRelativeMarkdownTargets(content) {
+  return [...content.matchAll(BARE_OR_DOT_RELATIVE_LINK_RE)].map((match) => match[1]);
+}
 
 function listMarkdownFiles(root) {
   const out = [];
@@ -60,8 +66,12 @@ let externalCount = 0;
 function checkFile(file) {
   const content = readFileSync(file, 'utf8');
 
-  for (const match of content.matchAll(LINK_RE)) {
-    const relTarget = match[1];
+  const isCommandOverview = file.replace(/\\/g, '/') === 't_claude_code/01_4_command_workflow.md';
+  const targets = isCommandOverview
+    ? extractRelativeMarkdownTargets(content)
+    : [...content.matchAll(LINK_RE)].map((match) => match[1]);
+
+  for (const relTarget of targets) {
     const targetPath = resolve(dirname(file), relTarget.replace(/:\d+$/, '')); // Zeilennummer-Suffix abschneiden
     const normalizedTarget = relative(process.cwd(), targetPath).replace(/\\/g, '/');
     if (KNOWN_EXCEPTIONS.has(normalizedTarget)) continue;

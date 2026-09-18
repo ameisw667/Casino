@@ -7,10 +7,10 @@ import {
   type LobbyWave,
 } from '@/components/home/useLobbyReactionFx';
 
-const WebGlWaterRefractionCanvas = dynamic(
+const LiquidGoldChromeCanvas = dynamic(
   () =>
-    import('@/components/home/WebGlWaterRefractionCanvas').then(
-      (m) => m.WebGlWaterRefractionCanvas,
+    import('@/components/home/shaders/LiquidGoldChromeCanvas').then(
+      (m) => m.LiquidGoldChromeCanvas,
     ),
   { ssr: false },
 );
@@ -400,7 +400,7 @@ export function LobbyAmbientBackground({
             alt=""
           />
         ) : (
-          <WebGlWaterRefractionCanvas isMobile={false} />
+          <LiquidGoldChromeCanvas isMobile={false} />
         )}
       </div>
 

@@ -2,7 +2,8 @@
 import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Play, Crown, Sparkles, Zap, Flame, ShieldCheck } from 'lucide-react';
+import { X, Play, TrendingUp, Flame } from 'lucide-react';
+import Image from 'next/image';
 
 export interface HighrollerWinItem {
   id: string;
@@ -47,11 +48,18 @@ export function HighrollerWinDetailModal({ win, onClose }: HighrollerWinDetailMo
   const getBadgeIcon = () => {
     switch (win.type) {
       case 'jackpot':
-        return <Sparkles size={18} color="#D4AF37" />;
+        return (
+          <Image
+            src="/images/2026-09-06_icon-promo-bonus-quantum-gold_v001.png"
+            alt="Jackpot"
+            width={18}
+            height={18}
+          />
+        );
       case 'whale':
-        return <Crown size={18} color="#FFD700" />;
+        return <Image src="/images/2026-09-06_icon-crown-jackpot-quantum-gold_v001.png" alt="Whale" width={18} height={18} aria-hidden />;
       case 'vip':
-        return <Zap size={18} color="#00E701" />;
+        return <TrendingUp size={18} color="#00E701" />;
       default:
         return <Flame size={18} color="#FF5722" />;
     }
@@ -309,7 +317,17 @@ export function HighrollerWinDetailModal({ win, onClose }: HighrollerWinDetailMo
                 fontWeight: 600,
               }}
             >
-              <ShieldCheck size={13} color="#10b981" />
+              <span
+                aria-hidden
+                style={{
+                  display: 'inline-block',
+                  width: 13,
+                  height: 13,
+                  backgroundColor: '#10b981',
+                  WebkitMask: 'url(/images/2026-09-06_icon-security-verified-quantum-gold_v001.png) center / contain no-repeat',
+                  mask: 'url(/images/2026-09-06_icon-security-verified-quantum-gold_v001.png) center / contain no-repeat',
+                }}
+              />
               <span>Verifizierte Live-Auszahlung über Casino-Rails</span>
             </div>
           </div>

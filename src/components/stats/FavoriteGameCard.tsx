@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { getFavoriteGame, type PerGameStat } from '@/lib/casino/stats-derivation';
 import { getGameMeta } from './gameMeta';
-import { Trophy, CircleDollarSign, Layers } from 'lucide-react';
+import { Coins, Layers } from 'lucide-react';
+import Image from 'next/image';
 
 interface FavoriteGameCardProps {
   loading: boolean;
@@ -94,7 +95,7 @@ export function FavoriteGameCard({ loading, perGame, isMobile }: FavoriteGameCar
                 gap: '3px',
               }}
             >
-              <Trophy size={9} color="#D4AF37" />
+              <Image src="/images/2026-09-06_icon-trophy-record-quantum-gold_v001.png" alt="Top-Spiel" width={9} height={9} aria-hidden />
               <span>TOP: {getGameMeta(favorite.game).label.toUpperCase()}</span>
             </span>
           )}
@@ -147,7 +148,7 @@ export function FavoriteGameCard({ loading, perGame, isMobile }: FavoriteGameCar
               transition: 'all 0.15s ease',
             }}
           >
-            <CircleDollarSign size={10} />
+            <Coins size={10} />
             <span>PROFIT ($)</span>
           </button>
         </div>

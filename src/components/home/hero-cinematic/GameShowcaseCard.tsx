@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence, type MotionValue } from 'framer-motion';
-import { Flame, Zap, Crown, Sparkles, Users, Play } from 'lucide-react';
+import { Activity, Flame, Dices, Users, Play } from 'lucide-react';
 import { soundManager } from '@/lib/casino/sound-manager';
 import { GAME_TABS, type GameTabConfig } from './config';
 
@@ -214,7 +214,7 @@ export function GameShowcaseCard({
 
                 {activeTab.simType === 'dice' && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Zap size={18} color="#00E701" />
+                    <Dices size={18} color="#00E701" />
                     <div>
                       <div
                         style={{
@@ -242,7 +242,7 @@ export function GameShowcaseCard({
 
                 {activeTab.simType === 'blackjack' && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Crown size={18} color="#D4AF37" />
+                    <Image src="/images/2026-09-06_icon-crown-jackpot-quantum-gold_v001.png" alt="Blackjack Sim" width={18} height={18} aria-hidden />
                     <div>
                       <div
                         style={{
@@ -270,7 +270,7 @@ export function GameShowcaseCard({
 
                 {(activeTab.simType === 'slots' || activeTab.simType === 'roulette') && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Sparkles size={18} color={activeTab.accentColor} />
+                    <Activity size={18} color={activeTab.accentColor} />
                     <div>
                       <div
                         style={{

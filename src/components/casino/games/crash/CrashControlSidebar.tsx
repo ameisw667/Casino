@@ -1,7 +1,9 @@
 'use client';
 
 import type { RefObject } from 'react';
-import { Info, Zap, Sliders, TrendingUp, ShieldCheck } from 'lucide-react';
+import { HelpCircle, Sliders, TrendingUp } from 'lucide-react';
+import Image from 'next/image';
+import { GLYPH_TOKENS } from '@/lib/design-tokens/glyph-tokens';
 import type { CrashStatus } from './crash-helpers';
 import { GameCoPilotHud } from '@/components/casino/hud/GameCoPilotHud';
 
@@ -94,7 +96,7 @@ export function CrashControlSidebar({
               border: '1px solid rgba(212, 175, 55, 0.3)',
             }}
           >
-            <Zap size={18} color="#FFD700" />
+            <Image src="/images/2026-09-06_icon-hud-sidebar-badge-quantum-gold_v001.png" alt="Crash Controls" width={18} height={18} aria-hidden />
           </div>
           <h3
             style={{
@@ -119,7 +121,7 @@ export function CrashControlSidebar({
           }}
           onClick={onShowTutorial}
         >
-          <Info size={16} />
+          <HelpCircle size={16} />
         </button>
       </div>
 
@@ -269,14 +271,14 @@ export function CrashControlSidebar({
             disabled={isRoundActive}
             onClick={() => onQuickBet(betAmount / 2)}
           >
-            ½ Bet
+            {GLYPH_TOKENS.half.value} Bet
           </button>
           <button
             className="quick-chip"
             disabled={isRoundActive}
             onClick={() => onQuickBet(betAmount * 2)}
           >
-            2× Bet
+            {GLYPH_TOKENS.double.value} Bet
           </button>
           <button
             className="quick-chip"
@@ -522,9 +524,29 @@ export function CrashControlSidebar({
           }}
           disabled={!!cashoutAt}
         >
-          {cashoutAt
-            ? `✓ SECURED $${(betAmount * cashoutAt).toFixed(2)} @ ${cashoutAt.toFixed(2)}x`
-            : `CASHOUT $${(betAmount * multiplier).toFixed(2)}`}
+          {cashoutAt ? (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+              }}
+            >
+              <Image
+                src={GLYPH_TOKENS.checkmark.value}
+                alt={GLYPH_TOKENS.checkmark.alt}
+                width={18}
+                height={18}
+                aria-hidden
+              />
+              <span>
+                SECURED ${(betAmount * cashoutAt).toFixed(2)} @ {cashoutAt.toFixed(2)}x
+              </span>
+            </span>
+          ) : (
+            `CASHOUT $${(betAmount * multiplier).toFixed(2)}`
+          )}
         </button>
       )}
 
@@ -540,7 +562,7 @@ export function CrashControlSidebar({
           fontWeight: 700,
         }}
       >
-        <ShieldCheck size={14} color="#D4AF37" />
+        <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Provably Fair" width={14} height={14} aria-hidden />
         <span>PROVABLY FAIR SYSTEM ACTIVE</span>
       </div>
     </div>

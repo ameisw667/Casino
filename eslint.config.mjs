@@ -29,6 +29,8 @@ const eslintConfig = defineConfig([
     'worldmap/**',
     // Agent evaluations & test fixtures
     '.claude/**',
+    // Temporary build cache for mobile lcp audit
+    '.next*/**',
   ]),
   {
     rules: {

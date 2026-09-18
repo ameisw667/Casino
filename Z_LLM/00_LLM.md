@@ -1,6 +1,6 @@
 # 🪙 Royale Guide — Dein persönlicher Überblick
 
-> **Nur für dich, Jan.** Keine Technik, keine Dateipfade, keine Testzahlen im Detail — nur: _wo stehen wir, was kann das Ding, und was kommt noch?_ Gedacht zum schnellen Reinschauen und Erinnern, nicht zum Nachschlagen von Details (dafür gibt's [`10_llm_erweiterung.md`](10_llm_erweiterung.md)).
+> **Nur für dich, Jan.** Keine Technik, keine Dateipfade, keine Testzahlen im Detail — nur: _wo stehen wir, was kann das Ding, und was kommt noch?_ Gedacht zum schnellen Reinschauen und Erinnern, nicht zum Nachschlagen von Details (dafür gibt's die Roadmap in [`10_llm_erweiterung.md`](10_llm_erweiterung.md) und den UI/UX-Audit in [`11_royale_guide_frontend_design_evaluation.md`](11_royale_guide_frontend_design_evaluation.md)).
 
 ---
 
@@ -122,6 +122,18 @@ Nicht weil vorher etwas kaputt war — **alles lief schon davor, alle Tests ware
 - **Richtung Top 1 % (wie dein Login-System):** Alles Wissen in einem sauberen Gesamtdokument bündeln (aktuell über viele kleine Dateien verstreut), Datenbank-Zugriffsrechte extra geprüft.
 
 > Vollständige, technische Version dieser Liste steht in [`10_llm_erweiterung.md`](10_llm_erweiterung.md) Abschnitt 5.
+
+---
+
+## 🎨 Frontend-Design & Visuelle UX (Gesonderter Design-Audit)
+
+> Parallel zur Backend-Reife (Top 10 %) wurde die visuelle Benutzeroberfläche des Royale Guides im Detail auditiert:
+> 
+> - **Aktueller Frontend-Score:** **88,6 % (🥈 Top 11–30 % / Solide VIP-Basis)** — nur 1,4 % vor der 🥇 Top-10-%-Schwelle.
+> - **Die Stars im UI:** 3D-Persona-Medaillons (93 %), 100 % scrollfreie Schnellzugriff-Sidebar (92 %), Web Audio FFT-Echtzeit-Pegelmessung (91 %), atmendes Velvet-Backdrop (90 %).
+> - **Der Hebel zu Top 10 % (ab 90 %):** Quick-Chips im 380px-Kompaktmodus aktivieren, flüssiges Framer-Motion `layout`-Morphen zwischen Klein und Groß, Unread-Badge auf dem Floating Button.
+> - **Vollständiger Audit & Scorecard mit Screenshots:** 👉 [`11_royale_guide_frontend_design_evaluation.md`](11_royale_guide_frontend_design_evaluation.md)
+> - **Luxus-Motion & Componentry Roadmap (Vorher/Nachher):** 👉 [`docs/frontend/14_royale_guide_motion_componentry_recommendations.md`](../docs/frontend/14_royale_guide_motion_componentry_recommendations.md)
 
 ---
 

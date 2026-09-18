@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { SlotReelV2 } from './SlotReelV2';
 import { WinLineV2 } from './WinLineV2';
 import type { SymbolType } from '@/components/casino/SlotSymbol';
@@ -74,9 +74,7 @@ export function SlotCabinetV2({
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ type: 'spring', bounce: 0.5, duration: 0.4 }}
             >
-              <Zap size={32} />
               <span>WIN +${lastResult.amount.toFixed(2)}</span>
-              <Zap size={32} />
             </motion.div>
           )}
         </AnimatePresence>

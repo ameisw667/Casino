@@ -14,6 +14,7 @@ export const CRASH_MULTIPLAYER_STYLES = `
           .crash-container {
             grid-template-columns: 1fr;
           }
+          .obsidian-glass { backdrop-filter: none; -webkit-backdrop-filter: none; }
           .sidebar-left { order: 2; width: 100%; min-width: 0; }
           .game-area { order: 1; width: 100%; min-width: 0; }
         }

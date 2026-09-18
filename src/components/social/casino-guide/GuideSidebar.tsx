@@ -54,12 +54,17 @@ export function GuideSidebar({ isSending, onTopicClick }: GuideSidebarProps) {
   const activeRouteTag = pathname ? ROUTE_TAG_MAP[pathname] : undefined;
 
   return (
-    <aside
+    <motion.aside
+      initial={{ width: 0, opacity: 0 }}
+      animate={{ width: 224, opacity: 1 }}
+      exit={{ width: 0, opacity: 0 }}
+      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
       style={{
         width: '224px',
-        borderRight: '1px solid rgba(212, 175, 55, 0.15)',
+        borderRight: '1px solid rgba(212, 175, 55, 0.18)',
         background:
-          'linear-gradient(180deg, rgba(11, 14, 20, 0.55) 0%, rgba(11, 14, 20, 0.25) 100%)',
+          'linear-gradient(180deg, rgba(11, 14, 20, 0.72) 0%, rgba(11, 14, 20, 0.42) 100%)',
+        backdropFilter: 'blur(12px)',
         padding: '14px 10px 10px 10px',
         display: 'flex',
         flexDirection: 'column',
@@ -68,54 +73,73 @@ export function GuideSidebar({ isSending, onTopicClick }: GuideSidebarProps) {
         overflow: 'hidden',
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '9px', minWidth: '204px' }}>
         {/* Header Title */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '6px',
+            justifyContent: 'space-between',
             padding: '0 4px 2px 4px',
           }}
         >
-          <Zap size={11} color="#D4AF37" aria-hidden />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Zap size={11} color="#D4AF37" aria-hidden />
+            <span
+              style={{
+                fontSize: '0.62rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.10em',
+                color: '#D4AF37',
+              }}
+            >
+              Schnellzugriff
+            </span>
+          </div>
           <span
             style={{
-              fontSize: '0.62rem',
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '0.10em',
-              color: '#D4AF37',
+              fontSize: '0.50rem',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              color: 'rgba(212, 175, 55, 0.85)',
+              background: 'rgba(212, 175, 55, 0.10)',
+              border: '1px solid rgba(212, 175, 55, 0.25)',
+              borderRadius: '999px',
+              padding: '1px 6px',
             }}
           >
-            Schnellzugriff
+            VIP Hub
           </span>
         </div>
 
         {/* Categories */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
           {SIDEBAR_TOPICS.map((group, groupIdx) => (
             <div
               key={group.category}
               style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}
             >
-              {/* Category Header with subtle divider */}
+              {/* Category Header with luxury gold hairline divider */}
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
                   padding: groupIdx > 0 ? '4px 4px 2px 4px' : '0 4px 2px 4px',
-                  borderTop: groupIdx > 0 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none',
+                  borderTop:
+                    groupIdx > 0
+                      ? '1px solid rgba(212, 175, 55, 0.12)'
+                      : 'none',
                 }}
               >
                 <span
                   style={{
-                    fontSize: '0.52rem',
+                    fontSize: '0.50rem',
                     fontWeight: 700,
-                    color: 'rgba(255, 255, 255, 0.40)',
+                    color: 'rgba(255, 255, 255, 0.42)',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
+                    letterSpacing: '0.09em',
                   }}
                 >
                   {group.category}
@@ -123,7 +147,7 @@ export function GuideSidebar({ isSending, onTopicClick }: GuideSidebarProps) {
               </div>
 
               {/* Items in this category */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3.5px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 {group.items.map((item) => {
                   const isContextMatch = Boolean(activeRouteTag && item.tag === activeRouteTag);
                   const Icon = ITEM_ICONS[item.tag] ?? Sparkles;
@@ -136,7 +160,7 @@ export function GuideSidebar({ isSending, onTopicClick }: GuideSidebarProps) {
                         x: 3,
                         borderColor: isContextMatch
                           ? 'rgba(212, 175, 55, 0.85)'
-                          : 'rgba(212, 175, 55, 0.35)',
+                          : 'rgba(212, 175, 55, 0.40)',
                         backgroundColor: isContextMatch
                           ? 'rgba(212, 175, 55, 0.22)'
                           : 'rgba(255, 255, 255, 0.06)',
@@ -144,13 +168,14 @@ export function GuideSidebar({ isSending, onTopicClick }: GuideSidebarProps) {
                       whileTap={{ scale: 0.98 }}
                       onClick={() => onTopicClick(item.query)}
                       disabled={isSending}
+                      className="group relative focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#D4AF37]"
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '8px',
+                        gap: '7px',
                         width: '100%',
                         textAlign: 'left',
-                        padding: '5.5px 8px',
+                        padding: '4.5px 7px 4.5px 9px',
                         borderRadius: '7px',
                         border: isContextMatch
                           ? '1px solid rgba(212, 175, 55, 0.70)'
@@ -159,54 +184,147 @@ export function GuideSidebar({ isSending, onTopicClick }: GuideSidebarProps) {
                           ? 'linear-gradient(90deg, rgba(212, 175, 55, 0.20) 0%, rgba(212, 175, 55, 0.05) 100%)'
                           : 'rgba(18, 23, 34, 0.45)',
                         cursor: isSending ? 'not-allowed' : 'pointer',
-                        transition: 'all 0.16s ease',
+                        transition: 'border-color 0.16s ease, background-color 0.16s ease',
                         boxShadow: isContextMatch
-                          ? '0 0 10px rgba(212, 175, 55, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                          ? '0 0 10px rgba(212, 175, 55, 0.20), inset 0 1px 0 rgba(255, 255, 255, 0.10)'
                           : 'none',
+                        position: 'relative',
+                        overflow: 'hidden',
                       }}
                     >
+                      {/* Left Gold Accent Indicator Bar */}
+                      <span
+                        aria-hidden
+                        style={{
+                          position: 'absolute',
+                          left: 0,
+                          top: '10%',
+                          bottom: '10%',
+                          width: '3px',
+                          borderRadius: '0 2px 2px 0',
+                          backgroundColor: isContextMatch ? '#D4AF37' : 'transparent',
+                          boxShadow: isContextMatch ? '0 0 8px rgba(212, 175, 55, 0.75)' : 'none',
+                          transition: 'all 0.18s ease',
+                        }}
+                        className={
+                          isContextMatch
+                            ? ''
+                            : 'group-hover:bg-[#D4AF37]/80 group-hover:shadow-[0_0_8px_rgba(212,175,55,0.60)]'
+                        }
+                      />
+
                       {/* Left Icon Pill */}
                       <div
                         style={{
                           display: 'grid',
                           placeItems: 'center',
-                          width: '20px',
-                          height: '20px',
+                          width: '21px',
+                          height: '21px',
                           borderRadius: '5px',
                           background: isContextMatch
-                            ? 'rgba(212, 175, 55, 0.25)'
+                            ? 'rgba(212, 175, 55, 0.28)'
                             : 'rgba(255, 255, 255, 0.05)',
+                          border: isContextMatch
+                            ? '1px solid rgba(212, 175, 55, 0.55)'
+                            : '1px solid rgba(255, 255, 255, 0.08)',
                           color: isContextMatch ? '#D4AF37' : 'rgba(255, 255, 255, 0.65)',
                           flexShrink: 0,
                           transition: 'all 0.16s ease',
                         }}
+                        className="group-hover:border-[#D4AF37]/50 group-hover:text-[#D4AF37] group-hover:scale-105"
                       >
                         <Icon size={12} />
                       </div>
 
-                      {/* Label Text */}
-                      <span
+                      {/* Label & Subtitle Text Column */}
+                      <div
                         style={{
-                          fontSize: '0.68rem',
-                          fontWeight: isContextMatch ? 700 : 500,
-                          color: isContextMatch ? '#D4AF37' : 'rgba(255, 255, 255, 0.88)',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          letterSpacing: '0.01em',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          minWidth: 0,
                           flex: 1,
+                          gap: '1px',
                         }}
                       >
-                        {item.label}
-                      </span>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '4px',
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: '0.66rem',
+                              fontWeight: isContextMatch ? 700 : 500,
+                              color: isContextMatch ? '#D4AF37' : 'rgba(255, 255, 255, 0.88)',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              letterSpacing: '0.01em',
+                            }}
+                            className="group-hover:text-[#D4AF37] transition-colors"
+                          >
+                            {item.label}
+                          </span>
+                          {isContextMatch && (
+                            <span
+                              style={{
+                                fontSize: '0.46rem',
+                                fontWeight: 700,
+                                color: '#10b981',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.04em',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '2.5px',
+                                background: 'rgba(16, 185, 129, 0.12)',
+                                padding: '0 3.5px',
+                                borderRadius: '3px',
+                                border: '1px solid rgba(16, 185, 129, 0.28)',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <span
+                                style={{
+                                  width: '3.5px',
+                                  height: '3.5px',
+                                  borderRadius: '50%',
+                                  background: '#10b981',
+                                  boxShadow: '0 0 4px #10b981',
+                                }}
+                              />
+                              Aktiv
+                            </span>
+                          )}
+                        </div>
 
-                      {/* Subtle Right Chevron */}
+                        <span
+                          style={{
+                            fontSize: '0.52rem',
+                            color: isContextMatch
+                              ? 'rgba(212, 175, 55, 0.75)'
+                              : 'rgba(255, 255, 255, 0.40)',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            lineHeight: 1.15,
+                          }}
+                        >
+                          {item.sub}
+                        </span>
+                      </div>
+
+                      {/* Micro-Chevron with glide */}
                       <ChevronRight
                         size={11}
                         style={{
                           color: isContextMatch ? '#D4AF37' : 'rgba(255, 255, 255, 0.25)',
                           flexShrink: 0,
+                          transition: 'transform 0.18s ease, color 0.18s ease',
                         }}
+                        className="group-hover:translate-x-0.5 group-hover:text-[#D4AF37]"
                       />
                     </motion.button>
                   );
@@ -217,40 +335,73 @@ export function GuideSidebar({ isSending, onTopicClick }: GuideSidebarProps) {
         </div>
       </div>
 
-      {/* Subtle Status Footer */}
+      {/* Subtle Status Footer with pulsing Live-Radar-Dot */}
       <div
         style={{
           marginTop: 'auto',
-          paddingTop: '6px',
+          paddingTop: '8px',
+          borderTop: '1px solid rgba(212, 175, 55, 0.12)',
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
-          opacity: 0.75,
+          justifyContent: 'space-between',
+          opacity: 0.85,
         }}
       >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div
+            style={{
+              position: 'relative',
+              width: '7px',
+              height: '7px',
+              display: 'grid',
+              placeItems: 'center',
+            }}
+          >
+            <span
+              style={{
+                position: 'absolute',
+                inset: 0,
+                borderRadius: '50%',
+                background: '#10b981',
+                opacity: 0.65,
+                animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite',
+              }}
+            />
+            <span
+              style={{
+                position: 'relative',
+                width: '5px',
+                height: '5px',
+                borderRadius: '50%',
+                background: '#10b981',
+                boxShadow: '0 0 6px #10b981',
+              }}
+            />
+          </div>
+          <span
+            style={{
+              fontSize: '0.55rem',
+              color: 'rgba(255, 255, 255, 0.60)',
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+              fontWeight: 600,
+            }}
+          >
+            Knowledge Hub • Live
+          </span>
+        </div>
         <span
           style={{
-            display: 'inline-block',
-            width: '5px',
-            height: '5px',
-            borderRadius: '50%',
-            background: '#10b981',
-            boxShadow: '0 0 5px #10b981',
-            flexShrink: 0,
-          }}
-        />
-        <span
-          style={{
-            fontSize: '0.56rem',
-            color: 'hsl(var(--text-muted))',
+            fontSize: '0.50rem',
+            fontWeight: 700,
+            color: '#D4AF37',
+            fontFamily: 'monospace',
             letterSpacing: '0.04em',
-            textTransform: 'uppercase',
-            fontWeight: 600,
           }}
         >
-          Knowledge Hub • Live
+          v2.4
         </span>
       </div>
-    </aside>
+    </motion.aside>
   );
 }

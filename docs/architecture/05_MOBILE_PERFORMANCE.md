@@ -1,9 +1,23 @@
 # 05 — Mobile Performance: Ursache wirklich lösen
 
-Status: **Vollständig Umgesetzt & Verifiziert (2026-08-09)** · Verifiziert mit: `npm run test` (238/238 passed), `npm run lint` (0 errors), `npm run build` (clean)
+Status: **Teil 2 technisch verifiziert (2026-09-12)** · L3-iPhone-15-/Jan-Abnahme am 2026-09-12 bestätigt; offen bleibt ausschließlich der RUM-Feldvergleich.
 
 ---
 
+## Teil 2 — kontrollierte Mobile-LCP-Verifikation (2026-09-12)
+
+Frischer Production-Build (`npm run build`) und lokaler Production-Server (`next start -p 3020`). Messmethode: `PerformanceObserver` auf **Pixel-5-Emulation**, **4× CPU-Drosselung**, **4G-Profil** (150 ms Latenz, 1,6 Mbit/s Downlink, 750 Kbit/s Uplink), je zwei Läufe ohne Nutzerinteraktion. Dies ist ein kontrollierter Lab-Nachweis, keine Lighthouse- oder echte Device-Abnahme.
+
+| Route | FCP Lauf 1 / 2 | finale LCP Lauf 1 / 2 | relevanter Request |
+| --- | --- | --- | --- |
+| `/` | 1,724 s / 1,776 s | **1,824 s / 1,876 s** | genau einmal Crash-1200px, 100.668 B |
+| `/games/dice` | 1,720 s / 1,568 s | **2,068 s / 1,988 s** | genau einmal Mobile-Felt-WebP, 24.742 B |
+
+Erreichte technische Maßnahmen: mobile Dice-Startbühne ohne Canvas/3D/Web-Audio; das interaktive 3D-Modul lädt erst bei echter Bühneninteraktion. Auf Home bleibt die Crash-Karte unmittelbar vorhanden; mobile Satelliten-, Spiral-, Ambient- und weitere Below-the-fold-Inhalte werden erst nach Scroll gerendert. Der ungültige Idle-Pfad, der bei Dice einen späten LCP-Kandidaten erzeugte, wurde entfernt.
+
+Qualitätskette vom 2026-09-12: `npm test` **222 Dateien / 1.700 Tests bestanden**, `npm run lint` bestanden, `npm run typecheck` bestanden, Production-Build bestanden. Der Git-Audit enthielt ausschließlich paralleles WIP und dessen vorbestehende Whitespace-Hinweise; diese wurden nicht verändert.
+
+Bestätigt: Jan hat den vorgesehenen L3-Test auf einem echten iPhone 15 erfolgreich durchgeführt (Nutzerbestätigung, 2026-09-12). Offen: RUM-Feldwerte; die Lab-Ergebnisse ersetzen diese nicht.
 ## Executive Summary
 
 1. **Synchronous Media Query Guards (`WebGlWaterRefractionCanvas.tsx`)**: Synchronous `window.matchMedia('(max-width: 1023px)').matches` guard added directly inside JSX render and `useEffect`. Prevents any DOM rendering or WebGL initialization overhead on mobile devices prior to store state hydration.

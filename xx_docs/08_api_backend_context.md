@@ -1,6 +1,6 @@
 # 08 — API, Middleware & Backend-Kontext
 
-> **Zweck:** Kanonische Spezifikation und Modulkarte aller 47 Server-Endpunkte in `src/app/api/`, der Auth- und Security-Middleware `src/proxy.ts` und der Admin-Routen.
+> **Zweck:** Kanonische Spezifikation und Modulkarte aller 57 Server-Endpunkte in `src/app/api/`, der Auth- und Security-Middleware `src/proxy.ts` und der Admin-Routen.
 > **SOP & Handlungsanweisungen:** [`xx_sop/07_api_backend_routes.md`](../xx_sop/07_api_backend_routes.md).
 > **Sicherheits-Invarianten:** [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md).
 > **Qualitätsmaßstab:** [`xx_sop/12_workflow_dokument_qualitaet.md`](../xx_sop/12_workflow_dokument_qualitaet.md).
@@ -46,23 +46,26 @@ flowchart TD
 
 ---
 
-## 3 — Vollständiges API-Routen-Inventar (47 Routen)
+## 3 — Vollständiges API-Routen-Inventar (59 Routen)
+
+> **Zähler-Pflicht:** Die 59 ist kein Schätzwert — der Completeness-Test `src/lib/security/__tests__/rate-limit-route-completeness.test.ts` (06_6 L3) pinnt die tatsächliche Anzahl der `route.ts`-Dateien unter `src/app/api/` und schlägt fehl, sobald eine neue Route weder `enforceRateLimit()`/`withRateLimit()` nutzt noch auf der dokumentierten Exemption-Allowlist (`src/lib/security/rate-limit-route-inventory.ts`) steht. Neue Routen sind seit 06_6 verpflichtend über den `withRateLimit()`-Wrapper (`src/lib/security/request-security.ts`) zu instrumentieren — der führt die Limit-Entscheidung vor dem Handler aus und kann nicht vergessen werden; ein optionaler `resolve`-Hook erlaubt Auth-/Secret-Prüfung vor der Limit-Entscheidung. (Stand 2026-09-08: 59 Routen nach 06_3 — `auth/signup-fingerprint` und `admin/users/[id]/status` neu, beide instrumentiert.)
 
 ### 3.1 Casino, Gaming & Provably Fair (`src/app/api/casino/`)
 
-| Route                               | Methode |  Auth  | Rate-Limit | Zweck & Verhalten                                                                           |
-| :---------------------------------- | :-----: | :----: | :--------: | :------------------------------------------------------------------------------------------ |
-| `/api/casino/bet`                   | `POST`  |  User  |   60/min   | Singleplayer-Wetten für Dice, Slots, Roulette, Crash Singleplayer. Führt atomare RPCs aus.  |
-| `/api/casino/bet-crash-multiplayer` | `POST`  |  User  |   60/min   | Wetteinsatz und Cashout für Multiplayer-Crash im globalen Raumtakt.                         |
-| `/api/casino/blackjack`             | `POST`  |  User  |   60/min   | Blackjack-Aktionen (`deal`, `hit`, `stand`, `double`, `split`). Versionierte Rundenführung. |
-| `/api/casino/config`                |  `GET`  | Public |  120/min   | Öffentliche Spielkonfigurationen, Min-/Max-Einsätze, Auszahlungsquoten.                     |
-| `/api/casino/jackpot`               |  `GET`  | Public |   60/min   | Aktueller Progressive-Jackpot-Poolstand und Gewinnereignisse.                               |
-| `/api/casino/active-round`          |  `GET`  | Public |  120/min   | Liefert aktiven Multiplayer-Crash-Raumstatus (`sharedRound`).                               |
-| `/api/casino/seeds`                 |  `GET`  |  User  |   60/min   | Liefert aktiven Server-Seed-Hash, Client-Seed und Nonce für Provably Fair.                  |
-| `/api/casino/seeds/history`         |  `GET`  |  User  |   60/min   | Historie aufgedeckter Server-Seeds zur Verifikation vergangener Runden.                     |
-| `/api/casino/redeem-code`           | `POST`  |  User  |   10/min   | Einlösung von Promotion-Codes; schreibt in `promo_redemptions`.                             |
-| `/api/casino/session-sync`          | `POST`  | Public |     —      | `410 Gone` — Clientseitige Synchronisation deaktiviert.                                     |
-| `/api/casino/migrate-session`       | `POST`  | Public |     —      | `410 Gone` — Deaktivierter Legacy-Endpunkt.                                                 |
+| Route                               |   Methode   |  Auth  | Rate-Limit | Zweck & Verhalten                                                                                                                          |
+| :---------------------------------- | :---------: | :----: | :--------: | :----------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/casino/bet`                   |   `POST`    |  User  |   30/10s   | Singleplayer-Wetten für Dice, Slots, Roulette, Crash Singleplayer. Führt atomare RPCs aus.                                                 |
+| `/api/casino/bet-crash-multiplayer` |   `POST`    |  User  |   30/10s   | Wetteinsatz und Cashout für Multiplayer-Crash im globalen Raumtakt.                                                                        |
+| `/api/casino/blackjack`             |   `POST`    |  User  |   20/10s   | Blackjack-Aktionen (`deal`, `hit`, `stand`, `double`, `split`). Versionierte Rundenführung.                                                |
+| `/api/casino/config`                |    `GET`    | Public |  120/min   | Öffentliche Spielkonfigurationen, Min-/Max-Einsätze, Auszahlungsquoten.                                                                    |
+| `/api/casino/jackpot`               |    `GET`    | Public |   60/min   | Aktueller Progressive-Jackpot-Poolstand und Gewinnereignisse.                                                                              |
+| `/api/casino/active-round`          |    `GET`    | Public |  120/min   | Liefert aktiven Multiplayer-Crash-Raumstatus (`sharedRound`).                                                                              |
+| `/api/casino/seeds`                 |    `GET`    |  User  |   60/min   | Liefert aktiven Server-Seed-Hash, Client-Seed und Nonce für Provably Fair.                                                                 |
+| `/api/casino/seeds/history`         |    `GET`    |  User  |   60/min   | Historie aufgedeckter Server-Seeds zur Verifikation vergangener Runden.                                                                    |
+| `/api/casino/redeem-code`           |   `POST`    |  User  |   10/min   | Einlösung von Promotion-Codes; schreibt in `promo_redemptions`.                                                                            |
+| `/api/casino/guide-persona`         | `GET/PATCH` |  User  |   20/min   | Aktives KI-Guide-Persona lesen/setzen. 06_6: `withRateLimit()` Auth-first-resolve (user-basierte Buckets, 401 vor der Limit-Entscheidung). |
+| `/api/casino/session-sync`          |   `POST`    | Public |     —      | `410 Gone` — Clientseitige Synchronisation deaktiviert.                                                                                    |
+| `/api/casino/migrate-session`       |   `POST`    | Public |     —      | `410 Gone` — Deaktivierter Legacy-Endpunkt.                                                                                                |
 
 ### 3.2 User, Progression & Balance (`src/app/api/user/`)
 
@@ -82,13 +85,13 @@ flowchart TD
 
 ### 3.4 Telegram Integration (`src/app/api/telegram/`)
 
-| Route                   | Methode |  Auth  | Rate-Limit | Zweck & Verhalten                                                         |
-| :---------------------- | :-----: | :----: | :--------: | :------------------------------------------------------------------------ |
-| `/api/telegram/link`    | `POST`  |  User  |   10/min   | Erzeugt temporären Deep-Link-Token zur Bot-Koppelung.                     |
-| `/api/telegram/unlink`  | `POST`  |  User  |   10/min   | Trennt die Verknüpfung zwischen Casino-Konto und Telegram-Chat-ID.        |
-| `/api/telegram/toggle`  | `POST`  |  User  |   30/min   | Schaltet Benachrichtigungskanäle (Big Win, Daily Race) aktiv/inaktiv.     |
-| `/api/telegram/status`  |  `GET`  |  User  |   60/min   | Prüft den aktuellen Koppelungs- und Zustellstatus des Nutzers.            |
-| `/api/telegram/webhook` | `POST`  | Secret |  120/min   | Webhook für eingehende Bot-Befehle (gesichert per `TELEGRAM_BOT_SECRET`). |
+| Route                   | Methode |  Auth  | Rate-Limit | Zweck & Verhalten                                                                                                                                                                                                                                                                     |
+| :---------------------- | :-----: | :----: | :--------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/api/telegram/link`    | `POST`  |  User  |   10/min   | Erzeugt temporären Deep-Link-Token zur Bot-Koppelung.                                                                                                                                                                                                                                 |
+| `/api/telegram/unlink`  | `POST`  |  User  |   10/min   | Trennt die Verknüpfung zwischen Casino-Konto und Telegram-Chat-ID.                                                                                                                                                                                                                    |
+| `/api/telegram/toggle`  | `POST`  |  User  |   30/min   | Schaltet Benachrichtigungskanäle (Big Win, Daily Race) aktiv/inaktiv.                                                                                                                                                                                                                 |
+| `/api/telegram/status`  |  `GET`  |  User  |   60/min   | Prüft den aktuellen Koppelungs- und Zustellstatus des Nutzers.                                                                                                                                                                                                                        |
+| `/api/telegram/webhook` | `POST`  | Secret |   60/min   | Webhook für eingehende Bot-Befehle (gesichert per `TELEGRAM_WEBHOOK_SECRET`). 06_6: `withRateLimit()` mit Secret-first-resolve — ungültige Secret-Floods verbrauchen das IP-Budget nicht; die zuvor dokumentierten 120/min waren ein Dokfehler (Route hatte real 0 Instrumentierung). |
 
 ### 3.5 Community & Tournaments (`src/app/api/`)
 
@@ -115,9 +118,10 @@ flowchart TD
 | `/api/admin/overview`             |   `GET`    | Admin |   60/min   | Aggregierte Finanz- und User-KPIs (GGR, NGR, aktive Sessions).                                                                                              |
 | `/api/admin/games`                |   `GET`    | Admin |   60/min   | Spielstatistiken, RTP-Abweichungen und House-Edge-Monitoring.                                                                                               |
 | `/api/admin/users`                |   `GET`    | Admin |   60/min   | Benutzerliste, Kontosperren, Wallet-Status und Transaktionssummen.                                                                                          |
+| `/api/admin/users/[id]/status`    |  `PATCH`   | Admin |   10/60s   | Account einfrieren/entsperren (`users.account_status`, 06_3 L2); nie automatisch, nur explizite Admin-Aktion.                                               |
 | `/api/admin/promo-codes`          | `GET/POST` | Admin |   30/min   | Erstellung, Monitoring und Deaktivierung von Gutschein-Codes.                                                                                               |
 | `/api/admin/fraud`                |   `GET`    | Admin |   60/min   | Anomalie-Dashboard und Betrugs-Früherkennung.                                                                                                               |
-| `/api/admin/fraud/scan`           |   `POST`   | Admin |   5/min    | Manueller Trigger für heuristische Fraud-Scans.                                                                                                             |
+| `/api/admin/fraud/scan`           |   `POST`   | Admin |   1/300s   | Manueller Trigger für heuristische Fraud-Scans.                                                                                                             |
 | `/api/admin/fraud/complete-wait`  |   `POST`   | Admin |   30/min   | Manuelle Freigabe oder Sperrung von verdächtigen Auszahlungen.                                                                                              |
 | `/api/admin/analytics`            |   `GET`    | Admin |   60/min   | Cohort-Retention, VIP-Analysen und Umsatztrends.                                                                                                            |
 | `/api/admin/knowledge`            |   `GET`    | Admin |   60/min   | Wissensbasis-Status und pgvector-Indexierungszustand.                                                                                                       |
@@ -135,6 +139,14 @@ flowchart TD
 | `/api/internal/big-win-events` | `POST`  | Secret |  120/min   | Auslöser für globale WebSocket-Broadcasts bei Großgewinnen.              |
 | `/api/internal/wallet-events`  | `POST`  | Secret |  120/min   | Interne Benachrichtigung bei serverseitigen Guthabenänderungen.          |
 | `/api/webhooks/clerk`          | `POST`  | Public |     —      | `410 Gone` — Altes Webhook-System abgelöst durch DB-Trigger.             |
+
+### 3.9 Auth & Guards (`src/app/api/auth/`)
+
+| Route                          | Methode | Auth | Rate-Limit | Zweck & Verhalten                                                                                                |
+| :----------------------------- | :-----: | :--: | :--------: | :--------------------------------------------------------------------------------------------------------------- |
+| `/api/auth/login-guard`        | `POST`  |  IP  |   5/60s    | Pre-Login-Automatisierungsschutz (06_1); zählt alle Versuche, IP-basiert über `getClientIdentifier`.             |
+| `/api/auth/signup-suspicion`   | `POST`  |  IP  |   10/60s   | Signup-Bot-Signal-Report (06_1, Honeypot/Timing); IP-basiert, ergänzt Supabase-Auth-Eigenlimits.                 |
+| `/api/auth/signup-fingerprint` | `POST`  |  IP  |   10/60s   | Signup-Netzwerk-Fingerprint + Pre-Grant-Cluster-Check (06_3 L0/L1); IP-basiert, fail-offen, Session-Attribution. |
 
 ---
 
@@ -199,7 +211,7 @@ npm run lint
 
 - **4. Response-Envelope-Migration ausstehend:** Die 47 bestehenden Routen (siehe Abschnitt 3) geben Erfolgsantworten noch nicht über `apiSuccessResponse()` zurück — nur neue Routen sind seit 2026-08-25 verpflichtet (siehe Abschnitt 6a). Migration bewusst opportunistisch, kein dedizierter Umbau geplant.
 
-- **5. Origin-Rejection-Envelope vereinheitlicht (behoben 2026-09-02):** `validateMutationOrigin()` (`src/lib/security/request-security.ts`) lieferte bei CSRF/Origin-Fehlern rohen Klartext-`Response` statt eines JSON-Envelopes. 17 Call-Sites reichten das ungefiltert als `403` durch. Alle Call-Sites wrappen die Rückgabe jetzt einheitlich über `apiErrorResponse('PERMISSION_DENIED', 'Keine Berechtigung.', status)`, identisch zum bereits bestehenden Muster in `bet`/`blackjack`/`bet-crash-multiplayer`/`redeem-code`/`admin/users`/`admin/promo-codes`. `validateMutationOrigin()` selbst wurde nicht verändert. Details: `worldmap/07_api_origin_envelope_hardening.md`.
+- **5. Origin-Rejection-Envelope vereinheitlicht (behoben 2026-09-02):** `validateMutationOrigin()` (`src/lib/security/request-security.ts`) lieferte bei CSRF/Origin-Fehlern rohen Klartext-`Response` statt eines JSON-Envelopes. 17 Call-Sites reichten das ungefiltert als `403` durch. Alle Call-Sites wrappen die Rückgabe jetzt einheitlich über `apiErrorResponse('PERMISSION_DENIED', 'Keine Berechtigung.', status)`, identisch zum bereits bestehenden Muster in `bet`/`blackjack`/`bet-crash-multiplayer`/`redeem-code`/`admin/users`/`admin/promo-codes`. `validateMutationOrigin()` selbst wurde nicht verändert. Details: `docs/archive/t_api_07_api_origin_envelope_hardening.md` (M4/M8 executed & archiviert, 2026-09-09).
 
 - **1. Route-Konsolidierung `bet` vs. `bet-crash-multiplayer`:**
   `POST /api/casino/bet` und `POST /api/casino/bet-crash-multiplayer` laufen parallel. Eine vollständige Zusammenführung unter `/bet` mit einheitlicher Typ-Diskriminierung steht noch aus.

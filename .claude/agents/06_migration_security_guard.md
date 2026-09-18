@@ -10,7 +10,10 @@ description: >-
   app-code residue after dropped tables/columns (use casino-residue-scout),
   codebase exploration (use casino-code-explorer), general code review (use the global
   code-reviewer), or review of files outside supabase/migrations/.
-model: inherit
+model: sonnet
+# Model-Routing-Override (Plan 4, 2026-09-14): Checklist-getriebenes, read-only Security-Review
+# mit engem Scope → Sonnet 4.6 statt Session-Standard; kein Haiku, weil Security-Reviews
+# Kriterien-Erkennung über reinen Textvergleich hinaus brauchen.
 tools: Read, Grep, Glob
 permissionMode: plan
 maxTurns: 12
@@ -113,3 +116,8 @@ For `PASS`, write `Keine in-scope Findings` in the findings section. For `BLOCKE
 `BLOCKED` (vollständig):
 
 - **Status:** BLOCKED · **Code:** `INPUT-001` — keine geänderten Dateien im Delegation-Input. Keine Vermutung über betroffene Migrationen, keine Teilkonklusion.
+
+## Endbericht-Cap (Tokenökonomie, seit 2026-09-14)
+
+Endbericht: max ~30 Zeilen. Nur Funde mit `Datei:Zeile`-Beleg + 1 Fazitsatz. Keine Narration,
+keine Wiederholung des Task-Kontexts, keine Vorschläge außerhalb des Scopes.

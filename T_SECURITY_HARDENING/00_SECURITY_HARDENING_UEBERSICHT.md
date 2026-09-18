@@ -1,43 +1,60 @@
 # 00 — Security Hardening: Verbesserungsplan
 
-> **Status:** 🟡 Lebendes Arbeitsdokument · **Stand:** 2026-09-05 · **Owner:** Jan / LLM  
-> **Worldmap-Kategorie:** 04 Security Hardening (Headers, CSP & Secrets)
+> **Stand:** 2026-09-17 · **Gewichteter Kategorie-Schnitt:** 14,3 %
+> **Historie:** 16 % (2026-09-06) → 18 % (2026-09-12, frische Recherche vor Ausführung) → **14,3 % (seit 2026-09-13, nach Ausführung von Säulen 1/2/4/6)**.
 
-## 1 — Executive Summary für Jan
+## Was dieser Stand bedeutet — kurz für Jan
 
-Der gewichtete Reifegrad liegt bei **Top 21 %** und bestätigt die Worldmap-Einordnung **Top 20 %**. Die Angriffsschutz-Basis ist stark; der offene Bottleneck ist die Triage der Supply-Chain-Funde. HMAC-Secret-Versionierung bleibt ein Jan-Gate.
+**8 von 10 Säulen sind korrekt ausgeführt und frisch nachgeprüft (2026-09-17, siehe Spalte "Prüfung").** Der einzige noch offene Rest:
 
-## 2 — Bewertungsmethode
+1. **Säule 10 (`security.txt`) wurde nie ausgeführt** — 1 kleiner Meilenstein, kein K5-Blocker.
+2. **Keiner der beiden fertigen Merges ist im Hauptbranch angekommen.** Der Code liegt korrekt und verifiziert auf zwei Branches (`security-round3-final-merge` für Säulen 1/2/4/6, `security-hardening-round2-merge` für Säulen 3/5/7/8) — aber `codex/uncommitted-cohort-review` (der Branch, den du täglich nutzt) enthält davon **noch nichts**. Das ist der eigentliche Grund, warum diese Aufgabe noch nicht abgeschlossen ist, nicht die Code-Qualität.
 
-Die Gewichte summieren sich auf 100. Direkt internet- oder secret-exponierte Grenzen erhalten mehr Gewicht. Werte und Status stammen aus der [Worldmap-Aufschlüsselung](../worldmap/04_security_hardening.md); diese Übersicht erzeugt keine neue Live-Behauptung.
+Säule 9 (HSTS) braucht nichts — strukturelles Maximum, siehe unten.
 
-## 3 — Die 10 Subkategorien: Gewichtung & Bewertung
+## Die 10 Subkategorien: Gewichtung & Bewertung
 
-|  #  | Säule                                                                                                 | Gewicht |  Niveau  | Status | Planungsdatei?                                                                  | Warum dieses Gewicht                                                                 |
-| :-: | :---------------------------------------------------------------------------------------------------- | :-----: | :------: | :----: | :------------------------------------------------------------------------------ | :----------------------------------------------------------------------------------- |
-|  1  | CSP `script-src` Nonce-Härtung                                                                        | **15**  | Top 15 % |   🟢   | Nein                                                                            | Primäre XSS- und Script-Exfiltrationsgrenze.                                         |
-|  7  | [Supply-Chain-/Dependency-Audit-Gate](../docs/security-hardening/07_dependency_supply_chain_audit.md) | **14**  | Top 48 % |   🔴   | Ja — [archiviert](../docs/archive/06_5_dependency_audit_gate_hardening_plan.md) | Ungepatchte Abhängigkeiten können mehrere Grenzen zugleich unterlaufen.              |
-|  2  | Security-CI-Gate                                                                                      | **13**  | Top 19 % |   🟢   | Ja — [archiviert](../docs/archive/06_4_security_ci_gate_hardening_plan.md)      | Verhindert Sicherheitsregressionen im Hauptstand.                                    |
-|  4  | CSRF/Origin-Guard                                                                                     | **13**  | Top 15 % |   🟢   | Nein                                                                            | Schützt schreibende Browser-Anfragen und Geldpfade.                                  |
-|  8  | Secret-Rotation-Prozess                                                                               | **12**  | Top 22 % |   🟡   | Ja — [archiviert](../docs/archive/06_3_secret_rotation_hardening_plan.md)       | Ein Secret-Leak kann Service-Role-, HMAC- und Drittanbieter-Grenzen kompromittieren. |
-|  3  | Env-/Secrets-Schema Fail-Fast                                                                         | **10**  | Top 25 % |   🟡   | Nein                                                                            | Fehlkonfigurationen werden früh sichtbar; die Abdeckung betrifft nur Kernvariablen.  |
-|  5  | Header-Vollständigkeit                                                                                | **10**  | Top 12 % |   🟢   | Nein                                                                            | Breite Browser-Schutzschicht, aber weniger direkt als CSP oder CSRF.                 |
-|  6  | CSP-Violation-Reporting                                                                               |  **7**  | Top 15 % |   🟢   | Nein                                                                            | Erkennt reale CSP-Verstöße, beobachtet statt zu verhindern.                          |
-| 10  | `security.txt` / RFC 9116                                                                             |  **5**  | Top 15 % |   🟢   | Nein                                                                            | Verbessert verantwortliche Meldungen, ist aber keine Laufzeitbarriere.               |
-|  9  | HSTS-Preload                                                                                          |  **1**  | Top 10 % |   🟢   | Nein                                                                            | Transportabsicherung, deren Erfolg hier überwiegend an der `.app`-TLD liegt.         |
+|  #  | Säule                               | Gewicht | Ist-Niveau | Prüfung (frisch, 2026-09-17)                                                                                                                                                         |                  Status                  |                                 Planungsdatei                                  | Warum dieses Gewicht                                                                 |
+| :-: | :---------------------------------- | :-----: | :--------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------: | :----------------------------------------------------------------------------: | :----------------------------------------------------------------------------------- |
+|  1  | CSP `script-src` Nonce-Härtung      | **15**  |    15 %    | ✅ Bestätigt — eigener `npm ci` + Testlauf im Worktree: 212/212 Dateien · 1605/1605 Tests, Typecheck/Lint 0. Auf Branch `security-round3-final-merge`, **nicht im Hauptbranch**.     | 🟢 Executed (Trusted-Types-Rest bei Jan) |          [`01_csp_script_hardening.md`](./01_csp_script_hardening.md)          | Primäre XSS- und Script-Exfiltrationsgrenze.                                         |
+|  7  | Supply-Chain-/Dependency-Audit-Gate | **14**  |    13 %    | ✅ Bestätigt — eigener `npm ci` + Testlauf im Worktree: 207/207 Dateien · 1548/1548 Tests, Typecheck/Lint 0. Auf Branch `security-hardening-round2-merge`, **nicht im Hauptbranch**. |                    🟢                    | [`07_dependency_supply_chain_audit.md`](./07_dependency_supply_chain_audit.md) | Ungepatchte Abhängigkeiten können mehrere Grenzen zugleich unterlaufen.              |
+|  2  | Security-CI-Gate                    | **13**  |    15 %    | ✅ Bestätigt — wie #1 (D1-Concurrency-Lücke ist seit 2026-09-13 real geschlossen, im selben Branch/Testlauf enthalten).                                                              |   🟢 Executed (Alerting-Rest bei Jan)    |              [`02_security_ci_gate.md`](./02_security_ci_gate.md)              | Verhindert Sicherheitsregressionen im Hauptstand.                                    |
+|  4  | CSRF/Origin-Guard                   | **13**  |    11 %    | ✅ Bestätigt — wie #1.                                                                                                                                                               |         🟢 Executed (kein Rest)          |             [`04_csrf_origin_guard.md`](./04_csrf_origin_guard.md)             | Schützt schreibende Browser-Anfragen und Geldpfade.                                  |
+|  8  | Secret-Rotation-Prozess             | **12**  |    18 %    | ✅ Bestätigt — wie #7.                                                                                                                                                               |                    🟢                    |       [`08_secret_rotation_prozess.md`](./08_secret_rotation_prozess.md)       | Ein Secret-Leak kann Service-Role-, HMAC- und Drittanbieter-Grenzen kompromittieren. |
+|  3  | Env-/Secrets-Schema Fail-Fast       | **10**  |    10 %    | ✅ Bestätigt — wie #7.                                                                                                                                                               |                    🟢                    |            [`03_env_secrets_schema.md`](./03_env_secrets_schema.md)            | Fehlkonfigurationen werden früh sichtbar; die Abdeckung betrifft nur Kernvariablen.  |
+|  5  | Header-Vollständigkeit              | **10**  |    13 %    | ✅ Bestätigt — wie #7.                                                                                                                                                               |                    🟢                    |       [`05_header_vollstaendigkeit.md`](./05_header_vollstaendigkeit.md)       | Breite Browser-Schutzschicht, aber weniger direkt als CSP oder CSRF.                 |
+|  6  | CSP-Violation-Reporting             |  **7**  |    11 %    | ✅ Bestätigt — wie #1.                                                                                                                                                               |         🟢 Executed (kein Rest)          |       [`06_csp_violation_reporting.md`](./06_csp_violation_reporting.md)       | Erkennt reale CSP-Verstöße, beobachtet statt zu verhindern.                          |
+| 10  | `security.txt` / RFC 9116           |  **5**  |    30 %    | ❌ **Nie ausgeführt** — 0 Treffer für einen Reminder-Mechanismus im Code, Plan-Header steht weiterhin auf „🔴 Geplant".                                                              |                    🔴                    |          [`10_security_txt_rfc9116.md`](./10_security_txt_rfc9116.md)          | Verbessert verantwortliche Meldungen, ist aber keine Laufzeitbarriere.               |
+|  9  | HSTS-Preload                        |  **1**  |    8 %     | ✅ Nichts zu prüfen — kein Plan nötig, strukturelles Maximum (siehe unten).                                                                                                          |                    ⚪                    |                      keine — kein Potenzial (siehe unten)                      | Transportabsicherung, deren Erfolg hier überwiegend an der `.app`-TLD liegt.         |
 
-## 4 — Gewichteter Gesamt-Schnitt
+**Status-Legende:** 🟢 ausgeführt (mit oder ohne K5-Rest) · 🔴 Plan fertig, Execution-Ready, noch nicht ausgeführt · ⚪ geprüft, bewusst kein Plan (kein Potenzial).
 
-`Σ(Gewicht × Niveau) / 100 = 20,53` → **Top 21 %**. Die Differenz zum Worldmap-Headlinewert Top 20 % ist Rundung.
+**Gewichteter Schnitt:** (15×15+14×13+13×15+13×11+12×18+10×10+10×13+7×11+5×30+1×8)/100 = **14,26 %** (gerundet 14,3 %). Säule 10 geht mit ihrem unveränderten Baseline-Wert (30 %) ein, nicht mit einem projizierten Wert, weil sie real nicht ausgeführt wurde.
 
-## 5 — Priorisierte Verbesserungs-Reihenfolge
+## Säule #9 (HSTS-Preload): bewusst kein neuer Plan
 
-1. `brace-expansion` und `js-yaml` aktualisieren oder begründet allowlisten; das Hard-Gate nicht abschwächen.
-2. HMAC-Versionierung nur mit Jan-Freigabe entscheiden.
-3. Env-Abdeckung messen, ohne absichtliche Soft-Fail-Designs zu zerstören.
+`src/proxy.ts:81` setzt `max-age=63072000; includeSubDomains; preload` — alle drei Voraussetzungen für eine hstspreload.org-Submission sind formal übererfüllt, obwohl keine eigene Submission nötig ist (die `.app`-TLD erzwingt HSTS-Preload für jede Subdomain). Keine eigene Custom-Domain/DNS-Konfiguration im Repo — die Säule ist strukturell domain-bedingt am Maximum. Der einzige denkbare Hebel (ein TLD-Wechsel weg von `.app`) ist nicht angefragt/geplant und wäre ohnehin ein K5-Punkt. **Kein LLM-ausführbares Verbesserungspotenzial — bewusst keine Planungsdatei.**
 
-## 6 — Verwandte Artefakte
+## Offene Aufgaben
 
-- [Worldmap-Aufschlüsselung](../worldmap/04_security_hardening.md)
-- [Security-Master-Dokumentation](../docs/security-hardening/00_SECURITY_OVERVIEW.md)
-- [Worldmap-Status](../worldmap/00_WORLDMAP_STATUS.md)
+**Jan-Entscheidungen (K5, nicht LLM-ausführbar):**
+
+1. `ws`-Dependency-Fix (Säule 7) — Breaking Change für `@trigger.dev/sdk`.
+2. HMAC-Versionierung `POSTHOG_DISTINCT_ID_HMAC_SECRET` (Säule 8) — Breaking Change für Analytics-Historie.
+3. COEP-Header-Aktivierung (Säule 5) — Entscheidungsgrundlage fertig dokumentiert (`docs/security-hardening/02_security_headers.md`).
+4. Trusted Types (Säule 1) — Breaking-Change-Risiko für jeden DOM-Sink im Repo, Grundlage in Säule 1/L5 vorbereitet.
+5. Externes CI-Failure-Alerting (Säule 2) — benötigt ein neues Secret (Telegram-Bot-Token oder Slack-Webhook), Grundlage in `docs/security-hardening/08_security_ci_gates.md` §9 vorbereitet.
+6. Optionale `security.txt`-Felder `Encryption`/`Acknowledgments`/`Policy` (Säule 10) — benötigen jeweils eine neue Ressource (PGP-Key, Hall-of-Fame-Seite, Disclosure-Policy-Seite), die noch nicht existiert.
+7. Drei GitHub-Repo-Secrets `SENTRY_ORG`/`SENTRY_PROJECT`/`SENTRY_AUTH_TOKEN` für den CSP-Rate-Watch-Job (Säule 6) einmalig hinterlegen — sonst schreibt der Job nur eine „Skipped"-Note (nicht blockierend).
+
+**Technisch offen (kein Planungsbedarf, reine Git-Aktion):**
+
+- Branch `security-round3-final-merge` (Säulen 1/2/4/6, Commit `45491d52`) → Merge in `codex/uncommitted-cohort-review` aussteht.
+- Branch `security-hardening-round2-merge` (Säulen 3/5/7/8, Commit `302a9883`) → Merge in `codex/uncommitted-cohort-review` aussteht, separates Vorhaben, Details in [`branch_merge_saeulen_5_7_8_plan.md`](./branch_merge_saeulen_5_7_8_plan.md).
+- Beide waren bisher durch viele fremde uncommittete Änderungen im Hauptverzeichnis blockiert; Stand 2026-09-17 nur noch 134 Zeilen (deutlich entspannter als zuvor) — lohnt sich, jetzt zu versuchen.
+
+**Nicht ausgeführt:**
+
+- [`10_security_txt_rfc9116.md`](./10_security_txt_rfc9116.md) — 1 Meilenstein (Reminder-Automatisierung), kein K5-Blocker.
+
+**Übergabe-Prompt für eine frische Konversation, die beide Merges einsammelt + Säule 10 ausführt:** [`11_status_quo_and_next_actions_prompt.md`](./11_status_quo_and_next_actions_prompt.md).

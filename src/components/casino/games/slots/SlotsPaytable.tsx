@@ -1,6 +1,7 @@
 'use client';
 
-import { Trophy, HelpCircle } from 'lucide-react';
+import { Info } from 'lucide-react';
+import Image from 'next/image';
 
 import { SlotSymbol } from '@/components/casino/SlotSymbol';
 import { PAYTABLE } from '@/components/casino/games/slots/slots-config';
@@ -43,7 +44,7 @@ export function SlotsPaytable({ isMobile, betAmount }: SlotsPaytableProps) {
                 border: '1px solid rgba(212, 175, 55, 0.3)',
               }}
             >
-              <Trophy size={16} color="#FFD700" />
+              <Image src="/images/2026-09-06_icon-trophy-win-quantum-gold_v001.png" alt="Paytable" width={16} height={16} aria-hidden />
             </div>
             <h3
               style={{
@@ -84,7 +85,7 @@ export function SlotsPaytable({ isMobile, betAmount }: SlotsPaytableProps) {
             color: '#cbd5e1',
           }}
         >
-          <HelpCircle size={14} color="#FFD700" style={{ flexShrink: 0 }} />
+          <Info size={14} color="#FFD700" style={{ flexShrink: 0 }} />
           <span>
             Wins pay on <strong>Center Line</strong> (Row 2). Multipliers calculate on{' '}
             <strong>${betAmount.toFixed(2)}</strong> bet.

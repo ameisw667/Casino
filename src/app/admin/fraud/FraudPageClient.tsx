@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { ShieldAlert, RefreshCw, AlertCircle, Search, Radar } from 'lucide-react';
 import { getApiErrorMessage } from '@/lib/security/form-errors';
 
-type RiskStatus = 'open' | 'reviewed' | 'closed';
+type RiskStatus = 'open' | 'reviewed' | 'closed' | 'reopened' | 'suppressed';
 type RiskSeverity = 'low' | 'medium' | 'high';
 
 interface RiskEvent {
@@ -54,6 +54,8 @@ const STATUS_COLORS: Record<RiskStatus, { color: string; bg: string }> = {
   open: { color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
   reviewed: { color: '#3b82f6', bg: 'rgba(59,130,246,0.12)' },
   closed: { color: '#10b981', bg: 'rgba(16,185,129,0.12)' },
+  reopened: { color: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
+  suppressed: { color: '#64748b', bg: 'rgba(100,116,139,0.12)' },
 };
 
 export default function FraudPageClient() {
@@ -120,7 +122,10 @@ export default function FraudPageClient() {
     }
   };
 
-  const submitReview = async (eventId: string, status: 'reviewed' | 'closed') => {
+  const submitReview = async (
+    eventId: string,
+    status: 'reviewed' | 'closed' | 'reopened' | 'suppressed',
+  ) => {
     if (!reviewReason.trim()) return;
     setReviewSubmitting(true);
     try {
@@ -205,6 +210,8 @@ export default function FraudPageClient() {
             <option value="open">Offen</option>
             <option value="reviewed">Geprüft</option>
             <option value="closed">Geschlossen</option>
+            <option value="reopened">Wieder geöffnet</option>
+            <option value="suppressed">Unterdrückt (legitim)</option>
           </select>
           <select
             value={severityFilter}
@@ -297,6 +304,18 @@ export default function FraudPageClient() {
                             Prüfen
                           </button>
                         ))}
+                      {(ev.status === 'closed' || ev.status === 'reviewed') &&
+                        reviewingId !== ev.id && (
+                          <button
+                            onClick={() => {
+                              setReviewingId(ev.id);
+                              setReviewReason('');
+                            }}
+                            style={secondaryButtonStyle}
+                          >
+                            Wieder öffnen
+                          </button>
+                        )}
                     </td>
                   </tr>
                   {reviewingId === ev.id && (
@@ -310,26 +329,54 @@ export default function FraudPageClient() {
                             maxLength={500}
                             style={{ ...inputStyle, flex: 1 }}
                           />
-                          <button
-                            disabled={reviewSubmitting || !reviewReason.trim()}
-                            onClick={() => submitReview(ev.id, 'reviewed')}
-                            style={{
-                              ...secondaryButtonStyle,
-                              opacity: reviewSubmitting || !reviewReason.trim() ? 0.5 : 1,
-                            }}
-                          >
-                            Als geprüft markieren
-                          </button>
-                          <button
-                            disabled={reviewSubmitting || !reviewReason.trim()}
-                            onClick={() => submitReview(ev.id, 'closed')}
-                            style={{
-                              ...primaryButtonStyle,
-                              opacity: reviewSubmitting || !reviewReason.trim() ? 0.5 : 1,
-                            }}
-                          >
-                            Schließen
-                          </button>
+                          {(ev.status === 'open' || ev.status === 'reopened') && (
+                            <button
+                              disabled={reviewSubmitting || !reviewReason.trim()}
+                              onClick={() => submitReview(ev.id, 'reviewed')}
+                              style={{
+                                ...secondaryButtonStyle,
+                                opacity: reviewSubmitting || !reviewReason.trim() ? 0.5 : 1,
+                              }}
+                            >
+                              Als geprüft markieren
+                            </button>
+                          )}
+                          {(ev.status === 'open' || ev.status === 'reopened') && (
+                            <button
+                              disabled={reviewSubmitting || !reviewReason.trim()}
+                              onClick={() => submitReview(ev.id, 'closed')}
+                              style={{
+                                ...primaryButtonStyle,
+                                opacity: reviewSubmitting || !reviewReason.trim() ? 0.5 : 1,
+                              }}
+                            >
+                              Schließen
+                            </button>
+                          )}
+                          {(ev.status === 'open' || ev.status === 'reopened') && (
+                            <button
+                              disabled={reviewSubmitting || !reviewReason.trim()}
+                              onClick={() => submitReview(ev.id, 'suppressed')}
+                              style={{
+                                ...secondaryButtonStyle,
+                                opacity: reviewSubmitting || !reviewReason.trim() ? 0.5 : 1,
+                              }}
+                            >
+                              Unterdrücken
+                            </button>
+                          )}
+                          {(ev.status === 'closed' || ev.status === 'reviewed') && (
+                            <button
+                              disabled={reviewSubmitting || !reviewReason.trim()}
+                              onClick={() => submitReview(ev.id, 'reopened')}
+                              style={{
+                                ...primaryButtonStyle,
+                                opacity: reviewSubmitting || !reviewReason.trim() ? 0.5 : 1,
+                              }}
+                            >
+                              Wieder öffnen
+                            </button>
+                          )}
                           <button
                             onClick={() => {
                               setReviewingId(null);

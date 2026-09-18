@@ -1,6 +1,7 @@
 'use client';
 import { motion } from 'framer-motion';
-import { Star, CheckCircle2, Lock, Crown } from 'lucide-react';
+import { CheckCircle2, Lock } from 'lucide-react';
+import Image from 'next/image';
 import type { VipTier } from '@/lib/casino/vip-config';
 
 interface VaultTierShowcaseProps {
@@ -23,7 +24,7 @@ export function VaultTierShowcase({
   return (
     <div style={{ marginBottom: '16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-        <Star size={16} color="#D4AF37" fill="#D4AF37" />
+        <Image src="/images/2026-09-06_icon-star-level-quantum-gold_v001.webp" alt="VIP Tiers & Benefits" width={16} height={16} aria-hidden />
         <span
           style={{
             fontSize: '0.8rem',
@@ -240,7 +241,7 @@ export function VaultTierShowcase({
                   color: inspectedTier.color,
                 }}
               >
-                <Crown size={18} />
+                <Image src="/images/2026-09-06_icon-crown-vip-quantum-gold_v001.png" alt="VIP-Tier" width={18} height={18} aria-hidden />
               </div>
               <div>
                 <div style={{ fontSize: '0.88rem', fontWeight: 900, color: '#ffffff' }}>

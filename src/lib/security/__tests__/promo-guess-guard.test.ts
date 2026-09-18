@@ -93,6 +93,30 @@ describe('recordPromoGuessFailure', () => {
     expect(mocks.incr).toHaveBeenNthCalledWith(2, 'casino:promo-guess:CODEBBB2');
   });
 
+  // 06_4 (T4/L0): exactly one caller sees the atomic INCR threshold value, so parallel
+  // guessing must produce exactly one voucher_velocity signal — never two (double-trigger)
+  // and never zero (lost crossing). The mock backend counts synchronously, so this verifies
+  // call-ordering semantics, not real network concurrency against a live Redis server
+  // (documented limitation per plan L0).
+  it('fires exactly one threshold signal when parallel attempts cross the threshold', async () => {
+    let counter = 0;
+    mocks.incr.mockImplementation(async () => {
+      counter += 1;
+      return counter;
+    });
+
+    await Promise.all(
+      [...Array(PROMO_GUESS_FAILURE_THRESHOLD + 5)].map(() =>
+        recordPromoGuessFailure('user-1', 'WELCOME8'),
+      ),
+    );
+
+    expect(mocks.recordRiskEventBestEffort).toHaveBeenCalledTimes(1);
+    expect(mocks.recordRiskEventBestEffort.mock.calls[0]?.[0]?.signalType).toBe(
+      'voucher_velocity',
+    );
+  });
+
   it('fails open when the counter backend is unavailable (redemption itself must not be affected)', async () => {
     mocks.incr.mockRejectedValue(new Error('redis down'));
     await expect(recordPromoGuessFailure('user-1', 'WELCOME8')).resolves.toBeUndefined();

@@ -1,4 +1,4 @@
-import { TrendingUp, RotateCcw, CircleDollarSign, Zap, Spade, type LucideIcon } from 'lucide-react';
+import { TrendingUp, Dices, CircleDollarSign, Cherry, Spade, type LucideIcon } from 'lucide-react';
 
 /**
  * Same game -> icon/color mapping as src/app/games/page.tsx, reused here so the
@@ -13,9 +13,9 @@ export interface GameMeta {
 
 export const GAME_META: Record<string, GameMeta> = {
   crash: { label: 'Crash', icon: TrendingUp, color: 'hsl(var(--primary))' },
-  dice: { label: 'Dice', icon: RotateCcw, color: 'hsl(var(--secondary))' },
+  dice: { label: 'Dice', icon: Dices, color: 'hsl(var(--secondary))' },
   roulette: { label: 'Roulette', icon: CircleDollarSign, color: 'hsl(var(--accent))' },
-  slots: { label: 'Slots', icon: Zap, color: 'hsl(var(--primary))' },
+  slots: { label: 'Slots', icon: Cherry, color: 'hsl(var(--primary))' },
   blackjack: { label: 'Blackjack', icon: Spade, color: 'hsl(var(--secondary))' },
 };
 

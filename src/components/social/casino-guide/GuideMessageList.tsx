@@ -9,11 +9,9 @@ import {
   Bot,
   Check,
   Copy,
-  Crown,
   Gamepad2,
   History,
   Sliders,
-  Sparkles,
   Square,
   ThumbsDown,
   ThumbsUp,
@@ -200,21 +198,23 @@ export function GuideMessageList({
             <div
               style={{
                 border: `1px solid ${
-                  turn.role === 'player' ? 'hsla(var(--primary), 0.5)' : 'rgba(255, 255, 255, 0.12)'
+                  turn.role === 'player' ? 'hsla(var(--primary), 0.5)' : 'rgba(212, 175, 55, 0.22)'
                 }`,
                 borderRadius: '12px',
                 background:
                   turn.role === 'player'
                     ? 'linear-gradient(135deg, hsla(var(--primary), 0.25), hsla(var(--primary), 0.12))'
-                    : 'rgba(14, 18, 26, 0.75)',
+                    : 'rgba(14, 18, 26, 0.82)',
                 padding: '12px 16px',
                 color: turn.role === 'player' ? '#ffffff' : '#f8fafc',
                 fontSize: '0.80rem',
                 lineHeight: 1.6,
+                fontVariantNumeric: 'tabular-nums',
+                fontFeatureSettings: '"tnum" on',
                 boxShadow:
                   turn.role === 'player'
                     ? '0 4px 16px rgba(0, 0, 0, 0.35)'
-                    : '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.14)',
+                    : '0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
                 whiteSpace: turn.role === 'guide' ? 'normal' : 'pre-wrap',
               }}
             >
@@ -224,14 +224,20 @@ export function GuideMessageList({
                   {isSending && index === turns.length - 1 && (
                     <motion.span
                       aria-hidden="true"
-                      animate={{ opacity: [1, 0.2, 1] }}
+                      animate={{
+                        opacity: [1, 0.2, 1],
+                        boxShadow: [
+                          '0 0 12px rgba(212, 175, 55, 0.9)',
+                          '0 0 3px rgba(212, 175, 55, 0.3)',
+                          '0 0 12px rgba(212, 175, 55, 0.9)',
+                        ],
+                      }}
                       transition={{ repeat: Infinity, duration: 0.85, ease: 'easeInOut' }}
                       style={{
                         display: 'inline-block',
                         width: '6px',
                         height: '14px',
-                        background: 'hsl(var(--primary))',
-                        boxShadow: '0 0 8px hsla(var(--primary), 0.65)',
+                        background: '#D4AF37',
                         marginLeft: '5px',
                         verticalAlign: '-2px',
                         borderRadius: '2px',
@@ -273,7 +279,7 @@ export function GuideMessageList({
                         {turn.action.type === 'open_vault' && <Wallet size={14} />}
                         {turn.action.type === 'navigate_game' && <Gamepad2 size={14} />}
                         {turn.action.type === 'open_settings' && <Sliders size={14} />}
-                        {turn.action.type === 'open_rank_benefits' && <Crown size={14} />}
+                        {turn.action.type === 'open_rank_benefits' && <Image src="/images/2026-09-06_icon-crown-vip-quantum-gold_v001.png" alt="Rank-Vorteile" width={14} height={14} aria-hidden />}
                         {turn.action.type === 'open_history' && <History size={14} />}
                         {turn.action.type === 'open_leaderboard' && <TrendingUp size={14} />}
                         <span>{turn.action.label}</span>
@@ -326,7 +332,13 @@ export function GuideMessageList({
                               e.currentTarget.style.transform = 'none';
                             }}
                           >
-                            <Sparkles size={11} style={{ color: '#D4AF37', flexShrink: 0 }} />
+                            <Image
+                              src="/images/2026-09-06_icon-ai-guide-quantum-gold_v001.png"
+                              alt="KI-Vorschlag"
+                              width={11}
+                              height={11}
+                              style={{ flexShrink: 0 }}
+                            />
                             <span>{suggestion}</span>
                           </button>
                         ))}

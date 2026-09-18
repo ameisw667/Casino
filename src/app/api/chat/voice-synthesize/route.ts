@@ -19,43 +19,7 @@ const synthesizeSchema = z.object({
 const OPENAI_AUDIO_SPEECH_URL = 'https://api.openai.com/v1/audio/speech';
 const PRIVATE_NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
-/**
- * Sanitizes markdown text into clean speakable prose
- * Strips delimiter markers, markdown tables, URLs, backticks, asterisks, headers.
- */
-export function cleanMarkdownForSpeech(rawText: string): string {
-  if (!rawText) return '';
-
-  let cleaned = rawText;
-
-  // 1. Remove <<<SUGGESTIONS: [...]>>> block
-  cleaned = cleaned.replace(/<<<SUGGESTIONS:\s*\[.*?\]\s*>>>/gs, '');
-
-  // 2. Remove code blocks ```...``` and inline code `...`
-  cleaned = cleaned.replace(/```[\s\S]*?```/g, ' ');
-  cleaned = cleaned.replace(/`([^`]+)`/g, '$1');
-
-  // 3. Remove markdown tables and separator rows
-  cleaned = cleaned.replace(/[-:|]{3,}/g, ' ');
-  cleaned = cleaned.replace(/\|/g, ' ');
-
-  // 4. Remove links [text](url) -> text
-  cleaned = cleaned.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
-
-  // 5. Remove bold/italic markers (*, **, _, __)
-  cleaned = cleaned.replace(/[*_]{1,3}/g, '');
-
-  // 6. Remove header hashes (# Header -> Header)
-  cleaned = cleaned.replace(/^#{1,6}\s+/gm, '');
-
-  // 7. Remove bullet dashes/asterisks at line starts
-  cleaned = cleaned.replace(/^[-*•]\s+/gm, '');
-
-  // 8. Collapse extra whitespace
-  cleaned = cleaned.replace(/\s+/g, ' ').trim();
-
-  return cleaned;
-}
+import { cleanMarkdownForSpeech } from '@/lib/casino/voice-markdown';
 
 export async function POST(request: Request) {
   const originFailure = validateMutationOrigin(request);
@@ -189,7 +153,11 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    CasinoLogger.error('VoiceSynthesize', error instanceof Error ? error.message : 'Unknown error');
+    CasinoLogger.error(
+      'VoiceSynthesize',
+      'Voice synthesis request failed',
+      error instanceof Error ? error : undefined,
+    );
     return apiErrorResponse(
       'SERVICE_UNAVAILABLE',
       'Voice synthesis service unavailable',

@@ -1,5 +1,6 @@
 # Design-Assets Changelog
 
+- 2026-09-14 — `icon-dice-quantum-gold` transparent (Freistellung der v001 über die Editing-Pipeline, Alpha-Kanal; 1592092 B, sha256:6ff579d6; Basis: v001 vom 2026-09-02) → `2026-09-02_icon-dice-quantum-gold_transparent.png` — Erstnutzung: `HeroFloatingCosmos.tsx` (Hero-Scrolly)
 - 2026-09-02 — `icon-dice-quantum-gold` v001 (1024x1024, medium, 1396726 B, sha256:f345c0f2, 41.9s, ~0.08 USD) → `2026-09-02_icon-dice-quantum-gold_v001.png`
 - 2026-09-03 — `hero-dice-quantum-gold` v001 (1536x1024, medium, 2028744 B, sha256:65b696a9, 36.3s, ~0.12 USD) → `2026-09-03_hero-dice-quantum-gold_v001.png`
 - 2026-09-03 — `hero-crash-quantum-gold` v001 (1536x1024, medium, 2478236 B, sha256:20eb7ab8, 32.7s, ~0.12 USD) → `2026-09-03_hero-crash-quantum-gold_v001.png`
@@ -38,3 +39,8 @@
 - 2026-09-06 — `icon-trophy-win-quantum-gold` v001 (1024x1024, medium, 1512486 B, sha256:be890def, 50.3s, ~0.08 USD) → `2026-09-06_icon-trophy-win-quantum-gold_v001.png`
 - 2026-09-06 — `icon-trophy-tournament-quantum-gold` v001 (1024x1024, medium, 1419043 B, sha256:2e49d97c, 52.6s, ~0.08 USD) → `2026-09-06_icon-trophy-tournament-quantum-gold_v001.png`
 - 2026-09-06 — `icon-trophy-record-quantum-gold` v001 (1024x1024, medium, 1475241 B, sha256:dcb1f9dc, 50.6s, ~0.08 USD) → `2026-09-06_icon-trophy-record-quantum-gold_v001.png`
+- 2026-09-06 — `icon-crown-vip-quantum-gold` v001 (1024x1024, medium, 1832038 B, sha256:a13332b8, 53.1s, ~0.08 USD) → `2026-09-06_icon-crown-vip-quantum-gold_v001.png`
+- 2026-09-06 — `icon-crown-jackpot-quantum-gold` v001 (1024x1024, medium, 1833760 B, sha256:891cea27, 47.6s, ~0.08 USD) → `2026-09-06_icon-crown-jackpot-quantum-gold_v001.png`
+- 2026-09-06 — `icon-star-rating-quantum-gold` v001 (1024x1024, medium, 1498022 B, sha256:2bd3066b, 49.5s, ~0.08 USD) → `2026-09-06_icon-star-rating-quantum-gold_v001.png`
+- 2026-09-06 — `icon-star-level-quantum-gold` v001 (1024x1024, medium, 1452460 B, sha256:ac7f0510, 47.2s, ~0.08 USD) → `2026-09-06_icon-star-level-quantum-gold_v001.png`
+- 2026-09-06 — `icon-security-verified-quantum-gold` v001 (1024x1024, medium, 1533089 B, sha256:b4ba9f5c, 52.6s, ~0.08 USD) → `2026-09-06_icon-security-verified-quantum-gold_v001.png`

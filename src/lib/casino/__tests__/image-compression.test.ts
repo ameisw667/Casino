@@ -3,6 +3,7 @@ import {
   calculateScaledDimensions,
   isAllowedImageFile,
   MAX_COMPRESSED_IMAGE_BYTES,
+  processGuideAttachment,
 } from '../image-compression';
 
 describe('image-compression', () => {
@@ -52,6 +53,25 @@ describe('image-compression', () => {
   describe('MAX_COMPRESSED_IMAGE_BYTES', () => {
     it('sets a 2.5 MB cap', () => {
       expect(MAX_COMPRESSED_IMAGE_BYTES).toBe(2_500_000);
+    });
+  });
+
+  describe('processGuideAttachment', () => {
+    it('rejects an unsupported file type without attempting compression', async () => {
+      const result = await processGuideAttachment({ type: 'application/pdf' } as File);
+      expect(result).toEqual({ status: 'rejected', reason: 'invalid-type' });
+    });
+
+    it('reports a compression failure as its own distinct, inspectable outcome instead of silently discarding it (regression: the caller used to get a bare rejected promise with no way to tell "not an image" apart from "compression broke")', async () => {
+      // This test file runs in vitest's Node environment (no window/document), so the real
+      // compressImageFile() genuinely fails here — no mocking needed to exercise this path.
+      const result = await processGuideAttachment({ type: 'image/png' } as File);
+
+      expect(result.status).toBe('rejected');
+      if (result.status !== 'rejected' || result.reason !== 'compression-failed') {
+        throw new Error(`expected a compression-failed result, got ${JSON.stringify(result)}`);
+      }
+      expect(result.error).toBeInstanceOf(Error);
     });
   });
 });

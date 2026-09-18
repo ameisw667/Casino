@@ -1,6 +1,6 @@
 # 06.2 — Security Hardening (Headers, CSP & Secrets)
 
-Niveau: **Top 29 %** (Erstaufschlüsselung 2026-08-29 in 10 Unterkategorien, rechnerischer Schnitt — vorher Top 15 % war der Bestwert der stärksten Teilflächen, kein Durchschnitt; siehe [`worldmap/04_security_hardening.md`](../../worldmap/04_security_hardening.md) für die vollständige Aufschlüsselung) · Stand: **2026-08-29** · Verifiziert mit: `npm run typecheck`, `npm run test`, `npm run build` (alle lokal grün), `gh run list --workflow=security-staging.yml` (live rot), `git status --short` (Änderungen unversioniert)
+Niveau: **Top 29 %** (Erstaufschlüsselung 2026-08-29 in 10 Unterkategorien, rechnerischer Schnitt — vorher Top 15 % war der Bestwert der stärksten Teilflächen, kein Durchschnitt; siehe [`T_SECURITY_HARDENING/04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md) für die vollständige Aufschlüsselung) · Stand: **2026-08-29** · Verifiziert mit: `npm run typecheck`, `npm run test`, `npm run build` (alle lokal grün), `gh run list --workflow=security-staging.yml` (live rot), `git status --short` (Änderungen unversioniert)
 
 > Diese Datei ist der lebende Status-Report zu Kategorie 04 (Prio 1) in
 > [`worldmap/00_WORLDMAP_STATUS.md`](../../worldmap/00_worldmap_status.md). Sie ersetzt den
@@ -8,7 +8,7 @@ Niveau: **Top 29 %** (Erstaufschlüsselung 2026-08-29 in 10 Unterkategorien, rec
 > (jetzt archiviert — volle Entscheidungshistorie dort) und die bisherige Mitbenutzung von
 > [`05_AUTH_SECURITY.md`](./05_auth_security.md) für diese Kategorie. Die Sub-Kategorie-Bewertung
 > (10 Unterkategorien einzeln, Bottleneck-Identifikation) lebt in
-> [`worldmap/04_security_hardening.md`](../../worldmap/04_security_hardening.md) — diese Datei
+> [`T_SECURITY_HARDENING/04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md) — diese Datei
 > bleibt der Ist-Zustands-/Verifikations-Report, jene Datei die Bewertungs-/Bottleneck-Analyse.
 
 ## Scope
@@ -42,7 +42,7 @@ Niveau: **Top 29 %** (Erstaufschlüsselung 2026-08-29 in 10 Unterkategorien, rec
 
 Zehn konkrete Härtungsmaßnahmen (M1–M10, volle Historie in [`docs/archive/06_2_security_hardening_plan_m1_m10.md`](../archive/06_2_security_hardening_plan_m1_m10.md)) sind **code-fertig und lokal verifiziert** — `npm run typecheck` 0 Fehler, alle neuen/geänderten Testdateien grün, `npm run build` erfolgreich. Das ist echte, nicht triviale Ingenieursarbeit mit klaren, grep-verifizierten Vorher/Nachher-Belegen je Maßnahme.
 
-**Update 2026-08-29:** Der Headline-Wert wurde auf **Top 29 %** umgestellt (rechnerischer Schnitt über 10 einzeln bewertete Unterkategorien statt Bestwert der stärksten Teilfläche — volle Aufschlüsselung in [`worldmap/04_security_hardening.md`](../../worldmap/04_security_hardening.md)). Trotzdem bleibt eine Einstufung als Top 1–10 % weiterhin ausgeschlossen, weil die Worldmap-Regel dafür explizit **„Automatisiert verifiziert"** verlangt, nicht „von einer LLM-Session lokal getestet":
+**Update 2026-08-29:** Der Headline-Wert wurde auf **Top 29 %** umgestellt (rechnerischer Schnitt über 10 einzeln bewertete Unterkategorien statt Bestwert der stärksten Teilfläche — volle Aufschlüsselung in [`T_SECURITY_HARDENING/04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md)). Trotzdem bleibt eine Einstufung als Top 1–10 % weiterhin ausgeschlossen, weil die Worldmap-Regel dafür explizit **„Automatisiert verifiziert"** verlangt, nicht „von einer LLM-Session lokal getestet":
 
 1. **Nichts ist committed.** `git status --short` zeigt jede Änderung aus dieser Arbeit als unversioniert (`M src/proxy.ts`, `?? src/lib/env.ts`, `?? src/lib/security/origin-guard.ts`, `?? src/app/api/internal/csp-report/`, `?? xx_sop/14_secret_rotation.md`, `?? .github/workflows/dependency-audit.yml`). Ein `git stash`, ein Reset oder ein Maschinenwechsel würde die gesamte Arbeit verlieren — es gibt keine Persistenz-Garantie.
 2. **Nichts ist deployed.** Die Produktions-Domain läuft unverändert auf dem alten Stand. Jede Aussage über „gehärtete CSP" gilt für den lokalen Arbeitsbaum, nicht für das, was ein echter Nutzer heute im Browser bekommt.
@@ -89,7 +89,7 @@ Kurz: Der Unterschied zwischen „Code ist fertig" und „Kategorie ist auf ein 
 
 | Bedarf                                                                                                     | Datei                                                                                                      |
 | :--------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------- |
-| Sub-Kategorie-Bewertung (10 Unterkategorien einzeln, Bottleneck-Identifikation, Quelle des Top-29-%-Werts) | [`worldmap/04_security_hardening.md`](../../worldmap/04_security_hardening.md)                             |
+| Sub-Kategorie-Bewertung (10 Unterkategorien einzeln, Bottleneck-Identifikation, Quelle des Top-29-%-Werts) | [`T_SECURITY_HARDENING/04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md)     |
 | Vollständige Entscheidungshistorie M1–M10 (Herkunft dieses Reports)                                        | [`docs/archive/06_2_security_hardening_plan_m1_m10.md`](../archive/06_2_security_hardening_plan_m1_m10.md) |
 | Auth & Identity (bisher mitgenutzter Testlauf)                                                             | [`05_AUTH_SECURITY.md`](./05_auth_security.md)                                                             |
 | CI/CD-Kontext (Migrations-Kollision, `security-staging.yml`)                                               | [`docs/archive/00-09-CICD.md`](../archive/00-09-CICD.md)                                                   |

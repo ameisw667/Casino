@@ -1,0 +1,108 @@
+# 06-U08 — Dopplungs-/Verfallskontrolle (Unterkategorie 8)
+
+> **Status:** Execution-Ready · **Stand:** 2026-09-14 · **Owner:** LLM (Jan nur bei Memory-Schreib-Gate) · **Scope:** Konsolidierungs-Tooling-Status verifizieren, manuelles Konsolidierungs-Protokoll als Checkliste etablieren, es 1× testweise als read-only Baseline-Lauf an den 6 vorhandenen Memory-Dateien ausführen und eine Wachstums-Schwellenregel verankern — ohne Memory-Schreibaktion (der reale 2-Zeilen-Index-Fix läuft in Plan 06_u06).
+> **Money-Pfad:** Nein · **Security-Review:** Nein
+> **Bewertungs-Basis:** [`../01_6_08_dopplung_verfall.md`](../01_6_08_dopplung_verfall.md) (gewichteter Schnitt Top 77 %; Bottlenecks: Subsub 1 realer Index-Dopplungsfall Top 98 %, Subsub 2 Verfallserkennung Top 93 %, Subsub 4 Consolidation-Tooling Top 90 %)
+> **Entscheidungen Jan 2026-09-17:** (a) L1 läuft als **strikt read-only Baseline-Bericht** — gefundene Dopplungen werden berichtet, aber **nicht** geräumt; der Plan bleibt damit ohne Schreib-Gate (das bedingte G1 greift nur, wenn der Bericht offene, in 06_u06/06_u07 ungedeckte Befunde liefert). (b) Schwellen-Regel §2c (~15 Notiz-Dateien) bleibt wie gedraftet. (c) Statuswechsel **in-place**, kein Worldmap-Eintrag. **Go für L0–L2 offen** (L0–L2 sind gatefrei, aber nicht ohne Jans Startschuss auszuführen).
+> **Übergabe von 06_u06 (ausgeführt 2026-09-16):** Die Re-Rating-Zuständigkeit für **Subsub 1** liegt jetzt hier — 06_u06 hat den Index-Duplikatfall geräumt (Variante B: Zeile 2 entfernt, 6 Zeilen ↔ 6 Dateien) und in seinem Ausführungs-Log ausdrücklich auf diesen Plan verwiesen. §2b, §2d und §5 sind am 2026-09-17 entsprechend auf den Ist-Stand gezogen.
+> **Archivierung in-place** (Präzedenz 06_u06/06_u09/06_u10); Abweichung von `xx_sop/03`: kein Abschnitt „Aktive Pläne" in `worldmap/00_WORLDMAP_STATUS.md` (verifiziert 2026-09-17), kein Verschieben nach `docs/archive/`.
+
+## 1 — Übersicht für Jan & Ausführungs-LLM
+
+| Nummer | Meilenstein                                                                                                                                                                                                                                                                                                                                                    | Scope (Dateien)                                                            | Ausführung  | Status     | Zuständigkeit | Verifikation                                                                                                     |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------- | ---------- | ------------- | ---------------------------------------------------------------------------------------------------------------- |
+| L0     | Tooling-Status verifizieren: `consolidate-memory`-Verfügbarkeit erneut prüfen (Session-Skill-Liste + Glob/Grep über `C:\Users\hambu\.claude\skills\`, `C:\Users\hambu\.claude\.agents\skills\`, Projekt-`.claude\skills\`), Ergebnis mit Beleg in §2e eintragen                                                                                                | diese Plan-Datei (`06_u08_...plan.md`)                                     | Sequenziell | 🔴 Geplant | LLM           | §2e enthält Belegdatum + konkrete Suchpfade, 0 offene Fragen                                                     |
+| L1     | **Baseline-Lauf:** Konsolidierungs-Protokoll (§2a) 1× testweise an den 6 Notiz-Dateien + `MEMORY.md` ausführen — Schritte 1–6 read-only, Schritt 7–8 (Gate/Ausführung) entfällt bzw. nur Empfehlungsbericht                                                                                                                                                    | read-only: `C:\Users\hambu\.claude\projects\V--VibeCoding-Casino\memory\*` | Sequenziell | 🔴 Geplant | LLM           | §2f-Bericht: Duplikat-/Verfalls-Befunde je mit Beleg (`Datei:Zeile`) + Räumungsempfehlung, keine Datei verändert |
+| L2     | Wachstums-Vorsorge verankern: Schwellen-Regel (§2c) + replace-on-update-Regel in [`../01_6_08_dopplung_verfall.md`](../01_6_08_dopplung_verfall.md) als „Mechanismen nach Baseline-Lauf" ergänzen                                                                                                                                                              | `../01_6_08_dopplung_verfall.md`                                           | Sequenziell | 🔴 Geplant | LLM           | Beide Regeln im Bewertungsdokument lesbar; kein Widerspruch zu Bestandsaussagen                                  |
+| L3     | Niveau-Rückschreibung: [`../01_6_08_dopplung_verfall.md`](../01_6_08_dopplung_verfall.md) (**Subsub 1 + 2 + 4 + 7**) + Parent [`../01_6_memory_files.md`](../01_6_memory_files.md) Position 8 neu bewerten (§5 enthält die Vorher/Nachher-Tabelle bereits); Plan-Status **in-place** → `Executed (archiviert)` (kein Worldmap-Eintrag, verifiziert 2026-09-17) | `../01_6_08_*.md`, `../01_6_memory_files.md`                               | Sequenziell | 🔴 Geplant | LLM           | Schnitt-Update dokumentiert (§5-Tabelle mit Ist-Werten belegt) + Statuszeile dieser Datei aktualisiert           |
+
+## Fan-out-Check (Kriterium 5/6)
+
+L0 → L1 → L2 → L3 strikt sequenziell — **kein Fan-out.** Begründung: L0 bestimmt die Werkzeuglage, auf der L1 aufbaut (Protokoll vs. Skill-Aufruf); L1 produziert den Befundkorpus, den L2 als verifizierten Mechanismus rückschreibt; L3 bewertet erst das Gesamtresultat. Jede Stufe hat < 10 Min. Einzelaufwand, Gesamtaufwand < 45 Min. — Kriterium-6-Schwelle nicht erreicht, Bündelung in einer Sequenz ist Pflicht.
+
+## 2 — Self-Contained Kontext-Koffer
+
+### 2a — Konsolidierungs-Protokoll (manuelle Checkliste, 7 Schritte)
+
+Grundlage: Der `consolidate-memory`-Skill ist laut verifiziertem Status (§2e) **nicht verfügbar** — der Meilenstein ist daher ein manuelles Protokoll, kein Skill-Aufruf. Prinzip: **report-first** (analog `casino-residue-scout` — Empfehlung statt stiller Löschung) und **replace-on-update** (Basis Subsub 2).
+
+- [ ] **S1 — Inventur & Typ-Gruppierung:** Alle Dateien im Memory-Ordner listen (Glob `*.md`), je Datei `metadata.type` aus Frontmatter auslesen und gruppieren; Zähler notieren (Notiz-Dateien vs. Index). Aktueller Soll-Stand: 6 Notiz-Dateien + `MEMORY.md` (verifiziert 2026-09-14, §2d).
+- [ ] **S2 — Index-Referenzen extrahieren:** Aus `MEMORY.md` jede `[name]`-Zeile → Zielpfad parsen; Mehrfachvorkommen desselben Zielpfads zählen. Jedes Ziel ≥ 2× = **Duplikat-Kandidat** (realer Fall heute: `no-visual-check-frontend.md` auf Zeilen 2 und 4).
+- [ ] **S3 — Semantische Doppelprüfung (Notiz-Datei ↔ Notiz-Datei):** Je Paar mit überlappender Domäne prüfen, ob beide **dasselbe Faktum** abdecken (Frontmatter-`description` + Body-Kernaussage vergleichen). Klassifikation je Paar: (a) Duplikat → Konsolidierung, (b) bewusste Trennung → Querverlinkung `[[...]]` prüfen/ergänzen (Muster: `openai_image_video_pricing_reference` ↔ `image_generation_model_preference`), (c) unabhängig → keine Aktion. Vorher-Befund: 0 echte Inhaltsdoppelung (Basis Subsub 3) — hier verifizieren, nicht annehmen.
+- [ ] **S4 — Verfalls-Check Index ↔ Datei:** Je Indexzeile die `description` im Frontmatter der Zieldatei vergleichen. Beschreibung ≠ Frontmatter-Description bzw. Widerspruch zum Body = **veraltete Indexzeile** (Kandidat für replace). Vorher-Befund: Zeile 2 widerspricht der Selbstbeschreibung von `no-visual-check-frontend.md` (Basis Subsub 6).
+- [ ] **S5 — Verfalls-Check Datei ↔ Realität:** Je Datei prüfen, ob Wert/Regel noch gilt (kanonische Repo-Quelle als Beleg nennen). **Alter allein ist kein Verfall** (Basis Subsub 5: Frische-Hinweis misst Dateialter, nicht inhaltliche Veraltung) — eine 28-Tage-Datei mit korrektem Inhalt ist gesund, ein 1-Tage-Index kann veraltet sein.
+- [ ] **S6 — Räumungsempfehlung (report-first):** Je Befund genau einen Aktionstyp festlegen — (a) Indexzeile **ersetzen** (replace-on-update), (b) Dateien **konsolidieren** + Querverlinkung statt Kopie, (c) Datei **räumen** (Verfall; Empfehlung löschen/archivieren mit Begründung). Jeder Befund mit Beleg (`Datei:Zeile`) — **keine stille Löschung**, Befunde bleiben im Bericht auch nach Umsetzung.
+- [ ] **S7 — Gate G1 + Ausführung:** Befundliste + Empfehlungen Jan vorlegen; Umsetzung nur nach ausdrücklicher Freigabe, atomar (Datei + ihre Indexzeile im selben Arbeitsschritt, keine Teil-Schreibungen). Nicht freigegebene Befunde bleiben im Bericht dokumentiert.
+
+### 2b — Baseline-Lauf (L1) — Vorher-Befunde als Soll-Befundlage
+
+Der Lauf schließt den Vorher-Befund „nie ausgeführt, unverifiziert" (Basis Subsub 4): Erstmals wird der Prozess **ausgeführt** statt nur beschrieben. Erwartete Befunde (aus der Basis, je in L1 mit Beleg zu bestätigen oder zu widerlegen):
+
+| #   | Erwarteter Befund                                                                   | Beleg (Vorher)                                                                  | Protokoll-Schritt | Ist-Stand 2026-09-17                                                                                                                        |
+| --- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | :---------------: | :------------------------------------------------------------------------------------------------------------------------------------------ |
+| B1  | 1 realer Index-Duplikatfall: 2 Indexzeilen → dieselbe Datei                         | `MEMORY.md` Zeilen 2 + 4 → `no-visual-check-frontend.md`                        |        S2         | **historisch** — von 06_u06 am 2026-09-16 geräumt (Variante B); S2 darf 0 Duplikate erwarten, ein Wiederfund wäre ein NEUER Befund          |
+| B2  | 1 veraltete Indexzeile (≈ 14 % von 7): widerspricht Frontmatter-Description         | `MEMORY.md:2` vs. `no-visual-check-frontend.md` Frontmatter                     |        S4         | **historisch** — `MEMORY.md:2` existiert nicht mehr (Zeile 2 = `sql-delivery-as-file`); die Soll-Erwartung ist „Description deckungsgleich" |
+| B3  | 0 semantische Datei-Doppelungen; stattdessen bewusste Querverlinkung                | `[[openai-image-video-pricing-reference]]`, `[[vip-rank-supabase-outsourcing]]` |        S3         | unverändert gültig (6 Dateien, keine Inhaltsdopplung bekannt)                                                                               |
+| B4  | Frische-Hinweis-Grenze: `MEMORY.md` (1 Tag alt) ohne Hinweis trotz veralteter Zeile | Beobachtung 2026-09-14 (Basis Subsub 5)                                         |        S5         | unverändert gültig als Grenz-Beobachtung (Mechanismus unangetastet)                                                                         |
+
+**Konsequenz für die Aussagekraft des Baseline-Laufs:** B1/B2 sind vor dem Lauf bereits erledigt — der Lauf kann sie nur noch als „nicht reproduzierbar / geräumt" bestätigen. Sein verbleibender Erkenntniswert liegt in B3/B4 und in der Frage, ob die Räumung **neue** Auffälligkeiten hinterlassen hat (z. B. Zeilen-Reihenfolge, Beschreibungs-Drift in den 6 Zeilen). Dieser Effekt ist bei der L3-Bewertung (Subsub 4) ausdrücklich zu berücksichtigen — die „nie ausgeführt"-Lücke schließt der Lauf unabhängig davon.
+
+Dateinamens-Notiz für S1 (Stand 2026-09-17): weiterhin 4 Notiz-Dateien mit Bindestrich (`no-visual-check-frontend.md`, `sql-delivery-as-file.md`, `verify-paths-before-recommending.md`, `vip-rank-supabase-outsourcing.md`), 2 mit Unterstrich (`image_generation_model_preference.md`, `openai_image_video_pricing_reference.md`) — das Protokoll matcht tolerant (case-/trennzeichen-insensitiv), Indexzeilen zitieren den exakten Dateinamen. **Abhängigkeit:** Die 2 Unterstrich-Dateien werden in [`06_u01_format_frontmatter_plan.md`](06_u01_format_frontmatter_plan.md) auf kebab-case umbenannt (Freigabe 2026-09-17 erteilt, Ausführung offen). Läuft dieser Baseline-Bericht **nach** der Umbenennung, sind 6/6 Dateien kebab-case und die Notiz ist gegenstandslos; läuft er davor, ist sie der Ist-Stand. Reihenfolge-Empfehlung: Baseline **nach** U01-L1/L2, damit der Bericht die Ziel-Namenswelt prüft (kein Sachverhalt ändert sich dadurch — nur die Notiz).
+
+### 2c — Wachstums-Vorsorge (Schwellen-Regel)
+
+- **Konsolidierungspflicht ab ~15 Notiz-Dateien:** Vor jeder **neuen** Memory-Anlage ab einer Ordnergröße von ~15 Notiz-Dateien (aktuell 6) ist ein Konsolidierungslauf (S1–S6) Pflicht; die neue Anlage erst nach Befundabgleich (existiert das Faktum bereits → update statt neu).
+- **Replace-on-update konstant ab sofort (unabhängig von der Schwelle):** Jede Überarbeitung einer Memory-Datei aktualisiert **ihre eigene Indexzeile im selben Arbeitsschritt** — niemals append neben der Alt-Zeile (genau das Ausfallmuster des realen Falls, Basis Subsub 2).
+- **Bewusste Ausnahme von „Write to memory only when I explicitly ask":** Die Vorsorge-Regeln ändern Jans globale Regel nicht — sie definieren nur, _was_ bei erlaubtem Schreiben gilt (Replace statt Append, Konsolidierung vor Neuanlage). Unsolicited Aufräumläufe bleiben ausgeschlossen.
+
+### 2d — Cross-Verweise & Zuständigkeits-Grenzen (keine Doppelpflege)
+
+| Plan                                                  | Zuständig für                                                                                                                                    | Diese Plan übernimmt NICHT                                                  |
+| :---------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------- |
+| `06_u06_index_konsistenz_plan.md` (Index-Räumung)     | Der konkrete 2-Zeilen-Fix in `MEMORY.md` (Zeilen 2/4) — **ausgeführt 2026-09-16 (Variante B), geräumt**                                          | Keine Indexzeilen-Edits; Baseline-Lauf L1 berichtet nur, räumt nicht        |
+| `06_u07_pflegekadenz_plan.md` (Pflege-Kadenz/Trigger) | Wann Reviews/Konsolidierungsläufe getriggert werden (Kadenz)                                                                                     | Keine Trigger-Definition; hier nur die mengenbasierte Schwellen-Regel (§2c) |
+| dieser Plan (`06_u08`)                                | Tooling-Status, Protokoll-Checkliste, 1× verifizierender Baseline-Lauf, Wachstums-Schwellenregel **+ Re-Rating Subsub 1** (von 06_u06 übergeben) | —                                                                           |
+
+Pfad-Status am 2026-09-17 verifiziert: `06_u06_index_konsistenz_plan.md` (ausgeführt), `06_u07_pflegekadenz_plan.md` und `06_u01_format_frontmatter_plan.md` liegen alle in `Planungsdateien/` — die bei Plan-Stand 2026-09-14 offene Existenzfrage ist damit beantwortet, die Verweise sind klickfähig.
+
+### 2e — Verifizierter Tooling-Status `consolidate-memory` (L0 aktualisiert diesen Block)
+
+**Befund 2026-09-14: Skill existiert nicht / ist nicht verfügbar.** Belege:
+
+1. **Session-Skill-Liste (2026-09-14):** In der verfügbaren Skill-Liste dieser Session ist kein Skill `consolidate-memory` — nahe liegende Alternativen (`learn-eval`, `save-session`, `resume-session`, `prune`, `simplify`) decken andere Zwecke ab (Session-Extraktion bzw. Code-Duplikate), keine Memory-Ordner-Konsolidierung.
+2. **Glob `**/*consolidate*/**` über `C:\Users\hambu\.claude\`:** 0 Treffer — kein Skill-Verzeichnis mit diesem Namen (deckt `skills\`, `.agents\skills\`, `skills\ecc\` ab).
+3. **Grep `consolidate` über `C:\Users\hambu\.claude\skills\` und `C:\Users\hambu\.claude\.agents\skills\`:** einzige Treffer in `skills\agent-rating-jan\references\example-scorecard.md` und `skills\ecc\seo\SKILL.md` — beide inhaltlich irrelevant (Scorecard-Beispiel bzw. SEO-Kontext), kein Skill-Definitionskontext.
+4. **Projekt-`.claude\skills\` des Casino-Repos:** einzig `casino-design-system-craft\SKILL.md` — kein Memory-Skill.
+
+Fazit: Doppel-unverifiziert laut Basis Subsub 4 (Funktion unbekannt, Verfügbarkeit unbestätigt) wird zu **einwertig unbestätigt-negativ** aufgelöst: Das Tooling ist nicht auffindbar, damit nicht aufrufbar — der Meilenstein ist das manuelle Protokoll §2a. L0 wiederholt die 4 Checks und trägt ggf. geänderten Stand mit neuem Beleg ein; nur falls der Skill **dann** auffindbar wird, wird §2a zum Vorbereitungs-Checkliste für einen Skill-Testlauf umetikettiert (keine Protokoll-Neufassung nötig — S1–S7 bleiben auch dann die fachliche Vorbereitung).
+
+### 2f — Baseline-Bericht (in L1 zu ergänzen; Placeholder)
+
+> [L1 trägt hier ein] Ergebnis-Block: S1-Gruppierungstabelle (7 Dateien, Typ je Datei), S2-Duplikatliste, S3-Paarklassifikation, S4/S5-Verfallsliste, S6-Empfehlungen je mit `Datei:Zeile`-Beleg — Zielumfang ≤ 30 Zeilen, ohne Memory-Änderung.
+
+## 3 — Expliziter Nicht-Scope
+
+- Keine Memory-Schreibaktion in diesem Plan: der reale Index-Duplikat-Fix lief in [`06_u06_index_konsistenz_plan.md`](06_u06_index_konsistenz_plan.md) und ist **ausgeführt (2026-09-16, Variante B)**; der Baseline-Lauf (L1) ist strikt read-only und bestätigt das nur.
+- Kein Fix der Datei-`no-visual-check-frontend.md` selbst (die ist korrekt aktualisiert — nur der Index veraltet).
+- Keine Anlage neuer Memory-Dateien und keine Konsolidierung bestehender Doppelungen (Vorher-Befund: 0 echte Doppelung; Querverlinkungen bleiben unverändert).
+- Keine Änderung am Frische-Hinweis-Mechanismus selbst (Harness-seitig, nicht steuerbar — Basis Subsub 5 dokumentiert die Grenze nur).
+- Keine Kadenz-/Trigger-Definition (→ `06_u07`), keine Index-Format-Regeln über §2a hinaus (→ `06_u06`).
+- Keine Änderung an `C:\Users\hambu\.claude\CLAUDE.md` (Abschnitt „Memory" bleibt unangetastet) und an keiner anderen globalen Konfiguration.
+- Keine Änderung an Repo-Code, `src/**`, Migrationen — der Plan berührt ausschließlich Dateien unter `t_claude_code/` (keine Worldmap-Zeile, siehe Kopf-Abweichungsnotiz).
+
+## 4 — Lebenszyklus
+
+`Geplant` → Jan-Freigabe dieses Plans → `Execution-Ready` (Status dieser Datei) → L0/L1 (LLM, read-only) → L2 (LLM, nur Repo-Doku-Edit, kein Gate) → L3 `Executed (archiviert)` **in-place** (kein Worldmap-Eintrag, verifiziert 2026-09-17). **Bedingtes Gate G1 (Jan)**: nur falls der Baseline-Bericht (§2f) Befunde enthält, die in keinem Nachfolgeplan (`06_u06`/`06_u07`) gedeckt sind und eine Memory-Änderung erfordern — dann Empfehlungen an Jan, Umsetzung erst nach Freigabe, andernfalls verbleiben sie im Bericht. Lehnt Jan ab, bleibt der Plan als Protokoll + Befundlage archiviert.
+
+## 5 — Niveau-Rückschreibung (nach Ausführung)
+
+Nach L3 wird [`../01_6_08_dopplung_verfall.md`](../01_6_08_dopplung_verfall.md) in den Bottleneck-Subsubkategorien neu bewertet — Ziel-Schnitt Richtung Top 15–20 %:
+
+| Nr  | Subsubkategorie                   |  Vorher  | Erwartet nach L3 | Grund                                                                                                                                                                                                                                                    |
+| --- | --------------------------------- | :------: | :--------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 4   | Consolidation-Tooling (15 %)      | Top 90 % |  ≈ Top 15–20 %   | Status einwertig verifiziert (nicht verfügbar, §2e); Protokoll erstmals **ausgeführt** (Baseline-Lauf §2f) — „nie ausgeführt, unverifiziert" ist beseitigt                                                                                               |
+| 7   | Risikovorsorge bei Wachstum (5 %) | Top 75 % |    ≈ Top 15 %    | Schwellen-Regel (§2c) definiert den Gegenmechanismus für 6 → ~15 Dateien; replace-on-update schließt das lineare Risiko-Wachstum                                                                                                                         |
+| 2   | Verfallserkennung (20 %)          | Top 93 % |  ≈ Top 70–80 %   | **angehoben 2026-09-17:** 06_u06 hat die real überholte Zeile 2 am 2026-09-16 tatsächlich entfernt (vorher: „wird hier nicht entfernt") — der Beleg „Mechanismus greift real, nicht nur definiert" existiert jetzt; offen bleibt nur die Automatisierung |
+| 1   | Realer Dopplungsfall (25 %)       | Top 98 % |  ≈ Top 10–15 %   | **Zuständigkeit von 06_u06 übergeben** — der Duplikatfall ist geräumt (6 Zeilen ↔ 6 Dateien, 0 Widerspruchspaare, verifiziert 2026-09-16); dieses Re-Rating ist ein Ist-Nachtrag, kein neuer Hebel                                                       |
+
+Neuer gewichteter Schnitt erwartbar ≈ **Top 40–45 %** (vorher Top 77 %; der Plan-Deckel von Top 55–60 % gilt nicht mehr, weil Subsub 1/2 nicht länger auf 06_u06 warten). Parent [`../01_6_memory_files.md`](../01_6_memory_files.md) Position 8 erhält den neuen Schnitt als Rückverweis **und** einen Hinweis, dass der dort noch geführte Bottleneck-Vermerk (Top 77 %, „überholter Index-Eintrag blieb 12+ Tage stehen") auf dem Stand vor 2026-09-16 ist; Statuszeile dieser Plan-Datei → `Executed (archiviert <Datum>, siehe §5)`.

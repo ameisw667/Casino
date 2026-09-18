@@ -1280,6 +1280,7 @@ export type Database = {
       }
       users: {
         Row: {
+          account_status: string
           avatar_url: string | null
           balance: number | null
           created_at: string | null
@@ -1294,6 +1295,7 @@ export type Database = {
           xp: number | null
         }
         Insert: {
+          account_status?: string
           avatar_url?: string | null
           balance?: number | null
           created_at?: string | null
@@ -1308,6 +1310,7 @@ export type Database = {
           xp?: number | null
         }
         Update: {
+          account_status?: string
           avatar_url?: string | null
           balance?: number | null
           created_at?: string | null
@@ -1621,6 +1624,7 @@ export type Database = {
         Returns: Json
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      deactivate_expired_promo_codes: { Args: never; Returns: number }
       delete_guide_telemetry_events_for_actor: {
         Args: { p_actor_hash: string; p_actor_hash_version: number }
         Returns: number
@@ -1783,6 +1787,16 @@ export type Database = {
       retry_failed_background_jobs: { Args: never; Returns: undefined }
       retry_stale_big_win_events: { Args: never; Returns: undefined }
       retry_stale_wallet_events: { Args: never; Returns: undefined }
+      reverse_promo_code: {
+        Args: {
+          p_actor_id: string
+          p_code: string
+          p_reason: string
+          p_request_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       review_risk_event: {
         Args: {
           p_event_id: string
@@ -1799,6 +1813,7 @@ export type Database = {
       run_bet_fingerprint_purge_job: { Args: never; Returns: undefined }
       run_daily_race_settlement_job: { Args: never; Returns: undefined }
       run_guide_telemetry_purge_job: { Args: never; Returns: undefined }
+      run_promo_expiry_job: { Args: never; Returns: undefined }
       set_crash_round_point: {
         Args: { p_crash_point: number; p_round_id: string }
         Returns: Json

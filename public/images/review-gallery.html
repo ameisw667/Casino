@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Casino Royale — Design Assets Review Gallery</title>
+  <style>
+    :root {
+      --bg: #0B0E14;
+      --card-bg: #121824;
+      --border: #1E293B;
+      --gold: #D4AF37;
+      --text: #F8FAFC;
+      --muted: #94A3B8;
+      --emerald: #10B981;
+      --ruby: #EF4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 32px; }
+    header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 32px; }
+    h1 { font-size: 24px; color: var(--gold); letter-spacing: 0.5px; }
+    .subtitle { color: var(--muted); font-size: 14px; margin-top: 4px; }
+    .stats { display: flex; gap: 16px; font-size: 14px; }
+    .stat-pill { background: var(--card-bg); border: 1px solid var(--border); padding: 6px 14px; border-radius: 9999px; }
+    .stat-pill strong { color: var(--gold); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+    .asset-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s, border-color 0.2s; }
+    .asset-card:hover { transform: translateY(-3px); border-color: var(--gold); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .asset-name { font-weight: 600; font-size: 15px; color: var(--text); }
+    .asset-version { font-size: 12px; background: rgba(212, 175, 55, 0.15); color: var(--gold); border: 1px solid var(--gold); padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+    .preview-stage { background: radial-gradient(circle, #1E293B 0%, #0B0E14 100%); height: 260px; display: flex; align-items: center; justify-content: center; padding: 16px; position: relative; }
+    .main-preview { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); }
+    .mipmap-strip { display: flex; justify-content: space-around; align-items: center; background: rgba(0,0,0,0.3); padding: 10px 16px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .mipmap-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .mipmap-label { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+    .card-meta { padding: 14px 16px; font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+    .meta-row { display: flex; justify-content: space-between; align-items: center; }
+    .meta-row strong { color: var(--text); }
+    code { font-family: monospace; font-size: 11px; color: #CBD5E1; }
+    .badge { font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+    .badge-ok { background: rgba(16, 185, 129, 0.15); color: var(--emerald); border: 1px solid var(--emerald); }
+    .badge-warn { background: rgba(239, 68, 68, 0.15); color: var(--ruby); border: 1px solid var(--ruby); }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Casino Royale — Design Assets Review Gallery</h1>
+      <p class="subtitle">Lokale Qualitäts- und Mipmap-Sichtprüfung für Jan & Design-Guardian</p>
+    </div>
+    <div class="stats">
+      <div class="stat-pill">Assets: <strong>45</strong></div>
+      <div class="stat-pill">Design-System: <strong>Obsidian & Gold</strong></div>
+    </div>
+  </header>
+  <main class="grid">
+    
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">icon-dice-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-02_icon-dice-quantum-gold_v001.png" alt="icon dice quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-02_icon-dice-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-02_icon-dice-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-02_icon-dice-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1364.0 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>f345c0f2b0…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">hero-dice-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-03_hero-dice-quantum-gold_v001.png" alt="hero dice quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-03_hero-dice-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-03_hero-dice-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-03_hero-dice-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1536×1024 (3/2)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1981.2 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>65b696a9af…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">hero-crash-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-03_hero-crash-quantum-gold_v001.png" alt="hero crash quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-03_hero-crash-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-03_hero-crash-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-03_hero-crash-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1536×1024 (3/2)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>2420.2 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>20eb7ab87e…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">hero-roulette-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-03_hero-roulette-quantum-gold_v001.png" alt="hero roulette quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-03_hero-roulette-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-03_hero-roulette-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-03_hero-roulette-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1536×1024 (3/2)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>2159.1 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>617acf7ecc…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">hero-slots-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-04_hero-slots-quantum-gold_v001.png" alt="hero slots quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-04_hero-slots-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-04_hero-slots-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-04_hero-slots-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1536×1024 (3/2)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>2287.1 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>49af5e023b…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">hero-blackjack-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-04_hero-blackjack-quantum-gold_v001.png" alt="hero blackjack quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-04_hero-blackjack-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-04_hero-blackjack-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-04_hero-blackjack-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1536×1024 (3/2)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>2210.0 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>605f7dee0f…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">hero-crash-multiplayer-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-04_hero-crash-multiplayer-quantum-gold_v001.png" alt="hero crash multiplayer quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-04_hero-crash-multiplayer-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-04_hero-crash-multiplayer-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-04_hero-crash-multiplayer-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1536×1024 (3/2)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>2386.6 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>be9c4b5397…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">backdrop-dice-quantum-felt</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-04_backdrop-dice-quantum-felt_v001.png" alt="backdrop dice quantum felt asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-04_backdrop-dice-quantum-felt_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-04_backdrop-dice-quantum-felt_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-04_backdrop-dice-quantum-felt_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1536×1024 (3/2)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1921.8 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>cefda66fc6…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-ok">Dual WebP ✅</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">brand-ace-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-04_brand-ace-quantum-gold_v001.png" alt="brand ace quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-04_brand-ace-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-04_brand-ace-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-04_brand-ace-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1493.4 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>4f347c604b…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">backdrop-crash-quantum-nebula</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_backdrop-crash-quantum-nebula_v001.png" alt="backdrop crash quantum nebula asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_backdrop-crash-quantum-nebula_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_backdrop-crash-quantum-nebula_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_backdrop-crash-quantum-nebula_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1536×1024 (3/2)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>2253.3 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>e3db8d92c2…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">backdrop-royale-guide-obsidian-velvet</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_backdrop-royale-guide-obsidian-velvet_v001.png" alt="Royale Guide Obsidian Velvet ambient backdrop texture" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_backdrop-royale-guide-obsidian-velvet_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_backdrop-royale-guide-obsidian-velvet_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_backdrop-royale-guide-obsidian-velvet_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1536×1024 (3/2)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1730.8 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>b31526f42b…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">sprite-crash-quantum-interceptor</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./quantum-interceptor.png" alt="Quantum Interceptor stealth obsidian spacecraft sprite" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./quantum-interceptor.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./quantum-interceptor.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./quantum-interceptor.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>512×217 (512/217)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>31.6 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>c9637e5c47…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">crash-jet-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_crash-jet-quantum-gold_v001.png" alt="crash jet quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_crash-jet-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_crash-jet-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_crash-jet-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1556.9 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>4c85135187…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">card-face-jack-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_card-face-jack-quantum-gold_v001.png" alt="card face jack quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_card-face-jack-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_card-face-jack-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_card-face-jack-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>2142.3 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>56cf65a115…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">card-face-queen-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_card-face-queen-quantum-gold_v001.png" alt="card face queen quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_card-face-queen-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_card-face-queen-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_card-face-queen-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>2152.0 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>19f2c01500…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">card-face-king-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_card-face-king-quantum-gold_v001.png" alt="card face king quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_card-face-king-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_card-face-king-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_card-face-king-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>2320.9 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>9ae54834d6…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">felt-table-weave</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_felt-table-weave_v001.png" alt="felt table weave asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_felt-table-weave_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_felt-table-weave_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_felt-table-weave_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1616.8 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>9c48f0fd9e…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">seal-casino-royale-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_seal-casino-royale-quantum-gold_v001.png" alt="seal casino royale quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_seal-casino-royale-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_seal-casino-royale-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_seal-casino-royale-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1935.2 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>89ca330e22…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">avatar-obsidian-01</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_avatar-obsidian-01_v001.png" alt="avatar obsidian 01 asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_avatar-obsidian-01_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_avatar-obsidian-01_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_avatar-obsidian-01_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1844.4 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>002552e304…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">avatar-obsidian-03</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_avatar-obsidian-03_v001.png" alt="avatar obsidian 03 asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_avatar-obsidian-03_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_avatar-obsidian-03_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_avatar-obsidian-03_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1855.2 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>7b1d8e4696…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">avatar-obsidian-04</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_avatar-obsidian-04_v001.png" alt="avatar obsidian 04 asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_avatar-obsidian-04_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_avatar-obsidian-04_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_avatar-obsidian-04_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1915.5 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>df18a963a8…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">ach-target-3d</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_ach-target-3d_v001.png" alt="ach target 3d asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_ach-target-3d_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_ach-target-3d_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_ach-target-3d_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1658.2 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>85746c397e…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">ach-jackpot-chest-3d</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_ach-jackpot-chest-3d_v001.png" alt="ach jackpot chest 3d asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_ach-jackpot-chest-3d_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_ach-jackpot-chest-3d_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_ach-jackpot-chest-3d_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1932.7 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>11fb51c2fa…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">ach-star-3d</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_ach-star-3d_v001.png" alt="ach star 3d asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_ach-star-3d_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_ach-star-3d_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_ach-star-3d_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1339.8 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>5564d62484…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">ach-crown-3d</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_ach-crown-3d_v001.png" alt="ach crown 3d asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_ach-crown-3d_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_ach-crown-3d_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_ach-crown-3d_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1763.3 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>1917a79e11…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">ach-flame-3d</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_ach-flame-3d_v001.png" alt="ach flame 3d asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_ach-flame-3d_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_ach-flame-3d_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_ach-flame-3d_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1150.4 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>f1d21f0d40…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">ach-dice-seven-3d</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_ach-dice-seven-3d_v001.png" alt="ach dice seven 3d asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_ach-dice-seven-3d_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_ach-dice-seven-3d_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_ach-dice-seven-3d_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1673.2 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>6bb1c80d78…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">badge-level-up-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_badge-level-up-gold_v001.png" alt="badge level up gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_badge-level-up-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_badge-level-up-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_badge-level-up-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1794.2 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>f3405d5eb9…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">trophy-tournament-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_trophy-tournament-gold_v001.png" alt="trophy tournament gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_trophy-tournament-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_trophy-tournament-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_trophy-tournament-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1433.8 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>8c8ddc1c9c…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">royale-guide-thinking</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_royale-guide-thinking_v001.png" alt="royale guide thinking asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_royale-guide-thinking_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_royale-guide-thinking_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_royale-guide-thinking_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1359.6 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>7ae2b6c0a8…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">avatar-obsidian-02</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_avatar-obsidian-02_v001.png" alt="avatar obsidian 02 asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_avatar-obsidian-02_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_avatar-obsidian-02_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_avatar-obsidian-02_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1770.1 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>c8c7105c11…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">avatar-obsidian-06</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_avatar-obsidian-06_v001.png" alt="avatar obsidian 06 asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_avatar-obsidian-06_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_avatar-obsidian-06_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_avatar-obsidian-06_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1914.8 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>b3e596fa81…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">avatar-obsidian-05</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-05_avatar-obsidian-05_v001.png" alt="avatar obsidian 05 asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-05_avatar-obsidian-05_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-05_avatar-obsidian-05_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-05_avatar-obsidian-05_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1845.9 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>3bb619e9dc…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">sidebar-icon-lobby</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-06_sidebar-icon-lobby_v001.png" alt="sidebar icon lobby asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-06_sidebar-icon-lobby_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-06_sidebar-icon-lobby_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-06_sidebar-icon-lobby_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>905.7 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>2400a55196…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">icon-ai-guide-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-06_icon-ai-guide-quantum-gold_v001.png" alt="icon ai guide quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-06_icon-ai-guide-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-06_icon-ai-guide-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-06_icon-ai-guide-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1358.0 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>25febcad9c…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">icon-promo-bonus-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-06_icon-promo-bonus-quantum-gold_v001.png" alt="icon promo bonus quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-06_icon-promo-bonus-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-06_icon-promo-bonus-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-06_icon-promo-bonus-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1762.5 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>21b2f2c3a7…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">icon-hud-sidebar-badge-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-06_icon-hud-sidebar-badge-quantum-gold_v001.png" alt="icon hud sidebar badge quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-06_icon-hud-sidebar-badge-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-06_icon-hud-sidebar-badge-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-06_icon-hud-sidebar-badge-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1584.6 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>3b3b2c646f…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">icon-trophy-win-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-06_icon-trophy-win-quantum-gold_v001.png" alt="icon trophy win quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-06_icon-trophy-win-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-06_icon-trophy-win-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-06_icon-trophy-win-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1477.0 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>be890def8e…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">icon-trophy-tournament-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-06_icon-trophy-tournament-quantum-gold_v001.png" alt="icon trophy tournament quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-06_icon-trophy-tournament-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-06_icon-trophy-tournament-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-06_icon-trophy-tournament-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1385.8 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>2e49d97ca2…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">icon-trophy-record-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-06_icon-trophy-record-quantum-gold_v001.png" alt="icon trophy record quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-06_icon-trophy-record-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-06_icon-trophy-record-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-06_icon-trophy-record-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1440.7 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>dcb1f9dc0f…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">icon-crown-vip-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-06_icon-crown-vip-quantum-gold_v001.png" alt="icon crown vip quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-06_icon-crown-vip-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-06_icon-crown-vip-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-06_icon-crown-vip-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1789.1 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>a13332b87c…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">icon-crown-jackpot-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-06_icon-crown-jackpot-quantum-gold_v001.png" alt="icon crown jackpot quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-06_icon-crown-jackpot-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-06_icon-crown-jackpot-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-06_icon-crown-jackpot-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1790.8 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>891cea27ae…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">icon-star-rating-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-06_icon-star-rating-quantum-gold_v001.png" alt="icon star rating quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-06_icon-star-rating-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-06_icon-star-rating-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-06_icon-star-rating-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1462.9 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>2bd3066b94…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">icon-star-level-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-06_icon-star-level-quantum-gold_v001.png" alt="icon star level quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-06_icon-star-level-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-06_icon-star-level-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-06_icon-star-level-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1418.4 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>ac7f0510f5…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-ok">Dual WebP ✅</span></div>
+        </div>
+      </div>
+    
+
+      <div class="asset-card">
+        <div class="card-header">
+          <span class="asset-name">icon-security-verified-quantum-gold</span>
+          <span class="asset-version">v001</span>
+        </div>
+        <div class="preview-stage">
+          <img src="./2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="icon security verified quantum gold asset" loading="lazy" class="main-preview" />
+        </div>
+        <div class="mipmap-strip">
+          <div class="mipmap-item">
+            <span class="mipmap-label">128px</span>
+            <img src="./2026-09-06_icon-security-verified-quantum-gold_v001.png" style="width: 64px; height: 64px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">32px</span>
+            <img src="./2026-09-06_icon-security-verified-quantum-gold_v001.png" style="width: 32px; height: 32px; object-fit: contain;" />
+          </div>
+          <div class="mipmap-item">
+            <span class="mipmap-label">16px</span>
+            <img src="./2026-09-06_icon-security-verified-quantum-gold_v001.png" style="width: 16px; height: 16px; object-fit: contain;" />
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-row"><span>Format:</span> <strong>1024×1024 (1/1)</strong></div>
+          <div class="meta-row"><span>Größe:</span> <strong>1497.2 KB</strong></div>
+          <div class="meta-row"><span>SHA-256:</span> <code>b4ba9f5c9b…</code></div>
+          <div class="meta-row"><span>WebP Status:</span> <span class="badge badge-warn">PNG Only ⚠️</span></div>
+        </div>
+      </div>
+    
+  </main>
+</body>
+</html>

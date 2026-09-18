@@ -1,5 +1,5 @@
 import type React from 'react';
-import { TrendingUp, RotateCcw, CircleDollarSign, Zap, Spade } from 'lucide-react';
+import { TrendingUp, Dices, CircleDollarSign, Cherry, Spade } from 'lucide-react';
 
 export type GameId = 'crash' | 'crash-multiplayer' | 'dice' | 'roulette' | 'slots' | 'blackjack';
 
@@ -40,7 +40,7 @@ export const GAMES: readonly GameMeta[] = [
   {
     id: 'dice',
     name: 'Dice',
-    icon: RotateCcw,
+    icon: Dices,
     desc: 'Custom odds. Predict the roll, multiply winnings.',
     path: '/games/dice',
     color: '#00F0FF',
@@ -72,7 +72,7 @@ export const GAMES: readonly GameMeta[] = [
   {
     id: 'slots',
     name: 'Slots',
-    icon: Zap,
+    icon: Cherry,
     desc: 'Infinite reels. Legendary jackpots waiting.',
     path: '/games/slots',
     color: '#FFE600',

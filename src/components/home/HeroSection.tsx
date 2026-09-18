@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import Image from 'next/image';
-import { Star, CheckCircle2, Trophy, Coins, ShieldCheck } from 'lucide-react';
+import { Star, CheckCircle2, Coins } from 'lucide-react';
 
 interface Withdrawal {
   user: string;
@@ -154,7 +154,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               boxShadow: '0 0 20px hsla(var(--primary), 0.1)',
             }}
           >
-            <Trophy size={14} fill="currentColor" /> 100% FIRST DEPOSIT BONUS ACTIVE
+            <Image src="/images/2026-09-06_icon-promo-bonus-quantum-gold_v001.png" alt="First Deposit Bonus" width={14} height={14} aria-hidden /> 100% FIRST DEPOSIT BONUS ACTIVE
           </div>
 
           <h1
@@ -260,7 +260,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <ShieldCheck size={24} color="hsl(var(--primary))" />
+                <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Provably Fair" width={24} height={24} aria-hidden />
                 <span
                   style={{
                     fontSize: '0.85rem',

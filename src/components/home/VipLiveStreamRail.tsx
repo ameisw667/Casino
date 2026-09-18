@@ -1,7 +1,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Radio, X, Flame, Crown, TrendingUp } from 'lucide-react';
+import { Radio, X, Flame, TrendingUp } from 'lucide-react';
+import Image from 'next/image';
 import { soundManager } from '@/lib/casino/sound-manager';
 
 interface LiveEvent {
@@ -314,7 +315,7 @@ export function VipLiveStreamRail() {
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             {evt.isHighroller ? (
-                              <Crown size={12} color="#D4AF37" />
+                              <Image src="/images/2026-09-06_icon-crown-jackpot-quantum-gold_v001.png" alt="Highroller" width={12} height={12} aria-hidden />
                             ) : (
                               <Flame size={12} color="#FF5722" />
                             )}

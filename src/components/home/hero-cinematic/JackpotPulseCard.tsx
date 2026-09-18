@@ -1,7 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Crown, Sparkles } from 'lucide-react';
+import Image from 'next/image';
+import { JackpotLetterCascade } from '@/components/casino/jackpot/JackpotLetterCascade';
 
 export function JackpotPulseCard({ jackpotFormatted }: { jackpotFormatted: string }) {
   return (
@@ -28,7 +29,7 @@ export function JackpotPulseCard({ jackpotFormatted }: { jackpotFormatted: strin
       {/* Header Badge */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Crown size={14} color="#D4AF37" />
+          <Image src="/images/2026-09-06_icon-crown-jackpot-quantum-gold_v001.png" alt="Jackpot knacken" width={14} height={14} aria-hidden />
           <span
             style={{
               fontSize: '0.68rem',
@@ -38,7 +39,7 @@ export function JackpotPulseCard({ jackpotFormatted }: { jackpotFormatted: strin
               textTransform: 'uppercase',
             }}
           >
-            PROGRESSIVE JACKPOT
+            <JackpotLetterCascade text="PROGRESSIVE JACKPOT" />
           </span>
         </div>
         <span
@@ -135,7 +136,12 @@ export function JackpotPulseCard({ jackpotFormatted }: { jackpotFormatted: strin
             letterSpacing: '0.04em',
           }}
         >
-          <Sparkles size={12} />
+          <Image
+            src="/images/2026-09-06_icon-promo-bonus-quantum-gold_v001.png"
+            alt="Jackpot knacken"
+            width={12}
+            height={12}
+          />
           <span>JACKPOT KNACKEN</span>
         </motion.div>
       </Link>

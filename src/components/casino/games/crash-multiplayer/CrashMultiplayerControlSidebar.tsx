@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Zap, Info, Sliders, TrendingUp, ShieldCheck } from 'lucide-react';
+import { HelpCircle, Sliders, TrendingUp } from 'lucide-react';
+import Image from 'next/image';
 import type { RefObject } from 'react';
 
 interface SessionStats {
@@ -92,7 +93,7 @@ export function CrashMultiplayerControlSidebar({
               border: '1px solid rgba(212, 175, 55, 0.3)',
             }}
           >
-            <Zap size={18} color="#FFD700" />
+            <Image src="/images/2026-09-06_icon-hud-sidebar-badge-quantum-gold_v001.png" alt="Crash Multiplayer Controls" width={18} height={18} aria-hidden />
           </div>
           <h3
             style={{
@@ -117,7 +118,7 @@ export function CrashMultiplayerControlSidebar({
           }}
           onClick={() => setShowTutorial(true)}
         >
-          <Info size={16} />
+          <HelpCircle size={16} />
         </button>
       </div>
 
@@ -526,7 +527,7 @@ export function CrashMultiplayerControlSidebar({
           fontWeight: 700,
         }}
       >
-        <ShieldCheck size={14} color="#D4AF37" />
+        <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Provably Fair" width={14} height={14} aria-hidden />
         <span>PROVABLY FAIR SYSTEM ACTIVE</span>
       </div>
     </div>

@@ -1,12 +1,23 @@
 import { randomUUID } from 'node:crypto';
-import { assertSafePhase1Target } from './target-guard';
+import { fileURLToPath } from 'node:url';
+import { assertSafePhase1Target, reportCliFailure } from './target-guard';
 
-const targets = [
+// 06_4 (T5/L1): runRateLimitTarget and RATE_LIMIT_TARGETS are exported so the counting/
+// evaluation contract is unit-testable directly (src/lib/security/__tests__/
+// red-team-script-logic.test.ts) instead of only via string assertions. The CLI entry below
+// is guarded by the same fileURLToPath idiom as target-guard.ts so importing this module
+// stays side-effect free.
+
+export const RATE_LIMIT_TARGETS = [
   { path: '/api/casino/bet', limit: 30 },
   { path: '/api/casino/blackjack', limit: 20 },
 ] as const;
 
-async function runTarget(target: (typeof targets)[number], cookie: string, origin: string) {
+export async function runRateLimitTarget(
+  target: (typeof RATE_LIMIT_TARGETS)[number],
+  cookie: string,
+  origin: string,
+): Promise<{ path: string; total: number; throttled: number }> {
   const statuses = await Promise.all(
     Array.from({ length: target.limit + 2 }, (_, index) => {
       const headers = new Headers({
@@ -35,15 +46,16 @@ async function runTarget(target: (typeof targets)[number], cookie: string, origi
   return { path: target.path, total: statuses.length, throttled: statuses.length - accepted };
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const target = assertSafePhase1Target();
   const cookie = process.env.RED_TEAM_AUTH_COOKIE?.trim();
   if (!cookie) throw new Error('RED_TEAM_AUTH_COOKIE is required');
-  const results = await Promise.all(targets.map((entry) => runTarget(entry, cookie, target.url)));
+  const results = await Promise.all(
+    RATE_LIMIT_TARGETS.map((entry) => runRateLimitTarget(entry, cookie, target.url)),
+  );
   console.log(`P1.4 rate-limit probes passed: ${results.map((result) => result.path).join(', ')}`);
 }
 
-main().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : 'P1.4 rate-limit probe failed');
-  process.exitCode = 1;
-});
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  main().catch(reportCliFailure);
+}

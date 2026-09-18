@@ -17,6 +17,10 @@ import {
   resolveDevFallbackUserId,
   validateMutationOrigin,
 } from '@/lib/security/request-security';
+import {
+  CASINO_BET_LIMIT,
+  CASINO_BET_WINDOW_SECONDS,
+} from '@/lib/security/rate-limit-config';
 import { withBetPathSpan, flushBetPathTracer } from '@/lib/otel/tracer';
 import { APP_ERROR_CODES, apiErrorResponse, zodErrorResponse } from '@/lib/security/form-errors';
 import { apiSuccessResponse } from '@/lib/api/response';
@@ -100,7 +104,12 @@ export async function POST(request: Request) {
     }
 
     const rate = await withBetPathSpan('rate-limit', () =>
-      enforceRateLimit(getClientIdentifier(request, userId), 'casino-bet', 30, 10),
+      enforceRateLimit(
+        getClientIdentifier(request, userId),
+        'casino-bet',
+        CASINO_BET_LIMIT,
+        CASINO_BET_WINDOW_SECONDS,
+      ),
     );
     if (!rate.success) {
       const retryAfterSeconds = Math.max(1, Math.ceil((rate.reset - Date.now()) / 1000));

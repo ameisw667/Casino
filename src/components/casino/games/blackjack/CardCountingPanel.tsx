@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Eye, Calculator } from 'lucide-react';
+import { Eye, EyeOff, Calculator } from 'lucide-react';
+import Image from 'next/image';
+import { GLYPH_TOKENS } from '@/lib/design-tokens/glyph-tokens';
 
 interface CardCountingPanelProps {
   runningCount: number;
@@ -66,7 +68,7 @@ export default function CardCountingPanel({
             gap: '3px',
           }}
         >
-          <Eye size={12} />
+          {isOpen ? <EyeOff size={12} /> : <Eye size={12} />}
           <span>{isOpen ? 'HIDE' : 'SHOW'}</span>
         </button>
       </div>
@@ -186,13 +188,20 @@ export default function CardCountingPanel({
             }}
           >
             <span>STATUS:</span>
-            <span>
-              {isAdvantage
-                ? '⚡ PLAYER ADVANTAGE'
-                : isDisadvantage
-                  ? 'HOUSE ADVANTAGE'
-                  : 'NEUTRAL DECK'}
-            </span>
+            {isAdvantage ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <Image
+                  src={GLYPH_TOKENS.spark.value}
+                  alt={GLYPH_TOKENS.spark.alt}
+                  width={11}
+                  height={11}
+                  aria-hidden
+                />
+                <span>PLAYER ADVANTAGE</span>
+              </span>
+            ) : (
+              <span>{isDisadvantage ? 'HOUSE ADVANTAGE' : 'NEUTRAL DECK'}</span>
+            )}
           </div>
 
           {/* Quick Hi-Lo Legend */}

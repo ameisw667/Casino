@@ -20,6 +20,8 @@ interface SlotReelProps {
   hasWinInCabinet?: boolean;
   onStopComplete?: () => void;
   cellHeight?: number;
+  /** Stereo pan in [-1, 1] for this reel's stop sound (L2, spatial audio across columns). */
+  pan?: number;
 }
 
 export function SlotReel({
@@ -32,6 +34,7 @@ export function SlotReel({
   hasWinInCabinet = false,
   onStopComplete,
   cellHeight = SLOT_CELL_HEIGHT,
+  pan = 0,
 }: SlotReelProps) {
   const controls = useAnimationControls();
   const isAnimating = useRef(false);
@@ -89,10 +92,10 @@ export function SlotReel({
       .then(() => {
         isAnimating.current = false;
         prevSymbolsRef.current = [...finalSymbols];
-        soundManager.play('chip');
+        soundManager.playPositional('chip', pan);
         onStopComplete?.();
       });
-  }, [isSpinning, stopDelay, controls, onStopComplete, finalSymbols, cellHeight]);
+  }, [isSpinning, stopDelay, controls, onStopComplete, finalSymbols, cellHeight, pan]);
 
   const symbolSize = Math.round(cellHeight * 0.72);
   const windowHeight = cellHeight * VISIBLE_ROWS;

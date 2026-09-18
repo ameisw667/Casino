@@ -1,19 +1,27 @@
-# 🎰 Casino Royale — Markt-Analyse & Zukunfts-Roadmap
+# 🎰 Casino Royale — Markt-Snapshot & historische Zukunfts-Roadmap
 
-> **Stand:** Mai 2026 (aktualisiert 2026-08-09) | **Speicherort:** `docs/CASINO_ROYALE_MARKET_ROADMAP.md`
-> **Architektur-Hinweis (2026-08-09):** Die Aussage unten "ohne echtes Backend, Payment oder Server-Validierung" ist veraltet — seit Migration `007_server_authority.sql` läuft die Wallet serverautoritativ über Supabase RPCs (siehe `01_WORLDMAP_STATUS.md`, Kategorie 04). Supabase Auth, Leaderboard RPC & VIP Outsourcing sind ebenfalls live. Payment/Crypto-Einzahlung bleibt weiterhin die offene Zukunfts-Funktion. Primärer Entwicklungsstatus lebt in `01_WORLDMAP_STATUS.md`.
+> **Markt-Snapshot verifiziert:** 2026-09-12 | **Speicherort:** `docs/CASINO_ROYALE_MARKET_ROADMAP.md`
+> **Einordnung:** Die späteren Phasen-Checklisten sind ein historischer Ideen- und Gap-Katalog, nicht die aktive Produkt-Roadmap. Der verbindliche Execution-Stand liegt in [`worldmap/05_ZUKUNFTSPLANUNG.md`](../worldmap/05_ZUKUNFTSPLANUNG.md).
+> **Marktanteile:** Für Stake, BC.Game und Roobet liegen keine öffentlich belastbaren, vergleichbaren GGR-/Marktanteilsdaten vor. Spielanzahl, Traffic und Marketingreichweite sind kein Ersatz für Marktanteil und werden hier nicht als solcher ausgegeben.
+> **Architektur-Hinweis:** Casino Royale hat eine serverautoritative Wallet über Supabase RPCs; Payment/Crypto-Einzahlung bleibt ein getrenntes, offenes Produkt- und Compliance-Thema. Den aktuellen Projektnachweis führt die Worldmap, nicht dieses historische Roadmap-Dokument.
 >
-> Dieses Dokument zeigt den aktuellen Marktstand, analysiert die Top-3-Wettbewerber und listet priorisierte Zukunftspotenziale von großen zu kleinen Hebeln.
+> Die verifizierten Marktangaben stehen in Abschnitt 1 und 2. Nicht neu belegte Detailangaben in den historischen Phasen darunter dürfen nicht als Status-quo-Fakten verwendet werden.
 
 ---
 
 ## 📊 1. Executive Summary — Marktposition
 
-Der globale Crypto-Casino-Markt überschreitet 2026 die **$65 Milliarden**-Marke (CAGR ~12–15%).
+Eine belastbare, öffentliche Zahl für den **globalen Crypto-Casino-Markt 2026** liegt in dieser Recherche nicht vor. Die frühere „$65 Milliarden“-Aussage wird deshalb nicht fortgeführt: H2 Gambling Capital ordnet rund **$65 Mrd.** dem globalen *Offshore-Online-GGR im Jahr 2015* zu; für das gesamte globale Online-GGR nennt H2 **$293 Mrd. für 2024**. Beides ist weder eine Crypto-Casino- noch eine Anbieter-Marktanteilszahl.
 
 **Casino Royale heute:** 5 Spiele (Dice, Slots, Roulette, Crash, Blackjack) mit serverautoritativer Wallet (Migration 007), Provably-Fair-Engine, VIP-System und Gamification — Payment/Crypto-Einzahlung weiterhin nicht implementiert.
 
 **Chance:** Der Markt ist gesättigt mit großen Anbietern, aber unterversorgt mit hochpolierter, modularer Open-Source-Infrastruktur und Web3-nativen Mechaniken. Die Lücke zwischen Demo und Production-Grade ist unser Hebel.
+### Quellen des Snapshots (Abruf 2026-09-12)
+
+- [H2 Gambling Capital: Market Data Update, April 2026](https://h2gc.com/site/assets/News%20Stories/gdp/H2%20GDP%20Market%20Update%20-%20April%202026.pdf)
+- [Stake: Casino games](https://stake.com/casino/home)
+- [BC.Game: BC Engine](https://blog.bc.game/bc-games-new-bc-engine-how-your-wagers-now-pay-you-dividends/)
+- [Roobet Help Center: Welcome](https://help.roobet.com/en/articles/4901197-welcome)
 
 ---
 
@@ -23,8 +31,8 @@ Der globale Crypto-Casino-Markt überschreitet 2026 die **$65 Milliarden**-Marke
 
 | Kategorie          | Details                                                                                          |
 | ------------------ | ------------------------------------------------------------------------------------------------ |
-| Spiele gesamt      | **4.000+** (Slots, Live Dealer, Originals)                                                       |
-| In-house Originals | 9: HILO, Limbo, Plinko, Mines, Chicken, Keno, Pump + mehr                                        |
+| Spiele gesamt      | **6.000+** laut Stake (Snapshot 2026-09-12; 260+ Publisher, 150+ Live-Titel)                     |
+| In-house Originals | Stake bestätigt einen wachsenden Originals-Katalog; keine belastbare fixe Zahl verwenden          |
 | VIP-System         | 8+ Tiers: Bronze → Silver → Gold → Platinum I-III → Platinum IV-VI → **Diamond I-VI → Obsidian** |
 | VIP-Reload         | Täglich, stündlich, alle 10 Minuten (auf Anfrage)                                                |
 | Crypto-Payment     | Ja (BTC, ETH, LTC, XRP, DOGE, BCH, EOS, TRX...)                                                  |
@@ -42,11 +50,11 @@ Der globale Crypto-Casino-Markt überschreitet 2026 die **$65 Milliarden**-Marke
 
 | Kategorie          | Details                                                            |
 | ------------------ | ------------------------------------------------------------------ |
-| Spiele gesamt      | **8.500+** (Slots, Sportsbook, Poker, Lottery, Originals)          |
-| In-house Originals | **74**: Crash, Plinko, Dice, Mines, Limbo, Keno, Wheel, Baccarat + |
-| Kryptowährungen    | **150+** akzeptiert, inkl. Lightning Network (Bitcoin-Instant)     |
+| Spiele gesamt      | Für den Snapshot nicht mit einer aktuellen Primärquelle verifizierbar |
+| In-house Originals | Für den Snapshot nicht mit einer aktuellen Primärquelle verifizierbar |
+| Kryptowährungen    | **150+** laut BC.Game-eigenen Informationen; genaue Produktverfügbarkeit je Region prüfen |
 | VIP-System         | Mehrstufig, detailliertes Level-System                             |
-| Revenue Sharing    | **BC Engine (2026):** Staking → Gewinnbeteiligung                  |
+| Revenue Sharing    | **BC Engine**: staking-inspiriertes Reward-Modell, Launch April 2026 bestätigt |
 | Token              | **BCD-Token** — Spieler werden zu Investoren                       |
 | KYC                | Optional (No-KYC bis Limit)                                        |
 | Auszahlung         | 5–15 Minuten, keine Plattform-Gebühren                             |
@@ -61,8 +69,8 @@ Der globale Crypto-Casino-Markt überschreitet 2026 die **$65 Milliarden**-Marke
 
 | Kategorie          | Details                                                       |
 | ------------------ | ------------------------------------------------------------- |
-| Spiele gesamt      | **6.300+** (NetEnt, Microgaming, Playtech, Yggdrasil...)      |
-| In-house Originals | ~5 (Roobet Games)                                             |
+| Spiele gesamt      | **7.848+** laut Roobet Help Center (Snapshot 2026-09-12)       |
+| In-house Originals | **12 House Games** laut Roobet Help Center                      |
 | Loyalty            | **RooWards:** Daily, Weekly, Monthly Rewards + Rakeback-Boost |
 | Raffle             | **$100.000 Weekly Raffle** (1 Ticket pro $250 Wette)          |
 | Sports             | Parlay Play — $40k Prize Pool                                 |

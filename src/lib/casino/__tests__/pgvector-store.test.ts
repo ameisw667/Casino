@@ -164,6 +164,32 @@ describe('pgvector Guide Knowledge Store', () => {
     expect(result.error).toBe('db unreachable');
   });
 
+  it('rolls back the in-memory cache when a durable upsert fails, so listAdminGuideDocuments never reports a ghost document that was never actually saved', async () => {
+    const mockUpsert = vi.fn().mockResolvedValueOnce({ error: { message: 'db unreachable' } });
+    mockFrom.mockReturnValueOnce({ upsert: mockUpsert });
+
+    const result = await upsertAdminGuideDocument({
+      slug: 'ghost-doc',
+      topic: 'dice',
+      title: 'Ghost Document',
+      content: 'Should never appear in a subsequent list once the write has failed',
+      tags: [],
+      isActive: true,
+    });
+    expect(result.success).toBe(false);
+
+    // The database genuinely has no matching row (and no other rows either) —
+    // a rolled-back cache must not resurrect the failed document from memory.
+    mockFrom.mockReturnValueOnce({
+      select: vi.fn().mockReturnValueOnce({
+        order: vi.fn().mockResolvedValueOnce({ data: [], error: null }),
+      }),
+    });
+
+    const docs = await listAdminGuideDocuments();
+    expect(docs.find((doc) => doc.id === result.id)).toBeUndefined();
+  });
+
   it('reports failure instead of a false success when the Supabase delete actually fails', async () => {
     const mockEq = vi.fn().mockResolvedValueOnce({ error: { message: 'db unreachable' } });
     const mockDelete = vi.fn().mockReturnValueOnce({ eq: mockEq });

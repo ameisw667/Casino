@@ -5,6 +5,9 @@ description: >-
   implementing, extending, or planning any change that touches an existing feature — game logic (blackjack, crash,
   dice, roulette, slots), wallet/bet/settlement flow, API routes, Zustand store, admin dashboards, analytics events,
   or Supabase RPCs — to trace the real execution path through this repo's actual layers before new code is written.
+  Trigger threshold (quantitative): only launch when the task touches ≥ 2 files OR requires tracing a multi-layer
+  execution path (page → API → service → RPC) that Grep/Glob cannot answer in ≤ 2 calls. Single-file lookups or
+  questions answerable with 1–2 Grep/Glob calls: stop and report — do not spawn.
   Trigger phrases: "wie funktioniert X aktuell", "bevor wir Y bauen erst den Bestandscode verstehen",
   "trace execution path for", "map dependencies for", "explore existing feature", "recherchiere den Bestandscode
   für", "welche Dateien sind für Z relevant". Do NOT use for: security or migration review (use
@@ -245,3 +248,8 @@ Each phase has an explicit "done when" checkpoint. Do not advance to the next ph
       explicitly confirms or flags each invariant — it is never silently omitted.
 - [ ] The "Not Traced / Gaps" section is present even when empty, so the caller knows coverage was checked.
 - [ ] No `Write`/`Edit` action was taken or proposed as already applied — findings and recommendations only.
+
+## Endbericht-Cap (Tokenökonomie, seit 2026-09-14)
+
+Endbericht: max ~30 Zeilen. Nur Funde mit `Datei:Zeile`-Beleg + 1 Fazitsatz. Keine Narration,
+keine Wiederholung des Task-Kontexts, keine Vorschläge außerhalb des Scopes.

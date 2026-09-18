@@ -10,6 +10,8 @@ import { soundManager } from '@/lib/casino/sound-manager';
 import { useTiltGlare, type TiltGlareState } from '@/hooks/useTiltGlare';
 import { GAMES, type GameItem } from '../InteractiveArcadeGrid';
 import { bentoColors, bentoTypography } from './bento-lobby-tokens';
+import { Spiral3dSlider } from './Spiral3dSlider';
+import { BentoAnimatedGlow } from './BentoAnimatedGlow';
 
 /**
  * Bento arcade cells: one dominant 2x2 hero cell (Crash) plus four compact
@@ -53,10 +55,8 @@ export function ArcadeHeroCell({ isMobile }: { isMobile: boolean }) {
       onPointerMove={tilt.onPointerMove}
       onPointerEnter={tilt.onPointerEnter}
       onPointerLeave={tilt.onPointerLeave}
-      initial={{ opacity: 0, y: 18 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ ...springs.gentle, delay: 0.05 }}
+      // This is the mobile LCP element: it must remain paintable in the SSR response.
+      // Entrance animation here postponed the first visible paint until hydration.
       style={{
         position: 'relative',
         gridColumn: 'span 2',
@@ -86,6 +86,9 @@ export function ArcadeHeroCell({ isMobile }: { isMobile: boolean }) {
           whileTap={{ scale: 0.98 }}
           transition={springs.standard}
         >
+          {/* Dynamic Ambient Glow (Touchpoint 37 / Componentry #59) */}
+          <BentoAnimatedGlow intensity="medium" variant="gold" />
+
           {/* Motion-picture loop background (slow Ken-Burns drift) */}
           <motion.div
             animate={prefersReducedMotion ? undefined : { scale: [1, 1.08, 1] }}
@@ -96,9 +99,8 @@ export function ArcadeHeroCell({ isMobile }: { isMobile: boolean }) {
               src={game.image}
               alt={game.name}
               fill
-              unoptimized
               priority
-              sizes={isMobile ? '100vw' : '800px'}
+              sizes="(max-width: 1023px) 100vw, 800px"
               style={{ objectFit: 'cover', objectPosition: 'center 25%' }}
             />
           </motion.div>
@@ -314,7 +316,7 @@ export function ArcadeSatelliteCell({
               src={game.image}
               alt={game.name}
               fill
-              unoptimized
+              loading="lazy"
               sizes="(max-width: 768px) 45vw, 340px"
               style={{ objectFit: 'cover', objectPosition: 'center 25%' }}
             />
@@ -386,13 +388,37 @@ export function ArcadeSatelliteCell({
   );
 }
 
+/** Below-the-fold cells: mounted only after desktop idle or a mobile scroll. */
+export function BentoArcadeDeferredCells({ isMobile }: { isMobile: boolean }) {
+  return (
+    <>
+      {satelliteGames.slice(0, 2).map((game, idx) => (
+        <ArcadeSatelliteCell key={game.id} game={game} idx={idx} isMobile={isMobile} />
+      ))}
+      {/* 3D Helix Spiral Hall of Fame Stage (Componentry Touchpoint 11) - spans 2 rows to align flush with Neon 777 Slots */}
+      <div
+        style={{
+          gridColumn: isMobile ? 'span 2' : 'span 2',
+          gridRow: isMobile ? 'span 1' : 'span 2',
+          minHeight: isMobile ? '240px' : '100%',
+          height: '100%',
+        }}
+      >
+        <Spiral3dSlider isMobile={isMobile} />
+      </div>
+      {satelliteGames.slice(2).map((game, idx) => (
+        <ArcadeSatelliteCell key={game.id} game={game} idx={idx + 2} isMobile={isMobile} />
+      ))}
+    </>
+  );
+}
+
+/** Kept for callers outside the primary lobby composition. */
 export function BentoArcadeGroup({ isMobile }: { isMobile: boolean }) {
   return (
     <>
       <ArcadeHeroCell isMobile={isMobile} />
-      {satelliteGames.map((game, idx) => (
-        <ArcadeSatelliteCell key={game.id} game={game} idx={idx} isMobile={isMobile} />
-      ))}
+      <BentoArcadeDeferredCells isMobile={isMobile} />
     </>
   );
 }

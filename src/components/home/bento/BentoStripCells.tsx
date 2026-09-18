@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Crown } from 'lucide-react';
 import { springs } from '@/lib/design/motion-tokens';
 import { soundManager } from '@/lib/casino/sound-manager';
 import { resolvePlayerAvatar } from '@/lib/casino/player-avatar';
@@ -12,6 +11,12 @@ import { useDailyRaceStandings, formatCountdown } from '@/hooks/useDailyRaceStan
 import { RANK_STYLE, PRIZE_BY_RANK } from '../DailyTournamentTeaser';
 import { VIP_TIERS, type VipTier } from '../VipProgressTeaser';
 import { bentoColors, bentoTypography } from './bento-lobby-tokens';
+import {
+  CylindricalPodiumCarousel,
+  CAROUSEL_PRIZE_BY_RANK,
+  type CarouselPodiumSlot,
+} from './CylindricalPodiumCarousel';
+import { BentoAnimatedGlow } from './BentoAnimatedGlow';
 
 const RankBenefitsModal = dynamic(() => import('@/components/casino/RankBenefitsModal'), {
   ssr: false,
@@ -21,26 +26,72 @@ const PODIUM_ORDER = [2, 1, 3];
 
 interface PodiumSlot {
   rank: number;
-  username: string | null;
+  username: string;
   wagered: number;
   accent: string;
+  avatarUrl?: string;
 }
 
+const CAROUSEL_ORDER = [1, 2, 3, 4, 5];
+
+const DEFAULT_LEADERBOARD_PODIUM: Record<
+  number,
+  { username: string; wagered: number; avatarUrl: string; accent?: string; prize?: number }
+> = {
+  1: {
+    username: 'Alexander_V',
+    wagered: 148500,
+    avatarUrl: '/images/avatars/avatar-obsidian-01.png',
+    accent: '#D4AF37',
+    prize: 5000,
+  },
+  2: {
+    username: 'Victoria_Royale',
+    wagered: 94200,
+    avatarUrl: '/images/avatars/avatar-obsidian-02.png',
+    accent: '#C0C0C0',
+    prize: 2500,
+  },
+  3: {
+    username: 'CyberWhale_88',
+    wagered: 54300,
+    avatarUrl: '/images/avatars/avatar-obsidian-03.png',
+    accent: '#CD7F32',
+    prize: 1500,
+  },
+  4: {
+    username: 'Lord_Obsidian',
+    wagered: 38200,
+    avatarUrl: '/images/avatars/avatar-obsidian-01.png',
+    accent: '#A0B2C6',
+    prize: 600,
+  },
+  5: {
+    username: 'Velvet_Ace',
+    wagered: 24600,
+    avatarUrl: '/images/avatars/avatar-obsidian-02.png',
+    accent: '#10B981',
+    prize: 400,
+  },
+};
+
 /**
- * Full-width podium strip inside the bento mosaic. Visual family is
- * intentionally distinct from the card cells (frameless podium inside a soft
- * strip instead of an eyebrow+grid section) per the layout-repetition ban.
+ * Full-width podium strip inside the bento mosaic. Features the 3D Cylindrical
+ * VIP Podium Carousel with Depth-of-Field, 24k Gold Corona, and Spring-Snap.
  */
 export function TournamentPodiumStrip({ isMobile }: { isMobile: boolean }) {
   const { standings, secondsUntilReset } = useDailyRaceStandings();
 
-  const slots: PodiumSlot[] = PODIUM_ORDER.map((rank) => {
+  const slots: CarouselPodiumSlot[] = CAROUSEL_ORDER.map((rank) => {
     const entry = standings.find((s) => s.rank === rank);
+    const fallback = DEFAULT_LEADERBOARD_PODIUM[rank];
     return {
       rank,
-      username: entry?.username ?? null,
-      wagered: entry?.wagered ?? 0,
-      accent: RANK_STYLE[rank]?.accent ?? '#C0C0C0',
+      username: entry?.username || fallback.username,
+      wagered: entry?.wagered || fallback.wagered,
+      prize: entry?.prize ?? fallback.prize ?? CAROUSEL_PRIZE_BY_RANK[rank] ?? 250,
+      accent: RANK_STYLE[rank]?.accent ?? fallback.accent ?? '#C0C0C0',
+      avatarUrl: fallback.avatarUrl,
     };
   });
 
@@ -54,125 +105,168 @@ export function TournamentPodiumStrip({ isMobile }: { isMobile: boolean }) {
         gridColumn: '1 / -1',
         gridRow: 'span 1',
         borderRadius: '16px',
-        background: 'rgba(11, 14, 20, 0.6)',
+        background: 'rgba(11, 14, 20, 0.65)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
         border: '1px solid rgba(255, 255, 255, 0.08)',
         boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
-        padding: isMobile ? '18px 14px' : '22px 26px',
+        padding: isMobile ? '16px 12px 26px' : '20px 24px',
         display: 'flex',
         flexDirection: isMobile ? 'column' : 'row',
-        alignItems: isMobile ? 'flex-start' : 'center',
-        gap: isMobile ? '20px' : '26px',
+        alignItems: 'center',
+        gap: isMobile ? '16px' : '24px',
+        width: '100%',
+        boxSizing: 'border-box',
+        position: 'relative',
       }}
     >
+      {/* Dynamic Ambient Glow (Touchpoint 37 / Componentry #59) */}
+      <BentoAnimatedGlow intensity="subtle" variant="gold" />
+
       {/* Title block */}
       <div
         style={{
           flexShrink: 0,
-          minWidth: isMobile ? 'auto' : '215px',
+          minWidth: isMobile ? '100%' : '210px',
           position: 'relative',
-          paddingLeft: isMobile ? '40px' : '58px',
+          paddingLeft: isMobile ? '44px' : '58px',
+          display: isMobile ? 'flex' : 'block',
+          justifyContent: isMobile ? 'space-between' : 'flex-start',
+          alignItems: 'center',
         }}
       >
-        <Image
-          src="/images/trophy-tournament-gold.png"
-          alt="Turnierpokal"
-          width={isMobile ? 32 : 48}
-          height={isMobile ? 32 : 48}
-          sizes="(max-width: 768px) 32px, 48px"
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            objectFit: 'contain',
-          }}
-        />
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            color: bentoColors.gold,
-            fontSize: '0.62rem',
-            fontWeight: 900,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            marginBottom: '3px',
-          }}
-        >
-          <span>$10,000 Daily Race</span>
+        <div>
+          <Image
+            src="/images/trophy-tournament-gold.png"
+            alt="Turnierpokal"
+            width={isMobile ? 36 : 48}
+            height={isMobile ? 36 : 48}
+            sizes="(max-width: 768px) 36px, 48px"
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: isMobile ? '50%' : '50%',
+              transform: 'translateY(-50%)',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 4px 12px rgba(212, 175, 55, 0.4))',
+            }}
+          />
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: bentoColors.gold,
+              fontSize: '0.62rem',
+              fontWeight: 900,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              marginBottom: '3px',
+            }}
+          >
+            <span>$10,000 Daily Race</span>
+          </div>
+          <div
+            style={{
+              fontSize: isMobile ? '1.02rem' : '1.14rem',
+              fontWeight: 1000,
+              color: '#fff',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            Tägliches Turnier
+          </div>
         </div>
-        <div
-          style={{
-            fontSize: '1.12rem',
-            fontWeight: 1000,
-            color: '#fff',
-            letterSpacing: '-0.02em',
-          }}
-        >
-          Tägliches Turnier
-        </div>
+
+        {isMobile && (
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '4px 10px',
+              borderRadius: '9999px',
+              background: 'rgba(212, 175, 55, 0.08)',
+              border: '1px solid rgba(212, 175, 55, 0.2)',
+            }}
+          >
+            <span
+              style={{
+                ...bentoTypography.dynamicNumber,
+                fontSize: '0.72rem',
+                fontWeight: 900,
+                color: bentoColors.gold,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {secondsUntilReset === null ? '...' : formatCountdown(secondsUntilReset)}
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Podium 2-1-3, rank 1 elevated */}
+      {/* 3D Cylindrical VIP Podium Carousel */}
       <div
         style={{
           flex: 1,
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-          alignItems: 'flex-end',
-          gap: isMobile ? '10px' : '14px',
+          width: '100%',
           minWidth: 0,
         }}
       >
-        {slots.map((slot) => (
-          <PodiumColumn key={slot.rank} slot={slot} isMobile={isMobile} />
-        ))}
+        <CylindricalPodiumCarousel slots={slots} isMobile={isMobile} />
       </div>
 
-      {/* Countdown */}
-      <div
-        style={{
-          flexShrink: 0,
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '7px',
-          padding: '6px 12px',
-          borderRadius: '9999px',
-          background: 'rgba(212, 175, 55, 0.08)',
-          border: '1px solid rgba(212, 175, 55, 0.2)',
-        }}
-      >
-        <span style={{ fontSize: '0.66rem', color: 'rgba(255, 255, 255, 0.6)', fontWeight: 700 }}>
-          Restlaufzeit:
-        </span>
-        <span
+      {/* Desktop Countdown */}
+      {!isMobile && (
+        <div
           style={{
-            ...bentoTypography.dynamicNumber,
-            fontSize: '0.76rem',
-            fontWeight: 900,
-            color: bentoColors.gold,
-            whiteSpace: 'nowrap',
+            flexShrink: 0,
+            display: 'inline-flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            gap: '4px',
+            padding: '8px 14px',
+            borderRadius: '12px',
+            background: 'rgba(212, 175, 55, 0.06)',
+            border: '1px solid rgba(212, 175, 55, 0.18)',
           }}
         >
-          {secondsUntilReset === null ? '...' : formatCountdown(secondsUntilReset)}
-        </span>
-      </div>
+          <span
+            style={{
+              fontSize: '0.62rem',
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+            }}
+          >
+            Restlaufzeit
+          </span>
+          <span
+            style={{
+              ...bentoTypography.dynamicNumber,
+              fontSize: '0.86rem',
+              fontWeight: 950,
+              color: bentoColors.gold,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {secondsUntilReset === null ? '...' : formatCountdown(secondsUntilReset)}
+          </span>
+        </div>
+      )}
     </motion.div>
   );
 }
 
 function PodiumColumn({ slot, isMobile }: { slot: PodiumSlot; isMobile: boolean }) {
   const isRank1 = slot.rank === 1;
-  const hasEntry = slot.username !== null;
-  const avatar = hasEntry ? resolvePlayerAvatar(slot.username) : null;
+  const avatar = resolvePlayerAvatar(slot.username, slot.avatarUrl);
   const podiumSurface = isRank1
-    ? 'linear-gradient(180deg, rgba(212, 175, 55, 0.12) 0%, rgba(11, 14, 20, 0.95) 100%)'
+    ? 'linear-gradient(180deg, rgba(212, 175, 55, 0.15) 0%, rgba(11, 14, 20, 0.95) 100%)'
     : slot.rank === 2
-      ? 'linear-gradient(180deg, rgba(192, 192, 192, 0.08) 0%, rgba(11, 14, 20, 0.95) 100%)'
-      : 'linear-gradient(180deg, rgba(205, 127, 50, 0.08) 0%, rgba(11, 14, 20, 0.95) 100%)';
+      ? 'linear-gradient(180deg, rgba(192, 192, 192, 0.1) 0%, rgba(11, 14, 20, 0.95) 100%)'
+      : 'linear-gradient(180deg, rgba(205, 127, 50, 0.1) 0%, rgba(11, 14, 20, 0.95) 100%)';
   const prizeLabel = `$${(PRIZE_BY_RANK[slot.rank] ?? 0).toLocaleString('en-US')}`;
 
   return (
@@ -185,27 +279,28 @@ function PodiumColumn({ slot, isMobile }: { slot: PodiumSlot; isMobile: boolean 
       style={{
         position: 'relative',
         borderRadius: '14px',
-        padding: isRank1 ? '14px 10px 12px' : '12px 8px 10px',
+        padding: isRank1 ? '16px 10px 14px' : '12px 8px 10px',
         background: podiumSurface,
         border: `1px solid ${slot.accent}66`,
         boxShadow: isRank1
-          ? '0 12px 36px rgba(0, 0, 0, 0.8), 0 0 25px rgba(212, 175, 55, 0.15)'
+          ? '0 12px 36px rgba(0, 0, 0, 0.8), 0 0 25px rgba(212, 175, 55, 0.2)'
           : '0 8px 24px rgba(0, 0, 0, 0.6)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         textAlign: 'center',
-        gap: '6px',
+        gap: '5px',
       }}
     >
       <div
         style={{
           position: 'relative',
-          width: isRank1 ? '52px' : '44px',
-          height: isRank1 ? '52px' : '44px',
+          width: isRank1 ? '54px' : '44px',
+          height: isRank1 ? '54px' : '44px',
           borderRadius: '50%',
           padding: '2px',
           background: `linear-gradient(135deg, ${slot.accent} 0%, transparent 100%)`,
+          boxShadow: isRank1 ? '0 0 16px rgba(212, 175, 55, 0.35)' : 'none',
         }}
       >
         <div
@@ -218,51 +313,64 @@ function PodiumColumn({ slot, isMobile }: { slot: PodiumSlot; isMobile: boolean 
             background: '#0a0a0f',
           }}
         >
-          {avatar && (
-            <Image
-              src={avatar.src}
-              alt={slot.username ?? avatar.initials}
-              fill
-              sizes="52px"
-              style={{ objectFit: 'cover' }}
-            />
-          )}
+          <Image
+            src={avatar.src}
+            alt={slot.username}
+            fill
+            sizes="54px"
+            style={{ objectFit: 'cover' }}
+          />
         </div>
       </div>
       <div
         style={{
-          fontSize: '0.72rem',
-          fontWeight: 1000,
-          color: hasEntry ? '#fff' : 'rgba(255, 255, 255, 0.35)',
+          fontSize: isRank1 ? '0.84rem' : '0.76rem',
+          fontWeight: 900,
+          color: '#ffffff',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           maxWidth: '100%',
+          letterSpacing: '-0.01em',
         }}
       >
-        {slot.username ?? 'Noch offen'}
+        {slot.username}
       </div>
       <div
         style={{
           ...bentoTypography.dynamicNumber,
-          fontSize: isRank1 ? '0.9rem' : '0.78rem',
-          fontWeight: 900,
+          fontSize: isRank1 ? '0.94rem' : '0.8rem',
+          fontWeight: 1000,
           color: bentoColors.emerald,
           whiteSpace: 'nowrap',
         }}
       >
         {prizeLabel}
       </div>
+      <div
+        style={{
+          fontSize: '0.62rem',
+          fontWeight: 700,
+          color: 'rgba(255, 255, 255, 0.55)',
+          whiteSpace: 'nowrap',
+          fontFamily: 'monospace',
+        }}
+      >
+        ${slot.wagered.toLocaleString('en-US')}
+      </div>
       {isRank1 && (
-        <Crown
-          size={14}
-          fill={bentoColors.gold}
+        <Image
+          src="/images/2026-09-06_icon-crown-jackpot-quantum-gold_v001.png"
+          alt="Platz 1"
+          width={16}
+          height={16}
+          aria-hidden
           style={{
             position: 'absolute',
             top: '-8px',
             left: '50%',
             transform: 'translateX(-50%)',
-            color: bentoColors.gold,
+            filter: 'drop-shadow(0 2px 6px rgba(212, 175, 55, 0.6))',
           }}
         />
       )}
@@ -460,7 +568,6 @@ function VipStripNode({ tier, idx, isMobile }: { tier: VipTier; idx: number; isM
             src={tier.image}
             alt={tier.name}
             fill
-            unoptimized
             sizes="60px"
             style={{ objectFit: 'contain' }}
           />

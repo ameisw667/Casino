@@ -1,7 +1,7 @@
 'use client';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
-import { CheckCircle2, AlertCircle, Info as InfoIcon, Trophy, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info as InfoIcon, X } from 'lucide-react';
 import type { Toast } from '@/store/useCasinoStore';
 
 interface ToastContainerProps {
@@ -63,7 +63,7 @@ export function ToastContainer({ isMobile, toasts, onRemove }: ToastContainerPro
           {(toast.type === 'info' || !toast.type) && (
             <InfoIcon size={20} color="hsl(var(--primary))" />
           )}
-          {toast.type === 'win' && <Trophy size={20} color="hsl(var(--primary))" />}
+          {toast.type === 'win' && <Image src="/images/2026-09-06_icon-trophy-win-quantum-gold_v001.png" alt="Gewinn" width={20} height={20} aria-hidden />}
           {toast.badgeSrc && (
             <div style={{ position: 'relative', width: '48px', height: '48px', flexShrink: 0 }}>
               <Image

@@ -17,6 +17,10 @@ import {
 import { CasinoLogger } from '@/lib/casino/logger';
 import { enforceDailyCostCap } from '@/lib/security/daily-cost-cap';
 import { apiSuccessResponse, apiErrorResponse } from '@/lib/api/response';
+import {
+  GUIDE_CHAT_RATE_LIMIT_MAX,
+  GUIDE_CHAT_RATE_LIMIT_WINDOW_SECONDS,
+} from '@/lib/casino/guide-tools';
 
 const guideHistoryItemSchema = z.object({
   role: z.enum(['user', 'assistant']),
@@ -79,7 +83,12 @@ export async function POST(request: Request) {
     currentUserId = userId;
 
     const clientIp = getClientIdentifier(request, userId);
-    const rate = await enforceRateLimit(clientIp, 'guide-chat', 30, 60);
+    const rate = await enforceRateLimit(
+      clientIp,
+      'guide-chat',
+      GUIDE_CHAT_RATE_LIMIT_MAX,
+      GUIDE_CHAT_RATE_LIMIT_WINDOW_SECONDS,
+    );
     const responseHeaders = {
       ...PRIVATE_NO_STORE_HEADERS,
       ...rateLimitHeaders(rate),
@@ -147,13 +156,15 @@ export async function POST(request: Request) {
         parsed.data.persona,
       );
 
-      await recordGuideTelemetry({
-        actorId: userId,
-        outcome: 'success',
-        latencyMs: Math.round(performance.now() - guideStartedAt),
-        model: streamResult.model,
-        usage: null,
-      });
+      if (!streamResult.telemetryHandledInStream) {
+        await recordGuideTelemetry({
+          actorId: userId,
+          outcome: 'success',
+          latencyMs: Math.round(performance.now() - guideStartedAt),
+          model: streamResult.model,
+          usage: null,
+        });
+      }
 
       return new Response(streamResult.stream, {
         headers: {
@@ -182,7 +193,12 @@ export async function POST(request: Request) {
     });
 
     return apiSuccessResponse(
-      { answer: answerResult.answer, contextVersion: CASINO_GUIDE_CONTEXT_VERSION },
+      {
+        answer: answerResult.answer,
+        action: answerResult.action,
+        suggestions: answerResult.suggestions,
+        contextVersion: CASINO_GUIDE_CONTEXT_VERSION,
+      },
       { headers: responseHeaders },
     );
   } catch (error) {

@@ -29,6 +29,8 @@ import {
 // inline union in crash-multiplayer/page.tsx and CrashMultiplayerStage.
 type CrashStatus = 'IDLE' | 'WAITING' | 'RUNNING' | 'CRASHED' | 'CASHED_OUT';
 
+const MOBILE_IDLE_CANVAS_DELAY_MS = 5_000;
+
 interface MilestoneFlash {
   value: number;
   key: number;
@@ -116,7 +118,7 @@ export function useCrashMultiplayerGameLoop(params: CrashMultiplayerGameLoopPara
   } = params;
 
   // Explosions & Thruster Particle Physics
-  const createExplosion = (x: number, y: number) => {
+  const createExplosion = (x: number, y: number, canvasWidth: number) => {
     if (!prefersReducedMotionRef.current) {
       shakeRef.current.intensity = 18;
     }
@@ -151,7 +153,11 @@ export function useCrashMultiplayerGameLoop(params: CrashMultiplayerGameLoopPara
         type: 'explosion',
       });
     }
-    soundManager.play('crash-explode');
+    // Position the explosion sound where the rocket actually was on screen at crash time
+    // (animation-synchronized panning, plan 02_audio_engine_plan.md L3) instead of a flat,
+    // centered play() — canvasWidth is already available at the call site, no new state needed.
+    const pan = canvasWidth > 0 ? Math.max(-1, Math.min(1, (x / canvasWidth) * 2 - 1)) : 0;
+    soundManager.playPositional('crash-explode', pan);
   };
 
   const createTail = (x: number, y: number, angle: number, riskFactor: number) => {
@@ -724,7 +730,7 @@ export function useCrashMultiplayerGameLoop(params: CrashMultiplayerGameLoopPara
                 const explosionX =
                   Math.min(pointsRef.current.length - 1, WINDOW_POINTS - 1) * windowScaleX;
                 const scaleY = height / Math.max(5, next + 1);
-                createExplosion(explosionX, height - (next - 1) * scaleY);
+                createExplosion(explosionX, height - (next - 1) * scaleY, width);
               }
             } else {
               const finalPoint = parseFloat(next.toFixed(2));
@@ -759,8 +765,17 @@ export function useCrashMultiplayerGameLoop(params: CrashMultiplayerGameLoopPara
       gameLoopRef.current?.(ts);
       animationRef.current = requestAnimationFrame(loop);
     };
-    animationRef.current = requestAnimationFrame(loop);
+    const startLoop = () => {
+      animationRef.current = requestAnimationFrame(loop);
+    };
+    const mobileIdleDelay =
+      isMobileRef.current && statusRef.current === 'IDLE'
+        ? window.setTimeout(startLoop, MOBILE_IDLE_CANVAS_DELAY_MS)
+        : null;
+
+    if (mobileIdleDelay === null) startLoop();
     return () => {
+      if (mobileIdleDelay !== null) window.clearTimeout(mobileIdleDelay);
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, []);

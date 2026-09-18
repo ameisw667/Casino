@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { isAdminEmail } from '@/lib/security/admin';
+import { withExplicitSameSite } from '@/lib/security/cookie-samesite';
 import { hasValidOrigin } from '@/lib/security/origin-guard';
 import { CasinoLogger } from '@/lib/casino/logger';
 
@@ -41,6 +42,11 @@ const PUBLIC_ROUTES = [
   // signup; the freshly created session may not yet be visible to the server, so the route
   // treats "no user" as fail-open and only rate-limits plus records an observability signal.
   '/api/auth/signup-suspicion',
+  // 06_3 L0 signup network-fingerprint receiver — same fire-and-forget shape as the
+  // suspicion receiver above: freshly created sessions may not yet be visible to the
+  // server, so the route treats "no user" as fail-open and only rate-limits plus records
+  // observability data.
+  '/api/auth/signup-fingerprint',
   // These handlers perform their own Supabase auth and return API-shaped 401/503 responses.
   '/api/casino/(.*)',
   '/api/chat/bot-response',
@@ -71,7 +77,7 @@ const PUBLIC_ROUTES = [
 // Supabase reachability) still carries the app's baseline hardening headers. Extracted as the
 // single source of truth after the 2026-09-01 observability audit found /api/health was the
 // only route in the app shipping with none of these (worldmap/00-04-SecurityHardening.md, M2/M5).
-function applyBaselineSecurityHeaders(res: NextResponse): NextResponse {
+export function applyBaselineSecurityHeaders(res: NextResponse): NextResponse {
   res.headers.set('X-DNS-Prefetch-Control', 'on');
   res.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   res.headers.set('X-Frame-Options', 'SAMEORIGIN');
@@ -84,6 +90,11 @@ function applyBaselineSecurityHeaders(res: NextResponse): NextResponse {
   // page reading our responses).
   res.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
   res.headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+  // Legacy Adobe Flash/PDF cross-domain policy files (crossdomain.xml, clientaccesspolicy.xml)
+  // are obsolete for this app (no Flash/Silverlight surface) but some browsers/PDF viewers still
+  // honor them by default — 'none' explicitly refuses cross-domain data loading via that channel
+  // instead of relying on the header's mere absence (T_SECURITY_HARDENING header-completeness pass).
+  res.headers.set('X-Permitted-Cross-Domain-Policies', 'none');
   // Explicit allow only for features this app actually uses (grep-verified 2026-08-28):
   // microphone (Guide voice input, src/lib/casino/voice-audio.ts), clipboard-write (referral
   // codes, deposit address, MFA secret, bet receipts — copy-to-clipboard across ~7 components),
@@ -158,7 +169,10 @@ export default async function proxy(req: NextRequest) {
     const isDev = process.env.NODE_ENV === 'development';
     const cspHeader =
       `default-src 'self'; ` +
-      `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}; ` +
+      // `https:` fallback token (CSP Level 2 pattern, 2026-09-12 round-2 hardening): browsers that
+      // understand 'strict-dynamic' ignore it per spec, while legacy browsers without
+      // strict-dynamic support fall back to https: instead of breaking entirely.
+      `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https:${isDev ? " 'unsafe-eval'" : ''}; ` +
       `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ` +
       `font-src 'self' https://fonts.gstatic.com data:; ` +
       `img-src 'self' data: blob: https:; ` +
@@ -170,6 +184,10 @@ export default async function proxy(req: NextRequest) {
       // import, not a CDN <script>, so script-src needs no host allowlist for it either.
       `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.upstash.io https://o4511899214020608.ingest.de.sentry.io https://us.i.posthog.com; ` +
       `frame-ancestors 'none'; ` +
+      // Explicit fallback directives (2026-09-12 round-2 hardening): previously only implicitly
+      // covered by default-src 'self' — OWASP recommends setting them explicitly so a future
+      // default-src regression cannot silently reopen several directives at once.
+      `base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests; ` +
       // M6: both directives point at the same sink for broad browser support — `report-uri` is
       // deprecated but still the only one Firefox honors for CSP; `report-to` is the current
       // Reporting API, resolved via the `Reporting-Endpoints` response header set below.
@@ -179,25 +197,37 @@ export default async function proxy(req: NextRequest) {
     requestHeaders.set('x-nonce', nonce);
     requestHeaders.set('Content-Security-Policy', cspHeader);
 
+    // T_SECURITY_HARDENING/03_env_secrets_schema.md L1 — proxy.ts runs on the Edge runtime, before
+    // any Node route (and thus src/lib/env.ts's assertCoreEnv(), which also validates
+    // SUPABASE_SERVICE_ROLE_KEY — a var this file never touches) gets a chance to run. Without
+    // this check a missing var would still fail closed via the outer try/catch (createServerClient
+    // throws on an invalid URL), but with an opaque downstream error instead of a clear one.
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) {
+      CasinoLogger.error(
+        'Proxy',
+        'Missing core Supabase env vars',
+        new Error('NEXT_PUBLIC_SUPABASE_URL and/or NEXT_PUBLIC_SUPABASE_ANON_KEY not set'),
+      );
+      return new NextResponse('Security boundary unavailable', { status: 500 });
+    }
+
     let response = NextResponse.next({ request: { headers: requestHeaders } });
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return req.cookies.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
-            response = NextResponse.next({ request: { headers: requestHeaders } });
-            cookiesToSet.forEach(({ name, value, options }) =>
-              response.cookies.set(name, value, options),
-            );
-          },
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value));
+          response = NextResponse.next({ request: { headers: requestHeaders } });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, withExplicitSameSite(options)),
+          );
         },
       },
-    );
+    });
 
     const {
       data: { user },

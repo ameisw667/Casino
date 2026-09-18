@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Sparkles } from 'lucide-react';
+import Image from 'next/image';
 
 export function TutorialModal({ onClose }: { onClose: () => void }) {
   return (
@@ -43,7 +43,12 @@ export function TutorialModal({ onClose }: { onClose: () => void }) {
             margin: '0 auto 20px',
           }}
         >
-          <Sparkles size={28} color="#FFD700" />
+          <Image
+            src="/images/2026-09-06_icon-ai-guide-quantum-gold_v001.png"
+            alt="Crash Multiplayer Tutorial"
+            width={28}
+            height={28}
+          />
         </div>
         <h2
           style={{

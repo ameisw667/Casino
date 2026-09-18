@@ -1,6 +1,7 @@
 'use client';
 
-import { Zap, Sliders, TrendingUp, ShieldCheck } from 'lucide-react';
+import { Sliders, TrendingUp } from 'lucide-react';
+import Image from 'next/image';
 
 import {
   QUICK_BET_AMOUNTS,
@@ -8,6 +9,9 @@ import {
   type SessionStats,
 } from '@/components/casino/games/dice/dice-config';
 import { GameCoPilotHud } from '@/components/casino/hud/GameCoPilotHud';
+import { GameActionButton } from '@/components/casino/controls/GameActionButton';
+import { GLYPH_TOKENS } from '@/lib/design-tokens/glyph-tokens';
+import { LetterCascade } from '@/components/casino/typography/LetterCascade';
 
 interface DiceControlSidebarProps {
   isMobile: boolean;
@@ -77,7 +81,7 @@ export function DiceControlSidebar({
               border: '1px solid rgba(212, 175, 55, 0.3)',
             }}
           >
-            <Zap size={18} color="#FFD700" />
+            <Image src="/images/2026-09-06_icon-hud-sidebar-badge-quantum-gold_v001.png" alt="Dice Controls" width={18} height={18} aria-hidden />
           </div>
           <h3
             style={{
@@ -253,14 +257,14 @@ export function DiceControlSidebar({
             disabled={loading || autoRunning}
             onClick={() => onQuickBet(betAmount / 2)}
           >
-            ½ Bet (A)
+            {GLYPH_TOKENS.half.value} Bet (A)
           </button>
           <button
             className="quick-chip"
             disabled={loading || autoRunning}
             onClick={() => onQuickBet(betAmount * 2)}
           >
-            2× Bet (S)
+            {GLYPH_TOKENS.double.value} Bet (S)
           </button>
           <button
             className="quick-chip"
@@ -306,13 +310,21 @@ export function DiceControlSidebar({
             borderRadius: '8px',
             background: 'rgba(212, 175, 55, 0.12)',
             border: '1px solid rgba(212, 175, 55, 0.3)',
-            color: '#FFD700',
-            fontSize: '0.8rem',
-            fontWeight: 900,
-            fontFamily: 'monospace',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
-          {multiplier.toFixed(2)}x
+          <LetterCascade
+            value={`${multiplier.toFixed(2)}x`}
+            direction="rtl"
+            staggerDelay={0.015}
+            stiffness={600}
+            damping={30}
+            colorScheme="gold"
+            fontSize="0.8rem"
+            isMobile={isMobile}
+          />
         </div>
       </div>
 
@@ -352,7 +364,7 @@ export function DiceControlSidebar({
                 marginBottom: '4px',
               }}
             >
-              NUMBER OF BETS (0 = ∞)
+              NUMBER OF BETS (0 = {GLYPH_TOKENS.infinity.value})
             </label>
             <input
               type="number"
@@ -370,7 +382,7 @@ export function DiceControlSidebar({
                 fontSize: '0.9rem',
                 fontFamily: 'monospace',
               }}
-              placeholder="∞"
+              placeholder={GLYPH_TOKENS.infinity.value}
             />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -499,30 +511,14 @@ export function DiceControlSidebar({
         </div>
       </div>
 
-      {/* Primary Roll Button */}
-      <button
-        key="dice-action-btn"
-        className="gold-btn"
-        style={{
-          width: '100%',
-          height: isMobile ? '60px' : '68px',
-          fontSize: '1.25rem',
-          borderRadius: '18px',
-          border: 'none',
-          cursor: loading || isProcessing ? 'not-allowed' : 'pointer',
-          opacity: loading || isProcessing ? 0.7 : 1,
-        }}
-        onClick={onPrimaryAction}
+      {/* Primary Roll Button with Image Ripple & Felt */}
+      <GameActionButton
+        label={isAutoMode ? (autoRunning ? 'STOP AUTOBET' : 'START AUTOBET') : 'ROLL DICE'}
+        betAmount={isAutoMode ? undefined : betAmount}
+        loading={loading || isProcessing}
         disabled={loading || isProcessing}
-      >
-        {loading || isProcessing
-          ? 'ROLLING...'
-          : isAutoMode
-            ? autoRunning
-              ? 'STOP AUTOBET'
-              : 'START AUTOBET'
-            : `ROLL DICE ($${betAmount.toFixed(2)})`}
-      </button>
+        onClick={onPrimaryAction}
+      />
 
       {/* Provably Fair Badge */}
       <div
@@ -536,7 +532,7 @@ export function DiceControlSidebar({
           fontWeight: 700,
         }}
       >
-        <ShieldCheck size={14} color="#D4AF37" />
+        <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Provably Fair" width={14} height={14} aria-hidden />
         <span>PROVABLY FAIR SYSTEM ACTIVE</span>
       </div>
     </div>

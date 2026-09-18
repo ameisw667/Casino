@@ -14,7 +14,15 @@ export function createAdminClient() {
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Missing Supabase Admin Environment Variables');
+    // T_SECURITY_HARDENING/03_env_secrets_schema.md L1 — this is the only Fail-Fast guard
+    // Trigger.dev workers (66 call sites) ever hit, since they run outside Next.js'
+    // instrumentation.ts/assertCoreEnv() boot cycle. Name the missing var explicitly instead
+    // of a generic message, matching assertCoreEnv()'s diagnostic quality.
+    const missing = [
+      !supabaseUrl && 'NEXT_PUBLIC_SUPABASE_URL',
+      !supabaseServiceKey && 'SUPABASE_SERVICE_ROLE_KEY',
+    ].filter(Boolean);
+    throw new Error(`Missing Supabase Admin environment variable(s): ${missing.join(', ')}`);
   }
 
   return createClient<Database>(supabaseUrl, supabaseServiceKey, {

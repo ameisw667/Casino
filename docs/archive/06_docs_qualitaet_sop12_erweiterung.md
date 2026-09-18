@@ -9,7 +9,7 @@
 | L0     | SOP-12-Trigger auf `docs/<Kategorie>/` erweitern                                                                                                 | 🟢 Executed | `xx_sop/12` §1 ergänzt     | LLM           |
 | L1     | Docs-Erweiterungs-Rubrik (3 Zusatzkriterien, max. 9 Punkte) + Tier-Tabelle für `docs/` (max. 33)                                                 | 🟢 Executed | `xx_sop/12` §2a neu        | LLM           |
 | L2     | Skeleton-Konvention (Ordner-/Dateimuster nach Auth-Vorbild) in SOP-12 dokumentieren                                                              | 🟢 Executed | `xx_sop/12` §2b neu        | LLM           |
-| L3     | Status-Quo-Scoring: `worldmap/04_datenbank_migrationen.md` + `xx_docs/01_supabase_context.md` gegen Docs-Erweiterung bewerten (Baseline)         | 🟢 Executed | Baseline 27/33 (Top 2–9 %) | LLM           |
+| L3     | Status-Quo-Scoring: `T_DATABASE/04_datenbank_migrationen.md` + `xx_docs/01_supabase_context.md` gegen Docs-Erweiterung bewerten (Baseline)       | 🟢 Executed | Baseline 27/33 (Top 2–9 %) | LLM           |
 | L4     | Pilot-Ordner `docs/database/` nach Skeleton-Konvention erstellen (00_OVERVIEW + 4 Submodule)                                                     | 🟢 Executed | 5 Dateien erstellt         | LLM           |
 | L5     | Neu-Scoring `docs/database/` gegen dieselbe Rubrik                                                                                               | 🟢 Executed | Neu 32/33 (Top 1 %)        | LLM           |
 | L6     | Cross-Referenzen aktualisieren (`docs/README.md`, `worldmap/00_WORLDMAP_STATUS.md` Kategorie-02-Zeile, `xx_docs/01_supabase_context.md`-Verweis) | 🟢 Executed | 3 Dateien aktualisiert     | LLM           |
@@ -43,11 +43,11 @@
 
 ### L3 — Baseline-Scoring
 
-- **Ziel:** Objektive Vorher-Messung der IST-Dokumentation (verstreut über `worldmap/04_datenbank_migrationen.md` + `xx_docs/01_supabase_context.md`) gegen die neue Docs-Erweiterung, damit der Pilot-Nutzen belegbar statt behauptet ist.
+- **Ziel:** Objektive Vorher-Messung der IST-Dokumentation (verstreut über `T_DATABASE/04_datenbank_migrationen.md` + `xx_docs/01_supabase_context.md`) gegen die neue Docs-Erweiterung, damit der Pilot-Nutzen belegbar statt behauptet ist.
 - **Scope:** Nur die additiven 3 Kriterien (Kern-8 für `xx_docs/01_supabase_context.md` ist bereits mit 24/24 dokumentiert und bleibt unangetastet) plus eine kombinierte Gesamtbetrachtung, da der IST-Zustand über zwei Dateien verteilt ist (kein einzelnes „docs/database/"-Äquivalent existiert vor diesem Schritt).
 - **Ergebnis (Best-of je Kriterium über beide Quelldateien, da beide denselben Themenbereich behandeln):**
 
-  | Kriterium                |                     `worldmap/04_datenbank_migrationen.md`                      |                `xx_docs/01_supabase_context.md`                 | Baseline (Best-of) |
+  | Kriterium                |                    `T_DATABASE/04_datenbank_migrationen.md`                     |                `xx_docs/01_supabase_context.md`                 | Baseline (Best-of) |
   | ------------------------ | :-----------------------------------------------------------------------------: | :-------------------------------------------------------------: | :----------------: |
   | 9 Dual-Audience-Split    | 1 (Kernaussage-Abschnitt vorhanden, aber technisch dicht, keine echte Trennung) | 1 (§7 Lerneffekt vorhanden, aber kein Executive-Summary-Format) |         1          |
   | 10 Diagramm-Qualität     |                               0 (keine Diagramme)                               |   2 (1 verifiziertes Mermaid-Flowchart, kein Sequenzdiagramm)   |         2          |
@@ -58,8 +58,8 @@
 
 ### L4 — Pilot-Ordner erstellen
 
-- **Ziel:** `docs/database/` nach der in L2 dokumentierten Konvention — 1 Overview + 4 Submodule (Migrations & Versionierung; Schema, RPCs & Clients; Security — RLS & Test-Schicht; Performance — Indexing, Pooling & Backup). Konsolidierung der 10 Unterkategorien aus `worldmap/04_datenbank_migrationen.md` in 4 disjunkte, thematisch verwandte Submodule statt 10 Einzeldateien — bewusst gegen Umfangs-Aufblähung (KISS/YAGNI, SOP-12 §4.3).
-- **Inhaltliche Quelle:** Ausschließlich Restrukturierung bereits verifizierter Fakten aus `worldmap/04_datenbank_migrationen.md` und `xx_docs/01_supabase_context.md` — keine neue, unverifizierte Recherche.
+- **Ziel:** `docs/database/` nach der in L2 dokumentierten Konvention — 1 Overview + 4 Submodule (Migrations & Versionierung; Schema, RPCs & Clients; Security — RLS & Test-Schicht; Performance — Indexing, Pooling & Backup). Konsolidierung der 10 Unterkategorien aus `T_DATABASE/04_datenbank_migrationen.md` in 4 disjunkte, thematisch verwandte Submodule statt 10 Einzeldateien — bewusst gegen Umfangs-Aufblähung (KISS/YAGNI, SOP-12 §4.3).
+- **Inhaltliche Quelle:** Ausschließlich Restrukturierung bereits verifizierter Fakten aus `T_DATABASE/04_datenbank_migrationen.md` und `xx_docs/01_supabase_context.md` — keine neue, unverifizierte Recherche.
 - **Nicht-Scope:** Die beiden Quelldateien werden nicht gelöscht (sie bleiben die live gepflegte Aufschlüsselungs-/Kontext-Quelle je nach `xx_sop/03` §1-Klassifizierung); `docs/database/` ist die Weltklasse-Aufbereitung für Jan+LLM, keine Ersatz-Quelle der Wahrheit für laufende Status-Pflege.
 - **Verifizierung:** Jede Zahl/Aussage in `docs/database/` ist gegen die beiden Quelldateien rückverfolgbar, keine Erfindung.
 
@@ -84,12 +84,12 @@
 - `docs/README.md`: neuer Index-Eintrag für `docs/database/`.
 - `worldmap/00_WORLDMAP_STATUS.md` Zeile Kategorie 02: `Doku / _Brain`-Spalte prüfen und ggf. auf den neuen Tier aktualisieren (nur wenn der Score das rechtfertigt — keine Schönrechnung).
 - `xx_docs/01_supabase_context.md` Abschnitt 9 (Verwandte Artefakte): Verweis auf `docs/database/00_DATABASE_OVERVIEW.md` ergänzen.
-- **Nicht-Scope:** Der Headline-Wert „Top 15 %" für Kategorie 02 selbst bleibt unangetastet — das ist laut `worldmap/04_datenbank_migrationen.md` Abschnitt „Offene Entscheidung" explizit Jans Entscheidung, nicht Teil dieses Docs-Qualitäts-Piloten.
+- **Nicht-Scope:** Der Headline-Wert „Top 15 %" für Kategorie 02 selbst bleibt unangetastet — das ist laut `T_DATABASE/04_datenbank_migrationen.md` Abschnitt „Offene Entscheidung" explizit Jans Entscheidung, nicht Teil dieses Docs-Qualitäts-Piloten.
 
 ### L7 — Selbstprüfung
 
 - Kein Kern-8-Score in SOP-12 Abschnitt 6 wurde verändert.
-- Jede neue Zahl in `docs/database/` ist gegen `worldmap/04_datenbank_migrationen.md`/`xx_docs/01_supabase_context.md` rückverfolgbar.
+- Jede neue Zahl in `docs/database/` ist gegen `T_DATABASE/04_datenbank_migrationen.md`/`xx_docs/01_supabase_context.md` rückverfolgbar.
 - Keine Datei außerhalb des Scopes (insb. keine `supabase/migrations/**`-Datei) wurde verändert.
 - Von einer neuen LLM-Konversation verständlich: Diese Plandatei plus SOP-12-Diff plus `docs/database/`-Inhalt sind ohne Chat-Historie nachvollziehbar.
 

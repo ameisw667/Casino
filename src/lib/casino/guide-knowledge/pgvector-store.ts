@@ -197,9 +197,21 @@ export async function upsertAdminGuideDocument(input: {
     updated_at: new Date().toISOString(),
   };
 
-  // Always save to in-memory store for instant zero-latency admin-list feedback,
-  // independent of whether the durable Supabase write below succeeds.
+  // Save to the in-memory store for instant zero-latency admin-list feedback while the
+  // durable write below is in flight. If that write fails, the entry is rolled back
+  // (below) — otherwise listAdminGuideDocuments() would report a ghost document that
+  // was never actually persisted, contradicting the failure this function returns.
+  const previousMemoryEntry = memoryStoreCache.get(id);
+  const hadMemoryEntryBefore = memoryStoreCache.has(id);
   memoryStoreCache.set(id, payload);
+
+  const rollbackMemoryEntry = () => {
+    if (hadMemoryEntryBefore && previousMemoryEntry) {
+      memoryStoreCache.set(id, previousMemoryEntry);
+    } else {
+      memoryStoreCache.delete(id);
+    }
+  };
 
   try {
     const supabase = createAdminClient();
@@ -208,6 +220,7 @@ export async function upsertAdminGuideDocument(input: {
       embedding: payload.embedding ? toPgVectorLiteral(payload.embedding) : null,
     });
     if (error) {
+      rollbackMemoryEntry();
       CasinoLogger.error(
         'PgVectorStore',
         'Supabase upsert failed, change is not persisted',
@@ -217,6 +230,7 @@ export async function upsertAdminGuideDocument(input: {
     }
     return { success: true, id };
   } catch (err) {
+    rollbackMemoryEntry();
     CasinoLogger.error(
       'PgVectorStore',
       'Supabase upsert exception, change is not persisted',

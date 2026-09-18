@@ -1,4 +1,5 @@
 import React from 'react';
+import { GLYPH_TOKENS } from '@/lib/design-tokens/glyph-tokens';
 
 export function MilestoneFlash({ value, isMobile }: { value: number; isMobile: boolean }) {
   return (
@@ -23,7 +24,8 @@ export function MilestoneFlash({ value, isMobile }: { value: number; isMobile: b
         textShadow: '0 0 35px rgba(255, 215, 0, 0.9), 0 0 70px rgba(212, 175, 55, 0.5)',
       }}
     >
-      {value}× MILESTONE REACHED!
+      {value}
+      {GLYPH_TOKENS.multiplier.value} MILESTONE REACHED!
     </div>
   );
 }

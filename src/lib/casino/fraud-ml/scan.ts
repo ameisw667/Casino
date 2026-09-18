@@ -17,7 +17,10 @@ import { CasinoLogger } from '../logger';
 // the scan skips cleanly instead of emitting noise from a handful of samples.
 const MIN_USERS_FOR_SCAN = 5;
 
-// Isolation-forest literature convention: scores well above 0.5 indicate anomalies.
+// Severity thresholds follow isolation-forest literature convention (scores well above 0.5
+// indicate anomalies) — first-pass defaults pending calibration against historical scoring
+// data, NOT derived from this project's own fraud distribution (same honesty note as
+// fraud-detection.ts's thresholds, R11 in worldmap/05_ZUKUNFTSPLANUNG.md).
 const SEVERITY_HIGH = 0.7;
 const SEVERITY_MEDIUM = 0.6;
 const SEVERITY_LOW = 0.5;

@@ -127,11 +127,31 @@ export default function GamesTwoPage() {
         position: 'relative',
       }}
     >
-      <ParallaxOrbs />
+      <style>{`
+        .games2-mobile-hero { display: none; }
+        @media (max-width: 1023.98px) {
+          .games2-desktop-only { display: none !important; }
+          .games2-mobile-hero {
+            display: flex;
+            flex: 1;
+            min-height: 100dvh;
+            padding: 32px 24px;
+            align-items: center;
+          }
+        }
+      `}</style>
 
-      <MotionLabTopbar category={selectedCategory} titleCount={gridGames.length} />
+      <div className="games2-desktop-only">
+        <ParallaxOrbs />
+      </div>
+      <MobileHeroStage />
+
+      <div className="games2-desktop-only">
+        <MotionLabTopbar category={selectedCategory} titleCount={gridGames.length} />
+      </div>
 
       <div
+        className="games2-desktop-only"
         style={{
           maxWidth: '1400px',
           width: '100%',
@@ -210,7 +230,62 @@ export default function GamesTwoPage() {
         </motion.div>
       </div>
 
-      <QuickViewLayer game={quickViewGame} onClose={() => setQuickViewId(null)} />
+      <div className="games2-desktop-only">
+        <QuickViewLayer game={quickViewGame} onClose={() => setQuickViewId(null)} />
+      </div>
     </div>
+  );
+}
+
+function MobileHeroStage() {
+  return (
+    <section className="games2-mobile-hero" aria-label="Motion Lab Spieleübersicht">
+      <div style={{ maxWidth: '32rem' }}>
+        <p
+          style={{
+            margin: 0,
+            color: '#D4AF37',
+            fontSize: '0.7rem',
+            fontWeight: 900,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+          }}
+        >
+          Motion Lab
+        </p>
+        <h1
+          style={{
+            margin: '14px 0 0',
+            color: '#ffffff',
+            fontSize: 'clamp(2.6rem, 12vw, 4.5rem)',
+            fontWeight: 950,
+            letterSpacing: '-0.04em',
+            lineHeight: 0.96,
+          }}
+        >
+          Spiele, direkt bereit.
+        </h1>
+        <p style={{ margin: '20px 0 0', color: 'rgba(255, 255, 255, 0.64)', lineHeight: 1.6 }}>
+          Starte Crash sofort oder öffne den vollständigen Katalog auf einem größeren Bildschirm.
+        </p>
+        <a
+          href="/games/crash"
+          style={{
+            display: 'inline-flex',
+            marginTop: '28px',
+            minHeight: '44px',
+            alignItems: 'center',
+            borderRadius: '999px',
+            background: '#D4AF37',
+            color: '#0B0E14',
+            fontWeight: 900,
+            padding: '0 20px',
+            textDecoration: 'none',
+          }}
+        >
+          Crash spielen →
+        </a>
+      </div>
+    </section>
   );
 }

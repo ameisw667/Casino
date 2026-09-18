@@ -26,6 +26,7 @@
 ### Task LLM-0: Pre-Flight und Drift-Snapshot
 
 **Files:**
+
 - Modify: `worldmap/workflow.jan-k6-a_remote_schema_reconciliation.md`
 - Read: `supabase/.temp/project-ref`, `supabase/migrations/*.sql`
 
@@ -38,9 +39,11 @@
 - [x] Kein Guild-Objekt, kein `DROP` und kein `CASCADE` im K6-A-Diff.
 
 **Ausführungslog LLM-0 (2026-08-29):** `npm run supabase:migrations` war zuvor bis 057 synchron; die erneute, vollständige Shadow-Diff-Prüfung bricht reproduzierbar bei lokaler Migration 054 ab. Remote bestätigt `public.users.guide_persona` und keine Tabelle `public.profiles`; der aktuelle Checkout enthält dagegen noch `ALTER TABLE profiles` und zwei Route-Queries gegen `profiles`. Root-Cause-Korrektur ist vor dem K6-A-Snapshot erforderlich. Keine Remote-Änderung ausgeführt.
+
 ### Task LLM-1: Remote-Drift fachlich und sicherheitlich abgrenzen
 
 **Files:**
+
 - Modify: `worldmap/workflow.jan-k6-a_remote_schema_reconciliation.md`
 - Read: `src/**`, `supabase/migrations/*.sql`, `xx_docs/01_supabase_context.md`, `xx_sop/09_security_wallet_invariants.md`
 
@@ -54,6 +57,7 @@
 ### Task LLM-2: Reproduzierbare Migration 058 testgetrieben erstellen
 
 **Files:**
+
 - Modify: `src/lib/casino/__tests__/migration-history.test.ts`
 - Create: `supabase/migrations/058_reconcile_remote_schema_drift.sql`
 - Modify: `worldmap/workflow.jan-k6-a_remote_schema_reconciliation.md`
@@ -68,6 +72,7 @@
 ### Task LLM-3: Migration Security Guard und lokale Schema-Verifikation
 
 **Files:**
+
 - Read: `supabase/migrations/058_reconcile_remote_schema_drift.sql`
 - Modify: `worldmap/workflow.jan-k6-a_remote_schema_reconciliation.md`
 
@@ -77,11 +82,12 @@
 - [x] Finding zu `place_bet`/`settle_bet` minimal in 059 behoben: fester Pfad plus REVOKE für PUBLIC, anon, authenticated, service_role.
 - [x] Shadow-Diff ausgeführt: 28 verbleibende pg-delta-Funktionsblöcke sind bytegenau identisch mit 058; Berechtigungen, Kommentar und Event Trigger konvergieren. Das ist ein pg-delta-Idempotenzartefakt, kein verbleibender DDL-Unterschied.
 
-
 **Ausführungslog LLM-0 bis LLM-3 (2026-08-29):** Projektbindung, Migrationsreihe und Diff wurden vollständig geprüft. Die fehlerhafte historische 054-Quelle wurde auf `public.users` korrigiert; zwei byte-identische Altduplikate (049/050) wurden nach Hashvergleich entfernt. Migration 058 enthält den vollständigen erfolgreichen Remote-Diff ohne destruktive/Guild-DDL. Migration 059 quarantänisiert die nicht verwendeten Legacy-Wallet-RPCs zusätzlich. Security Guard v0.2.0: PASS für den finalen Migrationssatz 054/058/059 (1.286 Zeilen); ein anfänglicher Legacy-RPC-Befund wurde vor dem Abschluss durch Pfad- und REVOKE-Härtung behoben. Die pg-delta-Restliste umfasst 28 Funktionsblöcke, die bytegenau in 058 stehen; sie ist als Engine-Idempotenzartefakt dokumentiert.
+
 ### Task LLM-4: Remote-Historie, Typen und Qualitätsgates
 
 **Files:**
+
 - Modify: `src/types/database.types.ts`
 - Modify: `worldmap/workflow.jan-k6-a_remote_schema_reconciliation.md`
 
@@ -94,14 +100,15 @@
 - [x] `npm run typecheck`, serielles `npx vitest run --maxWorkers=1 --no-file-parallelism`, `npm run lint` und isoliertes `npm run build` bestanden: 1.220/1.220 Tests, Typecheck 0 Fehler, Lint 0 Fehler (20 bestehende Warnungen), Build vollständig inklusive Static Generation.
 - [x] Final `npm run supabase:diff` erfolgreich ausgeführt: 001–059 in der Shadow-DB; verbleibende 28 Funktionsblöcke sind der dokumentierte pg-delta-Idempotenzartefakt und bytegleich mit 058, ohne Rechte-, Trigger-, Kommentar-, Guild- oder destructive-Diff.
 
-
 **Ausführungslog LLM-4 – final (2026-08-29):** 058 wurde in der Remote-Historie als bereits vorhandener Stand markiert; `db push` führte nur 059 aus. Die Historie 001–059 ist synchron, die Typen wurden danach neu generiert. Jan gab den kleinen Build-Fix frei: das doppelte `overflowX` in `src/app/games-2/page.tsx` wurde entfernt. Der reguläre Build-Ordner war durch den laufenden Dev-Server gesperrt; die Next-konforme isolierte Ausgabe (`NEXT_DIST_DIR`) verifizierte deshalb den vollständigen Produktions-Build ohne den Server zu beenden. Final zum K6-A-Abschlusszeitpunkt: Typecheck 0 Fehler, serielles Vitest 157/157 Dateien und 1.220/1.220 Tests, Lint 0 Fehler/20 bestehende Warnungen, Build vollständig. Eine spätere Wiederholung der Gesamtbuild-Prüfung wurde durch parallel neu angelegte, ungetrackte `src/app/lab/`-Dateien mit fehlenden `@react-three/fiber`-/`three`-Abhängigkeiten blockiert; diese externe Workspace-Änderung liegt außerhalb von K6-A. Der finale Shadow-Diff lief durch und bestätigte das dokumentierte pg-delta-Idempotenzartefakt.
+
 ### Task LLM-5: Dokumentation, Archivierung und WorldMap-Korrektur
 
 **Files:**
+
 - Modify: `xx_docs/01_supabase_context.md`
 - Modify: `xx_sop/05_database_supabase.md`
-- Modify: `worldmap/04_datenbank_migrationen.md`
+- Modify: `T_DATABASE/04_datenbank_migrationen.md`
 - Modify: `worldmap/00_WORLDMAP_STATUS.md`
 - Move: `worldmap/05_datenbank_haertung.md` → `docs/archive/05_datenbank_haertung.md`
 - Move: `worldmap/workflow.jan-k6-a_remote_schema_reconciliation.md` → `docs/archive/2026-08-29_k6-a_remote_schema_reconciliation.md`
@@ -116,6 +123,7 @@
 - [x] `node scripts/check-doc-links.mjs` ausgeführt; Ergebnis im Ausführungslog dokumentiert.
 
 **Ausführungslog LLM-5 (2026-08-29):** L7 ist grün, die WorldMap- sowie Supabase-Dokumentation ist auf 001–059, 058/059 und den Security-Guard-Nachweis aktualisiert, und beide Abschlussdokumente liegen im Archiv. `node scripts/check-doc-links.mjs` endet erfolgreich: 0 tote Links in lebendigen Dateien; die gemeldeten 6 historischen Archivlinks und 5 bereits vorhandenen Encoding-Hinweise liegen außerhalb dieser Archivierung.
+
 ## Selbstprüfung vor Ausführung
 
 - Scope deckt K6-A, A-L7, Archivierung und WorldMap-Status ab.

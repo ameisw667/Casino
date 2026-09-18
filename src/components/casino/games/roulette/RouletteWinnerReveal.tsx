@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import type { RouletteNumber } from './types';
+import { KineticTextReveal } from '@/components/casino/typography/KineticTextReveal';
 
 interface RouletteWinnerRevealProps {
   spinning: boolean;
@@ -42,32 +43,50 @@ export function RouletteWinnerReveal({
         >
           <div
             style={{
-              width: '42px',
-              height: '42px',
+              width: '44px',
+              height: '44px',
               borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '1.4rem',
-              fontWeight: 900,
-              fontFamily: 'monospace',
-              color: '#FFF',
               background:
                 winningNumber.c === 'GREEN'
                   ? '#059669'
                   : winningNumber.c === 'RED'
                     ? '#dc2626'
-                    : '#1e1e2d',
-              boxShadow: '0 0 15px rgba(255, 255, 255, 0.3)',
+                    : '#0B0E14',
+              border: winningNumber.c === 'BLACK' ? '1.5px solid #D4AF37' : 'none',
+              boxShadow:
+                winningNumber.c === 'GREEN'
+                  ? '0 0 15px rgba(16, 185, 129, 0.5)'
+                  : winningNumber.c === 'RED'
+                    ? '0 0 15px rgba(239, 68, 68, 0.5)'
+                    : '0 0 15px rgba(212, 175, 55, 0.4)',
             }}
           >
-            {winningNumber.n}
+            <KineticTextReveal
+              text={String(winningNumber.n)}
+              triggerKey={winningNumber.n}
+              variant="impact"
+              colorScheme="custom"
+              customColor="#FFFFFF"
+              skewAngle={12}
+              fontSize="1.4rem"
+              fontFamily="monospace"
+              fontWeight={900}
+            />
           </div>
           <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8' }}>
-              {winningNumber.c}{' '}
-              {winningNumber.n === 0 ? 'ZERO' : winningNumber.n % 2 === 0 ? 'EVEN' : 'ODD'}
-            </div>
+            <KineticTextReveal
+              text={`${winningNumber.c} · ${winningNumber.n === 0 ? 'ZERO' : winningNumber.n % 2 === 0 ? 'EVEN' : 'ODD'}`}
+              triggerKey={`${winningNumber.n}-${winningNumber.c}`}
+              variant="smooth"
+              colorScheme={winningNumber.c === 'GREEN' ? 'emerald' : winningNumber.c === 'RED' ? 'ruby' : 'gold'}
+              fontSize="0.75rem"
+              fontFamily="var(--font-heading, 'Cinzel', serif)"
+              fontWeight={800}
+              letterSpacing="0.08em"
+            />
             {lastWinAmount !== null && lastWinAmount > 0 ? (
               <div
                 style={{
@@ -75,12 +94,13 @@ export function RouletteWinnerReveal({
                   fontWeight: 900,
                   fontFamily: 'monospace',
                   fontSize: '1.15rem',
+                  marginTop: '2px',
                 }}
               >
                 +${lastWinAmount.toFixed(2)} ({lastMultiplier}×)
               </div>
             ) : (
-              <div style={{ color: '#64748b', fontWeight: 800, fontSize: '0.85rem' }}>NO WIN</div>
+              <div style={{ color: '#64748b', fontWeight: 800, fontSize: '0.85rem', marginTop: '2px' }}>NO WIN</div>
             )}
           </div>
         </motion.div>

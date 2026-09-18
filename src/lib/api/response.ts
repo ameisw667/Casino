@@ -20,6 +20,11 @@ export function apiSuccessResponse<T>(
 ): Response {
   const headers = new Headers(init.headers);
   if (!headers.has('content-type')) headers.set('content-type', 'application/json');
+  // Fail-closed default: API responses carry account/session-scoped data and must never be
+  // cached by shared proxies or the browser disk cache. Routes that deliberately serve
+  // cacheable public data (e.g. leaderboard, docs) already pass their own Cache-Control in
+  // init.headers, so headers.has() sees it here and this default is skipped for them.
+  if (!headers.has('cache-control')) headers.set('Cache-Control', 'private, no-store');
 
   const payload: ApiSuccessPayload<T> = meta ? { data, meta } : { data };
 
@@ -38,6 +43,9 @@ export function apiErrorResponse(
 ): Response {
   const headers = new Headers(init.headers);
   if (!headers.has('content-type')) headers.set('content-type', 'application/json');
+  // Same fail-closed default as apiSuccessResponse() — error bodies can still carry
+  // request-scoped details (requestId, fieldErrors) that must not be cached either.
+  if (!headers.has('cache-control')) headers.set('Cache-Control', 'private, no-store');
 
   const errorObj: ApiErrorPayload['error'] = {
     code,

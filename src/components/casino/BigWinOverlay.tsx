@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Star, Trophy } from 'lucide-react';
+import { Star } from 'lucide-react';
+import Image from 'next/image';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { motion, AnimatePresence, useSpring } from 'framer-motion';
 import { Z_INDEX } from '@/lib/design/tokens.generated';
-import { soundManager } from '@/lib/casino/sound-manager';
+import { CursorParticleTypography } from '@/components/casino/fx/CursorParticleTypography';
+
+import { ParticleTypographyCanvas } from '@/components/casino/fx/ParticleTypographyCanvas';
 
 interface BigWinOverlayProps {
   amount: number;
@@ -13,30 +16,6 @@ interface BigWinOverlayProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-interface Particle {
-  id: number;
-  left: number;
-  drift: number;
-  duration: number;
-  delay: number;
-  size: number;
-  color: string;
-  isCircle: boolean;
-}
-
-const PARTICLE_COLORS = ['#D4AF37', '#FFF7D6', '#F5D77F', '#FFFFFF', '#E6B800'];
-
-const STATIC_PARTICLES: Particle[] = Array.from({ length: 48 }).map((_, i) => ({
-  id: i,
-  left: (i * 37) % 100,
-  drift: ((i * 43) % 60) - 30 + (i % 10) * 4,
-  duration: 2.4 + ((i * 29) % 20) / 10,
-  delay: ((i * 19) % 18) / 10,
-  size: 4 + (i % 6),
-  color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
-  isCircle: i % 2 === 0,
-}));
 
 function AnimatedAmount({ value }: { value: number }) {
   const spring = useSpring(0, { stiffness: 45, damping: 14 });
@@ -63,7 +42,10 @@ export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: B
 
   useEffect(() => {
     if (!isOpen) return;
-    soundManager.play('win');
+    // No soundManager.play('win') here anymore — the game-specific win sound (plus the tiered
+    // escalation sweep for this >=20x moment) already plays once via processGameResult() ->
+    // playWinTier() in useCasinoStore.ts. This was a confirmed doubling (plan
+    // 02_audio_engine_plan.md, finding B3): a generic 'win' on top of e.g. 'crash-win'.
     const timer = setTimeout(() => {
       onClose();
     }, 5500);
@@ -94,47 +76,8 @@ export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: B
             overflow: 'hidden',
           }}
         >
-          {/* Confetti & Light Particles */}
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              overflow: 'hidden',
-              pointerEvents: 'none',
-            }}
-          >
-            {STATIC_PARTICLES.map((p) => (
-              <motion.div
-                key={p.id}
-                initial={{
-                  top: '-10%',
-                  left: `${p.left}%`,
-                  rotate: 0,
-                  opacity: 0.9,
-                }}
-                animate={{
-                  top: '110%',
-                  rotate: p.isCircle ? 180 : 360,
-                  left: `${p.left + p.drift}%`,
-                  opacity: [0, 1, 1, 0],
-                }}
-                transition={{
-                  duration: p.duration,
-                  repeat: Infinity,
-                  ease: 'linear',
-                  delay: p.delay,
-                }}
-                style={{
-                  position: 'absolute',
-                  width: `${p.size}px`,
-                  height: `${p.size}px`,
-                  background: p.color,
-                  borderRadius: p.isCircle ? '50%' : '2px',
-                  boxShadow: `0 0 10px ${p.color}`,
-                }}
-              />
-            ))}
-          </div>
+          {/* Interactive Gold Dust Particle Physics (60-120 FPS Canvas) */}
+          <ParticleTypographyCanvas isMobile={isMobile} />
 
           {/* Central Radial Aura (No hard edges) */}
           <motion.div
@@ -203,9 +146,11 @@ export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: B
                 transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
                 style={{ display: 'inline-flex' }}
               >
-                <Trophy
-                  size={isMobile ? 76 : 116}
-                  color="#D4AF37"
+                <Image
+                  src="/images/2026-09-06_icon-trophy-win-quantum-gold_v001.png"
+                  alt="Big Win"
+                  width={isMobile ? 76 : 116}
+                  height={isMobile ? 76 : 116}
                   style={{
                     filter: 'drop-shadow(0 0 28px rgba(212, 175, 55, 0.85))',
                   }}
@@ -213,25 +158,24 @@ export default function BigWinOverlay({ amount, multiplier, isOpen, onClose }: B
               </motion.div>
             </motion.div>
 
-            {/* BIG WIN! Gradient Heading */}
-            <motion.h2
-              initial={{ letterSpacing: '0.3em', opacity: 0, scale: 0.8 }}
-              animate={{ letterSpacing: '-0.02em', opacity: 1, scale: 1 }}
-              transition={{ delay: 0.15, duration: 0.6, ease: 'easeOut' }}
-              style={{
-                fontSize: isMobile ? '3rem' : '5.5rem',
-                fontWeight: 900,
-                fontFamily: 'var(--font-inter), sans-serif',
-                background: 'linear-gradient(180deg, #FFFFFF 0%, #F8DF8C 45%, #D4AF37 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                lineHeight: 1,
-                marginBottom: '12px',
-                filter: 'drop-shadow(0 0 35px rgba(212, 175, 55, 0.6))',
-              }}
-            >
-              BIG WIN!
-            </motion.h2>
+            {/* BIG WIN! Particle Typography with Spring Physics & Explosion */}
+            <div style={{ width: '100%', maxWidth: '640px', marginBottom: '12px' }}>
+              <CursorParticleTypography
+                text="BIG WIN!"
+                fontSize={isMobile ? 44 : 76}
+                fontFamily="var(--font-heading, 'Cinzel', serif)"
+                fontWeight={900}
+                as="h2"
+                ambientFlakes={true}
+                ambientCount={isMobile ? 25 : 60}
+                triggerExplosion={true}
+                repulsionRadius={90}
+                repulsionForce={6.5}
+                stiffness={0.045}
+                damping={0.88}
+                isMobile={isMobile}
+              />
+            </div>
 
             {/* Multiplier Badge */}
             <motion.div

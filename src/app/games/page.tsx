@@ -1,25 +1,15 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, ShieldCheck, Layers } from 'lucide-react';
 import { useCasinoStore } from '@/store/useCasinoStore';
-import {
-  GAMES,
-  CATEGORIES,
-  type CategoryType,
-  type GameMeta,
-  MIN_STAKE,
-  ElevatedGameCard,
-  LiveWinRibbon,
-  Stat,
-} from './_components';
+import { GAMES, MIN_STAKE, LiveWinRibbon, Stat } from './_components';
+import { WheelCarousel } from '@/components/casino/games-catalog/WheelCarousel';
+import { ScrollTiltedGamesGrid } from '@/components/casino/games/ScrollTiltedGamesGrid';
 
 export default function GamesPage() {
   const router = useRouter();
   const { isMobile, bets } = useCasinoStore();
-  const [selectedCategory, setSelectedCategory] = useState<CategoryType>('ALL');
 
   // Keyboard quick-launch: keys 1–5 open the corresponding game.
   useEffect(() => {
@@ -36,13 +26,6 @@ export default function GamesPage() {
 
   const totalBets = bets.length;
 
-  const filteredGames = useMemo(() => {
-    if (selectedCategory === 'ALL') return GAMES;
-    return GAMES.filter((g) =>
-      g.tags.includes(selectedCategory as unknown as GameMeta['tags'][number]),
-    );
-  }, [selectedCategory]);
-
   return (
     <div
       style={{
@@ -57,161 +40,75 @@ export default function GamesPage() {
         padding: isMobile ? '16px 16px 80px' : '12px 24px 32px',
       }}
     >
-      {/* Monolith Header */}
+      {/* Monolith Header mit Live-Ticker */}
       <header
         style={{
+          position: 'relative',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
-          flexWrap: 'wrap',
-          padding: isMobile ? '12px 14px' : '18px 24px',
-          borderRadius: '16px',
-          border: '1px solid rgba(212, 175, 55, 0.15)',
+          flexDirection: 'column',
+          gap: '8px',
+          padding: isMobile ? '9px 12px' : '10px 16px',
+          borderRadius: '14px',
+          border: '1px solid rgba(212, 175, 55, 0.18)',
           background:
-            'linear-gradient(145deg, rgba(24, 24, 32, 0.75) 0%, rgba(12, 12, 18, 0.9) 100%)',
+            'linear-gradient(145deg, rgba(20, 24, 34, 0.82) 0%, rgba(10, 13, 20, 0.95) 100%)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.45)',
+          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(212, 175, 55, 0.12)',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <div>
-            <span
+        {/* Ambient Top Glow Bar (Brand-Konsistenz mit WheelCarousel) */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: '20%',
+            right: '20%',
+            height: '1px',
+            background: 'linear-gradient(90deg, transparent, #D4AF37, transparent)',
+            opacity: 0.6,
+          }}
+        />
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '10px',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h1
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                background: 'rgba(212, 175, 55, 0.12)',
-                border: '1px solid rgba(212, 175, 55, 0.25)',
-                color: '#D4AF37',
-                fontSize: isMobile ? '0.52rem' : '0.58rem',
-                fontWeight: 800,
-                padding: '2px 6px',
-                borderRadius: '4px',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
+                fontSize: isMobile ? '1.15rem' : '1.45rem',
+                fontWeight: 900,
+                color: '#ffffff',
+                letterSpacing: '-0.02em',
+                lineHeight: 1.1,
+                margin: 0,
               }}
             >
-              <Flame size={11} /> PROVABLY FAIR · 5 ORIGINALS
-            </span>
+              GAME CATALOG
+            </h1>
           </div>
-          <h1
-            style={{
-              fontSize: isMobile ? '1.25rem' : '1.75rem',
-              fontWeight: 900,
-              lineHeight: 1.1,
-              letterSpacing: '-0.02em',
-              color: '#ffffff',
-              margin: 0,
-            }}
-          >
-            GAME CATALOG
-          </h1>
+
+          <div style={{ display: 'flex', gap: isMobile ? '10px' : '16px', alignItems: 'center' }}>
+            <Stat label="MIN STAKE" value={MIN_STAKE} highlight />
+            <Stat label="YOUR ROUNDS" value={String(totalBets)} />
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: isMobile ? '14px' : '24px', alignItems: 'center' }}>
-          <Stat label="MIN STAKE" value={MIN_STAKE} highlight />
-          <Stat label="YOUR ROUNDS" value={String(totalBets)} />
-          {!isMobile && (
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '5px 10px',
-                borderRadius: '6px',
-                background: 'rgba(16, 185, 129, 0.08)',
-                border: '1px solid rgba(16, 185, 129, 0.15)',
-                color: '#10b981',
-                fontSize: '0.62rem',
-                fontWeight: 800,
-                letterSpacing: '0.04em',
-              }}
-            >
-              <ShieldCheck size={12} />
-              <span>INSTANT PAYOUT</span>
-            </div>
-          )}
-        </div>
+        {/* Live social-proof ribbon, konsolidiert in den Header */}
+        <LiveWinRibbon inline />
       </header>
 
-      {/* Category Filter Tabs (Frosted Glass Pills) */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          overflowX: 'auto',
-          paddingBottom: '4px',
-          scrollbarWidth: 'none',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginRight: '6px' }}>
-          <Layers size={14} color="#D4AF37" />
-          <span
-            style={{
-              fontSize: '0.68rem',
-              fontWeight: 800,
-              color: 'rgba(255, 255, 255, 0.4)',
-              textTransform: 'uppercase',
-            }}
-          >
-            Filter:
-          </span>
-        </div>
-        {CATEGORIES.map((cat) => {
-          const isActive = selectedCategory === cat;
-          return (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              style={{
-                padding: '6px 14px',
-                borderRadius: '20px',
-                fontSize: '0.65rem',
-                fontWeight: 800,
-                letterSpacing: '0.04em',
-                cursor: 'pointer',
-                border: isActive ? '1px solid #D4AF37' : '1px solid rgba(255, 255, 255, 0.08)',
-                background: isActive
-                  ? 'linear-gradient(90deg, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.06) 100%)'
-                  : 'rgba(255, 255, 255, 0.03)',
-                color: isActive ? '#D4AF37' : 'rgba(255, 255, 255, 0.65)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                boxShadow: isActive ? '0 0 16px rgba(212, 175, 55, 0.22)' : 'none',
-                transition: 'all 0.2s ease',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {cat}
-            </button>
-          );
-        })}
-      </div>
+      {/* 3D Cylinder Selection Wheel als hervorgehobenes Highlight vor der Gesamtübersicht */}
+      <WheelCarousel games={GAMES} isMobile={isMobile} />
 
-      {/* Live social-proof ribbon */}
-      <LiveWinRibbon />
-
-      {/* 3D-Tilt & Specular Sheen Games Grid with Hover Preview Animation */}
-      <motion.div
-        layout
-        style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile
-            ? 'repeat(2, minmax(0, 1fr))'
-            : 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: isMobile ? '12px' : '16px',
-          alignItems: 'stretch',
-        }}
-      >
-        <AnimatePresence mode="popLayout">
-          {filteredGames.map((game, index) => (
-            <ElevatedGameCard key={game.id} game={game} index={index} isMobile={isMobile} />
-          ))}
-        </AnimatePresence>
-      </motion.div>
+      {/* 3D-Tilt & Specular Sheen Games Grid (Haupt-Spielauswahl) */}
+      <ScrollTiltedGamesGrid games={GAMES} isMobile={isMobile} />
     </div>
   );
 }

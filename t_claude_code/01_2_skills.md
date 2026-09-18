@@ -1,6 +1,6 @@
 # 01.2 — Skills: Sub-Kategorie-Aufschlüsselung
 
-> Stand: **2026-08-30** — Erstaufschlüsselung von Kategorie **2 „Skills"** aus `00_claude_code_uebersicht.md` in bis zu 10 einzeln bewertete Unterkategorien, analog zur bereits etablierten Methodik in `worldmap/04_security_hardening.md`. Skala: **Top 1 % = Weltklasse**, **Top 100 % = schlechtestes Viertel** unter vergleichbaren Hobby-/Indie-Setups, die Claude Code aktiv nutzen.
+> Stand: **2026-08-30** — Erstaufschlüsselung von Kategorie **2 „Skills"** aus `00_claude_code_uebersicht.md` in bis zu 10 einzeln bewertete Unterkategorien, analog zur bereits etablierten Methodik in `T_SECURITY_HARDENING/04_security_hardening.md`. Skala: **Top 1 % = Weltklasse**, **Top 100 % = schlechtestes Viertel** unter vergleichbaren Hobby-/Indie-Setups, die Claude Code aktiv nutzen.
 > Abgrenzung: Skill-**Erstellung**/Reifegrad-Definition ist bereits kanonisch in [`skills/13_skill_worldclass_creation.md`](skills/13_skill_worldclass_creation.md) dokumentiert — diese Datei dupliziert deren Inhalt nicht, sondern bewertet den **Ist-Zustand** (wie viele Skills existieren wirklich, werden sie genutzt, wie gut sind sie gepflegt).
 
 ## Kernaussage für Jan

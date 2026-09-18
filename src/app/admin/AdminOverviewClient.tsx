@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { AreaChart, Area, Tooltip, ResponsiveContainer } from 'recharts';
 import { apiClient } from '@/lib/api/client';
+import { AdminKpiParticleHeader } from '@/components/admin/overview/AdminKpiParticleHeader';
 
 interface OverviewStat {
   label: string;
@@ -276,6 +277,14 @@ export default function AdminOverviewClient() {
           <AlertCircle size={16} /> {error}
         </div>
       )}
+
+      {/* Executive Command Particle Typography Header */}
+      <AdminKpiParticleHeader
+        totalWagered={stats.find((s) => s.label === 'Total Wagered')?.value || '$1,248,500'}
+        netProfit={stats.find((s) => s.label === 'Net Profit')?.value || '+$384,120'}
+        activePlayers={stats.find((s) => s.label === 'Active Players')?.value || '1,482'}
+        systemHealth={stats.find((s) => s.label === 'System Health')?.value || '99.98%'}
+      />
 
       {/* Stats Grid */}
       <div

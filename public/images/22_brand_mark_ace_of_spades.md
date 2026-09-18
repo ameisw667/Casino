@@ -94,4 +94,4 @@ Anders als bei den 8 Hero-Bildern (jeweils 3 dokumentierte Iterationsstufen) wur
 
 - [`00_IMAGES_OVERVIEW.md`](00_IMAGES_OVERVIEW.md) — Pipeline-Übersicht, inkl. der Regel "Auslösung ausschließlich durch Jan" (in dieser Runde bewusst mit Jans expliziter Zustimmung abgewichen, siehe Chat-Verlauf 2026-09-04).
 - [`09_model_pricing_reference.md`](09_model_pricing_reference.md) — Modell-/Preis-Kontext.
-- [`worldmap/15_1_royale_guide_sidebar_placement.md`](../../worldmap/15_1_royale_guide_sidebar_placement.md) — verwandte Sidebar-Icon-Historie (Emblem v1, Maskottchen), aus der die Detail-Überladungs- und Kontrast-Lehren stammen, die hier direkt angewendet wurden.
+- [`T_LLM/15_1_royale_guide_sidebar_placement.md`](../../T_LLM/15_1_royale_guide_sidebar_placement.md) — verwandte Sidebar-Icon-Historie (Emblem v1, Maskottchen), aus der die Detail-Überladungs- und Kontrast-Lehren stammen, die hier direkt angewendet wurden.

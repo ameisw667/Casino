@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap } from 'lucide-react';
 import { type BlackjackHand } from './CardHand';
 import { BlackjackShoe } from './BlackjackShoe';
 import { BlackjackSplitHandBox } from './BlackjackSplitHandBox';
 import { ClassicCasinoTableFelt } from './ClassicCasinoTableFelt';
+import { KineticTextReveal } from '@/components/casino/typography/KineticTextReveal';
 
 interface BlackjackTableProps {
   dealerHand: BlackjackHand | null;
@@ -86,22 +86,22 @@ export default function BlackjackTable({
           justifyContent: 'center',
         }}
       >
-        {/* Dynamic Win Banner */}
+        {/* Dynamic Win Banner with Kinetic Skew & Volumetric Felt Shadow */}
         <AnimatePresence>
           {hasResult && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.7, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
+              initial={{ opacity: 0, scale: 0.7, y: 10, skewX: -18 }}
+              animate={{ opacity: 1, scale: 1, y: 0, skewX: 0 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ type: 'spring', bounce: 0.5, duration: 0.4 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 20, bounce: 0.4 }}
               style={{
                 position: 'absolute',
-                top: '-46px',
+                top: '-50px',
                 zIndex: 30,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '8px 20px',
+                padding: '8px 24px',
                 borderRadius: '999px',
                 background:
                   result === 'BLACKJACK'
@@ -112,35 +112,35 @@ export default function BlackjackTable({
                         ? 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)'
                         : 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)',
                 boxShadow: isWin
-                  ? '0 0 30px rgba(255, 215, 0, 0.8)'
-                  : '0 0 20px rgba(0, 0, 0, 0.7)',
+                  ? '0 12px 32px rgba(0, 0, 0, 0.75), 0 0 30px rgba(255, 215, 0, 0.8)'
+                  : '0 12px 32px rgba(0, 0, 0, 0.75), 0 0 20px rgba(0, 0, 0, 0.7)',
                 color: result === 'BLACKJACK' ? '#000' : '#FFF',
-                fontWeight: 900,
-                fontFamily: 'monospace',
-                fontSize: isMobile ? '0.85rem' : '1rem',
-                letterSpacing: '0.5px',
-                whiteSpace: 'nowrap',
                 maxWidth: isMobile ? '92vw' : 'none',
                 textAlign: 'center',
               }}
             >
-              {isWin && <Zap size={16} fill={result === 'BLACKJACK' ? '#000' : '#FFF'} />}
-              <span
-                style={{
-                  display: 'inline-block',
-                  maxWidth: isMobile ? '60vw' : 'none',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {result === 'BLACKJACK' && `BLACKJACK! +$${payout.toFixed(2)} (3:2)`}
-                {result === 'WIN' && `YOU WIN +$${payout.toFixed(2)}`}
-                {result === 'PUSH' && 'PUSH (BET RETURNED)'}
-                {result === 'BUST' && 'BUST! (DEALER WINS)'}
-                {result === 'LOSS' && 'DEALER WINS'}
-              </span>
-              {isWin && <Zap size={16} fill={result === 'BLACKJACK' ? '#000' : '#FFF'} />}
+              <KineticTextReveal
+                text={
+                  result === 'BLACKJACK'
+                    ? `BLACKJACK! +$${payout.toFixed(2)} (3:2)`
+                    : result === 'WIN'
+                      ? `YOU WIN +$${payout.toFixed(2)}`
+                      : result === 'PUSH'
+                        ? 'PUSH (BET RETURNED)'
+                        : result === 'BUST'
+                          ? 'BUST! (DEALER WINS)'
+                          : 'DEALER WINS'
+                }
+                variant="verdict"
+                colorScheme="custom"
+                customColor={result === 'BLACKJACK' ? '#000000' : '#FFFFFF'}
+                skewAngle={18}
+                fontSize={isMobile ? '0.85rem' : '1rem'}
+                fontFamily="serif, var(--font-mono, monospace)"
+                fontWeight={900}
+                letterSpacing="0.5px"
+                isMobile={isMobile}
+              />
             </motion.div>
           )}
         </AnimatePresence>

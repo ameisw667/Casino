@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { motion } from 'framer-motion';
+import { KineticStatsCounter } from '@/components/casino/stats/KineticStatsCounter';
 
 interface StatsSummaryTilesProps {
   loading: boolean;
@@ -94,21 +95,12 @@ export function StatsSummaryTiles({
           >
             {stat.label}
           </div>
-          <div
-            style={{
-              fontFamily: 'var(--font-mono, monospace)',
-              fontSize: isMobile ? '1.15rem' : '1.35rem',
-              fontWeight: 900,
-              color: stat.color,
-              letterSpacing: '-0.02em',
-              lineHeight: 1.1,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
-            {stat.value}
-          </div>
+          <KineticStatsCounter
+            value={stat.value}
+            color={stat.color}
+            loading={loading}
+            isMobile={isMobile}
+          />
         </div>
       ))}
     </motion.div>

@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { calculatePasswordStrength } from '@/lib/security/password-strength';
-import { ShieldCheck, ShieldAlert } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 
 interface PasswordStrengthMeterProps {
   password: string;
@@ -91,7 +91,21 @@ export function PasswordStrengthMeter({ password }: PasswordStrengthMeterProps) 
             gap: '4px',
           }}
         >
-          {result.score >= 3 ? <ShieldCheck size={13} /> : <ShieldAlert size={13} />}
+          {result.score >= 3 ? (
+            <span
+              aria-hidden
+              style={{
+                display: 'inline-block',
+                width: 13,
+                height: 13,
+                backgroundColor: 'currentColor',
+                WebkitMask: 'url(/images/2026-09-06_icon-security-verified-quantum-gold_v001.png) center / contain no-repeat',
+                mask: 'url(/images/2026-09-06_icon-security-verified-quantum-gold_v001.png) center / contain no-repeat',
+              }}
+            />
+          ) : (
+            <ShieldAlert size={13} />
+          )}
           {result.label}
         </span>
 

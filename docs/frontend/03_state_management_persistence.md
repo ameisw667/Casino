@@ -135,9 +135,14 @@ export type WalletSnapshot = z.infer<typeof walletSnapshotSchema>;
 src/
 ├── store/
 │   ├── useCasinoStore.ts              # Globaler Zustand-Store (485 Zeilen)
-│   └── __tests__/
-│       ├── useCasinoStore.test.ts     # Store-Integrations-Tests
-│       └── wallet-snapshot.test.ts    # Zod-Snapshot-Validierungstests
+│   └── __tests__/                     # seit 03a-R09 thematisch gesplittet
+│       ├── snapshot-ui.test.ts        # UI-/Settings-/Onboarding- + Zod-Snapshot-Validierungstests
+│       ├── process-game-result.test.ts # processGameResult: Validierung, Happy Path, Replay-Safety
+│       ├── achievements.test.ts       # Achievements-Auswertung
+│       ├── fail-closed-session.test.ts # Fail-closed Finanz-Aktionen + initialize
+│       ├── config-delegation.test.ts  # Config-Wrapper + loadVipConfig/loadGameConfig + persist
+│       ├── useCasinoStore.leak.test.ts
+│       └── helpers/                   # store-fixture + gemeinsame Mocks
 ├── hooks/
 │   ├── useGameStore.ts                # Spielspezifische Store-Helper
 │   └── useProgressiveJackpot.ts       # Live-Ticker Hook

@@ -6,6 +6,7 @@
  */
 
 import type { Card } from '@/lib/games/blackjack';
+import { DEFAULT_GAME_CONFIG } from './game-config';
 
 export type RiskLevel = 'low' | 'medium' | 'high';
 
@@ -403,23 +404,40 @@ export function getBlackjackRecommendation(params: {
 
 /**
  * Calculates exact mathematical survival probability for target multiplier in Crash.
- * P(Crash >= multiplier) = 0.99 / multiplier (accounting for 1% instant crash house edge).
+ * P(Crash >= multiplier) = (1 - houseEdge) / multiplier, matching the same formula
+ * ProvablyFairEngine.getCrashMultiplier() uses server-side (provably-fair.ts).
+ *
+ * houseEdge defaults to DEFAULT_GAME_CONFIG.crash.houseEdge — the same shared default the
+ * server reads — instead of a separately hardcoded 0.99, so a future change to that one
+ * source of truth doesn't silently leave the Co-Pilot showing stale odds. This still can't
+ * see a live admin override of the house edge (the HUD has no server round-trip by design,
+ * see docs/archive/10_n1_smarthat.md §3) — that remains a known, documented limitation.
  */
-export function getCrashSurvivalProbability(multiplier: number): number {
+export function getCrashSurvivalProbability(
+  multiplier: number,
+  houseEdge: number = DEFAULT_GAME_CONFIG.crash.houseEdge,
+): number {
   if (multiplier <= 1.0) return 99.0;
-  const prob = (0.99 / multiplier) * 100;
+  const prob = ((1 - houseEdge) / multiplier) * 100;
   return Math.max(0.01, Math.min(99.0, Math.round(prob * 10) / 10));
 }
 
-export function getCrashCurrentZone(currentMultiplier: number): CoPilotRecommendation {
-  const survivalToNext = getCrashSurvivalProbability(currentMultiplier * 1.15);
-  const currentSurvival = getCrashSurvivalProbability(currentMultiplier);
+// Each zone's expectedValue was a separate hardcoded -0.01 literal, disconnected from the
+// houseEdge parameter this function already threads through for winProbability above — the
+// same drift risk the L1 house-edge fix closed for the probability math, just one field
+// deeper. Now derived as -houseEdge, consistent with getDiceOdds' expectedValue below.
+export function getCrashCurrentZone(
+  currentMultiplier: number,
+  houseEdge: number = DEFAULT_GAME_CONFIG.crash.houseEdge,
+): CoPilotRecommendation {
+  const survivalToNext = getCrashSurvivalProbability(currentMultiplier * 1.15, houseEdge);
+  const currentSurvival = getCrashSurvivalProbability(currentMultiplier, houseEdge);
 
   if (currentMultiplier < 1.4) {
     return {
       action: 'HALTEN (GRÜNE ZONE)',
       winProbability: currentSurvival,
-      expectedValue: -0.01,
+      expectedValue: -houseEdge,
       reasoning: `Multiplikator ${currentMultiplier.toFixed(2)}x: Sichere Frühphase. Überlebenswahrscheinlichkeit liegt bei ${currentSurvival}%.`,
       riskLevel: 'low',
       badgeText: 'Safe Zone (Low Risk)',
@@ -435,7 +453,7 @@ export function getCrashCurrentZone(currentMultiplier: number): CoPilotRecommend
     return {
       action: 'AUSZAHLUNG ERWÄGEN (BALANCED)',
       winProbability: currentSurvival,
-      expectedValue: -0.01,
+      expectedValue: -houseEdge,
       reasoning: `Multiplikator ${currentMultiplier.toFixed(2)}x: Ausgewogener Bereich. Chance auf Erreichen von ${(currentMultiplier * 1.25).toFixed(2)}x liegt bei ${survivalToNext}%.`,
       riskLevel: 'medium',
       badgeText: 'Balanced Zone',
@@ -451,7 +469,7 @@ export function getCrashCurrentZone(currentMultiplier: number): CoPilotRecommend
     return {
       action: 'CASHOUT EMPFOHLEN (HIGH RISK)',
       winProbability: currentSurvival,
-      expectedValue: -0.01,
+      expectedValue: -houseEdge,
       reasoning: `Multiplikator ${currentMultiplier.toFixed(2)}x: Hohe Crash-Gefahr! Nur noch ${currentSurvival}% aller Runden erreichen diesen Multiplikator.`,
       riskLevel: 'high',
       badgeText: 'High Risk Zone',
@@ -466,7 +484,7 @@ export function getCrashCurrentZone(currentMultiplier: number): CoPilotRecommend
   return {
     action: 'MOON ZONE — GEWINN SICHERN!',
     winProbability: currentSurvival,
-    expectedValue: -0.01,
+    expectedValue: -houseEdge,
     reasoning: `Multiplikator ${currentMultiplier.toFixed(2)}x ist außergewöhnlich hoch (Top ${currentSurvival}% Event). Sofortiger Cashout empfohlen.`,
     riskLevel: 'high',
     badgeText: 'Critical / Moon Zone',
@@ -544,23 +562,35 @@ export function getRouletteOdds(betKind: RouletteBetKind): CoPilotRecommendation
 // 4. DICE ODDS & EV
 // ---------------------------------------------------------------------------
 
-export function getDiceOdds(target: number, isOver: boolean): CoPilotRecommendation {
+/**
+ * houseEdge defaults to DEFAULT_GAME_CONFIG.dice.houseEdge, matching the exact multiplier
+ * formula ProvablyFairEngine uses server-side (provably-fair.ts: `(1 - houseEdge) * 100 /
+ * winChance`) — previously hardcoded here as a separate `99` literal, the same drift risk
+ * as the Crash formula above.
+ */
+export function getDiceOdds(
+  target: number,
+  isOver: boolean,
+  houseEdge: number = DEFAULT_GAME_CONFIG.dice.houseEdge,
+): CoPilotRecommendation {
   const winChance = isOver ? 100 - target : target;
-  const multiplier = winChance > 0 ? Math.round((99 / winChance) * 100) / 100 : 0;
+  const multiplier =
+    winChance > 0 ? Math.round((((1 - houseEdge) * 100) / winChance) * 100) / 100 : 0;
   const riskLevel: RiskLevel = winChance >= 60 ? 'low' : winChance >= 30 ? 'medium' : 'high';
+  const houseEdgePercent = `${(houseEdge * 100).toFixed(1)}%`;
 
   return {
     action: `${isOver ? 'ROLL OVER' : 'ROLL UNDER'} ${target}`,
     winProbability: Math.max(0.01, Math.min(98.0, winChance)),
-    expectedValue: -0.01, // 1% house edge
-    reasoning: `${winChance.toFixed(1)}% Gewinnchance mit ${multiplier.toFixed(2)}x Multiplikator (1.0% Hausvorteil).`,
+    expectedValue: -houseEdge,
+    reasoning: `${winChance.toFixed(1)}% Gewinnchance mit ${multiplier.toFixed(2)}x Multiplikator (${houseEdgePercent} Hausvorteil).`,
     riskLevel,
     badgeText: `${multiplier.toFixed(2)}x Multiplikator`,
     suggestedPrompt: 'Wie optimiert man seine Gewinnchancen beim Dice-Spiel?',
     metrics: [
       { label: 'Gewinnchance', value: `${winChance.toFixed(1)}%` },
       { label: 'Multiplikator', value: `${multiplier.toFixed(2)}x` },
-      { label: 'Hausvorteil', value: '1.0%' },
+      { label: 'Hausvorteil', value: houseEdgePercent },
     ],
   };
 }

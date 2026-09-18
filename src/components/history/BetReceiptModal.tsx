@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Copy, ShieldCheck, Receipt, Sparkles } from 'lucide-react';
+import { X, Check, Copy, Receipt } from 'lucide-react';
 import type { HistoryRow } from '@/components/history/HistoryTableStream';
 
 interface BetReceiptModalProps {
@@ -342,7 +342,17 @@ export function BetReceiptModal({ row, onClose }: BetReceiptModalProps) {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck size={18} color="#10b981" />
+                <span
+                  aria-hidden
+                  style={{
+                    display: 'inline-block',
+                    width: 18,
+                    height: 18,
+                    backgroundColor: '#10b981',
+                    WebkitMask: 'url(/images/2026-09-06_icon-security-verified-quantum-gold_v001.png) center / contain no-repeat',
+                    mask: 'url(/images/2026-09-06_icon-security-verified-quantum-gold_v001.png) center / contain no-repeat',
+                  }}
+                />
                 <div>
                   <div
                     style={{
@@ -383,7 +393,7 @@ export function BetReceiptModal({ row, onClose }: BetReceiptModalProps) {
                   </>
                 ) : (
                   <>
-                    <Sparkles size={12} />
+                    <Copy size={12} />
                     <span>Prüfcode</span>
                   </>
                 )}

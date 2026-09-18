@@ -6,96 +6,182 @@ import {
   DEFAULT_PERSONA,
   type GuidePersona,
 } from '@/lib/casino/chat-guide/personas';
+import {
+  withRateLimit,
+  getClientIdentifier,
+  rateLimitHeaders,
+  validateMutationOrigin,
+} from '@/lib/security/request-security';
+import {
+  GUIDE_PERSONA_LIMIT,
+  GUIDE_PERSONA_WINDOW_SECONDS,
+} from '@/lib/security/rate-limit-config';
 
 const PRIVATE_NO_STORE = { 'Cache-Control': 'private, no-store' };
+
+// 06_6 L0/L4 (E2+E6): this authenticated GET+PATCH route had 0 rate-limit calls — the
+// exact "forgotten route" case the distributed-consistency audit predicted. It is now one
+// of the two reference implementations for withRateLimit(): the resolve hook runs the auth
+// gate BEFORE the limit decision (user-based buckets) and passes supabase/user through so
+// the handler does not re-authenticate.
+const personaGate = withRateLimit<{
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  userId: string;
+  email?: string;
+}>(
+  async (request, context) => {
+    const { supabase, userId } = context.data;
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('guide_persona')
+        .eq('id', userId)
+        .single();
+
+      if (error || !data) {
+        return NextResponse.json({ persona: DEFAULT_PERSONA }, { headers: PRIVATE_NO_STORE });
+      }
+
+      const parsed = guidePersonaSchema.safeParse(data.guide_persona);
+      const persona: GuidePersona = parsed.success ? parsed.data : DEFAULT_PERSONA;
+
+      return NextResponse.json(
+        { persona },
+        { headers: { ...PRIVATE_NO_STORE, ...rateLimitHeaders(context.decision) } },
+      );
+    } catch {
+      return NextResponse.json({ persona: DEFAULT_PERSONA }, { headers: PRIVATE_NO_STORE });
+    }
+  },
+  {
+    scope: 'guide-persona',
+    limit: GUIDE_PERSONA_LIMIT,
+    windowSeconds: GUIDE_PERSONA_WINDOW_SECONDS,
+    resolve: async (request) => {
+      try {
+        const supabase = await createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          return {
+            earlyResponse: NextResponse.json(
+              { persona: DEFAULT_PERSONA },
+              { status: 401, headers: PRIVATE_NO_STORE },
+            ),
+          };
+        }
+        return {
+          identifier: getClientIdentifier(request, user.id),
+          data: { supabase, userId: user.id },
+        };
+      } catch {
+        return {
+          earlyResponse: NextResponse.json(
+            { persona: DEFAULT_PERSONA },
+            { status: 401, headers: PRIVATE_NO_STORE },
+          ),
+        };
+      }
+    },
+  },
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/casino/guide-persona
 // Returns the authenticated user's active guide persona.
 // ─────────────────────────────────────────────────────────────────────────────
-export async function GET() {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+export const GET = personaGate;
 
-    if (!user) {
-      return NextResponse.json(
-        { persona: DEFAULT_PERSONA },
-        { status: 401, headers: PRIVATE_NO_STORE },
-      );
-    }
-
-    const { data, error } = await supabase
-      .from('users')
-      .select('guide_persona')
-      .eq('id', user.id)
-      .single();
-
-    if (error || !data) {
-      return NextResponse.json({ persona: DEFAULT_PERSONA }, { headers: PRIVATE_NO_STORE });
-    }
-
-    const parsed = guidePersonaSchema.safeParse(data.guide_persona);
-    const persona: GuidePersona = parsed.success ? parsed.data : DEFAULT_PERSONA;
-
-    return NextResponse.json({ persona }, { headers: PRIVATE_NO_STORE });
-  } catch {
-    return NextResponse.json({ persona: DEFAULT_PERSONA }, { headers: PRIVATE_NO_STORE });
-  }
-}
+const patchSchema = z.object({
+  persona: guidePersonaSchema,
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PATCH /api/casino/guide-persona
 // Updates the authenticated user's active guide persona.
 // Body: { persona: GuidePersona }
+// P1.4 (T_SECURITY_HARDENING/04 CSRF/Origin-Guard): mutation origin is checked before the
+// rate-limit/auth resolve step runs, so forged cross-site requests are rejected earliest.
 // ─────────────────────────────────────────────────────────────────────────────
-const patchSchema = z.object({
-  persona: guidePersonaSchema,
-});
-
-export async function PATCH(request: Request) {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+export const PATCH = withRateLimit<{
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  userId: string;
+}>(
+  async (request, context) => {
+    const originFailure = validateMutationOrigin(request);
+    if (originFailure) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401, headers: PRIVATE_NO_STORE },
+        { error: 'Cross-site mutation rejected' },
+        { status: originFailure.status || 403, headers: PRIVATE_NO_STORE },
       );
     }
 
-    const body = await request.json().catch(() => null);
-    const parsed = patchSchema.safeParse(body);
+    const { supabase, userId } = context.data;
+    try {
+      const body = await request.json().catch(() => null);
+      const parsed = patchSchema.safeParse(body);
 
-    if (!parsed.success) {
+      if (!parsed.success) {
+        return NextResponse.json(
+          { error: 'Invalid persona. Must be one of: math_strategist, high_roller, casual_buddy' },
+          { status: 400, headers: PRIVATE_NO_STORE },
+        );
+      }
+
+      const { error } = await supabase
+        .from('users')
+        .update({ guide_persona: parsed.data.persona })
+        .eq('id', userId);
+
+      if (error) {
+        return NextResponse.json(
+          { error: 'Failed to save persona preference' },
+          { status: 500, headers: PRIVATE_NO_STORE },
+        );
+      }
+
       return NextResponse.json(
-        { error: 'Invalid persona. Must be one of: math_strategist, high_roller, casual_buddy' },
-        { status: 400, headers: PRIVATE_NO_STORE },
+        { persona: parsed.data.persona },
+        { headers: { ...PRIVATE_NO_STORE, ...rateLimitHeaders(context.decision) } },
       );
-    }
-
-    const { error } = await supabase
-      .from('users')
-      .update({ guide_persona: parsed.data.persona })
-      .eq('id', user.id);
-
-    if (error) {
+    } catch {
       return NextResponse.json(
         { error: 'Failed to save persona preference' },
         { status: 500, headers: PRIVATE_NO_STORE },
       );
     }
-
-    return NextResponse.json({ persona: parsed.data.persona }, { headers: PRIVATE_NO_STORE });
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to save persona preference' },
-      { status: 500, headers: PRIVATE_NO_STORE },
-    );
-  }
-}
+  },
+  {
+    scope: 'guide-persona',
+    limit: GUIDE_PERSONA_LIMIT,
+    windowSeconds: GUIDE_PERSONA_WINDOW_SECONDS,
+    resolve: async (request) => {
+      try {
+        const supabase = await createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          return {
+            earlyResponse: NextResponse.json(
+              { error: 'Unauthorized' },
+              { status: 401, headers: PRIVATE_NO_STORE },
+            ),
+          };
+        }
+        return {
+          identifier: getClientIdentifier(request, user.id),
+          data: { supabase, userId: user.id },
+        };
+      } catch {
+        return {
+          earlyResponse: NextResponse.json(
+            { error: 'Failed to save persona preference' },
+            { status: 500, headers: PRIVATE_NO_STORE },
+          ),
+        };
+      }
+    },
+  },
+);

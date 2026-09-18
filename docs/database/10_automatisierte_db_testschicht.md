@@ -1,7 +1,7 @@
-# 10 — DB-Test-Schicht, SQL-Validierung & pgTAP-Roadmap
+# 10 — DB-Test-Schicht, SQL-Validierung & pgTAP (Ist-Stand)
 
-> **Säule:** 10 von 10 · **Status:** 🟢 Produktionsreif (**Top 1 % — Weltklasse**) · **Stand:** 2026-09-02 · **Owner:** Jan / LLM  
-> **Worldmap-Zuordnung:** Kategorie 02 (Unterkategorie 7: DB-Test-Schicht — Niveau: **Top 90 % · ⬜**, dokumentierte Reifegrad-Lücke)  
+> **Säule:** 10 von 10 · **Status:** 🟢 Verifiziert (P0-RPCs + RLS + Konkurrenz abgedeckt; pgTAP-Läufe lokal, CI-Step eingebaut) · **Stand:** 2026-09-13 · **Owner:** Jan / LLM  
+> **Worldmap-Zuordnung:** Kategorie 02 (Unterkategorie 7: DB-Test-Schicht — Reifegrad-Lücke geschlossen durch T_DATABASE-Säule 10, N1–N7)  
 > **Referenz-SOP:** [`xx_sop/05_database_supabase.md`](../../xx_sop/05_database_supabase.md) §6 · **Back:** [`00_DATABASE_OVERVIEW.md`](./00_DATABASE_OVERVIEW.md)
 
 ---
@@ -10,17 +10,34 @@
 
 In den meisten Webprojekten werden nur Buttons, Formulare und Webserver-Code getestet. Wenn jedoch ein Fehler direkt in einer SQL-Datenbankfunktion steckt, greifen normale Web-Tests oft ins Leere.
 
-### Die 4 Sicherheitsnetze im Vergleich:
-| Test-Netz | Was es prüft | Typischer gefundener Fehler | Status im Casino |
-| :--- | :--- | :--- | :---: |
-| **1. TypeScript Typecheck** | Stimmen Variablennamen und Datentypen? | `amount: string` statt `amount: number` | 🟢 Top 1 % |
-| **2. RLS-Isolationsverifikation** | Kann User A Daten von User B stehlen? | Fehlende Lese-Schranke auf `users` | 🟢 Top 1 % (29/29 statische Text-Checks + pgTAP-Laufzeitsuite) |
-| **3. Service-Integrationstests** | Rechnet der Webserver Einsätze korrekt ab? | Falsche Rundung beim Roulette-Gewinn | 🟢 Top 10 % (Vitest) |
-| **4. In-Database SQL Tests (pgTAP)** | Verhält sich die SQL-Funktion in Postgres isoliert korrekt? | Deadlock-Gefahr oder falscher Error-Code in der RPC | 🟡 Roadmap aktiv |
+### Die 5 Sicherheitsnetze im Vergleich:
+
+| Test-Netz                            | Was es prüft                                                   | Typischer gefundener Fehler                         |                            Status im Casino                            |
+| :----------------------------------- | :------------------------------------------------------------- | :-------------------------------------------------- | :--------------------------------------------------------------------: |
+| **1. TypeScript Typecheck**          | Stimmen Variablennamen und Datentypen?                         | `amount: string` statt `amount: number`             |                               🟢 Top 1 %                               |
+| **2. RLS-Isolationsverifikation**    | Kann User A Daten von User B stehlen?                          | Fehlende Lese-Schranke auf `users`                  | 🟢 29/29 statische Text-Checks + pgTAP-Laufzeit (alle 39 RLS-Tabellen) |
+| **3. Service-Integrationstests**     | Rechnet der Webserver Einsätze korrekt ab?                     | Falsche Rundung beim Roulette-Gewinn                |                          🟢 Top 10 % (Vitest)                          |
+| **4. In-Database SQL Tests (pgTAP)** | Verhält sich die SQL-Funktion in Postgres isoliert korrekt?    | Deadlock-Gefahr oder falscher Error-Code in der RPC |           🟢 13 Testdateien / 207 Assertions, P0-Quote unten           |
+| **5. Echter Konkurrenztest (N5)**    | Serialisiert der Advisory-Lock parallele Settlements wirklich? | Doppelter Kontostands-Effekt bei Race               |          🟢 `test:concurrency` (2 gleichzeitige Calls je RPC)          |
 
 ---
 
-## 2 — Technischer Deep-Dive: Die 3 bestehenden Test-Ebenen
+## 1a — P0-Abdeckungsquote (Messzahl, Stand 2026-09-13)
+
+Inventar: `docs/database/pgtap-coverage-inventory.json` — 75 deduplizierte Funktionen aus den Migrationen, klassifiziert nach Geld-Nähe: **13 P0**, 17 P1, 40 P2, 5 legacy (revoket).
+
+| Kennzahl                                                                                                                                  | Wert                        |
+| :---------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------- |
+| P0-Funktionen gesamt                                                                                                                      | 13                          |
+| P0 mit direct pgTAP-Test                                                                                                                  | **11**                      |
+| P0 zusätzlich indirect (Jackpot-Kette: `jackpot_pool_contribute`/`jackpot_pool_settle` laufen innerhalb des getesteten `settle_game_bet`) | 2 → **13/13 kumulativ**     |
+| pgTAP-Testdateien / geplante Assertions                                                                                                   | 13 Dateien / 207 Assertions |
+
+Bewertung: Der Geldpfad ist vollständig abgedeckt — 11 direct + 2 über die getestete Settlement-Kette. Die 2 Jackpot-RPCs sind die einzigen P0-Funktionen ohne eigene Testdatei; ein dedizierter Test ist als Option dokumentiert (N1-Inventar, `priorityDefinitions`).
+
+---
+
+## 2 — Technischer Deep-Dive: Die 5 Test-Ebenen
 
 ```mermaid
 flowchart TD
@@ -50,9 +67,9 @@ flowchart TD
 
 ---
 
-## 3 — Das pgTAP-Zielbild für isolierte SQL-Tests
+## 3 — Das pgTAP-Muster für isolierte SQL-Tests (real im Einsatz)
 
-**pgTAP** ist das branchenführende Test-Framework für PostgreSQL. Es erlaubt Unit-Tests direkt in SQL-Syntax:
+**pgTAP** ist das branchenführende Test-Framework für PostgreSQL. Es erlaubt Unit-Tests direkt in SQL-Syntax. Die realen Tests folgen dem Muster unten und liegen in [`supabase/tests/`](../../supabase/tests/) (13 Dateien, 207 Assertions, Rollback-Isolation je Lauf):
 
 ```sql
 -- supabase/tests/database/01_settle_game_bet.test.sql
@@ -83,20 +100,15 @@ ROLLBACK; -- Garantiert rückstandsfreie Test-Ausführung
 
 ---
 
-## 4 — Die 3-Phasen-Roadmap zur Schließung der Reifegrad-Lücke
+## 4 — Regelbetrieb: CI-Verankerung der Testschicht (Stand 2026-09-13)
 
-| Phase | Meilenstein | Inhalt & Deliverable | Status |
-| :--- | :--- | :--- | :---: |
-| **Phase 1** | **Lokale Test-Harnisch-Bereitstellung** | Installation der `pgtap`-Extension im lokalen Docker-Container (`supabase/config.toml`). | 🟡 Vorbereitet |
-| **Phase 2** | **Test-Suite für Kern-RPCs** | Schreiben von `.test.sql`-Dateien für `settle_game_bet`, `start_game_round`, `settle_game_round` und `advance_blackjack_round` (echte Funktionsnamen laut Migrationen 045/058/014). | 🔴 Geplant |
-| **Phase 3** | **CI-Pipeline-Automatisierung** | Einbindung von `npx supabase test db` in `.github/workflows/security-staging.yml`. | 🟢 Verifiziert (Schritt eingebaut 2026-09-05; erster grüner CI-Lauf nach Push) |
+`security-staging.yml` führt gegen die ephemere lokale Supabase-Instanz drei DB-Prüfungen aus — Reihenfolge:
 
-### CI-Workflow Einbindung (Ziel-Konfiguration):
-```yaml
-# .github/workflows/security-staging.yml (Auszug)
-- name: Run in-database pgTAP tests
-  run: npx supabase test db
-```
+1. **Coverage-Check** (`scripts/check-pgtap-coverage.ts`, informativ `continue-on-error`): vergleicht das N1-Inventar mit `supabase/tests/*.test.sql`; eine neue P0-Funktion ohne Testdatei fällt als roter Step auf, ohne den PR hart zu blockieren (Migration und Test dürfen in unterschiedlichen PRs landen). Der Contract-Test `staging-regression-contract.test.ts` pinnt genau diesen einen Soft-Fail.
+2. **pgTAP-Suite** (`npx supabase test db`, blockierend): 13 Dateien / 207 Assertions — Geld-RPCs (Fehlerpfade, Idempotenz-Replay, Ledger-Invarianten), Wallet-Immutability, Promo-Einlösung, Race-Settlement, RLS-Laufzeit-Isolation (Kern-5 + erweitert: alle 39 RLS-Tabellen, 2 Fail-Closed-Modi).
+3. **Konkurrenztest** (`npx tsx scripts/test-concurrent-settlement.ts`, blockierend): zwei gleichzeitige service_role-Calls mit derselben `request_id` auf `settle_game_bet` und `start_game_round` — beweist, dass der `pg_advisory_xact_lock`-Serialisierungspfad genau einen Settlement-Effekt erzeugt und die zweite Antwort der gecachte Replay ist; lokal auch als `npm run test:concurrency` ausführbar.
+
+Offen bis zur Merge-Phase: erster realer Lauf der Suite (`supabase test db` braucht die lokale Instanz; Verifikationsplan siehe §9 der Planungsdatei).
 
 ---
 
@@ -124,12 +136,12 @@ RESET ROLE;
 
 ## 6 — Risiko- & Freigabeklassifizierung
 
-| Test-Aktion | K-Level | Freigabe & Schutzmaßnahme |
-| :--- | :---: | :--- |
-| **Vitest & RLS-Pentest ausführen** | **K1** | Frei ausführbar, Standard-Dev-Zyklus. |
-| **Lokale pgTAP Tests ausführen (`supabase test db`)** | **K1** | Frei ausführbar. |
-| **Test-Daten auf Staging generieren** | **K2** | Lokale Verifikation. |
-| **Modifikation von Test-Asserts auf Geldpfaden** | **K3** | Standard-Review im Task-Scope. |
+| Test-Aktion                                           | K-Level | Freigabe & Schutzmaßnahme             |
+| :---------------------------------------------------- | :-----: | :------------------------------------ |
+| **Vitest & RLS-Pentest ausführen**                    | **K1**  | Frei ausführbar, Standard-Dev-Zyklus. |
+| **Lokale pgTAP Tests ausführen (`supabase test db`)** | **K1**  | Frei ausführbar.                      |
+| **Test-Daten auf Staging generieren**                 | **K2**  | Lokale Verifikation.                  |
+| **Modifikation von Test-Asserts auf Geldpfaden**      | **K3**  | Standard-Review im Task-Scope.        |
 
 ---
 
@@ -144,15 +156,22 @@ npm test -- src/lib/casino/__tests__/vault-integration.test.ts
 
 # 3. Vollständige Test-Suite laufen lassen
 npm run test
+
+# 4. pgTAP-Suite + Coverage-Check (braucht laufende lokale Instanz: supabase start)
+npx supabase test db
+npx tsx scripts/check-pgtap-coverage.ts
+
+# 5. Echter Konkurrenztest der Advisory-Lock-Pfade (braucht lokale Instanz + PHASE1_*-Env)
+npm run test:concurrency
 ```
 
 ---
 
 ## 8 — Verwandte Dokumente & SOP-Referenzen
 
-| Bedarf | Dateipfad |
-| :--- | :--- |
-| **Supabase SOP (Testschicht):** | [`xx_sop/05_database_supabase.md`](../../xx_sop/05_database_supabase.md) §6 |
-| **RLS-Pentest (Säule 4):** | [`04_row_level_security_rls.md`](./04_row_level_security_rls.md) |
-| **Atomare Finanz-RPCs (Säule 3):** | [`03_atomare_rpcs_transaktionen.md`](./03_atomare_rpcs_transaktionen.md) |
-| **Master-Übersicht:** | [`00_DATABASE_OVERVIEW.md`](./00_DATABASE_OVERVIEW.md) |
+| Bedarf                             | Dateipfad                                                                   |
+| :--------------------------------- | :-------------------------------------------------------------------------- |
+| **Supabase SOP (Testschicht):**    | [`xx_sop/05_database_supabase.md`](../../xx_sop/05_database_supabase.md) §6 |
+| **RLS-Pentest (Säule 4):**         | [`04_row_level_security_rls.md`](./04_row_level_security_rls.md)            |
+| **Atomare Finanz-RPCs (Säule 3):** | [`03_atomare_rpcs_transaktionen.md`](./03_atomare_rpcs_transaktionen.md)    |
+| **Master-Übersicht:**              | [`00_DATABASE_OVERVIEW.md`](./00_DATABASE_OVERVIEW.md)                      |

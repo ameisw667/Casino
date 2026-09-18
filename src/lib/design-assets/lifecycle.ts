@@ -164,3 +164,48 @@ export function archiveAssetFile(
     fileName,
   };
 }
+
+export interface OrphanAuditResult {
+  unindexedFiles: string[];
+  missingFromDisk: string[];
+  allTrackedCount: number;
+}
+
+/**
+ * Scannt nach Diskrepanzen zwischen physischen Bilddateien auf der Festplatte
+ * und den im Asset-Index registrierten Einträgen.
+ */
+export function auditOrphanAssets(
+  imagesDir: string,
+  index: Readonly<AssetIndex>,
+): OrphanAuditResult {
+  if (!fs.existsSync(imagesDir)) {
+    return { unindexedFiles: [], missingFromDisk: [], allTrackedCount: 0 };
+  }
+
+  const physicalFiles = fs
+    .readdirSync(imagesDir)
+    .filter((f) => f.endsWith('.png') || f.endsWith('.webp'));
+
+  const indexedPaths = new Set(Object.values(index).map((entry) => path.basename(entry.path)));
+
+  const missingFromDisk: string[] = [];
+  const publicDir = path.resolve(process.cwd(), 'public');
+
+  for (const entry of Object.values(index)) {
+    // Wenn path mit /images/... oder /generated/... anfängt:
+    const cleanPath = entry.path.replace(/^\//, '');
+    const fullPath = path.resolve(publicDir, cleanPath);
+    if (!fs.existsSync(fullPath)) {
+      missingFromDisk.push(entry.path);
+    }
+  }
+
+  const unindexedFiles = physicalFiles.filter((f) => !indexedPaths.has(f));
+
+  return {
+    unindexedFiles,
+    missingFromDisk,
+    allTrackedCount: Object.keys(index).length,
+  };
+}

@@ -1,10 +1,12 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { ShieldCheck, CheckCircle2, AlertCircle, RefreshCw, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, RefreshCw, X } from 'lucide-react';
+import Image from 'next/image';
 import {
   type VerifiableGame,
   verifySeedHistoryEntry,
 } from '@/lib/casino/seed-history-verification';
+import { CircuitBoardVisualizer } from '@/components/casino/provably-fair/CircuitBoardVisualizer';
 
 interface SeedHistoryEntry {
   serverSeed: string;
@@ -153,16 +155,15 @@ export function ProvablyFairModal({
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-          <ShieldCheck size={22} color="#D4AF37" />
+          <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Provably Fair Verifier" width={22} height={22} aria-hidden />
           <h2 style={{ fontSize: '1.3rem', fontWeight: 900, margin: 0, color: '#fff' }}>
             Provably Fair Verifier
           </h2>
         </div>
-        <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', margin: '0 0 20px 0' }}>
+        <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', margin: '0 0 12px 0' }}>
           Kryptographische HMAC-SHA256 Re-Berechnung zur Verifikation deterministischer
           Spielergebnisse.
         </p>
-
         {historyError && (
           <p style={{ color: 'hsl(var(--error))', fontSize: '0.8rem' }}>{historyError}</p>
         )}
@@ -356,6 +357,18 @@ export function ProvablyFairModal({
             </div>
           </div>
 
+          {/* Componentry Circuit Board & Cryptographic Verification Visualizer */}
+          <div style={{ margin: '14px 0 18px 0' }}>
+            <CircuitBoardVisualizer
+              serverSeed={serverSeed || 'Offenbarten Seed aus Historie'}
+              clientSeed={clientSeed}
+              nonce={nonce}
+              hashResult={result?.hash}
+              outcome={result?.computedOutcome}
+              isVerifying={verifying}
+            />
+          </div>
+
           <button
             type="submit"
             disabled={verifying}
@@ -379,7 +392,7 @@ export function ProvablyFairModal({
             {verifying ? (
               <RefreshCw size={16} className="animate-spin" />
             ) : (
-              <ShieldCheck size={16} />
+              <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Wette verifizieren" width={16} height={16} aria-hidden />
             )}
             {verifying ? 'Berechne HMAC-SHA256…' : 'Wette verifizieren'}
           </button>

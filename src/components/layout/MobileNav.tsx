@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Gamepad2, Trophy, User, MessageSquare } from 'lucide-react';
+import { Home, Gamepad2, User, MessageSquare } from 'lucide-react';
+import Image from 'next/image';
 import { useCasinoStore } from '@/store/useCasinoStore';
+import { MagneticDock, type DockItem } from '@/components/casino/navigation/MagneticDock';
 
 export default function MobileNav() {
   const pathname = usePathname();
@@ -12,93 +13,69 @@ export default function MobileNav() {
   const isChatOpen = useCasinoStore((state) => state.isChatOpen);
   const setIsChatOpen = useCasinoStore((state) => state.setIsChatOpen);
 
-  const navItems = [
-    { icon: <Home size={22} />, label: 'Lobby', path: '/' },
-    { icon: <Gamepad2 size={22} />, label: 'Games', path: '/games' },
-    { icon: <MessageSquare size={22} />, label: 'Chat', onClick: () => setIsChatOpen(!isChatOpen) },
-    { icon: <Trophy size={22} />, label: 'Leader', path: '/leaderboard' },
-    { icon: <User size={22} />, label: 'Vault', path: '/vault' },
+  const navItems: DockItem[] = [
+    {
+      icon: <Home size={20} strokeWidth={2.2} />,
+      label: 'Lobby',
+      path: '/',
+      isActive: pathname === '/',
+    },
+    {
+      icon: <Gamepad2 size={20} strokeWidth={2.2} />,
+      label: 'Games',
+      path: '/games',
+      isActive: pathname.startsWith('/games'),
+    },
+    {
+      icon: <MessageSquare size={20} strokeWidth={2.2} />,
+      label: 'Chat',
+      onClick: () => setIsChatOpen(!isChatOpen),
+      isActive: isChatOpen,
+    },
+    {
+      icon: (
+        <Image
+          src="/images/2026-09-06_icon-trophy-record-quantum-gold_v001.png"
+          alt="Leaderboard"
+          width={20}
+          height={20}
+          aria-hidden
+          style={{ objectFit: 'contain' }}
+        />
+      ),
+      label: 'Leader',
+      path: '/leaderboard',
+      isActive: pathname === '/leaderboard',
+    },
+    {
+      icon: <User size={20} strokeWidth={2.2} />,
+      label: 'Vault',
+      path: '/vault',
+      isActive: pathname === '/vault',
+    },
   ];
 
   return (
     <nav
-      className="glass mobile-only"
+      className="mobile-only"
+      aria-label="Mobile Navigation Dock"
       style={{
         position: 'fixed',
-        bottom: 0,
+        bottom: 'calc(10px + env(safe-area-inset-bottom))',
         left: 0,
         right: 0,
-        height: 'calc(72px + env(safe-area-inset-bottom))',
         zIndex: 1000,
-        borderTop: '1px solid var(--glass-border)',
-        background: 'hsla(var(--bg-color), 0.8)',
-        backdropFilter: 'blur(20px)',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-around',
-        padding: '0 10px env(safe-area-inset-bottom) 10px',
-        paddingLeft: 'calc(10px + env(safe-area-inset-left))',
-        paddingRight: 'calc(10px + env(safe-area-inset-right))',
-        paddingBottom: 'calc(8px + env(safe-area-inset-bottom))',
+        justifyContent: 'center',
+        pointerEvents: 'none',
+        paddingLeft: 'calc(12px + env(safe-area-inset-left))',
+        paddingRight: 'calc(12px + env(safe-area-inset-right))',
       }}
     >
-      {navItems.map((item, index) => {
-        const active = pathname === item.path;
-        const content = (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '4px',
-              color: active ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))',
-              transition: 'color 0.2s',
-            }}
-          >
-            {item.icon}
-            <span style={{ fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase' }}>
-              {item.label}
-            </span>
-          </div>
-        );
-
-        if (item.path) {
-          return (
-            <Link
-              key={index}
-              href={item.path}
-              style={{
-                textDecoration: 'none',
-                padding: '6px 0',
-                flex: 1,
-                display: 'flex',
-                justifyContent: 'center',
-              }}
-            >
-              {content}
-            </Link>
-          );
-        }
-
-        return (
-          <button
-            key={index}
-            onClick={item.onClick}
-            style={{
-              background: 'none',
-              border: 'none',
-              padding: '6px 0',
-              cursor: 'pointer',
-              flex: 1,
-              display: 'flex',
-              justifyContent: 'center',
-              WebkitTapHighlightColor: 'transparent',
-            }}
-          >
-            {content}
-          </button>
-        );
-      })}
+      <div style={{ pointerEvents: 'auto' }}>
+        <MagneticDock items={navItems} />
+      </div>
     </nav>
   );
 }

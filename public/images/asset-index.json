@@ -43,7 +43,7 @@
   },
   "hero-roulette-quantum-gold": {
     "name": "hero-roulette-quantum-gold",
-    "path": "/generated/design-assets/2026-09-03_hero-roulette-quantum-gold_v001.png",
+    "path": "/images/2026-09-03_hero-roulette-quantum-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-03T20:38:55.502Z",
     "size": "1536x1024",
@@ -57,7 +57,7 @@
   },
   "hero-slots-quantum-gold": {
     "name": "hero-slots-quantum-gold",
-    "path": "/generated/design-assets/2026-09-04_hero-slots-quantum-gold_v001.png",
+    "path": "/images/2026-09-04_hero-slots-quantum-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-04T18:54:07.358Z",
     "size": "1536x1024",
@@ -71,7 +71,7 @@
   },
   "hero-blackjack-quantum-gold": {
     "name": "hero-blackjack-quantum-gold",
-    "path": "/generated/design-assets/2026-09-04_hero-blackjack-quantum-gold_v001.png",
+    "path": "/images/2026-09-04_hero-blackjack-quantum-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-04T18:55:10.952Z",
     "size": "1536x1024",
@@ -85,7 +85,7 @@
   },
   "hero-crash-multiplayer-quantum-gold": {
     "name": "hero-crash-multiplayer-quantum-gold",
-    "path": "/generated/design-assets/2026-09-04_hero-crash-multiplayer-quantum-gold_v001.png",
+    "path": "/images/2026-09-04_hero-crash-multiplayer-quantum-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-04T18:56:15.673Z",
     "size": "1536x1024",
@@ -99,7 +99,7 @@
   },
   "backdrop-dice-quantum-felt": {
     "name": "backdrop-dice-quantum-felt",
-    "path": "/generated/design-assets/2026-09-04_backdrop-dice-quantum-felt_v001.png",
+    "path": "/images/2026-09-04_backdrop-dice-quantum-felt_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-04T18:59:20.266Z",
     "size": "1536x1024",
@@ -113,7 +113,7 @@
   },
   "brand-ace-quantum-gold": {
     "name": "brand-ace-quantum-gold",
-    "path": "/generated/design-assets/2026-09-04_brand-ace-quantum-gold_v001.png",
+    "path": "/images/2026-09-04_brand-ace-quantum-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-04T20:25:36.200Z",
     "size": "1024x1024",
@@ -127,7 +127,7 @@
   },
   "backdrop-crash-quantum-nebula": {
     "name": "backdrop-crash-quantum-nebula",
-    "path": "/generated/design-assets/2026-09-05_backdrop-crash-quantum-nebula_v001.png",
+    "path": "/images/2026-09-05_backdrop-crash-quantum-nebula_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T15:16:10.716Z",
     "size": "1536x1024",
@@ -169,7 +169,7 @@
   },
   "crash-jet-quantum-gold": {
     "name": "crash-jet-quantum-gold",
-    "path": "/generated/design-assets/2026-09-05_crash-jet-quantum-gold_v001.png",
+    "path": "/images/2026-09-05_crash-jet-quantum-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -183,7 +183,7 @@
   },
   "card-face-jack-quantum-gold": {
     "name": "card-face-jack-quantum-gold",
-    "path": "/generated/design-assets/2026-09-05_card-face-jack-quantum-gold_v001.png",
+    "path": "/images/2026-09-05_card-face-jack-quantum-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -197,7 +197,7 @@
   },
   "card-face-queen-quantum-gold": {
     "name": "card-face-queen-quantum-gold",
-    "path": "/generated/design-assets/2026-09-05_card-face-queen-quantum-gold_v001.png",
+    "path": "/images/2026-09-05_card-face-queen-quantum-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -211,7 +211,7 @@
   },
   "card-face-king-quantum-gold": {
     "name": "card-face-king-quantum-gold",
-    "path": "/generated/design-assets/2026-09-05_card-face-king-quantum-gold_v001.png",
+    "path": "/images/2026-09-05_card-face-king-quantum-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -225,7 +225,7 @@
   },
   "felt-table-weave": {
     "name": "felt-table-weave",
-    "path": "/generated/design-assets/2026-09-05_felt-table-weave_v001.png",
+    "path": "/images/2026-09-05_felt-table-weave_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -239,7 +239,7 @@
   },
   "seal-casino-royale-quantum-gold": {
     "name": "seal-casino-royale-quantum-gold",
-    "path": "/generated/design-assets/2026-09-05_seal-casino-royale-quantum-gold_v001.png",
+    "path": "/images/2026-09-05_seal-casino-royale-quantum-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -253,7 +253,7 @@
   },
   "avatar-obsidian-01": {
     "name": "avatar-obsidian-01",
-    "path": "/generated/design-assets/2026-09-05_avatar-obsidian-01_v001.png",
+    "path": "/images/2026-09-05_avatar-obsidian-01_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -267,7 +267,7 @@
   },
   "avatar-obsidian-03": {
     "name": "avatar-obsidian-03",
-    "path": "/generated/design-assets/2026-09-05_avatar-obsidian-03_v001.png",
+    "path": "/images/2026-09-05_avatar-obsidian-03_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -281,7 +281,7 @@
   },
   "avatar-obsidian-04": {
     "name": "avatar-obsidian-04",
-    "path": "/generated/design-assets/2026-09-05_avatar-obsidian-04_v001.png",
+    "path": "/images/2026-09-05_avatar-obsidian-04_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -295,7 +295,7 @@
   },
   "ach-target-3d": {
     "name": "ach-target-3d",
-    "path": "/generated/design-assets/2026-09-05_ach-target-3d_v001.png",
+    "path": "/images/2026-09-05_ach-target-3d_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -309,7 +309,7 @@
   },
   "ach-jackpot-chest-3d": {
     "name": "ach-jackpot-chest-3d",
-    "path": "/generated/design-assets/2026-09-05_ach-jackpot-chest-3d_v001.png",
+    "path": "/images/2026-09-05_ach-jackpot-chest-3d_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -323,7 +323,7 @@
   },
   "ach-star-3d": {
     "name": "ach-star-3d",
-    "path": "/generated/design-assets/2026-09-05_ach-star-3d_v001.png",
+    "path": "/images/2026-09-05_ach-star-3d_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -337,7 +337,7 @@
   },
   "ach-crown-3d": {
     "name": "ach-crown-3d",
-    "path": "/generated/design-assets/2026-09-05_ach-crown-3d_v001.png",
+    "path": "/images/2026-09-05_ach-crown-3d_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -351,7 +351,7 @@
   },
   "ach-flame-3d": {
     "name": "ach-flame-3d",
-    "path": "/generated/design-assets/2026-09-05_ach-flame-3d_v001.png",
+    "path": "/images/2026-09-05_ach-flame-3d_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -365,7 +365,7 @@
   },
   "ach-dice-seven-3d": {
     "name": "ach-dice-seven-3d",
-    "path": "/generated/design-assets/2026-09-05_ach-dice-seven-3d_v001.png",
+    "path": "/images/2026-09-05_ach-dice-seven-3d_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -379,7 +379,7 @@
   },
   "badge-level-up-gold": {
     "name": "badge-level-up-gold",
-    "path": "/generated/design-assets/2026-09-05_badge-level-up-gold_v001.png",
+    "path": "/images/2026-09-05_badge-level-up-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -393,7 +393,7 @@
   },
   "trophy-tournament-gold": {
     "name": "trophy-tournament-gold",
-    "path": "/generated/design-assets/2026-09-05_trophy-tournament-gold_v001.png",
+    "path": "/images/2026-09-05_trophy-tournament-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -407,7 +407,7 @@
   },
   "royale-guide-thinking": {
     "name": "royale-guide-thinking",
-    "path": "/generated/design-assets/2026-09-05_royale-guide-thinking_v001.png",
+    "path": "/images/2026-09-05_royale-guide-thinking_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:34:35.645Z",
     "size": "1024x1024",
@@ -421,7 +421,7 @@
   },
   "avatar-obsidian-02": {
     "name": "avatar-obsidian-02",
-    "path": "/generated/design-assets/2026-09-05_avatar-obsidian-02_v001.png",
+    "path": "/images/2026-09-05_avatar-obsidian-02_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T19:51:36.976Z",
     "size": "1024x1024",
@@ -435,7 +435,7 @@
   },
   "avatar-obsidian-06": {
     "name": "avatar-obsidian-06",
-    "path": "/generated/design-assets/2026-09-05_avatar-obsidian-06_v001.png",
+    "path": "/images/2026-09-05_avatar-obsidian-06_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T21:59:19.774Z",
     "size": "1024x1024",
@@ -449,7 +449,7 @@
   },
   "avatar-obsidian-05": {
     "name": "avatar-obsidian-05",
-    "path": "/generated/design-assets/2026-09-05_avatar-obsidian-05_v001.png",
+    "path": "/images/2026-09-05_avatar-obsidian-05_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-05T22:01:20.745Z",
     "size": "1024x1024",
@@ -463,7 +463,7 @@
   },
   "sidebar-icon-lobby": {
     "name": "sidebar-icon-lobby",
-    "path": "/generated/design-assets/2026-09-06_sidebar-icon-lobby_v001.png",
+    "path": "/images/2026-09-06_sidebar-icon-lobby_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-06T08:42:07.203Z",
     "size": "1024x1024",
@@ -476,7 +476,7 @@
   },
   "icon-ai-guide-quantum-gold": {
     "name": "icon-ai-guide-quantum-gold",
-    "path": "/generated/design-assets/2026-09-06_icon-ai-guide-quantum-gold_v001.png",
+    "path": "/images/2026-09-06_icon-ai-guide-quantum-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-06T09:51:22.219Z",
     "size": "1024x1024",
@@ -490,7 +490,7 @@
   },
   "icon-promo-bonus-quantum-gold": {
     "name": "icon-promo-bonus-quantum-gold",
-    "path": "/generated/design-assets/2026-09-06_icon-promo-bonus-quantum-gold_v001.png",
+    "path": "/images/2026-09-06_icon-promo-bonus-quantum-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-06T09:51:22.219Z",
     "size": "1024x1024",
@@ -504,7 +504,7 @@
   },
   "icon-hud-sidebar-badge-quantum-gold": {
     "name": "icon-hud-sidebar-badge-quantum-gold",
-    "path": "/generated/design-assets/2026-09-06_icon-hud-sidebar-badge-quantum-gold_v001.png",
+    "path": "/images/2026-09-06_icon-hud-sidebar-badge-quantum-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-06T09:51:22.219Z",
     "size": "1024x1024",
@@ -518,7 +518,7 @@
   },
   "icon-trophy-win-quantum-gold": {
     "name": "icon-trophy-win-quantum-gold",
-    "path": "/generated/design-assets/2026-09-06_icon-trophy-win-quantum-gold_v001.png",
+    "path": "/images/2026-09-06_icon-trophy-win-quantum-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-06T09:51:22.219Z",
     "size": "1024x1024",
@@ -532,7 +532,7 @@
   },
   "icon-trophy-tournament-quantum-gold": {
     "name": "icon-trophy-tournament-quantum-gold",
-    "path": "/generated/design-assets/2026-09-06_icon-trophy-tournament-quantum-gold_v001.png",
+    "path": "/images/2026-09-06_icon-trophy-tournament-quantum-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-06T09:51:22.219Z",
     "size": "1024x1024",
@@ -546,7 +546,7 @@
   },
   "icon-trophy-record-quantum-gold": {
     "name": "icon-trophy-record-quantum-gold",
-    "path": "/generated/design-assets/2026-09-06_icon-trophy-record-quantum-gold_v001.png",
+    "path": "/images/2026-09-06_icon-trophy-record-quantum-gold_v001.png",
     "version": "v001",
     "updatedAt": "2026-09-06T09:51:22.219Z",
     "size": "1024x1024",
@@ -556,6 +556,76 @@
     "alt": "icon trophy record quantum gold asset",
     "sha256": "dcb1f9dc0f99a5b2d9e5f96498f0da61a1e3cd32426e5897885cdb75a2dd1f96",
     "bytes": 1475241,
+    "category": "icon"
+  },
+  "icon-crown-vip-quantum-gold": {
+    "name": "icon-crown-vip-quantum-gold",
+    "path": "/images/2026-09-06_icon-crown-vip-quantum-gold_v001.png",
+    "version": "v001",
+    "updatedAt": "2026-09-06T13:51:56.942Z",
+    "size": "1024x1024",
+    "width": 1024,
+    "height": 1024,
+    "aspectRatio": "1/1",
+    "alt": "icon crown vip quantum gold asset",
+    "sha256": "a13332b87c696e1652eea7081fcf1ebd77467dc2cf59ba6e3a0873a5aafc4029",
+    "bytes": 1832038,
+    "category": "icon"
+  },
+  "icon-crown-jackpot-quantum-gold": {
+    "name": "icon-crown-jackpot-quantum-gold",
+    "path": "/images/2026-09-06_icon-crown-jackpot-quantum-gold_v001.png",
+    "version": "v001",
+    "updatedAt": "2026-09-06T13:51:56.942Z",
+    "size": "1024x1024",
+    "width": 1024,
+    "height": 1024,
+    "aspectRatio": "1/1",
+    "alt": "icon crown jackpot quantum gold asset",
+    "sha256": "891cea27aeaa020a2863adfcf8455e46552ca2f149ce5e6b79244d702b4f9120",
+    "bytes": 1833760,
+    "category": "icon"
+  },
+  "icon-star-rating-quantum-gold": {
+    "name": "icon-star-rating-quantum-gold",
+    "path": "/images/2026-09-06_icon-star-rating-quantum-gold_v001.png",
+    "version": "v001",
+    "updatedAt": "2026-09-06T13:51:56.942Z",
+    "size": "1024x1024",
+    "width": 1024,
+    "height": 1024,
+    "aspectRatio": "1/1",
+    "alt": "icon star rating quantum gold asset",
+    "sha256": "2bd3066b94a081fe53c703348e382fbc17b626d3603855911ee9ff0a2631b18a",
+    "bytes": 1498022,
+    "category": "icon"
+  },
+  "icon-star-level-quantum-gold": {
+    "name": "icon-star-level-quantum-gold",
+    "path": "/images/2026-09-06_icon-star-level-quantum-gold_v001.png",
+    "version": "v001",
+    "updatedAt": "2026-09-06T13:51:56.942Z",
+    "size": "1024x1024",
+    "width": 1024,
+    "height": 1024,
+    "aspectRatio": "1/1",
+    "alt": "icon star level quantum gold asset",
+    "sha256": "ac7f0510f5b55dced1ab7d4ad467938c21810569a142a86a2caa4e337622039d",
+    "bytes": 1452460,
+    "category": "icon"
+  },
+  "icon-security-verified-quantum-gold": {
+    "name": "icon-security-verified-quantum-gold",
+    "path": "/images/2026-09-06_icon-security-verified-quantum-gold_v001.png",
+    "version": "v001",
+    "updatedAt": "2026-09-06T13:51:56.942Z",
+    "size": "1024x1024",
+    "width": 1024,
+    "height": 1024,
+    "aspectRatio": "1/1",
+    "alt": "icon security verified quantum gold asset",
+    "sha256": "b4ba9f5c9b5e0c223f4e5b7c1d2cdeabae7c21fbb12ca6684c8b8c0eaf3ec948",
+    "bytes": 1533089,
     "category": "icon"
   }
 }

@@ -8,11 +8,11 @@ import {
   VolumeX,
   Eye,
   EyeOff,
-  ShieldCheck,
   Bell,
   X,
   HeartPulse,
 } from 'lucide-react';
+import Image from 'next/image';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import TelegramLinkSection from './TelegramLinkSection';
 import PasskeyManagementSection from './PasskeyManagementSection';
@@ -226,7 +226,7 @@ export default function SettingsModal({
                     textAlign: 'left',
                   }}
                 >
-                  <ShieldCheck size={15} />
+                  <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Sicherheit & Login" width={15} height={15} aria-hidden />
                   Sicherheit & Login
                 </button>
 
@@ -448,9 +448,9 @@ export default function SettingsModal({
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {hideBalance ? (
-                          <EyeOff size={16} color="hsl(var(--primary))" />
+                          <Eye size={16} color="hsl(var(--primary))" />
                         ) : (
-                          <Eye size={16} color="hsl(var(--text-muted))" />
+                          <EyeOff size={16} color="hsl(var(--text-muted))" />
                         )}
                         <div>
                           <div

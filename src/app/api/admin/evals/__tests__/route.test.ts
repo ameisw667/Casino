@@ -79,6 +79,30 @@ describe('GET /api/admin/evals', () => {
     expect(json.data.success).toBe(true);
   });
 
+  it('logs instead of silently swallowing a genuine get_guide_observability RPC error', async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: { message: 'relation does not exist' } });
+    const res = await GET(request());
+
+    expect(res.status).toBe(200);
+    expect(mocks.casinoLoggerError).toHaveBeenCalledWith(
+      'API/Admin/Evals',
+      'get_guide_observability RPC returned an error',
+      expect.any(Error),
+    );
+  });
+
+  it('logs instead of silently swallowing an unexpected get_guide_observability RPC throw', async () => {
+    mocks.rpc.mockRejectedValue(new Error('connection reset'));
+    const res = await GET(request());
+
+    expect(res.status).toBe(200);
+    expect(mocks.casinoLoggerError).toHaveBeenCalledWith(
+      'API/Admin/Evals',
+      'get_guide_observability RPC threw unexpectedly',
+      expect.any(Error),
+    );
+  });
+
   it('never leaks a thrown exception message to the client', async () => {
     mocks.getGuideFeedbackSummary.mockRejectedValue(new Error('secret internal detail'));
     const res = await GET(request());

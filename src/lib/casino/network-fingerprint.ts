@@ -3,16 +3,10 @@ import 'server-only';
 import { createHmac } from 'node:crypto';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { CasinoLogger } from './logger';
-
-/**
- * Distinct from getClientIdentifier() (request-security.ts), which returns `user:<id>` whenever
- * a userId is known — that makes every authenticated request's identifier user-unique and
- * unusable for cross-user IP correlation. This always returns the raw IP.
- */
-export function extractClientIp(request: Request): string {
-  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-  return forwarded || request.headers.get('x-real-ip')?.trim() || 'unknown';
-}
+// 06_5 L0: shared, single-source IP extraction (last XFF entry — the anti-spoofing rule).
+// The former local copy here took the FIRST XFF entry and had drifted from the fixed
+// version in request-security.ts; deleting the copy prevents that drift from recurring.
+import { extractClientIp } from '@/lib/security/request-security';
 
 function hashClientIp(ip: string): string {
   const secret = process.env.FRAUD_FINGERPRINT_SECRET;
@@ -33,7 +27,7 @@ export async function recordBetNetworkFingerprintBestEffort(
 ): Promise<void> {
   try {
     const ip = extractClientIp(request);
-    if (ip === 'unknown') return;
+    if (!ip) return;
 
     const { error } = await createAdminClient().rpc('record_bet_network_fingerprint', {
       p_user_id: userId,

@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, VolumeX, Eye, EyeOff, ShieldCheck, Sliders, Maximize2 } from 'lucide-react';
+import { Volume2, VolumeX, Eye, EyeOff, Sliders, Maximize2 } from 'lucide-react';
+import Image from 'next/image';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import TelegramLinkSection from './TelegramLinkSection';
 import PasskeyManagementSection from './PasskeyManagementSection';
@@ -114,7 +115,7 @@ export default function SettingsPopover({
                 className="btn btn-ghost"
                 style={{ justifyContent: 'flex-start', gap: '6px' }}
               >
-                <ShieldCheck size={14} color="hsl(var(--primary))" />
+                <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Sicherheit" width={14} height={14} aria-hidden />
                 <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>Seed-Verifikation</span>
               </button>
             )}
@@ -231,9 +232,9 @@ export default function SettingsPopover({
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 {hideBalance ? (
-                  <EyeOff size={14} color="hsl(var(--primary))" />
+                  <Eye size={14} color="hsl(var(--primary))" />
                 ) : (
-                  <Eye size={14} color="hsl(var(--text-muted))" />
+                  <EyeOff size={14} color="hsl(var(--text-muted))" />
                 )}
                 <span
                   style={{ fontSize: '0.75rem', fontWeight: 700, color: 'hsl(var(--text-main))' }}

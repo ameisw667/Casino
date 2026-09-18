@@ -1,0 +1,42 @@
+[
+  {
+    "name": "icon-crown-vip-quantum-gold",
+    "category": "icon",
+    "background": "transparent",
+    "size": "1024x1024",
+    "quality": "medium",
+    "prompt": "a single closed royal crown with a tall pointed diamond spire mounted at its apex, smooth solid arches, symbolizing elite VIP status and belonging"
+  },
+  {
+    "name": "icon-crown-jackpot-quantum-gold",
+    "category": "icon",
+    "background": "transparent",
+    "size": "1024x1024",
+    "quality": "medium",
+    "prompt": "a single open crown with jagged flame-like points bursting outward and radiant spark particles exploding from its center, symbolizing a jackpot win moment, dynamic energetic composition"
+  },
+  {
+    "name": "icon-star-rating-quantum-gold",
+    "category": "icon",
+    "background": "transparent",
+    "size": "1024x1024",
+    "quality": "medium",
+    "prompt": "a single faceted five-pointed star with sharp gem-cut diamond facets, symbolizing a product quality rating, jewel-like precision"
+  },
+  {
+    "name": "icon-star-level-quantum-gold",
+    "category": "icon",
+    "background": "transparent",
+    "size": "1024x1024",
+    "quality": "medium",
+    "prompt": "a single five-pointed star mounted upright on a small circular pedestal ring base, symbolizing rank progression and level status"
+  },
+  {
+    "name": "icon-security-verified-quantum-gold",
+    "category": "icon",
+    "background": "transparent",
+    "size": "1024x1024",
+    "quality": "medium",
+    "prompt": "a single heraldic shield with a bold thick checkmark embossed across its front face, rounded shield silhouette, symbolizing verified trust and security"
+  }
+]

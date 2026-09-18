@@ -19,9 +19,9 @@ flowchart TD
     UI -.->|Wetteinsatz| API[API Route /api/casino/bet]
 ```
 
-* **0 % finanzielle Autorität:** Der Zustand-Store berechnet weder Guthaben noch Multiplikatoren oder Progression eigenmächtig.
-* **Startbalance strikt 0:** Bei Initialisierung ist `balance: 0`, `xp: 0`, `level: 1`, `rank: 'BRONZE'`, bis der Server einen bestätigten Snapshot liefert.
-* **Snapshot-Schleuse:** `applyServerWalletSnapshot()` ist die **einzige** autorisierte Methode zur Mutation von Finanzwerten im Client.
+- **0 % finanzielle Autorität:** Der Zustand-Store berechnet weder Guthaben noch Multiplikatoren oder Progression eigenmächtig.
+- **Startbalance strikt 0:** Bei Initialisierung ist `balance: 0`, `xp: 0`, `level: 1`, `rank: 'BRONZE'`, bis der Server einen bestätigten Snapshot liefert.
+- **Snapshot-Schleuse:** `applyServerWalletSnapshot()` ist die **einzige** autorisierte Methode zur Mutation von Finanzwerten im Client.
 
 ---
 
@@ -29,13 +29,13 @@ flowchart TD
 
 Der Store nutzt Zustand 5 `persist` unter dem Schlüssel `casino-storage` (Version 3, `skipHydration: true`):
 
-| Kategorie | Enthaltene Felder | Persistiert in LocalStorage? |
-| :--- | :--- | :---: |
-| **Client-Präferenzen** | `soundVolume`, `soundEnabled`, `hideBalance`, `anonymousBetting`, `language`, `oddsFormat`, `autoBetSettings` | **JA (Erlaubt)** |
-| **Finanz- & Progressionsstatus**| `balance`, `xp`, `level`, `rank` | **NEIN (STRIKT VERBOTEN)** |
-| **Transaktionshistorie** | `bets`, `allBets` | **NEIN (STRIKT VERBOTEN)** |
-| **Server-Konfigurationen** | `gameConfig`, `vipTiers`, `ranks`, `achievementConfigs` | **NEIN (STRIKT VERBOTEN)** |
-| **Flüchtiger UI-Zustand** | `sessionId`, `toasts`, `isProcessing`, `isMobile`, `_hasHydrated` | **NEIN (STRIKT VERBOTEN)** |
+| Kategorie                        | Enthaltene Felder                                                                                             | Persistiert in LocalStorage? |
+| :------------------------------- | :------------------------------------------------------------------------------------------------------------ | :--------------------------: |
+| **Client-Präferenzen**           | `soundVolume`, `soundEnabled`, `hideBalance`, `anonymousBetting`, `language`, `oddsFormat`, `autoBetSettings` |       **JA (Erlaubt)**       |
+| **Finanz- & Progressionsstatus** | `balance`, `xp`, `level`, `rank`                                                                              |  **NEIN (STRIKT VERBOTEN)**  |
+| **Transaktionshistorie**         | `bets`, `allBets`                                                                                             |  **NEIN (STRIKT VERBOTEN)**  |
+| **Server-Konfigurationen**       | `gameConfig`, `vipTiers`, `ranks`, `achievementConfigs`                                                       |  **NEIN (STRIKT VERBOTEN)**  |
+| **Flüchtiger UI-Zustand**        | `sessionId`, `toasts`, `isProcessing`, `isMobile`, `_hasHydrated`                                             |  **NEIN (STRIKT VERBOTEN)**  |
 
 ---
 
@@ -46,7 +46,7 @@ Der Store nutzt Zustand 5 `persist` unter dem Schlüssel `casino-storage` (Versi
 applyServerWalletSnapshot: (snapshot: WalletSnapshot) => {
   // 1. Laufzeit-Validierung via Zod
   const validated = walletSnapshotSchema.parse(snapshot);
-  
+
   // 2. Atomares Store-Update
   set({
     balance: validated.balance,
@@ -54,11 +54,11 @@ applyServerWalletSnapshot: (snapshot: WalletSnapshot) => {
     level: validated.level,
     rank: validated.rank,
   });
-}
+};
 ```
 
-* **Fail-Closed bei Schema-Mismatch:** Weicht der Server-Payload vom `walletSnapshotSchema` ab, wirft der Parser einen Fehler und verwirft das Update.
-* **`processGameResult()` trennt Historie von Geld:** Schreibt nur visuelle Spielausgänge in die lokale Ansichtshistorie und den Achievement-Fortschritt, mutiert aber keine Salden.
+- **Fail-Closed bei Schema-Mismatch:** Weicht der Server-Payload vom `walletSnapshotSchema` ab, wirft der Parser einen Fehler und verwirft das Update.
+- **`processGameResult()` trennt Historie von Geld:** Schreibt nur visuelle Spielausgänge in die lokale Ansichtshistorie und den Achievement-Fortschritt, mutiert aber keine Salden.
 
 ---
 
@@ -73,8 +73,9 @@ applyServerWalletSnapshot: (snapshot: WalletSnapshot) => {
 ## 5 — Test- & Validierungsbefehle
 
 ```powershell
-# 1. Store Unit- & Invariantentests ausführen
-npm test -- src/store/__tests__/useCasinoStore.test.ts
+# 1. Store Unit- & Invariantentests ausführen (seit 03a-R09 thematisch gesplittet:
+#    snapshot-ui, process-game-result, achievements, fail-closed-session, config-delegation)
+npm test -- store/__tests__
 
 # 2. Coverage-Gate prüfen (60% Branches, 80% Functions)
 npm test -- --coverage src/store/useCasinoStore.ts
@@ -87,11 +88,11 @@ npm run typecheck
 
 ## 6 — Risiko- & Freigabeklassifizierung (K-Level)
 
-| Store-Aktion | K-Level | Freigabe-Voraussetzung |
-| :--- | :---: | :--- |
-| **UI-Settings & Toast-Actions modifizieren** | **K1/K2** | Lokale Tests ausreichend. |
-| **Persistenzfilter-Änderungen (`partialize`)** | **K3** | Standard-Review erforderlich (Gefahr von Storage-Leaks). |
-| **Änderungen an `applyServerWalletSnapshot` oder Zod-Schema** | **K4** | **Explizite Jan-Freigabe zwingend erforderlich.** |
+| Store-Aktion                                                  |  K-Level  | Freigabe-Voraussetzung                                   |
+| :------------------------------------------------------------ | :-------: | :------------------------------------------------------- |
+| **UI-Settings & Toast-Actions modifizieren**                  | **K1/K2** | Lokale Tests ausreichend.                                |
+| **Persistenzfilter-Änderungen (`partialize`)**                |  **K3**   | Standard-Review erforderlich (Gefahr von Storage-Leaks). |
+| **Änderungen an `applyServerWalletSnapshot` oder Zod-Schema** |  **K4**   | **Explizite Jan-Freigabe zwingend erforderlich.**        |
 
 ---
 
@@ -119,9 +120,9 @@ npm run typecheck
 
 ## 9 — Verwandte Artefakte
 
-| Bedarf | Datei |
-| :--- | :--- |
-| **Service Layer Kontext** | [`xx_docs/05_service_layer_context.md`](05_service_layer_context.md) |
-| **Sicherheits- & Wallet-Invarianten** | [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md) |
-| **Layout Shell Kontext** | [`xx_docs/09_layout_shell_context.md`](09_layout_shell_context.md) |
-| **Dokument-Qualitäts-Rubrik** | [`xx_sop/12_workflow_dokument_qualitaet.md`](../xx_sop/12_workflow_dokument_qualitaet.md) |
+| Bedarf                                | Datei                                                                                     |
+| :------------------------------------ | :---------------------------------------------------------------------------------------- |
+| **Service Layer Kontext**             | [`xx_docs/05_service_layer_context.md`](05_service_layer_context.md)                      |
+| **Sicherheits- & Wallet-Invarianten** | [`xx_sop/09_security_wallet_invariants.md`](../xx_sop/09_security_wallet_invariants.md)   |
+| **Layout Shell Kontext**              | [`xx_docs/09_layout_shell_context.md`](09_layout_shell_context.md)                        |
+| **Dokument-Qualitäts-Rubrik**         | [`xx_sop/12_workflow_dokument_qualitaet.md`](../xx_sop/12_workflow_dokument_qualitaet.md) |

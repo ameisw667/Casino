@@ -2,13 +2,14 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Sparkles } from 'lucide-react';
+import Image from 'next/image';
 
 import { SlotReel, SLOT_CELL_HEIGHT } from '@/components/casino/games/slots/SlotReel';
 import { WinLine } from '@/components/casino/games/slots/WinLine';
 import { GAME_SYMBOLS, STAGGER_DELAYS_MS } from '@/app/games/slots/symbols';
 import {
   NO_WIN,
+  getReelPan,
   type HistoryEntry,
   type LastResult,
   type ReelSymbols,
@@ -226,11 +227,9 @@ export function SlotsCenterStage({
                     letterSpacing: '0.5px',
                   }}
                 >
-                  <Zap size={20} fill="#000" />
                   <span>
                     WIN +${lastResult.amount.toFixed(2)} ({lastResult.multiplier}×)
                   </span>
-                  <Zap size={20} fill="#000" />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -258,6 +257,7 @@ export function SlotsCenterStage({
                     isAnticipating={isAnticipatingReel[i] && isSpinning}
                     hasWinInCabinet={hasWin && !isSpinning}
                     cellHeight={slotCellHeight}
+                    pan={getReelPan(i, finalReels.length)}
                   />
                 </React.Fragment>
               ))}
@@ -348,7 +348,12 @@ export function SlotsCenterStage({
           paddingTop: '6px',
         }}
       >
-        <Sparkles size={13} color="#D4AF37" />
+        <Image
+          src="/images/2026-09-06_icon-ai-guide-quantum-gold_v001.png"
+          alt="VIP Olympus High Roller Suite"
+          width={13}
+          height={13}
+        />
         <span>VIP OLYMPUS HIGH ROLLER SUITE</span>
       </div>
     </div>

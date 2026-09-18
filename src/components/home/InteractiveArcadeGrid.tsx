@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Play,
-  Sparkles,
   ChevronRight,
   Layers,
   Flame,
@@ -165,7 +164,13 @@ export const InteractiveArcadeGrid: React.FC<{ isMobile?: boolean }> = ({ isMobi
               marginBottom: '2px',
             }}
           >
-            <Sparkles size={12} /> INTERAKTIVE SPIELHALLE
+            <Image
+              src="/images/2026-09-06_icon-promo-bonus-quantum-gold_v001.png"
+              alt="Interaktive Spielhalle"
+              width={12}
+              height={12}
+            />{' '}
+            INTERAKTIVE SPIELHALLE
           </div>
           <h2
             style={{
@@ -513,8 +518,8 @@ function ArcadeGameCard({
                 src={game.image}
                 alt={game.name}
                 fill
-                unoptimized
-                priority
+                priority={isFeatured}
+                loading={isFeatured ? undefined : 'lazy'}
                 sizes={isMobile ? '200px' : '280px'}
                 style={{ objectFit: 'cover', objectPosition: 'center 25%' }}
               />

@@ -1,6 +1,13 @@
-import { describe, expect, it, vi } from 'vitest';
-import { OpenAiImageError, generateImage, generateImageWithMeta } from '../openai-image-client';
-import type { GenerationRequest } from '../types';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  OpenAiImageError,
+  generateImage,
+  generateImageWithMeta,
+  editImage,
+  editImageWithMeta,
+  OPENAI_IMAGES_EDITS_URL,
+} from '../openai-image-client';
+import type { GenerationRequest, ImageEditRequest } from '../types';
 
 const baseRequest: GenerationRequest = {
   name: 'hero-bg-crash',
@@ -8,6 +15,14 @@ const baseRequest: GenerationRequest = {
   size: '1024x1024',
   quality: 'medium',
   model: 'gpt-image-2',
+};
+
+const baseEditRequest: ImageEditRequest = {
+  imageBuffer: Buffer.from('original-image-data'),
+  maskBuffer: Buffer.from('mask-image-data'),
+  prompt: 'a golden turbine on the jet wing',
+  size: '1024x1024',
+  model: 'dall-e-2',
 };
 
 function jsonResponse(
@@ -22,6 +37,10 @@ function jsonResponse(
 }
 
 describe('openai-image-client', () => {
+  beforeEach(() => {
+    delete process.env.NEXT_RUNTIME;
+  });
+
   it('decodes the base64 image payload into a Buffer on success', async () => {
     const fetchImpl = vi
       .fn()
@@ -71,17 +90,15 @@ describe('openai-image-client', () => {
   });
 
   it('throws immediately without retrying on a non-retryable 401 with isFatal() === true', async () => {
-    const fetchImpl = vi
-      .fn()
-      .mockResolvedValue(
-        jsonResponse(401, {
-          error: {
-            message: 'Incorrect API key provided',
-            type: 'invalid_request_error',
-            code: 'invalid_api_key',
-          },
-        }),
-      );
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse(401, {
+        error: {
+          message: 'Incorrect API key provided',
+          type: 'invalid_request_error',
+          code: 'invalid_api_key',
+        },
+      }),
+    );
     const sleepImpl = vi.fn();
 
     let caughtError: OpenAiImageError | undefined;
@@ -101,17 +118,15 @@ describe('openai-image-client', () => {
   });
 
   it('identifies insufficient_quota on 429 as fatal and not retryable', async () => {
-    const fetchImpl = vi
-      .fn()
-      .mockResolvedValue(
-        jsonResponse(429, {
-          error: {
-            message: 'You exceeded your current quota',
-            type: 'insufficient_quota',
-            code: 'insufficient_quota',
-          },
-        }),
-      );
+    const fetchImpl = vi.fn().mockResolvedValue(
+      jsonResponse(429, {
+        error: {
+          message: 'You exceeded your current quota',
+          type: 'insufficient_quota',
+          code: 'insufficient_quota',
+        },
+      }),
+    );
     const sleepImpl = vi.fn();
 
     let caughtError: OpenAiImageError | undefined;
@@ -178,7 +193,160 @@ describe('openai-image-client', () => {
         'Sicherheitsbarriere',
       );
     } finally {
-      process.env.NEXT_RUNTIME = original;
+      if (original !== undefined) {
+        process.env.NEXT_RUNTIME = original;
+      } else {
+        delete process.env.NEXT_RUNTIME;
+      }
     }
+  });
+
+  describe('editImage and editImageWithMeta', () => {
+    it('decodes edited base64 payload into Buffer on success and sends multipart form data', async () => {
+      const fetchImpl = vi.fn().mockImplementation(async (url, init) => {
+        expect(url).toBe(OPENAI_IMAGES_EDITS_URL);
+        expect(init.method).toBe('POST');
+        expect(init.headers.Authorization).toBe('Bearer sk-test');
+        expect(init.body).toBeInstanceOf(FormData);
+
+        const formData = init.body as FormData;
+        expect(formData.get('prompt')).toBe('a golden turbine on the jet wing');
+        expect(formData.get('response_format')).toBe('b64_json');
+        expect(formData.get('model')).toBe('dall-e-2');
+        expect(formData.get('image')).toBeDefined();
+        expect(formData.get('mask')).toBeDefined();
+
+        return jsonResponse(200, {
+          data: [{ b64_json: Buffer.from('edited-img-bytes').toString('base64') }],
+        });
+      });
+
+      const result = await editImage(baseEditRequest, {
+        apiKey: 'sk-test',
+        fetchImpl,
+        sleepImpl: vi.fn(),
+      });
+
+      expect(result.toString()).toBe('edited-img-bytes');
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+    });
+
+    it('supports edit request without maskBuffer (sends only image and prompt)', async () => {
+      const fetchImpl = vi.fn().mockImplementation(async (_url, init) => {
+        const formData = init.body as FormData;
+        expect(formData.get('image')).toBeDefined();
+        expect(formData.get('mask')).toBeNull();
+        return jsonResponse(200, {
+          data: [{ b64_json: Buffer.from('variation-bytes').toString('base64') }],
+        });
+      });
+
+      const { maskBuffer: _unused, ...requestWithoutMask } = baseEditRequest;
+      const result = await editImageWithMeta(requestWithoutMask, {
+        apiKey: 'sk-test',
+        fetchImpl,
+        sleepImpl: vi.fn(),
+      });
+
+      expect(result.imageBuffer.toString()).toBe('variation-bytes');
+      expect(result.meta.hasMask).toBe(false);
+      expect(result.meta.attemptsMade).toBe(1);
+    });
+
+    it('editImageWithMeta returns full telemetry, model, size, and rate limits', async () => {
+      const fetchImpl = vi.fn().mockResolvedValue(
+        jsonResponse(
+          200,
+          {
+            data: [
+              {
+                b64_json: Buffer.from('telemetry-edit').toString('base64'),
+                revised_prompt: 'golden turbine',
+              },
+            ],
+          },
+          { 'x-request-id': 'req-edit-999', 'x-ratelimit-remaining-requests': '42' },
+        ),
+      );
+
+      const result = await editImageWithMeta(baseEditRequest, {
+        apiKey: 'sk-test',
+        fetchImpl,
+        sleepImpl: vi.fn(),
+      });
+
+      expect(result.imageBuffer.toString()).toBe('telemetry-edit');
+      expect(result.meta.requestId).toBe('req-edit-999');
+      expect(result.meta.hasMask).toBe(true);
+      expect(result.meta.model).toBe('dall-e-2');
+      expect(result.meta.size).toBe('1024x1024');
+      expect(result.meta.rateLimitRemainingRequests).toBe('42');
+      expect(result.meta.durationMs).toBeGreaterThanOrEqual(0);
+    });
+
+    it('throws immediately on non-retryable 401 with isFatal() === true', async () => {
+      const fetchImpl = vi.fn().mockResolvedValue(
+        jsonResponse(401, {
+          error: {
+            message: 'Invalid API key for edits',
+            type: 'invalid_request_error',
+            code: 'invalid_api_key',
+          },
+        }),
+      );
+      const sleepImpl = vi.fn();
+
+      let caughtError: OpenAiImageError | undefined;
+      try {
+        await editImage(baseEditRequest, { apiKey: 'sk-bad', fetchImpl, sleepImpl });
+      } catch (err) {
+        if (err instanceof OpenAiImageError) caughtError = err;
+      }
+
+      expect(caughtError).toBeDefined();
+      expect(caughtError?.status).toBe(401);
+      expect(caughtError?.isFatal()).toBe(true);
+      expect(sleepImpl).not.toHaveBeenCalled();
+    });
+
+    it('retries on transient rate limit (429) during image editing', async () => {
+      const fetchImpl = vi
+        .fn()
+        .mockResolvedValueOnce(
+          jsonResponse(429, { error: { message: 'Rate limit reached', type: 'requests' } }),
+        )
+        .mockResolvedValueOnce(
+          jsonResponse(200, {
+            data: [{ b64_json: Buffer.from('recovered-edit').toString('base64') }],
+          }),
+        );
+      const sleepImpl = vi.fn().mockResolvedValue(undefined);
+
+      const result = await editImage(baseEditRequest, {
+        apiKey: 'sk-test',
+        fetchImpl,
+        sleepImpl,
+      });
+
+      expect(result.toString()).toBe('recovered-edit');
+      expect(fetchImpl).toHaveBeenCalledTimes(2);
+      expect(sleepImpl).toHaveBeenCalledTimes(1);
+    });
+
+    it('fails fast when called inside Next.js server runtime (NEXT_RUNTIME guard)', async () => {
+      const original = process.env.NEXT_RUNTIME;
+      try {
+        process.env.NEXT_RUNTIME = 'edge';
+        await expect(editImage(baseEditRequest, { apiKey: 'sk-test' })).rejects.toThrow(
+          'Sicherheitsbarriere',
+        );
+      } finally {
+        if (original !== undefined) {
+          process.env.NEXT_RUNTIME = original;
+        } else {
+          delete process.env.NEXT_RUNTIME;
+        }
+      }
+    });
   });
 });

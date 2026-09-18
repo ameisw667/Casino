@@ -12,11 +12,13 @@ import { APP_ERROR_CODES } from '@/lib/security/form-errors';
  *
  * Rollout note: the guard queries `user_wellbeing_limits` and `get_daily_net_loss_cents()`
  * (migration 063). Deploying this code before pushing 063 would fail every bet route with
- * 503 — push order matters.
+ * 503 — push order matters. The 06_3 L2 extension reads `users.account_status` (migration
+ * 067) with the same rollout safety: a missing column reads as "not frozen" (067 pending).
  */
 
 export type WellbeingGuardStatus =
   | { state: 'allowed'; dailyLossLimitCents: number | null; dailyNetLossCents: number | null }
+  | { state: 'account-frozen' }
   | { state: 'self-excluded'; until: string }
   | { state: 'loss-limit-reached'; limitCents: number; lostCents: number }
   | { state: 'unavailable' };
@@ -33,6 +35,12 @@ export function wellbeingApiError(status: WellbeingGuardStatus): WellbeingApiErr
   switch (status.state) {
     case 'allowed':
       return null;
+    case 'account-frozen':
+      return {
+        code: 'ACCOUNT_FROZEN',
+        message: 'Dein Konto ist gesperrt — Spielen ist nicht möglich.',
+        httpStatus: 403,
+      };
     case 'self-excluded':
       return {
         code: 'SELF_EXCLUDED',
@@ -56,6 +64,29 @@ export function wellbeingApiError(status: WellbeingGuardStatus): WellbeingApiErr
 
 export async function checkWellbeingGuard(userId: string): Promise<WellbeingGuardStatus> {
   try {
+    // 06_3 L2: admin-initiated fraud enforcement (users.account_status, migration 067) is
+    // checked FIRST and takes priority over every wellbeing state — a frozen abuser must
+    // not learn anything about their self-exclusion/loss-limit status. Deliberately a
+    // separate column on `users`, not an extension of user_wellbeing_limits (06_2): that
+    // table is player-initiated self-protection, freezing is fraud enforcement.
+    const { data: userRow, error: userError } = await createAdminClient()
+      .from('users')
+      .select('account_status')
+      .eq('id', userId)
+      .maybeSingle();
+    if (userError) {
+      // Rollout safety (mirrors the PGRST205 handling below): until migration 067 is
+      // pushed, the column does not exist in the schema cache — treat as not frozen
+      // instead of failing every money route with 503.
+      const isMissingColumn =
+        (userError as { code?: string }).code === 'PGRST204' ||
+        (userError as { code?: string }).code === 'PGRST205' ||
+        (userError as { message?: string }).message?.includes('account_status');
+      if (!isMissingColumn) return { state: 'unavailable' };
+    } else if (userRow?.account_status === 'frozen') {
+      return { state: 'account-frozen' };
+    }
+
     const { data, error } = await createAdminClient()
       .from('user_wellbeing_limits')
       .select('self_excluded_until, daily_loss_limit_cents')

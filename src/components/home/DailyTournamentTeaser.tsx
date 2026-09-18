@@ -2,7 +2,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Trophy, Timer, Crown, Zap } from 'lucide-react';
+import { Timer, Coins } from 'lucide-react';
 import { useDailyRaceStandings, formatCountdown } from '@/hooks/useDailyRaceStandings';
 
 interface PodiumSlot {
@@ -74,7 +74,7 @@ export const DailyTournamentTeaser: React.FC<{ isMobile?: boolean }> = ({ isMobi
               marginBottom: '4px',
             }}
           >
-            <Trophy size={13} />
+            <Image src="/images/2026-09-06_icon-trophy-tournament-quantum-gold_v001.png" alt="Daily Race Turnier" width={13} height={13} aria-hidden />
             <span>$10,000 DAILY RACE</span>
           </div>
           <h2
@@ -184,7 +184,7 @@ export const DailyTournamentTeaser: React.FC<{ isMobile?: boolean }> = ({ isMobi
                     boxShadow: '0 4px 15px rgba(212, 175, 55, 0.4)',
                   }}
                 >
-                  <Crown size={12} fill="#000" />
+                  <Image src="/images/2026-09-06_icon-crown-jackpot-quantum-gold_v001.png" alt="Platz 1" width={12} height={12} aria-hidden />
                   <span>PLATZ 1</span>
                 </div>
               )}
@@ -280,7 +280,7 @@ export const DailyTournamentTeaser: React.FC<{ isMobile?: boolean }> = ({ isMobi
                   gap: '6px',
                 }}
               >
-                <Zap size={13} color="#00E701" />
+                <Coins size={13} color="#00E701" />
                 <span
                   style={{
                     fontSize: isRank1 ? '1.05rem' : '0.92rem',

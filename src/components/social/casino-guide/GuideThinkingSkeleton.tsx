@@ -140,12 +140,12 @@ export function GuideThinkingSkeleton({ activeToolName }: GuideThinkingSkeletonP
         </div>
       </div>
 
-      {/* Shimmer Skeleton Wave Bars */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', marginTop: '4px' }}>
+      {/* Shimmer Skeleton Wave Bars with Rechen-Matrix */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
         {[
-          { width: '92%', height: '10px' },
-          { width: '78%', height: '10px' },
-          { width: '56%', height: '10px' },
+          { width: '92%', height: '11px' },
+          { width: '78%', height: '11px' },
+          { width: '58%', height: '11px' },
         ].map((bar, i) => (
           <div
             key={i}
@@ -153,7 +153,8 @@ export function GuideThinkingSkeleton({ activeToolName }: GuideThinkingSkeletonP
               width: bar.width,
               height: bar.height,
               borderRadius: '6px',
-              background: 'hsla(var(--primary), 0.08)',
+              background: 'rgba(212, 175, 55, 0.08)',
+              border: '1px solid rgba(212, 175, 55, 0.15)',
               position: 'relative',
               overflow: 'hidden',
             }}
@@ -168,15 +169,15 @@ export function GuideThinkingSkeleton({ activeToolName }: GuideThinkingSkeletonP
               }
               transition={{
                 repeat: Infinity,
-                duration: 1.6,
-                delay: i * 0.15,
+                duration: 1.5,
+                delay: i * 0.18,
                 ease: 'easeInOut',
               }}
               style={{
                 position: 'absolute',
                 inset: 0,
                 background:
-                  'linear-gradient(90deg, transparent 0%, hsla(var(--primary), 0.28) 50%, transparent 100%)',
+                  'linear-gradient(90deg, transparent 0%, rgba(212, 175, 55, 0.35) 50%, transparent 100%)',
               }}
             />
           </div>

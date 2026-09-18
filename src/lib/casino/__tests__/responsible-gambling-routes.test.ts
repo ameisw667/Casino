@@ -90,6 +90,47 @@ describe('06_2 L1: self-exclusion endpoint contract', () => {
   });
 });
 
+describe('06_4 L3: guard stacking — self-exclusion × daily loss limit × bet velocity', () => {
+  const route = read('src/app/api/casino/bet/route.ts');
+  const guard = read('src/lib/casino/responsible-gambling.ts');
+
+  it('produces exactly one rejection: the wellbeing guard, before validation', () => {
+    // Actual route order (route.ts POST): origin → auth → rate limit → wellbeing guard →
+    // Zod validation → settlement. With self-exclusion AND loss limit AND bet velocity
+    // simultaneously active, the user therefore receives exactly one specific error — the
+    // wellbeing one. Why this order is right: validation errors (400) must not leak to a
+    // blocked user before the wellbeing decision, and the limiter must shed load before
+    // the guard's DB query (06_2 security review).
+    expect(route.indexOf('checkWellbeingGuard(userId)')).toBeGreaterThan(
+      route.indexOf('enforceRateLimit('),
+    );
+    expect(route.indexOf('requestSchema.safeParse')).toBeGreaterThan(
+      route.indexOf('checkWellbeingGuard(userId)'),
+    );
+  });
+
+  it('bet velocity is a deferred observability signal, never a response-producing guard', () => {
+    // Both call sites of recordBetPlacedBestEffort sit inside after() AFTER a successful
+    // settlement (06_1 L5 realtime hint, fail-open) — a request rejected by the wellbeing
+    // guard never reaches them, so no fraud signal is written for a request that was
+    // already going to be rejected. Pinned as a static assertion: if someone ever promotes
+    // bet velocity to a blocking guard or moves it before settlement, this test fails and
+    // the change must be re-reviewed.
+    expect(route.split('after(() => recordBetPlacedBestEffort(userId))').length - 1).toBe(2);
+  });
+
+  it('self-exclusion wins inside the wellbeing guard (evaluated before the loss limit)', () => {
+    // checkWellbeingGuard reads self_excluded_until first and only a not-self-excluded
+    // user can reach the loss-limit branch. Rationale: a self-excluded person must not
+    // receive a loss-limit message at all — the hard lock has absolute priority, so the
+    // response always carries exactly one unambiguous code (SELF_EXCLUDED, 403).
+    expect(guard.indexOf("{ state: 'self-excluded', until }")).toBeGreaterThan(-1);
+    expect(guard.indexOf("{ state: 'self-excluded', until }")).toBeLessThan(
+      guard.indexOf("{ state: 'loss-limit-reached', limitCents"),
+    );
+  });
+});
+
 describe('06_2 L3: daily loss limit endpoint contract', () => {
   const route = read('src/app/api/user/self-exclusion/route.ts');
 

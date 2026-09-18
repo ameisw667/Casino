@@ -167,5 +167,5 @@
 | Wallet-Snapshot-Vertrag (für L5-Abgleich) | [`xx_docs/07_state_store_context.md`](../xx_docs/07_state_store_context.md) |
 | Bestehender Pre-Commit-Hook | [`.husky/pre-commit`](../.husky/pre-commit), [`scripts/typecheck-staged.mjs`](../scripts/typecheck-staged.mjs) |
 | Gewichtete Subkategorien-Bewertung (Kategorie 02, alle 10 Säulen) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md) |
-| Übergeordnete Aufschlüsselung (Kategorie 02) | [`worldmap/04_datenbank_migrationen.md`](../worldmap/04_datenbank_migrationen.md) |
+| Übergeordnete Aufschlüsselung (Kategorie 02) | [`T_DATABASE/04_datenbank_migrationen.md`](../T_DATABASE/04_datenbank_migrationen.md) |
 | Planungsdateien-Konvention | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md) |

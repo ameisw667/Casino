@@ -108,6 +108,28 @@ describe('enforceDailyCostCap', () => {
       expect(mocks.incr).toHaveBeenNthCalledWith(1, 'casino:daily-cost:user-1:guide-chat');
       expect(mocks.incr).toHaveBeenNthCalledWith(2, 'casino:daily-cost:user-2:voice-transcribe');
     });
+
+    // 06_4 (T4/L0): atomicity of the INCR+EXPIRE pattern under parallel invocation. The mock
+    // backend counts synchronously, so this test verifies call-ordering semantics, not real
+    // network concurrency against a live Redis server (documented limitation per plan L0).
+    it('never double-counts and blocks exactly cap-parallel callers beyond the threshold', async () => {
+      const cap = DAILY_COST_CAPS['voice-transcribe'];
+      let counter = 0;
+      mocks.incr.mockImplementation(async () => {
+        counter += 1;
+        return counter;
+      });
+
+      const decisions = await Promise.all(
+        [...Array(cap + 5)].map(() => enforceDailyCostCap('user-1', 'voice-transcribe')),
+      );
+
+      expect(decisions).toHaveLength(cap + 5);
+      expect(new Set(decisions.map((decision) => decision.used))).toHaveLength(cap + 5);
+      expect(decisions.filter((decision) => decision.allowed)).toHaveLength(cap);
+      expect(decisions.filter((decision) => !decision.allowed)).toHaveLength(5);
+      expect(recordRiskEventBestEffort).toHaveBeenCalledTimes(5);
+    });
   });
 
   describe('local dev counter (no Upstash configured)', () => {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { CheckCircle2, ChevronRight, Lock, Trophy, X } from 'lucide-react';
+import { CheckCircle2, ChevronRight, Lock, X } from 'lucide-react';
 import type { Achievement } from '@/lib/casino/achievements-config';
 import { getAchievementPresentation } from '@/lib/casino/achievement-presentation';
 import { card } from './vault-card';
@@ -155,7 +155,6 @@ export function VaultAchievements({ achievements, isMobile }: VaultAchievementsP
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Trophy size={16} color="#D4AF37" />
             <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#fff' }}>ACHIEVEMENTS</span>
           </div>
           <button
@@ -225,7 +224,6 @@ export function VaultAchievements({ achievements, isMobile }: VaultAchievementsP
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Trophy size={20} color="#D4AF37" />
                 <span
                   style={{
                     fontSize: '1.1rem',

@@ -136,5 +136,5 @@
 | Typbindung der Clients (separater, bereits ausgeführter Plan)     | [`T_DATABASE/06_database_typsicherheit.md`](./06_database_typsicherheit.md)                                                       |
 | Schwester-Audit-Skript-Muster                                     | [`T_DATABASE/04_database_row_level_security.md`](./04_database_row_level_security.md) L2                                          |
 | Gewichtete Subkategorien-Bewertung (Kategorie 02, alle 10 Säulen) | [`00_DATABASE_VERBESSERUNG.md`](./00_DATABASE_VERBESSERUNG.md)                                                                    |
-| Übergeordnete Aufschlüsselung (Kategorie 02)                      | [`worldmap/04_datenbank_migrationen.md`](../worldmap/04_datenbank_migrationen.md)                                                 |
+| Übergeordnete Aufschlüsselung (Kategorie 02)                      | [`T_DATABASE/04_datenbank_migrationen.md`](../T_DATABASE/04_datenbank_migrationen.md)                                                 |
 | Planungsdateien-Konvention                                        | [`xx_sop/03_workflow_jan_planungsdateien.md`](../xx_sop/03_workflow_jan_planungsdateien.md)                                       |

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { ShieldCheck, Plus, Trash2, Loader2, Copy, Check } from 'lucide-react';
+import { Plus, Trash2, Loader2, Copy, Check } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { mapAuthError } from '@/lib/security/form-errors';
 import { trackAllowedEvent } from '@/lib/analytics/events';
@@ -161,9 +161,16 @@ export default function MfaManagementSection() {
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <ShieldCheck
-            size={14}
-            color={hasActiveMfa ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))'}
+          <span
+            aria-hidden
+            style={{
+              display: 'inline-block',
+              width: 14,
+              height: 14,
+              backgroundColor: hasActiveMfa ? 'hsl(var(--primary))' : 'hsl(var(--text-muted))',
+              WebkitMask: 'url(/images/2026-09-06_icon-security-verified-quantum-gold_v001.png) center / contain no-repeat',
+              mask: 'url(/images/2026-09-06_icon-security-verified-quantum-gold_v001.png) center / contain no-repeat',
+            }}
           />
           <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'hsl(var(--text-main))' }}>
             Zwei-Faktor (2FA)
@@ -244,7 +251,17 @@ export default function MfaManagementSection() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <ShieldCheck size={12} color="#10B981" />
+                <span
+                  aria-hidden
+                  style={{
+                    display: 'inline-block',
+                    width: 12,
+                    height: 12,
+                    backgroundColor: '#10B981',
+                    WebkitMask: 'url(/images/2026-09-06_icon-security-verified-quantum-gold_v001.png) center / contain no-repeat',
+                    mask: 'url(/images/2026-09-06_icon-security-verified-quantum-gold_v001.png) center / contain no-repeat',
+                  }}
+                />
                 <span
                   style={{ fontSize: '0.7rem', fontWeight: 600, color: 'hsl(var(--text-main))' }}
                 >

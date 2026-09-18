@@ -69,7 +69,36 @@ export async function GET(request: Request) {
       return apiErrorResponse('LOAD_FAILED', 'Failed to load promo codes', 503);
     }
 
-    return apiSuccessResponse({ codes: data ?? [] }, { headers: rateLimitHeaders(rate) });
+    // 06_10 L2: redemption velocity — one bounded query over the last 24h of bonus ledger
+    // rows, grouped per code client-side. type='bonus' is written exclusively by the
+    // redeem_promo_code RPC (023), so the grouping needs no extra filter. The 2000-row cap
+    // is a deliberate bound; if it is ever hit the displayed count is a lower bound and
+    // gets flagged in the logs instead of silently reading as exact.
+    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data: recentRedemptions, error: recentError } = await admin
+      .from('wallet_transactions')
+      .select('metadata->>code')
+      .eq('type', 'bonus')
+      .gte('created_at', since24h)
+      .limit(2000);
+    if (recentError) {
+      CasinoLogger.error('API/Admin/PromoCodes', '24h redemption query failed', recentError);
+    }
+    const redemptions24h: Record<string, number> = {};
+    for (const row of (recentRedemptions ?? []) as Array<{ code?: string | null }>) {
+      if (row.code) redemptions24h[row.code] = (redemptions24h[row.code] ?? 0) + 1;
+    }
+    if ((recentRedemptions?.length ?? 0) === 2000) {
+      CasinoLogger.warn(
+        'API/Admin/PromoCodes',
+        '24h redemption query hit its 2000-row cap — displayed counts are lower bounds',
+      );
+    }
+
+    return apiSuccessResponse(
+      { codes: data ?? [], redemptions24h },
+      { headers: { ...rateLimitHeaders(rate), 'Cache-Control': 'private, no-store' } },
+    );
   } catch (error) {
     CasinoLogger.error('API/Admin/PromoCodes', 'List unexpected failure', error);
     return apiErrorResponse('PROMO_UNAVAILABLE', 'Promo codes unavailable', 503);
@@ -153,10 +182,16 @@ export async function POST(request: Request) {
       );
     }
 
-    CasinoLogger.info('API/Admin/PromoCodes', `Admin ${user.email} created code ${data.code}`, {
-      amount: data.amount,
-      max_uses: data.max_uses,
-    });
+    // 06_10 L3: masked like the redeem-side logs — the full code lives in the promo_codes
+    // table, not in general-purpose logs with broader read access.
+    CasinoLogger.info(
+      'API/Admin/PromoCodes',
+      `Admin ${user.email} created code ****${data.code.slice(-4)}`,
+      {
+        amount: data.amount,
+        max_uses: data.max_uses,
+      },
+    );
 
     return apiSuccessResponse({ success: true, code: data });
   } catch (error) {

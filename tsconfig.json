@@ -32,7 +32,11 @@
     "**/*.mts",
     "trigger.config.ts",
     ".next-k6a-build/types/**/*.ts",
-    ".next-k6a-build/dev/types/**/*.ts"
+    ".next-k6a-build/dev/types/**/*.ts",
+    ".next-mobile-lcp-exec-dice-final/types/**/*.ts",
+    ".next-mobile-lcp-exec-dice-final/dev/types/**/*.ts",
+    ".next-analytics-verify/types/**/*.ts",
+    ".next-analytics-verify/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules", "remotion-ad"]
 }

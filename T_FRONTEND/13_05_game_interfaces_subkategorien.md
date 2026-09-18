@@ -1,0 +1,12 @@
+# 13_05 — Game-Interfaces: Sub-Subkategorien
+
+> Ebene 2 von [`00_UEBERSICHT.md`](./00_UEBERSICHT.md#1--die-10-subkategorien-gewichtung--bewertung) · Modul 05 (Gewicht 15, Niveau Top 11 %) · Stand 2026-09-13 · Nur Tabelle, keine Planungsdatei in dieser Runde.
+
+|  #  | Sub-Subkategorie | Gewichtung | Niveau | Kurzbefund |
+| :-: | :--- | :---: | :---: | :--- |
+| 1 | Blackjack (`BlackjackGame.tsx`, Split/Double/Insurance) | **18** | Top 10 % | Vollständiger Regelsatz, Hook-Dependency-Bereinigung (`_strategyAdvice`) laut V4-Audit abgeschlossen |
+| 2 | Crash Solo + Multiplayer (`CrashGame.tsx`, `useCrashMultiplayerRoomClock.ts`) | **22** | Top 18 % | 3 frische `react-hooks/exhaustive-deps`-Warnings konzentriert in der Multiplayer-Uhr (fehlende Deps u. a. `crashPointRef`, `setRoomRound`); Routen 762/759 Zeilen |
+| 3 | Dice (`DiceGame.tsx`, `VibeSlider.tsx`, `DiceCenterStage.tsx`) | **15** | Top 8 % | `toggleRollMode` laut V4-Audit mit `useCallback` stabilisiert; `DiceCenterStage.tsx` bei 664 Zeilen |
+| 4 | Roulette (`RouletteClient.tsx`, `LuxuryRouletteWheel.tsx`) | **15** | Top 14 % | Eigener Pitfall im Quelldokument: unvollständige `useEffect`-Deps (`balance`) — als behoben dokumentiert, aber Datei weiterhin bei 598/643 Zeilen |
+| 5 | Slots (`SlotsGame.tsx`) | **15** | Top 8 % | 5-Walzen-Engine mit Scatter/Freispielen, keine eigene Auffälligkeit in dieser Stichprobe gefunden |
+| 6 | Standard-Controls (`BetInputGroup.tsx`, `AutoBetDrawer.tsx`, `GameActionButton.tsx`) | **15** | Top 16 % | Heute frisch gefunden: `jsx-a11y/role-supports-aria-props` in `BetInputGroup.tsx:132` — `aria-valuemin`/`aria-valuemax` auf implizitem `textbox`-Rollen nicht unterstützt (echter A11y-Bug, siehe auch Modul 09) |

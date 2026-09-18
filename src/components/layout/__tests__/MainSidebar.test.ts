@@ -55,4 +55,9 @@ describe('MainSidebar', () => {
     expect(markup).not.toContain('Collapse sidebar');
     expect(markup).not.toContain('Expand sidebar');
   });
+  it('preloads the main-layout brand image used as the initial non-admin LCP candidate', () => {
+    const markup = renderSidebar('/games');
+
+    expect(markup).toMatch(/<link rel="preload" as="image"[^>]*brand-ace-icon/);
+  });
 });

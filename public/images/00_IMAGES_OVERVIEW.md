@@ -54,5 +54,19 @@ Alle 8 Subkategorien wurden konsequent durch spezialisierte Subagenten analysier
 ## 4 — Nächste Schritte (Next-Level Upgrade)
 
 1. **Live-Lauf durch Jan:** Erster echter CLI-Batchlauf mit `--yes` zur Erzeugung erster Bild-Assets im Casino-Design.
-2. **Visuelle Feinjustierung:** Abgleich der erzeugten Bild-Outputs mit den Design-Vorgaben im Browser.
+2. **Visuelle Feinjustierung:** Abgleich der erzeugten Bild-Outputs mit den Design-Vorgaben im Browser — **inkl. Kleinformat-Legibilitätscheck** (siehe §5): reine 1024px-Vorschau reicht nicht, das Motiv muss auch in der realen UI-Zielgröße eindeutig lesbar sein.
 3. **Rollback-Praxis:** Testen von `--rollback` und `--list-versions` im Live-Betrieb bei Bedarf.
+
+---
+
+## 5 — Best Practice: Kleinformat-Legibilitätscheck vor L0-Abschluss
+
+> **Herkunft:** Etabliert 2026-09-06 bei der Icon-Konsolidierungsrunde (`27`–`32`, `T_FRONTEND/ALLE_ICONS_BUTTONS_ANALYSE.md` §18.3) — mehrere `medium`/1024×1024-Ergebnisse wirkten in der 1024px-Vorschau überzeugend, verloren aber bei der tatsächlichen UI-Einsatzgröße (9–20px) Lesbarkeit oder Unterscheidbarkeit zu Schwester-Assets. Details/Vorher-Nachher-Prompts: §7 in den jeweiligen Planungsdateien unter `public/images/27_*.md`–`32_*.md`.
+
+Bevor ein L0-Milestone (Asset-Generierung) einer Icon-/Badge-Planungsdatei als „🟢 Erledigt" markiert wird, zusätzlich zur Alphakanal-Prüfung (`sharp`-Check) prüfen:
+
+1. **Ziel-Einsatzgröße ermitteln** — die kleinste tatsächliche Render-Größe im Code nachschlagen (nicht die 1024px-Generierungsgröße), z. B. aus der `Datei:Zeile`-Referenz in der Planungsdatei.
+2. **Silhouette statt Detail bewerten** — bei der Zielgröße zählt nur die grobe Außensilhouette und der Kontrast zum Hintergrund; feine Facetten/Texturen, die nur bei 1024px sichtbar sind, sind für die Bewertung irrelevant.
+3. **Geschwister-Assets gegenprüfen** — bei Icon-Familien (mehrere Assets für verwandte Bedeutungen, z. B. `trophy-win`/`trophy-tournament`/`trophy-record`) explizit prüfen, ob sich die Unterscheidung auf die Außensilhouette auswirkt oder nur auf ein Interieur-Detail, das bei Kleinformat verschwindet.
+4. **Clipping-Check** — Elemente (Strahlen, Zacken, Spitzen), die bis an den 1024px-Bildrand reichen, laufen Gefahr, beim Verkleinern/Zuschneiden abgeschnitten zu werden; im Prompt explizit „centered, full view without clipping" fordern (siehe `top10_all_missing.manifest.json` als Referenzmuster).
+5. **Bei Befund:** Prompt-Revision im Subjekt-Teil (`basePrompt`, siehe `src/lib/design-assets/style-preset.ts`) vorschlagen, Alt/Neu-Vergleich in der Planungsdatei dokumentieren, erst nach Jans Freigabe regenerieren — Kosten pro Iteration sind bei `quality: medium` marginal (`09_model_pricing_reference.md` §1.3), der Lerneffekt liegt im Abgleich Prompt ↔ tatsächliches Ergebnis, nicht im Sparen einzelner Cent.

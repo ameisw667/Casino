@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ShieldCheck, RefreshCw, Copy, Check } from 'lucide-react';
+import { RefreshCw, Copy, Check } from 'lucide-react';
+import Image from 'next/image';
 import { ProvablyFairEngine } from '@/lib/casino/provably-fair';
+import { CircuitBoardVisualizer } from '@/components/casino/provably-fair/CircuitBoardVisualizer';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { CasinoLogger } from '@/lib/casino/logger';
 
@@ -56,7 +58,7 @@ export default function ProvablyFairTool() {
           marginBottom: isMobile ? '20px' : '24px',
         }}
       >
-        <ShieldCheck size={isMobile ? 20 : 24} color="hsl(var(--primary))" />
+        <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Provably Fair Verifier" width={isMobile ? 20 : 24} height={isMobile ? 20 : 24} aria-hidden />
         <h2 style={{ margin: 0, fontSize: isMobile ? '1.1rem' : '1.5rem' }}>
           Provably Fair Verifier
         </h2>
@@ -152,6 +154,15 @@ export default function ProvablyFairTool() {
             </button>
           </div>
         </div>
+
+        {/* Componentry Circuit Board & Cryptographic Verification Visualizer */}
+        <CircuitBoardVisualizer
+          serverSeed={serverSeed}
+          clientSeed={clientSeed}
+          nonce={nonce}
+          outcome={`Dice: ${results.dice}`}
+          className="my-2"
+        />
 
         <div
           className="glass"

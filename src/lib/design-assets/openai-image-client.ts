@@ -1,9 +1,17 @@
 import { z } from 'zod';
-import type { GenerationRequest, GenerationResponsePayload, RetryConfig } from './types';
+import type {
+  EditResponsePayload,
+  GenerationRequest,
+  GenerationResponsePayload,
+  ImageEditRequest,
+  RetryConfig,
+} from './types';
 import { scrubSensitiveText } from './security';
 
 export const OPENAI_IMAGES_URL = 'https://api.openai.com/v1/images/generations';
+export const OPENAI_IMAGES_EDITS_URL = 'https://api.openai.com/v1/images/edits';
 export const DEFAULT_IMAGE_MODEL = 'gpt-image-2';
+export const DEFAULT_EDIT_MODEL = 'dall-e-2';
 export const IMAGE_REQUEST_TIMEOUT_MS = 60_000;
 
 const DEFAULT_MAX_RETRIES = 4;
@@ -150,6 +158,158 @@ export async function generateImage(
 ): Promise<Buffer> {
   const payload = await generateImageWithMeta(request, deps);
   return payload.imageBuffer;
+}
+
+/**
+ * Führt Bild-Editing (Inpainting) mit optionaler Maske und voller Telemetrie aus.
+ */
+export async function editImageWithMeta(
+  request: ImageEditRequest,
+  deps: OpenAiImageClientDeps,
+): Promise<EditResponsePayload> {
+  if (process.env.NEXT_RUNTIME) {
+    throw new Error(
+      'Sicherheitsbarriere: Design-Asset-Generierung darf nicht im Next.js Web-Runtime-Kontext ausgeführt werden.',
+    );
+  }
+
+  const fetchImpl = deps.fetchImpl ?? fetch;
+  const sleepImpl = deps.sleepImpl ?? sleep;
+  const maxRetries = deps.retryConfig?.maxRetries ?? DEFAULT_MAX_RETRIES;
+  const baseBackoff = deps.retryConfig?.baseBackoffMs ?? DEFAULT_BASE_BACKOFF_MS;
+  const maxBackoff = deps.retryConfig?.maxBackoffMs ?? DEFAULT_MAX_BACKOFF_MS;
+  const timeoutMs = deps.retryConfig?.timeoutMs ?? IMAGE_REQUEST_TIMEOUT_MS;
+
+  const startTime = Date.now();
+  let attempt = 0;
+
+  while (true) {
+    attempt += 1;
+    try {
+      const outcome = await requestEditOnce(request, deps.apiKey, fetchImpl, timeoutMs);
+      return {
+        imageBuffer: outcome.buffer,
+        meta: {
+          durationMs: Date.now() - startTime,
+          requestId: outcome.requestId,
+          model: request.model ?? DEFAULT_EDIT_MODEL,
+          size: request.size ?? '1024x1024',
+          attemptsMade: attempt,
+          hasMask: Boolean(request.maskBuffer),
+          rateLimitRemainingRequests: outcome.rateLimitRemainingRequests,
+          rateLimitRemainingTokens: outcome.rateLimitRemainingTokens,
+        },
+      };
+    } catch (error) {
+      if (
+        !(error instanceof OpenAiImageError) ||
+        !error.retryable ||
+        error.isFatal() ||
+        attempt > maxRetries
+      ) {
+        throw error;
+      }
+      const backoffMs = Math.min(baseBackoff * 2 ** (attempt - 1), maxBackoff);
+      const jitterMs = Math.random() * backoffMs * 0.5;
+      await sleepImpl(backoffMs + jitterMs);
+    }
+  }
+}
+
+/**
+ * Convenience-Wrapper für Bild-Editing: Liefert direkt den modifizierten Buffer.
+ */
+export async function editImage(
+  request: ImageEditRequest,
+  deps: OpenAiImageClientDeps,
+): Promise<Buffer> {
+  const payload = await editImageWithMeta(request, deps);
+  return payload.imageBuffer;
+}
+
+async function requestEditOnce(
+  request: ImageEditRequest,
+  apiKey: string,
+  fetchImpl: typeof fetch,
+  timeoutMs: number,
+): Promise<SingleRequestOutcome> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const formData = new FormData();
+    const imageBlob = new Blob([new Uint8Array(request.imageBuffer)], { type: 'image/png' });
+    formData.append('image', imageBlob, 'image.png');
+
+    if (request.maskBuffer) {
+      const maskBlob = new Blob([new Uint8Array(request.maskBuffer)], { type: 'image/png' });
+      formData.append('mask', maskBlob, 'mask.png');
+    }
+
+    formData.append('prompt', request.prompt);
+    formData.append('response_format', 'b64_json');
+    formData.append('n', String(request.n ?? 1));
+    formData.append('size', request.size ?? '1024x1024');
+    formData.append('model', request.model ?? DEFAULT_EDIT_MODEL);
+
+    let response: Response;
+    try {
+      response = await fetchImpl(OPENAI_IMAGES_EDITS_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: formData,
+        signal: controller.signal,
+      });
+    } catch (networkError: unknown) {
+      const isAbort =
+        networkError instanceof Error &&
+        (networkError.name === 'AbortError' || networkError.message.includes('aborted'));
+      throw new OpenAiImageError(
+        isAbort
+          ? `Request-Timeout nach ${timeoutMs}ms überschritten`
+          : `Netzwerkfehler beim API-Aufruf: ${networkError instanceof Error ? networkError.message : String(networkError)}`,
+        isAbort ? 408 : 0,
+        true,
+        isAbort ? 'timeout' : 'network_error',
+      );
+    }
+
+    const requestId = response.headers.get('x-request-id') ?? undefined;
+    const rateLimitRemainingRequests =
+      response.headers.get('x-ratelimit-remaining-requests') ?? undefined;
+    const rateLimitRemainingTokens =
+      response.headers.get('x-ratelimit-remaining-tokens') ?? undefined;
+
+    if (!response.ok) {
+      const bodyText = await safeReadText(response);
+      const { message, code, type } = parseErrorPayload(bodyText, response.status);
+      const isQuota =
+        response.status === 429 && (code === 'insufficient_quota' || type === 'insufficient_quota');
+      const retryable = (response.status === 429 && !isQuota) || response.status >= 500;
+
+      throw new OpenAiImageError(
+        `OpenAI Images API antwortete mit ${response.status}: ${message}`,
+        response.status,
+        retryable,
+        code,
+        type,
+      );
+    }
+
+    const json = await response.json();
+    const parsed = imageGenerationResponseSchema.parse(json);
+    return {
+      buffer: Buffer.from(parsed.data[0].b64_json, 'base64'),
+      requestId,
+      revisedPrompt: parsed.data[0].revised_prompt,
+      rateLimitRemainingRequests,
+      rateLimitRemainingTokens,
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 async function requestOnce(

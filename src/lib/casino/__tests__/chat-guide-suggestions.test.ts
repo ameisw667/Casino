@@ -86,9 +86,11 @@ describe('Follow-up Suggestions Extraction & Stream Filtering (Stufe I)', () => 
       expect(r3.textToEmit).toBe('');
       expect(r3.suggestionsFound).toEqual(['Frage A', 'Frage B']);
 
+      // Regression: flush() used to re-emit the same suggestions array a second time here,
+      // since processChunk() already returned it once via r3 above.
       const flush = filter.flush();
       expect(flush.textToEmit).toBe('');
-      expect(flush.suggestionsFound).toEqual(['Frage A', 'Frage B']);
+      expect(flush.suggestionsFound).toBeNull();
     });
 
     it('flushes incomplete delimiter at stream end safely', () => {
@@ -98,6 +100,17 @@ describe('Follow-up Suggestions Extraction & Stream Filtering (Stufe I)', () => 
       const flush = filter.flush();
 
       expect(flush.textToEmit).toBe('');
+    });
+
+    it('never emits the same suggestions array twice for one response (regression: the delimiter sits at the very end of the model output per the prompt instructions, so flush() always used to see an empty leftover buffer and re-send the already-emitted suggestions)', () => {
+      const filter = new SuggestionStreamFilter();
+      const r1 = filter.processChunk(
+        'Antwort.\n<<<SUGGESTIONS: ["Frage A", "Frage B"]>>>',
+      );
+      expect(r1.suggestionsFound).toEqual(['Frage A', 'Frage B']);
+
+      const flush = filter.flush();
+      expect(flush.suggestionsFound).toBeNull();
     });
   });
 });

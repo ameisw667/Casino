@@ -31,6 +31,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  # 06_7 L1 (R4): same ephemeral local Supabase stack as red-team-security.yml (fixed local
+  # ports) — a push-triggered run colliding with a manual workflow_dispatch would otherwise
+  # race for that stack. Same pattern as quality-ci.yml.
+  group: security-staging-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   security-staging:
     runs-on: ubuntu-latest
@@ -43,9 +50,46 @@ jobs:
           node-version-file: '.nvmrc'
           cache: npm
       - run: npm ci
+      # docs/security-hardening/07_dependency_supply_chain_audit.md L1 (Runde 2): ignore-scripts=true
+      # in .npmrc means `npm ci` above no longer auto-runs any lifecycle script. This runs the
+      # allowlisted dependency scripts (package.json > lavamoat.allowScripts) and, as a side effect
+      # of allow-scripts re-invoking the root package's own lifecycle events, husky's git-hooks setup.
+      - run: npm run allow-scripts
+
+      # T_SECURITY_HARDENING/02_security_ci_gate.md L2 (2026-09-12): `npx supabase start` pulls
+      # ~1.5-2 GB of Supabase stack Docker images (postgres, kong, gotrue, postgrest, ...) on every
+      # run. Cache the image set between runs, keyed on the pinned Supabase CLI version from
+      # package.json — a CLI bump changes which image tags get pulled, so the key changes too.
+      # Isolation guarantee is NOT diluted: only the immutable Docker images are cached, never any
+      # database state — every run still starts from an empty volume with all migrations applied
+      # fresh by `supabase start`. Both security workflows share this key so whichever runs first
+      # populates it for both (GitHub caches are repo- and branch-scoped, not workflow-scoped).
+      - id: supabase-version
+        run: echo "version=$(npx supabase --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')" >> "$GITHUB_OUTPUT"
+
+      - id: supabase-images
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: /tmp/supabase-images.tar
+          key: supabase-docker-images-${{ runner.os }}-${{ steps.supabase-version.outputs.version }}
+
+      - name: Load cached Supabase Docker images
+        run: if [ -f /tmp/supabase-images.tar ]; then docker load -i /tmp/supabase-images.tar; fi
 
       - name: Start ephemeral local Supabase
         run: npx supabase start
+
+      # ubuntu-latest runners ship with no pre-pulled Docker images, so after `supabase start` the
+      # image list is exactly the Supabase stack. Only saved on a cache miss (otherwise the tar
+      # already holds this exact image set and re-saving it would be wasted upload time). The
+      # cache action's post-job save step then uploads the tar for the next run.
+      - name: Save Supabase Docker images for the next run
+        if: always() && steps.supabase-images.outputs.cache-hit != 'true'
+        run: |
+          images=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -v '<none>')
+          if [ -n "$images" ]; then
+            docker save $images -o /tmp/supabase-images.tar
+          fi
 
       - name: Export local Supabase connection vars
         run: |
@@ -64,11 +108,22 @@ jobs:
           } >> "$GITHUB_ENV"
           rm .supabase-status.env
 
+      # T_DATABASE/10 N4 — Coverage-Check (Inventar vs. supabase/tests/*.sql) VOR dem
+      # DB-Lauf. Lücken blockieren den Workflow nicht, sondern fallen als roter Step auf.
+      - name: Check pgTAP P0 coverage
+        continue-on-error: true
+        run: npx tsx scripts/check-pgtap-coverage.ts
+
       # T_DATABASE/10 L8 — pgTAP-Laufzeittests (supabase/tests/*.sql) gegen dieselbe
       # ephemere lokale Supabase-Instanz. `supabase start` hat bereits alle Migrationen
       # inkl. 064_enable_pgtap.sql angewendet, daher läuft die Suite direkt danach.
       - name: Run pgTAP database tests
         run: npx supabase test db
+
+      # T_DATABASE/10 N5 — echter Konkurrenztest der Advisory-Lock-Pfade (2 gleichzeitige
+      # service_role-Clients, gleiche request_id) gegen dieselbe ephemere lokale Instanz.
+      - name: Run concurrent settlement race test
+        run: npx tsx scripts/test-concurrent-settlement.ts
 
       - run: npm test -- src/lib/security/__tests__/staging-regression-contract.test.ts
       - run: npx tsx scripts/phase1-target-guard.ts
@@ -94,4 +149,24 @@ jobs:
             echo "constraint\"), that's a migration filename-number collision — see"
             echo "[docs/archive/05_datenbank_haertung.md](../../blob/main/docs/archive/05_datenbank_haertung.md)"
             echo "before assuming this workflow itself is broken."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # T_SECURITY_HARDENING/08_secret_rotation_prozess.md L4 — `npm run check-secret-rotation`
+      # (scripts/check-secret-rotation-due.ts) existed but ran nowhere automated, so an overdue
+      # secret was only visible to someone running it locally. This makes the current status
+      # visible directly on this already security-relevant, regularly-running workflow's run page.
+      # Deliberately advisory only (`|| true`, `if: always()`) — rotation itself stays a K5/Jan
+      # action (xx_sop/14_secret_rotation.md §0), so this must never become a merge-blocking gate.
+      - name: Secret rotation status (advisory only)
+        if: always()
+        run: |
+          {
+            echo "## Secret rotation status (informational, not a CI gate)"
+            echo ""
+            echo "Rotation itself is always a K5 (Jan) action — this only surfaces what"
+            echo "[xx_docs/13_secret_rotation_log.md](../../blob/main/xx_docs/13_secret_rotation_log.md) currently shows."
+            echo ""
+            echo '```'
+            npm run check-secret-rotation || true
+            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"

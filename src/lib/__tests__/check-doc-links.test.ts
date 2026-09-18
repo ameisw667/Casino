@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { resolveCaseInsensitive } from '../../../scripts/check-doc-links.mjs';
+import {
+  extractRelativeMarkdownTargets,
+  resolveCaseInsensitive,
+} from '../../../scripts/check-doc-links.mjs';
 
 // worldmap/06_check_doc_links_case_fallback.md — the check-doc-links CI gate treats a
 // case-only mismatch (link target exists, only with different casing) as a non-blocking
@@ -30,5 +33,15 @@ describe('resolveCaseInsensitive', () => {
     // repoRelativePath is always produced by the caller via `relative(process.cwd(), ...)`,
     // so it never legitimately starts with "..", but the walk must not silently succeed either.
     expect(resolveCaseInsensitive('../outside-the-repo.md')).toBe(false);
+  });
+});
+
+describe('extractRelativeMarkdownTargets', () => {
+  it('finds explicit and bare relative Markdown file targets but ignores web URLs', () => {
+    const targets = extractRelativeMarkdownTargets(
+      '[explicit](./commands/one.md) [bare](commands/workflow/two.md) [web](https://example.com/docs.md)',
+    );
+
+    expect(targets).toEqual(['./commands/one.md', 'commands/workflow/two.md']);
   });
 });

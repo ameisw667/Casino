@@ -1,7 +1,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Flame, Crown, Sparkles, TrendingUp } from 'lucide-react';
+import { Flame, TrendingUp } from 'lucide-react';
+import Image from 'next/image';
 
 interface HighrollerWin {
   id: string;
@@ -94,11 +95,18 @@ export function LiveHighrollerTickerBar() {
   const getTypeIcon = (type: HighrollerWin['type']) => {
     switch (type) {
       case 'jackpot':
-        return <Sparkles size={14} color="#D4AF37" />;
+        return (
+          <Image
+            src="/images/2026-09-06_icon-promo-bonus-quantum-gold_v001.png"
+            alt="Jackpot"
+            width={14}
+            height={14}
+          />
+        );
       case 'whale':
-        return <Crown size={14} color="#FFD700" />;
+        return <Image src="/images/2026-09-06_icon-crown-jackpot-quantum-gold_v001.png" alt="Whale" width={14} height={14} aria-hidden />;
       case 'vip':
-        return <Zap size={14} color="#00E701" />;
+        return <TrendingUp size={14} color="#00E701" />;
       default:
         return <Flame size={14} color="#FF5722" />;
     }

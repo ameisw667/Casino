@@ -39,6 +39,17 @@ describe('P1.3 staging security regression contract', () => {
     expect(workflow).toContain('scripts/verify-security-phase1.sql');
     expect(workflow).toContain('scripts/phase1-concurrency.ts');
     expect(workflow).toContain('npm test');
-    expect(workflow).not.toContain('continue-on-error: true');
+    // N4 (T_DATABASE/10): ONLY the pgTAP coverage check fails informatively (a new P0
+    // migration and its test can land in different PRs); every security verification
+    // step itself must still fail the job — exactly one continue-on-error, attached to
+    // that step and nothing else.
+    const coverageStepIndex = workflow.indexOf('name: Check pgTAP P0 coverage');
+    expect(coverageStepIndex).toBeGreaterThan(-1);
+    expect(workflow.split('continue-on-error: true').length - 1).toBe(1);
+    const coverageStep = workflow.slice(
+      coverageStepIndex,
+      workflow.indexOf('name: Run pgTAP database tests'),
+    );
+    expect(coverageStep).toContain('continue-on-error: true');
   });
 });

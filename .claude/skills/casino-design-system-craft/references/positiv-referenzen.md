@@ -56,4 +56,4 @@ Quelle: `src/components/leaderboard/LeaderboardPodium.tsx:26-51`, `LeaderboardWe
 - Flächen: `#111111`, `#121212`, `#141414` · Border `#222222`/`#262626`
 - Text: Primär `#E5E5E5`, Sekundär `#737373`, Gold `#D4AF37`
 
-**Offene Entscheidung (B5):** Soll Neutral-Schwarz nur auf /games, /history, /vault, /stats die blau-stichigen Flächen ersetzen — oder projektweit der Surface-Standard werden? Bis zur Entscheidung gilt: **neue** Kästen/Panel in Neutral-Schwarz (R5) bauen; Bestandsflächen nicht eigenmächtig umstellen.
+**Entscheidung (B5, Jan 2026-09-06):** Neutral-Schwarz gilt **nur** für /games, /history, /vault, /stats — **nicht** projektweit. Der App-Hintergrund bleibt Obsidian `#0B0E14` (CLAUDE.md-Regel unverändert). Blackjack-Tisch-Look (`#152238 → #0c1524`, `BlackjackActions.tsx:58`) ist ein **bewusster Spiel-Look** und dokumentierte Ausnahme — nicht ersetzen. Lade-Skeletons (`GameSkeleton`) gehören zur Umstellung (R3).

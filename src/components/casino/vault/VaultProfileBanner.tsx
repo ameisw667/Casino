@@ -1,6 +1,5 @@
 'use client';
 import Image from 'next/image';
-import { ShieldCheck } from 'lucide-react';
 import type { VipTier } from '@/lib/casino/vip-config';
 import { card } from './vault-card';
 
@@ -28,14 +27,15 @@ export function VaultProfileBanner({
   return (
     <div
       style={{
-        ...card({ padding: isMobile ? '24px 20px' : '22px 32px' }),
+        ...card({ padding: isMobile ? '20px 16px' : '22px 32px' }),
         position: 'relative',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: isMobile ? 'column' : 'row',
         alignItems: isMobile ? 'stretch' : 'center',
         justifyContent: 'space-between',
-        gap: isMobile ? '20px' : '28px',
+        flexWrap: 'wrap',
+        gap: isMobile ? '16px' : '24px',
         marginBottom: '16px',
       }}
     >
@@ -51,7 +51,7 @@ export function VaultProfileBanner({
         }}
       />
 
-      {/* Avatar + Name */}
+      {/* Avatar + Name + Identity Badges */}
       <div
         style={{
           display: 'flex',
@@ -112,9 +112,10 @@ export function VaultProfileBanner({
         <div style={{ minWidth: 0 }}>
           <div
             style={{
-              fontSize: '1.05rem',
-              fontWeight: 800,
-              color: '#fff',
+              fontSize: isMobile ? '1rem' : '1.15rem',
+              fontWeight: 900,
+              color: '#ffffff',
+              letterSpacing: '-0.01em',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -122,10 +123,18 @@ export function VaultProfileBanner({
           >
             {displayName}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '3px' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginTop: '4px',
+              flexWrap: 'wrap',
+            }}
+          >
             <span
               style={{
-                fontSize: '0.55rem',
+                fontSize: '0.58rem',
                 fontWeight: 800,
                 padding: '2px 8px',
                 borderRadius: '4px',
@@ -137,8 +146,32 @@ export function VaultProfileBanner({
             >
               {currentTier.name}
             </span>
-            <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)' }}>
+            <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'rgba(255,255,255,0.45)' }}>
               LVL {level}
+            </span>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                background: 'rgba(16, 185, 129, 0.12)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                fontSize: '0.58rem',
+                fontWeight: 900,
+                color: '#10b981',
+                letterSpacing: '0.06em',
+              }}
+            >
+              <Image
+                src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png"
+                alt="Certified"
+                width={11}
+                height={11}
+                style={{ objectFit: 'contain' }}
+              />
+              CERTIFIED
             </span>
           </div>
         </div>
@@ -185,7 +218,8 @@ export function VaultProfileBanner({
               fontFamily: 'var(--font-mono, monospace)',
             }}
           >
-            ${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            $
+            {`${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           </div>
         </div>
         <div
@@ -222,10 +256,10 @@ export function VaultProfileBanner({
         </div>
       </div>
 
-      {/* Verified */}
+      {/* Verified Status Pill (Desktop/Tablet right-aligned) */}
       <div
         style={{
-          display: 'flex',
+          display: isMobile ? 'none' : 'flex',
           gap: '10px',
           alignItems: 'center',
           flexShrink: 0,
@@ -236,17 +270,26 @@ export function VaultProfileBanner({
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '5px',
-            padding: '5px 10px',
+            gap: '6px',
+            padding: '6px 12px',
             borderRadius: '8px',
             background: 'rgba(16,185,129,0.08)',
-            border: '1px solid rgba(16,185,129,0.15)',
-            fontSize: '0.6rem',
+            border: '1px solid rgba(16,185,129,0.2)',
+            fontSize: '0.62rem',
             fontWeight: 800,
             color: '#10b981',
+            letterSpacing: '0.04em',
+            whiteSpace: 'nowrap',
           }}
         >
-          <ShieldCheck size={11} /> VERIFIED
+          <Image
+            src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png"
+            alt="Certified"
+            width={12}
+            height={12}
+            style={{ objectFit: 'contain' }}
+          />
+          VERIFIED
         </div>
       </div>
     </div>

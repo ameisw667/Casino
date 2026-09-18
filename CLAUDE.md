@@ -56,7 +56,7 @@ npm run build      # Production-Build
 
 ### Auto-Allow & Execution Policy (Antigravity)
 - **K1/K2 Auto-Allow**: Read-only (`git status`, `git diff`, `git log`) und CI/Test-Befehle (`npm test`, `npm run test`, `npx vitest run`, `npm run typecheck`, `npm run lint`, `npx tsc`, `npm run build`, `npm run vibe-check`) werden global auf Auto-Allow gesetzt.
-- **Keine variablen Dateipfade an Linter**: Niemals `npx eslint file1.tsx ...` aufrufen (erzeugt unbekannte Einzelbefehle), sondern immer **`npm run lint`** ausführen.
+- **Keine variablen Dateipfade an Linter & Test-Runner**: Niemals `npx eslint file1.tsx ...` oder `npx vitest run pfad/...` als Ad-hoc-Einzelpfad aufrufen (erzeugt unbekannte Einzelbefehle), sondern immer **`npm test`**, **`npm run test`** bzw. **`npm run lint`** ausführen – es sei denn, in den Antigravity-Settings ist explizit `npx vitest *` in der Command Allowlist hinterlegt.
 - **Non-Interactive Execution**: Befehle immer mit non-interactive Flags ausführen (`--yes`, `-y`, `CI=true`), um CLI-Hangs zu verhindern.
 - **No-Pager**: `PAGER=cat` oder `--no-pager` für Git-Befehle nutzen.
 - **K5 Block**: Destruktive/Live-Befehle (`git push --force`, `rm -rf`, `supabase db reset`) erfordern immer explizite manuelle Bestätigung.
@@ -111,6 +111,11 @@ Next.js 16.3 App Router · React 19.2 · TypeScript 5 · Supabase (Auth, DB, SSR
 - Aggregierte Dashboards für KPIs (`/overview`, `/analytics`), Spielsteuerung (`/games`, `/simulation`), Sicherheit (`/fraud`), Promotion (`/promo-codes`) und KI (`/knowledge`, `/evals`).
 - Vollständige Routenmatrix und Backend-Datenquellen sind in `xx_sop/07_api_backend_routes.md` spezifiziert.
 
+## Session-Kontinuität
+- Vor Kompaktierung, Sitzungsende oder neuem Chat mit Altbezug: `checkpoint`/`save-session`/`resume-session` statt Chatverlauf bzw. Neu-Recherche.
+- Nach gelöstem, wiederkehrendem Fehler: `learn-eval` statt Planungsdatei-Prosa.
+- Neue Fehler-Pattern-Datei-Klasse nicht ohne Freigabe — offen in `01_8_session_memory.md` §4a.
+
 ### Design System Rules (enforced by Design-Guardian)
 
 - **Visuelle Identität:** „Obsidian & Gold (Premium)“; Obsidian-Hintergründe (`#0B0E14`), Gold-Akzente (`#D4AF37`), Smaragd (Win), Rubin (Loss).
@@ -129,7 +134,6 @@ Next.js 16.3 App Router · React 19.2 · TypeScript 5 · Supabase (Auth, DB, SSR
 - Atomare Finanz- und Spiel-RPCs (Migration 007) mit striktem `search_path = public`; alte `place_bet() `-Kette ist verboten.
 - Schema-Kontext: `xx_docs/01_supabase_context.md`; Migrations- und Rollout-Ablauf: `xx_sop/05_database_supabase.md`; Live-Status: `worldmap/00_WORLDMAP_STATUS.md`.
 
-
 ## Workflows & SOPs (On-Demand Router)
 
 Vor dem Ausführen strukturierter Aufgaben liest das LLM die entsprechende SOP via File-Read-Tool ein:
@@ -139,4 +143,6 @@ Vor dem Ausführen strukturierter Aufgaben liest das LLM die entsprechende SOP v
 | **Workflow-Jan Option-Gate** | [`xx_sop/01_workflow_jan_option_gate.md`](xx_sop/01_workflow_jan_option_gate.md) | Vor Architektur-, Design- & Scope-Entscheidungen (3 Optionen nach Jan-Schema). |
 | **Workflow-Jan Execution** | [`xx_sop/02_workflow_jan_execution.md`](xx_sop/02_workflow_jan_execution.md) | Bei Aufgaben-Umsetzung & 5-Stufen-Selbstprüfung. |
 | **Workflow-Jan Planungsdateien** | [`xx_sop/03_workflow_jan_planungsdateien.md`](xx_sop/03_workflow_jan_planungsdateien.md) | Vor dem Anlegen/Pflegen von Meilenstein-Dateien in `worldmap/`. |
-| **Workflow-Jan Frontend-Revamp** | [`xx_sop/10_workflow_frontend_revamp.md`](xx_sop/10_workflow_frontend_revamp.md) | Bei UI/UX-Umbauten, Screenshots oder Redesigns (3-Optionen-Design-Schema & URL-Abnahme). |
+| **Frontend, UI & Motion Hub** | [`xx_sop/04_design_system_ui.md`](xx_sop/04_design_system_ui.md) | Bei allen UI/UX-Themen — koordiniert intern: Revamp (`10`), Taste-QC (`15`), Motion-Polish (`16`) & Anti-Template (`17`). |
+| **Postgres & DB-Migrationen** | [`xx_sop/18_postgres_patterns_migrations.md`](xx_sop/18_postgres_patterns_migrations.md) | Bei DB-Migrationen, Concurrency-Locks, Indexierung & RLS-Optimierung. |
+| **Zero-Trust Security Review** | [`xx_sop/19_security_review_standards.md`](xx_sop/19_security_review_standards.md) | Vor Deployments, bei API-Endpunkten, Auth-Änderungen & Wallet-Schnittstellen. |

@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useCasinoStore } from '@/store/useCasinoStore';
-import { Gift, ArrowRight, ShieldCheck, Zap, X } from 'lucide-react';
+import { Gift, ArrowRight, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSupabaseSession } from '@/components/auth/SupabaseSessionProvider';
 
 import Image from 'next/image';
+import { StickyScrollTour } from '@/components/casino/onboarding/StickyScrollTour';
 
 /** Einheitlicher, beschrifteter Schließen-Knopf (Option A): identisch in jeder Phase, ein Klick reicht. */
 function OnboardingCloseButton({ onDismiss }: { onDismiss: () => void }) {
@@ -68,9 +69,9 @@ export default function OnboardingFlow() {
     };
   }, [isBlockingStep]);
 
-  // 7 & 30. Skip entire onboarding if already signed in
+  // 7 & 30. Skip login onboarding if already signed in
   useEffect(() => {
-    if (isLoaded && isSignedIn && onboardingStep !== 'NONE' && onboardingStep !== 'COMPLETED') {
+    if (isLoaded && isSignedIn && onboardingStep !== 'NONE' && onboardingStep !== 'COMPLETED' && onboardingStep !== 'WELCOME') {
       setOnboardingStep('COMPLETED');
     }
   }, [isLoaded, isSignedIn, onboardingStep, setOnboardingStep]);
@@ -100,7 +101,7 @@ export default function OnboardingFlow() {
         }}
       />
 
-      {/* Phase 1: WELCOME */}
+      {/* Phase 1: WELCOME / VIP FEATURE TOUR (Sticky Scroll Cards) */}
       {onboardingStep === 'WELCOME' && (
         <div
           style={{
@@ -113,88 +114,11 @@ export default function OnboardingFlow() {
             pointerEvents: 'auto',
           }}
         >
-          <div
-            className="glass-card animate-slide-up"
-            style={{
-              maxWidth: '500px',
-              width: '100%',
-              textAlign: 'center',
-              padding: '48px 32px',
-              border: '2px solid hsl(var(--primary))',
-              boxShadow: '0 0 50px hsla(var(--primary), 0.3)',
-              position: 'relative',
-            }}
-          >
-            <OnboardingCloseButton onDismiss={dismissOnboarding} />
-            <div className="case-bounce" style={{ marginBottom: '32px' }}>
-              <div style={{ position: 'relative', display: 'inline-block' }}>
-                <Gift size={120} color="hsl(var(--primary))" />
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '-10px',
-                    right: '-20px',
-                    background: '#fff',
-                    color: 'black',
-                    padding: '8px 16px',
-                    borderRadius: '12px',
-                    fontWeight: 950,
-                    transform: 'rotate(15deg)',
-                    border: '2px solid hsl(var(--primary))',
-                  }}
-                >
-                  $10.00 FREE
-                </div>
-              </div>
-            </div>
-            <h2
-              style={{
-                fontSize: '2.5rem',
-                fontWeight: 950,
-                marginBottom: '16px',
-                fontFamily: 'var(--font-inter), sans-serif',
-              }}
-            >
-              IT&apos;S RESERVED!
-            </h2>
-            <p
-              style={{ color: 'hsl(var(--text-muted))', fontSize: '1.1rem', marginBottom: '32px' }}
-            >
-              We&apos;ve reserved your $10.00 Welcome Case. Claim it now and start building your
-              empire.
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <button
-                onClick={() => setOnboardingStep('LOGIN')}
-                className="btn btn-primary"
-                style={{
-                  width: '100%',
-                  height: '64px',
-                  borderRadius: '16px',
-                  fontWeight: 950,
-                  fontSize: '1.2rem',
-                  gap: '12px',
-                }}
-              >
-                CLAIM MY CASE NOW <ArrowRight size={24} />
-              </button>
-              <button
-                onClick={dismissOnboarding}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'hsl(var(--text-dim))',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  padding: '8px',
-                }}
-                className="transition-colors hover:text-white"
-              >
-                I DON&apos;T WANT FREE MONEY, SKIP THIS
-              </button>
-            </div>
-          </div>
+          <StickyScrollTour
+            onDismiss={dismissOnboarding}
+            onClaim={() => setOnboardingStep('LOGIN')}
+            onComplete={() => setOnboardingStep('LOGIN')}
+          />
         </div>
       )}
 
@@ -293,7 +217,7 @@ export default function OnboardingFlow() {
                   fontWeight: 800,
                 }}
               >
-                <ShieldCheck size={14} /> NO KYC
+                <Image src="/images/2026-09-06_icon-security-verified-quantum-gold_v001.png" alt="Kein KYC" width={14} height={14} aria-hidden /> NO KYC
               </div>
               <div
                 style={{
@@ -304,7 +228,7 @@ export default function OnboardingFlow() {
                   fontWeight: 800,
                 }}
               >
-                <Zap size={14} /> INSTANT PAY
+                INSTANT PAY
               </div>
             </div>
           </div>

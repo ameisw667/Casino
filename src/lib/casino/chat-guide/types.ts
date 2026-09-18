@@ -51,4 +51,9 @@ export type GuideFunctionCall = {
 export type GuideStreamResult = {
   stream: ReadableStream<Uint8Array>;
   model: string;
+  // true: the stream's own start()/catch() already recorded guide telemetry at actual
+  // completion time (real OpenAI SSE path — success is only known once the stream ends).
+  // false: the answer was already fully resolved before the stream was built (fallback
+  // paths), so the caller must still record telemetry itself, same as before this field existed.
+  telemetryHandledInStream: boolean;
 };

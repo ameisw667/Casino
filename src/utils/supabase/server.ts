@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Database } from '@/types/database.types';
+import { withExplicitSameSite } from '@/lib/security/cookie-samesite';
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -16,7 +17,7 @@ export async function createClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
+              cookieStore.set(name, value, withExplicitSameSite(options)),
             );
           } catch {
             // Called from a Server Component render, where cookie writes are disallowed.

@@ -1,10 +1,10 @@
 {
-  "totalSpentUsd": 3.48,
+  "totalSpentUsd": 3.88,
   "monthlySpentUsd": {
-    "2026-09": 3.48
+    "2026-09": 3.88
   },
-  "lifetimeCalls": 39,
-  "lastUpdated": "2026-09-06T09:51:22.219Z",
+  "lifetimeCalls": 44,
+  "lastUpdated": "2026-09-06T13:51:56.942Z",
   "history": [
     {
       "timestamp": "2026-09-02T19:59:33.374Z",
@@ -275,6 +275,41 @@
     {
       "timestamp": "2026-09-06T09:51:22.219Z",
       "name": "icon-trophy-record-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-06T13:51:56.942Z",
+      "name": "icon-crown-vip-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-06T13:51:56.942Z",
+      "name": "icon-crown-jackpot-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-06T13:51:56.942Z",
+      "name": "icon-star-rating-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-06T13:51:56.942Z",
+      "name": "icon-star-level-quantum-gold",
+      "size": "1024x1024",
+      "quality": "medium",
+      "costUsd": 0.08
+    },
+    {
+      "timestamp": "2026-09-06T13:51:56.942Z",
+      "name": "icon-security-verified-quantum-gold",
       "size": "1024x1024",
       "quality": "medium",
       "costUsd": 0.08

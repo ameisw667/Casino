@@ -15,7 +15,8 @@ import {
 const EVENT_LIST_LIMIT = 200;
 
 const listQuerySchema = z.object({
-  status: z.enum(['open', 'reviewed', 'closed']).optional(),
+  // 06_3 L3: `suppressed` = admin-marked known-legitimate cluster (household/office/CGNAT).
+  status: z.enum(['open', 'reviewed', 'closed', 'reopened', 'suppressed']).optional(),
   severity: z.enum(['low', 'medium', 'high']).optional(),
   signalType: z
     .enum([
@@ -38,7 +39,11 @@ const listQuerySchema = z.object({
 
 const reviewSchema = z.object({
   eventId: z.string().uuid(),
-  status: z.enum(['reviewed', 'closed']),
+  // 06_9 L3: `reopened` re-queues a wrongly closed/reviewed event (RPC enforces the
+  // closed/reviewed → reopened transition; open → reopened is rejected there).
+  // 06_3 L3: `suppressed` marks a cluster as known-legitimate; future scans skip its
+  // fingerprint instead of re-raising the same open finding on every run.
+  status: z.enum(['reviewed', 'closed', 'reopened', 'suppressed']),
   reason: z.string().trim().min(1).max(500),
   tokenId: z.string().optional(),
 });
@@ -98,7 +103,10 @@ export async function GET(request: Request) {
       return apiErrorResponse('LOAD_FAILED', 'Failed to load fraud signals', 503);
     }
 
-    return apiSuccessResponse({ events: data ?? [] }, { headers: rateLimitHeaders(rate) });
+    return apiSuccessResponse(
+      { events: data ?? [] },
+      { headers: { ...rateLimitHeaders(rate), 'Cache-Control': 'private, no-store' } },
+    );
   } catch (error) {
     CasinoLogger.error('API/Admin/Fraud', 'List unexpected failure', error);
     return apiErrorResponse('FRAUD_UNAVAILABLE', 'Fraud signals unavailable', 503);
@@ -165,7 +173,9 @@ export async function PATCH(request: Request) {
       return apiErrorResponse('REVIEW_FAILED', 'Failed to review fraud signal', 500);
     }
 
-    if (parsed.data.tokenId) {
+    // A reopen does not resolve an outstanding 48h wait token — the token still awaits
+    // a real reviewed/closed decision, so it must not receive `reopened` as its output.
+    if (parsed.data.tokenId && parsed.data.status !== 'reopened') {
       try {
         await wait.completeToken(parsed.data.tokenId, {
           status: parsed.data.status,

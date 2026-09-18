@@ -89,6 +89,26 @@ describe('recordBetPlacedBestEffort', () => {
     expect(mocks.incr).toHaveBeenNthCalledWith(2, 'casino:bet-velocity:user-2');
   });
 
+  // 06_4 (T4/L0): exactly one caller sees the atomic INCR threshold value, so a parallel
+  // bet burst must produce exactly one bet_velocity signal — never two (double-trigger)
+  // and never zero (lost crossing). The mock backend counts synchronously, so this verifies
+  // call-ordering semantics, not real network concurrency against a live Redis server
+  // (documented limitation per plan L0).
+  it('fires exactly one threshold signal when parallel bets cross the threshold', async () => {
+    let counter = 0;
+    mocks.incr.mockImplementation(async () => {
+      counter += 1;
+      return counter;
+    });
+
+    await Promise.all(
+      [...Array(BET_VELOCITY_THRESHOLD + 5)].map(() => recordBetPlacedBestEffort('user-1')),
+    );
+
+    expect(mocks.recordRiskEventBestEffort).toHaveBeenCalledTimes(1);
+    expect(mocks.recordRiskEventBestEffort.mock.calls[0]?.[0]?.signalType).toBe('bet_velocity');
+  });
+
   it('fails open when the counter backend is unavailable (never touches the bet path)', async () => {
     mocks.incr.mockRejectedValue(new Error('redis down'));
     await expect(recordBetPlacedBestEffort('user-1')).resolves.toBeUndefined();

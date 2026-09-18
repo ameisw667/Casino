@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { useCasinoStore } from '@/store/useCasinoStore';
 import { GameErrorBoundary } from '@/components/casino/GameErrorBoundary';
 import { validateBet } from '@/lib/casino/bet-validator';
@@ -9,17 +10,20 @@ import { CasinoLogger } from '@/lib/casino/logger';
 import { getApiErrorMessage } from '@/lib/security/form-errors';
 import { dicePageStyles } from '@/components/casino/games/dice/dice-page-styles';
 import { DiceControlSidebar } from '@/components/casino/games/dice/DiceControlSidebar';
-import { DiceCenterStageV2 } from '@/components/casino/games/dice/v2/DiceCenterStageV2';
+import { DiceCenterStageInitial } from '@/components/casino/games/dice/v2/DiceCenterStageInitial';
+import { GameLayout } from '@/components/casino/GameLayout';
 import type { DiceHistoryItem, SessionStats } from '@/components/casino/games/dice/dice-config';
+
+const DiceCenterStageV2 = dynamic(
+  () =>
+    import('@/components/casino/games/dice/v2/DiceCenterStageV2').then(
+      (module) => module.DiceCenterStageV2,
+    ),
+  { ssr: false },
+);
 
 export default function DicePage() {
   const isMobile = useCasinoStore((state) => state.isMobile);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
-
   const balance = useCasinoStore((state) => state.balance);
   const provablyFairSettings = useCasinoStore((state) => state.provablyFairSettings);
   const setProvablyFairSettings = useCasinoStore((state) => state.setProvablyFairSettings);
@@ -43,6 +47,7 @@ export default function DicePage() {
   const [targetPoint, setTargetPoint] = useState(50.5);
   const [isDraggingThumb, setIsDraggingThumb] = useState(false);
   const [winStreak, setWinStreak] = useState(0);
+  const [shouldLoadInteractiveStage, setShouldLoadInteractiveStage] = useState(false);
 
   // Session stats tracker
   const [sessionStats, setSessionStats] = useState<SessionStats>({
@@ -406,8 +411,6 @@ export default function DicePage() {
     betAmount,
   ]);
 
-  if (!mounted) return null;
-
   const handleQuickBet = (amt: number) => {
     if (loading || isProcessing) return;
     const clamped = Math.max(betMin, Math.min(betMax, Math.min(balance, amt)));
@@ -430,8 +433,9 @@ export default function DicePage() {
 
   return (
     <GameErrorBoundary gameName="Dice 3D Arcade">
-      <div
-        className="dice-container"
+      <GameLayout triggerSignal={lastResult?.id}>
+        <div
+          className="dice-container"
         style={{
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : '330px 1fr',
@@ -471,27 +475,32 @@ export default function DicePage() {
         />
 
         {/* 2. ZENTRALE 3D-BÜHNE (3D ARCADE) */}
-        <DiceCenterStageV2
-          isMobile={isMobile}
-          loading={loading}
-          lastResult={lastResult}
-          history={history}
-          winStreak={winStreak}
-          targetPoint={targetPoint}
-          isRollOver={isRollOver}
-          winChance={winChance}
-          multiplier={multiplier}
-          isDraggingThumb={isDraggingThumb}
-          sliderRef={sliderRef}
-          onMouseDown={onMouseDown}
-          onTouchStart={onTouchStart}
-          onUpdateFromWinChance={updateFromWinChance}
-          onUpdateFromMultiplier={updateFromMultiplier}
-          onUpdateFromTarget={updateFromTarget}
-          onToggleRollMode={toggleRollMode}
-          soundEnabled={soundEnabled}
-        />
+        {shouldLoadInteractiveStage ? (
+          <DiceCenterStageV2
+            isMobile={isMobile}
+            loading={loading}
+            lastResult={lastResult}
+            history={history}
+            winStreak={winStreak}
+            targetPoint={targetPoint}
+            isRollOver={isRollOver}
+            winChance={winChance}
+            multiplier={multiplier}
+            isDraggingThumb={isDraggingThumb}
+            sliderRef={sliderRef}
+            onMouseDown={onMouseDown}
+            onTouchStart={onTouchStart}
+            onUpdateFromWinChance={updateFromWinChance}
+            onUpdateFromMultiplier={updateFromMultiplier}
+            onUpdateFromTarget={updateFromTarget}
+            onToggleRollMode={toggleRollMode}
+            soundEnabled={soundEnabled}
+          />
+        ) : (
+          <DiceCenterStageInitial onRequestInteractive={() => setShouldLoadInteractiveStage(true)} />
+        )}
       </div>
-    </GameErrorBoundary>
-  );
+    </GameLayout>
+  </GameErrorBoundary>
+);
 }

@@ -25,4 +25,14 @@ describe('detectSignupSuspicion', () => {
     expect(detectSignupSuspicion('', Number.NaN, Date.now())).toBeNull();
     expect(detectSignupSuspicion('', Date.now() + 60_000, Date.now())).toBeNull();
   });
+
+  // 06_4 (T2/L4): remaining documented corrupt-timestamp cases from the 06_1 protocol —
+  // a pre-epoch value (-1) inflates elapsed beyond the threshold (never a timing hit), and
+  // a runtime-undefined render stamp (bypassing the number type) degrades elapsed to NaN.
+  it('never blocks on pre-epoch or undefined render timestamps (fail-open)', () => {
+    expect(detectSignupSuspicion('', -1, Date.now())).toBeNull();
+    expect(
+      detectSignupSuspicion('', undefined as unknown as number, Date.now()),
+    ).toBeNull();
+  });
 });

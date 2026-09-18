@@ -13,7 +13,7 @@
 - `xx_docs/01_supabase_context.md`: Projektgrenze, drei Supabase-Clients und Datenbankinventar.
 - `xx_sop/05_database_supabase.md`: Migrations-, Rollout- und Rollback-Grenzen.
 - `xx_sop/09_security_wallet_invariants.md`: Geldpfad bleibt serverautoritär und muss nach jeder Wiederherstellung erneut geprüft werden.
-- `worldmap/04_datenbank_migrationen.md`: Messquelle für #8 und #10.
+- `T_DATABASE/04_datenbank_migrationen.md`: Messquelle für #8 und #10.
 
 ### Entry Points und Ausführungsweg
 

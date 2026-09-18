@@ -17,7 +17,22 @@ name: Security red team probes
 # which was already passing).
 
 on:
+  # 06_7 L0 (R3, original-author TODO from docs/security-hardening/09_red_team_probes.md §6):
+  # weekly schedule so a rate-limit/IDOR regression surfaces automatically. Deliberately
+  # weekly (not per-push/PR like security-staging.yml) — a red-team run touches potentially
+  # every route, so a meaningful path filter would be impractically broad, and the
+  # ephemeral-stack runtime makes weekly cadence the cost-appropriate gate.
+  # Sunday 04:00 UTC, one hour after backup-drill.yml's '0 3 * * 0' to avoid runner overlap.
+  schedule:
+    - cron: '0 4 * * 0'
   workflow_dispatch:
+
+concurrency:
+  # 06_7 L1 (R4): same pattern as quality-ci.yml — two simultaneous runs (e.g. a manual
+  # workflow_dispatch colliding with the new weekly schedule) would otherwise race for the
+  # same ephemeral Supabase stack and its fixed local ports.
+  group: red-team-security-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -38,9 +53,44 @@ jobs:
           node-version-file: '.nvmrc'
           cache: npm
       - run: npm ci
+      # docs/security-hardening/07_dependency_supply_chain_audit.md L1 (Runde 2): ignore-scripts=true
+      # in .npmrc means `npm ci` above no longer auto-runs any lifecycle script. This runs the
+      # allowlisted dependency scripts (package.json > lavamoat.allowScripts) and, as a side effect
+      # of allow-scripts re-invoking the root package's own lifecycle events, husky's git-hooks setup.
+      - run: npm run allow-scripts
+
+      # T_SECURITY_HARDENING/02_security_ci_gate.md L2 (2026-09-12): identical image cache as
+      # security-staging.yml — same key, so whichever of the two security workflows runs first
+      # populates the image set for both. Only the immutable Docker images are cached, never any
+      # database state: every run still starts from an empty volume and applies all migrations
+      # fresh, so the ephemeral-stack isolation guarantee is unchanged. This edit is deliberately
+      # additive to the setup area only — the red-team probe steps below are owned by their own
+      # plan and are not touched here.
+      - id: supabase-version
+        run: echo "version=$(npx supabase --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')" >> "$GITHUB_OUTPUT"
+
+      - id: supabase-images
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: /tmp/supabase-images.tar
+          key: supabase-docker-images-${{ runner.os }}-${{ steps.supabase-version.outputs.version }}
+
+      - name: Load cached Supabase Docker images
+        run: if [ -f /tmp/supabase-images.tar ]; then docker load -i /tmp/supabase-images.tar; fi
 
       - name: Start ephemeral local Supabase
         run: npx supabase start
+
+      # ubuntu-latest runners ship with no pre-pulled Docker images, so after `supabase start` the
+      # image list is exactly the Supabase stack. Only saved on a cache miss; the cache action's
+      # post-job save step uploads the tar for the next run.
+      - name: Save Supabase Docker images for the next run
+        if: always() && steps.supabase-images.outputs.cache-hit != 'true'
+        run: |
+          images=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -v '<none>')
+          if [ -n "$images" ]; then
+            docker save $images -o /tmp/supabase-images.tar
+          fi
 
       - name: Export local Supabase connection vars
         run: |
@@ -82,6 +132,15 @@ jobs:
       - run: npx tsx scripts/red-team/target-guard.ts
       - run: npx tsx scripts/red-team/rate-limit-bypass.ts
       - run: npx tsx scripts/red-team/admin-idor.ts
+      # 06_7 L2/L3 (R5/R6): bot-signal chain, crash-multiplayer rate-limit boundary and the
+      # admin-fraud review IDOR analogon — documented in docs/security-hardening/09_red_team_probes.md §3.
+      - run: npx tsx scripts/red-team/bot-bypass.ts
+      - run: npx tsx scripts/red-team/crash-mp-bypass.ts
+      - run: npx tsx scripts/red-team/admin-fraud-idor.ts
+      # P1.4 origin-bypass (T_SECURITY_HARDENING/04 Runde 2, L5): three attack shapes against the
+      # two-layer CSRF Origin-Guard on /api/casino/bet — forged Origin, missing Origin headers, and
+      # a spoofed Sec-Fetch-Site header (only catchable by the route-level Layer 2 guard).
+      - run: npx tsx scripts/red-team/origin-bypass.ts
 
       - name: Show app log on failure
         if: failure()
