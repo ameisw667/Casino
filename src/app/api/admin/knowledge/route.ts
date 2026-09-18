@@ -87,7 +87,10 @@ export async function GET(request: Request) {
             updated_at: new Date().toISOString(),
           }));
 
-    return apiSuccessResponse({ documents }, { headers: rateLimitHeaders(rate) });
+    return apiSuccessResponse(
+      { documents },
+      { headers: { ...rateLimitHeaders(rate), 'Cache-Control': 'private, no-store' } },
+    );
   } catch (error) {
     CasinoLogger.error(
       'API/Admin/Knowledge',

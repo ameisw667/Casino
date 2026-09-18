@@ -6,10 +6,8 @@
     "node": ">=20.9.0"
   },
   "scripts": {
-    "predev": "node -e \"const fs=require('fs');const p='.next/dev/cache/turbopack';try{fs.rmSync(p,{recursive:true,force:true});console.log('[predev] Turbopack cache cleared')}catch(e){}; if(!fs.existsSync('.env.local')&&fs.existsSync('.env.local.verification-bak')){fs.copyFileSync('.env.local.verification-bak','.env.local');console.log('[predev] .env.local restored from backup')}\" && tsx scripts/assert-core-env.ts",
-    "dev": "next dev --port 3015",
-    "prebuild": "tsx scripts/assert-core-env.ts",
-    "build": "next build",
+    "dev": "node -e \"const fs=require('fs');const p='.next/dev/cache/turbopack';try{fs.rmSync(p,{recursive:true,force:true});console.log('[predev] Turbopack cache cleared')}catch(e){}; if(!fs.existsSync('.env.local')&&fs.existsSync('.env.local.verification-bak')){fs.copyFileSync('.env.local.verification-bak','.env.local');console.log('[predev] .env.local restored from backup')}\" && tsx scripts/assert-core-env.ts && next dev --port 3015",
+    "build": "tsx scripts/assert-core-env.ts && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -50,7 +48,8 @@
     "check-duplication": "node scripts/check-duplication.mjs",
     "check-file-sizes": "node scripts/check-file-sizes.mjs",
     "check-secret-rotation": "tsx scripts/check-secret-rotation-due.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "allow-scripts": "allow-scripts"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -97,6 +96,7 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "16.3.5",
+    "@lavamoat/allow-scripts": "^5.1.0",
     "@rolldown/pluginutils": "^1.0.1",
     "@testing-library/react": "16.3.3",
     "@trigger.dev/build": "4.5.12",
@@ -141,5 +141,16 @@
   "overrides": {
     "deepmerge-ts": "^8.0.0",
     "ws": "^8.21.3"
+  },
+  "lavamoat": {
+    "allowScripts": {
+      "@sentry/nextjs>@sentry/bundler-plugin-core>@sentry/cli#2.58.6": true,
+      "artillery>@playwright/browser-chromium#1.62.1": false,
+      "artillery>hot-shots>unix-dgram#2.0.7": false,
+      "artillery>protobufjs#7.6.6": false,
+      "eslint-config-next>eslint-import-resolver-typescript>unrs-resolver#1.12.2": true,
+      "posthog-js>core-js#3.50.0": false,
+      "tsx>esbuild#0.28.1": true
+    }
   }
 }

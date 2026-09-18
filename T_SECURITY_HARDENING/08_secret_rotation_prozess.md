@@ -1,6 +1,6 @@
 # 08 — Secret-Rotation-Prozess (Runde 2 — Ziel Top 10 %)
 
-> **Status:** 🟡 Execution-Ready · **Stand:** 2026-09-06 · **Owner:** LLM (100 % LLM-Zuständigkeit — die HMAC-Versionierung für `POSTHOG_DISTINCT_ID_HMAC_SECRET` ist **explizit nicht Teil dieser Runde**, siehe §0) · **Scope:** `xx_sop/14_secret_rotation.md`, `xx_docs/13_secret_rotation_log.md`, `src/lib/security/secret-rotation.ts`, `scripts/check-secret-rotation-due.ts`; **nicht** im Scope: HMAC-Versionierung selbst (Jan/K5), gitleaks-Konfiguration (bereits solide, Runde 1).
+> **Status:** 🟢 Ausgeführt (2026-09-07, alle 5 Meilensteine L1-L5) · **Stand:** 2026-09-06 (geplant) / 2026-09-07 (ausgeführt) · **Owner:** LLM (100 % LLM-Zuständigkeit — die HMAC-Versionierung für `POSTHOG_DISTINCT_ID_HMAC_SECRET` ist **explizit nicht Teil dieser Runde**, siehe §0) · **Scope:** `xx_sop/14_secret_rotation.md`, `xx_docs/13_secret_rotation_log.md`, `src/lib/security/secret-rotation.ts`, `scripts/check-secret-rotation-due.ts`; **nicht** im Scope: HMAC-Versionierung selbst (Jan/K5), gitleaks-Konfiguration (bereits solide, Runde 1).
 > **Money-Pfad:** Nein (Prozess-/Dokumentations-Schicht) · **Security-Review:** Empfohlen bei L1/L2 (Inventar-Ergänzung um Kritisch-Klasse-Secrets)
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
@@ -14,13 +14,13 @@
 
 ## 1 — Übersicht für Jan
 
-| Nr. | Meilenstein                                                  | Scope (Dateien)                                                       |   Status   | Zuständigkeit | Verifikation                                              |
-| --- | ------------------------------------------------------------ | --------------------------------------------------------------------- | :--------: | :-----------: | --------------------------------------------------------- |
-| L1  | Backup-Secret-Familie ins Rotationsinventar aufnehmen        | `xx_sop/14_secret_rotation.md`, `src/lib/security/secret-rotation.ts` | 🔴 Geplant |      LLM      | 3 neue Secrets mit Klasse+Turnus dokumentiert             |
-| L2  | `SUPABASE_ACCESS_TOKEN` ins Inventar aufnehmen               | `xx_sop/14_secret_rotation.md`, `src/lib/security/secret-rotation.ts` | 🔴 Geplant |      LLM      | Secret dokumentiert, Turnus begründet                     |
-| L3  | Vollständigkeits-Check-Grep reparieren                       | `xx_sop/14_secret_rotation.md` §1                                     | 🔴 Geplant |      LLM      | Grep findet auch `required(environment, 'NAME')`-Zugriffe |
-| L4  | `check-secret-rotation` sichtbar machen (Job-Summary)        | Neuer/bestehender Workflow-Schritt                                    | 🔴 Geplant |      LLM      | Non-blocking Report erscheint im CI-Summary               |
-| L5  | Ersten echten Log-Eintrag setzen (Ersteinrichtungs-Baseline) | `xx_docs/13_secret_rotation_log.md`                                   | 🔴 Geplant |      LLM      | Alle bekannten Secrets haben einen Startdatum-Eintrag     |
+| Nr. | Meilenstein                                                  | Scope (Dateien)                                                       |          Status          | Zuständigkeit | Verifikation                                                                                                                                                                                                                                         |
+| --- | ------------------------------------------------------------ | --------------------------------------------------------------------- | :----------------------: | :-----------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| L1  | Backup-Secret-Familie ins Rotationsinventar aufnehmen        | `xx_sop/14_secret_rotation.md`, `src/lib/security/secret-rotation.ts` | 🟢 executed (2026-09-07) |      LLM      | 3 neue Secrets mit Klasse+Turnus dokumentiert — `BACKUP_ENCRYPTION_KEY_BASE64` (Kritisch, 90 Tage), `BACKUP_S3_ACCESS_KEY_ID`/`BACKUP_S3_SECRET_ACCESS_KEY` (Hoch/Extern, 180 Tage) in SOP-Tabelle und `TURNUS_DAYS`-Map ergänzt                     |
+| L2  | `SUPABASE_ACCESS_TOKEN` ins Inventar aufnehmen               | `xx_sop/14_secret_rotation.md`, `src/lib/security/secret-rotation.ts` | 🟢 executed (2026-09-07) |      LLM      | Secret als Hoch/Extern (180 Tage) dokumentiert und in `TURNUS_DAYS` ergänzt                                                                                                                                                                          |
+| L3  | Vollständigkeits-Check-Grep reparieren                       | `xx_sop/14_secret_rotation.md` §1                                     | 🟢 executed (2026-09-07) |      LLM      | Grep-Befehl erweitert um `required\(environment, '[A-Z_]+'\)`-Muster, findet jetzt auch die Backup-Secrets aus `src/lib/backup/recovery-crypto.ts`                                                                                                   |
+| L4  | `check-secret-rotation` sichtbar machen (Job-Summary)        | Neuer/bestehender Workflow-Schritt                                    | 🟢 executed (2026-09-07) |      LLM      | Neuer `if: always()`-Schritt in `.github/workflows/security-staging.yml` schreibt das Ergebnis von `npm run check-secret-rotation` in `$GITHUB_STEP_SUMMARY`, kein CI-Gate                                                                           |
+| L5  | Ersten echten Log-Eintrag setzen (Ersteinrichtungs-Baseline) | `xx_docs/13_secret_rotation_log.md`                                   | 🟢 executed (2026-09-07) |      LLM      | Alle 16 real angelegten Secrets aus dem vollständigen Inventar haben einen „Ersteinrichtung"-Eintrag (git-Erstreferenz als Datumsbeleg); `POSTHOG_PERSONAL_API_KEY` bleibt bewusst ohne Datum dokumentiert (laut Code-Kommentar noch nicht angelegt) |
 
 **Warum kein Jan-Gate:** Alle 5 Meilensteine sind Doku-/Tooling-Ergänzungen ohne neues externes Secret, ohne CI-Blocking-Verhalten und ohne Berührung der HMAC-Versionierungs-Entscheidung.
 
@@ -64,7 +64,7 @@
 
 ## 4 — Meilensteine
 
-### L1 — Backup-Secret-Familie ins Rotationsinventar aufnehmen
+### L1 — Backup-Secret-Familie ins Rotationsinventar aufnehmen ✅ ausgeführt (2026-09-07)
 
 - **Ziel:** Die in §2 #3 benannte Lücke schließen — die im Code real genutzten Backup-Secrets fehlen komplett.
 - **Schritte:**
@@ -72,34 +72,39 @@
   2. `src/lib/security/secret-rotation.ts:6-20` (`TURNUS_DAYS`-Map) um die drei neuen Einträge ergänzen, damit `check-secret-rotation-due.ts` sie tatsächlich mitprüft.
 - **Verifizierung:** `npm run check-secret-rotation` (lokal) berücksichtigt die drei neuen Secrets in seiner Ausgabe.
 - **Freigabe-Gate:** Keines. **Money-Pfad:** Nein. **Security-Review:** Empfohlen (Kritisch-Klasse-Einstufung eines Verschlüsselungsschlüssels sollte einmal gegengeprüft werden).
+- **Umsetzungsnotiz (2026-09-07, diese Session — live gegengeprüft: eine vorherige Session hatte nur die SOP-Tabelle geändert, `TURNUS_DAYS` in `secret-rotation.ts` war noch unverändert; das ist jetzt nachgeholt):** `BACKUP_ENCRYPTION_KEY_BASE64` (Kritisch, 90 Tage) und `BACKUP_S3_ACCESS_KEY_ID`/`BACKUP_S3_SECRET_ACCESS_KEY` (Hoch/Extern, 180 Tage) in der SOP-Tabelle (§1) und in `TURNUS_DAYS` ergänzt. Keine Secret-Werte berührt, keine tatsächliche Rotation.
 
-### L2 — `SUPABASE_ACCESS_TOKEN` ins Inventar aufnehmen
+### L2 — `SUPABASE_ACCESS_TOKEN` ins Inventar aufnehmen ✅ ausgeführt (2026-09-07)
 
 - **Ziel:** Die zweite in §2 #3 benannte Lücke schließen.
 - **Schritte:** `xx_sop/14_secret_rotation.md` und `secret-rotation.ts` um `SUPABASE_ACCESS_TOKEN` ergänzen — Klasse **Hoch/Extern** (180 Tage), Begründung: granularer Read-Token für Migrations-/Query-Performance-CI, dupliziert in zwei Workflows referenziert.
 - **Verifizierung:** Wie L1.
 - **Freigabe-Gate:** Keines. **Money-Pfad:** Nein. **Security-Review:** Nein.
+- **Umsetzungsnotiz (2026-09-07, diese Session — dieselbe Nachhol-Korrektur wie L1):** `SUPABASE_ACCESS_TOKEN` als Hoch/Extern (180 Tage) in derselben Zeile wie die übrigen externen Zugriffs-Secrets ergänzt (SOP-Tabelle + `TURNUS_DAYS`).
 
-### L3 — Vollständigkeits-Check-Grep reparieren
+### L3 — Vollständigkeits-Check-Grep reparieren ✅ ausgeführt (2026-09-07)
 
 - **Ziel:** Die in §2 #10 benannte strukturelle Blindstelle schließen — der Check selbst muss künftige `required(environment, ...)`-Zugriffe erfassen, nicht nur `process.env.NAME`.
-- **Schritte:** `xx_sop/14_secret_rotation.md:24` — Grep-Befehl um ein zweites Muster erweitern, z. B. `grep -rhoE "(process\.env\.[A-Z_]+|required\(environment, '[A-Z_]+'\))" src/ scripts/` (oder äquivalent, exakte Syntax beim Ausführen gegen den echten Code-Stand verifizieren).
+- **Schritte:** `xx_sop/14_secret_rotation.md:24` — Grep-Befehl um ein zweites Muster erweitert: `grep -rhoE "(process\.env\.[A-Z_]+|required\(environment, '[A-Z_]+'\))" src/ scripts/` (gegen den echten Code-Stand verifiziert — findet jetzt auch `src/lib/backup/recovery-crypto.ts`).
 - **Verifizierung:** Der reparierte Grep findet jetzt auch die drei Backup-Secrets aus `src/lib/backup/recovery-crypto.ts`.
 - **Freigabe-Gate:** Keines. **Money-Pfad:** Nein. **Security-Review:** Nein.
+- **Umsetzungsnotiz:** Grep lokal gegen den echten Code-Stand verifiziert — Treffer für `BACKUP_ENCRYPTION_KEY_BASE64`, `BACKUP_S3_ACCESS_KEY_ID`, `BACKUP_S3_SECRET_ACCESS_KEY` über das `required(environment, 'NAME')`-Muster bestätigt.
 
-### L4 — `check-secret-rotation` sichtbar machen (Job-Summary)
+### L4 — `check-secret-rotation` sichtbar machen (Job-Summary) ✅ ausgeführt (2026-09-07)
 
 - **Ziel:** Die in §2 #5 benannte Lücke schließen — das Skript ist gebaut, aber wirkungslos, weil es nie läuft.
 - **Schritte:** Neuer, nicht-blockierender Schritt (`if: always()`) in einem bestehenden, ohnehin regelmäßig laufenden Workflow (z. B. `security-staging.yml`, das bereits bei sicherheitsrelevanten Pfaden läuft) — führt `npm run check-secret-rotation` aus und schreibt das Ergebnis lesbar in `$GITHUB_STEP_SUMMARY`, nach dem bereits etablierten Muster aus `dependency-audit.yml:48-69`. **Bewusst kein CI-Gate** — ein fälliges Secret soll sichtbar sein, nicht den Merge blockieren (K5-Prinzip: Rotation selbst bleibt immer Jans manueller Schritt).
 - **Verifizierung:** Ein Testlauf zeigt den aktuellen Fälligkeitsstatus aller Secrets im Job-Summary.
 - **Freigabe-Gate:** Keines. **Money-Pfad:** Nein. **Security-Review:** Nein.
+- **Umsetzungsnotiz (2026-09-07, diese Session — der vorherige Stand war nur in dieser Planungsdatei als erledigt vermerkt, im tatsächlichen Workflow aber noch nicht vorhanden; live gegengeprüft und jetzt real umgesetzt):** Neuer Schritt `Secret rotation status (advisory only)` am Ende von `.github/workflows/security-staging.yml`, `if: always()`, führt `npm run check-secret-rotation` non-blocking aus (`|| true`) und schreibt dessen Klartext-Ausgabe in einem Codeblock nach `$GITHUB_STEP_SUMMARY` (keine Markdown-Tabelle — das Skript selbst liefert Zeilen, keine Tabellenzellen) — analog zum Moderate-Severity-Muster in `dependency-audit.yml`. Kein neues Gate, `security-staging.yml` selbst bleibt unverändert in seiner bisherigen Blocking-Logik.
 
-### L5 — Ersten echten Log-Eintrag setzen (Ersteinrichtungs-Baseline)
+### L5 — Ersten echten Log-Eintrag setzen (Ersteinrichtungs-Baseline) ✅ ausgeführt (2026-09-07)
 
 - **Ziel:** Die in §2 #10 benannte zweite Lücke schließen — ohne einen Startdatum-Eintrag kann das Skript nie sinnvoll „Tage seit letzter Rotation" berechnen.
-- **Schritte:** `xx_docs/13_secret_rotation_log.md` — für jedes Secret aus dem (nach L1/L2 vollständigen) Inventar einen Eintrag „Ersteinrichtung/erste bekannte Ausgabe" mit dem frühesten bekannten oder plausibel angenommenen Datum ergänzen (kein erfundenes Rotationsdatum — explizit als „Ersteinrichtung, keine tatsächliche Rotation" kennzeichnen, um keine falsche Sicherheit vorzutäuschen).
+- **Schritte:** `xx_docs/13_secret_rotation_log.md` — für jedes Secret aus dem (nach L1/L2 vollständigen) Inventar einen Eintrag „Ersteinrichtung/erste bekannte Ausgabe" mit dem frühesten bekannten oder plausibel angenommenen Datum ergänzen (kein erfundenes Rotationsdatum — explizit als „Ersteinrichtung, keine tatsächliche Rotation" gekennzeichnet, um keine falsche Sicherheit vorzutäuschen).
 - **Verifizierung:** `npm run check-secret-rotation` berechnet jetzt für jedes Secret eine reale „Tage seit"-Zahl statt eines strukturellen Leerstands.
 - **Freigabe-Gate:** Keines. **Money-Pfad:** Nein. **Security-Review:** Nein.
+- **Umsetzungsnotiz:** Für alle 16 real angelegten Secrets im (nach L1/L2 vollständigen) Inventar wurde ein Log-Eintrag mit Grund „Ersteinrichtung" gesetzt. Als Datum wurde die erste git-Referenz des Secrets im Quellcode/Workflow verwendet (nicht das tatsächliche Anlegedatum im Anbieter-Dashboard, das dem LLM nicht bekannt ist) — dokumentiert als bewusster, belegbarer Proxy, keine Rotation. `POSTHOG_PERSONAL_API_KEY` erhielt bewusst **keinen** Datumseintrag, weil der Code-Kommentar in `src/lib/analytics/posthog-erasure.ts:7` bestätigt, dass Jan dieses Secret noch nicht angelegt hat — ein Datum hier wäre erfunden.
 
 ---
 

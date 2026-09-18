@@ -5,11 +5,15 @@
 // *rule*, this map is only the machine-readable mirror of the days-per-class numbers.
 export const TURNUS_DAYS: Record<string, number> = {
   SUPABASE_SERVICE_ROLE_KEY: 90,
+  BACKUP_ENCRYPTION_KEY_BASE64: 90,
   UPSTASH_REDIS_REST_TOKEN: 180,
   SENTRY_AUTH_TOKEN: 180,
   TRIGGER_SECRET_KEY: 180,
   OPENAI_API_KEY: 180,
   POSTHOG_PERSONAL_API_KEY: 180,
+  BACKUP_S3_ACCESS_KEY_ID: 180,
+  BACKUP_S3_SECRET_ACCESS_KEY: 180,
+  SUPABASE_ACCESS_TOKEN: 180,
   CRON_ALERT_SECRET: 365,
   WALLET_EVENT_SECRET: 365,
   BIG_WIN_EVENT_SECRET: 365,
@@ -66,7 +70,12 @@ export function computeOverdue(
   for (const [secret, turnus] of Object.entries(turnusDays)) {
     const entry = byName.get(secret);
     if (!entry || !entry.lastRotated) {
-      results.push({ secret, status: 'never-rotated', daysSinceRotation: null, turnusDays: turnus });
+      results.push({
+        secret,
+        status: 'never-rotated',
+        daysSinceRotation: null,
+        turnusDays: turnus,
+      });
       continue;
     }
     const last = new Date(entry.lastRotated);

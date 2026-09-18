@@ -97,7 +97,7 @@ export async function GET(request: Request) {
 
     return apiSuccessResponse(
       { codes: data ?? [], redemptions24h },
-      { headers: rateLimitHeaders(rate) },
+      { headers: { ...rateLimitHeaders(rate), 'Cache-Control': 'private, no-store' } },
     );
   } catch (error) {
     CasinoLogger.error('API/Admin/PromoCodes', 'List unexpected failure', error);

@@ -50,6 +50,11 @@ jobs:
           node-version-file: '.nvmrc'
           cache: npm
       - run: npm ci
+      # docs/security-hardening/07_dependency_supply_chain_audit.md L1 (Runde 2): ignore-scripts=true
+      # in .npmrc means `npm ci` above no longer auto-runs any lifecycle script. This runs the
+      # allowlisted dependency scripts (package.json > lavamoat.allowScripts) and, as a side effect
+      # of allow-scripts re-invoking the root package's own lifecycle events, husky's git-hooks setup.
+      - run: npm run allow-scripts
 
       - name: Start ephemeral local Supabase
         run: npx supabase start
@@ -112,4 +117,24 @@ jobs:
             echo "constraint\"), that's a migration filename-number collision — see"
             echo "[docs/archive/05_datenbank_haertung.md](../../blob/main/docs/archive/05_datenbank_haertung.md)"
             echo "before assuming this workflow itself is broken."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # T_SECURITY_HARDENING/08_secret_rotation_prozess.md L4 — `npm run check-secret-rotation`
+      # (scripts/check-secret-rotation-due.ts) existed but ran nowhere automated, so an overdue
+      # secret was only visible to someone running it locally. This makes the current status
+      # visible directly on this already security-relevant, regularly-running workflow's run page.
+      # Deliberately advisory only (`|| true`, `if: always()`) — rotation itself stays a K5/Jan
+      # action (xx_sop/14_secret_rotation.md §0), so this must never become a merge-blocking gate.
+      - name: Secret rotation status (advisory only)
+        if: always()
+        run: |
+          {
+            echo "## Secret rotation status (informational, not a CI gate)"
+            echo ""
+            echo "Rotation itself is always a K5 (Jan) action — this only surfaces what"
+            echo "[xx_docs/13_secret_rotation_log.md](../../blob/main/xx_docs/13_secret_rotation_log.md) currently shows."
+            echo ""
+            echo '```'
+            npm run check-secret-rotation || true
+            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"

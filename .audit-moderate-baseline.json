@@ -1,0 +1,11 @@
+{
+  "//": "docs/security-hardening/07_dependency_supply_chain_audit.md L2 (Runde 2). First-seen dates for currently-known moderate/low npm audit advisories, so CI can flag one that has aged past agingThresholdDays without being triaged (fixed, or promoted into .audit-ci.jsonc's hard-gate allowlist with a decision note). This file is read-only from CI's perspective — a human updates it by hand when a NEW moderate/low advisory is triaged and accepted as a known, tracked finding; CI never writes back to it.",
+  "agingThresholdDays": 30,
+  "advisories": {
+    "GHSA-8988-4f7v-96qf": {
+      "package": "@opentelemetry/core",
+      "firstSeen": "2026-09-07",
+      "note": "Transitive via @trigger.dev/sdk > @trigger.dev/core > @opentelemetry/*. Same locked-breaking-upgrade situation as the allowlisted ws findings in .audit-ci.jsonc (S-3) — needs Jan's explicit call on a @trigger.dev major bump, not a silent dependency change."
+    }
+  }
+}

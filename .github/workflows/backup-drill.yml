@@ -64,6 +64,11 @@ jobs:
           node-version-file: '.nvmrc'
           cache: npm
       - run: npm ci
+      # docs/security-hardening/07_dependency_supply_chain_audit.md L1 (Runde 2): ignore-scripts=true
+      # in .npmrc means `npm ci` above no longer auto-runs any lifecycle script. This runs the
+      # allowlisted dependency scripts (package.json > lavamoat.allowScripts) and, as a side effect
+      # of allow-scripts re-invoking the root package's own lifecycle events, husky's git-hooks setup.
+      - run: npm run allow-scripts
       - name: Start ephemeral local Supabase (dump source)
         run: npx supabase start
       - name: Run isolated restore drill + wallet/RLS regression tests

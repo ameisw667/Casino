@@ -35,6 +35,11 @@ jobs:
           node-version-file: '.nvmrc'
           cache: npm
       - run: npm ci
+      # docs/security-hardening/07_dependency_supply_chain_audit.md L1 (Runde 2): ignore-scripts=true
+      # in .npmrc means `npm ci` above no longer auto-runs any lifecycle script. This runs the
+      # allowlisted dependency scripts (package.json > lavamoat.allowScripts) and, as a side effect
+      # of allow-scripts re-invoking the root package's own lifecycle events, husky's git-hooks setup.
+      - run: npm run allow-scripts
       - name: Run query performance audit (Management-API-Modus)
         run: npm run db:perf-audit
       - name: Export project config inventory (Säule 9 N5, read-only)

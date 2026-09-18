@@ -44,6 +44,23 @@ describe('apiSuccessResponse', () => {
 
     expect(response.headers.get('content-type')).toBe('application/vnd.custom+json');
   });
+
+  it('defaults Cache-Control to private, no-store when the caller sets none', () => {
+    const response = apiSuccessResponse({ balance: 100 });
+
+    expect(response.headers.get('Cache-Control')).toBe('private, no-store');
+  });
+
+  it('lets a route override Cache-Control for deliberately cacheable data', () => {
+    const response = apiSuccessResponse(
+      { rows: [] },
+      { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' } },
+    );
+
+    expect(response.headers.get('Cache-Control')).toBe(
+      'public, s-maxage=60, stale-while-revalidate=120',
+    );
+  });
 });
 
 describe('apiErrorResponse', () => {
@@ -77,5 +94,19 @@ describe('apiErrorResponse', () => {
         },
       },
     });
+  });
+
+  it('defaults Cache-Control to private, no-store when the caller sets none', () => {
+    const response = apiErrorResponse('UNAUTHORIZED', 'Missing auth cookie', 401);
+
+    expect(response.headers.get('Cache-Control')).toBe('private, no-store');
+  });
+
+  it('lets a route override Cache-Control on an error response', () => {
+    const response = apiErrorResponse('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429, undefined, {
+      headers: { 'Cache-Control': 'no-store, must-revalidate' },
+    });
+
+    expect(response.headers.get('Cache-Control')).toBe('no-store, must-revalidate');
   });
 });

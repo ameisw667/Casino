@@ -103,3 +103,8 @@ web/
 
 # image-generation scratch output (regenerable; committed generated assets live in public/generated/)
 /output/
+
+# dependency-audit.yml local reruns (regenerable; CI uploads sbom.json as a build artifact instead
+# of committing it — docs/security-hardening/07_dependency_supply_chain_audit.md)
+/audit-moderate.json
+/sbom.json
