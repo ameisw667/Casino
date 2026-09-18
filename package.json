@@ -48,6 +48,7 @@
     "check-duplication": "node scripts/check-duplication.mjs",
     "check-file-sizes": "node scripts/check-file-sizes.mjs",
     "check-secret-rotation": "tsx scripts/check-secret-rotation-due.ts",
+    "check-security-txt-expiry": "tsx scripts/check-security-txt-expiry.ts",
     "prepare": "husky",
     "allow-scripts": "allow-scripts"
   },

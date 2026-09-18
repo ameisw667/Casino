@@ -10,6 +10,21 @@ export const CSP_REPORT_FIELD_MAX_LENGTH = 2048;
 /** How many reports a single request may contribute to the pipeline (unchanged batch cap). */
 export const CSP_REPORT_BATCH_LIMIT = 20;
 
+// T_SECURITY_HARDENING/06_csp_violation_reporting.md L1: a botnet with N IPs can push N × 120
+// reports/min through the per-IP guard alone, and each accepted report becomes one Sentry event
+// (Denial-of-Wallet against the Sentry quota). The global scope is keyed on ONE fixed identifier so
+// every request shares a single distributed bucket, independent of the client IP the per-IP limit
+// derives. Threshold rationale: legitimate CSP violations only fire on a misconfiguration/deploy
+// regression — a normal deployment produces single-digit reports per minute, so 120/min (~2/s)
+// keeps ~30x headroom above realistic baseline traffic while still capping a botnet's marginal
+// value per IP. On overrun the sink stays silent (204) and simply stops forwarding.
+// Kept here (not in route.ts) because Next.js's App Router only allows route.ts to export HTTP
+// method handlers and a fixed set of route-config keys — any other named export fails the
+// generated route-shape typecheck (OmitWithTag<..., {[x: string]: never}>).
+export const CSP_REPORT_GLOBAL_SCOPE = 'csp-report-global';
+export const CSP_REPORT_GLOBAL_REQUEST_LIMIT = 120;
+export const CSP_REPORT_GLOBAL_WINDOW_SECONDS = 60;
+
 const boundedText = z.string().max(CSP_REPORT_FIELD_MAX_LENGTH);
 // Legacy line/column numbers arrive as integers; some user agents send strings instead.
 const boundedNumber = z.union([z.number().int().min(0).max(Number.MAX_SAFE_INTEGER), boundedText]);

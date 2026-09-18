@@ -7,8 +7,11 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@sentry/nextjs', () => ({ captureMessage: mocks.captureMessage }));
 
 import { POST } from '@/app/api/internal/csp-report/route';
-import { CSP_REPORT_GLOBAL_REQUEST_LIMIT } from '@/app/api/internal/csp-report/route';
-import { getCspReportSampler, resetCspReportSamplingForTests } from '@/lib/security/csp-report';
+import {
+  CSP_REPORT_GLOBAL_REQUEST_LIMIT,
+  getCspReportSampler,
+  resetCspReportSamplingForTests,
+} from '@/lib/security/csp-report';
 import { resetLocalRateLimitsForTests } from '@/lib/security/request-security';
 
 function reportRequest(

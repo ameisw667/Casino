@@ -2,6 +2,9 @@ import * as Sentry from '@sentry/nextjs';
 import { enforceRateLimit, getClientIdentifier } from '@/lib/security/request-security';
 import {
   CSP_REPORT_BATCH_LIMIT,
+  CSP_REPORT_GLOBAL_SCOPE,
+  CSP_REPORT_GLOBAL_REQUEST_LIMIT,
+  CSP_REPORT_GLOBAL_WINDOW_SECONDS,
   aggregateCspViolations,
   getCspReportSampler,
   normalizeCspReports,
@@ -15,19 +18,6 @@ import { CasinoLogger } from '@/lib/casino/logger';
 // in src/proxy.ts (browser-internal reports carry no reliable Origin/Sec-Fetch-Site). Always
 // responds 204 regardless of outcome: a reporting sink must never make the browser retry or a
 // misconfigured limiter surface as a page-visible error.
-
-// L1 (T_SECURITY_HARDENING/06_csp_violation_reporting.md): the per-IP limit alone scales with the
-// attacker's IP count — a botnet with N IPs can push N × 120 reports/min through the per-IP guard
-// and each accepted report becomes one Sentry event (Denial-of-Wallet against the Sentry quota).
-// The global scope is keyed on ONE fixed identifier so every request shares a single distributed
-// bucket, independent of the client IP the per-IP limit derives.
-// Threshold rationale: legitimate CSP violations only fire on a misconfiguration/deploy
-// regression — a normal deployment produces single-digit reports per minute, so 120/min (~2/s)
-// keeps ~30x headroom above realistic baseline traffic while still capping a botnet's marginal
-// value per IP. On overrun the sink stays silent (204) and simply stops forwarding.
-export const CSP_REPORT_GLOBAL_SCOPE = 'csp-report-global';
-export const CSP_REPORT_GLOBAL_REQUEST_LIMIT = 120;
-export const CSP_REPORT_GLOBAL_WINDOW_SECONDS = 60;
 
 export async function POST(request: Request): Promise<Response> {
   const identifier = getClientIdentifier(request);

@@ -26,6 +26,32 @@ jobs:
     env:
       PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
     steps:
+      # Pinned to commit SHA (docs/security-hardening/07_dependency_supply_chain_audit.md L4,
+      # matches dependency-audit.yml) — a mutable tag could be repointed without this file changing.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run allow-scripts
+      # T_SECURITY_HARDENING/10_security_txt_rfc9116.md L1 — the only real, LLM-actionable gap in
+      # this pillar: a static Expires date with no automated reminder before it lapses (mirrors the
+      # secret-rotation due-check pattern, säule 8). Runs against the checked-out file, not the
+      # deployed one, so it needs no PRODUCTION_URL. Advisory only (|| true), never a merge gate.
+      - name: security.txt Expires check (informational only)
+        if: always()
+        run: |
+          {
+            echo "## security.txt Expires check (informational, not a CI gate)"
+            echo ""
+            echo "Content itself stays a manual K5 edit — this only surfaces the remaining time"
+            echo "before [public/.well-known/security.txt](../../blob/main/public/.well-known/security.txt) lapses (RFC 9116: an expired file is invalid)."
+            echo ""
+            echo '```'
+            npm run check-security-txt-expiry || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Skip-Hinweis, wenn PRODUCTION_URL nicht konfiguriert
         if: ${{ env.PRODUCTION_URL == '' }}
         run: |
@@ -88,6 +114,22 @@ jobs:
             }
 
             lines.push("", allOk ? "Alle Baseline-Header vorhanden." : "Mindestens ein Baseline-Header weicht ab — gegen src/proxy.ts pruefen, bevor Handlungsbedarf abgeleitet wird (Deployment-Cache/CDN-Verzoegerung moeglich).");
+
+            // T_SECURITY_HARDENING/10_security_txt_rfc9116.md L1 (Zusatzschritt, Subkategorie #10):
+            // Next.js liefert public/-Dateien ohne Standard-Endung ohne garantierten Content-Type —
+            // hier live gegen Produktion bestaetigen statt nur anzunehmen.
+            const securityTxtTarget = process.env.PRODUCTION_URL + "/.well-known/security.txt";
+            const securityTxtResponse = await fetch(securityTxtTarget, { method: "HEAD" });
+            const contentType = securityTxtResponse.headers.get("content-type") ?? "(fehlt)";
+            const contentTypeOk = contentType.toLowerCase().startsWith("text/plain");
+            lines.push(
+              "",
+              "## security.txt Content-Type (informativ, nicht blockierend)",
+              "",
+              "Ziel: " + securityTxtTarget,
+              (contentTypeOk ? "✅" : "⚠️") + " `content-type`: erwartet Praefix `text/plain`, erhalten `" + contentType + "`",
+            );
+
             fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
           })().catch((error) => {
             fs.appendFileSync(

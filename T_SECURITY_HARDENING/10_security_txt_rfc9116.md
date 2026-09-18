@@ -1,6 +1,6 @@
 # 10 — `security.txt` / RFC 9116 (Runde 2 — Ziel Top 10 %)
 
-> **Status:** 🔴 Geplant · **Stand:** 2026-09-12 · **Owner:** LLM (100 % LLM-Zuständigkeit — neue optionale Felder (`Encryption`, `Acknowledgments`, `Policy`) sind **explizit nicht Teil dieser Runde**, siehe §0) · **Scope:** neuer CI-Reminder-Mechanismus vor Ablauf des `Expires`-Felds (Muster: Secret-Rotation-Fälligkeits-Tracking, Säule 8); **nicht** im Scope: `Encryption`/`Acknowledgments`/`Policy`/`Hiring`-Felder (Jan/K5 — erfordern jeweils eine noch nicht getroffene Entscheidung: PGP-Key, Hall-of-Fame, formale Disclosure-Policy-Seite).
+> **Status:** 🟢 Ausgeführt (L1, 2026-09-18) · **Stand:** 2026-09-18 · **Owner:** LLM (100 % LLM-Zuständigkeit — neue optionale Felder (`Encryption`, `Acknowledgments`, `Policy`) sind **explizit nicht Teil dieser Runde**, siehe §0) · **Scope:** neuer CI-Reminder-Mechanismus vor Ablauf des `Expires`-Felds (Muster: Secret-Rotation-Fälligkeits-Tracking, Säule 8); **nicht** im Scope: `Encryption`/`Acknowledgments`/`Policy`/`Hiring`-Felder (Jan/K5 — erfordern jeweils eine noch nicht getroffene Entscheidung: PGP-Key, Hall-of-Fame, formale Disclosure-Policy-Seite).
 > **Money-Pfad:** Nein (statische Datei + CI) · **Security-Review:** Nein (rein additiv, kein Verhaltenspfad geändert)
 
 ## 0 — Für eine neue LLM-Konversation: So wird diese Datei benutzt
@@ -14,9 +14,9 @@
 
 ## 1 — Übersicht für Jan
 
-| Nr. | Meilenstein                                                         | Scope (Dateien)                                                                           |   Status   | Zuständigkeit | Verifikation                                                                                  |
-| --- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- | :--------: | :-----------: | ------------------------------------------------------------------------------------------------ |
-| L1  | Automatisierter `Expires`-Reminder vor Ablauf                           | Neuer Workflow-Schritt (Muster: `check-secret-rotation`, Säule 8, L4), `public/.well-known/security.txt` | 🔴 Geplant |      LLM      | CI-Job-Summary zeigt die verbleibende Zeit bis `Expires`, eskaliert non-blocking ab einer definierten Restfrist (z. B. 60 Tage) |
+| Nr. | Meilenstein                                   | Scope (Dateien)                                                                                          |          Status          | Zuständigkeit | Verifikation                                                                                                              |
+| --- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------- | :----------------------: | :-----------: | ------------------------------------------------------------------------------------------------------------------------- |
+| L1  | Automatisierter `Expires`-Reminder vor Ablauf | Neuer Workflow-Schritt (Muster: `check-secret-rotation`, Säule 8, L4), `public/.well-known/security.txt` | 🟢 executed (2026-09-18) |      LLM      | CI-Job-Summary zeigt die verbleibende Zeit bis `Expires`, eskaliert non-blocking ab einer definierten Restfrist (60 Tage) |
 
 **Warum kein Jan-Gate:** Rein additive CI-Ergänzung, kein Secret, kein Blocking-Verhalten.
 
@@ -24,18 +24,18 @@
 
 ## 2 — `security.txt`/RFC-9116 in Subkategorien: Neubewertung (2026-09-12, Baseline für diese Runde)
 
-|  #  | Subkategorie                                       | Niveau (Baseline) | Status | Kernbefund                                                                                                                         |
-| :-: | -------------------------------------------------------- | :----------------: | :----: | -------------------------------------------------------------------------------------------------------------------------------------- |
-|  1  | `Contact`-Feld                                            |     Top 10 %      |   🟢   | GitHub-Security-Advisories-Link — bewusste Wahl gegen exponierte private E-Mail                                                        |
-|  2  | `Expires`-Feld vorhanden und Pflicht-konform               |     Top 10 %      |   🟢   | RFC-9116-Pflichtfeld erfüllt, aktuell nicht abgelaufen                                                                                  |
-|  3  | `Preferred-Languages`                                      |     Top 10 %      |   🟢   | `de, en`                                                                                                                                |
-|  4  | `Canonical`-Zeile                                           |     Top 10 %      |   🟢   | Vorhanden, verweist auf exakte Datei-URL — RFC-9116-Empfehlung erfüllt                                                                  |
-|  5  | Middleware-Ausschluss (öffentlich erreichbar ohne Auth-Redirect) |     Top 10 %      |   🟢   | `src/proxy.ts:70` + automatisierter Test bestätigt öffentliche Erreichbarkeit                                                           |
-|  6  | **`Expires`-Ablauf-Reminder-Automatisierung**               |     Top 40 %      |   🟠   | Kein CI-Check, keine automatisierte Erinnerung — einzige unadressierte Lücke, bereits im Archiv benannt                                |
-|  7  | `Encryption`-Feld (PGP-Key)                                 |     Top 60 %      |   🟡   | Fehlt — bewusst K5, kein PGP-Key vorhanden                                                                                              |
-|  8  | `Acknowledgments`-Feld (Hall-of-Fame)                       |     Top 60 %      |   🟡   | Fehlt — bewusst K5, keine Hall-of-Fame-Seite existiert                                                                                  |
-|  9  | `Policy`-Feld (Disclosure-Policy-Link)                      |     Top 60 %      |   🟡   | Fehlt — bewusst K5, keine formale Policy-Seite existiert                                                                                |
-| 10  | Content-Type-Korrektheit (`text/plain; charset=utf-8`)      |     Top 30 %      |   🟡   | Nicht live verifizierbar in dieser read-only Session (kein `curl`-Zugriff) — plausibel korrekt via Next.js-Default für `public/`-Dateien, aber unbestätigt |
+|  #  | Subkategorie                                                     | Niveau (Baseline) | Status | Kernbefund                                                                                                                                                 |
+| :-: | ---------------------------------------------------------------- | :---------------: | :----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|  1  | `Contact`-Feld                                                   |     Top 10 %      |   🟢   | GitHub-Security-Advisories-Link — bewusste Wahl gegen exponierte private E-Mail                                                                            |
+|  2  | `Expires`-Feld vorhanden und Pflicht-konform                     |     Top 10 %      |   🟢   | RFC-9116-Pflichtfeld erfüllt, aktuell nicht abgelaufen                                                                                                     |
+|  3  | `Preferred-Languages`                                            |     Top 10 %      |   🟢   | `de, en`                                                                                                                                                   |
+|  4  | `Canonical`-Zeile                                                |     Top 10 %      |   🟢   | Vorhanden, verweist auf exakte Datei-URL — RFC-9116-Empfehlung erfüllt                                                                                     |
+|  5  | Middleware-Ausschluss (öffentlich erreichbar ohne Auth-Redirect) |     Top 10 %      |   🟢   | `src/proxy.ts:70` + automatisierter Test bestätigt öffentliche Erreichbarkeit                                                                              |
+|  6  | **`Expires`-Ablauf-Reminder-Automatisierung**                    |     Top 40 %      |   🟠   | Kein CI-Check, keine automatisierte Erinnerung — einzige unadressierte Lücke, bereits im Archiv benannt                                                    |
+|  7  | `Encryption`-Feld (PGP-Key)                                      |     Top 60 %      |   🟡   | Fehlt — bewusst K5, kein PGP-Key vorhanden                                                                                                                 |
+|  8  | `Acknowledgments`-Feld (Hall-of-Fame)                            |     Top 60 %      |   🟡   | Fehlt — bewusst K5, keine Hall-of-Fame-Seite existiert                                                                                                     |
+|  9  | `Policy`-Feld (Disclosure-Policy-Link)                           |     Top 60 %      |   🟡   | Fehlt — bewusst K5, keine formale Policy-Seite existiert                                                                                                   |
+| 10  | Content-Type-Korrektheit (`text/plain; charset=utf-8`)           |     Top 30 %      |   🟡   | Nicht live verifizierbar in dieser read-only Session (kein `curl`-Zugriff) — plausibel korrekt via Next.js-Default für `public/`-Dateien, aber unbestätigt |
 
 **Rechnerischer Schnitt (Baseline dieser Runde):** (10+10+10+10+10+40+60+60+60+30)/10 = **Top 30 %** — dominiert von den drei bewusst K5-gehaltenen optionalen Feldern (#7-#9), die strukturell hoch gewichtet in den flachen 10er-Schnitt eingehen, obwohl keines davon RFC-Pflicht ist.
 
@@ -87,18 +87,18 @@
 
 ## 7 — Projizierter Niveau-Sprung nach Ausführung des einzigen Meilensteins
 
-|  #  | Subkategorie                     | Baseline | Nach Ausführung | Warum |
-| :-: | ------------------------------------ | :------: | :-------------: | ----- |
-|  1  | `Contact`                           | Top 10 % |    Top 10 %     | unverändert |
-|  2  | `Expires` vorhanden                 | Top 10 % |    Top 10 %     | unverändert |
-|  3  | `Preferred-Languages`               | Top 10 % |    Top 10 %     | unverändert |
-|  4  | `Canonical`                         | Top 10 % |    Top 10 %     | unverändert |
-|  5  | Middleware-Ausschluss               | Top 10 % |    Top 10 %     | unverändert |
-|  6  | `Expires`-Reminder-Automatisierung  | Top 40 % |    Top 10 %     | L1 |
-|  7  | `Encryption`                        | Top 60 % |    Top 60 %     | **unverändert — bewusst K5** |
-|  8  | `Acknowledgments`                   | Top 60 % |    Top 60 %     | **unverändert — bewusst K5** |
-|  9  | `Policy`                            | Top 60 % |    Top 60 %     | **unverändert — bewusst K5** |
-| 10  | Content-Type                        | Top 30 % |    Top 10 %     | L1 (Zusatzschritt) |
+|  #  | Subkategorie                       | Baseline | Nach Ausführung | Warum                        |
+| :-: | ---------------------------------- | :------: | :-------------: | ---------------------------- |
+|  1  | `Contact`                          | Top 10 % |    Top 10 %     | unverändert                  |
+|  2  | `Expires` vorhanden                | Top 10 % |    Top 10 %     | unverändert                  |
+|  3  | `Preferred-Languages`              | Top 10 % |    Top 10 %     | unverändert                  |
+|  4  | `Canonical`                        | Top 10 % |    Top 10 %     | unverändert                  |
+|  5  | Middleware-Ausschluss              | Top 10 % |    Top 10 %     | unverändert                  |
+|  6  | `Expires`-Reminder-Automatisierung | Top 40 % |    Top 10 %     | L1                           |
+|  7  | `Encryption`                       | Top 60 % |    Top 60 %     | **unverändert — bewusst K5** |
+|  8  | `Acknowledgments`                  | Top 60 % |    Top 60 %     | **unverändert — bewusst K5** |
+|  9  | `Policy`                           | Top 60 % |    Top 60 %     | **unverändert — bewusst K5** |
+| 10  | Content-Type                       | Top 30 % |    Top 10 %     | L1 (Zusatzschritt)           |
 
 **Projizierter Schnitt nach Ausführung:** (10+10+10+10+10+10+60+60+60+10)/10 = **Top 25 %**.
 
@@ -106,12 +106,22 @@
 
 ---
 
+## 9 — Ausführungsergebnis (2026-09-18)
+
+**L1 umgesetzt:** Neue reine Funktionen [`src/lib/security/security-txt-expiry.ts`](../src/lib/security/security-txt-expiry.ts) (`parseSecurityTxtExpiry`, `computeExpiryStatus`) mit vollständiger Testabdeckung ([`src/lib/security/__tests__/security-txt-expiry.test.ts`](../src/lib/security/__tests__/security-txt-expiry.test.ts), 9 Tests: Parsing, fehlendes/kaputtes `Expires`, ok/warning/expired-Grenzfälle). Neues Script [`scripts/check-security-txt-expiry.ts`](../scripts/check-security-txt-expiry.ts) (`npm run check-security-txt-expiry`) spiegelt exakt das Secret-Rotation-Muster (Säule 8, `check-secret-rotation-due.ts`): liest die lokale `public/.well-known/security.txt`, meldet die verbleibende Zeit, eskaliert (Exit-Code 1, aber `|| true` im Workflow) ab 60 Tagen Restfrist oder bei Ablauf/fehlendem Feld — niemals blockierend.
+
+**CI-Integration:** Neuer Schritt in [`.github/workflows/security-headers-drift-check.yml`](../.github/workflows/security-headers-drift-check.yml) (bereits wöchentlich `schedule`-getriggert, Säule 5/L5) — läuft unconditional (`if: always()`), da er nur die im Repo liegende Datei liest, nicht `PRODUCTION_URL` braucht. Zusatzschritt (§2 #10, Content-Type) im bestehenden Produktions-Check ergänzt: `HEAD`-Request gegen `.../.well-known/security.txt`, prüft `content-type` beginnt mit `text/plain`, schreibt in denselben Job-Summary-Block — läuft nur, wenn `PRODUCTION_URL` konfiguriert ist (wie der bestehende Header-Check).
+
+**Lokal verifiziert:** `npx tsx scripts/check-security-txt-expiry.ts` gegen die echte `public/.well-known/security.txt` → `✅ security.txt läuft erst in 344 Tagen ab.`, Exit-Code 0.
+
+**Kein K5-Rest für L1.** Die drei optionalen Felder (`Encryption`/`Acknowledgments`/`Policy`) bleiben wie geplant außerhalb des Scopes.
+
 ## 8 — Verwandte Artefakte
 
-| Bedarf                                                  | Datei                                                                                                                        |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Archivierte Runde-1-Planungsdatei                         | [`docs/archive/t_security_hardening_10_security_txt_rfc9116.md`](../docs/archive/t_security_hardening_10_security_txt_rfc9116.md) |
-| Die geplante Datei selbst (wird in L1 indirekt referenziert) | [`public/.well-known/security.txt`](../public/.well-known/security.txt)                                                   |
-| Middleware-Ausschluss (Referenz, unverändert)               | [`src/proxy.ts`](../src/proxy.ts)                                                                                          |
-| Referenzmuster für L1 (Fälligkeits-Tracking)                | [`08_secret_rotation_prozess.md`](./08_secret_rotation_prozess.md) (L4)                                                    |
-| Übersicht (alle 10 Säulen)                                | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                              |
+| Bedarf                                                       | Datei                                                                                                                             |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| Archivierte Runde-1-Planungsdatei                            | [`docs/archive/t_security_hardening_10_security_txt_rfc9116.md`](../docs/archive/t_security_hardening_10_security_txt_rfc9116.md) |
+| Die geplante Datei selbst (wird in L1 indirekt referenziert) | [`public/.well-known/security.txt`](../public/.well-known/security.txt)                                                           |
+| Middleware-Ausschluss (Referenz, unverändert)                | [`src/proxy.ts`](../src/proxy.ts)                                                                                                 |
+| Referenzmuster für L1 (Fälligkeits-Tracking)                 | [`08_secret_rotation_prozess.md`](./08_secret_rotation_prozess.md) (L4)                                                           |
+| Übersicht (alle 10 Säulen)                                   | [`00_SECURITY_HARDENING_UEBERSICHT.md`](./00_SECURITY_HARDENING_UEBERSICHT.md)                                                    |

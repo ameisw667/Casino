@@ -46,17 +46,22 @@ const OPEN_LAYER_2_GAPS = [
   'src/app/api/auth/signup-suspicion/route.ts',
 ] as const;
 
-// Complete Layer-2 inventory pinned after L1 (guide-persona, login-history added). Base-commit
-// note: admin/users/[id]/status and admin/promo-codes/[code]/reverse exist only as uncommitted
-// main-directory files, not in this branch state — they enter this list with their commits.
+// Complete Layer-2 inventory pinned after L1 (guide-persona, login-history added). Merge note
+// (2026-09-18, security-round3-final-merge → codex/uncommitted-cohort-review): admin/users/[id]/status
+// and admin/promo-codes/[code]/reverse existed only as uncommitted main-directory files when this
+// list was authored — they, and auth/signup-fingerprint (added independently on main after this
+// branch diverged), all already call validateMutationOrigin(); this only pins them.
 const GUARDED_INVENTORY = [
   'src/app/api/admin/digest-preview/start/route.ts',
   'src/app/api/admin/fraud/complete-wait/route.ts',
   'src/app/api/admin/fraud/scan/route.ts',
   'src/app/api/admin/fraud/route.ts',
   'src/app/api/admin/knowledge/route.ts',
+  'src/app/api/admin/promo-codes/[code]/reverse/route.ts',
   'src/app/api/admin/promo-codes/route.ts',
+  'src/app/api/admin/users/[id]/status/route.ts',
   'src/app/api/admin/users/route.ts',
+  'src/app/api/auth/signup-fingerprint/route.ts',
   'src/app/api/casino/bet-crash-multiplayer/route.ts',
   'src/app/api/casino/bet/route.ts',
   'src/app/api/casino/blackjack/route.ts',
