@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 import { soundManager, type SoundKey } from '@/lib/casino/sound-manager';
 import { CasinoLogger } from '@/lib/casino/logger';
 import { trackAllowedEvent, type GameType as AnalyticsGameType } from '@/lib/analytics/events';
@@ -489,23 +490,19 @@ export const useCasinoStore = create<CasinoState>()(
 
 // --- Memoized Selectors (Zustand 5 useShallow) to eliminate component re-renders ---
 export const useWalletBalance = () =>
-  useCasinoStore((s) => ({
-    balance: s.balance,
-    hideBalance: s.hideBalance,
-  }));
+  useCasinoStore(useShallow((s) => ({ balance: s.balance, hideBalance: s.hideBalance })));
 
 export const useVipRankInfo = () =>
-  useCasinoStore((s) => ({
-    level: s.level,
-    xp: s.xp,
-    rank: s.rank,
-    vipTiers: s.vipTiers,
-  }));
+  useCasinoStore(
+    useShallow((s) => ({ level: s.level, xp: s.xp, rank: s.rank, vipTiers: s.vipTiers })),
+  );
 
 export const useSoundSettings = () =>
-  useCasinoStore((s) => ({
-    soundEnabled: s.soundEnabled,
-    soundVolume: s.soundVolume,
-    toggleSound: s.toggleSound,
-    updateSettings: s.updateSettings,
-  }));
+  useCasinoStore(
+    useShallow((s) => ({
+      soundEnabled: s.soundEnabled,
+      soundVolume: s.soundVolume,
+      toggleSound: s.toggleSound,
+      updateSettings: s.updateSettings,
+    })),
+  );

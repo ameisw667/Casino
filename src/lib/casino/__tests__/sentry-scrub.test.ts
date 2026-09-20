@@ -104,6 +104,46 @@ describe('scrubSentryEvent', () => {
     expect(scrubbed.breadcrumbs?.[0].data?.statusCode).toBe(500);
   });
 
+  it('scrubs arrays inside extra including nested array items', () => {
+    const event = baseEvent({
+      extra: {
+        bets: [{ serverSeed: 'seed-inside-array', amount: 10 }, { amount: 20 }],
+        labels: ['plain', 'strings'],
+      },
+    });
+
+    const scrubbed = scrubSentryEvent(event, hint);
+    const bets = scrubbed.extra?.bets as Array<Record<string, unknown>>;
+
+    expect(bets[0].serverSeed).toBe('[Redacted]');
+    expect(bets[0].amount).toBe(10);
+    expect(bets[1].amount).toBe(20);
+    expect(scrubbed.extra?.labels).toEqual(['plain', 'strings']);
+  });
+
+  it('stops recursing beyond the max scrub depth and leaves deep values as-is', () => {
+    const deep: Record<string, unknown> = { serverSeed: 'seed-beyond-depth' };
+    let node: Record<string, unknown> = deep;
+    // Depth limit is MAX_SCRUB_DEPTH = 6; build a chain well past it.
+    for (let i = 0; i < 12; i += 1) {
+      const next: Record<string, unknown> = { child: node };
+      node = next;
+    }
+
+    const event = baseEvent({ extra: { root: node } });
+    const scrubbed = scrubSentryEvent(event, hint);
+
+    const leaf = scrubbed.extra?.root as Record<string, unknown>;
+    let inner: Record<string, unknown> = leaf;
+    let depth = 0;
+    while (inner.child !== undefined) {
+      inner = inner.child as Record<string, unknown>;
+      depth += 1;
+    }
+    expect(depth).toBeGreaterThan(6);
+    expect(inner.serverSeed).toBe('seed-beyond-depth');
+  });
+
   it('leaves non-sensitive fields (message, tags, level) unchanged', () => {
     const event = baseEvent({});
 
