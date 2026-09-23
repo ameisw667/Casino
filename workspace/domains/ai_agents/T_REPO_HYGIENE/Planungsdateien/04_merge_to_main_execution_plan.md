@@ -1,6 +1,6 @@
 # 04 — Merge nach `main` (Arbeitsbranch → Release-Linie)
 
-> **Status:** 🟡 In Execution — **L0, L1, L2, L4, L5 abgeschlossen (2026-09-18 22:00)**, L3 entfallen; L6/L7 warten auf Jans Push-OK, **L8 auf K4**, L9 auf K5 · **Stand:** 2026-09-18 · **Owner:** LLM (Jan nur bei Gate) · **Scope:** Den Stand des Arbeitsbranches `codex/uncommitted-cohort-review` verifiziert auf `main`/`origin/main` bringen (Fast-Forward), vorher CI im PR, danach Aufräumen. **Nicht** Scope: die 79 uncommitteten Dateien.
+> **Status:** 🟡 Teilweise überholt, siehe [Plan 19](19_main_uebernahme_ist_zustand_plan.md) (2026-09-23: Fast-Forward + Push nach main ausgeführt, main im Hauptordner ausgecheckt) · L0, L1, L2, L4, L5 abgeschlossen (2026-09-18 22:00), L3 entfallen · **Stand:** 2026-09-18 · **Owner:** LLM (Jan nur bei Gate) · **Scope:** Den Stand des Arbeitsbranches `codex/uncommitted-cohort-review` verifiziert auf `main`/`origin/main` bringen (Fast-Forward), vorher CI im PR, danach Aufräumen. **Nicht** Scope: die 79 uncommitteten Dateien.
 > **Money-Pfad:** Nein · **Security-Review:** Nein (keine Codeänderung; nur Ref-Bewegung + Doku)
 
 > ⚠️ **Bewegungs-Warnung:** Im selben Arbeitsverzeichnis arbeiten parallele Sessions (Repo-Hygiene, GLM-Token-Ökonomie, Claude MB). Belegt: HEAD wanderte 21:14 `c9a45eec` → 21:32 `6f72aecb`. **Jede Zahl ist eine Momentaufnahme mit Uhrzeit** — L0 vor jedem Schreibschritt neu messen. `worldmap/00_WORLDMAP_STATUS.md` wurde von einer anderen Session angefasst.

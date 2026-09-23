@@ -1,6 +1,6 @@
 # 03 — Uncommitted-/Unmerged-Audit & Zusammenführungs-Plan
 
-> **Status:** 🟡 Phase 1 (read-only Audit) abgeschlossen 2026-09-18 21:20 — Phase 2 wartet auf die Jan-Gates G6/G7/G8 · **Stand:** 2026-09-18 · **Owner:** LLM (Jan nur bei Gate) · **Scope:** Trennung „uncommitted" vs „unmerged", harte Bezifferung beider Kategorien, Konflikt-/Doppelarbeits-Analyse und Zusammenführungs-Empfehlung. Phase 1 hat den Baum **nicht** verändert (nur lesende Git-Befehle).
+> **Status:** 🟡 Teilweise überholt, siehe [Plan 19](19_main_uebernahme_ist_zustand_plan.md) (2026-09-23 ausgeführt: M2/M3-Kohorten committet, main aktuell) · Phase 1 (read-only Audit) abgeschlossen 2026-09-18 21:20 — Phase 2 wartet auf die Jan-Gates G6/G7/G8 · **Stand:** 2026-09-18 · **Owner:** LLM (Jan nur bei Gate) · **Scope:** Trennung „uncommitted" vs „unmerged", harte Bezifferung beider Kategorien, Konflikt-/Doppelarbeits-Analyse und Zusammenführungs-Empfehlung. Phase 1 hat den Baum **nicht** verändert (nur lesende Git-Befehle).
 > **Money-Pfad:** Nein · **Security-Review:** Nein (Phase 1 rein lesend, keine Codeänderung)
 
 > ⚠️ **Bewegungs-Warnung (belegt, siehe §1):** Im selben Arbeitsverzeichnis arbeitet(e) eine zweite LLM-Session. Während dieses Audits (21:08 → 21:20) hat sie einen Merge abgeschlossen, einen Stash angelegt **und wieder verworfen**, `node_modules` neu installiert und neue Dateien erzeugt. **Jede Zahl hier ist eine Momentaufnahme mit Uhrzeit** — vor Phase 2 neu messen.
