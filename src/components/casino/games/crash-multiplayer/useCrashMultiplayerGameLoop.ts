@@ -9,7 +9,6 @@ import {
   type RefObject,
 } from 'react';
 import { useCasinoStore } from '@/store/useCasinoStore';
-import { soundManager } from '@/lib/casino/sound-manager';
 import {
   type Particle,
   type Star,
@@ -22,6 +21,14 @@ import {
   WINDOW_POINTS,
   ROCKET_X_FRACTION,
 } from '../crash/crash-helpers';
+import {
+  advanceAndDrawParticles,
+  applyTraumaShake,
+  createExplosion as spawnExplosion,
+  createTail as spawnTail,
+  setupCanvasForFrame,
+  updateAndDrawStarfield,
+} from '../crash-loop';
 
 // Multiplayer adds a shared 'WAITING' betting window between IDLE and RUNNING
 // that solo crash (../crash/crash-helpers CrashStatus) does not have, so this
@@ -117,153 +124,49 @@ export function useCrashMultiplayerGameLoop(params: CrashMultiplayerGameLoopPara
     handleCashoutRef,
   } = params;
 
-  // Explosions & Thruster Particle Physics
+  // Die vier Animationsblöcke leben in ../crash-loop; hier bleiben nur die an die Refs
+  // dieses Hooks gebundenen Hüllen, damit die Aufrufstellen im Zeichentakt unverändert bleiben.
   const createExplosion = (x: number, y: number, canvasWidth: number) => {
-    if (!prefersReducedMotionRef.current) {
-      shakeRef.current.intensity = 18;
-    }
-    const particleCount = isMobileRef.current ? 25 : 55;
-    const colors = ['#FFF', '#FFD700', '#FF8800', '#FF3B30', '#B91C1C'];
-
-    // Add expanding shockwave ring
-    particlesRef.current.push({
+    spawnExplosion({
       x,
       y,
-      vx: 0,
-      vy: 0,
-      life: 1,
-      maxLife: 1,
-      color: 'rgba(255, 100, 50, 0.8)',
-      size: 10,
-      type: 'shockwave',
+      canvasWidth,
+      particles: particlesRef.current,
+      shake: shakeRef.current,
+      prefersReducedMotion: prefersReducedMotionRef.current,
+      isMobile: isMobileRef.current,
+      random: () => pseudoRandom(prngSeedRef),
     });
-
-    for (let i = 0; i < particleCount; i++) {
-      const angle = pseudoRandom(prngSeedRef) * Math.PI * 2;
-      const speed = 2 + pseudoRandom(prngSeedRef) * 6;
-      particlesRef.current.push({
-        x,
-        y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        life: 1,
-        maxLife: 0.6 + pseudoRandom(prngSeedRef) * 0.6,
-        color: colors[Math.floor(pseudoRandom(prngSeedRef) * colors.length)],
-        size: 2 + pseudoRandom(prngSeedRef) * 3.5,
-        type: 'explosion',
-      });
-    }
-    // Position the explosion sound where the rocket actually was on screen at crash time
-    // (animation-synchronized panning, plan 02_audio_engine_plan.md L3) instead of a flat,
-    // centered play() — canvasWidth is already available at the call site, no new state needed.
-    const pan = canvasWidth > 0 ? Math.max(-1, Math.min(1, (x / canvasWidth) * 2 - 1)) : 0;
-    soundManager.playPositional('crash-explode', pan);
   };
 
   const createTail = (x: number, y: number, angle: number, riskFactor: number) => {
-    if (particlesRef.current.length > (isMobileRef.current ? 120 : 250)) return;
-
-    // Direction opposite to rocket heading
-    const backAngle = angle + Math.PI;
-    const exhaustSpread = 0.45;
-    const count = isMobileRef.current ? 1 : 2;
-
-    for (let k = 0; k < count; k++) {
-      const spreadAngle = backAngle + (pseudoRandom(prngSeedRef) - 0.5) * exhaustSpread;
-      const speed = 2.0 + riskFactor * 2.5 + pseudoRandom(prngSeedRef) * 2;
-
-      // Glow plasma core / amber sparks / smoke puffs
-      const isSpark = pseudoRandom(prngSeedRef) > 0.4;
-      const color = isSpark
-        ? pseudoRandom(prngSeedRef) > 0.5
-          ? '#FFFDF0'
-          : '#FFD700'
-        : pseudoRandom(prngSeedRef) > 0.5
-          ? '#FF8C00'
-          : 'rgba(120, 110, 100, 0.4)';
-
-      particlesRef.current.push({
-        x: x + (pseudoRandom(prngSeedRef) - 0.5) * 4,
-        y: y + (pseudoRandom(prngSeedRef) - 0.5) * 4,
-        vx: Math.cos(spreadAngle) * speed,
-        vy: Math.sin(spreadAngle) * speed + (pseudoRandom(prngSeedRef) - 0.5) * 0.6,
-        life: 1,
-        maxLife: isSpark ? 0.35 + pseudoRandom(prngSeedRef) * 0.25 : 0.65,
-        color,
-        size: isSpark ? 1.5 + pseudoRandom(prngSeedRef) * 2 : 3 + pseudoRandom(prngSeedRef) * 4,
-        type: isSpark ? 'spark' : 'smoke',
-      });
-    }
+    spawnTail({
+      x,
+      y,
+      angle,
+      riskFactor,
+      particles: particlesRef.current,
+      isMobile: isMobileRef.current,
+      random: () => pseudoRandom(prngSeedRef),
+      variant: 'multiplayer',
+    });
   };
 
   const updateAndDrawParticles = (ctx: CanvasRenderingContext2D) => {
-    particlesRef.current = particlesRef.current.filter((p) => p.life > 0);
-    particlesRef.current.forEach((p) => {
-      p.x += p.vx;
-      p.y += p.vy;
-
-      if (p.type === 'shockwave') {
-        p.size += 6;
-        p.life -= 0.04;
-        ctx.save();
-        ctx.strokeStyle = `rgba(255, 120, 50, ${p.life * 0.7})`;
-        ctx.lineWidth = 3;
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = '#FF8800';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-        return;
-      }
-
-      if (p.type === 'cashout') {
-        p.vy += 0.08; // gravity for coins
-        p.life -= 0.015;
-      } else if (p.type === 'smoke') {
-        p.size += 0.15; // expanding smoke
-        p.life -= 0.02;
-      } else {
-        p.life -= 0.025;
-      }
-
-      ctx.fillStyle = p.color;
-      ctx.globalAlpha = Math.max(0, p.life);
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      ctx.fill();
-    });
-    ctx.globalAlpha = 1.0;
+    particlesRef.current = advanceAndDrawParticles(ctx, particlesRef.current);
   };
 
   // Main Canvas Draw Method
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const dpr = window.devicePixelRatio || 1;
-    const displayWidth = canvas.clientWidth;
-    const displayHeight = canvas.clientHeight;
-
-    if (canvas.width !== displayWidth * dpr || canvas.height !== displayHeight * dpr) {
-      canvas.width = displayWidth * dpr;
-      canvas.height = displayHeight * dpr;
-    }
-
-    ctx.save();
-    ctx.scale(dpr, dpr);
-    const width = displayWidth;
-    const height = displayHeight;
+    const frame = setupCanvasForFrame(canvas);
+    if (!frame) return;
+    const { ctx, width, height } = frame;
     ctx.clearRect(0, 0, width, height);
 
     // Apply Trauma-based Screen Shake during crash
-    if (shakeRef.current.intensity > 0.1) {
-      const shakeX = (pseudoRandom(prngSeedRef) - 0.5) * shakeRef.current.intensity;
-      const shakeY = (pseudoRandom(prngSeedRef) - 0.5) * shakeRef.current.intensity;
-      ctx.translate(shakeX, shakeY);
-      shakeRef.current.intensity *= 0.9;
-    }
+    applyTraumaShake(ctx, shakeRef.current, () => pseudoRandom(prngSeedRef));
 
     const m = multiplierRef.current;
     const isCrashed = status === 'CRASHED';
@@ -324,36 +227,14 @@ export function useCrashMultiplayerGameLoop(params: CrashMultiplayerGameLoopPara
     }
 
     // Parallax Starfield & Cosmic Hyper-Space Trails
-    const starSpeed = isRunning ? 0.8 + riskFactor * 5 : 0.3;
-    starsRef.current.forEach((star) => {
-      // Drift diagonally down-left (ambient drift during IDLE)
-      const currentSpeed = isRunning ? starSpeed : 0.25;
-      star.x -= star.speed * star.layer * currentSpeed;
-      star.y += star.speed * star.layer * (currentSpeed * 0.4);
-
-      // Wrap around canvas
-      if (star.x < 0) star.x = width + Math.random() * 20;
-      if (star.y > height) star.y = -10;
-
-      star.twinklePhase += 0.03;
-      const alpha = star.opacity * (0.6 + Math.sin(star.twinklePhase) * 0.4);
-
-      if (isRunning && m > 10.0 && star.layer === 3) {
-        // Hyperspace warp streak
-        ctx.strokeStyle = `rgba(255, 240, 200, ${alpha * 0.8})`;
-        ctx.lineWidth = star.size * 0.9;
-        ctx.beginPath();
-        ctx.moveTo(star.x, star.y);
-        ctx.lineTo(star.x + 12 * riskFactor, star.y - 6 * riskFactor);
-        ctx.stroke();
-      } else {
-        ctx.fillStyle = star.layer === 3 ? '#FFD700' : '#FFFFFF';
-        ctx.globalAlpha = alpha;
-        ctx.beginPath();
-        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-      }
+    updateAndDrawStarfield({
+      ctx,
+      stars: starsRef.current,
+      isRunning,
+      riskFactor,
+      multiplier: m,
+      width,
+      height,
     });
 
     const scaleY = height / Math.max(5, (m || 1) + 1);

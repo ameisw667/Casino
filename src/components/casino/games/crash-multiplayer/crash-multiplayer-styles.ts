@@ -12,11 +12,11 @@ export const CRASH_MULTIPLAYER_STYLES = `
         }
         @media (max-width: 960px) {
           .crash-container {
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr !important;
           }
           .obsidian-glass { backdrop-filter: none; -webkit-backdrop-filter: none; }
-          .sidebar-left { order: 2; width: 100%; min-width: 0; }
-          .game-area { order: 1; width: 100%; min-width: 0; }
+          .sidebar-left { order: 2 !important; width: 100%; min-width: 0; }
+          .game-area { order: 1 !important; width: 100%; min-width: 0; }
         }
         .obsidian-glass {
           background: rgba(14, 14, 20, 0.85);

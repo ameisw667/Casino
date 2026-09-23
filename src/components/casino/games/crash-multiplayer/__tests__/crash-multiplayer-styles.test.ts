@@ -19,4 +19,11 @@ describe('crash multiplayer mobile stage', () => {
 
     expect(loopSource).toContain('const MOBILE_IDLE_CANVAS_DELAY_MS = 5_000;');
   });
+  it('overrides the server-rendered desktop grid before mobile hydration', () => {
+    expect(CRASH_MULTIPLAYER_STYLES).toMatch(
+      /\.crash-container \{\s*grid-template-columns: 1fr !important;\s*\}/,
+    );
+    expect(CRASH_MULTIPLAYER_STYLES).toMatch(/\.sidebar-left \{ order: 2 !important;/);
+    expect(CRASH_MULTIPLAYER_STYLES).toMatch(/\.game-area \{ order: 1 !important;/);
+  });
 });
