@@ -12,7 +12,7 @@
 
 ## Abgrenzung
 
-- Die app-eigenen API-Routen und die externe API-/SDK-Lernlandkarte liegen unter [t_api/](../../t_api/00_API_UEBERSICHT.md).
+- Die app-eigenen API-Routen und die externe API-/SDK-Lernlandkarte liegen unter [T_API/](../../workspace/domains/database/T_API/00_API_UEBERSICHT.md).
 - Der Status der MCP- und CLI-Kategorien bleibt in [00_WORLDMAP_STATUS.md](../00_WORLDMAP_STATUS.md) kanonisch; dieser Hub liefert die Detail- und Lernkontexte.
 - Neue Tooling-Lernlandkarten gehören in diesen Ordner. Neue Integrationen folgen vor der Umsetzung dem [Workflow-Jan Option-Gate](../../xx_sop/01_workflow_jan_option_gate.md).
 

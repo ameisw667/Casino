@@ -1,6 +1,6 @@
 # docs/n8n/ — Index
 
-> **Zweck:** Vertiefende, projektexterne Referenzdateien zum n8n-Deep-Dive-Plan. Der Plan selbst (Ziele, Stufen, Freigabe-Gates, Status) lebt in [`Z_LLM/07_n8n_deepdive.md`](../../Z_LLM/07_n8n_deepdive.md) — hier steht nur das technische/rechtliche "Wie genau", damit der Plan nicht mit Implementierungsdetails überladen wird (Trennung Plan ↔ Kontextreferenz laut [`xx_sop/03_workflow_jan_planungsdateien.md`](../../xx_sop/03_workflow_jan_planungsdateien.md)).
+> **Zweck:** Vertiefende, projektexterne Referenzdateien zum n8n-Deep-Dive-Plan. Der Plan selbst (Ziele, Stufen, Freigabe-Gates, Status) lebt in [`Z_LLM/07_n8n_deepdive.md`](../../workspace/domains/ai_agents/Z_LLM/07_n8n_deepdive.md) — hier steht nur das technische/rechtliche "Wie genau", damit der Plan nicht mit Implementierungsdetails überladen wird (Trennung Plan ↔ Kontextreferenz laut [`xx_sop/03_workflow_jan_planungsdateien.md`](../../xx_sop/03_workflow_jan_planungsdateien.md)).
 > **Owner:** LLM · **Pflege-Pflicht:** Bei jeder technischen Änderung an einer Stufe wird die zugehörige Referenzdatei im selben Schritt aktualisiert, nicht nur der Plan.
 
 ## Datei-Index

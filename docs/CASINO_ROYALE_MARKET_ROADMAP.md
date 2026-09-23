@@ -11,11 +11,12 @@
 
 ## 📊 1. Executive Summary — Marktposition
 
-Eine belastbare, öffentliche Zahl für den **globalen Crypto-Casino-Markt 2026** liegt in dieser Recherche nicht vor. Die frühere „$65 Milliarden“-Aussage wird deshalb nicht fortgeführt: H2 Gambling Capital ordnet rund **$65 Mrd.** dem globalen *Offshore-Online-GGR im Jahr 2015* zu; für das gesamte globale Online-GGR nennt H2 **$293 Mrd. für 2024**. Beides ist weder eine Crypto-Casino- noch eine Anbieter-Marktanteilszahl.
+Eine belastbare, öffentliche Zahl für den **globalen Crypto-Casino-Markt 2026** liegt in dieser Recherche nicht vor. Die frühere „$65 Milliarden“-Aussage wird deshalb nicht fortgeführt: H2 Gambling Capital ordnet rund **$65 Mrd.** dem globalen _Offshore-Online-GGR im Jahr 2015_ zu; für das gesamte globale Online-GGR nennt H2 **$293 Mrd. für 2024**. Beides ist weder eine Crypto-Casino- noch eine Anbieter-Marktanteilszahl.
 
 **Casino Royale heute:** 5 Spiele (Dice, Slots, Roulette, Crash, Blackjack) mit serverautoritativer Wallet (Migration 007), Provably-Fair-Engine, VIP-System und Gamification — Payment/Crypto-Einzahlung weiterhin nicht implementiert.
 
 **Chance:** Der Markt ist gesättigt mit großen Anbietern, aber unterversorgt mit hochpolierter, modularer Open-Source-Infrastruktur und Web3-nativen Mechaniken. Die Lücke zwischen Demo und Production-Grade ist unser Hebel.
+
 ### Quellen des Snapshots (Abruf 2026-09-12)
 
 - [H2 Gambling Capital: Market Data Update, April 2026](https://h2gc.com/site/assets/News%20Stories/gdp/H2%20GDP%20Market%20Update%20-%20April%202026.pdf)
@@ -32,7 +33,7 @@ Eine belastbare, öffentliche Zahl für den **globalen Crypto-Casino-Markt 2026*
 | Kategorie          | Details                                                                                          |
 | ------------------ | ------------------------------------------------------------------------------------------------ |
 | Spiele gesamt      | **6.000+** laut Stake (Snapshot 2026-09-12; 260+ Publisher, 150+ Live-Titel)                     |
-| In-house Originals | Stake bestätigt einen wachsenden Originals-Katalog; keine belastbare fixe Zahl verwenden          |
+| In-house Originals | Stake bestätigt einen wachsenden Originals-Katalog; keine belastbare fixe Zahl verwenden         |
 | VIP-System         | 8+ Tiers: Bronze → Silver → Gold → Platinum I-III → Platinum IV-VI → **Diamond I-VI → Obsidian** |
 | VIP-Reload         | Täglich, stündlich, alle 10 Minuten (auf Anfrage)                                                |
 | Crypto-Payment     | Ja (BTC, ETH, LTC, XRP, DOGE, BCH, EOS, TRX...)                                                  |
@@ -48,17 +49,17 @@ Eine belastbare, öffentliche Zahl für den **globalen Crypto-Casino-Markt 2026*
 
 ### 🥈 BC.Game — Der Innovator
 
-| Kategorie          | Details                                                            |
-| ------------------ | ------------------------------------------------------------------ |
-| Spiele gesamt      | Für den Snapshot nicht mit einer aktuellen Primärquelle verifizierbar |
-| In-house Originals | Für den Snapshot nicht mit einer aktuellen Primärquelle verifizierbar |
+| Kategorie          | Details                                                                                   |
+| ------------------ | ----------------------------------------------------------------------------------------- |
+| Spiele gesamt      | Für den Snapshot nicht mit einer aktuellen Primärquelle verifizierbar                     |
+| In-house Originals | Für den Snapshot nicht mit einer aktuellen Primärquelle verifizierbar                     |
 | Kryptowährungen    | **150+** laut BC.Game-eigenen Informationen; genaue Produktverfügbarkeit je Region prüfen |
-| VIP-System         | Mehrstufig, detailliertes Level-System                             |
-| Revenue Sharing    | **BC Engine**: staking-inspiriertes Reward-Modell, Launch April 2026 bestätigt |
-| Token              | **BCD-Token** — Spieler werden zu Investoren                       |
-| KYC                | Optional (No-KYC bis Limit)                                        |
-| Auszahlung         | 5–15 Minuten, keine Plattform-Gebühren                             |
-| Governance         | DAO-Voting in Entwicklung                                          |
+| VIP-System         | Mehrstufig, detailliertes Level-System                                                    |
+| Revenue Sharing    | **BC Engine**: staking-inspiriertes Reward-Modell, Launch April 2026 bestätigt            |
+| Token              | **BCD-Token** — Spieler werden zu Investoren                                              |
+| KYC                | Optional (No-KYC bis Limit)                                                               |
+| Auszahlung         | 5–15 Minuten, keine Plattform-Gebühren                                                    |
+| Governance         | DAO-Voting in Entwicklung                                                                 |
 
 **Stärken:** Breiteste Crypto-Unterstützung, Innovation (Revenue-Sharing), größtes Original-Portfolio  
 **Schwächen:** UI wirkt überladen, komplexe Onboarding-Hürde für Neueinsteiger
@@ -69,8 +70,8 @@ Eine belastbare, öffentliche Zahl für den **globalen Crypto-Casino-Markt 2026*
 
 | Kategorie          | Details                                                       |
 | ------------------ | ------------------------------------------------------------- |
-| Spiele gesamt      | **7.848+** laut Roobet Help Center (Snapshot 2026-09-12)       |
-| In-house Originals | **12 House Games** laut Roobet Help Center                      |
+| Spiele gesamt      | **7.848+** laut Roobet Help Center (Snapshot 2026-09-12)      |
+| In-house Originals | **12 House Games** laut Roobet Help Center                    |
 | Loyalty            | **RooWards:** Daily, Weekly, Monthly Rewards + Rakeback-Boost |
 | Raffle             | **$100.000 Weekly Raffle** (1 Ticket pro $250 Wette)          |
 | Sports             | Parlay Play — $40k Prize Pool                                 |
@@ -80,6 +81,23 @@ Eine belastbare, öffentliche Zahl für den **globalen Crypto-Casino-Markt 2026*
 
 **Stärken:** Community-Fokus, Raffle-System schafft täglich Engagement, starkes Affiliate-Netz  
 **Schwächen:** Wenige eigene Originals, keine echten Web3-Features
+
+---
+
+### 🤖 KI-Infrastruktur-Vorbild — Symphony Solutions / BetHarmony (kein direkter Markt-Konkurrent)
+
+> Kein Spieler-Konkurrent wie Stake/BC.Game/Roobet oben — ein **B2B-Technologie-Anbieter**, dessen Produkt als Architektur-Vorbild für den Worldmap-Kandidaten 21 (Multi-Agent AI Orchestration) dient. Referenziert 2026-09-20/22 im Rahmen der „Nächstes großes Ding"-Recherche, auf Jans Wunsch hier als Inspiration/Competitor-Referenz festgehalten statt in der Worldmap selbst.
+
+| Kategorie            | Details                                                                                                                                                                                                    |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Anbieter             | Symphony Solutions — B2B-Lösungsanbieter für iGaming-Plattformen                                                                                                                                           |
+| Produkt              | **BetHarmony** — „multi-agent conversational intelligence" für Sportsbook/Casino                                                                                                                           |
+| Architektur          | Orchestrator + spezialisierte Worker-Agenten: Sportsbook-Agent, Casino-Agent (semantische Spielsuche), Support-Agent, Personalisierungs-Agent                                                              |
+| Koordination         | Intent-Erkennung → Kontext-Aufbau → Eskalation an Menschen bei komplexen Fällen                                                                                                                            |
+| Beanspruchter Impact | 50–70 % weniger Support-Last, kürzere Time-to-Bet, konsistente Performance unter Lastspitzen                                                                                                               |
+| Relevanz für uns     | Direkte Blaupause für den Ausbau des bestehenden Guide-Chatbots (`CasinoGuidePanel`, `/admin/knowledge`) — Details siehe [`worldmap/00_WORLDMAP_STATUS.md`](../worldmap/00_WORLDMAP_STATUS.md) Kandidat 21 |
+
+Quelle: [Symphony Solutions — BetHarmony](https://symphony-solutions.com/betharmony)
 
 ---
 
@@ -632,10 +650,11 @@ Eine belastbare, öffentliche Zahl für den **globalen Crypto-Casino-Markt 2026*
 
 ## 🔄 6. Update-Log
 
-| Datum      | Änderung                  | Author |
-| ---------- | ------------------------- | ------ |
-| 2026-05-10 | Initiale Version erstellt | Claude |
-|            |                           |        |
+| Datum      | Änderung                                                                                                                          | Author |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 2026-05-10 | Initiale Version erstellt                                                                                                         | Claude |
+| 2026-09-22 | Technologie-Vorbild Symphony Solutions/BetHarmony referenziert (Abschnitt 2, Multi-Agent-KI-Inspiration für Worldmap-Kandidat 21) | Claude |
+|            |                                                                                                                                   |        |
 
 ---
 

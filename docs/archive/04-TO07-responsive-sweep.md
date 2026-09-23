@@ -4,7 +4,7 @@
 
 ## 1 — Übersicht für Jan
 
-> Auftraggeber-Kontext: Aufgabe **TO-07** aus [`../../T_FRONTEND/04_tokens.md`](../../T_FRONTEND/04_tokens.md) (45-Minuten-Welle). Alle Zuständigkeiten liegen beim LLM (Jans Vorgabe für diese Welle: keine Jan-Zuständigkeiten). Messung, nicht Geschmack.
+> Auftraggeber-Kontext: Aufgabe **TO-07** aus [`../../T_FRONTEND/04_tokens.md`](../../workspace/domains/frontend/T_FRONTEND/04_tokens.md) (45-Minuten-Welle). Alle Zuständigkeiten liegen beim LLM (Jans Vorgabe für diese Welle: keine Jan-Zuständigkeiten). Messung, nicht Geschmack.
 
 | Nummer | Meilenstein                                                   | Status      | Nächster Schritt                                                                                                                                                 | Zuständigkeit |
 | ------ | ------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |

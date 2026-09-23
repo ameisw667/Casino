@@ -4,7 +4,7 @@
 > Status: 🟢 **Executed (Verifiziert)**  
 > Projekt: **Casino / Next.js 16.3 / OpenAI Responses API / Supabase PostgreSQL / Recharts**  
 > Verzeichnis: `Z_LLM/`  
-> Bezug: [`Z_LLM/10_llm_erweiterung.md`](../../Z_LLM/10_llm_erweiterung.md) — Stufe K (Option K1)  
+> Bezug: [`Z_LLM/10_llm_erweiterung.md`](../../workspace/domains/ai_agents/Z_LLM/10_llm_erweiterung.md) — Stufe K (Option K1)  
 > Scope: DDL Migration `042_guide_feedback_evals.sql`, Feedback-Tabelle `guide_feedback`, Feedback API `POST /api/chat/feedback`, Evals API `GET /api/admin/evals`, UI-Komponenten für User-Feedback (Daumen hoch/runter in [`CasinoGuidePanel.tsx`](../../src/components/social/CasinoGuidePanel.tsx)) und Obsidian & Gold Admin Dashboard `/admin/evals`.
 
 ---

@@ -1,6 +1,6 @@
 # 05 — Datenbank-Härtung: Migrations-Disziplin, Indexing & Connection-Handling
 
-> **Status:** Executed (archiviert) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Unterkategorien 1, 6, 10 aus [04_datenbank_migrationen.md](../../T_DATABASE/04_datenbank_migrationen.md). Kein Wallet-Business-Logic-Umbau und keine RLS-Policy-Änderung.
+> **Status:** Executed (archiviert) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Unterkategorien 1, 6, 10 aus [04_datenbank_migrationen.md](../../workspace/domains/database/T_DATABASE/04_datenbank_migrationen.md). Kein Wallet-Business-Logic-Umbau und keine RLS-Policy-Änderung.
 
 ## 1 — Übersicht für Jan
 

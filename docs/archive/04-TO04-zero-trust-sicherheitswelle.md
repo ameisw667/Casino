@@ -33,7 +33,7 @@
 | Bedarf                                   | Datei                                                                                      |
 | :--------------------------------------- | :----------------------------------------------------------------------------------------- |
 | Fund-Matrix (Nachweis)                   | [`docs/archive/17_TO04_security_fundmatrix.md`](./17_TO04_security_fundmatrix.md)          |
-| Quellaufgabe                             | [`T_FRONTEND/04_tokens.md`](../../T_FRONTEND/04_tokens.md)                                 |
+| Quellaufgabe                             | [`T_FRONTEND/04_tokens.md`](../../workspace/domains/frontend/T_FRONTEND/04_tokens.md)      |
 | Sicherheits-SOP                          | [`xx_sop/19_security_review_standards.md`](../../xx_sop/19_security_review_standards.md)   |
 | Wallet-Invarianten                       | [`xx_sop/09_security_wallet_invariants.md`](../../xx_sop/09_security_wallet_invariants.md) |
 | API-Kontext (Doku-Drift: 47 → 52 Routen) | [`xx_docs/08_api_backend_context.md`](../../xx_docs/08_api_backend_context.md)             |

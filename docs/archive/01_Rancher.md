@@ -131,7 +131,7 @@ Jeder bisherige MCP-Pilot in diesem Projekt (Sentry, Playwright, GitHub, Supabas
 - [`docs/archive/01_Supabase-CLI.md`](./01_Supabase-CLI.md), Abschnitt 6 — verifizierter Wechsel Docker Desktop → Rancher Desktop (2026-08-18).
 - [`docs/archive/00_WORLDMAP_ARCHIVLOG.md`](./00_WORLDMAP_ARCHIVLOG.md), Zeile 18 — Nachweis, dass der VPS-/Docker-Chaos-Stack am 2026-08-14 verworfen wurde.
 - [`docs/archive/05_Observability_und_Lasttest.md`](./05_Observability_und_Lasttest.md), Zeile 32 — bereits korrekt benannter Rancher-Desktop-Use-Case (Jaeger-Stack).
-- [`docker/observability/docker-compose.yml`](../../docker/observability/docker-compose.yml), [`package.json`](../../package.json) (`observability:up`/`observability:down`) — tatsächlicher lokaler Docker/Rancher-Use-Case.
+- [`docker/observability/docker-compose.yml`](../../infra/docker/observability/docker-compose.yml), [`package.json`](../../package.json) (`observability:up`/`observability:down`) — tatsächlicher lokaler Docker/Rancher-Use-Case.
 - [`docs/archive/01_github.md`](./01_github.md) — Referenzformat für einen möglichen künftigen Rancher-CLI/MCP-Plan (L9).
 - [`xx_sop/03_workflow_jan_planungsdateien.md`](../../xx_sop/03_workflow_jan_planungsdateien.md) — Struktur- und Ablagevorgabe für diese Datei.
 - Docker MCP Toolkit-Doku: [docs.docker.com/ai/mcp-catalog-and-toolkit/toolkit](https://docs.docker.com/ai/mcp-catalog-and-toolkit/toolkit/).

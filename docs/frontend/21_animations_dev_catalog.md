@@ -3,7 +3,7 @@
 > **Status:** 🟢 Vollständig erfasst — öffentlicher Anteil (2026-09-08) · **Link-Basis:** [animations.dev](https://animations.dev/) (Landing-Curriculum) + [animations.dev/changelog](https://animations.dev/changelog) (6 Einträge) — **keine Sitemap (HTTP 404), keine öffentlichen Lesson-URLs (Login)**
 > **Votum-Legende:** ⭐⭐⭐ Top-Kandidat · ⭐⭐ Interessant · ❌ Nicht empfehlenswert · ⚪ Neutral (Erstzustand — Bewertung manuell durch Jan) · 💰 Kostenpflichtig
 > **Schema-Adaption (Kurs statt Library):** `Lehreinheit | Offizieller Link | User-Votum | Lernziel für Casino-Frontend | Themenfeld` — analog [`12_componentry_complete_catalog.md`](./12_componentry_complete_catalog.md), aber Lehreinheiten statt Komponenten.
-> **Aufgabenquelle:** [`T_FRONTEND/00_AUFGABEN_FRONTEND.md`](../../T_FRONTEND/00_AUFGABEN_FRONTEND.md) · **Planung:** Plan 61 (aufgabenbegleitend, nach Ausführung aufgelöst)
+> **Aufgabenquelle:** [`T_FRONTEND/00_AUFGABEN_FRONTEND.md`](../../workspace/domains/frontend/T_FRONTEND/00_AUFGABEN_FRONTEND.md) · **Planung:** Plan 61 (aufgabenbegleitend, nach Ausführung aufgelöst)
 
 ---
 
@@ -13,7 +13,7 @@
 - **Jan-Gate-Dokumentation (L0):** Ausführung erfolgte als **Option a) nur öffentlicher Katalog** — Jan hat mit „vollumfänglich umsetzen" keinen Zugang (Kauf/Waitlist) gewährt. Ein späterer Kauf/Waitlist-Zugang würde den Katalog um Lesson-URLs und Innenansicht erweitern (Upgrade-Pfad offen).
 - ⚠️ **Widerspruch dokumentiert:** Landeseite nennt **8** Theory-Lessons, Changelog Okt 2025 schreibt „All **7** theory lessons rebuilt" — öffentlich nicht auflösbar; bis zum Zugang als 7–8 geführt.
 - ⚠️ **Kosten:** Kurs ist bezahlt; Preis nicht öffentlich. Enrollment geschlossen („reopens in 2027"), 4 Enrollment-Fenster/Jahr üblich; 2 Gratis-Preview-Lessons nur via Waitlist; Studenten −20 %, Teams −10–20 %, PPP-Rabatt, jederzeitige Refund-Zusage.
-- **Lernziel-Passung:** Kursschwerpunkte (Spring-Physik, Good-vs-Great, Restraint) treffen die Motion-Skill-Lücken aus [`T_FRONTEND/02_motion.dev.md`](../../T_FRONTEND/02_motion.dev.md) (Kategorien 2 Transitions/Springs, 8 Performance, 9 Reduced Motion) — Modul 3 ist bekanntes Terrain (Engine bereits im Projekt).
+- **Lernziel-Passung:** Kursschwerpunkte (Spring-Physik, Good-vs-Great, Restraint) treffen die Motion-Skill-Lücken aus [`T_FRONTEND/02_motion.dev.md`](../archive/frontend/T_FRONTEND/02_motion.dev.md) (Kategorien 2 Transitions/Springs, 8 Performance, 9 Reduced Motion) — Modul 3 ist bekanntes Terrain (Engine bereits im Projekt).
 
 ---
 

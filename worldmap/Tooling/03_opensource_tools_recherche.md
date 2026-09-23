@@ -92,5 +92,5 @@ Die Quellen bleiben als Nachweis der vollständigen Marktprüfung erhalten. Sie 
 
 - [GitHub-CLI/MCP-Nachweis](../../docs/archive/01_github.md)
 - [Rancher-Desktop-Recherchestand](../../docs/archive/01_Rancher.md)
-- [API-Lernlandkarte](../../t_api/01_api_breakdown.md), [MCP-Lernlandkarte](01_mcp.md) und [CLI-Lernlandkarte](02_cli.md)
+- [API-Lernlandkarte](../../workspace/domains/database/T_API/01_api_breakdown.md), [MCP-Lernlandkarte](01_mcp.md) und [CLI-Lernlandkarte](02_cli.md)
 - [Aktive Zukunftsplanung](../05_ZUKUNFTSPLANUNG.md)

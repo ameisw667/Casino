@@ -2,7 +2,7 @@
 
 > **Status:** Executed (read-only Review, 2026-08-29) · **Fix-Welle:** C1/C2/C3 **auf 2026-08-29 behoben und verifiziert** (siehe §1a)
 > **Umfang:** 52 API-Routen-Files (`src/app/api/**/route.ts`), Middleware `src/proxy.ts`, Security-Lib `src/lib/security/**`, Wallet-Kontaktflächen `src/lib/casino/**` — frisch vermessen am Review-Tag (Doku `xx_docs/08_api_backend_context.md` nennt 47 Routen → Doku-Drift, siehe §5).
-> **Quelle:** [`T_FRONTEND/04_tokens.md`](../../T_FRONTEND/04_tokens.md) TO-04 · **Plan:** siehe archiviert unter [`04-TO04-zero-trust-sicherheitswelle.md`](./04-TO04-zero-trust-sicherheitswelle.md) · Fix-Plan archiviert als [`05-TO04-fixwelle-criticals.md`](./05-TO04-fixwelle-criticals.md) · **HIGH/H1 und die 13 MEDIUM sind weiterhin offen** und Kandidat für die nächste Fix-Welle (Freigabe-Klassen siehe SOP 19 §8).
+> **Quelle:** [`T_FRONTEND/04_tokens.md`](../../workspace/domains/frontend/T_FRONTEND/04_tokens.md) TO-04 · **Plan:** siehe archiviert unter [`04-TO04-zero-trust-sicherheitswelle.md`](./04-TO04-zero-trust-sicherheitswelle.md) · Fix-Plan archiviert als [`05-TO04-fixwelle-criticals.md`](./05-TO04-fixwelle-criticals.md) · **HIGH/H1 und die 13 MEDIUM sind weiterhin offen** und Kandidat für die nächste Fix-Welle (Freigabe-Klassen siehe SOP 19 §8).
 > **Verifizierungs-Vermerk:** Alle CRITICAL/HIGH-Funde sind vom Hauptkontext durch Direktlese der benannten Datei gegengeprüft („Eigenlese"). MEDIUM/LOW stammen aus den 6 Review-Garnituren (file:line-genau) und wurden nicht im Hauptkontext nochmal gelesen.
 
 ---

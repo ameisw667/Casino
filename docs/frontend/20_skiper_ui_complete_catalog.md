@@ -2,7 +2,7 @@
 
 > **Status:** 🟢 Vollständig erfasst (2026-09-08) · **Link-Basis:** [skiper-ui.com/sitemap.xml](https://skiper-ui.com/sitemap.xml) (220 URLs) + **106 Einzel-Auslesungen** der Detailseiten `/v1/skiperN` · **Komponenten:** 106 (skiper1–skiper107, **skiper93 existiert systemisch nicht** — in der Sitemap und auf der Seite abwesend)
 > **Votum-Legende:** ⭐⭐⭐ Top-Kandidat · ⭐⭐ Interessant · ❌ Nicht empfehlenswert · ⚪ Neutral (Erstzustand — Bewertung manuell durch Jan) · 💰 Pro/kostenpflichtig (Polar-License-Key)
-> **Aufgabenquelle:** [`T_FRONTEND/00_AUFGABEN_FRONTEND.md`](../../T_FRONTEND/00_AUFGABEN_FRONTEND.md) · **Planung:** Plan 60 (aufgabenbegleitend, nach Ausführung aufgelöst)
+> **Aufgabenquelle:** [`T_FRONTEND/00_AUFGABEN_FRONTEND.md`](../../workspace/domains/frontend/T_FRONTEND/00_AUFGABEN_FRONTEND.md) · **Planung:** Plan 60 (aufgabenbegleitend, nach Ausführung aufgelöst)
 
 ---
 

@@ -1,8 +1,8 @@
-> **Archiviert 2026-08-29.** Ursprünglich `worldmap/04_08_secret_rotation.md`. Alle 6 Meilensteine (L1–L6) sind umgesetzt und verifiziert — siehe Abschnitt 5/6 für das ehrliche Ergebnis (Top 22 %, unterschreitet das Ziel von mindestens Top 30 % deutlich, weil zwei Unterkategorien bewusst K5-gebunden bzw. unangetastet bleiben). Aktueller Stand der Kategorie 04 in [`T_SECURITY_HARDENING/04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md), Live-Status in [`worldmap/00_WORLDMAP_STATUS.md`](../../worldmap/00_WORLDMAP_STATUS.md).
+> **Archiviert 2026-08-29.** Ursprünglich `worldmap/04_08_secret_rotation.md`. Alle 6 Meilensteine (L1–L6) sind umgesetzt und verifiziert — siehe Abschnitt 5/6 für das ehrliche Ergebnis (Top 22 %, unterschreitet das Ziel von mindestens Top 30 % deutlich, weil zwei Unterkategorien bewusst K5-gebunden bzw. unangetastet bleiben). Aktueller Stand der Kategorie 04 in [`T_SECURITY_HARDENING/04_security_hardening.md`](../../workspace/domains/security/T_SECURITY_HARDENING/04_security_hardening.md), Live-Status in [`worldmap/00_WORLDMAP_STATUS.md`](../../worldmap/00_WORLDMAP_STATUS.md).
 
 # 04.08 — Secret-Rotation-Prozess: Von Top 55 % zu mindestens Top 30 %
 
-> **Status:** Executed (archiviert) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Härtung von Unterkategorie #8 „Secret-Rotation-Prozess" aus [`04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md) (Kategorie 04, Prio 1) — bewusst **nicht** die Ausführung einer echten Rotation (K5, bleibt bei Jan) und **nicht** Auth/Identity (Kategorie 03) oder Rate Limiting (Kategorie 06).
+> **Status:** Executed (archiviert) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Härtung von Unterkategorie #8 „Secret-Rotation-Prozess" aus [`04_security_hardening.md`](../../workspace/domains/security/T_SECURITY_HARDENING/04_security_hardening.md) (Kategorie 04, Prio 1) — bewusst **nicht** die Ausführung einer echten Rotation (K5, bleibt bei Jan) und **nicht** Auth/Identity (Kategorie 03) oder Rate Limiting (Kategorie 06).
 > **Money-Pfad:** Nein (reine Prozess-/Tooling-Härtung, kein Wallet-Schreibpfad) · **Security-Review:** Pflicht (jede Änderung an Secret-Handling/CI ist sicherheitsrelevant)
 
 ---
@@ -142,8 +142,8 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
 ## 7 — Verwandte Artefakte
 
-| Bedarf                                                             | Datei                                                                                       |
-| :----------------------------------------------------------------- | :------------------------------------------------------------------------------------------ |
-| Übergeordnete Kategorie-04-Aufschlüsselung (Herkunft dieses Plans) | [`04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md)           |
-| Secret-Rotation-SOP (wird durch L3/L5 erweitert)                   | [`xx_sop/14_secret_rotation.md`](../../xx_sop/14_secret_rotation.md)                        |
-| Secrets-Übersicht projektübergreifend                              | [`_Brain/50_Library/Secrets-Reference.md`](../../../_Brain/50_Library/Secrets-Reference.md) |
+| Bedarf                                                             | Datei                                                                                                        |
+| :----------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
+| Übergeordnete Kategorie-04-Aufschlüsselung (Herkunft dieses Plans) | [`04_security_hardening.md`](../../workspace/domains/security/T_SECURITY_HARDENING/04_security_hardening.md) |
+| Secret-Rotation-SOP (wird durch L3/L5 erweitert)                   | [`xx_sop/14_secret_rotation.md`](../../xx_sop/14_secret_rotation.md)                                         |
+| Secrets-Übersicht projektübergreifend                              | [`_Brain/50_Library/Secrets-Reference.md`](../../../_Brain/50_Library/Secrets-Reference.md)                  |

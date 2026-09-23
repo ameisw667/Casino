@@ -1,0 +1,25 @@
+# Übersicht — Säule 5: Promo-/Bonus-Code-Abuse-Prevention
+
+> **Zweck:** Ebene-1-Assessment (Dekomposition) vor einer künftigen Ebene-2-Planungsdatei. Diese Datei selbst plant nichts, sie diagnostiziert. Leichte Verifikation (ein `casino-code-explorer`-Aufruf, 2026-09-17) gegen `docs/archive/06_10_promo_bonus_abuse_prevention_plan.md` und `06_rate_limiting_abuse_prevention.md` §"5 — Promo-/Bonus-Code-Abuse-Prevention".
+> **Stand:** 2026-09-17 · **Aktuelle Headline-Niveau (aus `00_RATE_LIMITING_ABUSE_PREVENTION_UEBERSICHT.md` §3):** Top 25 %
+
+## Assessment: Promo-/Bonus-Code-Abuse-Prevention (Status Quo: Top 25 %)
+
+| #   | Sub-Subkategorie                                  | Niveau   | Befund & Beleg (Datei:Zeile)                                                                                                                       | Bottleneck?               | Action Item (nur benennen, nicht umsetzen)               |
+| --- | ------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | -------------------------------------------------------- |
+| 01  | Normalisierungs-Konsistenz (Code-Eingabe)         | Top 10 % | Unverändert solide, nicht erneut vertieft geprüft (außerhalb der leichten Verifikation)                                                            | Nein                      | —                                                        |
+| 02  | Idempotency-Key-Pflicht                           | Top 12 % | Bestätigt: UUID-Pflicht `redeem-code/route.ts:56-59,141`                                                                                           | Nein                      | —                                                        |
+| 03  | 8-Zeichen-Gate / Promo-Guess-Guard                | Top 16 % | Unverändert solide (Zähler-Threshold-Muster), nicht erneut vertieft geprüft                                                                        | Nein                      | —                                                        |
+| 04  | Rate-Limit 10/60s auf Redeem-Route                | Top 12 % | Bestätigt: `WALLET_REDEEM_LIMIT=10`/`WALLET_REDEEM_WINDOW_SECONDS=60`, `rate-limit-config.ts:41-42`, importiert in `redeem-code/route.ts:14-17`    | Nein                      | —                                                        |
+| 05  | Reversal-RPC + Admin-Route                        | Top 12 % | Bestätigt: `reverse_promo_code` (`066_promo_reversal_and_expiry.sql`), Admin-Route `admin/promo-codes/[code]/reverse/route.ts` existiert weiterhin | Nein                      | —                                                        |
+| 06  | Täglicher Expiry-Job                              | Top 10 % | Bestätigt: `deactivate_expired_promo_codes()` (`066_promo_reversal_and_expiry.sql:143`), `cron.schedule(...)` Zeile 207                            | Nein                      | —                                                        |
+| 07  | 24h-Redemption-Analytics im Admin-Dashboard       | Top 22 % | Bestätigt: `redemptions24h`-Aggregation, `admin/promo-codes/route.ts:87-99`                                                                        | Nein                      | —                                                        |
+| 08  | Log-Maskierung                                    | Top 12 % | Bestätigt: `****${rawCode.slice(-4)}`, `redeem-code/route.ts:192`                                                                                  | Nein                      | —                                                        |
+| 09  | Bulk-Code-Generierung — Missbrauchsschutz         | Top 55 % | Unverändert bekannte, bereits in Runde 1 dokumentierte Lücke, keine neue Prüfung                                                                   | 🔴 JA (bereits bekannt)   | Kein neuer Fund — bei Bedarf eigenständige Ebene-2-Runde |
+| 10  | Multi-Account-Echtzeit-Blockierung bei Redemption | Top 80 % | Bewusst bei Säule 10 verortet (Cross-Reference `06_3`), hier nicht erneut geprüft                                                                  | 🔴 JA (Eigentum Säule 10) | Kein Fix hier — Eigentum von Säule 10                    |
+
+**Rechnerischer Schnitt:** (10+12+16+12+12+10+22+12+55+80)/10 = **Top 24,1 %**. **Vergleich zur Headline:** Praktisch deckungsgleich (Headline Top 25 % vs. Schnitt Top 24,1 %) — keine neue Abweichung gefunden.
+
+## Zusammenfassung für Jan
+
+Diese Säule ist stabil: alle 7 geprüften Kernaussagen aus der Runde-1-Execution (2026-09-06) — Idempotency, Rate-Limit, Reversal-RPC, Admin-Route, Expiry-Cron, 24h-Analytics, Log-Maskierung — sind unverändert im aktuellen Code vorhanden, kein Regress. Die beiden verbleibenden Bottlenecks (#09 Bulk-Code-Generierung, #10 Multi-Account-Echtzeit) sind keine neuen Funde, sondern bereits aus Runde 1 bekannt bzw. bewusst Säule 10 zugeordnet. Für diese Säule besteht aktuell **kein** dringender Bedarf für eine neue Ebene-2-Planungsrunde — die Headline Top 25 % ist zutreffend.

@@ -3,23 +3,25 @@
 > **Säule:** 6 von 10 · **Status:** 🟢 verifiziert gegen echten Code (2026-09-05) · **Stand:** 2026-09-05 · **Owner:** Jan / LLM  
 > **Worldmap-Zuordnung:** Kategorie 02 (Unterkategorie 5: Typsicherheit / generierte Types — Niveau: **Top 20 %**)  
 > **Referenz-SOP:** [`xx_sop/05_database_supabase.md`](../../xx_sop/05_database_supabase.md) §5 · **Back:** [`00_DATABASE_OVERVIEW.md`](./00_DATABASE_OVERVIEW.md)  
-> **Hinweis:** Dieser Status beschreibt die Doku-Qualität, nicht den System-Reifegrad — die verifizierte System-Bewertung je Subkategorie steht in [`T_DATABASE/06_database_typsicherheit.md`](../../T_DATABASE/06_database_typsicherheit.md).
+> **Hinweis:** Dieser Status beschreibt die Doku-Qualität, nicht den System-Reifegrad — die verifizierte System-Bewertung je Subkategorie steht in [`T_DATABASE/06_database_typsicherheit.md`](../archive/database/T_DATABASE/06_database_typsicherheit.md).
 
 ---
 
 ## 1 — High-Level: Was ist Typsicherheit & warum schützt sie das Casino? (Für Jan erklärt)
 
 In einer modernen Webanwendung arbeiten zwei völlig unterschiedliche Welten zusammen:
+
 1. Die **PostgreSQL-Datenbank**, in der Tabellen, Spalten und Geldwerte liegen.
 2. Der **Next.js TypeScript-Code**, der das Frontend anzeigt und Spielzüge berechnet.
 
 ### Praxis-Vergleich: Mit vs. Ohne Typegen auf einen Blick:
-| Kriterium | Ohne Typegen (Riskant) | Mit Typegen (Top 1 % Weltklasse) |
-| :--- | :--- | :--- |
-| **Tippfehler bei Spalten** | `user.walet_balance` fällt erst live beim Spielen auf. | Editor zeigt roten Fehler; Build bricht sofort ab. |
-| **Geänderte Spaltennamen** | Entwickler vergisst eine Stelle im Code -> Absturz (`500`). | TypeScript listet alle betroffenen Stellen sekundenschnell auf. |
-| **RPC-Funktionsparameter** | Falscher Datentyp (Text statt Zahl) erzeugt Datenbankfehler. | IDE erzwingt exakt die richtigen Parameter und Typen. |
-| **Entwicklungs-Speed** | Man muss ständig in Supabase nachsehen, wie Spalten heißen. | Automatische Autovervollständigung (IntelliSense) beim Tippen. |
+
+| Kriterium                  | Ohne Typegen (Riskant)                                       | Mit Typegen (Top 1 % Weltklasse)                                |
+| :------------------------- | :----------------------------------------------------------- | :-------------------------------------------------------------- |
+| **Tippfehler bei Spalten** | `user.walet_balance` fällt erst live beim Spielen auf.       | Editor zeigt roten Fehler; Build bricht sofort ab.              |
+| **Geänderte Spaltennamen** | Entwickler vergisst eine Stelle im Code -> Absturz (`500`).  | TypeScript listet alle betroffenen Stellen sekundenschnell auf. |
+| **RPC-Funktionsparameter** | Falscher Datentyp (Text statt Zahl) erzeugt Datenbankfehler. | IDE erzwingt exakt die richtigen Parameter und Typen.           |
+| **Entwicklungs-Speed**     | Man muss ständig in Supabase nachsehen, wie Spalten heißen.  | Automatische Autovervollständigung (IntelliSense) beim Tippen.  |
 
 ---
 
@@ -49,6 +51,7 @@ flowchart TD
 ## 3 — Die Struktur von `Database` (`src/types/database.types.ts`)
 
 Die generierte Datei unterteilt jede Tabelle in drei essenzielle Lebenszyklus-Zustände:
+
 1. **`Row`:** Exakter Zustand einer gelesenen Zeile (alle Pflichtfelder belegt).
 2. **`Insert`:** Pflicht- vs. optionale Felder beim Anlegen (z. B. `id` und `created_at` haben Defaults).
 3. **`Update`:** Alle Felder optional (Teilaktualisierung einzelner Spalten).
@@ -71,13 +74,13 @@ export type Database = {
           created_at: string;
           // ... weitere Spalten laut Migration 001/014
         };
-        Insert: { /* Pflichtfelder + optionale Defaults-Felder */ };
-        Update: { /* alle Felder optional */ };
+        Insert: {/* Pflichtfelder + optionale Defaults-Felder */};
+        Update: {/* alle Felder optional */};
       };
     };
     Functions: {
       settle_game_bet: {
-        Args: { p_user_id: string; p_request_id: string; /* ... */ };
+        Args: { p_user_id: string; p_request_id: string /* ... */ };
         Returns: Json;
       };
     };
@@ -122,11 +125,11 @@ Es gibt zwei **real existierende** Schranken; die frühere Beschreibung eines `.
 
 ## 6 — Risiko- & Freigabeklassifizierung
 
-| Typegen-Aktion | K-Level | Freigabe & Sicherheitsstandard |
-| :--- | :---: | :--- |
-| **Lokale Typgenerierung ausführen** | **K2** | Lokale Verifikation, Standard-Dev-Zyklus. |
-| **Typ-Prüfung ausführen (`npm run typecheck`)** | **K1** | Frei ausführbar. |
-| **Manuelle Modifikation von `database.types.ts`** | **K3** | **Verboten:** Datei wird generiert, niemals von Hand editieren. |
+| Typegen-Aktion                                    | K-Level | Freigabe & Sicherheitsstandard                                  |
+| :------------------------------------------------ | :-----: | :-------------------------------------------------------------- |
+| **Lokale Typgenerierung ausführen**               | **K2**  | Lokale Verifikation, Standard-Dev-Zyklus.                       |
+| **Typ-Prüfung ausführen (`npm run typecheck`)**   | **K1**  | Frei ausführbar.                                                |
+| **Manuelle Modifikation von `database.types.ts`** | **K3**  | **Verboten:** Datei wird generiert, niemals von Hand editieren. |
 
 ---
 
@@ -148,9 +151,9 @@ npm run build
 
 ## 8 — Verwandte Dokumente & SOP-Referenzen
 
-| Bedarf | Dateipfad |
-| :--- | :--- |
-| **Supabase SOP (Typgenerierung):** | [`xx_sop/05_database_supabase.md`](../../xx_sop/05_database_supabase.md) |
-| **Schema-Design (Säule 2):** | [`02_schema_design_datenmodell.md`](./02_schema_design_datenmodell.md) |
+| Bedarf                                | Dateipfad                                                                    |
+| :------------------------------------ | :--------------------------------------------------------------------------- |
+| **Supabase SOP (Typgenerierung):**    | [`xx_sop/05_database_supabase.md`](../../xx_sop/05_database_supabase.md)     |
+| **Schema-Design (Säule 2):**          | [`02_schema_design_datenmodell.md`](./02_schema_design_datenmodell.md)       |
 | **Die 3 Supabase-Clients (Säule 5):** | [`05_supabase_clients_architektur.md`](./05_supabase_clients_architektur.md) |
-| **Master-Übersicht:** | [`00_DATABASE_OVERVIEW.md`](./00_DATABASE_OVERVIEW.md) |
+| **Master-Übersicht:**                 | [`00_DATABASE_OVERVIEW.md`](./00_DATABASE_OVERVIEW.md)                       |

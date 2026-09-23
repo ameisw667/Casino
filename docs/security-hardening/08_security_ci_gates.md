@@ -126,11 +126,11 @@ Empfehlungslogik (ohne Entscheidung vorwegzunehmen): Für ein Solo-Projekt mit b
 
 ## 10 — Verwandte Artefakte (erweitert)
 
-| Bedarf                                                   | Datei                                                                                                        |
-| :------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
-| Migrations-Kollisions-Historie (außerhalb dieses Scopes) | [`docs/archive/05_datenbank_haertung.md`](../archive/05_datenbank_haertung.md)                               |
-| CI/CD-Kontext allgemein                                  | [`docs/archive/00-09-CICD.md`](../archive/00-09-CICD.md)                                                     |
-| Härtungsplan (ausgeführt)                                | [`docs/archive/06_4_security_ci_gate_hardening_plan.md`](../archive/06_4_security_ci_gate_hardening_plan.md) |
-| Runde-2-Planung (dieser Erweiterung)                     | [`T_SECURITY_HARDENING/02_security_ci_gate.md`](../../T_SECURITY_HARDENING/02_security_ci_gate.md)           |
-| Neues SAST-Gate                                          | [`.github/workflows/codeql.yml`](../../.github/workflows/codeql.yml)                                         |
-| Telegram-Alert-Pattern (Referenz, §9)                    | [`src/lib/casino/telegram-api.ts`](../../src/lib/casino/telegram-api.ts)                                     |
+| Bedarf                                                   | Datei                                                                                                            |
+| :------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------- |
+| Migrations-Kollisions-Historie (außerhalb dieses Scopes) | [`docs/archive/05_datenbank_haertung.md`](../archive/05_datenbank_haertung.md)                                   |
+| CI/CD-Kontext allgemein                                  | [`docs/archive/00-09-CICD.md`](../archive/00-09-CICD.md)                                                         |
+| Härtungsplan (ausgeführt)                                | [`docs/archive/06_4_security_ci_gate_hardening_plan.md`](../archive/06_4_security_ci_gate_hardening_plan.md)     |
+| Runde-2-Planung (dieser Erweiterung)                     | [`T_SECURITY_HARDENING/02_security_ci_gate.md`](../archive/security/T_SECURITY_HARDENING/02_security_ci_gate.md) |
+| Neues SAST-Gate                                          | [`.github/workflows/codeql.yml`](../../.github/workflows/codeql.yml)                                             |
+| Telegram-Alert-Pattern (Referenz, §9)                    | [`src/lib/casino/telegram-api.ts`](../../src/lib/casino/telegram-api.ts)                                         |

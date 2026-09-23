@@ -1,7 +1,7 @@
 # 10 — Multimodale Spielanalyse (Vision) — Stufe L
 
 > **Status:** 🟢 Executed (Verifiziert) · **Stand:** 2026-08-23 · **Owner:** LLM (Execution) / Jan (Approval) · **Scope:** Clientseitige Canvas-Kompression, Screenshot Drag & Drop + Clipboard Paste, Vision API Streaming via `gpt-4o-mini` / `gpt-4o`, Spielrunden-Erklärung für alle Casinospiele.  
-> **Bezug:** [`Z_LLM/10_llm_erweiterung.md`](../../Z_LLM/10_llm_erweiterung.md) — Stufe L (Option L1)  
+> **Bezug:** [`Z_LLM/10_llm_erweiterung.md`](../../workspace/domains/ai_agents/Z_LLM/10_llm_erweiterung.md) — Stufe L (Option L1)  
 > **SOPs:** [`xx_sop/02_workflow_jan_execution.md`](../../xx_sop/02_workflow_jan_execution.md), [`xx_sop/04_design_system_ui.md`](../../xx_sop/04_design_system_ui.md), [`xx_sop/07_api_backend_routes.md`](../../xx_sop/07_api_backend_routes.md)
 
 ---

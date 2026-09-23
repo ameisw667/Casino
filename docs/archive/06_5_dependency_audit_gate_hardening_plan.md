@@ -1,8 +1,8 @@
-> **Archiviert 2026-08-29.** Ursprünglich `worldmap/04_07_dependency_audit_gate.md`. Alle 6 Meilensteine (L1–L6) sind umgesetzt und lokal verifiziert — siehe Abschnitt 5/6 für das ehrliche Ergebnis (Top 36 %, verbessert sich deutlich von Top 58 % Ist-Zustand, erreicht aber das Ziel „mindestens Top 30 %" nicht vollständig, weil die `ws`-Breaking-Change-Entscheidung bewusst bei Jan bleibt). Aktueller Stand der Kategorie 04 in [`T_SECURITY_HARDENING/04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md), Live-Status in [`worldmap/00_WORLDMAP_STATUS.md`](../../worldmap/00_WORLDMAP_STATUS.md).
+> **Archiviert 2026-08-29.** Ursprünglich `worldmap/04_07_dependency_audit_gate.md`. Alle 6 Meilensteine (L1–L6) sind umgesetzt und lokal verifiziert — siehe Abschnitt 5/6 für das ehrliche Ergebnis (Top 36 %, verbessert sich deutlich von Top 58 % Ist-Zustand, erreicht aber das Ziel „mindestens Top 30 %" nicht vollständig, weil die `ws`-Breaking-Change-Entscheidung bewusst bei Jan bleibt). Aktueller Stand der Kategorie 04 in [`T_SECURITY_HARDENING/04_security_hardening.md`](../../workspace/domains/security/T_SECURITY_HARDENING/04_security_hardening.md), Live-Status in [`worldmap/00_WORLDMAP_STATUS.md`](../../worldmap/00_WORLDMAP_STATUS.md).
 
 # 04.07 — Supply-Chain-/Dependency-Audit-Gate: Von Top 65 % zu möglichst nah an Top 30 %
 
-> **Status:** Executed (archiviert) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Härtung von Unterkategorie #7 „Supply-Chain-/Dependency-Audit-Gate" (`.github/workflows/dependency-audit.yml`) aus [`04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md) (Kategorie 04, Prio 1) — bewusst **nicht** die Breaking-Change-Entscheidung zu `ws`/`@trigger.dev/sdk` (bleibt bei Jan, K5) und **nicht** Rate Limiting (Kategorie 06).
+> **Status:** Executed (archiviert) · **Stand:** 2026-08-29 · **Owner:** LLM · **Scope:** Härtung von Unterkategorie #7 „Supply-Chain-/Dependency-Audit-Gate" (`.github/workflows/dependency-audit.yml`) aus [`04_security_hardening.md`](../../workspace/domains/security/T_SECURITY_HARDENING/04_security_hardening.md) (Kategorie 04, Prio 1) — bewusst **nicht** die Breaking-Change-Entscheidung zu `ws`/`@trigger.dev/sdk` (bleibt bei Jan, K5) und **nicht** Rate Limiting (Kategorie 06).
 > **Money-Pfad:** Nein (Build-/CI-Infrastruktur, kein Wallet-Schreibpfad) · **Security-Review:** Pflicht (Supply-Chain-Gate)
 
 ---
@@ -41,7 +41,7 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
 ## 2 — Ausgangslage: Sub-Kategorie-Aufschlüsselung (max. 10, aus #7 abgeleitet)
 
-> Hinweis zur Methodik: „Ist der Workflow gepusht/live sichtbar" wird hier bewusst **nicht** als eigene Zeile geführt — das ist derselbe Deployment-Gap, der bereits additiv für alle 10 Unterkategorien von Kategorie 04 gilt (siehe [`04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md), Kernaussage). Die 10 Zeilen unten bewerten stattdessen ausschließlich die **Bauqualität**, die von einem Push unabhängig ist.
+> Hinweis zur Methodik: „Ist der Workflow gepusht/live sichtbar" wird hier bewusst **nicht** als eigene Zeile geführt — das ist derselbe Deployment-Gap, der bereits additiv für alle 10 Unterkategorien von Kategorie 04 gilt (siehe [`04_security_hardening.md`](../../workspace/domains/security/T_SECURITY_HARDENING/04_security_hardening.md), Kernaussage). Die 10 Zeilen unten bewerten stattdessen ausschließlich die **Bauqualität**, die von einem Push unabhängig ist.
 
 | #   | Sub-Unterkategorie                            | Niveau       | Kernbefund                                                                                                                                                                              |
 | --- | --------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -163,5 +163,5 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt.
 
 | Bedarf                                                             | Datei                                                                                                                    |
 | :----------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------- |
-| Übergeordnete Kategorie-04-Aufschlüsselung (Herkunft dieses Plans) | [`04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md)                                        |
+| Übergeordnete Kategorie-04-Aufschlüsselung (Herkunft dieses Plans) | [`04_security_hardening.md`](../../workspace/domains/security/T_SECURITY_HARDENING/04_security_hardening.md)             |
 | Security-Hardening-Status (`ws`-Breaking-Change-Kontext)           | [`docs/status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md`](../status-reports/06_2_SECURITY_HARDENING_HEADERS_CSP.md) |

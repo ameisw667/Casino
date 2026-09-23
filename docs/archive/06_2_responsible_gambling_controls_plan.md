@@ -1,6 +1,6 @@
 # 06_2 — Responsible-Gambling-Controls: Umsetzungsplan
 
-> **Status:** Executed (archiviert) — Ausführung 2026-09-04, Umfang Q1a „Minimal" (L0–L3 + L6; L4 Session-Nudge und L5 Admin-Spalte entfallen) · **Stand:** 2026-09-04 · **Owner:** LLM · **Scope:** Unterkategorie #7 aus [`06_rate_limiting_abuse_prevention.md`](../../T_RATE_LIMITING_ABUSE_PREVENTION/06_rate_limiting_abuse_prevention.md) — Selbstschutz-Mechanismen für den Spieler (nicht Anti-Fraud/Anti-Bot, das ist `06_1`). Alle Zuständigkeiten liegen beim LLM; kein Meilenstein ist auf eine Jan-Entscheidung während der Ausführung angewiesen. Offene Grundsatzfragen stehen gesammelt am Dateiende.
+> **Status:** Executed (archiviert) — Ausführung 2026-09-04, Umfang Q1a „Minimal" (L0–L3 + L6; L4 Session-Nudge und L5 Admin-Spalte entfallen) · **Stand:** 2026-09-04 · **Owner:** LLM · **Scope:** Unterkategorie #7 aus [`06_rate_limiting_abuse_prevention.md`](../../workspace/domains/security/T_RATE_LIMITING_ABUSE_PREVENTION/06_rate_limiting_abuse_prevention.md) — Selbstschutz-Mechanismen für den Spieler (nicht Anti-Fraud/Anti-Bot, das ist `06_1`). Alle Zuständigkeiten liegen beim LLM; kein Meilenstein ist auf eine Jan-Entscheidung während der Ausführung angewiesen. Offene Grundsatzfragen stehen gesammelt am Dateiende.
 > **Quellcode-Basis:** Alle Befunde unten wurden am 2026-09-04 durch zwei read-only `casino-code-explorer`-Läufe gegen den tatsächlichen Code verifiziert (Datei:Zeile-Belege).
 
 ## 0 — Kontext-Fakt, der die gesamte Priorisierung bestimmt
@@ -128,7 +128,7 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt. **Hinwei
 **Nicht-Scope:** Kein Rückwirkungs-Fix des projektweiten Coverage-Gate-Gaps (bereits in `06_1`, Abschnitt L7, als bestehender Fund vermerkt — keine Dopplung).
 **Money-Pfad:** Nein · **Security-Review:** Nein.
 
-**Ausführung (2026-09-04):** Tests je neuem Modul sind in den Ausführungsnotizen L0–L3 dokumentiert (Service-, Endpoint- und statische Routen-Assertions; Regressionssicherung für das unveränderte Verhalten ohne aktive Sperre über die Mock-Defaults in den Contract-Tests). Endstand: 1508/1508 Tests grün, typecheck/lint 0 Fehler. Doku-Nachzug erledigt: Unterkategorie #7 in [`06_rate_limiting_abuse_prevention.md`](../../T_RATE_LIMITING_ABUSE_PREVENTION/06_rate_limiting_abuse_prevention.md) von Top 95 % (🔴) auf Top 25 % (🟡) neu bewertet (neuer Kategorie-Schnitt Top 31 %), [`docs/rate-limiting/00_RATE_LIMITING_OVERVIEW.md`](../rate-limiting/00_RATE_LIMITING_OVERVIEW.md) synchron aktualisiert; `worldmap/00_WORLDMAP_STATUS.md` Fußnote ⁵ und Statuslog #06 faktisch korrigiert (Headline-Zelle bleibt offen bei Jan). Plan anschließend executed-archiviert, casino-residue-scout-Check sauber.
+**Ausführung (2026-09-04):** Tests je neuem Modul sind in den Ausführungsnotizen L0–L3 dokumentiert (Service-, Endpoint- und statische Routen-Assertions; Regressionssicherung für das unveränderte Verhalten ohne aktive Sperre über die Mock-Defaults in den Contract-Tests). Endstand: 1508/1508 Tests grün, typecheck/lint 0 Fehler. Doku-Nachzug erledigt: Unterkategorie #7 in [`06_rate_limiting_abuse_prevention.md`](../../workspace/domains/security/T_RATE_LIMITING_ABUSE_PREVENTION/06_rate_limiting_abuse_prevention.md) von Top 95 % (🔴) auf Top 25 % (🟡) neu bewertet (neuer Kategorie-Schnitt Top 31 %), [`docs/rate-limiting/00_RATE_LIMITING_OVERVIEW.md`](../rate-limiting/00_RATE_LIMITING_OVERVIEW.md) synchron aktualisiert; `worldmap/00_WORLDMAP_STATUS.md` Fußnote ⁵ und Statuslog #06 faktisch korrigiert (Headline-Zelle bleibt offen bei Jan). Plan anschließend executed-archiviert, casino-residue-scout-Check sauber.
 
 ## 5 — Selbstprüfung (durchgeführt 2026-09-04)
 
@@ -168,12 +168,12 @@ Ampel: 🔴 geplant, 🟡 in Ausführung, 🟢 verifiziert ausgeführt. **Hinwei
 
 ## 7 — Verwandte Artefakte
 
-| Bedarf                                                            | Datei                                                                                                                 |
-| :---------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------- |
-| Vollständige Kategorie-06-Aufschlüsselung (Ursprung dieses Plans) | [`06_rate_limiting_abuse_prevention.md`](../../T_RATE_LIMITING_ABUSE_PREVENTION/06_rate_limiting_abuse_prevention.md) |
-| Kompakte Kategorie-Overview                                       | [`docs/rate-limiting/00_RATE_LIMITING_OVERVIEW.md`](../rate-limiting/00_RATE_LIMITING_OVERVIEW.md)                    |
-| Schwester-Plan Bot-/Automatisierungserkennung (#3)                | [`docs/archive/06_1_bot_automation_detection_plan.md`](06_1_bot_automation_detection_plan.md)                         |
-| Service-Layer-Kontext (`WalletService`, Geld-Pfad-Konventionen)   | [`xx_docs/05_service_layer_context.md`](../../xx_docs/05_service_layer_context.md)                                    |
-| Background-Jobs-SOP (Trigger.dev `schedules.task`-Konvention)     | [`xx_sop/20_background_jobs_scheduling.md`](../../xx_sop/20_background_jobs_scheduling.md)                            |
-| SOP Planungsdateien (Format dieses Plans)                         | [`xx_sop/03_workflow_jan_planungsdateien.md`](../../xx_sop/03_workflow_jan_planungsdateien.md)                        |
-| SOP Execution (nächster Schritt nach Freigabe)                    | [`xx_sop/02_workflow_jan_execution.md`](../../xx_sop/02_workflow_jan_execution.md)                                    |
+| Bedarf                                                            | Datei                                                                                                                                            |
+| :---------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vollständige Kategorie-06-Aufschlüsselung (Ursprung dieses Plans) | [`06_rate_limiting_abuse_prevention.md`](../../workspace/domains/security/T_RATE_LIMITING_ABUSE_PREVENTION/06_rate_limiting_abuse_prevention.md) |
+| Kompakte Kategorie-Overview                                       | [`docs/rate-limiting/00_RATE_LIMITING_OVERVIEW.md`](../rate-limiting/00_RATE_LIMITING_OVERVIEW.md)                                               |
+| Schwester-Plan Bot-/Automatisierungserkennung (#3)                | [`docs/archive/06_1_bot_automation_detection_plan.md`](06_1_bot_automation_detection_plan.md)                                                    |
+| Service-Layer-Kontext (`WalletService`, Geld-Pfad-Konventionen)   | [`xx_docs/05_service_layer_context.md`](../../xx_docs/05_service_layer_context.md)                                                               |
+| Background-Jobs-SOP (Trigger.dev `schedules.task`-Konvention)     | [`xx_sop/20_background_jobs_scheduling.md`](../../xx_sop/20_background_jobs_scheduling.md)                                                       |
+| SOP Planungsdateien (Format dieses Plans)                         | [`xx_sop/03_workflow_jan_planungsdateien.md`](../../xx_sop/03_workflow_jan_planungsdateien.md)                                                   |
+| SOP Execution (nächster Schritt nach Freigabe)                    | [`xx_sop/02_workflow_jan_execution.md`](../../xx_sop/02_workflow_jan_execution.md)                                                               |

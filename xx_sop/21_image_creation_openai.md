@@ -1,7 +1,7 @@
 # SOP: OpenAI Bildgenerierung, Editing & Asset-Governance
 
 > **Zweck:** Verbindlicher Standard für KI-Bildgenerierung, partielles Inpainting, Post-Processing, Qualitätssicherung und Frontend-Integration im Obsidian & Gold Design-System.
-> **Worldmap-Kontext:** [`T_IMAGE_CREATION/00_IMAGE_CREATION_UEBERSICHT.md`](../T_IMAGE_CREATION/00_IMAGE_CREATION_UEBERSICHT.md).
+> **Worldmap-Kontext:** [`T_IMAGE_CREATION/00_IMAGE_CREATION_UEBERSICHT.md`](../workspace/domains/frontend/T_IMAGE_CREATION/00_IMAGE_CREATION_UEBERSICHT.md).
 > **Code-Referenzen:** [`src/lib/design-assets/`](../src/lib/design-assets/), [`scripts/generate-design-assets.ts`](../scripts/generate-design-assets.ts), [`scripts/create-image-mask.ts`](../scripts/create-image-mask.ts), [`scripts/make-transparent.ts`](../scripts/make-transparent.ts), [`scripts/export-multi-res.ts`](../scripts/export-multi-res.ts), [`scripts/audit-orphan-images.ts`](../scripts/audit-orphan-images.ts), [`scripts/generate-review-gallery.ts`](../scripts/generate-review-gallery.ts).
 > **Design-System SOP:** [`xx_sop/04_design_system_ui.md`](./04_design_system_ui.md).
 

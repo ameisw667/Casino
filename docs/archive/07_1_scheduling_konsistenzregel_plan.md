@@ -87,9 +87,9 @@ Ampel: 🔴 geplant · 🟡 in Ausführung · 🟢 verifiziert ausgeführt.
 
 ## 4 — Verwandte Artefakte
 
-| Bedarf                                                 | Datei                                                                                                  |
-| :----------------------------------------------------- | :----------------------------------------------------------------------------------------------------- |
-| Ursprüngliche Aufschlüsselung inkl. Unterkategorie #10 | [`worldmap/07_background_jobs_scheduling.md`](../../worldmap/07_background_jobs_scheduling.md)         |
-| Neue Entscheidungsregel (Ergebnis von L1)              | [`xx_sop/20_background_jobs_scheduling.md`](../../xx_sop/20_background_jobs_scheduling.md)             |
-| Planungsdatei-Format-Vorgabe                           | [`xx_sop/03_workflow_jan_planungsdateien.md`](../../xx_sop/03_workflow_jan_planungsdateien.md)         |
-| Vorbild-Methodik (Sub-Kategorie-Härtung)               | [`T_SECURITY_HARDENING/04_security_hardening.md`](../../T_SECURITY_HARDENING/04_security_hardening.md) |
+| Bedarf                                                 | Datei                                                                                                                             |
+| :----------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
+| Ursprüngliche Aufschlüsselung inkl. Unterkategorie #10 | [`worldmap/07_background_jobs_scheduling.md`](../../worldmap/07_background_jobs_scheduling.md)                                    |
+| Neue Entscheidungsregel (Ergebnis von L1)              | [`xx_sop/20_background_jobs_scheduling.md`](../../xx_sop/20_background_jobs_scheduling.md)                                        |
+| Planungsdatei-Format-Vorgabe                           | [`xx_sop/03_workflow_jan_planungsdateien.md`](../../xx_sop/03_workflow_jan_planungsdateien.md)                                    |
+| Vorbild-Methodik (Sub-Kategorie-Härtung)               | [`T_SECURITY_HARDENING/04_security_hardening.md`](../../workspace/domains/security/T_SECURITY_HARDENING/04_security_hardening.md) |

@@ -1,7 +1,7 @@
 # Rollback-Playbook: Kompensierende Migrationen statt Down-Migrationen
 
 > **Status:** Verbindliches Vorgehen · **Stand:** 2026-09-05 · **Owner:** LLM (Pflege), Jan (K4-Freigabe bei Remote-Push)
-> **Zweck:** Standardisiertes, begründetes Vorgehen für den Fehlerfall einer bereits angewendeten Migration (Subkategorie #5 in [`T_DATABASE/01_database_migrations_disziplin.md`](../../T_DATABASE/01_database_migrations_disziplin.md)). Postgres/Supabase unterstützen **keine** sicheren automatischen Down-Migrationen — dieses Playbook macht das bewusste Gegenmodell (kompensierende Migration) reproduzierbar.
+> **Zweck:** Standardisiertes, begründetes Vorgehen für den Fehlerfall einer bereits angewendeten Migration (Subkategorie #5 in [`T_DATABASE/01_database_migrations_disziplin.md`](../archive/database/T_DATABASE/01_database_migrations_disziplin.md)). Postgres/Supabase unterstützen **keine** sicheren automatischen Down-Migrationen — dieses Playbook macht das bewusste Gegenmodell (kompensierende Migration) reproduzierbar.
 
 ---
 
@@ -19,12 +19,12 @@ Automatisches `down.sql`-Tooling wird **nicht** gebaut, weil:
 
 Vor jedem Rollback zuerst klassifizieren — die drei Fälle brauchen sehr unterschiedliche Mittel:
 
-| Fall | Erkennung | Richtiges Mittel | Freigabe |
-| :--- | :--- | :--- | :---: |
-| **A: Migration lokal angelegt, noch nicht remote gepusht** | Datei existiert nur in `supabase/migrations/`, fehlt in `npm run supabase:migrations` | Datei lokal korrigieren **oder löschen** — kein Rollback nötig, lokale Migration ist nur eine Datei | K3 |
-| **B: Remote angewendet, reines Schema-Problem (keine Produktdaten betroffen)** | Migration ist remote in der Historie, aber die Struktur ist z. B. falsch benannt, fehlt eine Berechtigung, ein Index ist falsch | **Kompensierende Migration** vorwärts schreiben (siehe §3) | K4 (Remote-Push) |
-| **C: Remote angewendet und Produktdaten haben die fehlerhafte Struktur bereits befüllt** | Zeilen mit Daten existieren in der betroffenen Tabelle/Spalte | Kompensierende Migration **mit expliziter Datenmigration** (SELECT-basiertes Verschieben/Backfill in korrekte Struktur, nie blindes `DROP`); bei Zweifel zunächst Snapshot/Export sichern | K4, bei Datenverlust-Risiko K5 |
-| **D: Katastrophaler Schemaschaden / kein SQL-Fix realistisch** | Szenario B/C nicht reparabel ohne Risiko | **Isolierter Restore** aus Backup — siehe [`09_backup_disaster_recovery.md`](./09_backup_disaster_recovery.md) | K5 |
+| Fall                                                                                     | Erkennung                                                                                                                       | Richtiges Mittel                                                                                                                                                                          |            Freigabe            |
+| :--------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------: |
+| **A: Migration lokal angelegt, noch nicht remote gepusht**                               | Datei existiert nur in `supabase/migrations/`, fehlt in `npm run supabase:migrations`                                           | Datei lokal korrigieren **oder löschen** — kein Rollback nötig, lokale Migration ist nur eine Datei                                                                                       |               K3               |
+| **B: Remote angewendet, reines Schema-Problem (keine Produktdaten betroffen)**           | Migration ist remote in der Historie, aber die Struktur ist z. B. falsch benannt, fehlt eine Berechtigung, ein Index ist falsch | **Kompensierende Migration** vorwärts schreiben (siehe §3)                                                                                                                                |        K4 (Remote-Push)        |
+| **C: Remote angewendet und Produktdaten haben die fehlerhafte Struktur bereits befüllt** | Zeilen mit Daten existieren in der betroffenen Tabelle/Spalte                                                                   | Kompensierende Migration **mit expliziter Datenmigration** (SELECT-basiertes Verschieben/Backfill in korrekte Struktur, nie blindes `DROP`); bei Zweifel zunächst Snapshot/Export sichern | K4, bei Datenverlust-Risiko K5 |
+| **D: Katastrophaler Schemaschaden / kein SQL-Fix realistisch**                           | Szenario B/C nicht reparabel ohne Risiko                                                                                        | **Isolierter Restore** aus Backup — siehe [`09_backup_disaster_recovery.md`](./09_backup_disaster_recovery.md)                                                                            |               K5               |
 
 ---
 
@@ -72,20 +72,20 @@ npx supabase migration repair <version> --status reverted
 
 ## 5 — Referenzfälle aus dieser Historie
 
-| Fall | Muster | Referenz |
-| :--- | :--- | :--- |
+| Fall                                           | Muster                                                                                                        | Referenz                                                                                                                               |
+| :--------------------------------------------- | :------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------- |
 | Drift-Fix durch harte Quarantäne statt Rückbau | Legacy-RPCs wurden nicht "zurückgebaut", sondern per Kompensationsmigration entzogen (REVOKE + `search_path`) | [`supabase/migrations/059_harden_legacy_definer_search_path.sql`](../../supabase/migrations/059_harden_legacy_definer_search_path.sql) |
-| Konsolidierung ohne `CASCADE` | Alt-Tabellen entfernt, ohne implizite Objektkette zu zerstören | [`supabase/migrations/057_remove_legacy_guild_schema.sql`](../../supabase/migrations/057_remove_legacy_guild_schema.sql) |
-| Reproduzierbarer Drift-Stand als Migration | Remote-Drift wurde explizit als 058 dokumentiert statt ad hoc repariert | [`supabase/migrations/058_reconcile_remote_schema_drift.sql`](../../supabase/migrations/058_reconcile_remote_schema_drift.sql) |
+| Konsolidierung ohne `CASCADE`                  | Alt-Tabellen entfernt, ohne implizite Objektkette zu zerstören                                                | [`supabase/migrations/057_remove_legacy_guild_schema.sql`](../../supabase/migrations/057_remove_legacy_guild_schema.sql)               |
+| Reproduzierbarer Drift-Stand als Migration     | Remote-Drift wurde explizit als 058 dokumentiert statt ad hoc repariert                                       | [`supabase/migrations/058_reconcile_remote_schema_drift.sql`](../../supabase/migrations/058_reconcile_remote_schema_drift.sql)         |
 
 ---
 
 ## 6 — Verwandte Artefakte
 
-| Bedarf | Datei |
-| :--- | :--- |
-| Migrations-SOP (Push, Guard, Freigaben) | [`xx_sop/05_database_supabase.md`](../../xx_sop/05_database_supabase.md) |
-| Expand & Contract / Zero-Downtime-Patterns | [`xx_sop/18_postgres_patterns_migrations.md`](../../xx_sop/18_postgres_patterns_migrations.md) |
-| Kompensations-Vorlagen-SOP (§2.1, Guard-Pflicht) | [`xx_sop/05_database_supabase.md`](../../xx_sop/05_database_supabase.md) §2 |
-| Katastrophen-Fall (Restore) | [`09_backup_disaster_recovery.md`](./09_backup_disaster_recovery.md) |
-| Guard-Ergebnis-Log (Pflicht pro Migration) | [`migration-guard-log.md`](./migration-guard-log.md) |
+| Bedarf                                           | Datei                                                                                          |
+| :----------------------------------------------- | :--------------------------------------------------------------------------------------------- |
+| Migrations-SOP (Push, Guard, Freigaben)          | [`xx_sop/05_database_supabase.md`](../../xx_sop/05_database_supabase.md)                       |
+| Expand & Contract / Zero-Downtime-Patterns       | [`xx_sop/18_postgres_patterns_migrations.md`](../../xx_sop/18_postgres_patterns_migrations.md) |
+| Kompensations-Vorlagen-SOP (§2.1, Guard-Pflicht) | [`xx_sop/05_database_supabase.md`](../../xx_sop/05_database_supabase.md) §2                    |
+| Katastrophen-Fall (Restore)                      | [`09_backup_disaster_recovery.md`](./09_backup_disaster_recovery.md)                           |
+| Guard-Ergebnis-Log (Pflicht pro Migration)       | [`migration-guard-log.md`](./migration-guard-log.md)                                           |

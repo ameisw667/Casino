@@ -1,6 +1,6 @@
 # 06_1 — Bot-/Automatisierungserkennung: Umsetzungsplan
 
-> **Status:** Executed (archiviert) — L0–L7 alle 🟢 verifiziert, am 2026-09-04 vollständig ausgeführt und nach `docs/archive/` verschoben · **Owner:** LLM · **Scope:** Unterkategorie #3 aus [`06_rate_limiting_abuse_prevention.md`](../../T_RATE_LIMITING_ABUSE_PREVENTION/06_rate_limiting_abuse_prevention.md) (zuvor Top 92 %, komplett unbearbeitet; nach Ausführung Top 30 %) — Echtzeit-Anti-Automation-Schranken für die 6 identifizierten Bot-Vektoren unten. Offene Grundsatzfragen (Q1–Q5) wurden gemäß den empfohlenen Optionen (a) als dokumentierte Annahmen entschieden und in den jeweiligen Ausführungsnotizen vermerkt.
+> **Status:** Executed (archiviert) — L0–L7 alle 🟢 verifiziert, am 2026-09-04 vollständig ausgeführt und nach `docs/archive/` verschoben · **Owner:** LLM · **Scope:** Unterkategorie #3 aus [`06_rate_limiting_abuse_prevention.md`](../../workspace/domains/security/T_RATE_LIMITING_ABUSE_PREVENTION/06_rate_limiting_abuse_prevention.md) (zuvor Top 92 %, komplett unbearbeitet; nach Ausführung Top 30 %) — Echtzeit-Anti-Automation-Schranken für die 6 identifizierten Bot-Vektoren unten. Offene Grundsatzfragen (Q1–Q5) wurden gemäß den empfohlenen Optionen (a) als dokumentierte Annahmen entschieden und in den jeweiligen Ausführungsnotizen vermerkt.
 > **Quellcode-Basis:** Alle Befunde unten wurden am 2026-09-04 durch zwei read-only `casino-code-explorer`-Läufe gegen den tatsächlichen Code verifiziert (Datei:Zeile-Belege), ergänzt durch eine Web-Recherche zu Honeypot-/Timing-Best-Practices 2026.
 
 ## 0 — Segmentierung: 6 Bot-Vektoren (vor der Planung identifiziert)
@@ -187,11 +187,11 @@ Honeypot-Felder (off-screen `position:absolute; left:-9999px` statt `display:non
 
 ## 7 — Verwandte Artefakte
 
-| Bedarf                                                            | Datei                                                                                                                 |
-| :---------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------- |
-| Vollständige Kategorie-06-Aufschlüsselung (Ursprung dieses Plans) | [`06_rate_limiting_abuse_prevention.md`](../../T_RATE_LIMITING_ABUSE_PREVENTION/06_rate_limiting_abuse_prevention.md) |
-| Kompakte Kategorie-Overview                                       | [`docs/rate-limiting/00_RATE_LIMITING_OVERVIEW.md`](../rate-limiting/00_RATE_LIMITING_OVERVIEW.md)                    |
-| Bestehende Fail-Closed-Rate-Limiter-Doku                          | [`docs/observability/05_ratelimit_failclosed_alerting.md`](../observability/05_ratelimit_failclosed_alerting.md)      |
-| Auth-Statusdoku mit dem betroffenen M9-Fund                       | [`docs/status-reports/05_AUTH_SECURITY.md`](../status-reports/05_AUTH_SECURITY.md)                                    |
-| SOP Planungsdateien (Format dieses Plans)                         | [`xx_sop/03_workflow_jan_planungsdateien.md`](../../xx_sop/03_workflow_jan_planungsdateien.md)                        |
-| SOP Execution (nächster Schritt nach Freigabe)                    | [`xx_sop/02_workflow_jan_execution.md`](../../xx_sop/02_workflow_jan_execution.md)                                    |
+| Bedarf                                                            | Datei                                                                                                                                            |
+| :---------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vollständige Kategorie-06-Aufschlüsselung (Ursprung dieses Plans) | [`06_rate_limiting_abuse_prevention.md`](../../workspace/domains/security/T_RATE_LIMITING_ABUSE_PREVENTION/06_rate_limiting_abuse_prevention.md) |
+| Kompakte Kategorie-Overview                                       | [`docs/rate-limiting/00_RATE_LIMITING_OVERVIEW.md`](../rate-limiting/00_RATE_LIMITING_OVERVIEW.md)                                               |
+| Bestehende Fail-Closed-Rate-Limiter-Doku                          | [`docs/observability/05_ratelimit_failclosed_alerting.md`](../observability/05_ratelimit_failclosed_alerting.md)                                 |
+| Auth-Statusdoku mit dem betroffenen M9-Fund                       | [`docs/status-reports/05_AUTH_SECURITY.md`](../status-reports/05_AUTH_SECURITY.md)                                                               |
+| SOP Planungsdateien (Format dieses Plans)                         | [`xx_sop/03_workflow_jan_planungsdateien.md`](../../xx_sop/03_workflow_jan_planungsdateien.md)                                                   |
+| SOP Execution (nächster Schritt nach Freigabe)                    | [`xx_sop/02_workflow_jan_execution.md`](../../xx_sop/02_workflow_jan_execution.md)                                                               |

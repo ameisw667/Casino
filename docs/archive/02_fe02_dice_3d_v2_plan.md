@@ -2,7 +2,7 @@
 
 > **Status:** Executed & Verifiziert (Zero-Spoiler 600ms Landung) · **Stand:** 2026-09-03 · **Owner:** LLM (100 % Zuständigkeit LLM, 0 % Jan)  
 > **Scope:** Isolierte V2-Entwicklung auf `/games/dice/v2` und `/dice/v2` — Hauptvariante `/games/dice` bleibt zu 100 % unberührt.  
-> **Bezug:** [`T_FRONTEND/02_FRONTEND_REDESIGN_NEXT_LEVEL.md`](../../T_FRONTEND/02_FRONTEND_REDESIGN_NEXT_LEVEL.md) (FE-02) · [`T_FRONTEND/00_UEBERSICHT.md`](../../T_FRONTEND/00_UEBERSICHT.md) · [`worldmap/05_ZUKUNFTSPLANUNG.md`](../../worldmap/05_ZUKUNFTSPLANUNG.md) (P38)  
+> **Bezug:** [`T_FRONTEND/02_FRONTEND_REDESIGN_NEXT_LEVEL.md`](../../workspace/domains/frontend/T_FRONTEND/02_FRONTEND_REDESIGN_NEXT_LEVEL.md) (FE-02) · [`T_FRONTEND/00_UEBERSICHT.md`](../../workspace/domains/frontend/T_FRONTEND/00_UEBERSICHT.md) · [`worldmap/05_ZUKUNFTSPLANUNG.md`](../../worldmap/05_ZUKUNFTSPLANUNG.md) (P38)  
 > **SOPs:** [`xx_sop/03_workflow_jan_planungsdateien.md`](../../xx_sop/03_workflow_jan_planungsdateien.md) · [`xx_sop/10_workflow_frontend_revamp.md`](../../xx_sop/10_workflow_frontend_revamp.md) · [`xx_sop/04_design_system_ui.md`](../../xx_sop/04_design_system_ui.md) · [`xx_sop/16_motion_and_ui_polish.md`](../../xx_sop/16_motion_and_ui_polish.md) · [`xx_sop/17_web_design_quality.md`](../../xx_sop/17_web_design_quality.md)  
 > **Jans Entscheidungen & Nachschärfungen (2026-09-02 / 2026-09-03):**
 >

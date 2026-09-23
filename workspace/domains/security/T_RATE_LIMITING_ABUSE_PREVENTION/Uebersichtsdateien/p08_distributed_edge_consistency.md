@@ -1,0 +1,24 @@
+# Übersicht — Säule 8: Distributed-/Edge-Konsistenz
+
+> **Zweck:** Ebene-1-Assessment (Dekomposition) vor einer künftigen Ebene-2-Planungsdatei. Diese Datei selbst plant nichts, sie diagnostiziert. Leichte Verifikation (ein `casino-code-explorer`-Aufruf, 2026-09-17) gegen `docs/archive/06_6_distributed_edge_consistency_plan.md` und `06_rate_limiting_abuse_prevention.md` §"8 — Distributed-/Edge-Konsistenz".
+> **Stand:** 2026-09-17 · **Aktuelle Headline-Niveau (aus `00_RATE_LIMITING_ABUSE_PREVENTION_UEBERSICHT.md` §3):** Top 23 %
+
+## Assessment: Distributed-/Edge-Konsistenz (Status Quo: Top 23 %)
+
+| #   | Sub-Subkategorie                                                 | Niveau   | Befund & Beleg (Datei:Zeile)                                                                                                                        | Bottleneck?               | Action Item (nur benennen, nicht umsetzen) |
+| --- | ---------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | ------------------------------------------ |
+| 01  | `guide-persona`-Route instrumentiert                             | Top 10 % | `withRateLimit<...>` GET/PATCH bestätigt, `guide-persona/route.ts:26,102`                                                                           | Nein                      | —                                          |
+| 02  | `telegram/webhook`-Route instrumentiert                          | Top 10 % | `withRateLimit(...)` POST bestätigt, `telegram/webhook/route.ts:63`                                                                                 | Nein                      | —                                          |
+| 03  | Vollständigkeits-Check-Test                                      | Top 10 % | Test aktiv, Pins jetzt **59/44** (Wachstum von 57/42 durch spätere `06_3`-Routen sauber nachgezogen), `rate-limit-route-completeness.test.ts:44-45` | Nein                      | —                                          |
+| 04  | Doku-Drift Routenzahl                                            | Top 10 % | `xx_docs/08_api_backend_context.md:49` zeigt „59 Routen" — synchron mit Test-Pin, keine Diskrepanz mehr                                             | Nein                      | —                                          |
+| 05  | HOF-Wrapper `withRateLimit()`                                    | Top 20 % | Live in `request-security.ts:302`, additiv für neue Routen, keine Vollmigration der 40 Bestandsrouten (bewusst, Q1a)                                | Nein                      | —                                          |
+| 06  | Dezentrale Schutzverantwortung (kein zentraler Middleware-Layer) | Top 30 % | Strukturell durch den Completeness-Test entschärft (fängt vergessene Routen ab), aber keine echte Middleware-Zentralisierung                        | Nein                      | —                                          |
+| 07  | Statische Docs-Routen — Exemption                                | Top 12 % | Dokumentiert, `rate-limit-route-inventory.ts:57-59`                                                                                                 | Nein                      | —                                          |
+| 08  | Middleware-Matcher-Abdeckung                                     | Top 20 % | Unverändert, nicht vertieft neu geprüft (kein Risiko-Signal)                                                                                        | Nein                      | —                                          |
+| 09  | Edge-Runtime-/Vercel-Firewall-Ergänzung                          | Top 55 % | Bewusst nicht bearbeitet (Q2a), keine neue Prüfung nötig                                                                                            | Nein (bewusst akzeptiert) | —                                          |
+
+**Rechnerischer Schnitt:** (10+10+10+10+20+30+12+20+55)/9 = **Top 19,7 %**. **Vergleich zur Headline:** Praktisch deckungsgleich bis leicht besser (Headline Top 23 % vs. Schnitt Top 19,7 %) — keine Verschlechterung, der Completeness-Test hat das Routenwachstum (57→59) selbst sauber nachgezogen.
+
+## Zusammenfassung für Jan
+
+Diese Säule ist die stabilste bisher geprüfte — **kein einziger Bottleneck** gefunden. Die einzige potenziell beunruhigende Beobachtung (Routenzahl-Diskrepanz 57 vs. 59, die Säule 1 bei ihrer eigenen Recherche am 2026-09-12 aufgeworfen hatte) ist bereits vom bestehenden `rate-limit-route-completeness.test.ts` selbst korrekt nachgezogen worden — kein neues, ungelöstes Vollständigkeitsproblem, der Test hätte bei einer echten vergessenen Route rot geschlagen. Für diese Säule besteht aktuell **kein** Bedarf für eine neue Ebene-2-Planungsrunde.

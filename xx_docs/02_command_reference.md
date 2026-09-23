@@ -6,7 +6,7 @@
 
 - `package.json` ist die Quelle für Script-Name und Command.
 - Dieser Katalog beschreibt Zweck, Wirkgrenze und sichere Auswahl, nicht aktuelle Test-, Build- oder Deployment-Ergebnisse.
-- **Gegen Ist-Stand geprüft am 2026-09-13:** 43 Scripts, `.husky/pre-commit` und 12 Dateien unter `.github/workflows/`.
+- **Gegen Ist-Stand geprüft am 2026-09-17:** 45 Scripts, `.husky/pre-commit` und 12 Dateien unter `.github/workflows/`.
 - Nicht-interaktive Befehle sind Standard für Agenten; `test:watch` ist nur für menschliche Entwicklung.
 
 ## 2 — Entwicklung und Qualität
@@ -54,19 +54,19 @@ Für Supabase-Kontext und -Ablauf zusätzlich `xx_docs/01_supabase_context.md` u
 | `github:actions`, `github:issues`, `github:prs`, `github:repo` | Liest GitHub-Repository- und CI-Daten | `gh`-Authentifizierung und Netzwerkzugriff |
 | `sentry:info`, `sentry:issues`                                 | Liest Sentry-CLI- oder Issue-Daten    | Sentry-Konfiguration und Netzwerkzugriff   |
 
-## 6 — Vollständiger Stand: 43 Scripts, Hooks und CI (2026-09-13)
+## 6 — Vollständiger Stand: 45 Scripts, Hooks und CI (2026-09-17)
 
 Die Tabellen in den Abschnitten 2–5 waren ein älteres Teilinventar. Dieser Abschnitt ist die aktuelle, vollständige Ergänzung. **Lernregel:** Nicht den Namen erraten — erst Wirkung und Wirkgrenze lesen.
 
-| Gruppe                         | Scripts                                                                                                                                        | Wirkgrenze in einem Satz                                                                                                                                    |
-| :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Start, Build, Laufzeit         | `predev`, `dev`, `prebuild`, `build`, `start`                                                                                                  | `predev` läuft vor `dev`, bereinigt lokal den Turbopack-Cache und kann `.env.local` aus Backup wiederherstellen; `build` erzeugt lokale Ausgabe.            |
-| Code- und Dokuqualität         | `lint`, `typecheck`, `test`, `test:watch`, `test:coverage`, `format`, `format:check`, `vibe-check`, `check-doc-links`, `check-secret-rotation` | Prüfungen sind K2; `format` schreibt lokal, Watch/Server laufen dauerhaft und Coverage kann Reportdateien erzeugen.                                         |
-| Fachlogik und Risiko           | `test:concurrency`, `economy-audit`, `sim:economy`, `fraud-ml-scan`                                                                            | Concurrency braucht lokalen/ephemeren DB-Kontext, Economy liest Remote mit Service Role, Simulation schreibt optional lokal, Fraud schreibt additiv remote. |
-| Supabase                       | `verify:supabase`, `supabase:start`, `supabase:stop`, `supabase:reset`, `supabase:migrations`, `supabase:types`, `supabase:diff`               | Start/Stop ändern Docker lokal, Reset ist destruktiv, Types überschreibt lokal, die übrigen Remote-Aktionen sind mindestens lesend.                         |
-| Backup und DB-Diagnose         | `backup:run`, `db:perf-audit`, `db:pooler-health`, `db:perf-regression`, `db:perf-broad-query-set`, `test:restore-drill`                       | Backup kann externe Ziele beschreiben; Diagnose liest lokal/remote und kann lokale Berichte schreiben; Restore-Drill verändert lokale Docker-Container.     |
-| Design, Observability und Last | `design:generate`, `sentry:info`, `sentry:issues`, `observability:up`, `observability:down`, `loadtest:bet`                                    | Design generiert Dateien und kann externe Dienste berühren, Sentry liest remote, Observability ändert Docker lokal, Loadtest erzeugt Last.                  |
-| GitHub und Installation        | `github:repo`, `github:issues`, `github:prs`, `github:actions`, `prepare`                                                                      | GitHub-Scripts lesen remote über `gh`; `prepare` installiert Hooks und wird nicht manuell ausgeführt.                                                       |
+| Gruppe                         | Scripts                                                                                                                                                                                 | Wirkgrenze in einem Satz                                                                                                                                                       |
+| :----------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Start, Build, Laufzeit         | `predev`, `dev`, `prebuild`, `build`, `start`                                                                                                                                           | `predev` läuft vor `dev`, bereinigt lokal den Turbopack-Cache und kann `.env.local` aus Backup wiederherstellen; `build` erzeugt lokale Ausgabe.                               |
+| Code- und Dokuqualität         | `lint`, `typecheck`, `test`, `test:watch`, `test:coverage`, `format`, `format:check`, `vibe-check`, `check-doc-links`, `check-duplication`, `check-file-sizes`, `check-secret-rotation` | Prüfungen sind K2; `format` schreibt lokal, Watch/Server laufen dauerhaft, Coverage kann Reportdateien erzeugen, und Duplication/File-Size prüfen den Quellbestand nur lesend. |
+| Fachlogik und Risiko           | `test:concurrency`, `economy-audit`, `sim:economy`, `fraud-ml-scan`                                                                                                                     | Concurrency braucht lokalen/ephemeren DB-Kontext, Economy liest Remote mit Service Role, Simulation schreibt optional lokal, Fraud schreibt additiv remote.                    |
+| Supabase                       | `verify:supabase`, `supabase:start`, `supabase:stop`, `supabase:reset`, `supabase:migrations`, `supabase:types`, `supabase:diff`                                                        | Start/Stop ändern Docker lokal, Reset ist destruktiv, Types überschreibt lokal, die übrigen Remote-Aktionen sind mindestens lesend.                                            |
+| Backup und DB-Diagnose         | `backup:run`, `db:perf-audit`, `db:pooler-health`, `db:perf-regression`, `db:perf-broad-query-set`, `test:restore-drill`                                                                | Backup kann externe Ziele beschreiben; Diagnose liest lokal/remote und kann lokale Berichte schreiben; Restore-Drill verändert lokale Docker-Container.                        |
+| Design, Observability und Last | `design:generate`, `sentry:info`, `sentry:issues`, `observability:up`, `observability:down`, `loadtest:bet`                                                                             | Design generiert Dateien und kann externe Dienste berühren, Sentry liest remote, Observability ändert Docker lokal, Loadtest erzeugt Last.                                     |
+| GitHub und Installation        | `github:repo`, `github:issues`, `github:prs`, `github:actions`, `prepare`                                                                                                               | GitHub-Scripts lesen remote über `gh`; `prepare` installiert Hooks und wird nicht manuell ausgeführt.                                                                          |
 
 ### 6.1 — Gezielte Tests: klein anfangen, ohne Policy-Verstoß
 
@@ -85,7 +85,7 @@ Ein fokussierter Test verkürzt nur die Diagnose-Schleife. Er ersetzt nicht die 
 
 ### 6.2 — Was ein Commit zusätzlich prüft
 
-`.husky/pre-commit` hat drei Stufen (kanonische Guardrails-Doku inkl. Diagnose-Regel und Abgrenzung zu Claude-Code-Hooks: [`t_claude_code/commands/workflow/04_commit_hook_guardrails.md`](../t_claude_code/commands/workflow/04_commit_hook_guardrails.md)):
+`.husky/pre-commit` hat drei Stufen (kanonische Guardrails-Doku inkl. Diagnose-Regel und Abgrenzung zu Claude-Code-Hooks: [`t_claude_code/commands/workflow/04_commit_hook_guardrails.md`](../workspace/domains/ai_agents/t_claude_code/commands/workflow/04_commit_hook_guardrails.md)):
 
 1. Bei **gestagten Migrationen**: doppelte Migrations-Präfixe führen zum Abbruch.
 2. Nur wenn `gitleaks` lokal installiert ist: Scan des Staging-Bereichs gegen `.gitleaks.toml`.
@@ -114,4 +114,4 @@ Nicht jeder CI-Workflow braucht einen neuen Wrapper-Script. Ein Wrapper ist erst
 
 ## 7 — Lernstruktur
 
-Die acht disjunkten Command-Unterübersichten und ihre gewichtete Bewertung stehen in [ _claude_code/01_4_command_workflow.md](../t_claude_code/01_4_command_workflow.md). Diese Datei bleibt die technische Auswahlhilfe; sie kopiert deren Scorecards nicht.
+Die acht disjunkten Command-Unterübersichten und ihre gewichtete Bewertung stehen in [ _claude_code/01_4_command_workflow.md](../workspace/domains/ai_agents/t_claude_code/01_4_command_workflow.md). Diese Datei bleibt die technische Auswahlhilfe; sie kopiert deren Scorecards nicht.

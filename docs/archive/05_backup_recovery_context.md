@@ -4,7 +4,7 @@
 > **Kanonischer Nachfolger:** [`docs/database/09_backup_disaster_recovery.md`](../database/09_backup_disaster_recovery.md)  
 > **Zweck:** Ursprünglicher quellengebundener Einstieg vor dem vollständigen Ausbau von Säule 9 (`docs/database/09_backup_disaster_recovery.md`).
 
-> [!WARNING] **Überholt seit 2026-09-05:** Die Aussagen „Es gibt **keinen** Backup- oder Restore-Entry-Point im aktiven Casino-Code" (Abschnitt 1) und „Kein aktiver Treffer für `pg_dump`, `supabase db dump`, Backup- oder Restore-Automatisierung" stammen vom Explorer-Lauf 2026-08-30 und sind **nicht mehr wahr**: Inzwischen existiert eine vollständige Backup-Pipeline (`npm run backup:run` → `scripts/backup-supabase.ts` → `src/lib/backup/**` mit Dump, AES-256-GCM-Verschlüsselung, SigV4-Upload) mit 9 Tests. Der aktuelle Stand ist ausschließlich in [`T_DATABASE/05_database_backup_and_recovery.md`](../../T_DATABASE/05_database_backup_and_recovery.md) (Abschnitt 2: verifizierter Code-Ist-Stand) und der kanonischen Doku dokumentiert — dieser Archivtext beschreibt nur noch den historischen Zustand.
+> [!WARNING] **Überholt seit 2026-09-05:** Die Aussagen „Es gibt **keinen** Backup- oder Restore-Entry-Point im aktiven Casino-Code" (Abschnitt 1) und „Kein aktiver Treffer für `pg_dump`, `supabase db dump`, Backup- oder Restore-Automatisierung" stammen vom Explorer-Lauf 2026-08-30 und sind **nicht mehr wahr**: Inzwischen existiert eine vollständige Backup-Pipeline (`npm run backup:run` → `scripts/backup-supabase.ts` → `src/lib/backup/**` mit Dump, AES-256-GCM-Verschlüsselung, SigV4-Upload) mit 9 Tests. Der aktuelle Stand ist ausschließlich in [`T_DATABASE/05_database_backup_and_recovery.md`](../../workspace/domains/database/T_DATABASE/05_database_backup_and_recovery.md) (Abschnitt 2: verifizierter Code-Ist-Stand) und der kanonischen Doku dokumentiert — dieser Archivtext beschreibt nur noch den historischen Zustand.
 
 ## 1 — Explorer-Ergebnis
 
@@ -64,4 +64,4 @@ Quellen: [Supabase Database Backups](https://supabase.com/docs/guides/platform/b
 
 ## 6 — Nächster Einstieg
 
-Der vollständige Bewertungs- und Maßnahmenplan ist [`T_DATABASE/05_database_backup_and_recovery.md`](../../T_DATABASE/05_database_backup_and_recovery.md). Der kanonische Doku-Standard ist [`docs/database/09_backup_disaster_recovery.md`](../database/09_backup_disaster_recovery.md).
+Der vollständige Bewertungs- und Maßnahmenplan ist [`T_DATABASE/05_database_backup_and_recovery.md`](../../workspace/domains/database/T_DATABASE/05_database_backup_and_recovery.md). Der kanonische Doku-Standard ist [`docs/database/09_backup_disaster_recovery.md`](../database/09_backup_disaster_recovery.md).

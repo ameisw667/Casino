@@ -249,13 +249,13 @@ Test-NetConnection -ComputerName 127.0.0.1 -Port 54329
 
 ## 8 — Verwandte Artefakte & Quellverweise
 
-| Bedarf                                                                                                | Datei                                                                                        |
-| :---------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- |
-| **Status Master-Quelle:** System-Reifegrad & Doku-Tier                                                | [`worldmap/00_WORLDMAP_STATUS.md`](../../worldmap/00_WORLDMAP_STATUS.md)                     |
-| **Subkategorie-Aufschlüsselung:** Lebende Quelle der 10 Säulen                                        | [`T_DATABASE/04_datenbank_migrationen.md`](../../T_DATABASE/04_datenbank_migrationen.md)     |
-| **Supabase SOP:** Migrations- & Rollout-Workflow                                                      | [`xx_sop/05_database_supabase.md`](../../xx_sop/05_database_supabase.md)                     |
-| **Sicherheits-Invarianten:** Geld- und Transaktionsregeln                                             | [`xx_sop/09_security_wallet_invariants.md`](../../xx_sop/09_security_wallet_invariants.md)   |
-| **Kanonischer Kontext:** 3-Client-Architektur & Tabelleninventar                                      | [`xx_docs/01_supabase_context.md`](../../xx_docs/01_supabase_context.md)                     |
-| **Qualitätsmaßstab:** 11-Kriterien-Doku-Rubrik                                                        | [`xx_sop/12_workflow_dokument_qualitaet.md`](../../xx_sop/12_workflow_dokument_qualitaet.md) |
-| **Auth-Vergleichsvorbild:** Das Top-1%-Referenzdokument                                               | [`docs/auth/00_AUTH_OVERVIEW.md`](../auth/00_AUTH_OVERVIEW.md)                               |
-| **Verbesserungsplan:** Gewichtete Subkategorien-Bewertung & nächste Schritte für den System-Reifegrad | [`T_DATABASE/00_DATABASE_VERBESSERUNG.md`](../../T_DATABASE/00_DATABASE_VERBESSERUNG.md)     |
+| Bedarf                                                                                                | Datei                                                                                                               |
+| :---------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------ |
+| **Status Master-Quelle:** System-Reifegrad & Doku-Tier                                                | [`worldmap/00_WORLDMAP_STATUS.md`](../../worldmap/00_WORLDMAP_STATUS.md)                                            |
+| **Subkategorie-Aufschlüsselung:** Lebende Quelle der 10 Säulen                                        | [`T_DATABASE/04_datenbank_migrationen.md`](../../workspace/domains/database/T_DATABASE/04_datenbank_migrationen.md) |
+| **Supabase SOP:** Migrations- & Rollout-Workflow                                                      | [`xx_sop/05_database_supabase.md`](../../xx_sop/05_database_supabase.md)                                            |
+| **Sicherheits-Invarianten:** Geld- und Transaktionsregeln                                             | [`xx_sop/09_security_wallet_invariants.md`](../../xx_sop/09_security_wallet_invariants.md)                          |
+| **Kanonischer Kontext:** 3-Client-Architektur & Tabelleninventar                                      | [`xx_docs/01_supabase_context.md`](../../xx_docs/01_supabase_context.md)                                            |
+| **Qualitätsmaßstab:** 11-Kriterien-Doku-Rubrik                                                        | [`xx_sop/12_workflow_dokument_qualitaet.md`](../../xx_sop/12_workflow_dokument_qualitaet.md)                        |
+| **Auth-Vergleichsvorbild:** Das Top-1%-Referenzdokument                                               | [`docs/auth/00_AUTH_OVERVIEW.md`](../auth/00_AUTH_OVERVIEW.md)                                                      |
+| **Verbesserungsplan:** Gewichtete Subkategorien-Bewertung & nächste Schritte für den System-Reifegrad | [`T_DATABASE/00_DATABASE_VERBESSERUNG.md`](../../workspace/domains/database/T_DATABASE/00_DATABASE_VERBESSERUNG.md) |
