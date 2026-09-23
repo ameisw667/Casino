@@ -28,11 +28,12 @@ maxTurns: 20
 > Revalidierungs-Pflicht nach `xx_sop/13_workflow_agent_creation.md` §5. Keine Prompt-, Trigger-, Tool- oder
 > Severity-Änderung — daher keine Eval-Revalidation fällig. Vorgeschichtet (2026-08-30): Umbenennung
 > `casino-cleanup-residue-finder` → `casino-residue-scout` — rein kosmetisch, keine Versionierungs-Relevanz.
-> **Status** per `xx_sop/13_workflow_agent_creation.md` §4: **Draft** — Pilot-Evaluierung (§3) bestanden
+> **Status** per `xx_sop/13_workflow_agent_creation.md` §4: **Pilot** — Pilot-Evaluierung (§3) bestanden
 > (5 Pflichtfälle × 2 frische Sitzungen, 10/10 ✅, Protokoll
-> `.claude/agent-evals/11_residue_scout/runs/2026-08-30_pilot_v0_2_0.md`), aber §4 verlangt für Pilot
-> zusätzlich drei dokumentierte reale read-only Prüfungen; die Evaluierung lief nur gegen Eval-Fixtures.
-> Bis zur Promotion: nicht delegieren. Registry-Zeile und Scorecard:
+> `.claude/agent-evals/11_residue_scout/runs/2026-08-30_pilot_v0_2_0.md`), zusätzlich drei reale
+> read-only Prüfungen gegen den echten Repo-Stand dokumentiert und bestanden (2026-09-18, Protokoll
+> `.claude/agent-evals/11_residue_scout/runs/2026-09-18_real_world_checks.md`). Pilot = beratend,
+> kein CI-/Merge-Blocker; keine Verpflichtungs-Trigger. Registry-Zeile und Scorecard:
 > `t_claude_code/agents/12_workflow_agent_creation.md` §2.1/§5.3.
 
 ## Prompt Defense Baseline

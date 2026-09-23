@@ -2,8 +2,12 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, join, resolve, relative, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOTS = ['worldmap', 'docs', 'xx_sop', 'xx_docs', 'T_BUGS', 'T_FRONTEND', 'Z_LLM'];
-const EXTRA_FILES = ['CLAUDE.md', 'AGENTS.md', 't_claude_code/01_4_command_workflow.md'];
+const ROOTS = ['worldmap', 'docs', 'xx_sop', 'xx_docs', 'workspace/domains'];
+const EXTRA_FILES = [
+  'CLAUDE.md',
+  'AGENTS.md',
+  'workspace/domains/ai_agents/t_claude_code/01_4_command_workflow.md',
+];
 const LINK_RE = /\]\((\.{1,2}\/[^)#\s]+)(#[^)]*)?\)/g;
 const MOJIBAKE_RE = /[一-鿿぀-ヿ゠-ヿ]/;
 // Bekannte, bewusst offene Ausnahmen — geprüft gegen das AUFLÖSTE ZIEL, nicht die Quelldatei
@@ -66,13 +70,15 @@ let externalCount = 0;
 function checkFile(file) {
   const content = readFileSync(file, 'utf8');
 
-  const isCommandOverview = file.replace(/\\/g, '/') === 't_claude_code/01_4_command_workflow.md';
+  const isCommandOverview =
+    file.replace(/\\/g, '/') ===
+    'workspace/domains/ai_agents/t_claude_code/01_4_command_workflow.md';
   const targets = isCommandOverview
     ? extractRelativeMarkdownTargets(content)
     : [...content.matchAll(LINK_RE)].map((match) => match[1]);
 
   for (const relTarget of targets) {
-    const targetPath = resolve(dirname(file), relTarget.replace(/:\d+$/, '')); // Zeilennummer-Suffix abschneiden
+    const targetPath = resolve(dirname(file), decodeURIComponent(relTarget.replace(/:\d+$/, ''))); // Zeilennummer-Suffix abschneiden
     const normalizedTarget = relative(process.cwd(), targetPath).replace(/\\/g, '/');
     if (KNOWN_EXCEPTIONS.has(normalizedTarget)) continue;
     // Verweis verlässt die Repo-Wurzel (Geschwister-Ordner wie _Brain/ oder ReactLandingpages/

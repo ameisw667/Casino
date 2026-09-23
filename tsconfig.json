@@ -36,7 +36,11 @@
     ".next-mobile-lcp-exec-dice-final/types/**/*.ts",
     ".next-mobile-lcp-exec-dice-final/dev/types/**/*.ts",
     ".next-analytics-verify/types/**/*.ts",
-    ".next-analytics-verify/dev/types/**/*.ts"
+    ".next-analytics-verify/dev/types/**/*.ts",
+    ".next-mobile-lcp-exec-crash-mp-diagnosis/types/**/*.ts",
+    ".next-mobile-lcp-exec-crash-mp-diagnosis/dev/types/**/*.ts",
+    ".next-mobile-lcp-exec-crash-mp-layout-final/types/**/*.ts",
+    ".next-mobile-lcp-exec-crash-mp-layout-final/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "remotion-ad"]
+  "exclude": ["node_modules", "remotion-ad", "workspace/media/remotion-ad"]
 }

@@ -1,6 +1,7 @@
 # 11 — casino-residue-scout: Pilot-Evaluierungsfälle (xx_sop/13 §3)
 
-> Stand: 2026-08-30 · Status: Draft, Pilot-Evaluierung nachgetragen.
+> Stand: 2026-09-18 · Status: Pilot (Fixture-Evaluierung + 3 reale read-only Prüfungen bestanden,
+> siehe `runs/2026-09-18_real_world_checks.md`).
 > Jede Delegation nennt `Evaluation mode: 11_residue_scout` und weist den Agenten an, die
 > npx-Detection-Tools als nicht verfügbar zu behandeln — so wird gezielt der Fallback-Pfad
 > (manueller Grep + Abschnitt „Degraded Coverage") mitgeprüft. Erwartete Kernbelege sind

@@ -94,6 +94,7 @@ web/
 
 # remotion-ad: local Remotion experiment by Jan (own npm package, testing only)
 /remotion-ad/
+/workspace/media/remotion-ad/
 
 # shared skills: NTFS directory junction to v:/VibeCoding/.claude/skills.
 # Deliberately TRACKED since 2026-09-17 (G5 Option A, T_REPO_HYGIENE/Planungsdateien/02):
@@ -103,6 +104,7 @@ web/
 
 # image-generation scratch output (regenerable; committed generated assets live in public/generated/)
 /output/
+/workspace/output/
 
 # dependency-audit.yml local reruns (regenerable; CI uploads sbom.json as a build artifact instead
 # of committing it — docs/security-hardening/07_dependency_supply_chain_audit.md)

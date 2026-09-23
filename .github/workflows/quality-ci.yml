@@ -66,7 +66,14 @@ jobs:
       # 03a-R10 file-size guardrail: hard gate at the coding-style 800-line limit
       # (grandfathered legacy files warn, new oversize files fail the run).
       - run: npm run check-file-sizes
+      # Secrets added 2026-09-20 (Jan): assert-core-env.ts is fail-closed and refuses to build
+      # without the Supabase env, which Vercel always had but GitHub Actions did not. Scoped to
+      # this step only — the other steps (test/typecheck/lint) stay secret-free by design.
       - run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       # Inline-style regression gate (T_SECURITY_HARDENING/01_csp_script_hardening.md L4,
       # 2026-09-12): the script itself exits 1 on unbounded style-src: unsafe-inline growth;
       # surfaced as a non-blocking job-summary note so it informs without breaking unrelated PRs
