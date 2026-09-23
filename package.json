@@ -75,7 +75,7 @@
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.4",
     "@tanstack/react-virtual": "3.14.12",
-    "@trigger.dev/react-hooks": "4.5.12",
+    "@trigger.dev/react-hooks": "4.6.3",
     "@trigger.dev/sdk": "4.5.12",
     "@types/gsap": "^1.20.2",
     "@upstash/ratelimit": "^2.0.8",
