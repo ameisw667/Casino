@@ -13,11 +13,10 @@ const SCAN_ROOT = 'src';
 
 // Generierter Code (supabase gen types) — bewusst aus dem Gate (03a-R08-Befund).
 const IGNORED_FILES = new Set(['src/types/database.types.ts']);
-// Alt-Dateien hinter dem WalletService-/Crash-Loop-Optionsgate — sichtbarer Debt, kein Block.
-const LEGACY_WARN_FILES = new Set([
-  'src/lib/casino/wallet.ts',
-  'src/components/casino/games/crash/useCrashGameLoop.ts',
-]);
+// Alt-Dateien hinter dem Crash-Loop-Optionsgate — sichtbarer Debt, kein Block.
+// wallet.ts ist am 2026-09-18 mit 03c-W3 aus der Liste gefallen (880 → 569 Zeilen und damit
+// auch unter der INFO-Schwelle); ab jetzt greift für sie wieder das normale Gate.
+const LEGACY_WARN_FILES = new Set(['src/components/casino/games/crash/useCrashGameLoop.ts']);
 
 function* walkTsFiles(dir) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {

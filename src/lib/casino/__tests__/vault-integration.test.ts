@@ -6,12 +6,19 @@ const root = resolve(__dirname, '../../../..');
 const read = (path: string) => readFileSync(resolve(root, path), 'utf8');
 
 describe('Vault & Lifetime Stats Backend Integration', () => {
-  it('has WalletService.getUserStats and WalletService.syncAchievement methods in wallet.ts', () => {
+  // 03c-W3 L4: Die beiden Verfahren sind mit der Gamification-Domäne nach
+  // wallet-gamification.ts gezogen. Der Anker folgt dem Code: die Fassade (und damit der
+  // Aufrufpfad der Route) wird weiter in wallet.ts geprüft, die RPC-Verdrahtung dort, wo sie
+  // jetzt steht. Die Invariante („beides existiert und hängt zusammen") bleibt unverändert.
+  it('exposes getUserStats/syncAchievement on the façade and wires their RPCs in the gamification module', () => {
     const walletSource = read('src/lib/casino/wallet.ts');
     expect(walletSource).toContain('getUserStats');
     expect(walletSource).toContain('syncAchievement');
-    expect(walletSource).toContain("rpc('get_user_stats'");
-    expect(walletSource).toContain("rpc('sync_user_achievement'");
+    expect(walletSource).toContain('WalletGamification');
+
+    const gamificationSource = read('src/lib/casino/wallet-gamification.ts');
+    expect(gamificationSource).toContain("rpc('get_user_stats'");
+    expect(gamificationSource).toContain("rpc('sync_user_achievement'");
   });
 
   it('contains migration 013 for server-authoritative lifetime stats and achievements', () => {

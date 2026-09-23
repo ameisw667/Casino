@@ -216,8 +216,18 @@ describe('Money-Pfad-Isolation (statischer Regressionsschutz)', () => {
   // blackjack/route.ts) — das ist beabsichtigt. Die tatsächliche Grenze ist: kein Wallet-/
   // Settlement-Modul greift *direkt* auf Redis zu, nur game-config-server.ts und
   // request-security.ts (Rate-Limiter) tun das.
-  it('wallet.ts und casino-core.ts importieren @upstash/redis nicht direkt', () => {
-    const guardedFiles = ['../wallet.ts', '../casino-core.ts'];
+  // 03c-W3 (2026-09-18): der Geld-Pfad liegt seit dem Split in wallet.ts plus vier Domänen-Modulen;
+  // die Liste wächst mit, damit die Wächter-Aussage dieselbe bleibt (kein Wallet-Modul spricht
+  // direkt mit Redis — nur game-config-server.ts und request-security.ts tun das).
+  it('die Wallet-Module und casino-core.ts importieren @upstash/redis nicht direkt', () => {
+    const guardedFiles = [
+      '../wallet.ts',
+      '../wallet-seeds.ts',
+      '../wallet-social.ts',
+      '../wallet-gamification.ts',
+      '../wallet-promo.ts',
+      '../casino-core.ts',
+    ];
     for (const relativePath of guardedFiles) {
       const content = readFileSync(new URL(relativePath, import.meta.url), 'utf-8');
       expect(content).not.toContain('@upstash/redis');

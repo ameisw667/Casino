@@ -1,15 +1,28 @@
 import { z } from 'zod';
 import { createAdminClient } from '@/utils/supabase/admin';
-import { type WalletSnapshot, walletSnapshotSchema } from './wallet-contract';
+import {
+  type ConsumedSeed,
+  type GameRoundStart,
+  type PromoRedemption,
+  type PromoReversal,
+  type RotatedSeed,
+  type SeedHistoryEntry,
+  type UserSeedChain,
+  type UserStats,
+  type WalletServiceContract,
+  type WalletSettlement,
+  type WalletSnapshot,
+  walletSnapshotSchema,
+} from './wallet-contract';
+import { WalletGamification } from './wallet-gamification';
+import { WalletPromo } from './wallet-promo';
+import { WalletSeeds } from './wallet-seeds';
 import { CasinoLogger } from './logger';
 import { ProvablyFairEngine } from './provably-fair';
 import { toJsonValue } from './json-value';
 import { withConnectionRetry } from './db-retry';
-import {
-  dailyRaceStandingSchema,
-  secondsUntilNextUtcMidnight,
-  type DailyRaceSnapshot,
-} from './daily-race';
+import { WalletSocial } from './wallet-social';
+import type { DailyRaceSnapshot } from './daily-race';
 
 const ZERO_TRANSACTION_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -39,18 +52,6 @@ const blackjackActionSchema = rpcWalletSchema.extend({
   settled: z.boolean(),
 });
 
-export type WalletSettlement = WalletSnapshot & {
-  result: unknown;
-  replayed: boolean;
-};
-
-export type GameRoundStart = WalletSnapshot & {
-  roundId: string;
-  state: unknown;
-  version: number;
-  replayed: boolean;
-};
-
 function walletFromRpc(data: unknown): WalletSettlement {
   const parsed = rpcWalletSchema.parse(data);
   return {
@@ -75,15 +76,17 @@ export async function isFirstBetSignal(userId: string, replayed: boolean): Promi
 }
 
 export class WalletService {
-  // ── Domänen-Map (03a-R01, 2026-09-14): Wallet & Settlement (getWallet, settleBet, startRound,
-  // getActiveRound, settleRound, advanceBlackjackRound) · Provably-Fair Seeds (consumeActiveSeed,
-  // getUserSeeds, rotateUserSeed, getSeedHistory) · Crash-Reconciliation & Multiplayer
-  // (autoReconcileStaleCrashRound, computeRoundJackpotRoll, getGameActiveRound, linkCrashRound,
-  // getCrashRoundParticipants) · Promo-Codes (redeemPromoCode, reversePromoCode) · Gamification
-  // (getUserStats, syncAchievement, getJackpotPool, getDailyRaceStandings, emitBigWinNotifyEvent) ·
-  // Social & Chat (getChatMessages, postChatMessage, getCommunityStats) · Analytics
-  // (isFirstEverBet). Domäne schlägt Zeilenzahl — ein späterer Split (Option-Gate 03a-R03)
-  // schneidet an diesen Abschnittsmarkern, nicht nach Zeilenzahl.
+  // ── Domänen-Map (03a-R01, 2026-09-14; Split ausgeführt in 03c-W3 am 2026-09-18) ──
+  // Echt implementiert — Geld-Kern, 12 Verfahren: Wallet & Settlement (getWallet, settleBet,
+  // startRound, getActiveRound, settleRound, advanceBlackjackRound) · Crash-Reconciliation &
+  // Multiplayer (autoReconcileStaleCrashRound, computeRoundJackpotRoll, getGameActiveRound,
+  // linkCrashRound, getCrashRoundParticipants) · Analytics (isFirstEverBet).
+  // Nur noch Fassade — 14 Delegationen, die Körper liegen in den Domänen-Modulen:
+  // Provably-Fair Seeds → wallet-seeds.ts · Promo-Codes → wallet-promo.ts ·
+  // Gamification → wallet-gamification.ts · Social & Chat → wallet-social.ts.
+  // Diese Klasse bleibt der eine Einstiegspunkt für alle Importeure; geschnitten wurde an
+  // Domänen-Grenzen und nicht an den Abschnittsmarkern, weil die Marker die Domänen nicht
+  // abdeckten (Beleg: 03c-W3 §2). Details je Domäne stehen am jeweiligen Delegations-Stub.
   static async getWallet(userId: string): Promise<WalletSnapshot> {
     const supabase = createAdminClient();
 
@@ -156,33 +159,12 @@ export class WalletService {
     return walletFromRpc(data);
   }
 
-  // ── Abschnitt: Provably-Fair Seeds — Verbrauch ──
-  /**
-   * Consumes the next nonce from the user's active provably-fair seed chain.
-   * Idempotent per (userId, requestId) — a retried request replays the same
-   * seed/nonce instead of burning a new one. Must be called before the RNG
-   * outcome is computed (casino-core.ts), never after settlement.
-   */
+  // ── Abschnitt: Provably-Fair Seeds → wallet-seeds.ts (03c-W3 L3) ──
   static async consumeActiveSeed(params: {
     userId: string;
     requestId: string;
-  }): Promise<{ serverSeed: string; serverSeedHash: string; nonce: number; replayed: boolean }> {
-    const supabase = createAdminClient();
-    const { data, error } = await withConnectionRetry(() =>
-      supabase.rpc('consume_active_seed', {
-        p_user_id: params.userId,
-        p_request_id: params.requestId,
-      }),
-    );
-    if (error || !data) throw new Error('Failed to consume provably fair seed');
-    return z
-      .object({
-        serverSeed: z.string().min(1),
-        serverSeedHash: z.string().min(1),
-        nonce: z.number().int().nonnegative(),
-        replayed: z.boolean(),
-      })
-      .parse(data);
+  }): Promise<ConsumedSeed> {
+    return WalletSeeds.consumeActiveSeed(params);
   }
 
   static async startRound(params: {
@@ -389,192 +371,28 @@ export class WalletService {
     return blackjackActionSchema.parse(data);
   }
 
-  // ── Abschnitt: Promo-Codes ──
+  // ── Abschnitt: Promo-Codes → wallet-promo.ts (03c-W3 L5) ──
   static async redeemPromoCode(params: {
     userId: string;
     code: string;
     requestId: string;
-  }): Promise<
-    { ok: true; amount: number; snapshot: WalletSnapshot } | { ok: false; code: string }
-  > {
-    const supabase = createAdminClient();
-    const normCode = params.code.trim().toUpperCase();
-    let { data, error } = await supabase.rpc('redeem_promo_code', {
-      p_user_id: params.userId,
-      p_code: normCode,
-      p_request_id: params.requestId,
-    });
-
-    // Auto-provision standard welcome promo code if not yet present in database
-    if (
-      (data as { ok?: boolean; code?: string } | null)?.code === 'PROMO_NOT_FOUND' &&
-      normCode === 'VIPPRO'
-    ) {
-      try {
-        await supabase.from('promo_codes').upsert(
-          {
-            code: 'VIPPRO',
-            amount: 500.0,
-            max_uses: 10000,
-            used_count: 0,
-            active: true,
-            created_by: 'system_welcome',
-          },
-          { onConflict: 'code' },
-        );
-
-        const retry = await supabase.rpc('redeem_promo_code', {
-          p_user_id: params.userId,
-          p_code: normCode,
-          p_request_id: params.requestId,
-        });
-        if (retry.data && !retry.error) {
-          data = retry.data;
-          error = null;
-        }
-      } catch (upsertErr) {
-        CasinoLogger.error(
-          'WalletService/redeemPromoCode',
-          'Auto-provision VIPPRO failed',
-          upsertErr,
-        );
-      }
-    }
-
-    if (error || !data) {
-      CasinoLogger.error('WalletService/redeemPromoCode', 'RPC failed', error);
-      throw new Error('Redeem RPC failed');
-    }
-    const result = data as {
-      ok: boolean;
-      code?: string;
-      amount?: number;
-      balance?: number;
-      xp?: number;
-      level?: number;
-      rank?: string;
-      transactionId?: string;
-    };
-    if (!result.ok) {
-      return { ok: false, code: String(result.code ?? 'PROMO_INVALID') };
-    }
-    const snapshot = walletSnapshotSchema.parse({
-      balance: Number(result.balance),
-      xp: Number(result.xp ?? 0),
-      level: Number(result.level ?? 1),
-      rank: String(result.rank ?? 'BRONZE'),
-      transactionId: String(result.transactionId),
-    });
-    return { ok: true, amount: Number(result.amount), snapshot };
+  }): Promise<PromoRedemption> {
+    return WalletPromo.redeemPromoCode(params);
   }
 
-  /**
-   * 06_10 L0: admin-triggered clawback of a promo bonus later identified as fraudulent.
-   * Always human-initiated via the admin promo-codes reverse route — never automatic.
-   * Idempotent per requestId (network retry replays the same answer); the SQL side
-   * (066_promo_reversal_and_expiry.sql) rejects a second reversal of the same redemption.
-   * `shortfall` is the uncollected part when the balance already sits below the redemption
-   * amount (users.balance CHECK (balance >= 0) forbids a negative balance — the shortfall
-   * is reported honestly in ledger metadata + risk-event evidence instead of hidden).
-   */
   static async reversePromoCode(params: {
     actorId: string;
     userId: string;
     code: string;
     requestId: string;
     reason: string;
-  }): Promise<
-    | {
-        ok: true;
-        amount: number;
-        shortfall: number;
-        replayed: boolean;
-        snapshot: WalletSnapshot;
-      }
-    | { ok: false; code: string }
-  > {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase.rpc('reverse_promo_code', {
-      p_actor_id: params.actorId,
-      p_user_id: params.userId,
-      p_code: params.code.trim().toUpperCase(),
-      p_request_id: params.requestId,
-      p_reason: params.reason,
-    });
-    if (error || !data) {
-      CasinoLogger.error('WalletService/reversePromoCode', 'RPC failed', error);
-      throw new Error('Promo reversal RPC failed');
-    }
-    const result = data as {
-      ok: boolean;
-      code?: string;
-      amount?: number;
-      shortfall?: number;
-      balance?: number;
-      xp?: number;
-      level?: number;
-      rank?: string;
-      transactionId?: string;
-      replayed?: boolean;
-    };
-    if (!result.ok) {
-      return { ok: false, code: String(result.code ?? 'REVERSAL_NOT_FOUND') };
-    }
-    const snapshot = walletSnapshotSchema.parse({
-      balance: Number(result.balance),
-      xp: Number(result.xp ?? 0),
-      level: Number(result.level ?? 1),
-      rank: String(result.rank ?? 'BRONZE'),
-      transactionId: String(result.transactionId),
-    });
-    return {
-      ok: true,
-      amount: Number(result.amount),
-      shortfall: Number(result.shortfall ?? 0),
-      replayed: Boolean(result.replayed),
-      snapshot,
-    };
+  }): Promise<PromoReversal> {
+    return WalletPromo.reversePromoCode(params);
   }
 
-  // ── Abschnitt: Gamification & Community ──
-  static async getUserStats(userId: string) {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase.rpc('get_user_stats', { p_user_id: userId });
-    if (error || !data) {
-      // Return safe defaults if RPC is not present or fails
-      CasinoLogger.error('WalletService', 'getUserStats RPC failed', error ?? 'no data returned');
-      return {
-        totalBets: 0,
-        totalWins: 0,
-        totalWagered: 0,
-        totalPayout: 0,
-        totalProfit: 0,
-        winRate: 0,
-        achievements: [],
-        perGame: [],
-      };
-    }
-    const parsed = data as {
-      totalBets: number;
-      totalWins: number;
-      totalWagered: number;
-      totalPayout: number;
-      totalProfit: number;
-      winRate: number;
-      achievements: Array<{ id: string; unlocked: boolean; progress: number }>;
-      perGame?: Array<{
-        game: string;
-        bets: number;
-        wins: number;
-        wagered: number;
-        payout: number;
-        profit: number;
-        winRate: number;
-      }>;
-    };
-    // perGame is absent until migration 018 is rolled out on the target DB —
-    // default to an empty array so callers never destructure undefined.
-    return { ...parsed, perGame: parsed.perGame ?? [] };
+  // ── Abschnitt: Gamification & Community → wallet-gamification.ts (03c-W3 L4) ──
+  static async getUserStats(userId: string): Promise<UserStats> {
+    return WalletGamification.getUserStats(userId);
   }
 
   static async syncAchievement(params: {
@@ -582,167 +400,46 @@ export class WalletService {
     achievementId: string;
     progress: number;
     unlocked: boolean;
-  }) {
-    const supabase = createAdminClient();
-    const { error } = await supabase.rpc('sync_user_achievement', {
-      p_user_id: params.userId,
-      p_achievement_id: params.achievementId,
-      p_progress: params.progress,
-      p_unlocked: params.unlocked,
-    });
-    if (error) {
-      CasinoLogger.error('WalletService', 'Failed to sync achievement to server', error);
-    }
+  }): Promise<void> {
+    return WalletGamification.syncAchievement(params);
   }
 
-  // ── Abschnitt: Provably-Fair Seeds — Verwaltung & Historie ──
-  static async getUserSeeds(userId: string) {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase.rpc('get_or_create_user_seed', {
-      p_user_id: userId,
-    });
-    if (error || !data) {
-      CasinoLogger.error('WalletService', 'getUserSeeds RPC failed', error ?? 'no data returned');
-      return {
-        clientSeed: 'vibe-coder-default',
-        serverSeedHash: '',
-        nonce: 0,
-      };
-    }
-    return data as { clientSeed: string; serverSeedHash: string; nonce: number };
+  // ── Abschnitt: Provably-Fair Seeds — Verwaltung & Historie → wallet-seeds.ts (03c-W3 L3) ──
+  static async getUserSeeds(userId: string): Promise<UserSeedChain> {
+    return WalletSeeds.getUserSeeds(userId);
   }
 
-  static async rotateUserSeed(params: { userId: string; clientSeed: string }) {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase.rpc('rotate_user_seed', {
-      p_user_id: params.userId,
-      p_client_seed: params.clientSeed,
-    });
-    if (error || !data) {
-      throw new Error('Failed to rotate seed');
-    }
-    return data as {
-      clientSeed: string;
-      serverSeedHash: string;
-      nonce: number;
-      revealedSeed: string | null;
-      revealedSeedHash: string | null;
-    };
+  static async rotateUserSeed(params: {
+    userId: string;
+    clientSeed: string;
+  }): Promise<RotatedSeed> {
+    return WalletSeeds.rotateUserSeed(params);
   }
 
-  static async getSeedHistory(userId: string) {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase
-      .from('seed_history')
-      .select('server_seed, server_seed_hash, client_seed, nonce_at_rotation, rotated_at')
-      .eq('user_id', userId)
-      .order('rotated_at', { ascending: false })
-      .limit(50);
-    if (error) throw new Error('Failed to load seed history');
-    return (data ?? []).map((row) => ({
-      serverSeed: row.server_seed as string,
-      serverSeedHash: row.server_seed_hash as string,
-      clientSeed: row.client_seed as string,
-      nonceAtRotation: Number(row.nonce_at_rotation),
-      rotatedAt: row.rotated_at as string,
-    }));
+  static async getSeedHistory(userId: string): Promise<SeedHistoryEntry[]> {
+    return WalletSeeds.getSeedHistory(userId);
   }
 
-  // ── Abschnitt: Social & Chat ──
+  // ── Abschnitt: Social & Chat → wallet-social.ts (03c-W3 L2) ──
   static async getChatMessages(limit = 50) {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase.rpc('get_recent_chat_messages', {
-      p_limit: limit,
-    });
-    if (error || !data) {
-      return [];
-    }
-    return data as Array<{
-      id: string;
-      user: string;
-      rank: string;
-      message: string;
-      time: string;
-      isSystem?: boolean;
-      isWin?: boolean;
-    }>;
+    return WalletSocial.getChatMessages(limit);
   }
 
   static async postChatMessage(params: { userId: string; message: string }) {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase.rpc('post_chat_message', {
-      p_user_id: params.userId,
-      p_message: params.message,
-    });
-    if (error || !data) {
-      throw new Error('Failed to post chat message');
-    }
-    return data as {
-      id: string;
-      user: string;
-      rank: string;
-      message: string;
-      time: string;
-      isSystem?: boolean;
-      isWin?: boolean;
-    };
+    return WalletSocial.postChatMessage(params);
   }
 
   static async getCommunityStats() {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase.rpc('get_community_stats');
-    if (error || !data) {
-      return {
-        communityWagered: 0,
-        communityGoal: 25000.0,
-        communityGoalReached: false,
-      };
-    }
-    return data as {
-      communityWagered: number;
-      communityGoal: number;
-      communityGoalReached: boolean;
-    };
+    return WalletSocial.getCommunityStats();
   }
 
-  /**
-   * Progressive jackpot pool read (worldmap/01_LiveProgressiveJackpot.md, L4).
-   * Narrow field allowlist enforced server-side by get_jackpot_pool_public() —
-   * last_winner_id, contribution_rate, win_probability and seed_amount never
-   * leave the database. Falls back to a safe zero, never a fabricated amount.
-   */
+  // Jackpot-Pool + Daily-Race-Standings → wallet-gamification.ts (03c-W3 L4)
   static async getJackpotPool(): Promise<{ currentAmount: number; lastWonAt: string | null }> {
-    const supabase = createAdminClient();
-    const { data, error } = await supabase.rpc('get_jackpot_pool_public');
-    if (error || !data) {
-      return { currentAmount: 0, lastWonAt: null };
-    }
-    return data as { currentAmount: number; lastWonAt: string | null };
+    return WalletGamification.getJackpotPool();
   }
 
-  /**
-   * Daily race standings read (worldmap/05_DAILY_TOURNAMENT.md, L4). Live aggregation via
-   * get_daily_race_standings() — never a fabricated placeholder. Falls back to an empty
-   * standings list on any DB/shape error, never a partial or guessed ranking; the countdown
-   * is always computed regardless of DB availability, since it's a pure UTC clock derivation.
-   */
   static async getDailyRaceStandings(): Promise<DailyRaceSnapshot> {
-    const secondsUntilResetUtc = secondsUntilNextUtcMidnight();
-    const supabase = createAdminClient();
-    const { data, error } = await supabase.rpc('get_daily_race_standings');
-    if (error || !Array.isArray(data)) {
-      return { standings: [], secondsUntilResetUtc };
-    }
-    const parsed = z.array(dailyRaceStandingSchema).safeParse(data);
-    if (!parsed.success) {
-      CasinoLogger.warn(
-        'WalletService',
-        'Invalid daily race standings shape from RPC',
-        parsed.error,
-      );
-      return { standings: [], secondsUntilResetUtc };
-    }
-    return { standings: parsed.data, secondsUntilResetUtc };
+    return WalletGamification.getDailyRaceStandings();
   }
 
   /**
@@ -805,12 +502,6 @@ export class WalletService {
     };
   }
 
-  /**
-   * Emits a big_win_notify outbox event (4.3, worldmap/12_EVENT_BUS_BIG_WIN_CONSUMER.md) — the
-   * durable, retried counterpart to directly calling tasks.trigger('big-win-notify', ...). Called
-   * from notifyBigWinIfEligible() after its local eligibility check, never from a settlement RPC.
-   * Idempotent over (userId, requestId): a retried settlement never double-queues a notification.
-   */
   static async emitBigWinNotifyEvent(params: {
     userId: string;
     requestId: string;
@@ -818,15 +509,7 @@ export class WalletService {
     payout: number;
     multiplier: number;
   }): Promise<void> {
-    const supabase = createAdminClient();
-    const { error } = await supabase.rpc('emit_big_win_notify_event', {
-      p_user_id: params.userId,
-      p_request_id: params.requestId,
-      p_game: params.game,
-      p_payout: params.payout,
-      p_multiplier: params.multiplier,
-    });
-    if (error) throw new Error('Failed to emit big-win notify event');
+    return WalletGamification.emitBigWinNotifyEvent(params);
   }
 
   /**
@@ -878,3 +561,9 @@ export class WalletService {
     }));
   }
 }
+
+// 03c-W3 L1 Contract-Guard: TypeScript prüft `implements` nur auf der Instanz-Seite, nicht auf
+// `static` — diese Zuweisung ist der Ersatz. Sie erzwingt per `npm run typecheck`, dass die
+// Fassade weiterhin alle 26 Verfahren der 7 Domänen-Verträge anbietet; ein verlorenes Verfahren
+// oder eine gedriftete Signatur wird damit zum Build-Fehler statt zum Laufzeitfehler im Endpunkt.
+export const walletServiceContract: WalletServiceContract = WalletService;
