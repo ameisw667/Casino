@@ -1,6 +1,6 @@
 # 🪙 Royale Guide — Dein persönlicher Überblick
 
-> **Nur für dich, Jan.** Keine Technik, keine Dateipfade, keine Testzahlen im Detail — nur: _wo stehen wir, was kann das Ding, und was kommt noch?_ Gedacht zum schnellen Reinschauen und Erinnern, nicht zum Nachschlagen von Details (dafür gibt's die Roadmap in [`10_llm_erweiterung.md`](10_llm_erweiterung.md) und den UI/UX-Audit in [`11_royale_guide_frontend_design_evaluation.md`](11_royale_guide_frontend_design_evaluation.md)).
+> **Nur für dich, Jan.** Keine Technik, keine Dateipfade, keine Testzahlen im Detail — nur: _wo stehen wir, was kann das Ding, und was kommt noch?_ Gedacht zum schnellen Reinschauen und Erinnern, nicht zum Nachschlagen von Details (dafür gibt's die Roadmap in [`10_llm_erweiterung.md`](../../../../docs/archive/ai_agents/Z_LLM/10_llm_erweiterung.md) und den UI/UX-Audit in [`11_royale_guide_frontend_design_evaluation.md`](11_royale_guide_frontend_design_evaluation.md)).
 
 ---
 
@@ -100,7 +100,7 @@ Das ist deine eigene Ideensammlung aus der Roadmap — sortiert danach, **ob es 
 | 🕸️ **Wissensnetz statt Textsuche**         | Der Bot merkt sich Regeln nicht als Text, sondern als Landkarte mit Verbindungen zwischen Begriffen.                                           | 🎉 Beeindruckend zu lernen, aber für dieses Projekt Overkill.                                                             |
 | 📞 **Echtes Live-Telefonat**               | Du sprichst ganz ohne Pausen mit dem Bot, kannst ihn mitten im Satz unterbrechen.                                                              | 🎉 Sehr ambitioniert und riskant — bevor das kommt, sollte die schon vorhandene Sprachfunktion erst richtig geprüft sein. |
 
-**Kurz gesagt:** Stufe R ist durch — Top 10 % erreicht. Keine der übrigen fünf Ideen hebt das Niveau weiter an, sie sind reine Breite/Portfolio. Für den nächsten echten Sprung (Top 5 %) siehe [`10_llm_erweiterung.md`](10_llm_erweiterung.md) Abschnitt 5.
+**Kurz gesagt:** Stufe R ist durch — Top 10 % erreicht. Keine der übrigen fünf Ideen hebt das Niveau weiter an, sie sind reine Breite/Portfolio. Für den nächsten echten Sprung (Top 5 %) siehe [`10_llm_erweiterung.md`](../../../../docs/archive/ai_agents/Z_LLM/10_llm_erweiterung.md) Abschnitt 5.
 
 ---
 
@@ -121,7 +121,7 @@ Nicht weil vorher etwas kaputt war — **alles lief schon davor, alle Tests ware
 - **Richtung Top 5 % (nächster Schritt):** Automatische "Angriffstests" fest einbauen, ein Kostenlimit mit echter Notbremse, mindestens einen kompletten End-to-End-Test, und die ganz neuen Persönlichkeiten (Stufe P) noch nachträglich durch denselben Sicherheits-Check schicken.
 - **Richtung Top 1 % (wie dein Login-System):** Alles Wissen in einem sauberen Gesamtdokument bündeln (aktuell über viele kleine Dateien verstreut), Datenbank-Zugriffsrechte extra geprüft.
 
-> Vollständige, technische Version dieser Liste steht in [`10_llm_erweiterung.md`](10_llm_erweiterung.md) Abschnitt 5.
+> Vollständige, technische Version dieser Liste steht in [`10_llm_erweiterung.md`](../../../../docs/archive/ai_agents/Z_LLM/10_llm_erweiterung.md) Abschnitt 5.
 
 ---
 

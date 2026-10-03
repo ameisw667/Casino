@@ -4,7 +4,7 @@
 > **Status:** 🥈 **Top 11–30 % (Gesamt-Score: 88,6 % / 100 % — Solide Luxus-Basis mit gezielten Detail-Baustellen vor Top 10 %)**  
 > **Geltungsbereich:** **Ausschließlich Frontend-Design, UI/UX, Motion-Physik, Typografie & Design-System-Treue** des Royale Guides. (Backend-Logik, RAG, API-Routen, pgvector und Tool-Calling-Server-Logik sind strikt _out of scope_).  
 > **Referenz-Standards:** [`xx_sop/04_design_system_ui.md`](../../../../xx_sop/04_design_system_ui.md) („Obsidian & Gold“), [`xx_sop/10_workflow_frontend_revamp.md`](../../../../xx_sop/10_workflow_frontend_revamp.md), [`xx_sop/12_workflow_dokument_qualitaet.md`](../../../../xx_sop/12_workflow_dokument_qualitaet.md).  
-> **Master-Übersicht:** [`Z_LLM/00_LLM.md`](00_LLM.md) · **Roadmap-Kontext:** [`Z_LLM/10_llm_erweiterung.md`](10_llm_erweiterung.md).
+> **Master-Übersicht:** [`Z_LLM/00_LLM.md`](00_LLM.md) · **Roadmap-Kontext:** [`Z_LLM/10_llm_erweiterung.md`](../../../../docs/archive/ai_agents/Z_LLM/10_llm_erweiterung.md).
 
 ---
 

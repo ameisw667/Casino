@@ -2,6 +2,7 @@
 
 > **Status:** 🟢 Executed, uncommitted — globaler Skill gebaut und kontrollierter A/B-Vergleich nach §11 durchgeführt; beide objektiven Gleichauf-oder-besser-Signale erfüllt · **Stand:** 2026-09-23 · **Owner:** Planung = LLM, Freigabe/Richtung = Jan · **Commit:** keiner ohne Jans explizite Freigabe
 > **Anlass:** In einer einzigen Session hat Jan viermal denselben Ablauf manuell angestoßen (Punkte 1.34, 1.31, 1.24, 1.32 aus `worldmap/05_ZUKUNFTSPLANUNG.md`): einen offenen Roadmap-Punkt benennen → LLM verifiziert den echten aktuellen Stand gegen mehrere teils widersprüchliche Dateien → LLM liefert ausschließlich einen vollständig kontextualisierten Prompt für eine neue LLM-Konversation. Jan möchte diesen Ablauf global als Skill verfügbar haben, gespeist aus rohem Voice-Dictat (Wispr Flow), nicht aus manuell formuliertem Text.
+> **Verbindliche Nutzung:** [`xx_sop/24_workflow_prompt_jan_handoff.md`](../../../../../xx_sop/24_workflow_prompt_jan_handoff.md) (Stand 2026-09-30).
 > **Referenzrahmen:** [`13_skill_worldclass_creation.md`](13_skill_worldclass_creation.md) (Prüffrage-Format), [`15_skill_planung_design_system.md`](15_skill_planung_design_system.md) (Struktur-Vorbild dieser Datei).
 
 ---
