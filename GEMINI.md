@@ -138,3 +138,4 @@ Vor dem Ausführen strukturierter Aufgaben liest das LLM die entsprechende SOP v
 | **Workflow-Jan Execution**       | [`xx_sop/02_workflow_jan_execution.md`](xx_sop/02_workflow_jan_execution.md)             | Bei Aufgaben-Umsetzung & 5-Stufen-Selbstprüfung.                                         |
 | **Workflow-Jan Planungsdateien** | [`xx_sop/03_workflow_jan_planungsdateien.md`](xx_sop/03_workflow_jan_planungsdateien.md) | Vor dem Anlegen/Pflegen von Meilenstein-Dateien in `worldmap/`.                          |
 | **Workflow-Jan Frontend-Revamp** | [`xx_sop/10_workflow_frontend_revamp.md`](xx_sop/10_workflow_frontend_revamp.md)         | Bei UI/UX-Umbauten, Screenshots oder Redesigns (3-Optionen-Design-Schema & URL-Abnahme). |
+| **Bildgenerierung & Inpainting** | [`xx_sop/21_image_creation_openai.md`](xx_sop/21_image_creation_openai.md)               | Bei DALL-E Generierung, Inpainting/Masking, Alpha-Freistellung & Asset-Governance.       |

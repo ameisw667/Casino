@@ -2,7 +2,7 @@
 name: jan-planner
 description: >-
   Universeller Workflow zur Erstellung von strukturierten, konversationsunabhängigen Planungsdateien
-  (Dekomposition max. 10 Subkategorien, Top 1%-100%, 100% LLM-Zuständigkeit, Self-Contained Kontext-Koffer).
+  (Dekomposition max. 10 Subkategorien, belegte Befunde, 100% LLM-Zuständigkeit, Self-Contained Kontext-Koffer).
 ---
 
 # Jan Planer (Planungsdateien)
@@ -16,20 +16,15 @@ description: >-
 Vor dem Schreiben von Meilensteinen analysiert das Modell das Thema in maximal 10 Subkategorien:
 
 1. **Maximal 10 Subkategorien:** Fokus wahren, keine künstliche Aufblähung.
-2. **Belegte Einstufung (Top 1 % bis 100 %):**
-   - **Top 1–10 % (Weltklasse):** Automatisiert getestet, Kernpfade 100 % abgedeckt, 0 Blocker, Fail-Closed.
-   - **Top 11–30 % (Solide):** Funktioniert vollständig, keine Security-Lücken, dokumentierte Restlücken.
-   - **Top 31–50 % (Schulden):** Läuft, aber fehlende Edge-Case-Tests, Redundanzen, manuelle Eingriffe nötig.
-   - **Top 51–75 % (Eingeschränkt):** Feature existiert, ungetestete Pfade oder fehleranfälliges Fallback.
-   - **Top 76–100 % (Kritisch):** Weicht vom Soll-Verhalten ab, blockiert Sicherheit oder Build.
+2. **Belegter Befund statt Prozent-Einstufung:** Jede Subkategorie nennt einen Messwert oder `Datei:Zeile` (z. B. Testabdeckung der Kernpfade, offene Edge Cases, Security-Lücken, manuelle Eingriffe, fehleranfälliges Fallback). Keine Top-X-%-Skala.
 3. **Bottleneck-Isolation:** Alle Punkte mit **🔴 JA** werden zu primären Meilensteinen.
 
 ```markdown
-### Assessment: <Kategorie-Name> (Status Quo: Top X %)
+### Assessment: <Kategorie-Name>
 
-| #   | Subkategorie | Niveau    | Befund & Beleg (Datei / Test) | Bottleneck?  | Action Item |
-| --- | ------------ | --------- | ----------------------------- | ------------ | ----------- |
-| 01  | ...          | Top ... % | ...                           | Nein / 🔴 JA | ...         |
+| #   | Subkategorie | Messwert | Befund & Beleg (Datei / Test) | Bottleneck?  | Action Item |
+| --- | ------------ | -------- | ----------------------------- | ------------ | ----------- |
+| 01  | ...          | ...      | ...                           | Nein / 🔴 JA | ...         |
 ```
 
 ---

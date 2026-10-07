@@ -63,3 +63,15 @@ flowchart LR
      - Kernaussage & Status
      - Ausgeführte Meilensteine
      - Nachweis der 5-Stufen-Prüfung (reale Befehlsergebnisse)
+
+---
+
+## 5 — Output & Klärung (Melde-Konvention)
+
+1. **Antworten beginnen mit Kernaussage, Entscheidung oder Status.** Risiken und offene Punkte werden nicht der Kürzung geopfert.
+2. **Fakten, Annahmen und Schlussfolgerungen trennen; Unsicherheit kennzeichnen.**
+3. **Reversible, risikoarme Detailentscheidungen im Auftrag-Scope selbst treffen und die Annahme nennen** (z. B. Seed-Wahl, Wildcard-Auflösung). Fragen nur bei Personentreue-, Lizenz- oder Scope-Entscheidungen.
+4. **Self-Verify vor Melden (3 Pflichten):**
+   - visuelle Prüfung der Outputs (keine Erfolgsmeldung ohne eigenen Blick auf das Ergebnis)
+   - quantitative QC-Messwerte (projektspezifisch definiert, z. B. SOP im Projekt)
+   - console.log / Exit-Code-Check
